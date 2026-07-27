@@ -33,39 +33,28 @@
       (フォルダ自体はGoogle Drive側が同期処理中でロックしており即座には削除できなかった。
       実害なし。Drive の同期が落ち着いてから手動で削除してよい)
 
-## 3. Git初期化(移行先で)
+## 3. Git初期化(移行先で) — 完了
 
-- [ ] `git init`
-- [ ] `.gitignore` を作成する。最低限含めるもの:
-      ```
-      rcp_capture.jsonl
-      mock_stdout.log
-      __pycache__/
-      *.pyc
-      .claude/settings.local.json
-      ```
-- [ ] `git add -A` → `git status` で内容を確認する
-      (ログファイルや個人設定が誤って混ざっていないか目視チェック)
-- [ ] 初回コミットを作成する
-- [ ] (任意・推奨)GitHub 等にリモートリポジトリを作成し、
-      `git remote add origin <URL>` → `git push -u origin main`
-      これにより「クラウド同期」の代わりに「リモートリポジトリへの push」がバックアップ手段になる
+- [x] `git init` 実行済み
+- [x] `.gitignore` 作成済み(内容は当初案通り)
+- [x] `git add -A` → `git status` で内容確認済み(ログ・個人設定の混入なし)
+- [x] 初回コミット作成済み(コミットハッシュ `0aecc80`)
+- [x] GitHubにプライベートリポジトリを作成しpush済み
+      → https://github.com/ntakao2006-web/RaceCapture
+      (GitHub CLI (`gh`) をインストールし、個人メールで作成していた既存アカウント
+      `ntakao2006-web` で認証。学校メールのアカウントは今回使わず据え置き)
 
 ## 4. 動作確認(移行先で) — 一部完了・残タスクあり
 
-- [ ] **【次の1手】** 新しい Claude Code セッションを移行先ディレクトリ
-      (`C:\Users\ntaka\Documents\ClaudeCode\RaceCapture`)で開始する
-      (このチャットセッションは `G:\マイドライブ\RaceCapture` に紐づいたままで、
-      `cd` しても内部的には元のパスに戻ってしまうことを確認済み。ファイル移動自体は
-      完了しているので、以降の作業は新しいセッションに引き継ぐ必要がある)
+- [x] 新しい Claude Code セッションを移行先ディレクトリ
+      (`C:\Users\ntaka\Documents\ClaudeCode\RaceCapture`)で開始済み(このセッション)
 - [x] `rcp_mock_device.py` が新しい場所からでも問題なく起動することを確認済み
       (旧セッションからPowerShell経由で起動→即停止して確認。実際の作業再開時は
       改めて `python rcp_mock_device.py --port COM4 --baud 115200` で起動すること)
-- [ ] 公式 RaceCapture アプリを起動し、以前と同様にテレメトリーが表示されることを確認する
-      (手順・既知のハマりどころは `HANDOFF.md` を参照。com0com の `COM3`/`COM4` ペア設定は
-      OS側の設定なのでファイルの移行に関わらずそのまま使えるはず。**未検証**)
-- [ ] `git log` / `git status` が正常に動作し、ロックエラー等が出ないことを確認する
-      (§3のgit initが未実施のため、その後に確認する)
+- [x] 公式 RaceCapture アプリを起動し、以前と同様にテレメトリーが表示されることを確認済み
+      (COM3/COM4ペア健在、`rcp_mock_device.py`をCOM4で起動→公式アプリがCOM3経由で
+      接続し、テレメトリー表示を確認)
+- [x] `git log` / `git status` が正常に動作し、ロックエラー等が出ないことを確認済み(問題なし)
 
 ## 5. 後片付け
 
