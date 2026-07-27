@@ -1,0 +1,5 @@
+rcp_capture.jsonl
+mock_stdout.log
+__pycache__/
+*.pyc
+.claude/settings.local.json
