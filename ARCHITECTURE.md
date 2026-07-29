@@ -109,6 +109,7 @@
 - ✅ シミュレーション環境で疑似シリアル接続確立、RaceCapture Appはポート認識済み
 - ✅ **RCP送信フォーマット確定・実機アプリでのテレメトリー表示に成功**：行末は`\r\n`ではなく`\r`のみ、コマンド値は`{}`ではなく`null`。接続確立には`getVer`/`getCapabilities`/`getLapCfg`/`getTrackCfg`/`getCanCfg`/`getObd2Cfg`/`getConnCfg`への応答が必須（`capabilities`のチャンネル数を0にすると条件付き追加コマンドを回避できる）。加えて公式アプリ自身に「一度接続失敗したCOMポートのハンドルをリークし続ける」バグがあり、アプリの完全再起動でしか回復しない。詳細・全プロトコル仕様は`HANDOFF.md`参照。`rcp_mock_device.py`は対応済みの最終版。
 - ✅ **0-8完了：センサーキャリブレーション設定(`getAnalogCfg`/`setAnalogCfg`)を`rcp_mock_device.py`に実装し、公式アプリとの読み書き疎通を確認済み**（5点マップ`map.raw`/`map.scal`＋線形式`scaling`/`offset`等）。Write操作には`setAnalogCfg`応答に加えて`flashCfg`コマンドへの応答（NVSコミット相当）も必須と判明、これがないとアプリ側が`Timeout waiting for 'flashCfg'`でエラーになる。また実機ファームウェアの`API_SUCCESS`は`0`ではなく`1`と判明（`reference/RaceCapture-Pro_firmware/include/api/api.h`）。詳細は`archive/task_phase0_breakdown.md`参照。
+- ✅ **Phase1-7完了：センサーキャリブレーション設定をESP32実機（Seeed XIAO ESP32C3, COM5）へ実装し、公式アプリとの読み書き往復を確認済み**。`firmware/src/main.cpp`に`getAnalogCfg`/`setAnalogCfg`（RAM保存）、`flashCfg`受信時のNVS書き込み（`nvs_set_blob`/`nvs_get_blob`でチャンネル設定構造体をそのまま保存）を実装し、リセット後もNVSから値が復元されることを確認。副産物として、公式アプリのWrite操作はタブに関わらず`setLapCfg`等の他カテゴリのset系コマンドも一括送信することが判明し、未実装だと`Timeout waiting for 'setLapCfg'`でWrite全体がエラーになる不具合を発見。既存の空応答`getLapCfg`/`getTrackCfg`/`getCanCfg`/`getObd2Cfg`/`getConnCfg`と対になる`setLapCfg`/`setTrackCfg`/`setCanCfg`/`setObd2Cfg`/`setConnCfg`スタブを追加して解消。最終的に公式アプリのAnalog Sensors画面から較正値を設定・Write・再読み込みする一連の流れが実機で動作することをユーザー確認済み。詳細は`task_phase1_breakdown.md`参照。
 
 ### 開発環境について
 - ✅ **作業フォルダをGoogle Driveからローカルドライブへ移動完了**：`G:\マイドライブ\RaceCapture` → `C:\Users\ntaka\Documents\ClaudeCode\RaceCapture`。肥大化していたログ(`rcp_capture.jsonl`等)は削除済み（内容は`HANDOFF.md`に転記済み）。
@@ -197,7 +198,7 @@
 - [ ] 1-4 **ESP32-S3への切り替え**：USB OTG・ピン配置・処理性能の実機検証（C3との差分洗い出し）
 - [ ] 1-5 GPS・IMUモジュール調達後、実センサ値でのタスクA検証
 - [x] 1-6 スマホ版RaceCaptureアプリとのUSB OTG通信検証（詳細は`task_phase1_breakdown.md`参照）→ C3では不可能と判明、1-4のS3移行が必須という結論を得た
-- [ ] 1-7 センサーキャリブレーション設定コマンド（0-8でPC検証済みのロジック）をESP32実装へ移植し、ダミー値でNVS等への保存・公式アプリとの読み書き往復を実機確認する → 詳細は`task_phase1_breakdown.md`参照
+- [x] 1-7 センサーキャリブレーション設定コマンド（0-8でPC検証済みのロジック）をESP32実装へ移植し、ダミー値でNVS等への保存・公式アプリとの読み書き往復を実機確認する → 完了（詳細は`task_phase1_breakdown.md`参照）
 
 ### Phase 2：CAN通信 & 車両データ取得
 - [ ] 2-1 CANトランシーバ（SN65HVD230等）調達・回路実装

@@ -1,0 +1,18 @@
+# printf/ESP_LOGの出力先をUART0のみに限定する。
+# ネイティブUSB(USB Serial/JTAG)はRaceCaptureアプリとのJSON会話専用の
+# クリーンなチャンネルとして使うため、デバッグログを混ぜない
+# (混ざるとアプリ側のJSON行パーサがデバッグ文字列を解釈できずに壊れる)。
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+CONFIG_ESP_CONSOLE_UART_NUM=0
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+
+# 手持ちの実機(Seeed Studio XIAO ESP32C3)はフラッシュ2MB
+# (../ 直下のfirmwareプロジェクトのsdkconfigと同じ設定に合わせる)
+CONFIG_ESPTOOLPY_FLASHSIZE_2MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="2MB"
+
+# app起動前のブートローダー自体のログも、ネイティブUSB経由のリセット直後には
+# ネイティブUSBポートに漏れて出てくる(app側のCONSOLE設定より前の段階のため)。
+# RaceCaptureアプリとの初回応答にログ文字列が混入しないよう完全に無効化する。
+CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
