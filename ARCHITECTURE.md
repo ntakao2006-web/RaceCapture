@@ -108,6 +108,7 @@
 - ✅ `rcp_mock_device.py` 実装済み（getVer/getMeta/getStatus/sへの応答、自動ストリーミングまでテスト済み）
 - ✅ シミュレーション環境で疑似シリアル接続確立、RaceCapture Appはポート認識済み
 - ✅ **RCP送信フォーマット確定・実機アプリでのテレメトリー表示に成功**：行末は`\r\n`ではなく`\r`のみ、コマンド値は`{}`ではなく`null`。接続確立には`getVer`/`getCapabilities`/`getLapCfg`/`getTrackCfg`/`getCanCfg`/`getObd2Cfg`/`getConnCfg`への応答が必須（`capabilities`のチャンネル数を0にすると条件付き追加コマンドを回避できる）。加えて公式アプリ自身に「一度接続失敗したCOMポートのハンドルをリークし続ける」バグがあり、アプリの完全再起動でしか回復しない。詳細・全プロトコル仕様は`HANDOFF.md`参照。`rcp_mock_device.py`は対応済みの最終版。
+- ✅ **0-8完了：センサーキャリブレーション設定(`getAnalogCfg`/`setAnalogCfg`)を`rcp_mock_device.py`に実装し、公式アプリとの読み書き疎通を確認済み**（5点マップ`map.raw`/`map.scal`＋線形式`scaling`/`offset`等）。Write操作には`setAnalogCfg`応答に加えて`flashCfg`コマンドへの応答（NVSコミット相当）も必須と判明、これがないとアプリ側が`Timeout waiting for 'flashCfg'`でエラーになる。また実機ファームウェアの`API_SUCCESS`は`0`ではなく`1`と判明（`reference/RaceCapture-Pro_firmware/include/api/api.h`）。詳細は`archive/task_phase0_breakdown.md`参照。
 
 ### 開発環境について
 - ✅ **作業フォルダをGoogle Driveからローカルドライブへ移動完了**：`G:\マイドライブ\RaceCapture` → `C:\Users\ntaka\Documents\ClaudeCode\RaceCapture`。肥大化していたログ(`rcp_capture.jsonl`等)は削除済み（内容は`HANDOFF.md`に転記済み）。
@@ -178,7 +179,7 @@
 ## 5. 開発ロードマップ（詳細版）
 
 ### Phase 0：プロトコル・ソフトウェア基盤検証（実機非依存・シミュレーション環境）
-> 残タスク0-8の詳細な作業ログ・引き継ぎメモは`task_phase0_breakdown.md`参照。
+> 0-8の詳細な作業ログは`archive/task_phase0_breakdown.md`参照。Phase 0は全タスク完了。
 - [x] 0-1 RCP JSONプロトコル仕様確定
 - [x] 0-2 モックデバイス実装（`rcp_mock_device.py`）
 - [x] 0-3 疑似シリアル接続確立、App側でポート認識
@@ -186,7 +187,7 @@
 - [x] 0-5 `getMeta` → `s` ストリーム送信 → ダッシュボード表示確認（実機アプリでテレメトリー表示・数値更新まで確認済み）
 - [ ] 0-6 実機のRaceCaptureロガー（所有していれば）に対し、同じ手順を1コマンドずつ試して比較
 - [x] 0-7 作業フォルダのローカルドライブ移行を完走（`git init`・GitHubへのpush・公式アプリでの動作再確認まで全て完了）
-- [ ] 0-8 センサーキャリブレーション設定コマンド（`getAnalogCfg`/`setAnalogCfg`。`reference/RaceCapture-Pro_firmware`で仕様確認済み、5点マップ`map.raw`/`map.scal`＋線形式`scaling`/`offset`/`cal`等）を`rcp_mock_device.py`に実装し、PC上のみ（ハードウェア不要）で公式アプリとの読み書き疎通を確認する
+- [x] 0-8 センサーキャリブレーション設定コマンド（`getAnalogCfg`/`setAnalogCfg`。`reference/RaceCapture-Pro_firmware`で仕様確認済み、5点マップ`map.raw`/`map.scal`＋線形式`scaling`/`offset`/`cal`等）を`rcp_mock_device.py`に実装し、PC上のみ（ハードウェア不要）で公式アプリとの読み書き疎通を確認する → 完了（`flashCfg`応答の追加実装、`API_SUCCESS`定数の修正含む。詳細は`archive/task_phase0_breakdown.md`参照）
 
 ### Phase 1：卓上動作検証（プロトタイプ）
 > 詳細なサブタスク分解は `task_phase1_breakdown.md` 参照。以下は粒度が粗いため、実作業はそちらの単位で進める。
