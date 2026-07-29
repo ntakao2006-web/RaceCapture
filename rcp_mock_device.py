@@ -88,15 +88,21 @@ def make_ver_response():
     }
 
 
+ANALOG_CHANNEL_COUNT = 1  # 0-8: getAnalogCfg/setAnalogCfg疎通確認用に1chだけ有効化
+# reference/RaceCapture-Pro_firmware の include/api/api.h より (0ではなく1が成功)
+API_SUCCESS = 1
+
+
 def make_capabilities_response():
     # チャンネル数やtracksを0以外にすると has_analog/has_gpio/has_pwm/has_timer/
     # has_can_channel/trackDb等の条件分岐が真になり、対応するgetXCfgコマンドが
-    # 追加で要求されてしまう。最小限の接続シーケンスにするため全て0にする。
+    # 追加で要求されてしまう。0-8でanalogのみ疎通確認するため analog だけ非0にし、
+    # 他は最小限の接続シーケンスのまま全て0にする。
     return {
         "capabilities": {
             "flags": [],
             "channels": {
-                "analog": 0,
+                "analog": ANALOG_CHANNEL_COUNT,
                 "imu": 0,
                 "gpio": 0,
                 "timer": 0,
@@ -108,6 +114,28 @@ def make_capabilities_response():
             "sampleRates": {"gps": 50, "sensor": 1000},
             "db": {"tracks": 0, "sectors": 0},
         }
+    }
+
+
+def make_default_analog_cfg(index: int):
+    """reference/RaceCapture-Pro_firmware の test/json_api_files/*AnalogCfg*.json
+    で確認した実機フィールド構成に合わせたデフォルト値。"""
+    return {
+        "nm": f"Analog{index}",
+        "ut": "Volts",
+        "min": 0.0,
+        "max": 5.0,
+        "sr": 10,
+        "prec": 2,
+        "scalMod": 0,
+        "scaling": 1.0,
+        "offset": 0.0,
+        "alpha": 0.0,
+        "cal": 0.0,
+        "map": {
+            "raw": [0, 1.25, 2.5, 3.75, 5],
+            "scal": [0, 1.25, 2.5, 3.75, 5],
+        },
     }
 
 
@@ -137,6 +165,8 @@ class MockRcpDevice:
         self.tick = 0
         self.streaming = False
         self._stop = threading.Event()
+        # setAnalogCfgで書き込まれた値をgetAnalogCfgで読み返せるよう保持する
+        self.analog_cfg = {i: make_default_analog_cfg(i) for i in range(ANALOG_CHANNEL_COUNT)}
 
     # -- 送信ヘルパ ---------------------------------------------------
     def send(self, obj: dict):
@@ -166,6 +196,14 @@ class MockRcpDevice:
             self.send({"obd2Cfg": {}})
         elif "getConnCfg" in obj:
             self.send({"connCfg": {}})
+        elif "getAnalogCfg" in obj:
+            self.handle_get_analog_cfg(obj.get("getAnalogCfg"))
+        elif "setAnalogCfg" in obj:
+            self.handle_set_analog_cfg(obj.get("setAnalogCfg"))
+        elif "flashCfg" in obj:
+            # Writeボタン押下後、アプリが設定確定(NVSコミット相当)のため送ってくる。
+            # 応答がないと "Timeout waiting for 'flashCfg'" でWriteがエラー扱いになる。
+            self.send({"flashCfg": {"rc": API_SUCCESS}})
         elif "s" in obj:
             # 単発のサンプル要求。meta:1 が指定されていればメタ同梱。
             want_meta = False
@@ -180,6 +218,40 @@ class MockRcpDevice:
             # 未知のコマンド: 内容をログに残すだけで、通信は継続する。
             # これがまさに「アプリが最低限何を要求してくるか」を洗い出す部分。
             print(f"[!] 未知のコマンド: {obj}")
+
+    # -- センサーキャリブレーション設定 (0-8) -----------------------------
+    def handle_get_analog_cfg(self, index):
+        """index が None (JSONの null) なら全chをまとめて返す。実機の
+        getAnalogCfg3.json相当。int指定ならそのchのみ (getAnalogCfg1/2.json相当)。"""
+        if index is None:
+            indices = list(self.analog_cfg.keys())
+        else:
+            indices = [int(index)]
+        result = {}
+        for i in indices:
+            cfg = self.analog_cfg.get(i)
+            if cfg is not None:
+                result[str(i)] = cfg
+        self.send({"analogCfg": result})
+
+    def handle_set_analog_cfg(self, payload):
+        """payload: {"<index>": {フィールドの部分更新}, ...}
+        実機同様、送られてきたフィールドだけを既存設定にマージして保存する。"""
+        if isinstance(payload, dict):
+            for idx_str, fields in payload.items():
+                try:
+                    idx = int(idx_str)
+                except (TypeError, ValueError):
+                    continue
+                if idx not in self.analog_cfg or not isinstance(fields, dict):
+                    continue
+                cfg = self.analog_cfg[idx]
+                for key, value in fields.items():
+                    if key == "map" and isinstance(value, dict):
+                        cfg["map"].update(value)
+                    else:
+                        cfg[key] = value
+        self.send({"setAnalogCfg": {"rc": API_SUCCESS}})
 
     # -- サンプルストリーミング -----------------------------------------
     def sample_values(self):
