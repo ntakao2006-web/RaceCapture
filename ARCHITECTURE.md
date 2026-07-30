@@ -212,6 +212,10 @@
 - ✅ **Phase 5（ラップタイム・予測タイム計算の実装）は5-6（実GPS・実トラック検証、Phase1-5のGPS調達待ちで保留）を除き全て完了**。
 - ✅ **5-7完了：ベストラップ統計(`g_bestLapSamples`)のNVS永続化（ビルド確認済み）**。7章「未解決事項」の「ラップ統計・予測タイマーの永続化要否」に対応。AnalogCfg/TrackCfgと同じ`nvs_set_blob`/`nvs_get_blob`パターンで実装したが、`kMaxLapSamples`(2048要素、最大16KB)全体を保存するとNVSパーティション(24KB)を圧迫するため、実際に使用中の`g_bestLapSampleCount`分のみ可変長で保存する設計にした。保存タイミングは`flashCfg`ではなく、ベストラップが自動更新される`lapRecorderUpdate()`内とした。実機での電源再投入後のベストラップ保持確認は次回実機検証時の課題。
 
+### Phase1-5：IMU(LSM6DSV16X)ドライバ実装の進捗
+- ✅ **1-5-1完了：LSM6DSV16X用I2Cドライバを実装（配線前、ビルド確認済み）**。`firmware/src/main.cpp`に、秋月電子の動作確認用Arduinoサンプル(`other/check_AE-LSM6DSV16X_extracted/`)のレジスタマップ・初期化シーケンス(CTRL1=0b00001001/CTRL2=0b00001001/CTRL6=0b00000100/CTRL8=0b10000010)・スケール係数(ジャイロ0.07dps/LSB・加速度0.000244g/LSB)を踏襲した`imuInit()`/`imuReadSensor()`をESP-IDF新I2Cマスタードライバ(`driver/i2c_master.h`)で実装した。`imuInit()`は0x6A/0x6Bへの順次プローブ→WHO_AM_I確認(期待値0x70)→初期化レジスタ書き込みの順で行い、失敗時は`false`を返す。I2Cピン(SDA/SCL)は配線未確定のためSDMMC使用中GPIOと衝突しない値を暫定選定(S3: GPIO2/GPIO1、C3: GPIO6/GPIO7)し、1-5-3の実配線時に変更可能なようコメントで明記した。`driver/i2c_master.h`はC3/S3共通でincludeし、`CMakeLists.txt`のREQUIRES変更なしで`esp32-c3-proto`/`esp32-s3`両環境のクリーンビルド成功を確認した（既存のUSB Serial/JTAGドライバと同様、driverコンポーネントは明示REQUIRESなしで解決される）。
+- ✅ **1-5-2完了：IMUデータをtaskA/CSVログ/RCPプロトコルへ統合（配線前、ビルド確認済み）**。`SensorLogRecord`のaccelX/Y/Z・gyroX/Y/Zフィールド(1-2-2で追加済み)へのダミー値代入を、taskA内で1-5-1の`imuReadSensor()`実読み取りに置き換えた。最新IMU値はファイルスコープの`g_imuAccelX`等6変数で保持し(既存の`g_trackCfg`等と同様の非排他パターン)、taskC(RCPストリーム)からも参照する。配線が無い/通信失敗の間は`g_imuAvailable`(`app_main`起動時の`imuInit()`戻り値)がfalseのままとなり、taskAは実読み取りをスキップして直近値(未接続時の初期値はZ軸1Gの静止姿勢相当)を送り続けるフォールバックとした。`kDummyChannels`/`kLapChannels`と同様の`kImuChannels`配列(AccelX/Y/Z・GyroX/Y/Zの6ch)を追加し`rcpSendMeta()`/`rcpSendSample()`に統合(ビットマスクを15ch→21chに拡張)。AccelXのnm/ut/min/max/prec/srは`reference/RaceCapture-Pro_firmware`の実機応答例(`getMeta_response.json`)に合わせたが、同ファームウェアはジャイロ生値ではなくYaw/Pitch/Roll(要姿勢推定)を送る仕様と判明。本プロジェクトは姿勢推定を実装しない方針のため、GyroX/Y/Zとして生の角速度を送る独自チャンネル(min/max=±2000dpsはCTRL2設定のフルスケールに整合)とした。両ビルド環境でクリーンビルド成功を確認。実機配線・動作確認は1-5-3で対応予定。
+
 ---
 
 ## 5. 開発ロードマップ（詳細版）

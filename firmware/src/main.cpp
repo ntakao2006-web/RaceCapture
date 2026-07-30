@@ -32,6 +32,13 @@
 #include "driver/usb_serial_jtag.h"
 #endif
 
+// 1-5-1: IMU(秋月AE-LSM6DSV16X、LSM6DSV16Xチップ)用I2Cドライバに使う、
+// ESP-IDFネイティブの新I2Cマスタードライバ。C3/S3共通(SDMMCと異なりC3でも
+// I2Cペリフェラルは使えるため、S3限定にしない)。GPIO_NUM_*定数用にdriver/gpio.hも
+// 併せてincludeする(S3側は既にsdmmc用でincludeしているが、C3側は未includeのため)。
+#include "driver/gpio.h"
+#include "driver/i2c_master.h"
+
 extern "C" {
 #include "minmea.h"
 }
@@ -95,6 +102,156 @@ struct SensorLogRecord {
     float waterTempC;
     float oilPressKpa;
 };
+
+// 1-5-1: IMU(秋月AE-LSM6DSV16X、LSM6DSV16Xチップ)用ドライバ。ESP-IDFネイティブの
+// 新I2Cマスタードライバ(driver/i2c_master.h)で実装する。レジスタマップ・初期化ビット
+// パターン・スケール係数は秋月電子の動作確認用Arduinoサンプル
+// (other/check_AE-LSM6DSV16X_extracted/check_AE-LSM6DSV16X/check_AE-LSM6DSV16X.ino)の
+// 実測値をそのまま踏襲する。配線・実機は1-5-3で対応するため、本タスクではビルド確認までとし、
+// I2C通信が失敗する間は呼び出し側(taskA、1-5-2)がフォールバックできるよう戻り値で成否を返す。
+static const char *kImuTag = "imu";
+
+// 基板のJ2/J3ジャンパ設定でアドレスが変わるため、起動時に両方へ順にプローブする
+constexpr uint8_t kImuAddrGnd = 0x6A; // J3(「6A」刻印近く)側を短絡した場合
+constexpr uint8_t kImuAddrVcc = 0x6B; // J2(「6B」刻印近く)側を短絡した場合
+constexpr uint8_t kImuProbeAddrs[] = {kImuAddrGnd, kImuAddrVcc};
+
+constexpr uint8_t kImuRegWhoAmI = 0x0F;
+constexpr uint8_t kImuRegCtrl1 = 0x10;
+constexpr uint8_t kImuRegCtrl2 = 0x11;
+constexpr uint8_t kImuRegCtrl6 = 0x15;
+constexpr uint8_t kImuRegCtrl8 = 0x17;
+constexpr uint8_t kImuRegOutXLG = 0x22;
+constexpr uint8_t kImuWhoAmIExpected = 0x70;
+
+// スケール係数(Arduinoサンプル実測値。CTRL6=0b00000100/CTRL8=0b10000010の設定に対応)
+constexpr float kImuGyroScaleDpsPerLsb = 0.07f;
+constexpr float kImuAccelScaleGPerLsb = 0.000244f;
+
+// 配線は1-5-3で確定するため、ここではSDMMC(S3: GPIO9-14使用中、4章「SDカード
+// インターフェースの設計方針」参照)と衝突しない空きGPIOを暫定値として選定。
+// 1-5-3の実配線時に配線しやすいピンへ変更してよい。
+#if CONFIG_IDF_TARGET_ESP32S3
+constexpr gpio_num_t kImuSdaPin = GPIO_NUM_2;
+constexpr gpio_num_t kImuSclPin = GPIO_NUM_1;
+#else
+// Seeed XIAO ESP32C3のQwiicコネクタ標準ピン
+constexpr gpio_num_t kImuSdaPin = GPIO_NUM_6;
+constexpr gpio_num_t kImuSclPin = GPIO_NUM_7;
+#endif
+
+static i2c_master_bus_handle_t g_imuI2cBus = nullptr;
+static i2c_master_dev_handle_t g_imuI2cDev = nullptr;
+static bool g_imuAvailable = false;
+
+static bool imuWriteReg(uint8_t reg, uint8_t val)
+{
+    uint8_t buf[2] = {reg, val};
+    return i2c_master_transmit(g_imuI2cDev, buf, sizeof(buf), pdMS_TO_TICKS(100)) == ESP_OK;
+}
+
+static bool imuReadRegs(uint8_t startReg, uint8_t *buf, size_t len)
+{
+    return i2c_master_transmit_receive(g_imuI2cDev, &startReg, 1, buf, len, pdMS_TO_TICKS(100)) == ESP_OK;
+}
+
+// I2Cバス初期化・0x6A/0x6Bへの順次プローブ・WHO_AM_I確認・初期化レジスタ書き込みを行う。
+// 配線が無い間は必ずプローブ失敗でfalseを返し、taskA側は直近値保持のフォールバックへ回る。
+static bool imuInit()
+{
+    i2c_master_bus_config_t busConfig = {};
+    busConfig.i2c_port = I2C_NUM_0;
+    busConfig.sda_io_num = kImuSdaPin;
+    busConfig.scl_io_num = kImuSclPin;
+    busConfig.clk_source = I2C_CLK_SRC_DEFAULT;
+    busConfig.glitch_ignore_cnt = 7;
+    busConfig.flags.enable_internal_pullup = true;
+
+    esp_err_t err = i2c_new_master_bus(&busConfig, &g_imuI2cBus);
+    if (err != ESP_OK) {
+        ESP_LOGW(kImuTag, "i2c_new_master_bus failed: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    uint8_t foundAddr = 0;
+    for (uint8_t addr : kImuProbeAddrs) {
+        if (i2c_master_probe(g_imuI2cBus, addr, pdMS_TO_TICKS(50)) == ESP_OK) {
+            foundAddr = addr;
+            break;
+        }
+    }
+    if (foundAddr == 0) {
+        ESP_LOGW(kImuTag, "LSM6DSV16X not found on I2C bus (checked 0x%02X/0x%02X, SDA=%d/SCL=%d)",
+                 kImuAddrGnd, kImuAddrVcc, static_cast<int>(kImuSdaPin), static_cast<int>(kImuSclPin));
+        i2c_del_master_bus(g_imuI2cBus);
+        g_imuI2cBus = nullptr;
+        return false;
+    }
+
+    i2c_device_config_t devConfig = {};
+    devConfig.dev_addr_length = I2C_ADDR_BIT_LEN_7;
+    devConfig.device_address = foundAddr;
+    devConfig.scl_speed_hz = 400000;
+
+    err = i2c_master_bus_add_device(g_imuI2cBus, &devConfig, &g_imuI2cDev);
+    if (err != ESP_OK) {
+        ESP_LOGW(kImuTag, "i2c_master_bus_add_device failed: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    uint8_t who = 0;
+    if (!imuReadRegs(kImuRegWhoAmI, &who, 1) || who != kImuWhoAmIExpected) {
+        ESP_LOGW(kImuTag, "WHO_AM_I mismatch: got 0x%02X, expected 0x%02X", who, kImuWhoAmIExpected);
+        return false;
+    }
+
+    bool ok = imuWriteReg(kImuRegCtrl1, 0b00001001)
+              && imuWriteReg(kImuRegCtrl2, 0b00001001)
+              && imuWriteReg(kImuRegCtrl6, 0b00000100)
+              && imuWriteReg(kImuRegCtrl8, 0b10000010);
+    if (!ok) {
+        ESP_LOGW(kImuTag, "init register write failed");
+        return false;
+    }
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    ESP_LOGI(kImuTag, "LSM6DSV16X initialized (addr=0x%02X, SDA=%d, SCL=%d)",
+             foundAddr, static_cast<int>(kImuSdaPin), static_cast<int>(kImuSclPin));
+    return true;
+}
+
+// OUTX_L_Gから12バイト一括読み取り(ジャイロ3軸+加速度3軸、リトルエンディアン16bit)、
+// スケール変換して物理量(dps/G)で返す。読み取り失敗時はfalseを返し、呼び出し側(taskA)は
+// 直近値を保持する。
+static bool imuReadSensor(float *gx, float *gy, float *gz, float *ax, float *ay, float *az)
+{
+    uint8_t buf[12];
+    if (!imuReadRegs(kImuRegOutXLG, buf, sizeof(buf))) {
+        return false;
+    }
+    int16_t raw[6];
+    for (int i = 0; i < 6; i++) {
+        raw[i] = static_cast<int16_t>((buf[i * 2 + 1] << 8) | buf[i * 2]);
+    }
+    *gx = raw[0] * kImuGyroScaleDpsPerLsb;
+    *gy = raw[1] * kImuGyroScaleDpsPerLsb;
+    *gz = raw[2] * kImuGyroScaleDpsPerLsb;
+    *ax = raw[3] * kImuAccelScaleGPerLsb;
+    *ay = raw[4] * kImuAccelScaleGPerLsb;
+    *az = raw[5] * kImuAccelScaleGPerLsb;
+    return true;
+}
+
+// 1-5-2: taskAで更新される最新IMU値。taskC(RCPストリーム、rcpSendSample)からも
+// 参照するためファイルスコープに保持する(既存のg_trackCfg等と同様、taskA/taskC間の
+// 排他制御は行わない、既存踏襲)。配線が無い/通信失敗の間は直近値を保持し続け、
+// 初期値は静止・水平置き相当(Z軸のみ1G)とする。
+static float g_imuAccelX = 0.0f;
+static float g_imuAccelY = 0.0f;
+static float g_imuAccelZ = 1.0f;
+static float g_imuGyroX = 0.0f;
+static float g_imuGyroY = 0.0f;
+static float g_imuGyroZ = 0.0f;
 
 // 1-2-2: タスクA→タスクB間のリングバッファ本体。FreeRTOSキューで実装する
 // (1-1-2/1-1-3の既存キューと実装方式を揃える)。
@@ -241,12 +398,26 @@ static void taskA(void *pvParameters)
         lapRecorderUpdate(rec.lat, rec.lon, t, crossedStartFinish, lapCompleted, lapTimeSec);
 
         rec.speedKph = static_cast<float>(60 + 40 * sin(t / 5));
-        rec.accelX = static_cast<float>(0.1 * sin(t * 2));
-        rec.accelY = static_cast<float>(0.1 * cos(t * 2));
-        rec.accelZ = 1.0f;
-        rec.gyroX = static_cast<float>(0.05 * sin(t * 3));
-        rec.gyroY = static_cast<float>(0.05 * cos(t * 3));
-        rec.gyroZ = static_cast<float>(0.05 * sin(t * 1.5));
+
+        // 1-5-2: IMUダミー値(sin波)を実読み取りに置き換え。配線がまだ無い/通信失敗の間は
+        // g_imuAccel*/g_imuGyro*の直近値(未接続時は初期値のZ軸1G)を保持し続けるフォールバック。
+        if (g_imuAvailable) {
+            float gx, gy, gz, ax, ay, az;
+            if (imuReadSensor(&gx, &gy, &gz, &ax, &ay, &az)) {
+                g_imuAccelX = ax;
+                g_imuAccelY = ay;
+                g_imuAccelZ = az;
+                g_imuGyroX = gx;
+                g_imuGyroY = gy;
+                g_imuGyroZ = gz;
+            }
+        }
+        rec.accelX = g_imuAccelX;
+        rec.accelY = g_imuAccelY;
+        rec.accelZ = g_imuAccelZ;
+        rec.gyroX = g_imuGyroX;
+        rec.gyroY = g_imuGyroY;
+        rec.gyroZ = g_imuGyroZ;
         rec.rpm = static_cast<float>(3000 + 2000 * sin(t / 3));
         rec.waterTempC = static_cast<float>(82 + 5 * sin(t / 7));
         rec.oilPressKpa = static_cast<float>(280 + 30 * sin(t / 4));
@@ -1244,9 +1415,26 @@ static const RcpChannelMeta kLapChannels[] = {
     {"SessionTime", "Min", 0, 0, 4, 10},
 };
 
+// 1-5-2: IMU(LSM6DSV16X)6軸分のチャンネル定義。Accel*は`reference/RaceCapture-Pro_firmware`
+// の実機応答例(test/json_api_files/getMeta_response.json)のnm/ut/min/max/prec/srをそのまま
+// 採用。公式ファームウェアはジャイロ生値ではなくYaw/Pitch/Roll(姿勢角、要姿勢推定)を送る仕様
+// だが、本プロジェクトは姿勢推定を実装しない方針のため、task_phase1_breakdown.md 1-5-2の
+// 設計通りGyroX/Y/Zとして生の角速度をそのまま送る(公式互換ではなく独自チャンネル)。
+// min/maxはLSM6DSV16Xの初期化設定(CTRL2=0b00001001)で選択したジャイロフルスケール
+// (±2000dps)を踏まえた値。
+static const RcpChannelMeta kImuChannels[] = {
+    {"AccelX", "G",   -3,    3,    2, 25},
+    {"AccelY", "G",   -3,    3,    2, 25},
+    {"AccelZ", "G",   -3,    3,    2, 25},
+    {"GyroX",  "dps", -2000, 2000, 1, 25},
+    {"GyroY",  "dps", -2000, 2000, 1, 25},
+    {"GyroZ",  "dps", -2000, 2000, 1, 25},
+};
+
 // 1-3-5: `{"meta":[{"nm":..,"ut":..,"min":..,"max":..,"prec":..,"sr":..}, ...]}`応答。
 // アプリ側は一度受け取るとキャッシュするため、以後の再送は不要(HANDOFF.md参照)。
-// 5-5-1でkLapChannels(ラップタイム・予測タイム関連)を追加送出するようになった。
+// 5-5-1でkLapChannels(ラップタイム・予測タイム関連)、1-5-2でkImuChannels(IMU6軸)を
+// 追加送出するようになった。
 static void rcpSendMeta()
 {
     JsonDocument doc;
@@ -1261,6 +1449,15 @@ static void rcpSendMeta()
         obj["sr"] = ch.sr;
     }
     for (const auto &ch : kLapChannels) {
+        JsonObject obj = meta.add<JsonObject>();
+        obj["nm"] = ch.nm;
+        obj["ut"] = ch.ut;
+        obj["min"] = ch.min;
+        obj["max"] = ch.max;
+        obj["prec"] = ch.prec;
+        obj["sr"] = ch.sr;
+    }
+    for (const auto &ch : kImuChannels) {
         JsonObject obj = meta.add<JsonObject>();
         obj["nm"] = ch.nm;
         obj["ut"] = ch.ut;
@@ -1335,7 +1532,17 @@ static void rcpSendSample()
     d.add(roundToPrec(g_currentLapDistanceM * kMilesPerMeter, 4));    // Distance (mi)
     d.add(roundToPrec(t / 60.0, 4));                                  // SessionTime (Min)
 
-    d.add((1 << 15) - 1); // bitmask: kDummyChannels(6ch)+kLapChannels(9ch)全15chとも有効
+    // 1-5-2: taskAで更新される最新IMU値(g_imuAccel*/g_imuGyro*)をkImuChannels(6ch)分追加。
+    // 配線が無い/通信失敗の間はtaskA側のフォールバックにより直近値(未接続時は初期値の
+    // Z軸1G)がそのまま送られる。
+    d.add(roundToPrec(g_imuAccelX, 2));                               // AccelX (G)
+    d.add(roundToPrec(g_imuAccelY, 2));                               // AccelY (G)
+    d.add(roundToPrec(g_imuAccelZ, 2));                               // AccelZ (G)
+    d.add(roundToPrec(g_imuGyroX, 1));                                // GyroX (dps)
+    d.add(roundToPrec(g_imuGyroY, 1));                                // GyroY (dps)
+    d.add(roundToPrec(g_imuGyroZ, 1));                                // GyroZ (dps)
+
+    d.add((1 << 21) - 1); // bitmask: kDummyChannels(6ch)+kLapChannels(9ch)+kImuChannels(6ch)全21chとも有効
     rcpSendJsonLine(doc);
     tick++;
 }
@@ -1674,6 +1881,13 @@ extern "C" void app_main(void)
     connCfgLoadFromNvs();
     // ベストラップ統計もNVS保存済みの値があれば復元する(g_bestLapSampleCount==0のままなら未確定)。
     bestLapLoadFromNvs();
+
+    // 1-5-1/1-5-2: IMU(LSM6DSV16X)初期化。配線・実機は1-5-3で対応するため、現時点では
+    // 配線が無くプローブ失敗しても構わない(g_imuAvailable=falseのままtaskAがフォールバックする)。
+    g_imuAvailable = imuInit();
+    if (!g_imuAvailable) {
+        ESP_LOGW(kImuTag, "IMU not available, taskA will keep using fallback values");
+    }
 
     // ArduinoJsonがArduino本体なしでビルド・動作することの確認用スタブ
     JsonDocument doc;
