@@ -310,3 +310,8 @@ static const RcpChannelMeta kLapChannels[] = {
 
 ## 5-6: 実GPS・実トラックでの検証 ※保留（Phase1-5のGPSモジュール調達待ち）
 GPS/IMUモジュール未調達のため、現時点では分解しない。Phase1-5（GPS・IMUモジュール調達後の実センサ値検証）完了後、実車・実トラックでの検証手順として改めて分解する。
+
+---
+
+## 5-7: ベストラップ統計のNVS永続化 ※追加ハードウェア不要、今すぐ着手可
+- [x] 5-7-1: `g_bestLapSamples`（ベストラップの距離→経過時間対応表）をNVSへ永続化する ※7章「未解決事項」の「ラップ統計・予測タイマーの永続化要否」への対応。AnalogCfg(1-7-2)/TrackCfg(5-2-2)と同じ`nvs_set_blob`/`nvs_get_blob`パターンで`bestLapLoadFromNvs`/`bestLapSaveToNvs`を`firmware/src/main.cpp`に実装した。`kMaxLapSamples`(2048要素、最大16KB)を丸ごと保存するとNVSパーティション(デフォルト`partitions_singleapp.csv`で24KB)を圧迫するため、実際に使用中の`g_bestLapSampleCount`分だけを可変長で保存する設計にした。保存タイミングはAnalogCfg/TrackCfgと異なり`flashCfg`(Writeボタン)ではなく、ベストラップはユーザーが明示的に設定する値ではなく走行中に自動更新される記録であるため、`lapRecorderUpdate()`内でベストラップが更新された瞬間に自動保存するようにした。`esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功を確認（実機での電源再投入後のベストラップ保持確認は未実施、次回実機検証時の課題として残す）。

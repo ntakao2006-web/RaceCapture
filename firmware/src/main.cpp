@@ -790,6 +790,60 @@ static LapDistanceSample g_bestLapSamples[kMaxLapSamples];
 static size_t g_bestLapSampleCount = 0;
 static double g_bestLapTimeSec = -1.0; // 未確定時-1
 
+// ベストラップ統計のNVS永続化。電源断でg_bestLapSamplesが消えると再起動直後は
+// 毎回ベストラップ未確定の状態に戻り、予測タイム(PredTime)がしばらく機能しない
+// ため、AnalogCfg(1-7-2)/TrackCfg(5-2-2)と同じnvs_set_blob/nvs_get_blobパターン
+// で永続化する。g_bestLapSamples全体(kMaxLapSamples=2048要素、最大16KB)を丸ごと
+// 保存するとNVSパーティション(デフォルトpartitions_singleapp.csvで24KB)を圧迫する
+// ため、実際に使用中のg_bestLapSampleCount分だけを可変長で保存する。
+// 保存タイミングはAnalogCfg/TrackCfgと異なりflashCfg(Writeボタン)ではなく、
+// ベストラップが更新された瞬間(lapRecorderUpdate内)に自動保存する。ベストラップは
+// ユーザーが明示的に設定する値ではなく走行中に自動更新される記録のため、Write操作
+// を待たずに確定した時点で保存するのが自然と判断した。
+static const char *kBestLapNvsNamespace = "bestlap";
+static const char *kBestLapSamplesNvsKey = "samples";
+static const char *kBestLapTimeNvsKey = "time";
+
+static void bestLapLoadFromNvs()
+{
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(kBestLapNvsNamespace, NVS_READONLY, &handle);
+    if (err != ESP_OK) {
+        // 初回起動等でnamespace未作成の場合はベストラップ未確定のまま(デフォルト値)
+        return;
+    }
+    size_t required = sizeof(g_bestLapSamples);
+    esp_err_t rerr = nvs_get_blob(handle, kBestLapSamplesNvsKey, g_bestLapSamples, &required);
+    if (rerr == ESP_OK && required > 0 && (required % sizeof(LapDistanceSample)) == 0) {
+        g_bestLapSampleCount = required / sizeof(LapDistanceSample);
+        double savedTime = -1.0;
+        size_t timeSize = sizeof(savedTime);
+        if (nvs_get_blob(handle, kBestLapTimeNvsKey, &savedTime, &timeSize) == ESP_OK
+            && timeSize == sizeof(savedTime)) {
+            g_bestLapTimeSec = savedTime;
+        }
+    }
+    nvs_close(handle);
+}
+
+static void bestLapSaveToNvs()
+{
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(kBestLapNvsNamespace, NVS_READWRITE, &handle);
+    if (err != ESP_OK) {
+        ESP_LOGW(kRcpTag, "nvs_open (RW) failed: %s", esp_err_to_name(err));
+        return;
+    }
+    nvs_set_blob(handle, kBestLapSamplesNvsKey, g_bestLapSamples,
+                 g_bestLapSampleCount * sizeof(LapDistanceSample));
+    nvs_set_blob(handle, kBestLapTimeNvsKey, &g_bestLapTimeSec, sizeof(g_bestLapTimeSec));
+    esp_err_t cerr = nvs_commit(handle);
+    if (cerr != ESP_OK) {
+        ESP_LOGW(kRcpTag, "nvs_commit failed: %s", esp_err_to_name(cerr));
+    }
+    nvs_close(handle);
+}
+
 // 2点間の距離(m)を、緯度経度差からの平面近似(equirectangular近似)で求める。
 // simTrackGetPosition()と同じ考え方(緯度1度=111000m、経度1度は緯度でcos補正)だが、
 // 実GPS軌跡は基準点を持たないため、2点の中間緯度でcos補正するその場計算にしている。
@@ -867,6 +921,7 @@ static void lapRecorderUpdate(double lat, double lon, double elapsedSec,
                    sizeof(LapDistanceSample) * g_currentLapSampleCount);
             g_bestLapSampleCount = g_currentLapSampleCount;
             g_bestLapTimeSec = lapTimeSec;
+            bestLapSaveToNvs();
             printf("[lapRecorder] new best lap: %.3f s (%u samples)\n",
                    lapTimeSec, static_cast<unsigned>(g_bestLapSampleCount));
         }
@@ -1617,6 +1672,8 @@ extern "C" void app_main(void)
     trackCfgLoadFromNvs();
     // 1-4-7: g_connCfgも同様にデフォルト初期化子(空文字列)済みのため、NVS保存済みの値があれば上書きする。
     connCfgLoadFromNvs();
+    // ベストラップ統計もNVS保存済みの値があれば復元する(g_bestLapSampleCount==0のままなら未確定)。
+    bestLapLoadFromNvs();
 
     // ArduinoJsonがArduino本体なしでビルド・動作することの確認用スタブ
     JsonDocument doc;
