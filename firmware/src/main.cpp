@@ -615,6 +615,8 @@ static void rcpHandleSetAnalogCfg(JsonObjectConst payload)
 // 5-2-2: trackCfgSaveToNvsの実体はTrackCfg構造体定義後(下記)にあるため、
 // ここで使う都合上、前方宣言しておく。
 static void trackCfgSaveToNvs();
+// 1-4-7: connCfgSaveToNvsも同様に、ConnCfg構造体定義後(下記)にあるため前方宣言しておく。
+static void connCfgSaveToNvs();
 
 // setAnalogCfg後にWriteボタン相当でアプリが送ってくる。応答がないと公式アプリが
 // "Timeout waiting for 'flashCfg'"でWriteをエラー扱いにする(0-8で実機確認済み)。
@@ -626,6 +628,7 @@ static void rcpSendFlashCfgAck()
 {
     analogCfgSaveToNvs();
     trackCfgSaveToNvs();
+    connCfgSaveToNvs();
 
     JsonDocument doc;
     JsonObject result = doc["flashCfg"].to<JsonObject>();
@@ -999,6 +1002,104 @@ static void rcpHandleSetTrackCfg(JsonObjectConst payload)
     rcpSendJsonLine(doc);
 }
 
+// 1-4-7: getConnCfg/setConnCfgの現状(空応答スタブ)を実データ保持へ変更する構造。
+// 1-4-6で判明した「Podium Connectのストリーミングキーが接続の度に再入力を要求される」
+// 問題への対応。公式ファームウェア(reference/RaceCapture-Pro_firmware/src/logger/loggerApi.c
+// のapi_getConnectivityConfig/api_setConnectivityConfig)ではbtCfg/cellCfg/telCfgの3つに
+// 分かれるが、本プロジェクトはUSB接続のみでBluetooth/Cellularハードウェアを持たないため、
+// bt/cellは常に無効固定とし、telCfg.deviceId(Podiumのストリーミングキーに相当)のみを
+// TrackCfg(5-2-2)と同じnvs_set_blob/nvs_get_blobパターンでNVS永続化する。
+struct ConnCfg {
+    char telemetryDeviceId[64] = "";
+};
+
+static ConnCfg g_connCfg;
+
+static const char *kConnCfgNvsNamespace = "conncfg";
+static const char *kConnCfgNvsKey = "conn0";
+
+static void connCfgLoadFromNvs()
+{
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(kConnCfgNvsNamespace, NVS_READONLY, &handle);
+    if (err != ESP_OK) {
+        // 初回起動等でnamespace未作成の場合は構造体のデフォルト値(空文字列)のまま使う
+        return;
+    }
+    ConnCfg loaded;
+    size_t required = sizeof(loaded);
+    esp_err_t rerr = nvs_get_blob(handle, kConnCfgNvsKey, &loaded, &required);
+    if (rerr == ESP_OK && required == sizeof(loaded)) {
+        g_connCfg = loaded;
+    }
+    nvs_close(handle);
+}
+
+// flashCfg受信時(Writeボタン相当、rcpSendFlashCfgAck参照)に呼ぶ。
+static void connCfgSaveToNvs()
+{
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(kConnCfgNvsNamespace, NVS_READWRITE, &handle);
+    if (err != ESP_OK) {
+        ESP_LOGW(kRcpTag, "nvs_open (RW) failed: %s", esp_err_to_name(err));
+        return;
+    }
+    nvs_set_blob(handle, kConnCfgNvsKey, &g_connCfg, sizeof(g_connCfg));
+    esp_err_t cerr = nvs_commit(handle);
+    if (cerr != ESP_OK) {
+        ESP_LOGW(kRcpTag, "nvs_commit failed: %s", esp_err_to_name(cerr));
+    }
+    nvs_close(handle);
+}
+
+static void rcpSendConnCfg()
+{
+    JsonDocument doc;
+    JsonObject result = doc["connCfg"].to<JsonObject>();
+
+    JsonObject bt = result["btCfg"].to<JsonObject>();
+    bt["btEn"] = 0;
+    bt["name"] = "";
+    bt["pass"] = "";
+
+    JsonObject cell = result["cellCfg"].to<JsonObject>();
+    cell["cellEn"] = 0;
+    cell["apnHost"] = "";
+    cell["apnUser"] = "";
+    cell["apnPass"] = "";
+
+    JsonObject tel = result["telCfg"].to<JsonObject>();
+    tel["bgStream"] = 0;
+    tel["deviceId"] = g_connCfg.telemetryDeviceId;
+    tel["host"] = "";
+
+    rcpSendJsonLine(doc);
+}
+
+// `{"setConnCfg":{"connCfg":{"telCfg":{"deviceId":...}}}}`受信時にg_connCfgへ保存する。
+// setTrackCfg(5-1-3)の実機確認と同じく、公式アプリ(Windows版)が"connCfg"キーで一段
+// ラップして送ってくる可能性を考慮し、ラップの有無どちらでも受理できるようにする。
+static void rcpHandleSetConnCfg(JsonObjectConst payload)
+{
+    if (!payload.isNull()) {
+        JsonObjectConst nested = payload["connCfg"];
+        JsonObjectConst fields = nested.isNull() ? payload : nested;
+
+        JsonObjectConst tel = fields["telCfg"];
+        if (!tel.isNull()) {
+            const char *deviceId = tel["deviceId"];
+            if (deviceId != nullptr) {
+                snprintf(g_connCfg.telemetryDeviceId, sizeof(g_connCfg.telemetryDeviceId),
+                         "%s", deviceId);
+            }
+        }
+    }
+    JsonDocument doc;
+    JsonObject result = doc["setConnCfg"].to<JsonObject>();
+    result["rc"] = kApiSuccess;
+    rcpSendJsonLine(doc);
+}
+
 // 1-3-3: `{"capabilities":{...}}`応答。HANDOFF.md記載の通り、flagsを空リストに
 // し、channels.*とdb.tracks/sectorsを全て0にすることで、has_gps等の条件付き
 // 追加コマンド(getAnalogCfg等)が一切トリガーされないようにする。1-7でanalogのみ
@@ -1184,6 +1285,51 @@ static void rcpSendSample()
     tick++;
 }
 
+// 1-4-8: `{"getStatus":null}`への応答。コマンドディスパッチャに分岐が無く無視されて
+// いたため、公式アプリ(StatusPump)が接続直後から恒常的にタイムアウトし続けていた
+// 不具合(1-4-6副産物2)への対応。JSON構造は公式ファームウェア(reference/RaceCapture-Pro_firmware/
+// src/logger/loggerApi.cのapi_getStatus)に合わせる。cell/bt等ハードウェア非搭載の項目は省略、
+// GPS位置はrcpSendSample同様simTrackGetPosition()のシミュレーション軌跡を使う。
+static void rcpSendStatus()
+{
+    double t = static_cast<double>(esp_timer_get_time()) / 1000000.0;
+    double simLat, simLon;
+    simTrackGetPosition(t, &simLat, &simLon);
+
+    JsonDocument doc;
+    JsonObject status = doc["status"].to<JsonObject>();
+
+    JsonObject system = status["system"].to<JsonObject>();
+    system["model"] = "RCPMK3";
+    system["ver_major"] = 2;
+    system["ver_minor"] = 16;
+    system["ver_bugfix"] = 1;
+    system["uptime"] = static_cast<uint32_t>(t);
+
+    JsonObject gps = status["GPS"].to<JsonObject>();
+    gps["init"] = 1;
+    gps["qual"] = 1;
+    gps["lat"] = roundToPrec(simLat, 6);
+    gps["lon"] = roundToPrec(simLon, 6);
+    gps["sats"] = 8;
+    gps["DOP"] = 1;
+
+    // "記録は絶対に止めない"方針上、taskBのSDロギングは起動直後から常時動作する
+    // 設計のため固定値でよい(taskB側のg_sdMounted変数はtaskC定義より後方のため参照しない)。
+    JsonObject logging = status["logging"].to<JsonObject>();
+    logging["status"] = 1;
+    logging["dur"] = static_cast<uint32_t>(t);
+
+    JsonObject track = status["track"].to<JsonObject>();
+    track["status"] = 1;
+    track["valid"] = true;
+    track["trackId"] = g_trackCfg.trackId;
+    track["inLap"] = (g_lapDetector.lapCount > 0) ? 1 : 0;
+    track["armed"] = 0;
+
+    rcpSendJsonLine(doc);
+}
+
 // 1-3-2: 受信した1メッセージ分のJSON文字列を解釈し、既知のコマンドに応答する。
 static void rcpHandleMessage(const char *line)
 {
@@ -1222,7 +1368,7 @@ static void rcpHandleMessage(const char *line)
     } else if (strcmp(cmdName, "getObd2Cfg") == 0) {
         rcpSendEmptyObjectResponse("obd2Cfg");
     } else if (strcmp(cmdName, "getConnCfg") == 0) {
-        rcpSendEmptyObjectResponse("connCfg");
+        rcpSendConnCfg();
     } else if (strcmp(cmdName, "setLapCfg") == 0) {
         rcpSendSetCfgAck("setLapCfg");
     } else if (strcmp(cmdName, "setTrackCfg") == 0) {
@@ -1232,7 +1378,9 @@ static void rcpHandleMessage(const char *line)
     } else if (strcmp(cmdName, "setObd2Cfg") == 0) {
         rcpSendSetCfgAck("setObd2Cfg");
     } else if (strcmp(cmdName, "setConnCfg") == 0) {
-        rcpSendSetCfgAck("setConnCfg");
+        rcpHandleSetConnCfg(obj["setConnCfg"].as<JsonObjectConst>());
+    } else if (strcmp(cmdName, "getStatus") == 0) {
+        rcpSendStatus();
     } else if (strcmp(cmdName, "getMeta") == 0) {
         rcpSendMeta();
     } else if (strcmp(cmdName, "getAnalogCfg") == 0) {
@@ -1467,6 +1615,8 @@ extern "C" void app_main(void)
     // 5-2-2: g_trackCfgは構造体のデフォルトメンバ初期化子で初期値済みのため、
     // AnalogCfgのようなsetDefault呼び出しは不要。NVSに保存済みの値があれば上書きする。
     trackCfgLoadFromNvs();
+    // 1-4-7: g_connCfgも同様にデフォルト初期化子(空文字列)済みのため、NVS保存済みの値があれば上書きする。
+    connCfgLoadFromNvs();
 
     // ArduinoJsonがArduino本体なしでビルド・動作することの確認用スタブ
     JsonDocument doc;
