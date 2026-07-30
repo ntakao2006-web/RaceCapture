@@ -99,6 +99,8 @@
 > - Nanoは基本的にCANやIMUのI2C/SPI検証用の補助ボードとしては使えますが、最終構成（ESP32-S3中心）には含まれません。
 > - **現段階（Phase 0）は「プロトコル・ロジック検証用」としてC3/Nanoを使うのが妥当。Phase 1後半でS3へ本移植する工程を明示的にロードマップへ組み込む。**
 
+- ✅ **追加部品の調達・型番確定**：SDカードブレイクアウトモジュール(P-1)・高耐久microSDカード(P-2)は到着済み（上記「未調達」リストから更新）。IMUチップは秋月電子AE-LSM6DSV16X基板（LSM6DSV16X、I2C接続）に確定（上記「LSM6DS3 / MPU6050」から更新。詳細は後述「ファームウェア開発環境の構築」項参照）。CANトランシーバはMCP2562FDに型番決定（データシート確認済み。上記「未調達」リストの型番例「SN65HVD230等」から更新）。
+
 ### ソフトウェア・プロトコル解析の進捗
 - ✅ RCP JSONプロトコル解析完了（RaceCapture-Pro_firmwareソース解析済み）
   - 1メッセージ = JSON 1行 + `\r\n` 終端、トップレベルキーでコマンド判別
@@ -134,6 +136,12 @@
 - ✅ ESP32-C3はSDMMCホストペリフェラルを搭載しておらず、SPI（SDSPIドライバ）のみ対応と確認済み（Espressif公式ドキュメントで確認）。そのためPhase1のC3試験段階はSPIモードで実装し、Phase1-4のS3移行時にSDMMCへ切り替える2段階方式とする
 - ✅ 購入予定のmicroSDブレイクアウトモジュール（DAT0-3/CMD/CLK/VDD/VSSの8ピン全て引き出し済みのDIP化キット、3.3V専用）はSPI・SDMMC両方に対応可能と確認済み。同一モジュールをC3試験・S3本番の両方で使い回せるため、型番を分けて調達する必要はない
 - ⏳ 未確認：SDMMCモードで安定動作させるためのCMD/DAT0-3ラインへのプルアップ抵抗（目安10kΩ）の要否・実装。モジュール自体はプルアップ非搭載の素通しタイプのため、配線時に外付けが必要になる可能性が高い
+- ✅ ESP32-S3-DevKitC-1（N16R8・Octal PSRAM搭載）の実機ピンアウト図で確認：GPIO33/34はピンヘッダに存在せず、GPIO35〜38は`SPIIO6`/`SPIIO7`/`SPIDQS`/`FSPIWP`とラベルされOctal PSRAM/Flash用の予備信号線に割り当てられているため、ESP-IDF公式SDMMCサンプルのデフォルトピン(GPIO33/34/35/36/37/38)はこのボードでは使用不可と判明。SDMMCはGPIO matrix経由のため任意GPIOへ再配置可能なので、USB D+/D-・JTAG・UART0・strappingピンと衝突しない組み合わせとして CLK=GPIO12 / CMD=GPIO11 / D0=GPIO13 / D1=GPIO14 / D2=GPIO9 / D3=GPIO10 を配線プランとして採用する
+- ✅ プルアップ抵抗の要否について、ESP-IDF公式ドキュメントで「CLK/CMD/D0〜D3の6ラインすべてに10kΩプルアップが必要（D3は未使用でも必須。無いとカードがSPIモードへ入ってしまう）」と明記されていることを確認。上記「⏳ 未確認」を解決（要否は確定、実装のみ残作業）
+- ✅ 秋月電子SDカードDIP化キット(K-5488)のピン配置を確認：①DAT2 ②CD/DAT3 ③CMD ④VDD ⑤CLK ⑥VSS ⑦DAT0 ⑧DAT1 ⑨⑩カード検出スイッチ（未使用でよい）
+- ✅ **実機配線・動作確認完了**：上記ピン割り当て(CLK=GPIO12/CMD=GPIO11/D0=GPIO13/D1=GPIO14/D2=GPIO9/D3=GPIO10)でESP32-S3-DevKitC-1 N16R8実機(COM7)へ配線し、SDMMC 4bitモード・デフォルトクロック(20MHz)でのマウント・ファイル書き込み・読み込みが正常動作することを確認した（独立検証用の`firmware/sd_card_test/`にて、詳細は`task_phase1_breakdown.md`の1-2-1参照）。プルアップ抵抗は10kΩ×3・4.7kΩ×3の混在構成で問題なし。**重要な知見**：ブレッドボード配線でSDMMC 4bitモードを使う場合、D0-D3が同時にスイッチングするため電源のGNDリターン電流経路が細いとCRCエラー(`ESP_ERR_INVALID_CRC`)が発生しやすい。GND配線を複数本に強化することで解消した
+- ✅ **1-2-4完了：SDログ書き込み(taskB)のflushタイミングを実装し、実機検証済み**。1-2-3時点の「都度flush」を、経過時間ベース(500ms間隔、`esp_timer_get_time()`で計測)のflushへ変更（`firmware/src/main.cpp`）。**実機検証で重要な知見を得た**：ESP-IDFの`fflush()`はCライブラリのバッファをFATFSの`f_write()`まで渡すだけで、ディレクトリエントリ（ファイルサイズ含む）の実ディスクへのコミットは`CONFIG_FATFS_IMMEDIATE_FSYNC`（既定無効）が有効でない限り行われない仕様と判明（`components/fatfs/vfs/vfs_fat.c`）。`fflush()`のみの状態で通電中にSDカードを抜くと`log.csv`が0バイトのまま残ることを実機で確認し、`fsync(fileno(logFile))`（内部で`f_sync()`を呼ぶ）を追加して解消した。ボードの電源を正しく切った状態でSDカードを取り出しPC上で確認したところ、`log.csv`が346行のCSVデータとして正しく記録されていることを確認した。**ESP-IDFのFATFSで電源断保護を狙う場合、`fflush()`だけでは不十分で`fsync()`が必須**という知見は、1-2-5（電源断シミュレーション）以降でも踏まえる必要がある。詳細は`task_phase1_breakdown.md`の1-2-4参照。
+- ✅ **1-2-5完了・1-2フェーズ（SD保存の信頼性検証）全体完了**：通電中のUSBケーブル強制引き抜き（擬似電源断）テストを実機（ESP32-S3-DevKitC-1 N16R8）で複数回実施し、都度SDカードを取り出してPC上で`log.csv`の中身を直接確認した。1-2-4までの`fflush()`+`fsync()`実装により、どのタイミングで電源を切っても直前までのデータは一貫して保全されることを確認した（最悪でも電源断の瞬間に書き込み中だった最後の1行が途中で切れる程度で、それより前のデータが失われることはなかった）。**実機テストで新たに2件の不具合を発見・修正**：①末尾行が改行なしのまま電源断すると、再起動後の単純な追記(`fopen(path,"a")`)で新しいレコードが壊れた行に連結され列数が合わない行になる。②その対策として追記用ハンドル自体(`"a+"`)で末尾1バイトを`fgetc()`確認する実装を試したが、ESP-IDFのFATFS VFS層はO_APPENDフラグが立ったハンドルの読み込み位置も常に末尾へ強制してしまうらしく`fgetc()`が常にEOFを返し、既に改行済みの正常な行にも毎回余計な空行を挿入してしまう不具合を発見。最終的に末尾確認専用の読み込み専用(`"r"`)ハンドルを追記用ハンドルと分離する実装(`firmware/src/main.cpp`のtaskB起動処理)に変更して解消し、複数回の実機電源断テスト（書き込み中の意図的な引き抜きを含む）で余計な空行・行の連結のいずれも発生しないことを確認した。詳細は`task_phase1_breakdown.md`の1-2-5参照。
 
 ### ファームウェア開発環境の構築（確定事項）
 - ✅ 本番機材：**Seeed Studio XIAO ESP32C3**（手持ちの検証機の型番を確定）
@@ -145,6 +153,7 @@
   - `minmea`（NMEA0183パーサ、GPS型番非依存）：`firmware/lib/minmea/`に本体2ファイル（`minmea.c`/`minmea.h`）のみをvendoring。git URL指定だと同梱の`example.c`がESP-IDFの`-Werror`設定でビルド失敗するため、この形を採用
   - FreeRTOS・CAN(TWAI)ドライバ・SD(FATFS)ドライバはESP-IDF本体に標準搭載のため追加ライブラリ不要と確認
 - ⏳ IMU用ライブラリは、採用チップ（LSM6DS3 / MPU6050）が未確定のため未導入
+- ✅ IMUチップを秋月電子AE-LSM6DSV16X基板（LSM6DSV16X、I2C接続）に確定（上記「⏳ 未確定」から更新）。基板のQwiic/STEMMAコネクタからGND/3.3V/SDA/SCLの4線をジャンパー線で取り出し可能なことを確認済み。動作確認用Arduino frameworkサンプル(`other/check_AE-LSM6DSV16X.zip`、解凍済み)を確認したが、本プロジェクトはESP-IDF採用のためそのままでは使えず、移植または`firmware/usb_otg_test`同様の別プロジェクト切り出しが必要。基板上のジャンパ(J1:プルアップ／J2またはJ3:I2Cアドレス0x6Bまたは0x6A選択／J4:CS→GND、I2Cモード選択)のはんだ付け状態は未確認のため、通電前に要確認
 - ✅ ビルド時の既知の落とし穴（今後も遭遇しうるため記録）：C++用フラグ`-fuse-cxa-atexit`が`lib/`内のCファイルにも誤適用される場合があり、`platformio.ini`の`build_unflags`で除外して回避
 - ✅ **Phase 1の作業は`task_phase1_breakdown.md`に「1チャット=1タスク」の粒度でサブタスク分解済み**。以後の作業はこのファイル単位で進める
 
@@ -158,6 +167,14 @@
 - ✅ **Phase1-3の最重要マイルストーン達成**：`firmware/src/main.cpp`（1-3-1〜1-3-3実装のRCP受信タスク）を実機（Seeed XIAO ESP32C3, COM5）へ書き込み、PCの公式RaceCaptureアプリ(Windows版)を起動したところ、`getVer`等の接続必須コマンド群への応答により自動認識・接続完了（Dashboard等のメイン画面まで到達、Firmwareタブのreboot等の実機限定操作が有効化されることを確認）。1-6で使っていた検証用ファームウェア(`firmware/usb_otg_test/`)ではなく、Phase1本開発のファームウェアでの接続完了を確認できた。
 - ✅ **1-3-6完了**：`s`コマンド（公式アプリが接続後に約1Hzでポーリングしてくるサンプル要求）への応答として、`kDummyChannels`（RPM/Speed/WaterTemp/OilPress/Lat/Lon）6ch分のダミーテレメトリ値をsin波で変動させて返す実装を追加。実機（COM5）で公式アプリのダッシュボードに数値が表示・変動することを確認し、Phase0のモック（`rcp_mock_device.py`）で確認できた内容を実機ファームウェアで再現できた。
 - ✅ **1-3-7完了・Phase1-3全体完了**：それまで独立タスクとして動いていたRCP受信・応答処理(`rcpReceiveTask`)を、1-1で作ったタスク構成のタスクC本体へ統合（1-1で作ったhelloTask/queuePushTask/queuePopTask/taskA/taskB/taskCの起動も復活し、1-1-6の優先度設計のまま統合）。実機（COM5）で、他タスクのデバッグログが混在する状況下でもRCP応答が正しく返ることをシリアルレベルで確認し、さらに公式RaceCaptureアプリ(Windows版)でも正常に接続・表示できることをユーザー確認済み。これによりPhase1のうち追加ハードウェア不要な範囲（1-1・1-3・1-6）がすべて完了した。
+
+### ESP32-S3移行の進捗（Phase1-4、USB OTG／TinyUSB CDC化）
+- ✅ **1-4-2完了**：`firmware/src/main.cpp`のUSB送受信部分を`rcpUsbInit`/`rcpUsbWriteBytes`/`rcpUsbReadBytes`に抽象化し、C3はUSB Serial/JTAGのまま、S3はTinyUSB CDC ACM（JTAGを含まないCDC専用ディスクリプタ）を使うよう`#if CONFIG_IDF_TARGET_ESP32S3`で分岐した。RCPメッセージ処理本体は無変更。TinyUSB本体（`espressif/tinyusb`）はESP-IDF Component Manager経由（`firmware/src/idf_component.yml`）で導入し、C3非対応のtargets制約があるため`rules`でS3系のみに限定（C3ビルドは影響なし、Flash/RAM使用量も変更前とほぼ同一と確認済み）。
+- ⚠️ **副産物として重要な不具合を発見**：使用中のespressif32プラットフォーム(7.0.1)は`platformio.ini`の`board_build.esp-idf.custom_sdkconfig`オプションを実装しておらず、書いても静かに無視される。1-4-1で設定したFlash 16MB/Octal PSRAM等の設定も実際には反映されていなかった。対応として、自動生成される`firmware/sdkconfig.esp32-s3`を直接編集してリポジトリにコミットする方式に変更（Flash 16MB・Octal PSRAM・`CONFIG_TINYUSB_CDC_ENABLED=y`を反映）。今後S3向けのKconfig変更は`platformio.ini`ではなくこのsdkconfigファイルを直接編集する必要がある。
+- ✅ `esp32-s3`環境（Flash 25.1%/RAM 6.0%、TinyUSB CDC込み）・`esp32-c3-proto`環境（Flash 20.4%/RAM 3.4%）ともにクリーンビルド成功を確認（実機書き込みは未実施、1-4-3で実施予定）。VID/PID/文字列記述子はTinyUSB既定値のまま。スマホ版アプリでの実際の認識可否は1-4-4で確認する。
+- ✅ **1-4-3完了**：実機（ESP32-S3-DevKitC-1 N16R8、MAC e4:b0:63:b3:69:44）へ書き込み、公式RaceCaptureアプリ(Windows版)で接続・Firmwareタブの実機限定操作（Reboot/Update Firmware/Factory Reset）有効化を確認。ボードはUSBコネクタ1本でUART(CH343、書き込み用)とネイティブUSB(TinyUSB CDC、RCP通信用)が別々のCOMポートとして列挙されるタイプだった。**副産物として、`rcpSendVer()`のバージョン文字列がC3向け固定（`esp32-c3 proto fw`等）のままS3ビルドでも使われ、公式アプリ上でS3実機なのに「ESP32-C3」と表示される不具合を発見・修正**（`#if CONFIG_IDF_TARGET_ESP32S3`でS3用文字列`esp32-s3 proto fw`/`S3PROTO01`/`esp32-s3-proto-build`に分岐、再書き込みして表示が変わることを確認済み）。
+- ✅ **1-4-5完了：SD接続のSDMMC（4bit）化を確認**。当初ロードマップでは「Phase1のC3試験段階はSPI、Phase1-4のS3移行時にSDMMC切り替え」という2段階を想定していたが、実際には1-2フェーズ冒頭のユーザー判断でSPI暫定配線を経由せず最初からS3向けSDMMC配線を先行実装しており（1-2-1〜1-2-5参照）、1-4-5着手時点で`firmware/src/main.cpp`のtaskBは既にSDMMC 4bitモードのみで実装済み・電源断テストまで実機検証済みだったと判明。念のため現行`main.cpp`を実機（ESP32-S3-DevKitC-1 N16R8、MAC e4:b0:63:b3:69:44、COM7）へ再書き込みし、起動ログから`SD mounted at /sdcard`・`SSR: bus_width=4`・`Speed: 20.00 MHz`・`Type: SDHC`でのマウント成功、以降のtaskB継続書き込みが安定動作することを再確認した。プルアップ抵抗を含め追加の実装・配線対応は不要。
+- ✅ **1-4-4完了・Phase1-4全体完了：1-6で断念していたスマホ版公式RaceCaptureアプリとのUSB接続を達成**。実機（ESP32-S3-DevKitC-1 N16R8、COM7=CH343書き込み/COM8=TinyUSB CDC RCP通信）をスマホ（Pixel 9a）へUSB OTG接続したところ、Espressifデフォルトのままの状態（VID`0x303A`/PID`0x4001`）では公式アプリが完全に無反応（エラー表示すらなし）だった一方、Android汎用の「Serial USB Terminal」アプリではCDC ACM接続自体は成立し`{"getVer":null}`への応答も確認できたため、公式アプリ(Android版)がUSBデバイスをVID/PIDでフィルタしている可能性を疑った。`reference/RaceCapture-Pro_firmware`（公式MK3ファームウェア）のUSBディスクリプタ設定を確認したところVID`0x16D0`/PID`0x07F1`固定と判明し、`firmware/sdkconfig.esp32-s3`の`CONFIG_TINYUSB_DESC_CUSTOM_VID`/`CONFIG_TINYUSB_DESC_CUSTOM_PID`を同じ値に変更・再書き込みしたところ、公式アプリが自動的にデバイスを認識・接続し、Podium Connect設定・LiveTelemetry表示まで動作することを確認した。**新たに発見した課題**：1回目接続後にUSBケーブルを一度引き抜き（ESP32側は再起動）、アプリも再起動してから2回目接続したところ、LiveTelemetry画面がフリーズしたような挙動になる事象を確認した。Podium Connect設定は保持されておりデータ自体は更新されている可能性があるが、原因未特定（詳細は7章「未解決事項」参照）。詳細な経緯は`task_phase1_breakdown.md`の1-4-4参照。
 
 ### RaceCaptureエコシステム調査（ラップタイム計算の実装主体、`HANDOFF_ecosystem_research_gap.md`より反映）
 - ✅ Web調査により、公式RaceCaptureエコシステムの役割分担を確認：**ラップタイム・予測ラップタイム・シフトライト制御・CAN/GPIO出力はすべてロガー本体（ファームウェア）側で計算・実行**され、RaceCaptureアプリ（Kivy/Python製）はJSON API経由で受信して**表示するだけ**。アプリ側で予測タイム等を独自計算する仕組みは公式実装には存在しない。
@@ -174,6 +191,22 @@
   - [reference/RaceCapture-Pro_firmware](reference/RaceCapture-Pro_firmware/)：公式ファームウェア本体（`autosportlabs/RaceCapture-Pro_firmware`）。clone成功。
   - `autosportlabs/RaceCapture_App`（公式アプリ本体）は**現在GitHub上で404、削除／非公開化された模様**（Wayback Machineには2018年時点のスナップショットのみ存在）。代わりに非公式フォーク[reference/RaceCapture_App_fork_ryandoherty](reference/RaceCapture_App_fork_ryandoherty/)（`ryandoherty/RaceCapture_App`、2016年最終更新）をclone。**手元の公式アプリ（現行バージョン）とプロトコル仕様が一致するとは限らないため、あくまで「読み解きの手がかり」として扱い、断定的な実装根拠にはしない**。
   - **プロトコル仕様の一次情報源は、あくまで手元の公式アプリ実機を動かしての観測（Wireshark／シリアルログ等）とする**（これまでのRCPプロトコル確定作業と同じ手法、`HANDOFF.md`参照）。リポジトリ参照はその補助・ヒント出しに留める、という優先順位で作業を進める。
+
+### Phase 5：ラップタイム・予測タイム計算の実装状況
+- ✅ **5-1-3完了：`getTrackCfg`/`setTrackCfg`を実データ化し、実機で読み書き往復を確認済み**。`firmware/src/main.cpp`にRAM上の`TrackCfg`構造体（radius/trackId/startFinishLat/startFinishLon）を追加し、`getTrackCfg`は実データ応答、`setTrackCfg`は受信ペイロードをパースしてRAMへ反映するよう変更した（永続化は5-2で保存方式決定後に対応予定、現状はRAM保持のみ）。
+- ⚠️ **実機検証で3件の不具合を発見・修正**：①公式アプリのWrite操作は`setTrackCfg`と同時に`setLapCfg`（9チャンネル分のフルメタデータ）を一括送信するため、RCP受信行バッファ512Bではオーバーフローし後続メッセージまで破損する問題（`kRcpLineBufSize`を512→2048に拡大して解消）。②上記対応でRCP送信処理のスタック使用量が増え、taskCが"stack overflow"でリセットする問題（taskCのスタックサイズを4096→8192に拡大して解消）。③5-1-2で参照した非公式フォーク(`ryandoherty/RaceCapture_App`)のソースと異なり、手元の実機公式アプリ(Windows版)は`setTrackCfg`のペイロードを`{"setTrackCfg":{"trackCfg":{...}}}`と`"trackCfg"`キーでもう一段ラップして送ってくることを実機シリアルログで確認（受信側でこのネストを吸収するよう修正）。**参照リポジトリと実機挙動が食い違う実例であり、「一次情報源は実機観測」の方針の重要性を改めて裏付けた**。詳細は`task_phase5_breakdown.md`の5-1-3参照。
+- ✅ **5-2-1完了：トラック情報の保存先を比較検討し、NVS保存方式を採用**。SDカード上のテーブル形式（案A）はtaskB専用CSVログとのFATFS排他制御が新たに必要になる等のリスクがあるため見送り、AnalogCfg（1-7-2）と同じ`nvs_set_blob`/`nvs_get_blob`パターンを踏襲する案B（NVS保存）を採用した。現在アクティブな1トラック分のみを単一namespace・単一blobとして保存する方針。詳細は`task_phase5_breakdown.md`の5-2-1参照。
+- ✅ **5-2-2完了：TrackCfgのNVS永続化を実装（ビルド確認済み、実機検証は保留）**。`firmware/src/main.cpp`に`trackCfgLoadFromNvs`/`trackCfgSaveToNvs`（namespace`"trackcfg"`・キー`"track0"`）を追加し、起動時読み込み・`flashCfg`受信時（Writeボタン相当）の書き込みをAnalogCfgと同じタイミングで行うようにした。`esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功を確認したが、実機での電源再投入後の値保持確認は5-2-2時点では未実施。詳細は`task_phase5_breakdown.md`の5-2-2参照。
+- ✅ **5-3-1完了：GPSシミュレーション用のコース1周分座標列を実装**。従来`taskA`/`rcpSendSample()`の2箇所に重複していた半径約11mのsin/cos円軌道を、`simTrackGetPosition()`という共通関数に置き換えた。基準点(35.830000, 139.410000)からのオフセットで表した7点のウェイポイント列（1周約1.4km、直線+ゆるいカーブ）を線形補間し、約100km/h一定速度で周回する軌跡を生成する。`esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功、Pythonでの再実装検算により1周後に正しくスタート地点へ戻ることを確認済み。スタート/フィニッシュ座標`g_trackCfg.startFinishLat/Lon`（デフォルト0,0）とは未連動のため、5-3-2（交差判定）着手時に座標を合わせるか運用を判断する必要がある。詳細は`task_phase5_breakdown.md`の5-3-1参照。
+- ✅ **5-3-2完了：スタート/フィニッシュのジオフェンス通過検出（周回検出）アルゴリズムを実装**。GPS移動軌跡を「直近2サンプル間の線分」として扱い、その線分がスタート/フィニッシュのジオフェンス（`g_trackCfg.startFinishLat/Lon`中心・`radius`半径、度単位で公式`GeoPoint.withinCircle`と同じ比較方法）を外側→内側へ横切った瞬間を検出する方式で`lapDetectorUpdate()`を実装した（`firmware/src/main.cpp`、`taskA`から100ms間隔で呼び出し）。線分上でジオフェンス中心に最も近い点のパラメータtで前回/今回のGPS時刻を線形補間し、サンプル間隔より高精度な通過時刻を算出する。あわせて`TrackCfg`の`startFinishLat/Lon`デフォルト値を`(0,0)`から`kSimTrackOffsets`のスタート地点`(35.830000, 139.410000)`へ変更し、公式アプリからのWriteなしでもシミュレーション周回でのラップ検出が動作するようにした（5-3-1申し送り事項への対応、`setTrackCfg`/`flashCfg`で書き込まれれば従来通り上書き・NVS永続化される）。両ビルド環境でのクリーンビルド成功に加え、Pythonでの再実装検算により5.5周分のシミュレーションで二重検出・見逃しなく5回のラップ完了が発火し、ラップタイムが理論値と数サンプル間隔以内で一致することを確認した。実機でのシリアル出力確認は5-3-3で実施予定。詳細は`task_phase5_breakdown.md`の5-3-2参照。
+- ✅ **5-3-3完了・Phase5-3全体完了：実機（ESP32-S3-DevKitC-1 N16R8、COM7）でラップ検出ログの発火を確認**。5-3-2までの実装をそのまま書き込み、シリアルモニターを約140秒キャプチャしたところ、`[taskA] lap N completed: X.XXX s`が二重検出・見逃しなく3回発火し（54.349s/54.690s/54.840s）、理論値(約54.756秒)に対しPython検算結果と同等の誤差範囲に収まることを確認した。詳細は`task_phase5_breakdown.md`の5-3-3参照。
+- ✅ **5-4-1完了：ベストラップのGPS軌跡・経過時間を記録する仕組みを実装**。`firmware/src/main.cpp`に、現在ラップ開始からの「累積走行距離(m)→経過時間(秒)」ペアを100ms周期で記録する`lapRecorderUpdate()`・`gpsDistanceMeters()`（2点間距離をcos補正込み平面近似で算出）を追加した。リセット契機は「ラップ完了」ではなく「スタート/フィニッシュのジオフェンス通過（初回通過も含む）」である必要があると判明したため、`lapDetectorUpdate()`に新しい出力引数`outCrossedStartFinish`を追加し、`lapCompleted`（2周目以降のみtrue）とは独立してジオフェンス通過自体を伝えるよう変更した。`esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功。Pythonでの再実装検算により、周回ごとに速度を変えた複数ラップのシミュレーションで最速ラップのみが正しく確定バッファ（ベストラップ）へ記録され、遅いラップでは上書きされないことを確認した。実機でのシリアル出力確認は本タスクでは未実施（5-4-3以降で必要に応じて実施予定）。詳細は`task_phase5_breakdown.md`の5-4-1参照。
+- ✅ **5-4-2完了：現在位置とベストラップ軌跡との距離ベース比較による予測タイム（デルタ）算出ロジックを実装**。`firmware/src/main.cpp`に、5-4-1の`g_bestLapSamples`（距離→経過時間の対応表）から指定走行距離の経過時間を二分探索＋線形補間で求める`bestLapTimeAtDistance()`と、現在ラップの経過時間との差分を`g_predDeltaSec`へ格納する`predTimeUpdate()`を追加し、`lapRecorderUpdate()`のサンプル記録直後（100ms周期）から呼び出すようにした。ベストラップ未確定時は`g_predDeltaValid`をfalseにして無効値と判別できるようにした。範囲外の走行距離は外挿せず端の値にクランプする。`esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功。Pythonでの再実装検算により、ベストラップと同ペースならデルタ≈0、遅いペースなら走行距離とともに単調拡大するプラスのデルタ、速いペースなら単調拡大するマイナスのデルタになること、範囲外距離でも例外なくクランプされることを確認した。実機での動作確認は本タスクでは未実施（5-4-3で実施予定）。詳細は`task_phase5_breakdown.md`の5-4-2参照。
+- ✅ **5-4-3完了・Phase5-4全体完了：実機（ESP32-S3-DevKitC-1 N16R8、COM7）でシミュレーション軌跡による予測タイム（デルタ）の妥当性を確認**。`predTimeUpdate()`に約1秒間隔で間引いたシリアルログを追加し、約300秒間のシリアル出力をキャプチャしたところ、6回のラップ完了（いずれも約54.7〜54.8秒、5-3-3と同等）の間ベストラップは一度も更新されず、予測タイムのデルタは大半の区間で−0.15〜−0.20秒程度、周回終端のクランプ区間でのみ+0.05〜+0.25秒程度と、全区間で絶対値0.3秒未満（1周約55秒に対し0.5%未満）に収まることを確認した。クラッシュ等の異常は発生せず、100ms周期のGPSサンプリング解像度に起因する量子化誤差の範囲内で「同じペースならデルタ0付近」という設計意図通りの妥当な挙動と判断した。詳細は`task_phase5_breakdown.md`の5-4-3参照。
+- ✅ **5-5-1完了：`getMeta`のチャンネル定義に`LapCount`/`LapTime`/`Sector`/`SectorTime`/`PredTime`/`ElapsedTime`/`CurrentLap`/`Distance`/`SessionTime`の9チャンネルを追加**。`reference/RaceCapture-Pro_firmware`の実機応答例(`getMeta_response.json`)と同じnm/ut/prec/srの値をそのまま採用し、既存の`kDummyChannels`（RPM/Speed/WaterTemp/OilPress/Lat/Lon）とは別配列`kLapChannels`として`rcpSendMeta()`から送出するよう実装した。両ビルド環境でクリーンビルド成功。Sector/SectorTimeは本プロジェクトでは複数セクター判定を実装しない方針のため常に0送信の想定だが、公式アプリとの互換性のためメタデータ自体は定義した。値の実送信（`s`コマンドへの反映）は5-5-2で対応。詳細は`task_phase5_breakdown.md`の5-5-1参照。
+- ✅ **5-5-2完了：`s`コマンド応答（`rcpSendSample`）に9チャンネル分の値を実装**。`LapTime`/`SectorTime`/`PredTime`/`ElapsedTime`/`SessionTime`は公式仕様通り秒→分、`Distance`はメートル→マイルへ変換して送信するよう実装（公式ファームウェア`lap_stats.c`と同じ単位）。`LapCount`（完了ラップ数）と`CurrentLap`（走行中のラップ番号）を区別し、`LapCount = currentLap > 0 ? currentLap - 1 : 0`で導出。ビットマスクは全15ch分`(1 << 15) - 1`に拡張。両ビルド環境でクリーンビルド成功、Python検算でも変換値の妥当性を確認。詳細は`task_phase5_breakdown.md`の5-5-2参照。
+- ✅ **5-5-3完了・Phase5-5全体完了：実機（ESP32-S3-DevKitC-1 N16R8、COM7=CH343書き込み/COM8=TinyUSB CDC RCP通信）で、公式RaceCaptureアプリ(Windows版)のDashboard画面にラップタイム・予測タイムを含む全9チャンネルが正しく表示されることを確認**。LapTime(0:54.70〜0:54.80)・PredTime(0:-0.17〜0:-0.21)とも、5-3-3/5-4-3で確認済みの理論値・妥当性検証結果と整合する値が表示され、ラップ切り替わり時のElapsedTime/Distanceリセットも正しく動作した。**確認作業中に新規不具合を2件発見**：①公式アプリの自動COMポートスキャンが書き込み用CH343ポート(COM7)にも接続を試み、そのDTR/RTS信号でESP32が意図せず`waiting for download`（ダウンロードモード）へ落ちる現象を確認（pyserialでの手動DTR/RTSリセットパルスで復旧可能）。②公式アプリの既知バグ「COMポートハンドルリーク」（4章既出）が本タスクでも再発し、アプリプロセスの完全終了→再起動で解消。いずれも自作ロガー側の不具合ではなく公式アプリ・USBハードウェア構成起因のため対策不可だが、今後の実機検証時の運用上の注意点として記録。詳細は`task_phase5_breakdown.md`の5-5-3参照。
+- ✅ **Phase 5（ラップタイム・予測タイム計算の実装）は5-6（実GPS・実トラック検証、Phase1-5のGPS調達待ちで保留）を除き全て完了**。
 
 ---
 
@@ -193,9 +226,9 @@
 ### Phase 1：卓上動作検証（プロトタイプ）
 > 詳細なサブタスク分解は `task_phase1_breakdown.md` 参照。以下は粒度が粗いため、実作業はそちらの単位で進める。
 - [x] 1-1 ESP32-C3（暫定機）でセンサ値取得ロジックを検証（IMU/GPSは未調達のためモックデータで代用しつつ、FreeRTOSタスク分離設計＝タスクA/B/Cの雛形を作る）→ 完了（詳細は`task_phase1_breakdown.md`参照）
-- [ ] 1-2 SDカード書き込み（`flush()`による定期保存）の実装・電源断シミュレーションでのデータ保全確認 → P-1/P-2（SDモジュール・microSDカード）の到着待ち
+- [x] 1-2 SDカード書き込み（`flush()`による定期保存）の実装・電源断シミュレーションでのデータ保全確認 → 完了（詳細は`task_phase1_breakdown.md`参照）
 - [x] 1-3 Phase 0で固めたRCPプロトコルをESP32実装へ移植し、USB経由でRaceCapture App実機（Raspberry Pi等）での表示を確認 → 完了（1-1のタスク構成への統合まで含め`task_phase1_breakdown.md`参照）
-- [ ] 1-4 **ESP32-S3への切り替え**：USB OTG・ピン配置・処理性能の実機検証（C3との差分洗い出し）
+- [x] 1-4 **ESP32-S3への切り替え**：USB OTG・ピン配置・処理性能の実機検証（C3との差分洗い出し）→ 完了。スマホ版公式アプリとのUSB接続（1-6で断念していた最重要ゴール）も達成。詳細は`task_phase1_breakdown.md`参照
 - [ ] 1-5 GPS・IMUモジュール調達後、実センサ値でのタスクA検証
 - [x] 1-6 スマホ版RaceCaptureアプリとのUSB OTG通信検証（詳細は`task_phase1_breakdown.md`参照）→ C3では不可能と判明、1-4のS3移行が必須という結論を得た
 - [x] 1-7 センサーキャリブレーション設定コマンド（0-8でPC検証済みのロジック）をESP32実装へ移植し、ダミー値でNVS等への保存・公式アプリとの読み書き往復を実機確認する → 完了（詳細は`task_phase1_breakdown.md`参照）
@@ -218,11 +251,11 @@
 
 ### Phase 5：ラップタイム・予測タイム計算の実装（エコシステム調査を受けてスコープに追加、`HANDOFF_ecosystem_research_gap.md`参照）
 > 詳細なサブタスク分解は `task_phase5_breakdown.md` 参照。ロガー（ESP32）側でGPS位置に基づくラップ判定・予測タイム計算を行う、公式RaceCaptureエコシステムの構造に合わせた新規コンポーネント。
-- [ ] 5-1 `getLapCfg`/`getTrackCfg`の現状応答（ダミーか実データ処理か）を確認し、トラック情報の保存・取得を実データ化する設計を固める
-- [ ] 5-2 トラック情報の保存先を決める（SDカード上のテーブル、または決め打ちの数トラックのみサポート等）
-- [ ] 5-3 スタート/フィニッシュライン交差判定ロジックを実装する（GPSシミュレーションデータで先行検証）
-- [ ] 5-4 予測タイム計算（ベストラップとの距離ベース比較）アルゴリズムを実装する
-- [ ] 5-5 `LapTime`/`PredTime`等のチャンネルをRCPストリーム（`s`コマンド）へ追加し、公式アプリでの表示を確認する
+- [x] 5-1 `getLapCfg`/`getTrackCfg`の現状応答（ダミーか実データ処理か）を確認し、トラック情報の保存・取得を実データ化する設計を固める → 完了（`getTrackCfg`/`setTrackCfg`は実データ化・実機確認済み。`getLapCfg`は5-1-1の設計判断によりダミー応答のまま据え置き、詳細は`task_phase5_breakdown.md`参照）
+- [x] 5-2 トラック情報の保存先を決める（SDカード上のテーブル、または決め打ちの数トラックのみサポート等） → 完了（NVS保存方式を採用しTrackCfgの永続化を実装、ビルド確認済み。実機での読み書き往復確認は未実施、詳細は`task_phase5_breakdown.md`参照）
+- [x] 5-3 スタート/フィニッシュライン交差判定ロジックを実装する（GPSシミュレーションデータで先行検証） → 完了（実機（ESP32-S3）でのラップ検出ログ確認まで完了、詳細は`task_phase5_breakdown.md`参照）
+- [x] 5-4 予測タイム計算（ベストラップとの距離ベース比較）アルゴリズムを実装する → 完了（実機でのデルタ値の妥当性確認まで完了、詳細は`task_phase5_breakdown.md`参照）
+- [x] 5-5 `LapTime`/`PredTime`等のチャンネルをRCPストリーム（`s`コマンド）へ追加し、公式アプリでの表示を確認する → 完了（実機・公式アプリのDashboardでの表示確認まで完了、詳細は`task_phase5_breakdown.md`参照）
 - [ ] 5-6 実GPSモジュール調達後（Phase1-5）、実車・実トラックでの検証を行う
 
 ---
@@ -249,18 +282,23 @@
 |---|---|---|
 | RCP送信フォーマット | ✅ 解決済み（`HANDOFF.md`参照）。実機ESP32実装（Phase 1-3）へ移植する際、改めて実機で疎通確認は必要 | Phase 1-3着手時に再確認 |
 | 開発環境のGoogle Drive依存 | Git運用の安定性のためローカルドライブへ移行中。`task_migrate_off_googledrive_checklist.md`参照 | 最優先（着手中） |
-| GPS/IMU/CANトランシーバ型番 | 具体的な型番・購入先の選定が未確定 | Phase 1後半〜Phase 2着手前までに要決定 |
+| GPS/IMU/CANトランシーバ型番 | ✅ IMU=LSM6DSV16X（秋月AE-LSM6DSV16X）、CANトランシーバ=MCP2562FDに決定（4章参照）。GPSは型番・購入先とも未確定のまま | GPSはPhase 1後半〜Phase 2着手前までに要決定 |
 | 実車のCAN/OBD2仕様 | 対象車種依存のCAN ID・データ定義が未調査 | Phase 2着手前 |
 | ESP32-C3→S3移行時の差分 | ピン配置・USB OTG挙動の違いによる手戻りリスク。**→Phase1-6の実機検証で、C3のネイティブUSBでは複合ディスクリプタ(シリアル+JTAG)しか出せずスマホ版RaceCaptureアプリが接続を拒否することを確認。S3移行は「差分洗い出し」ではなく必須対応と判明。** | Phase 1-4 |
 | センサーハブのADC割当数 | XIAO ESP32-C3 1台あたり何センサー分のADCを取るか未確定 | Phase 3着手前 |
 | CAN ID採番ルール | 複数ハブ間でのCAN ID重複防止ルールが未確定 | Phase 3着手前 |
-| SDMMC用プルアップ抵抗 | CMD/DAT0-3ラインへの外付けプルアップ（目安10kΩ）の要否・実装方法が未確認 | Phase1-4（S3移行・SDMMC実装）着手前 |
+| SDMMC用プルアップ抵抗 | ✅ 要否解決済み（4章参照）。CLK/CMD/D0〜D3の6ライン全てに10kΩプルアップが必要とESP-IDF公式ドキュメントで確認。実装（配線）は未実施 | 配線時に対応 |
+| IMU基板(AE-LSM6DSV16X)のジャンパはんだ付け状態 | J1(プルアップ)／J2またはJ3(I2Cアドレス0x6Bまたは0x6A選択)／J4(CS→GND、I2Cモード選択)がはんだ付け済みか未確認（4章参照） | IMU配線・通電前に要確認 |
 | ラップタイム機能をスコープに含めるか | エコシステム調査により、ラップタイム/予測タイムはロガー（ESP32）側でGPS位置に基づく判定・計算が必要と判明（4章参照）。現状ロードマップ（Phase0〜4）にタスクとして存在しないため、含める場合は新規Phaseとしてタスク分解が必要 | 要ユーザー判断 |
 | `getLapCfg`/`getTrackCfg`応答の実装状況 | 現状の応答が接続を通すためのダミーなのか、実データ（トラック座標等）を解釈・保存する実装なのか未確認 | ラップタイム機能をスコープに含める場合に確認要 |
 | シフトライト/LCD出力用のCAN出力ピン予備確保 | 現行スコープには含まれていないが、将来追加する可能性がある場合はハードウェア選定時にピンの余力を確保しておくと手戻りが少ない（任意・低優先度） | 将来スコープ次第 |
 | ラップ統計・予測タイマーの永続化要否 | 公式2.24.0はトラックごとにSD/フラッシュへ永続化。同等機能を自作ロガーに含めるか未決定（`HANDOFF_claudeai_chat_gap.md`より） | Phase 5設計時 |
 | セルラー経由の遠隔ライブ監視機能 | ✅ 解決済み。ロガー側の特別開発は不要と判断（4章参照）。Raspberry Pi版RaceCaptureアプリがネットワーク経由のPodiumライブテレメトリーに対応済みのため、Pi側にインターネット接続手段を用意するだけで実現可能。新規Phase化は不要 | 解決済み |
 | GPLライセンスの取り扱い | `RaceCapture-Pro_firmware`はGPL。ロジックを参考に読むだけなら問題ないが、直接移植・流用した場合、将来リポジトリを公開・配布する際にcopyleft義務（ソース開示等）が生じる可能性。現状は個人利用・プライベートリポジトリのため実害なし | 低（公開判断時に再確認） |
+| 公式アプリのCOMポートハンドルリークバグ | 公式RaceCaptureアプリ（Windows版、サードパーティ・ソース非保有）に「一度接続失敗したCOMポートのハンドルをリークし続け、アプリの完全再起動（プロセスkill）でしか回復しない」既知の不具合がある（0-8時点で発見済み、5-1-3・5-5-3の実機検証中にも再発を確認）。自作ロガー側の不具合ではなく対策不可。「ログ保存は絶対に止めない」という基本方針には抵触しない（SD保存はロガー側で完結）が、Phase4以降の車載実運用で走行中にUSB接続が瞬断した場合、表示側が自動復旧できずアプリの手動再起動が必要になりうる点は運用上の注意点として残る | 対策不可（公式アプリ側の問題）。Phase4検討時に運用上の注意点として要考慮 |
+| 公式アプリの自動COMスキャンによるESP32の意図しないダウンロードモード突入 | 公式アプリ起動時の自動COMポートスキャインが、RCP通信用ポート（TinyUSB CDC）だけでなく書き込み用CH343デバッグポートにも接続を試み、その際のDTR/RTS信号がCH343のESP32自動リセット回路を介して実機を`waiting for download`（ダウンロードモード）へ落としてしまうことを5-5-3実機検証中に発見（`task_phase5_breakdown.md`5-5-3参照）。pyserialでの手動DTR/RTSリセットパルス（またはUSB抜き差し）で通常起動へ復旧可能。ボード側のUSB構成（1本のUSBケーブルでCH343 UARTとネイティブUSBの2ポートが列挙される構成、4章「ESP32-S3移行の進捗」参照）に起因するため自作ロガー側での本質的な解消は困難 | 対策不可（USBハードウェア構成起因）。Phase4以降の実機検証・車載実運用時の注意点として要考慮 |
+| USB VID/PIDの借用（配布時の扱い） | 1-4-4でスマホ版公式アプリとの接続を成立させるため、公式MK3ファームウェアと同じUSB VID/PID（`0x16D0`/`0x07F1`、`firmware/sdkconfig.esp32-s3`参照）を借用している。個人のプライベートリポジトリでの検証目的のため現状実害なしと判断（GPLライセンスの扱いと同様の考え方）。将来リポジトリを公開・配布する場合は`pid.codes`（VID`0x1209`）等で自分専用のPIDを取得することを検討する | 低（公開判断時に再確認） |
+| スマホ版公式アプリの2回接続時の不安定動作 | 1-4-4での実機検証中に発見。1回目のUSB OTG接続・アプリでの接続確認後、USBケーブルを一度引き抜き（ESP32側は再起動）、アプリも再起動してから2回目に接続したところ、LiveTelemetry画面がフリーズしたような挙動になった。Podium Connect設定自体は保持されており、LiveTelemetry表示は接続中のみ更新される様子だったため、データ自体は更新されている可能性がある（表示側の問題の可能性）。原因未特定・再現条件の切り分けは未実施 | 未確認。再発時に原因切り分けが必要 |
 
 ---
 

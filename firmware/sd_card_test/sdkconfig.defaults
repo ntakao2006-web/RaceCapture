@@ -1,0 +1,7 @@
+# 手持ちの実機(ESP32-S3-DevKitC-1 N16R8)はフラッシュ16MB。
+# 未設定だとPlatformIO既定のボード定義(N8/8MB)のオフセットで書き込まれ、
+# 実機と食い違って書き込み・起動に失敗する(1-4-2で判明した教訓、
+# ../platformio.iniのboard_build.esp-idf.custom_sdkconfigは無視されるため
+# sdkconfig.defaultsへ直接書く方式にしている)。
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="16MB"

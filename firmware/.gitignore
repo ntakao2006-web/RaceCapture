@@ -3,3 +3,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# ESP-IDF Component Manager (idf_component.yml)がビルド時に取得するキャッシュ。
+# dependencies.lockはコミットして再現性を担保する。
+managed_components/
