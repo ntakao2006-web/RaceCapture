@@ -233,7 +233,7 @@
 - [x] 1-2 SDカード書き込み（`flush()`による定期保存）の実装・電源断シミュレーションでのデータ保全確認 → 完了（詳細は`task_phase1_breakdown.md`参照）
 - [x] 1-3 Phase 0で固めたRCPプロトコルをESP32実装へ移植し、USB経由でRaceCapture App実機（Raspberry Pi等）での表示を確認 → 完了（1-1のタスク構成への統合まで含め`task_phase1_breakdown.md`参照）
 - [x] 1-4 **ESP32-S3への切り替え**：USB OTG・ピン配置・処理性能の実機検証（C3との差分洗い出し）→ 完了。スマホ版公式アプリとのUSB接続（1-6で断念していた最重要ゴール）も達成。詳細は`task_phase1_breakdown.md`参照
-- [ ] 1-5 GPS・IMUモジュール調達後、実センサ値でのタスクA検証
+- [ ] 1-5 GPS・IMUモジュール調達後、実センサ値でのタスクA検証。IMU部分のみ調達済みのため分解済み（詳細は`task_phase1_breakdown.md`参照。GPS関連は未調達のため未分解）
 - [x] 1-6 スマホ版RaceCaptureアプリとのUSB OTG通信検証（詳細は`task_phase1_breakdown.md`参照）→ C3では不可能と判明、1-4のS3移行が必須という結論を得た
 - [x] 1-7 センサーキャリブレーション設定コマンド（0-8でPC検証済みのロジック）をESP32実装へ移植し、ダミー値でNVS等への保存・公式アプリとの読み書き往復を実機確認する → 完了（詳細は`task_phase1_breakdown.md`参照）
 

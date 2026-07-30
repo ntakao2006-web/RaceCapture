@@ -66,8 +66,12 @@
 - [x] 1-4-7: `setConnCfg`/`getConnCfg`を実データ化する（Podium接続設定・ストリーミングキー等をNVSへ永続化） ※1-4-6副産物1への対応。公式ファームウェア(`reference/RaceCapture-Pro_firmware/src/logger/loggerApi.c`のapi_getConnectivityConfig/api_setConnectivityConfig)を確認し、応答はbtCfg/cellCfg/telCfgの3ブロック構成、ストリーミングキーは`telCfg.deviceId`に対応することを確認した。本プロジェクトはUSB接続のみでBluetooth/Cellularハードウェアを持たないため、bt/cellは常に無効固定とし、`telCfg.deviceId`のみを1-7-2(AnalogCfg)・5-2-2(TrackCfg)と同じ`nvs_set_blob`/`nvs_get_blob`パターンでNVS永続化する`ConnCfg`構造体・`connCfgLoadFromNvs`/`connCfgSaveToNvs`を`firmware/src/main.cpp`に実装した。`setConnCfg`受信時は、setTrackCfg(5-1-3)と同様に公式アプリが"connCfg"キーで一段ラップして送ってくる可能性を考慮し、ラップの有無どちらでも受理できるようにした。`esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功を確認（実機での再接続後のストリーミングキー保持確認は未実施、次回実機検証時の課題として残す）。
 - [x] 1-4-8: `getStatus`コマンドを実装する ※1-4-6副産物2への対応。公式ファームウェア(`reference/RaceCapture-Pro_firmware/src/logger/loggerApi.c`のapi_getStatus)の応答仕様（`status.system`/`GPS`/`cell`/`bt`/`logging`/`track`のブロック構成）を確認し、本プロジェクトにハードウェアが無いcell/bt/imu/wifiブロックは省略、system/GPS/logging/trackのみを応答する`rcpSendStatus()`を実装した。GPS位置は`rcpSendSample`と同じ`simTrackGetPosition()`のシミュレーション軌跡を使用、loggingは"記録を絶対に止めない"方針上常時稼働の前提で固定値、trackは`g_trackCfg`/`g_lapDetector`の実データを反映した。`esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功を確認（実機での`StatusPump`タイムアウト解消確認は未実施、次回実機検証時の課題として残す）。
 
-## 1-5（後続フェーズ）
-GPSが未調達のため、現時点では分解しない。IMU基板（秋月AE-LSM6DSV16X、LSM6DSV16Xチップ）は調達済み・チップも確定したため、分解可能（ARCHITECTURE.md「ファームウェア開発環境の構築」参照）。
+## 1-5: GPS・IMUモジュール調達後の実センサ値検証
+GPSは未調達のため、GPS関連サブタスクは現時点では分解しない。IMU基板（秋月AE-LSM6DSV16X、LSM6DSV16Xチップ）は調達済み・チップも確定したため、IMU部分のみ配線前後で分解する。参考資料：`other/check_AE-LSM6DSV16X_extracted/check_AE-LSM6DSV16X/check_AE-LSM6DSV16X.ino`（秋月電子の動作確認用Arduinoサンプル。I2Cアドレス0x6A(GND)/0x6B(VCC)、レジスタマップ(WHO_AM_I=0x0F・CTRL1=0x10・CTRL2=0x11・CTRL6=0x15・CTRL8=0x17・OUTX_L_G=0x22)、初期化ビットパターン、スケール係数(ジャイロ0.07dps/LSB・加速度0.000244g/LSB)がすべて確認済みのため、データシート参照なしでもESP-IDF移植に必要な情報は揃っている）。
+
+- [ ] 1-5-1: LSM6DSV16XのI2Cドライバ(ESP-IDFネイティブ、`driver/i2c_master.h`等)を実装する ※配線不要・実機不要、ビルド確認のみで完結可能。上記Arduinoサンプルのレジスタマップ・初期化シーケンス(CTRL1=0b00001001/CTRL2=0b00001001/CTRL6=0b00000100/CTRL8=0b10000010)・スケール係数をそのまま踏襲してESP-IDFのI2Cドライバで書き直す。WHO_AM_I読み取り(期待値0x70)による接続確認、OUTX_L_Gからの12バイト一括読み取り(ジャイロ3軸+加速度3軸、リトルエンディアン16bit)を実装する。I2Cアドレスは0x6A/0x6Bの両対応（基板のJ2/J3ジャンパ設定依存のため、起動時に両アドレスへ順にプローブする）。
+- [ ] 1-5-2: IMUデータをtaskAのSensorLogRecord・CSVログ・RCPプロトコル(getMeta/sコマンド)へ統合する ※配線不要・実機不要、ビルド確認のみで完結可能。`SensorLogRecord`構造体(`main.cpp`81行目付近)へax/ay/az/gx/gy/gzフィールドを追加、taskB(CSV書き込み)へ列追加、`kDummyChannels`/`kLapChannels`と同様の`kImuChannels`配列(AccelX/Y/Z・GyroX/Y/Zの6ch)を定義して`rcpSendMeta`/`rcpSendSample`に統合する。1-5-1のドライバをtaskAから呼び出す配線も行うが、実機がまだ無い間はI2C通信エラー時のフォールバック(直近値保持またはダミー値)を用意し、ビルド・起動は問題なく通る状態にしておく。
+- [ ] 1-5-3: IMUを実機へ配線し、動作確認する ※実機・配線が必要（ユーザー作業）。着手前にIMU基板のジャンパ(J1:プルアップ／J2またはJ3:I2Cアドレス選択／J4:CS→GND)のはんだ付け状態を確認する（7章「未解決事項」参照）。1-5-1/1-5-2実装後、実際に配線してシリアルログでWHO_AM_I=0x70の応答、静止状態でのZ軸加速度が概ね1G相当になっていること等の妥当性を確認する。
 
 ---
 
