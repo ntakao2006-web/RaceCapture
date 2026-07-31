@@ -246,12 +246,172 @@ static bool imuReadSensor(float *gx, float *gy, float *gz, float *ax, float *ay,
 // 参照するためファイルスコープに保持する(既存のg_trackCfg等と同様、taskA/taskC間の
 // 排他制御は行わない、既存踏襲)。配線が無い/通信失敗の間は直近値を保持し続け、
 // 初期値は静止・水平置き相当(Z軸のみ1G)とする。
+// 注意：これらはセンサー座標系の生値(kImuChannels/SensorLogRecordが送出する値)。
+// 取り付け角度補正後の車体座標系の値はg_bodyAccel*/g_bodyGyro*(1-5-5)を使うこと。
 static float g_imuAccelX = 0.0f;
 static float g_imuAccelY = 0.0f;
 static float g_imuAccelZ = 1.0f;
 static float g_imuGyroX = 0.0f;
 static float g_imuGyroY = 0.0f;
 static float g_imuGyroZ = 0.0f;
+
+// 1-5-5: 3x3回転行列。センサー座標系→車体座標系への取り付け角度補正に使う。
+struct Mat3 {
+    float m[3][3];
+};
+
+static const Mat3 kIdentityMat3 = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}};
+
+static void mat3Apply(const Mat3 &r, float x, float y, float z, float *xOut, float *yOut, float *zOut)
+{
+    *xOut = r.m[0][0] * x + r.m[0][1] * y + r.m[0][2] * z;
+    *yOut = r.m[1][0] * x + r.m[1][1] * y + r.m[1][2] * z;
+    *zOut = r.m[2][0] * x + r.m[2][1] * y + r.m[2][2] * z;
+}
+
+// ベクトルaをベクトルbへ回す回転行列をロドリゲスの回転公式で求める(a/bとも非ゼロベクトル、
+// 内部で正規化する)。1-5-5の起動時キャリブレーションで、静止時に測定した重力ベクトル(a)を
+// 車体座標系の上方向(b=(0,0,1)、水平置き時のg_imuAccelZ初期値+1Gと整合)へ合わせる補正行列を
+// 求めるために使う。Pythonでの再実装検算(恒等/90度/180度/45度傾斜の各ケース)で妥当性を確認済み。
+static Mat3 mat3RotationBetweenVectors(float ax, float ay, float az, float bx, float by, float bz)
+{
+    float aNorm = sqrtf(ax * ax + ay * ay + az * az);
+    float bNorm = sqrtf(bx * bx + by * by + bz * bz);
+    ax /= aNorm; ay /= aNorm; az /= aNorm;
+    bx /= bNorm; by /= bNorm; bz /= bNorm;
+
+    float vx = ay * bz - az * by;
+    float vy = az * bx - ax * bz;
+    float vz = ax * by - ay * bx;
+    float c = ax * bx + ay * by + az * bz;
+    float s2 = vx * vx + vy * vy + vz * vz;
+
+    if (s2 < 1e-12f) {
+        if (c > 0.0f) {
+            return kIdentityMat3; // 既に一致している(水平置き)
+        }
+        // 反平行(180度反転した取り付け)：aに垂直な任意軸を選び180度回転する
+        float ux = (fabsf(ax) < 0.9f) ? 1.0f : 0.0f;
+        float uy = (fabsf(ax) < 0.9f) ? 0.0f : 1.0f;
+        float uz = 0.0f;
+        float d = ux * ax + uy * ay + uz * az;
+        ux -= d * ax; uy -= d * ay; uz -= d * az;
+        float uNorm = sqrtf(ux * ux + uy * uy + uz * uz);
+        ux /= uNorm; uy /= uNorm; uz /= uNorm;
+        Mat3 r;
+        r.m[0][0] = 2 * ux * ux - 1; r.m[0][1] = 2 * ux * uy;     r.m[0][2] = 2 * ux * uz;
+        r.m[1][0] = 2 * ux * uy;     r.m[1][1] = 2 * uy * uy - 1; r.m[1][2] = 2 * uy * uz;
+        r.m[2][0] = 2 * ux * uz;     r.m[2][1] = 2 * uy * uz;     r.m[2][2] = 2 * uz * uz - 1;
+        return r;
+    }
+
+    float vSkew[3][3] = {
+        {0, -vz, vy},
+        {vz, 0, -vx},
+        {-vy, vx, 0},
+    };
+    float k = (1.0f - c) / s2;
+    Mat3 r;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            float vSkewSq = 0.0f;
+            for (int n = 0; n < 3; n++) {
+                vSkewSq += vSkew[i][n] * vSkew[n][j];
+            }
+            r.m[i][j] = (i == j ? 1.0f : 0.0f) + vSkew[i][j] + vSkewSq * k;
+        }
+    }
+    return r;
+}
+
+// 1-5-5: 起動時自動キャリブレーション(取り付け角度補正)の状態機械。
+// 起動直後の一定時間、加速度サンプルを集めて分散を見る。分散が小さければ「静止」と
+// みなし、その間の平均加速度ベクトル(センサー座標系での重力方向)から、センサー座標系→
+// 車体座標系への回転行列(g_imuAlignRotation)を確定する。取り付け角度を変えた場合は
+// 再起動するだけで再キャリブレーションされる(ユーザー方針確認済み、1-5-9参照)。
+enum class ImuCalibState : uint8_t { kCollecting, kDone };
+static ImuCalibState g_imuCalibState = ImuCalibState::kCollecting;
+static Mat3 g_imuAlignRotation = kIdentityMat3;
+
+// taskAの周期(100ms)基準で3秒間サンプルを集める。分散閾値は静止時の想定ノイズ(std〜0.1G
+// 程度)を踏まえた仮値で、1-5-6の実機確認時に現物合わせでチューニングする前提(このタスクは
+// 配線が無い状態でのロジック実装・ビルド確認までがスコープのため)。
+constexpr int kImuCalibSampleCount = 30;
+constexpr float kImuCalibVarianceThresholdG2 = 0.01f;
+static int g_imuCalibSamples = 0;
+static float g_imuCalibSumX = 0.0f, g_imuCalibSumY = 0.0f, g_imuCalibSumZ = 0.0f;
+static float g_imuCalibSumSqX = 0.0f, g_imuCalibSumSqY = 0.0f, g_imuCalibSumSqZ = 0.0f;
+
+// サンプルを1つ蓄積し、規定数に達したら分散を判定してg_imuAlignRotationを確定する。
+// 分散が閾値を超えていても(振動等で「静止」と確信が持てなくても)規定サンプル数に達した
+// 時点の平均値でいったん確定させ、姿勢推定が永久に始まらない状態を避ける(警告ログのみ出す)。
+static void imuCalibrationUpdate(float ax, float ay, float az)
+{
+    if (g_imuCalibState == ImuCalibState::kDone) {
+        return;
+    }
+    g_imuCalibSamples++;
+    g_imuCalibSumX += ax; g_imuCalibSumY += ay; g_imuCalibSumZ += az;
+    g_imuCalibSumSqX += ax * ax; g_imuCalibSumSqY += ay * ay; g_imuCalibSumSqZ += az * az;
+
+    if (g_imuCalibSamples < kImuCalibSampleCount) {
+        return;
+    }
+
+    float n = static_cast<float>(g_imuCalibSamples);
+    float meanX = g_imuCalibSumX / n, meanY = g_imuCalibSumY / n, meanZ = g_imuCalibSumZ / n;
+    float varX = g_imuCalibSumSqX / n - meanX * meanX;
+    float varY = g_imuCalibSumSqY / n - meanY * meanY;
+    float varZ = g_imuCalibSumSqZ / n - meanZ * meanZ;
+    float totalVar = varX + varY + varZ;
+
+    if (totalVar > kImuCalibVarianceThresholdG2) {
+        ESP_LOGW(kImuTag, "calibration variance too high (%.4f G^2), using average anyway", totalVar);
+    }
+
+    g_imuAlignRotation = mat3RotationBetweenVectors(meanX, meanY, meanZ, 0.0f, 0.0f, 1.0f);
+    g_imuCalibState = ImuCalibState::kDone;
+    ESP_LOGI(kImuTag, "alignment calibration done: gravity=(%.3f,%.3f,%.3f)G", meanX, meanY, meanZ);
+}
+
+// 1-5-5で確定した回転補正を適用した後の車体座標系IMU値(taskAで更新)。
+// 相補フィルタ(1-5-4)の入力はこちらを使う。g_imuAccel*/g_imuGyro*(センサー座標系の生値、
+// SD/RCPログ用)とは別に保持し、既存のログ出力の意味を変えない。
+static float g_bodyAccelX = 0.0f, g_bodyAccelY = 0.0f, g_bodyAccelZ = 1.0f;
+static float g_bodyGyroX = 0.0f, g_bodyGyroY = 0.0f, g_bodyGyroZ = 0.0f;
+
+// 1-5-4: 相補フィルタによるRoll/Pitch姿勢推定(単位: 度)。taskC(rcpSendSample)からも
+// 参照するためファイルスコープに保持する(既存のg_imuAccel*等と同様、排他制御はしない)。
+static float g_attitudeRollDeg = 0.0f;
+static float g_attitudePitchDeg = 0.0f;
+static bool g_attitudeInitialized = false;
+static double g_attitudeLastUpdateTimeSec = 0.0;
+
+// alpha(ジャイロ積分を信頼する度合い)は0.95〜0.98を想定した仮値。実機での妥当性確認・
+// チューニングは1-5-6/1-5-8の申し送り事項(時定数チューニング手順)で扱う。
+constexpr float kAttitudeComplementaryAlpha = 0.96f;
+
+// 加速度3軸(車体座標系、G単位)から重力ベクトルの向きをRoll/Pitch角度(度)に変換する。
+// Python再実装検算(静止水平収束・90dps/2秒回転追従・ジャイロバイアスドリフト抑制の
+// 各ケース)で妥当性を確認済み。
+static void imuAccelToRollPitchDeg(float ax, float ay, float az, float *rollDeg, float *pitchDeg)
+{
+    *rollDeg = atan2f(ay, az) * (180.0f / static_cast<float>(M_PI));
+    *pitchDeg = atan2f(-ax, sqrtf(ay * ay + az * az)) * (180.0f / static_cast<float>(M_PI));
+}
+
+// ジャイロ角速度(dps)の積分値を加速度由来の角度で緩やかに補正する相補フィルタ。
+// Yaw(ジャイロ積分のみ、磁力計での長期ドリフト補正)は1-5-8で別途対応する。
+static void attitudeComplementaryFilterUpdate(float gx, float gy, float ax, float ay, float az, float dtSec)
+{
+    float accelRollDeg, accelPitchDeg;
+    imuAccelToRollPitchDeg(ax, ay, az, &accelRollDeg, &accelPitchDeg);
+
+    g_attitudeRollDeg = kAttitudeComplementaryAlpha * (g_attitudeRollDeg + gx * dtSec)
+                         + (1.0f - kAttitudeComplementaryAlpha) * accelRollDeg;
+    g_attitudePitchDeg = kAttitudeComplementaryAlpha * (g_attitudePitchDeg + gy * dtSec)
+                          + (1.0f - kAttitudeComplementaryAlpha) * accelPitchDeg;
+}
 
 // 1-2-2: タスクA→タスクB間のリングバッファ本体。FreeRTOSキューで実装する
 // (1-1-2/1-1-3の既存キューと実装方式を揃える)。
@@ -418,6 +578,29 @@ static void taskA(void *pvParameters)
         rec.gyroX = g_imuGyroX;
         rec.gyroY = g_imuGyroY;
         rec.gyroZ = g_imuGyroZ;
+
+        // 1-5-5: 起動時キャリブレーション用に、センサー座標系の生の加速度をサンプル蓄積する
+        // (キャリブレーション完了後は内部で何もしない)。完了済みならg_imuAlignRotationで
+        // センサー座標系→車体座標系へ変換し、1-5-4の相補フィルタへ渡す。
+        imuCalibrationUpdate(g_imuAccelX, g_imuAccelY, g_imuAccelZ);
+        if (g_imuCalibState == ImuCalibState::kDone) {
+            mat3Apply(g_imuAlignRotation, g_imuAccelX, g_imuAccelY, g_imuAccelZ,
+                      &g_bodyAccelX, &g_bodyAccelY, &g_bodyAccelZ);
+            mat3Apply(g_imuAlignRotation, g_imuGyroX, g_imuGyroY, g_imuGyroZ,
+                      &g_bodyGyroX, &g_bodyGyroY, &g_bodyGyroZ);
+
+            if (!g_attitudeInitialized) {
+                // 初回はdt不定(前回時刻が無い)のため、積分をスキップして基準時刻だけ記録する
+                g_attitudeLastUpdateTimeSec = t;
+                g_attitudeInitialized = true;
+            } else {
+                float dtSec = static_cast<float>(t - g_attitudeLastUpdateTimeSec);
+                g_attitudeLastUpdateTimeSec = t;
+                attitudeComplementaryFilterUpdate(g_bodyGyroX, g_bodyGyroY,
+                                                   g_bodyAccelX, g_bodyAccelY, g_bodyAccelZ, dtSec);
+            }
+        }
+
         rec.rpm = static_cast<float>(3000 + 2000 * sin(t / 3));
         rec.waterTempC = static_cast<float>(82 + 5 * sin(t / 7));
         rec.oilPressKpa = static_cast<float>(280 + 30 * sin(t / 4));
@@ -1418,10 +1601,12 @@ static const RcpChannelMeta kLapChannels[] = {
 // 1-5-2: IMU(LSM6DSV16X)6軸分のチャンネル定義。Accel*は`reference/RaceCapture-Pro_firmware`
 // の実機応答例(test/json_api_files/getMeta_response.json)のnm/ut/min/max/prec/srをそのまま
 // 採用。公式ファームウェアはジャイロ生値ではなくYaw/Pitch/Roll(姿勢角、要姿勢推定)を送る仕様
-// だが、本プロジェクトは姿勢推定を実装しない方針のため、task_phase1_breakdown.md 1-5-2の
-// 設計通りGyroX/Y/Zとして生の角速度をそのまま送る(公式互換ではなく独自チャンネル)。
+// だが、ここではGyroX/Y/Zとして生の角速度をそのまま送る(公式互換ではなく独自チャンネル)。
 // min/maxはLSM6DSV16Xの初期化設定(CTRL2=0b00001001)で選択したジャイロフルスケール
 // (±2000dps)を踏まえた値。
+// （1-5-2完了直後の訂正：本プロジェクトは姿勢推定を実装する方針であり、1-5-4/1-5-8で
+// 　Roll/Pitch/Yawを別チャンネル(kAttitudeChannels)として追加する。詳細はtask_phase1_
+// 　breakdown.md「方針追記」参照）
 static const RcpChannelMeta kImuChannels[] = {
     {"AccelX", "G",   -3,    3,    2, 25},
     {"AccelY", "G",   -3,    3,    2, 25},
@@ -1429,6 +1614,13 @@ static const RcpChannelMeta kImuChannels[] = {
     {"GyroX",  "dps", -2000, 2000, 1, 25},
     {"GyroY",  "dps", -2000, 2000, 1, 25},
     {"GyroZ",  "dps", -2000, 2000, 1, 25},
+};
+
+// 1-5-4: 相補フィルタで推定したRoll/Pitch(単位: 度)。Yawは1-5-8(磁力計統合)まで未対応の
+// ため、このチャンネル配列には含めない。
+static const RcpChannelMeta kAttitudeChannels[] = {
+    {"Roll",  "deg", -180, 180, 1, 25},
+    {"Pitch", "deg", -90,  90,  1, 25},
 };
 
 // 1-3-5: `{"meta":[{"nm":..,"ut":..,"min":..,"max":..,"prec":..,"sr":..}, ...]}`応答。
@@ -1458,6 +1650,15 @@ static void rcpSendMeta()
         obj["sr"] = ch.sr;
     }
     for (const auto &ch : kImuChannels) {
+        JsonObject obj = meta.add<JsonObject>();
+        obj["nm"] = ch.nm;
+        obj["ut"] = ch.ut;
+        obj["min"] = ch.min;
+        obj["max"] = ch.max;
+        obj["prec"] = ch.prec;
+        obj["sr"] = ch.sr;
+    }
+    for (const auto &ch : kAttitudeChannels) {
         JsonObject obj = meta.add<JsonObject>();
         obj["nm"] = ch.nm;
         obj["ut"] = ch.ut;
@@ -1542,7 +1743,13 @@ static void rcpSendSample()
     d.add(roundToPrec(g_imuGyroY, 1));                                // GyroY (dps)
     d.add(roundToPrec(g_imuGyroZ, 1));                                // GyroZ (dps)
 
-    d.add((1 << 21) - 1); // bitmask: kDummyChannels(6ch)+kLapChannels(9ch)+kImuChannels(6ch)全21chとも有効
+    // 1-5-4: taskAで更新される姿勢推定値(g_attitudeRollDeg/g_attitudePitchDeg)を
+    // kAttitudeChannels(2ch)分追加。キャリブレーション未完了(起動直後3秒程度)の間は
+    // 初期値0度のまま送られる。
+    d.add(roundToPrec(g_attitudeRollDeg, 1));                         // Roll (deg)
+    d.add(roundToPrec(g_attitudePitchDeg, 1));                        // Pitch (deg)
+
+    d.add((1 << 23) - 1); // bitmask: kDummyChannels(6ch)+kLapChannels(9ch)+kImuChannels(6ch)+kAttitudeChannels(2ch)全23chとも有効
     rcpSendJsonLine(doc);
     tick++;
 }
