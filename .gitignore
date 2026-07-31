@@ -4,4 +4,3 @@ mock_device*.log
 __pycache__/
 *.pyc
 .claude/settings.local.json
-reference/

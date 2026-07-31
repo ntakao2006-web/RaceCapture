@@ -1,0 +1,9 @@
+[submodule "reference/RaceCapture-Pro_firmware"]
+	path = reference/RaceCapture-Pro_firmware
+	url = https://github.com/autosportlabs/RaceCapture-Pro_firmware.git
+[submodule "reference/RaceCapture_App"]
+	path = reference/RaceCapture_App
+	url = https://github.com/ryandoherty/RaceCapture_App.git
+[submodule "reference/RaceCapture_App_fork_ryandoherty"]
+	path = reference/RaceCapture_App_fork_ryandoherty
+	url = https://github.com/ryandoherty/RaceCapture_App.git
