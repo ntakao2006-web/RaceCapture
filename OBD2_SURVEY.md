@@ -92,11 +92,23 @@ NC型ロードスター(北米名Mazda MX-5 NC)はコミュニティでの改造
 
 さらに、`ATMA`での追加モニタリング(15ラウンド)により`0x240`・`0x420`・`0x4FF`の3IDを新規に捕捉できた（`0x420`はカウンタ関連、`0x4FF`は意味未解明）。一方`0x081`(ステアリング角度)・`0x085`(ブレーキ圧)・`0x090`(加速度)は同資料によれば**DSC(Dynamic Stability Control)搭載車限定=2007年以降のモデルのみに存在**するCAN IDとされており、本車両（2005年製初期型）では観測されなかった。これはDSC非搭載という車両側の仕様と整合する結果と考えられる（未確定、断定はしない）。
 
-引き続き未解明のID：`211`(警告灯関連の可能性、[madox.net](http://www.madox.net/blog/projects/mazda-can-bus/)のMazda全般情報より推測)、`212`、`21A`、`39A`、`4EC`、`4FF`。
+引き続き未解明のID：`21A`、`39A`、`420`、`4FF`。
+
+### 追加調査（タイムリミット直前の追い込み、2026-08-01同日追記）
+
+実車アクセスが今回を逃すと数ヶ月ない事情のため、残り時間で追加のWeb調査・実車サンプリングを実施した。
+
+- **`0x430`（燃料レベル、新規捕捉・意味判明）**：madox.netの別ユーザー(2005 MX-5 NC1実測)の書き込みより、`byte0(16進)を10進変換して/2.55`が燃料レベル(%)との情報を得た。実測5サンプルのbyte0は`92/A1/8B/A6/8B`(16進)で、デコードすると57.3%/63.1%/54.5%/65.1%/54.5%。値が比較的ばらついており、投稿者自身も「フルタンクでの検証は未完了」と述べているため、**この式の精度は未検証・参考程度**として扱う。byte1も同時に変動しており(`39/31/3D/2F/3D`)、byte0との反比例的な関係が見られたため、生値と平滑化値のペア等の可能性もあるが未確定。
+- **`0x211`/`0x212`（ダッシュボード警告灯、推測を補強）**：同じくmadox.netに「複数の不明ビット、一部は常時ON、一部はダッシュボード警告灯に関連」との記載があり、2-0-8時点での推測（ビットフィールド的な警告灯情報の可能性）を補強する情報が得られた。ただし具体的なビット割当は未解明のまま。
+- **`0x4EC`（情報源間で解釈が食い違い）**：madox.net(主にRX-8/Mazda3 Gen1のデータ)では「8バイト全て0固定、5秒毎に不変」とあるが、**今回のNCロードスター実車での観測では後半4バイト(byte4-7)が値を持ち変動していた**（例:`00 00 00 00 17 ED 65 4B`）。車種・年式による実装差、あるいは別解釈の可能性があり、断定はしない。
+- **RaceLogic社の公式CAN DB PDF**（[Mazda-MX-5 (NC) 2005-2015.pdf](https://www.racelogic.co.uk/_downloads/vbox/Vehicles/Other/Docs/Mazda-MX-5%20(NC)%202005-2015.pdf)、商用CANデータベース）の存在を確認したが、バイナリ形式のためこのセッションでは中身を抽出できなかった。将来的にPDFビューアで直接確認する価値がある一次資料として記録しておく。
+- 追加`ATMA`ロングラン(20ラウンド)でも`204`/`4F0`/`4F1`は観測できず。低頻度メッセージか、あるいはこの車両には存在しない可能性がある。
 
 Sources:
 - [mazda_mx5_nc.md (timurrrr/RaceChronoDiyBleDevice)](https://github.com/timurrrr/RaceChronoDiyBleDevice/blob/master/can_db/mazda_mx5_nc.md)
 - [Mazda CAN Bus – Madox.NET](http://www.madox.net/blog/projects/mazda-can-bus/)
+- [Vehicle CAN Database Mazda MX-5 (NC) 2005-2015 (Racelogic, PDF)](https://www.racelogic.co.uk/_downloads/vbox/Vehicles/Other/Docs/Mazda-MX-5%20(NC)%202005-2015.pdf)
+- [2024 CAN bus research (MX-5 Miata Forum archive)](https://forum.miata.net/vb/archive/index.php/t-782326.html)
 
 ### 所見
 
