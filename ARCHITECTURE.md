@@ -229,6 +229,9 @@
 - ✅ **Phase 5（ラップタイム・予測タイム計算の実装）は5-6（実GPS・実トラック検証、Phase1-5のGPS調達待ちで保留）を除き全て完了**。
 - ✅ **5-7完了：ベストラップ統計(`g_bestLapSamples`)のNVS永続化（ビルド確認済み）**。7章「未解決事項」の「ラップ統計・予測タイマーの永続化要否」に対応。AnalogCfg/TrackCfgと同じ`nvs_set_blob`/`nvs_get_blob`パターンで実装したが、`kMaxLapSamples`(2048要素、最大16KB)全体を保存するとNVSパーティション(24KB)を圧迫するため、実際に使用中の`g_bestLapSampleCount`分のみ可変長で保存する設計にした。保存タイミングは`flashCfg`ではなく、ベストラップが自動更新される`lapRecorderUpdate()`内とした。実機での電源再投入後のベストラップ保持確認は次回実機検証時の課題。
 
+### Phase2-0：ELM327によるOBD2プロトコル事前調査の進捗
+- ✅ **2-0-1・2-0-2完了**：ELM327ミニとこのPC(Windows)のBluetoothペアリングが完了し、SPP経由のCOMポート(COM11。デバイスのMACアドレスを含むアウトゴーイング側)を確認した。Python(pyserial)による疎通確認スクリプト`elm327_probe.py`を作成し、`ATZ`/`ATE0`/`ATI`/`ATSP0`の送受信で`ATI`応答が`ELM327 v1.5`であることを確認、AT通信の疎通に成功した。この時点ではELM327は車両OBD2ポート未接続（ECU非対向）のため、実際の車両プロトコル判定・PID応答確認は未実施（2-0-3以降で対応）。詳細は`task_phase2_breakdown.md`の2-0参照。
+
 ### Phase1-5：IMU(LSM6DSV16X)ドライバ実装の進捗
 - ✅ **1-5-1完了：LSM6DSV16X用I2Cドライバを実装（配線前、ビルド確認済み）**。`firmware/src/main.cpp`に、秋月電子の動作確認用Arduinoサンプル(`other/check_AE-LSM6DSV16X_extracted/`)のレジスタマップ・初期化シーケンス(CTRL1=0b00001001/CTRL2=0b00001001/CTRL6=0b00000100/CTRL8=0b10000010)・スケール係数(ジャイロ0.07dps/LSB・加速度0.000244g/LSB)を踏襲した`imuInit()`/`imuReadSensor()`をESP-IDF新I2Cマスタードライバ(`driver/i2c_master.h`)で実装した。`imuInit()`は0x6A/0x6Bへの順次プローブ→WHO_AM_I確認(期待値0x70)→初期化レジスタ書き込みの順で行い、失敗時は`false`を返す。I2Cピン(SDA/SCL)は配線未確定のためSDMMC使用中GPIOと衝突しない値を暫定選定(S3: GPIO2/GPIO1、C3: GPIO6/GPIO7)し、1-5-3の実配線時に変更可能なようコメントで明記した。`driver/i2c_master.h`はC3/S3共通でincludeし、`CMakeLists.txt`のREQUIRES変更なしで`esp32-c3-proto`/`esp32-s3`両環境のクリーンビルド成功を確認した（既存のUSB Serial/JTAGドライバと同様、driverコンポーネントは明示REQUIRESなしで解決される）。
 - ✅ **1-5-2完了：IMUデータをtaskA/CSVログ/RCPプロトコルへ統合（配線前、ビルド確認済み）**。`SensorLogRecord`のaccelX/Y/Z・gyroX/Y/Zフィールド(1-2-2で追加済み)へのダミー値代入を、taskA内で1-5-1の`imuReadSensor()`実読み取りに置き換えた。最新IMU値はファイルスコープの`g_imuAccelX`等6変数で保持し(既存の`g_trackCfg`等と同様の非排他パターン)、taskC(RCPストリーム)からも参照する。配線が無い/通信失敗の間は`g_imuAvailable`(`app_main`起動時の`imuInit()`戻り値)がfalseのままとなり、taskAは実読み取りをスキップして直近値(未接続時の初期値はZ軸1Gの静止姿勢相当)を送り続けるフォールバックとした。`kDummyChannels`/`kLapChannels`と同様の`kImuChannels`配列(AccelX/Y/Z・GyroX/Y/Zの6ch)を追加し`rcpSendMeta()`/`rcpSendSample()`に統合(ビットマスクを15ch→21chに拡張)。AccelXのnm/ut/min/max/prec/srは`reference/RaceCapture-Pro_firmware`の実機応答例(`getMeta_response.json`)に合わせたが、同ファームウェアはジャイロ生値ではなくYaw/Pitch/Roll(要姿勢推定)を送る仕様と判明。ここではまず生の角速度をGyroX/Y/Zとして送るチャンネル(min/max=±2000dpsはCTRL2設定のフルスケールに整合)を追加した。両ビルド環境でクリーンビルド成功を確認。実機配線・動作確認は1-5-3で対応予定。
@@ -262,6 +265,8 @@
 - [x] 1-7 センサーキャリブレーション設定コマンド（0-8でPC検証済みのロジック）をESP32実装へ移植し、ダミー値でNVS等への保存・公式アプリとの読み書き往復を実機確認する → 完了（詳細は`task_phase1_breakdown.md`参照）
 
 ### Phase 2：CAN通信 & 車両データ取得
+> 詳細なサブタスク分解は `task_phase2_breakdown.md` 参照。以下は粒度が粗いため、実作業はそちらの単位で進める。
+- [ ] 2-0 ELM327によるOBD2プロトコル事前調査（NCロードスター・レクサスUXの2車両。Bluetooth接続でこのPCから直接調査、2-2着手前の判断材料集め） → 着手中、詳細は`task_phase2_breakdown.md`参照
 - [ ] 2-1 CANトランシーバ（SN65HVD230等）調達・回路実装
 - [ ] 2-2 車両CAN/OBD2から回転数・車速・水温等のデータをデコード
 - [ ] 2-3 CANデータをログ（SD保存・RCPストリーム）へ統合
@@ -313,7 +318,7 @@
 | 開発環境のGoogle Drive依存 | Git運用の安定性のためローカルドライブへ移行中。`task_migrate_off_googledrive_checklist.md`参照 | 最優先（着手中） |
 | GPS/IMU/CANトランシーバ型番 | ✅ IMU=LSM6DSV16X（秋月AE-LSM6DSV16X）、CANトランシーバ=MCP2562FDに決定・調達済み（4章参照）。実車OBD2端子への接続用アダプターは未調達。GPSは型番・購入先とも未確定のまま | GPSはPhase 1後半〜Phase 2着手前までに要決定 |
 | 磁力計モジュールの型番 | ⏳ 未確定。姿勢推定（Yaw方向）のドリフト補正用に追加調達予定（`task_phase1_breakdown.md`1-5-7参照）。既存IMU用I2Cバスに相乗りできるI2C接続タイプ（LIS3MDL等）を想定しているが具体的な型番・購入先は未確定 | Phase1-5のYawドリフト補正着手前（1-5-7）に要決定 |
-| 実車のCAN/OBD2仕様 | 対象車種依存のCAN ID・データ定義が未調査 | Phase 2着手前 |
+| 実車のCAN/OBD2仕様 | 対象車種依存のCAN ID・データ定義が未調査。⏳ ELM327ミニ(Bluetooth)によるNCロードスター・レクサスUX(2022年式)2車両の事前調査に着手（`task_phase2_breakdown.md`の2-0参照。レクサスUXは実戦投入対象外だが挙動確認可能な参考調査として実施） | Phase 2着手前 |
 | ESP32-C3→S3移行時の差分 | ピン配置・USB OTG挙動の違いによる手戻りリスク。**→Phase1-6の実機検証で、C3のネイティブUSBでは複合ディスクリプタ(シリアル+JTAG)しか出せずスマホ版RaceCaptureアプリが接続を拒否することを確認。S3移行は「差分洗い出し」ではなく必須対応と判明。** | Phase 1-4 |
 | SDMMC用プルアップ抵抗 | ✅ 要否解決済み（4章参照）。CLK/CMD/D0〜D3の6ライン全てに10kΩプルアップが必要とESP-IDF公式ドキュメントで確認。実装（配線）は未実施 | 配線時に対応 |
 | IMU基板(AE-LSM6DSV16X)のジャンパはんだ付け状態 | J1(プルアップ)／J2またはJ3(I2Cアドレス0x6Bまたは0x6A選択)／J4(CS→GND、I2Cモード選択)がはんだ付け済みか未確認（4章参照） | IMU配線・通電前に要確認 |
