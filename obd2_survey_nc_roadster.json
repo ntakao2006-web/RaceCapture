@@ -1,0 +1,64 @@
+{
+  "vehicle": "nc_roadster",
+  "timestamp": "2026-08-01T00:57:19.990180+00:00",
+  "port": "COM11",
+  "results": [
+    {
+      "cmd": "ATZ",
+      "resp": "\\xfc\r\rELM327 v1.5"
+    },
+    {
+      "cmd": "ATE0",
+      "resp": "ATE0\rOK"
+    },
+    {
+      "cmd": "ATH0",
+      "resp": "OK"
+    },
+    {
+      "cmd": "ATSP0",
+      "resp": "OK"
+    },
+    {
+      "cmd": "0100",
+      "desc": "supported PIDs 01-20",
+      "resp": "SEARCHING...\r41 00 BE 3F A8 13"
+    },
+    {
+      "cmd": "0120",
+      "desc": "サポートPID 21-40",
+      "resp": "41 20 80 15 B0 01"
+    },
+    {
+      "cmd": "0140",
+      "desc": "サポートPID 41-60",
+      "resp": "41 40 FA D0 00 00"
+    },
+    {
+      "cmd": "010C",
+      "desc": "エンジン回転数(RPM)",
+      "resp": "41 0C 23 74"
+    },
+    {
+      "cmd": "010D",
+      "desc": "車速(km/h)",
+      "resp": "41 0D 34"
+    },
+    {
+      "cmd": "0105",
+      "desc": "冷却水温(degC)",
+      "resp": "41 05 80"
+    },
+    {
+      "cmd": "0111",
+      "desc": "スロットル開度(%)",
+      "resp": "41 11 21"
+    },
+    {
+      "cmd": "0104",
+      "desc": "エンジン負荷(%)",
+      "resp": "41 04 28"
+    }
+  ],
+  "protocol_number": "A6"
+}
