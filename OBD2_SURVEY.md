@@ -153,10 +153,13 @@ Web調査で「NC MiataのCAN busはPCM/インスツルメントクラスター/
 - **`0x4FF`**：`30 44`/`32 4F 4D`。後者はASCIIで解釈すると`2OM`のようにも読めるが確証なし。
 - **`0x39A`**：観測できた2サンプルとも全て0、意味不明のまま。
 - **`0x430`（燃料レベル、精度への疑問）**：追加サンプルでは`byte0/2.55=47.5%`、前回セッションでは`54〜65%`と大きく異なる値が出ており、短時間でこれほど燃料レベルが変動するとは考えにくい。**このデコード式の精度は低い、もしくはこのbyte位置の解釈自体が誤っている可能性がある**（要再検証、断定はしない）。
+- **`0x420`（原文確認、実測と整合）**：madox.netの原文を直接確認したところ「Rises then levels off…Temperature?」（上昇して安定する、温度の可能性）「bytes1-2が増加するカウンタの可能性」との記載があり、今回実測したbyte0の緩やかな単調増加(`80→81→82`)と整合する。温度・カウンタいずれの解釈も完全には確定しないが、「短期的にはゆっくり増加し続ける値」という性質は実測・文献の両方で一致した。
+- **`0x4F0`/`0x4F1`（5秒毎に不変の固定値、未観測）**：文献によれば`0x4F0`=`14 24 12 FF FF 7F`、`0x4F1`=`4A 01 9F FF FF 64 5E 5E`という固定値パターンで、車両固有の設定値・キャリブレーションデータの可能性がある。35ラウンドの追加`ATMA`探索でも`0x204`/`0x4F0`/`0x4F1`/`0x202`は本車両では一度も観測できず（低頻度メッセージのため`BUFFER FULL`による取りこぼしか、この年式では未使用の可能性、判別不能）。
 
 Sources:
 - [RaceChrono direct CAN-bus reading (MX-5 Miata Forum)](https://forum.miata.net/vb/showthread.php?t=735385)
 - [ECU network and parameter info (MX-5 Miata Forum archive)](https://forum.miata.net/vb/archive/index.php/t-636535.html)
+- [Mazda CAN Bus – Madox.NET](http://www.madox.net/blog/projects/mazda-can-bus/)
 
 Sources:
 - [mazda_mx5_nc.md (timurrrr/RaceChronoDiyBleDevice)](https://github.com/timurrrr/RaceChronoDiyBleDevice/blob/master/can_db/mazda_mx5_nc.md)
