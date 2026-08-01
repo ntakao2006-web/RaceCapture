@@ -132,6 +132,14 @@ NC型ロードスター(北米名Mazda MX-5 NC)はコミュニティでの改造
 
 **Phase2設計への示唆**：自作CANトランシーバ(MCP2562FD)をOBD2ポートに接続しても、取得できるのはパワートレイン系（エンジン回転数・車速・ホイールスピード・スロットル等）が中心で、窓・ドア・ライト等のボディ系情報を取りたい場合は別途MS-CAN側への配線・アクセス手段の検討が必要になる可能性がある。
 
+### ギアポジション（段数）取得可否の調査
+
+ユーザー確認により**本車両はMT(マニュアル)車**と判明。AT車向けのギアポジション候補ID`0x228`(Park/Reverse/Drive/1st-4th、Mazda全般の情報より、RX-8/Mazda3系での報告)を`ATMA`で探索したが、20ラウンドの観測で一度も出現しなかった。
+
+`0x231`（クラッチスイッチ、[NC専用CAN DB](https://github.com/timurrrr/RaceChronoDiyBleDevice/blob/master/can_db/mazda_mx5_nc.md)より判明済み）のbyte1を継続観測したところ、`0x02`(一部サンプルで観測)と`0x00`(大半のサンプル、巡航中はほぼ終始この値)の2値をとることを確認した。巡航中(シフト操作が発生しないタイミング)ではbyte1は一貫して`0x00`で安定しており、`0x02`への変化はクラッチ操作(変速)のタイミングと推定される（狙って再現できておらず断定はしない）。RPM(`010C`)との同時取得も試みたが、シフト操作が発生しないタイミングと重なり相関は確認できなかった。
+
+**結論**：本車両はMT車のため、市販車のMTに一般的な「電子的なギアポジションセンサー」自体が搭載されていない可能性が高く、**CAN上から「現在何速か」を直接取得することはできない**と判断する。取得できるのは`0x231`の**クラッチ操作(踏んでいるか否か)の2値情報のみ**。AT車であれば`0x228`のような形でギアポジション情報が得られる可能性があるが未検証（本車両では対象外）。
+
 Sources:
 - [mazda_mx5_nc.md (timurrrr/RaceChronoDiyBleDevice)](https://github.com/timurrrr/RaceChronoDiyBleDevice/blob/master/can_db/mazda_mx5_nc.md)
 - [Mazda CAN Bus – Madox.NET](http://www.madox.net/blog/projects/mazda-can-bus/)
