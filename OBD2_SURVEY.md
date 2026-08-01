@@ -161,6 +161,17 @@ Sources:
 - [ECU network and parameter info (MX-5 Miata Forum archive)](https://forum.miata.net/vb/archive/index.php/t-636535.html)
 - [Mazda CAN Bus – Madox.NET](http://www.madox.net/blog/projects/mazda-can-bus/)
 
+### RaceLogic社公式CAN DB(PDF)の内容確認
+
+前回のセッションではバイナリのため中身を抽出できなかった[RaceLogic社公式PDF](https://www.racelogic.co.uk/_downloads/vbox/Vehicles/Other/Docs/Mazda-MX-5%20(NC)%202005-2015.pdf)を、Readツールで直接PDF読み込みして内容を確認できた。
+
+- **配線確認**：OBD-IIコネクタのpin6=CAN High、pin14=CAN Low（標準配置、今回のELM327接続と一致）
+- **CANボーレート再確認**：500kbps（本調査の`ATDPN`結果と一致）
+- **商用マップとして存在する利用可能信号一覧**：Accelerator Pedal Position、**Brake Position**、Coolant Temperature、Engine Speed、Indicated Vehicle Speed、**Steering Angle**、Wheel Speed FL/FR/RL/RR
+- 重要な注記：「**not all signals listed above will be applicable to all variants of this vehicle**」（全信号が全バリアントで使えるわけではない）
+
+具体的なCAN ID・バイト位置・デコード式は商用ソフトウェア内蔵のため本PDFには非公開だったが、**Brake Position・Steering Angleが「NC型として存在しうる信号」に含まれている一方、本車両では実際に観測できなかった**ことは、GitHub情報の「DSC搭載車(2007年以降)限定」という制約、および上記の「全バリアント対応ではない」という注記と整合する。本車両（2005年製初期型、DSC非搭載と推定）ではこれらの信号は利用できない可能性が高いという結論を追加の一次資料で補強できた。
+
 Sources:
 - [mazda_mx5_nc.md (timurrrr/RaceChronoDiyBleDevice)](https://github.com/timurrrr/RaceChronoDiyBleDevice/blob/master/can_db/mazda_mx5_nc.md)
 - [Mazda CAN Bus – Madox.NET](http://www.madox.net/blog/projects/mazda-can-bus/)
