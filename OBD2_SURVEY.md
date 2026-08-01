@@ -77,6 +77,27 @@ ELM327の`ATMA`コマンドでOBD2ポート上の生CANフレーム（フィル�
 
 本格的な逆解析には、自作CANトランシーバ(MCP2562FD)によるフルスピード直結キャプチャ（Phase2-1で計画中のハードウェア）と、停車状態での系統的な操作テストが必要という結論。今回のELM327調査は「OBD2ポートから生CAN観測自体は可能」という予備確認として位置づける。
 
+### 生CANのコミュニティ解析情報との突合（Web調査、2026-08-01追記）
+
+NC型ロードスター(北米名Mazda MX-5 NC)はコミュニティでの改造・リバースエンジニアリング事例が豊富にあり、GitHub上に**NC専用のCAN ID解析情報(DBファイル)**が公開されていることを確認した（[timurrrr/RaceChronoDiyBleDevice](https://github.com/timurrrr/RaceChronoDiyBleDevice/blob/master/can_db/mazda_mx5_nc.md)）。同ドキュメントに記載のデコード式と実測データを照合したところ、以下の通り整合性が確認できた。
+
+| CAN ID | 内容 | デコード式 | 実測検証 |
+|---|---|---|---|
+| `0x200` | スロットル開度(byte7) | `byte7*100/255` | 検証OK |
+| `0x201` | エンジン回転数(byte0-1)・車速(byte4-5)・アクセルペダル位置(byte6) | RPM=`raw/4`、車速=`(raw/100-100)`km/h(100km/hオフセット) | **車速62.0km/hを0x4B0の4輪速度(61.6〜62.0km/h)と相互検証、一致** |
+| `0x215` | スロットル開度(byte6、`0x200`と同一値) | 同上 | - |
+| `0x231` | クラッチスイッチ(MT車、byte1のbit) | - | - |
+| `0x4B0` | **4輪独立ホイールスピード**(FL/FR/RL/RR、各2バイト) | 各16bit値を`(raw/100-100)`km/h(100km/hオフセット) | 停止時`27 10`(=10000)が0km/hに対応することを確認。2-0-8で「ホイールスピード系」と推測していたのが的中 |
+| `0x240` | エンジン負荷(byte0)・水温(byte1)・点火時期(byte2、WIP)・スロットル開度(byte3)・吸気温度(byte4) | 負荷=`byte0*100/255`、水温=`byte1-40`℃、スロットル=`byte3*100/255`、吸気温=`byte4-40`℃ | **スロットル開度13.3% vs 同時刻のOBD2実測12.9%、ほぼ一致** |
+
+さらに、`ATMA`での追加モニタリング(15ラウンド)により`0x240`・`0x420`・`0x4FF`の3IDを新規に捕捉できた（`0x420`はカウンタ関連、`0x4FF`は意味未解明）。一方`0x081`(ステアリング角度)・`0x085`(ブレーキ圧)・`0x090`(加速度)は同資料によれば**DSC(Dynamic Stability Control)搭載車限定=2007年以降のモデルのみに存在**するCAN IDとされており、本車両（2005年製初期型）では観測されなかった。これはDSC非搭載という車両側の仕様と整合する結果と考えられる（未確定、断定はしない）。
+
+引き続き未解明のID：`211`(警告灯関連の可能性、[madox.net](http://www.madox.net/blog/projects/mazda-can-bus/)のMazda全般情報より推測)、`212`、`21A`、`39A`、`4EC`、`4FF`。
+
+Sources:
+- [mazda_mx5_nc.md (timurrrr/RaceChronoDiyBleDevice)](https://github.com/timurrrr/RaceChronoDiyBleDevice/blob/master/can_db/mazda_mx5_nc.md)
+- [Mazda CAN Bus – Madox.NET](http://www.madox.net/blog/projects/mazda-can-bus/)
+
 ### 所見
 
 - 想定していた「日本国内仕様(2005年)はOBD-II非対応かもしれない」という懸念に反し、**標準的なCANベースOBD2(JOBD)にしっかり対応**しており、回転数・車速・水温・スロットル・エンジン負荷・吸気圧・吸気温度・MAF・点火時期・バッテリー電圧など主要な走行系パラメータがほぼ全て取得可能と判明。
