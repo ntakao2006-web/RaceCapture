@@ -346,10 +346,16 @@ static int g_imuCalibSamples = 0;
 static float g_imuCalibSumX = 0.0f, g_imuCalibSumY = 0.0f, g_imuCalibSumZ = 0.0f;
 static float g_imuCalibSumSqX = 0.0f, g_imuCalibSumSqY = 0.0f, g_imuCalibSumSqZ = 0.0f;
 
+// 1-5-3実機切り分け時、静止90分間の実測でジャイロZ軸バイアスが0.137dps
+// (積分すると約8.2度/分のドリフトに相当)と判明。加速度と同じ静止ウィンドウで
+// ジャイロのゼロ点オフセットも同時に求め、車体座標系へ変換する前に差し引く。
+static float g_imuGyroBiasSumX = 0.0f, g_imuGyroBiasSumY = 0.0f, g_imuGyroBiasSumZ = 0.0f;
+static float g_imuGyroBiasX = 0.0f, g_imuGyroBiasY = 0.0f, g_imuGyroBiasZ = 0.0f;
+
 // サンプルを1つ蓄積し、規定数に達したら分散を判定してg_imuAlignRotationを確定する。
 // 分散が閾値を超えていても(振動等で「静止」と確信が持てなくても)規定サンプル数に達した
 // 時点の平均値でいったん確定させ、姿勢推定が永久に始まらない状態を避ける(警告ログのみ出す)。
-static void imuCalibrationUpdate(float ax, float ay, float az)
+static void imuCalibrationUpdate(float ax, float ay, float az, float gx, float gy, float gz)
 {
     if (g_imuCalibState == ImuCalibState::kDone) {
         return;
@@ -357,6 +363,7 @@ static void imuCalibrationUpdate(float ax, float ay, float az)
     g_imuCalibSamples++;
     g_imuCalibSumX += ax; g_imuCalibSumY += ay; g_imuCalibSumZ += az;
     g_imuCalibSumSqX += ax * ax; g_imuCalibSumSqY += ay * ay; g_imuCalibSumSqZ += az * az;
+    g_imuGyroBiasSumX += gx; g_imuGyroBiasSumY += gy; g_imuGyroBiasSumZ += gz;
 
     if (g_imuCalibSamples < kImuCalibSampleCount) {
         return;
@@ -374,8 +381,12 @@ static void imuCalibrationUpdate(float ax, float ay, float az)
     }
 
     g_imuAlignRotation = mat3RotationBetweenVectors(meanX, meanY, meanZ, 0.0f, 0.0f, 1.0f);
+    g_imuGyroBiasX = g_imuGyroBiasSumX / n;
+    g_imuGyroBiasY = g_imuGyroBiasSumY / n;
+    g_imuGyroBiasZ = g_imuGyroBiasSumZ / n;
     g_imuCalibState = ImuCalibState::kDone;
     ESP_LOGI(kImuTag, "alignment calibration done: gravity=(%.3f,%.3f,%.3f)G", meanX, meanY, meanZ);
+    ESP_LOGI(kImuTag, "gyro bias(dps): (%.3f,%.3f,%.3f)", g_imuGyroBiasX, g_imuGyroBiasY, g_imuGyroBiasZ);
 }
 
 // 1-5-5で確定した回転補正を適用した後の車体座標系IMU値(taskAで更新)。
@@ -586,11 +597,13 @@ static void taskA(void *pvParameters)
         // 1-5-5: 起動時キャリブレーション用に、センサー座標系の生の加速度をサンプル蓄積する
         // (キャリブレーション完了後は内部で何もしない)。完了済みならg_imuAlignRotationで
         // センサー座標系→車体座標系へ変換し、1-5-4の相補フィルタへ渡す。
-        imuCalibrationUpdate(g_imuAccelX, g_imuAccelY, g_imuAccelZ);
+        imuCalibrationUpdate(g_imuAccelX, g_imuAccelY, g_imuAccelZ,
+                             g_imuGyroX, g_imuGyroY, g_imuGyroZ);
         if (g_imuCalibState == ImuCalibState::kDone) {
             mat3Apply(g_imuAlignRotation, g_imuAccelX, g_imuAccelY, g_imuAccelZ,
                       &g_bodyAccelX, &g_bodyAccelY, &g_bodyAccelZ);
-            mat3Apply(g_imuAlignRotation, g_imuGyroX, g_imuGyroY, g_imuGyroZ,
+            mat3Apply(g_imuAlignRotation,
+                      g_imuGyroX - g_imuGyroBiasX, g_imuGyroY - g_imuGyroBiasY, g_imuGyroZ - g_imuGyroBiasZ,
                       &g_bodyGyroX, &g_bodyGyroY, &g_bodyGyroZ);
 
             if (!g_attitudeInitialized) {
