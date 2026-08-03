@@ -165,7 +165,7 @@ static bool imuInit()
     busConfig.scl_io_num = kImuSclPin;
     busConfig.clk_source = I2C_CLK_SRC_DEFAULT;
     busConfig.glitch_ignore_cnt = 7;
-    busConfig.flags.enable_internal_pullup = true;
+    busConfig.flags.enable_internal_pullup = false;
 
     esp_err_t err = i2c_new_master_bus(&busConfig, &g_imuI2cBus);
     if (err != ESP_OK) {
@@ -173,9 +173,13 @@ static bool imuInit()
         return false;
     }
 
+    // バス生成直後は信号線の安定待ちが必要。またブレッドボード配線の浮遊容量分、
+    // プローブのタイムアウトは短すぎるとACKを取りこぼす(1-5-3実機切り分けで判明)。
+    vTaskDelay(pdMS_TO_TICKS(50));
+
     uint8_t foundAddr = 0;
     for (uint8_t addr : kImuProbeAddrs) {
-        if (i2c_master_probe(g_imuI2cBus, addr, pdMS_TO_TICKS(50)) == ESP_OK) {
+        if (i2c_master_probe(g_imuI2cBus, addr, pdMS_TO_TICKS(200)) == ESP_OK) {
             foundAddr = addr;
             break;
         }
