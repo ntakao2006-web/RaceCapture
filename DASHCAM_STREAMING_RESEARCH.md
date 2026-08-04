@@ -258,8 +258,14 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
 
 > 実作業ログ・進捗は`task_dashcam_breakdown.md`（タスクID: `DC-N`）を参照。
 
-1. 市販の小型N100ミニPC(Beelink Mini S12 Pro等、即納性が高いもの)を1台調達し、
-   実際にRaceCaptureのインストールスクリプトを流して動作検証する
+- ✅ **DC-6として着手中**：手元にあったHP EliteDesk 800 G3系(Intel Core i5 第7世代、24GB RAM)を
+  次の検証機として採用することにした。AMD機(DC-1〜DC-5)で見つかったrace_captureの
+  `No matching FB config found`問題が、公式推奨・動作確認済みに近いIntel構成でも再発するかを
+  確認するのが最優先事項。SSDはAMD機で使っていたものを流用しUbuntu Server 24.04を新規インストール
+  する予定。手順・進捗は`task_dashcam_breakdown.md`のDC-6参照
+- 元々の推奨だった市販小型N100ミニPC(Beelink Mini S12 Pro等)は、EliteDeskでの検証がうまくいかない
+  場合の代替候補として保留
+1. （DC-6で）Intel実機でRaceCaptureのインストールスクリプトを流して動作検証する
 2. SSH経由でClaude Codeから当該マシンを直接操作し、セットアップ・トラブル
    シューティングを行う(Ubuntu + OpenSSHサーバーを有効化すればよい)
 3. 検証がうまくいけば、その結果を踏まえて軽量化(SBC/裸基板ルート)を再検討する

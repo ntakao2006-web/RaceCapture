@@ -54,4 +54,30 @@
 
 ---
 
-*次のチャットでは「DC-5-2から進めて」のように指定すれば、このファイルを参照して作業を再開できる。race_captureのFBConfig原因調査の続きは、SDL2/Kivyの既知issue調査、または別のUbuntuバージョン/新しいGPUでの比較検証などが次の候補。*
+## DC-6: Intel実機(EliteDesk 800 G3系)での再検証 ※ハードウェア入れ替え・準備中
+DC-5-2でAMD機(A4 PRO-7300B, Mesaのclassic `radeon`ドライバ)固有の環境問題である可能性が高いと
+判断したため、AutosportLabs公式の推奨・動作確認済み実機に近い**HP EliteDesk 800 G3系（Intel
+Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたものを流用しOSは新規インストール）**
+での再検証に切り替える。
+
+- [ ] DC-6-1: EliteDeskへUbuntu Server 24.04 LTSを新規インストール（DC-1と同様の手順。SSDは
+      リセットされる想定）
+- [ ] DC-6-2: SSH接続・パスワードなしsudoなど、DC-1-5相当のリモート操作環境を再構築
+- [ ] DC-6-3: `racecapture_streaming_install_intel.sh`（本リポジトリに保存済み。DC-5-2の
+      調査を踏まえ、公式スクリプトからUbuntu 24.04向けの3点だけを修正したIntel版。詳細は
+      ファイル冒頭のコメント参照）を実行し、`racecapture`・`video-streamer`のインストールを
+      確認
+- [ ] DC-6-4: USBカメラ・ESP32-C3（DC-5-1のESP32実機、または新規に同じ手順で書き込んだもの）を
+      接続し、DC-5-2で確認した`video-streamer`のVAAPI動作（`file_h264_enc`エレメント作成）を
+      再確認。Intel機なら本来のVAAPIドライバ(`intel-media-va-driver-non-free`)でそのまま
+      動作する見込み（DC-5-2でのLD_PRELOAD対応はAMD機のMesa非互換が原因だったため、Intel機では
+      不要になる可能性が高い）
+- [ ] DC-6-5: `race_capture`アプリの起動を確認し、DC-5-2で発生した`No matching FB config found`
+      / `Couldn't find matching GLX visual`が再発しないか検証（再発しなければAMD機固有の問題と
+      確定、再発すればrace_capture配布バイナリ自体の一般的な非互換の可能性が高まる）
+- [ ] DC-6-6: ダッシュ表示・映像へのデータ焼き込みが実際に動作するか最終確認（DC-5-2の元々の目的）
+
+---
+
+*次のチャットでは「DC-6から進めて」のように指定すれば、このファイルとリポジトリ直下の
+`racecapture_streaming_install_intel.sh`を参照して作業を再開できる。*
