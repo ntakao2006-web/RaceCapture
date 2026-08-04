@@ -240,6 +240,7 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
 - 市販小型N100ミニPC / SBC / Mini-ITX裸基板いずれも、RaceCaptureのvideo-streamer
   インストールスクリプトが問題なく動作するかは**未検証**。Intel VAAPI対応チップで
   あれば動く可能性は高いが、実機確認が必須
+  - ⏳ **AMD機での検証(DC-1〜DC-4完了、詳細は`task_dashcam_breakdown.md`参照)**：手元のAMD A4 PRO-7300B機(Ubuntu Server 24.04)で公式インストールスクリプトをAMD向けに調整（Intel専用VAAPIドライバをMesa版へ読み替え、Ubuntu 24.04でのパッケージ名変更に追随、GStreamerのVAAPIプラグインを追加導入)した結果、`racecapture`・`video-streamer`ともインストール成功、VAAPI H264エンコーダー(`vaapih264enc`)の登録まで確認できた。ただしGUI実起動(仮想ディスプレイでは`race_capture`がFBConfig不一致でクラッシュ、物理ディスプレイでの再確認が必要)・実映像取り込み(USBカメラ未接続)は未確認のまま。Intel/N100系実機についてはこのAMD機での知見は直接は適用できないため、引き続き実機確認が必要
 - 完全ファンレスな小型ミニPCの具体的な実測重量は未確認(今回確認できたBeelink Mini
   S12 Proは小型ファン搭載)
 - ODROID-H4/H5シリーズの今後の供給状況
@@ -249,6 +250,8 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
 ---
 
 ## 7. 次のステップ(推奨)
+
+> 実作業ログ・進捗は`task_dashcam_breakdown.md`（タスクID: `DC-N`）を参照。
 
 1. 市販の小型N100ミニPC(Beelink Mini S12 Pro等、即納性が高いもの)を1台調達し、
    実際にRaceCaptureのインストールスクリプトを流して動作検証する
