@@ -182,8 +182,20 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
       racecapture/video-streamer本体のインストールには無関係）
     - `dpkg -l`で`racecapture`(2.18.0)・`video-streamer`(0.4.0)とも`ii`(正常インストール)を
       確認済み
-  - [ ] DC-6-6-5: USBカメラ・ESP32-C3を接続し、`video-streamer`のVAAPI動作
-        （`file_h264_enc`エレメント作成、`LD_PRELOAD`要否含む）を再確認（DC-6-4相当の手順）
+  - [x] DC-6-6-5: USBカメラ・ESP32-C3を接続し、`video-streamer`のVAAPI動作
+        （`file_h264_enc`エレメント作成、`LD_PRELOAD`要否含む）を再確認（DC-6-4相当の手順） ※完了
+    - USBカメラ(BUFFALO BSWHD06M→`/dev/video0`)・ESP32-C3(→`/dev/ttyACM0`)とも、EliteDesk本体への
+      OS再インストールをまたいで接続されたままだったため物理再接続は不要だった
+    - `vainfo`パッケージ自体は`racecapture_streaming_install_intel.sh`の対象外で未導入だったため
+      追加導入（`intel-media-va-driver-non-free`/`gstreamer1.0-vaapi`/`gstreamer1.0-tools`は
+      スクリプトにより導入済み）。`vainfo --display drm --device /dev/dri/renderD128`で
+      `iHD_drv_video.so`(Intel iHD driver, VA-API 1.14)ロード・H.264 EncSlice等を確認
+    - `video-streamer`本体（`/opt/video-streamer/video-streamer`）をDC-6-4と同じ
+      `LD_PRELOAD=.../{libstdc++.so.6,libva.so.2,libva-drm.so.2,libva-x11.so.2}`付きで起動した
+      ところ、`va_openDriver() returns 0`でVAAPI初期化に成功（GLIBCXXバージョン不整合エラーは
+      再発せず）。**Ubuntu 22.04環境でも同じ`LD_PRELOAD`回避策が有効であることを確認**
+    - その後`Could not open X display for reading`で失敗するのはDC-5-2/DC-6-4で判明済みの
+      仕様通り（race_captureのGUI描画＝X11セッションが必須なため、単体起動では想定内のエラー）
   - [ ] DC-6-6-6: `race_capture`アプリを起動し、`No matching FB config found`が
         Ubuntu 22.04世代のMesa/Xorgでも再発するか検証（DC-6-5相当の手順。ここでOKなら
         ダウングレード方針の有効性が実証される）
