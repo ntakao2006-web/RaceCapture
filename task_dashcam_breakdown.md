@@ -81,6 +81,11 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
   - 既存の秘密鍵(`C:\Users\ntaka\.ssh\amdpc_dashcam_ed25519`)はそのまま継続使用。公開鍵を
     パスワード認証SSH経由で`~/.ssh/authorized_keys`へ追記、`/etc/sudoers.d/ntakao-nopasswd`も
     再設定し、鍵認証・パスワードなしsudoとも動作確認済み
+  - ⚠️ DC-1-5と同じ注意点：IPアドレス`192.168.68.62`はDHCP割当のため、EliteDesk再起動後は
+    変わっている可能性がある（変わっていればEliteDesk側コンソールか`ip a`で再確認）。また、
+    Claude Codeを動かす作業PCがEliteDeskと同じ`192.168.68.x`のLANに接続されていないと
+    そもそも到達できない（今回まさに発生した問題）。次回接続できない場合はまずこの2点と
+    EliteDesk本体の電源状態を確認する
 - [x] DC-6-3: `racecapture_streaming_install_intel.sh`（本リポジトリに保存済み。DC-5-2の
       調査を踏まえ、公式スクリプトからUbuntu 24.04向けの3点だけを修正したIntel版。詳細は
       ファイル冒頭のコメント参照）を実行し、`racecapture`・`video-streamer`のインストールを
