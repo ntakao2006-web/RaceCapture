@@ -145,9 +145,50 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
     または旧バージョンのUbuntu/Mesaへのダウングレードが必要と判断し、実機切り替えによる
     切り分け調査はここで完了とする
 - [ ] DC-6-6: ダッシュ表示・映像へのデータ焼き込みが実際に動作するか最終確認（DC-5-2の元々の目的）
-  - DC-6-5の結果により、現状の配布バイナリのままでは本タスクの達成は困難と判明。着手には
-    前提となる対応方針（race_captureの再ビルド／別バージョン入手／Ubuntuダウングレード等）の
-    決定が必要なため保留
+  - DC-6-5の結果により、現状の配布バイナリのままでは本タスクの達成は困難と判明。対応方針は
+    ユーザー判断で**「EliteDeskをUbuntu 22.04 LTSへダウングレードし、race_capture配布バイナリが
+    動作実績を持つ世代のMesa/Xorgへ戻す」**に決定（他候補：ソース再ビルド／旧バージョン入手／
+    映像焼き込み自体を諦める、は不採用）。以下のサブタスクに分解して進める
+  - [x] DC-6-6-1: Ubuntu Server 22.04 LTS（最新ポイントリリース22.04.5）のインストールUSBを作成 ※完了
+    - `ubuntu-22.04.5-live-server-amd64.iso`をUbuntu公式(releases.ubuntu.com)から取得し
+      SHA256チェックサム一致を確認済み(`9bc6028870...aa98b0`)。USBメモリはDC-1-2で使用したもの
+      を再利用（ディスク1、ELECOM MF-MSU2B、31GB、MBR）
+    - ハマりどころ：`Remove-Partition`実行直後、Windowsが未フォーマットボリュームを検知して
+      自動的にGUIのフォーマットダイアログをポップアップさせ、それを使おうとすると
+      「Windowsはフォーマットを完了できませんでした」で失敗する事象が発生。GUIダイアログは
+      キャンセルし、`New-Partition -UseMaximumSize -IsActive -AssignDriveLetter | Format-Volume
+      -FileSystem FAT32`をコマンド経由で実行することで解消（USBの抜き差しを挟んでもディスク
+      番号は1のまま変化なし）
+    - ISO中身は`Mount-DiskImage`→`robocopy`→`Dismount-DiskImage`でUSBへ展開。DC-1-2と同様、
+      dd的なraw書き込みではなくFAT32へのファイル展開方式（Ubuntu ServerのISOサイズは
+      約2GBのためFAT32の単一ファイル4GB制限には抵触しない）
+  - [x] DC-6-6-2: EliteDeskへUbuntu 22.04 LTSを新規インストール（DC-6-1相当の手順） ※完了
+    - VGA接続・ディスク全体(LVM、暗号化なし)・ホスト名`dashcam-test`・ユーザー名`ntakao`・
+      OpenSSHサーバー有効化、いずれもDC-6-1と同じ設定でインストール完了。
+      Ubuntu 22.04.5 LTS(jammy)であることを確認済み
+  - [x] DC-6-6-3: SSH接続・パスワードなしsudoの再構築（DC-6-2相当の手順） ※完了
+    - IPアドレスは前回(DC-6-1〜DC-6-5時点)と同じ`192.168.68.62`のまま変わらず
+    - 新規インストールのためSSHホストキーが変わり`known_hosts`が警告を出したため
+      `ssh-keygen -R`で古いエントリを削除して解消（想定内の事象）
+    - 公開鍵`authorized_keys`への追記・パスワードなしsudo設定(`/etc/sudoers.d/ntakao-nopasswd`)
+      とも、ユーザー自身が作業PC側のPowerShellから`ssh`/`ssh -t`でパスワード認証ログインする形で
+      実施（Claude Code側でユーザーのログインパスワードを扱わない運用とした）。鍵認証・
+      パスワードなしsudoとも動作確認済み
+  - [x] DC-6-6-4: `racecapture_streaming_install_intel.sh`を実行し、`racecapture`・
+        `video-streamer`のインストールを再確認（DC-6-3相当の手順） ※完了
+    - `~/Desktop`は事前に`mkdir -p`しておいたため、DC-6-3で発生した`video-config.ini`生成失敗
+      (exit 2)は今回発生せず。`/var/lib/AccountsService/users/ntakao`不在によるsed失敗のみ
+      再発したが、これはDC-6-3同様に非致命的（キオスク自動起動設定の一部のみ影響、
+      racecapture/video-streamer本体のインストールには無関係）
+    - `dpkg -l`で`racecapture`(2.18.0)・`video-streamer`(0.4.0)とも`ii`(正常インストール)を
+      確認済み
+  - [ ] DC-6-6-5: USBカメラ・ESP32-C3を接続し、`video-streamer`のVAAPI動作
+        （`file_h264_enc`エレメント作成、`LD_PRELOAD`要否含む）を再確認（DC-6-4相当の手順）
+  - [ ] DC-6-6-6: `race_capture`アプリを起動し、`No matching FB config found`が
+        Ubuntu 22.04世代のMesa/Xorgでも再発するか検証（DC-6-5相当の手順。ここでOKなら
+        ダウングレード方針の有効性が実証される）
+  - [ ] DC-6-6-7: 上記が解消した場合、ダッシュ表示＋`ximagesrc`経由の映像データ焼き込みが
+        実際に一連の流れとして動作するか最終確認（DC-5-2/DC-6全体の元々の目的の達成確認）
 
 ---
 
