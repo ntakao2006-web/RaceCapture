@@ -92,26 +92,57 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
     `gstreamer1.0-vaapi`/`gstreamer1.0-tools`追加）のみが反映されており、修正漏れなし
   - リモート(SSH)からスクリプトを転送・実行。`dpkg -l`で`racecapture`(2.18.0)・
     `video-streamer`(0.4.0)とも`ii`(正常インストール)を確認
-  - ✅ **Intel機ではAMD機と違い、追加対応なしでVAAPIが動作**。`vainfo --display drm --device
-    /dev/dri/renderD128`で`iHD_drv_video.so`(Intel iHD driver、VA-API 1.20)がロードされ、
-    H.264(Main/High/ConstrainedBaseline)の`VAEntrypointEncSlice`(エンコード)が確認できた。
-    DC-5-2でAMD機に必要だった`LD_PRELOAD`によるライブラリ差し替えは不要と判明
-    （ドライバがネイティブにシステムのlibva/libstdc++と整合しているため、AMD機のMesa
-    classic `radeon`ドライバ特有のABI不整合がIntel機では発生していない）
+  - ✅ `vainfo --display drm --device /dev/dri/renderD128`で`iHD_drv_video.so`(Intel iHD
+    driver、VA-API 1.20)がロードされ、H.264(Main/High/ConstrainedBaseline)の
+    `VAEntrypointEncSlice`(エンコード)が確認できた（システムレベルでのVAAPI動作確認）
+  - ⚠️ **【DC-6-4での訂正】上記はシステムレベルの`vainfo`確認であり、実際には`video-streamer`
+    自体は依然`LD_PRELOAD`が必要だった**（詳細はDC-6-4参照）。「Intel機ではLD_PRELOAD不要」は
+    誤った予測だったため撤回する
   - ハマりどころ（DC-4-3と同じ既知の問題、再発）：スクリプト末尾で`~/Desktop`が存在せず
     `video-config.ini`生成に失敗(exit 2の原因)、および`/var/lib/AccountsService/users/ntakao`
     unmatched不在で`sed`が失敗。いずれも非致命的で`racecapture`/`video-streamer`のインストール
-    自体には影響なし。`mkdir -p ~/Desktop`で手動対処済み（AccountsService側はDC-6-5でキオスク
-    自動起動を設定する際に改めて対応）
-- [ ] DC-6-4: USBカメラ・ESP32-C3（DC-5-1のESP32実機、または新規に同じ手順で書き込んだもの）を
+    自体には影響なし。`mkdir -p ~/Desktop`で手動対処済み（AccountsService側はキオスク自動起動を
+    設定する際に改めて対応）
+- [x] DC-6-4: USBカメラ・ESP32-C3（DC-5-1のESP32実機、または新規に同じ手順で書き込んだもの）を
       接続し、DC-5-2で確認した`video-streamer`のVAAPI動作（`file_h264_enc`エレメント作成）を
-      再確認。Intel機なら本来のVAAPIドライバ(`intel-media-va-driver-non-free`)でそのまま
-      動作する見込み（DC-5-2でのLD_PRELOAD対応はAMD機のMesa非互換が原因だったため、Intel機では
-      不要になる可能性が高い）
-- [ ] DC-6-5: `race_capture`アプリの起動を確認し、DC-5-2で発生した`No matching FB config found`
-      / `Couldn't find matching GLX visual`が再発しないか検証（再発しなければAMD機固有の問題と
-      確定、再発すればrace_capture配布バイナリ自体の一般的な非互換の可能性が高まる）
+      再確認 ※完了
+  - USBカメラ(BUFFALO BSWHD06M→`/dev/video0`/`/dev/video1`)・ESP32-C3(→`/dev/ttyACM0`,
+    Espressif USB JTAG/serial)とも`lsusb`・デバイスファイルで正常認識。ESP32-C3からのRCP
+    テレメトリー出力もDC-5-1同様に確認できた（開発中ファームウェアのデバッグログとJSON RCP
+    メッセージが同一シリアル上に混在するのは既知の仕様、新たな問題ではない）
+  - ⚠️ **予想は外れ、Intel機でも`video-streamer`単体では`LD_PRELOAD`なしだと`file_h264_enc`
+    作成に失敗した**：`libva error: dlopen of .../iHD_drv_video.so failed:
+    /opt/video-streamer/libstdc++.so.6: version 'GLIBCXX_3.4.32' not found (required by
+    /lib/x86_64-linux-gnu/libigdgmm.so.12)`。つまりDC-5-2で見つかった問題は**AMD固有ではなく、
+    video-streamerにバンドルされた2022年当時の古い`libstdc++.so.6`が、Ubuntu 24.04の新しい
+    Mesa/Intelドライバ側ライブラリと衝突するという、ベンダー非依存の汎用的な非互換**だった
+  - ✅ DC-5-2と同じ`LD_PRELOAD=/usr/lib/x86_64-linux-gnu/{libstdc++.so.6,libva.so.2,
+    libva-drm.so.2,libva-x11.so.2}`を適用したところ`va_openDriver() returns 0`で解消し、
+    VAAPI初期化に成功。その後は想定通り`ximagesrc`が`Could not open X display for reading`
+    で失敗（race_captureのGUI描画＝X11セッションが必須という、DC-5-2で判明した仕様通りで
+    新たな問題ではない）
+- [x] DC-6-5: `race_capture`アプリの起動を確認し、DC-5-2で発生した`No matching FB config found`
+      / `Couldn't find matching GLX visual`が再発しないか検証 ※完了
+  - `xserver-xorg-core`・`xserver-xorg-video-intel`は`racecapture_streaming_install_intel.sh`
+    導入時の依存関係で既にインストール済みだった。`xinit`のみ追加導入し、`sudo X :1`で物理
+    モニター非接続のままXorgを起動（DC-5-2と同様、EDID偽装なしでも起動できた）
+  - `glxinfo`で`direct rendering: Yes`・`OpenGL 4.6`・Mesa Intel UHD Graphics 630(CFL GT2)・
+    GLXFBConfigs 992件、`xdpyinfo`でdepth 32のTrueColor Visual多数（`0x6d`等）を確認。
+    システムのGLX/Mesa/Xサーバー自体はAMD機同様に正常機能している
+  - 🔴 **確定：`No matching FB config found`(exit 102)がIntel機（Mesa `iris`系ドライバ、
+    AMD機とは全く異なるGPUベンダー・ドライバスタック）でも完全に再現した**。depth32 Visual・
+    十分な数のGLXFBConfigsが存在するにもかかわらず失敗することもAMD機と同一の症状。これにより
+    DC-6全体の目的だった「AMD機固有の環境問題か、race_capture配布バイナリ自体の一般的な
+    非互換か」の切り分けが完了し、**後者（race_capture配布バイナリ自体がUbuntu 24.04世代の
+    Mesa/Xorg/XRenderスタックと一般的に非互換）と確定**。DC-5-2で推測した「Kivyネイティブ
+    実装/SDL2の内部的な二次フィルタ(`XRenderFindVisualFormat`)がGPUベンダーを問わず失敗する」
+    という仮説を強く支持する結果。これ以上の解決にはrace_capture自体のソースからの再ビルド、
+    または旧バージョンのUbuntu/Mesaへのダウングレードが必要と判断し、実機切り替えによる
+    切り分け調査はここで完了とする
 - [ ] DC-6-6: ダッシュ表示・映像へのデータ焼き込みが実際に動作するか最終確認（DC-5-2の元々の目的）
+  - DC-6-5の結果により、現状の配布バイナリのままでは本タスクの達成は困難と判明。着手には
+    前提となる対応方針（race_captureの再ビルド／別バージョン入手／Ubuntuダウングレード等）の
+    決定が必要なため保留
 
 ---
 

@@ -258,13 +258,23 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
 
 > 実作業ログ・進捗は`task_dashcam_breakdown.md`（タスクID: `DC-N`）を参照。
 
-- ✅ **DC-6として着手中**：手元にあったHP EliteDesk 800 G3系(Intel Core i5 第7世代、24GB RAM)を
-  次の検証機として採用することにした。AMD機(DC-1〜DC-5)で見つかったrace_captureの
-  `No matching FB config found`問題が、公式推奨・動作確認済みに近いIntel構成でも再発するかを
-  確認するのが最優先事項。SSDはAMD機で使っていたものを流用しUbuntu Server 24.04を新規インストール
-  する予定。手順・進捗は`task_dashcam_breakdown.md`のDC-6参照
-- 元々の推奨だった市販小型N100ミニPC(Beelink Mini S12 Pro等)は、EliteDeskでの検証がうまくいかない
-  場合の代替候補として保留
+- 🔴 **DC-6で結論確定**：手元にあったHP EliteDesk 800 G3系(Intel Core i5、Mesa `iris`系ドライバ、
+  AMD機とは全く異なるGPUベンダー)でAMD機(DC-1〜DC-5)と同じ検証を行った結果、race_captureの
+  `No matching FB config found`(exit 102)が**同一のまま再現した**。depth32 Visual・
+  GLXFBConfigs(992件)ともシステム側には十分存在するにもかかわらず失敗することも同一。これにより
+  **AMD機固有の環境問題ではなく、race_capture配布バイナリ(Kivy 2.3.1/SDL2)自体がUbuntu 24.04世代
+  のMesa/Xorg/XRenderスタックと一般的に非互換であることが確定**した。また`video-streamer`の
+  VAAPI初期化失敗（バンドルされた古い`libstdc++.so.6`が原因、`LD_PRELOAD`で解消）もAMD/Intel
+  両方で再現し、これもベンダー非依存の汎用的な非互換と判明した。詳細は`task_dashcam_breakdown.md`
+  のDC-6-4/DC-6-5参照
+- **今後の対応方針(未決定・要検討)**：現状の公式配布バイナリのままでは「video-streamerによる
+  ダッシュ画面の映像焼き込み」機能の実現は困難。選択肢は(a)race_captureをソースからUbuntu 24.04
+  向けに再ビルドする、(b)race_captureの旧バージョン(Ubuntu 24.04以前のMesa/Xorgと組み合わせて
+  動作した実績があるもの)を探して使う、(c)Ubuntu Server 24.04より前のLTS(22.04等)へ検証機の
+  OSをダウングレードする、(d)映像焼き込み機能自体を諦めてRaceCapture本来のライブテレメトリ機能
+  (ダッシュ表示)のみに絞る、など。次のチャットで方針を相談してから着手する
+- 元々の推奨だった市販小型N100ミニPC(Beelink Mini S12 Pro等)は、上記方針決定後に必要であれば
+  改めて検討
 1. （DC-6で）Intel実機でRaceCaptureのインストールスクリプトを流して動作検証する
 2. SSH経由でClaude Codeから当該マシンを直接操作し、セットアップ・トラブル
    シューティングを行う(Ubuntu + OpenSSHサーバーを有効化すればよい)
