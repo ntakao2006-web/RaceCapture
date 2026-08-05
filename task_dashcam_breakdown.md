@@ -81,15 +81,28 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
   - 既存の秘密鍵(`C:\Users\ntaka\.ssh\amdpc_dashcam_ed25519`)はそのまま継続使用。公開鍵を
     パスワード認証SSH経由で`~/.ssh/authorized_keys`へ追記、`/etc/sudoers.d/ntakao-nopasswd`も
     再設定し、鍵認証・パスワードなしsudoとも動作確認済み
-- [ ] DC-6-3: `racecapture_streaming_install_intel.sh`（本リポジトリに保存済み。DC-5-2の
+- [x] DC-6-3: `racecapture_streaming_install_intel.sh`（本リポジトリに保存済み。DC-5-2の
       調査を踏まえ、公式スクリプトからUbuntu 24.04向けの3点だけを修正したIntel版。詳細は
       ファイル冒頭のコメント参照）を実行し、`racecapture`・`video-streamer`のインストールを
-      確認
+      確認 ※完了
   - ✅ スクリプト内容を確認済み：DC-4-2でAMD機向けに`intel-media-va-driver-non-free`→
     `mesa-va-drivers`と読み替えていた箇所は、本ファイルでは公式スクリプト通り
     `intel-media-va-driver-non-free`のまま維持されている（Intel機向けなので読み替え不要で正しい）。
     CPUベンダーに関係ないUbuntu 24.04固有の3修正（`libegl1-mesa`→`libegl1`、`gconf2`削除、
     `gstreamer1.0-vaapi`/`gstreamer1.0-tools`追加）のみが反映されており、修正漏れなし
+  - リモート(SSH)からスクリプトを転送・実行。`dpkg -l`で`racecapture`(2.18.0)・
+    `video-streamer`(0.4.0)とも`ii`(正常インストール)を確認
+  - ✅ **Intel機ではAMD機と違い、追加対応なしでVAAPIが動作**。`vainfo --display drm --device
+    /dev/dri/renderD128`で`iHD_drv_video.so`(Intel iHD driver、VA-API 1.20)がロードされ、
+    H.264(Main/High/ConstrainedBaseline)の`VAEntrypointEncSlice`(エンコード)が確認できた。
+    DC-5-2でAMD機に必要だった`LD_PRELOAD`によるライブラリ差し替えは不要と判明
+    （ドライバがネイティブにシステムのlibva/libstdc++と整合しているため、AMD機のMesa
+    classic `radeon`ドライバ特有のABI不整合がIntel機では発生していない）
+  - ハマりどころ（DC-4-3と同じ既知の問題、再発）：スクリプト末尾で`~/Desktop`が存在せず
+    `video-config.ini`生成に失敗(exit 2の原因)、および`/var/lib/AccountsService/users/ntakao`
+    unmatched不在で`sed`が失敗。いずれも非致命的で`racecapture`/`video-streamer`のインストール
+    自体には影響なし。`mkdir -p ~/Desktop`で手動対処済み（AccountsService側はDC-6-5でキオスク
+    自動起動を設定する際に改めて対応）
 - [ ] DC-6-4: USBカメラ・ESP32-C3（DC-5-1のESP32実機、または新規に同じ手順で書き込んだもの）を
       接続し、DC-5-2で確認した`video-streamer`のVAAPI動作（`file_h264_enc`エレメント作成）を
       再確認。Intel機なら本来のVAAPIドライバ(`intel-media-va-driver-non-free`)でそのまま
