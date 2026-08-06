@@ -107,4 +107,22 @@ EOF
 "
 
 echo "Changing your window manager to single app mode"
-sudo sed -i "s/Session=.*/Session=racecapture/g" /var/lib/AccountsService/users/$USER
+# 公式スクリプトはAccountsServiceのユーザーファイルが既に存在する前提でsedしているが、
+# 新規インストール直後は同ファイルが存在せずsedが失敗する(DC-6-3/DC-6-6-3で既知)。
+# ファイルを直接生成する方式に変更し、あわせてGDM自動ログイン設定も追加する
+# (これがないとログイン画面で止まり、AccountsServiceのSession設定だけでは自動起動しない。
+# DC-7-1で発見・解消、詳細はtask_dashcam_breakdown.md参照)。
+sudo tee /var/lib/AccountsService/users/$USER > /dev/null <<EOF
+[User]
+Session=racecapture
+XSession=racecapture
+SystemAccount=false
+EOF
+sudo sed -i "s/#  AutomaticLoginEnable = true/  AutomaticLoginEnable = true/; s/#  AutomaticLogin = user1/  AutomaticLogin = $USER/" /etc/gdm3/custom.conf
+
+echo "NOTE: 初回起動時にGNOME keyringの「Choose password for new keyring」ダイアログが
+表示されることがある(race_captureが認証情報保存にsecretstorage/D-Bus Secret Serviceを
+使うため、自動ログインではキーリングの自動アンロック用パスワードが得られないのが原因)。
+無人キオスク運用にはパスワード欄を空のままContinueし、以降の確認ダイアログも空パスワード
+のままContinueすることで解消する(一度作成すれば以降のログインでは自動アンロックされる)。
+DC-7-1で発見・解消、詳細はtask_dashcam_breakdown.md参照"

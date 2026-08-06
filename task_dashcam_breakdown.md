@@ -252,5 +252,62 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
 
 ---
 
-*次のチャットでは「DC-6から進めて」のように指定すれば、このファイルとリポジトリ直下の
-`racecapture_streaming_install_intel.sh`を参照して作業を再開できる。*
+## DC-7: 車載本番導入に向けた残タスク ※DC-7-1完了、DC-7-2〜4は未着手
+- [x] DC-7-1: ratpoisonによるキオスク自動起動（電源投入だけで`race_capture`+`video-streamer`が
+      無人で起動するか）を検証 ※完了、達成
+  - `racecapture_streaming_install_intel.sh`が用意する`.ratpoisonrc`（race_capture/
+    video-streamer自動起動）・`/usr/share/xsessions/racecapture.desktop`（ratpoisonセッション
+    定義）に加え、以下2点が不足していたため追加設定した：
+    1. **GDM3の自動ログイン設定が未設定**：`/etc/gdm3/custom.conf`の`AutomaticLoginEnable`/
+       `AutomaticLogin`はコメントアウトされたままだった（ユーザー承認を得た上で有効化）。
+       これがないとログイン画面で止まり、AccountsServiceのSession設定だけでは自動起動しない
+    2. **AccountsServiceのユーザー設定ファイルが未生成**：DC-6-3で判明済みの通り
+       `/var/lib/AccountsService/users/$USER`が新規インストール直後は存在せず、公式スクリプトの
+       `sed`コマンドが失敗する（非致命的だが放置されていた）。`sudo tee`で直接生成する方式に
+       修正し、`Session=racecapture`/`XSession=racecapture`を設定
+    - 🎉 **上記2点を設定してリブートしたところ、電源投入→GDM自動ログイン→ratpoisonセッション
+      →`race_capture`+`video-streamer`の自動起動が完全に無人で成功することを確認**
+      （`ps aux`でプロセス起動を確認、`gst-launch-1.0`のライブスクリーンショットでrace_capture
+      のウェルカム画面がクリーンに表示されていることも視覚的に確認）
+    - ⚠️ 新たな軽微な問題を発見・解消：初回起動時のみ、GNOME keyringの「Choose password for
+      new keyring」ダイアログが表示された。原因はrace_captureが認証情報保存にsecretstorage/
+      D-Bus Secret Serviceを使っており、自動ログイン(パスワードなし)ではキーリング自動アンロック
+      用のパスワードが得られないため。`xdotool`を導入し、パスワード欄を空のままEnter
+      （→確認ダイアログ「Store passwords unencrypted?」も空パスワードのままEnter）で解消。
+      **2回目のリブートで検証したところ、このダイアログは再発せず**（一度空パスワードの
+      「Default」キーリングを作成すれば以降は自動アンロックされる）、`race_capture`の
+      ウェルカム画面がクリーンに表示され続けることを確認した。video-streamer側もPLAYING状態に
+      到達し、mp4動画ファイルが継続生成されることを確認
+    - 上記2つの恒久対応（GDM自動ログイン設定・AccountsServiceファイル生成方式の修正）は
+      `racecapture_streaming_install_intel.sh`に反映済み。ただしkeyring初期化は対話的操作
+      （xdotoolでのGUI操作）が必要なため自動化しておらず、スクリプル末尾に手順を注記するに留めた
+    - 検証終了後、確認用に起動していた`race_capture`・`video-streamer`は停止し、検証中に生成
+      されたテスト録画ファイルは削除してクリーンアップ済み。GDM/Xorg/ratpoisonセッション自体は
+      稼働させたまま（次回電源を入れ直せば同じ動作をするため、あえてログアウトはしていない）
+- [ ] DC-7-2: 実際のRTMPライブ配信（YouTube等）が動作するか検証 ※未着手
+  - `video-config.ini`の`streaming_url`はインストール時のダミー値のまま。DC-6-6-7/DC-7-1の
+    どちらの検証でもRTMP出力自体は`Could not connect to RTMP stream`で失敗し続けている
+    （ローカル録画には影響しない別経路と判明済み）
+  - 進め方の選択肢：(a)実際にYouTube Live等の配信キーを取得して`streaming_url`に設定し疎通確認
+    する（本番同等だが配信キーというアカウント固有情報を扱うことになる）、(b)検証機内に
+    ローカルRTMPサーバー(例:nginx-rtmp)を一時的に立てて`streaming_url`をそちらに向け、
+    「RTMP出力パイプライン自体が機能するか」だけを配信キーなしで確認する。次回チャットで
+    どちらの方針にするかユーザーと相談してから着手する
+- [ ] DC-7-3: 軽量な車載向け機材（市販小型N100ミニPC/SBC/Mini-ITX裸基板等）でも、今回EliteDesk
+      (Intel Core i5, Mesa iris系)で確立した「Ubuntu 22.04 LTS＋本インストールスクリプト」方針が
+      通用するか検証 ※未着手、新規ハードウェアの入手が前提
+  - EliteDesk自体は約1.2kgと車載搭載には重量面で不利なため、軽量機材での再現性確認が必要
+  - 候補機材がUbuntu 24.04専用（22.04非対応）でないかの事前確認も必要
+  - DASHCAM_STREAMING_RESEARCH.md 5章の候補一覧（N100ミニPC/UP 7000/ODROID-H4/
+    Mini-ITX裸基板等）を参照
+- [ ] DC-7-4: 車載電源の保護回路との統合 ※未着手、ハードウェア領域につき友人と要相談
+  - ARCHITECTURE.md Phase 4で計画済みの車載電源保護回路（本体RaceCapture/ESP32側）とは別に、
+    ダッシュカムPC側の電源設計（イグニッション連動シャットダウン等、走行中の急な電源断で
+    ファイルシステムが壊れないようにする対策を含む）の検討が必要
+
+---
+
+*次のチャットでは「DC-7から進めて」のように指定すれば、このファイルとリポジトリ直下の
+`racecapture_streaming_install_intel.sh`を参照して作業を再開できる。DC-7-2(RTMP配信検証)は
+方針(a)/(b)のどちらで進めるかまずユーザーに確認すること。DC-7-3/DC-7-4はハードウェア入手が
+前提のため、現状のEliteDesk実機だけでは着手できない点に注意。*

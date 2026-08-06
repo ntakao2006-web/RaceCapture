@@ -275,12 +275,17 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
   当初の目的が達成された**（DC-6-6-7）。副次的に見つかった`video-streamer`の音声キャプチャ
   失敗（`adduser $USER audio`漏れ）も`racecapture_streaming_install_intel.sh`側の恒久修正で
   解消済み。詳細は`task_dashcam_breakdown.md`のDC-6-6-6/DC-6-6-7参照
+- 🎉 **DC-7-1でキオスク自動起動も実証完了**：ratpoisonによるキオスク自動起動（電源投入だけで
+  `race_capture`+`video-streamer`が無人起動するか）を検証した結果、GDM3自動ログイン設定と
+  AccountsServiceのユーザー設定ファイル生成（公式スクリプトに元々欠けていた2点、
+  `racecapture_streaming_install_intel.sh`へ反映済み）を追加することで、**2回のリブートで
+  完全に無人でのキオスク自動起動を確認**した。初回起動時のみ発生するGNOME keyring初期化
+  ダイアログも解消済み。詳細は`task_dashcam_breakdown.md`のDC-7-1参照
 - **今後の検討事項**：EliteDesk自体は約1.2kgと車載搭載には重量面で不利なため、今回確立した
   「Ubuntu 22.04 LTS＋本ダウングレード方針」が軽量な機材(市販小型N100ミニPC/SBC/Mini-ITX
   裸基板等)でも同様に通用するか、それらの機材でUbuntu 22.04が使えるか（Ubuntu 24.04専用の
-  機材でないか）の確認が必要。またratpoisonによるキオスク自動起動設定（インストール
-  スクリプト末尾で用意済みだが未検証）・実際のYouTube等へのRTMPライブ配信（ダミーURLのまま
-  未検証）・車載電源の保護回路との統合が、車載本番導入に向けた残タスク
+  機材でないか）の確認が必要（DC-7-3）。また実際のYouTube等へのRTMPライブ配信（ダミーURLの
+  まま未検証、DC-7-2）・車載電源の保護回路との統合（DC-7-4）が、車載本番導入に向けた残タスク
 1. （DC-6で）Intel実機でRaceCaptureのインストールスクリプトを流して動作検証する
 2. SSH経由でClaude Codeから当該マシンを直接操作し、セットアップ・トラブル
    シューティングを行う(Ubuntu + OpenSSHサーバーを有効化すればよい)
