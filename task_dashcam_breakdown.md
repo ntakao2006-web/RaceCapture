@@ -252,7 +252,7 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
 
 ---
 
-## DC-7: 車載本番導入に向けた残タスク ※DC-7-1完了、DC-7-2〜4は未着手
+## DC-7: 車載本番導入に向けた残タスク ※DC-7-1・DC-7-2完了、DC-7-3〜4は未着手
 - [x] DC-7-1: ratpoisonによるキオスク自動起動（電源投入だけで`race_capture`+`video-streamer`が
       無人で起動するか）を検証 ※完了、達成
   - `racecapture_streaming_install_intel.sh`が用意する`.ratpoisonrc`（race_capture/
@@ -310,7 +310,7 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
       いるか、(b)`xinput test <id>`でクリックイベントがXサーバーに届いているか、
       (c)`ratpoison -c windows`でRaceCaptureウィンドウにフォーカス(`*`)が当たっているか、
       の順に切り分けるとよい
-- [ ] DC-7-2: 実際のRTMPライブ配信（YouTube等）が動作するか検証 ※調査中、重大な副次バグを発見・解消
+- [x] DC-7-2: 実際のRTMPライブ配信（YouTube等）が動作するか検証 ※方針(b)ローカルRTMPサーバーで完了、重大な副次バグを発見・解消
   - `video-config.ini`の`streaming_url`はインストール時のダミー値のまま。DC-6-6-7/DC-7-1の
     どちらの検証でもRTMP出力自体は`Could not connect to RTMP stream`で失敗し続けている
     （ローカル録画には影響しない別経路と判明済み）
@@ -329,11 +329,25 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
       dry-run(`logrotate -v`)で正常動作を確認済み
     - `racecapture_streaming_install_intel.sh`にも同じlogrotate/cron設定を追加し、今後の
       再インストールでも自動的にディスクフル対策が組み込まれるようにした
-  - 進め方の選択肢：(a)実際にYouTube Live等の配信キーを取得して`streaming_url`に設定し疎通確認
-    する（本番同等だが配信キーというアカウント固有情報を扱うことになる）、(b)検証機内に
-    ローカルRTMPサーバー(例:nginx-rtmp、`libnginx-mod-rtmp`パッケージが利用可能と確認済み)を
-    一時的に立てて`streaming_url`をそちらに向け、「RTMP出力パイプライン自体が機能するか」だけを
-    配信キーなしで確認する。次回チャットでどちらの方針にするかユーザーと相談してから着手する
+  - ユーザーと相談の上、方針(b)（ローカルRTMPサーバーでの疎通確認、配信キー不要）で実施
+  - `nginx`+`libnginx-mod-rtmp`（Ubuntu 22.04リポジトリから導入可能と確認済み）を一時的に
+    導入し、`nginx.conf`末尾に最小構成の`rtmp { server { listen 1935; application live
+    { live on; record off; } } }`を追記。`nginx -t`で構文OK、`systemctl restart nginx`
+    （初回`start`ではポート1935がリッスンされず、`restart`が必要だった点に注意）で
+    ポート1935が正常にリッスンされることを確認
+  - `video-config.ini`の`streaming_url`を一時的に`rtmp://127.0.0.1/live/dc7test`へ変更
+    （変更前に`.bak`でバックアップ）し、`video-streamer`を起動したところ、DC-6-6-7/DC-7-1で
+    見られた`Could not connect to RTMP stream`エラーは**発生せず**、パイプラインが
+    `READY→PAUSED→PLAYING`のまま継続動作。`ss -tn`で`127.0.0.1:1935`への
+    **ESTABLISHED接続を確認**し、video-streamerが実際にRTMPストリームを送信し続けている
+    ことを実証した
+  - 🎉 **確定：RTMP出力パイプライン自体は正常に機能する**。これまでの失敗は単に
+    `streaming_url`がダミー値（存在しない配信サーバー）だったことが原因であり、
+    video-streamer側のRTMP実装自体には問題がないことが判明した
+  - 検証後、`video-config.ini`を元のダミー値に復元、`nginx`は停止・`purge`でアンインストール、
+    テスト録画ファイルも削除してクリーンアップ済み
+  - 実際のYouTube Live等への本番配信自体（配信キーを使った疎通確認）は未実施のまま
+    （ユーザーが配信キーを用意した際に別途確認）
 - [ ] DC-7-3: 軽量な車載向け機材（市販小型N100ミニPC/SBC/Mini-ITX裸基板等）でも、今回EliteDesk
       (Intel Core i5, Mesa iris系)で確立した「Ubuntu 22.04 LTS＋本インストールスクリプト」方針が
       通用するか検証 ※未着手、新規ハードウェアの入手が前提
@@ -349,6 +363,7 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
 ---
 
 *次のチャットでは「DC-7から進めて」のように指定すれば、このファイルとリポジトリ直下の
-`racecapture_streaming_install_intel.sh`を参照して作業を再開できる。DC-7-2(RTMP配信検証)は
-方針(a)/(b)のどちらで進めるかまずユーザーに確認すること。DC-7-3/DC-7-4はハードウェア入手が
-前提のため、現状のEliteDesk実機だけでは着手できない点に注意。*
+`racecapture_streaming_install_intel.sh`を参照して作業を再開できる。DC-7-3/DC-7-4は
+ハードウェア入手が前提のため、現状のEliteDesk実機だけでは着手できない点に注意。実際の
+YouTube Live等への本番RTMP配信（配信キーを使った疎通確認）はDC-7-2で未実施のまま残っている
+ため、ユーザーが配信キーを用意できる場合はそちらを次に進めるとよい。*

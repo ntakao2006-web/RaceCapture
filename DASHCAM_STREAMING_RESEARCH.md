@@ -281,11 +281,22 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
   `racecapture_streaming_install_intel.sh`へ反映済み）を追加することで、**2回のリブートで
   完全に無人でのキオスク自動起動を確認**した。初回起動時のみ発生するGNOME keyring初期化
   ダイアログも解消済み。詳細は`task_dashcam_breakdown.md`のDC-7-1参照
+- 🎉 **DC-7-2でRTMP出力パイプライン自体の動作も実証**：ローカルに一時的なRTMPサーバー
+  (nginx+libnginx-mod-rtmp)を立てて`video-streamer`の配信先をそちらに向けたところ、
+  `Could not connect to RTMP stream`エラーは発生せず、実際にRTMPストリームが継続送信される
+  ことを確認した。**これまでの失敗は単に配信先URLがダミー値だったことが原因で、
+  video-streamer側のRTMP実装自体には問題がない**ことが判明。実際のYouTube Live等への
+  本番配信（配信キーでの疎通確認）自体は未実施のまま
+  - 🔴🎉 **副次的に重大なディスクフルバグを発見・解消**：`streaming_url`がダミー値のまま
+    長時間(約2時間)放置すると、`video-streamer`のRTMP接続失敗リトライでログファイルが
+    45GBまで肥大化しディスクを100%使い果たすことが判明。logrotate＋1分間隔cronによる
+    ローテーションを恒久対策として導入し、`racecapture_streaming_install_intel.sh`にも
+    反映済み。詳細は`task_dashcam_breakdown.md`のDC-7-2参照
 - **今後の検討事項**：EliteDesk自体は約1.2kgと車載搭載には重量面で不利なため、今回確立した
   「Ubuntu 22.04 LTS＋本ダウングレード方針」が軽量な機材(市販小型N100ミニPC/SBC/Mini-ITX
   裸基板等)でも同様に通用するか、それらの機材でUbuntu 22.04が使えるか（Ubuntu 24.04専用の
-  機材でないか）の確認が必要（DC-7-3）。また実際のYouTube等へのRTMPライブ配信（ダミーURLの
-  まま未検証、DC-7-2）・車載電源の保護回路との統合（DC-7-4）が、車載本番導入に向けた残タスク
+  機材でないか）の確認が必要（DC-7-3）。また実際のYouTube等への本番RTMPライブ配信（配信キー
+  未検証）・車載電源の保護回路との統合（DC-7-4）が、車載本番導入に向けた残タスク
 1. （DC-6で）Intel実機でRaceCaptureのインストールスクリプトを流して動作検証する
 2. SSH経由でClaude Codeから当該マシンを直接操作し、セットアップ・トラブル
    シューティングを行う(Ubuntu + OpenSSHサーバーを有効化すればよい)
