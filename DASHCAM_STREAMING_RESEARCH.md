@@ -267,14 +267,20 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
   VAAPI初期化失敗（バンドルされた古い`libstdc++.so.6`が原因、`LD_PRELOAD`で解消）もAMD/Intel
   両方で再現し、これもベンダー非依存の汎用的な非互換と判明した。詳細は`task_dashcam_breakdown.md`
   のDC-6-4/DC-6-5参照
-- **今後の対応方針(未決定・要検討)**：現状の公式配布バイナリのままでは「video-streamerによる
-  ダッシュ画面の映像焼き込み」機能の実現は困難。選択肢は(a)race_captureをソースからUbuntu 24.04
-  向けに再ビルドする、(b)race_captureの旧バージョン(Ubuntu 24.04以前のMesa/Xorgと組み合わせて
-  動作した実績があるもの)を探して使う、(c)Ubuntu Server 24.04より前のLTS(22.04等)へ検証機の
-  OSをダウングレードする、(d)映像焼き込み機能自体を諦めてRaceCapture本来のライブテレメトリ機能
-  (ダッシュ表示)のみに絞る、など。次のチャットで方針を相談してから着手する
-- 元々の推奨だった市販小型N100ミニPC(Beelink Mini S12 Pro等)は、上記方針決定後に必要であれば
-  改めて検討
+- 🎉 **DC-6-6で最終解決**：ユーザー判断で選んだ方針(c)「EliteDeskをUbuntu 22.04 LTSへ
+  ダウングレードする」を実行した結果、race_captureの`No matching FB config found`は
+  **Ubuntu 22.04世代のMesa/Xorgでは再発せず解消した**（DC-6-6-6）。続けて`race_capture`＋
+  `video-streamer`を同時起動し、`race_capture`のダッシュ画面が`ximagesrc`経由で実際に
+  mp4動画として録画されることを画像で目視確認し、**「ダッシュ表示＋映像データ焼き込み」という
+  当初の目的が達成された**（DC-6-6-7）。副次的に見つかった`video-streamer`の音声キャプチャ
+  失敗（`adduser $USER audio`漏れ）も`racecapture_streaming_install_intel.sh`側の恒久修正で
+  解消済み。詳細は`task_dashcam_breakdown.md`のDC-6-6-6/DC-6-6-7参照
+- **今後の検討事項**：EliteDesk自体は約1.2kgと車載搭載には重量面で不利なため、今回確立した
+  「Ubuntu 22.04 LTS＋本ダウングレード方針」が軽量な機材(市販小型N100ミニPC/SBC/Mini-ITX
+  裸基板等)でも同様に通用するか、それらの機材でUbuntu 22.04が使えるか（Ubuntu 24.04専用の
+  機材でないか）の確認が必要。またratpoisonによるキオスク自動起動設定（インストール
+  スクリプト末尾で用意済みだが未検証）・実際のYouTube等へのRTMPライブ配信（ダミーURLのまま
+  未検証）・車載電源の保護回路との統合が、車載本番導入に向けた残タスク
 1. （DC-6で）Intel実機でRaceCaptureのインストールスクリプトを流して動作検証する
 2. SSH経由でClaude Codeから当該マシンを直接操作し、セットアップ・トラブル
    シューティングを行う(Ubuntu + OpenSSHサーバーを有効化すればよい)

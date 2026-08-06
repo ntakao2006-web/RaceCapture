@@ -55,7 +55,7 @@
 
 ---
 
-## DC-6: Intel実機(EliteDesk 800 G3系)での再検証 ※ハードウェア入れ替え・準備中
+## DC-6: Intel実機(EliteDesk 800 G3系)での再検証 ※完了。Ubuntu 22.04ダウングレードによりダッシュ表示+映像データ焼き込みの動作を実証
 DC-5-2でAMD機(A4 PRO-7300B, Mesaのclassic `radeon`ドライバ)固有の環境問題である可能性が高いと
 判断したため、AutosportLabs公式の推奨・動作確認済み実機に近い**HP EliteDesk 800 G3系（Intel
 Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたものを流用しOSは新規インストール）**
