@@ -310,15 +310,30 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
       いるか、(b)`xinput test <id>`でクリックイベントがXサーバーに届いているか、
       (c)`ratpoison -c windows`でRaceCaptureウィンドウにフォーカス(`*`)が当たっているか、
       の順に切り分けるとよい
-- [ ] DC-7-2: 実際のRTMPライブ配信（YouTube等）が動作するか検証 ※未着手
+- [ ] DC-7-2: 実際のRTMPライブ配信（YouTube等）が動作するか検証 ※調査中、重大な副次バグを発見・解消
   - `video-config.ini`の`streaming_url`はインストール時のダミー値のまま。DC-6-6-7/DC-7-1の
     どちらの検証でもRTMP出力自体は`Could not connect to RTMP stream`で失敗し続けている
     （ローカル録画には影響しない別経路と判明済み）
+  - 🔴🎉 **重大発見・解消：video-streamerのRTMP接続失敗リトライで、ログファイルが際限なく肥大化し
+    ディスクを使い果たす問題**。DC-7-1のキオスク自動起動テスト後、`streaming_url`がダミー値の
+    まま約2時間放置していたところ、`video-streamer`が数秒おきにRTMP接続失敗→パイプライン
+    再構築のリトライを繰り返し、単一のログファイル(`~/logs/video-streamer_*.log`)が**45GBまで
+    肥大化し、ディスク(57GB)を100%使い果たしていた**ことが判明（`df -h`で発覚）。車載本番で
+    配信設定をせずに長時間・数日運用した場合、同じ理屈でディスクフルとなりローカル録画も
+    停止し、システムが不安定になりうる重大なリスクと判断
+    - 対応：`video-streamer`プロセスを停止し45GBのログファイルを削除してディスクを復旧
+      （19%使用まで回復）。恒久対策として`/etc/logrotate.d/racecapture-dashcam`
+      （`~/logs/*.log`を50MBごと・2世代までローテーション、`su`ディレクティブで所有者権限
+      指定）と`/etc/cron.d/racecapture-dashcam-logrotate`（1分間隔でlogrotate実行、通常の
+      1日1回では今回のペース(2時間で45GB)に対応できないため高頻度化）を実機に設定し、
+      dry-run(`logrotate -v`)で正常動作を確認済み
+    - `racecapture_streaming_install_intel.sh`にも同じlogrotate/cron設定を追加し、今後の
+      再インストールでも自動的にディスクフル対策が組み込まれるようにした
   - 進め方の選択肢：(a)実際にYouTube Live等の配信キーを取得して`streaming_url`に設定し疎通確認
     する（本番同等だが配信キーというアカウント固有情報を扱うことになる）、(b)検証機内に
-    ローカルRTMPサーバー(例:nginx-rtmp)を一時的に立てて`streaming_url`をそちらに向け、
-    「RTMP出力パイプライン自体が機能するか」だけを配信キーなしで確認する。次回チャットで
-    どちらの方針にするかユーザーと相談してから着手する
+    ローカルRTMPサーバー(例:nginx-rtmp、`libnginx-mod-rtmp`パッケージが利用可能と確認済み)を
+    一時的に立てて`streaming_url`をそちらに向け、「RTMP出力パイプライン自体が機能するか」だけを
+    配信キーなしで確認する。次回チャットでどちらの方針にするかユーザーと相談してから着手する
 - [ ] DC-7-3: 軽量な車載向け機材（市販小型N100ミニPC/SBC/Mini-ITX裸基板等）でも、今回EliteDesk
       (Intel Core i5, Mesa iris系)で確立した「Ubuntu 22.04 LTS＋本インストールスクリプト」方針が
       通用するか検証 ※未着手、新規ハードウェアの入手が前提

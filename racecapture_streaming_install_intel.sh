@@ -126,3 +126,23 @@ echo "NOTE: 初回起動時にGNOME keyringの「Choose password for new keyring
 無人キオスク運用にはパスワード欄を空のままContinueし、以降の確認ダイアログも空パスワード
 のままContinueすることで解消する(一度作成すれば以降のログインでは自動アンロックされる)。
 DC-7-1で発見・解消、詳細はtask_dashcam_breakdown.md参照"
+
+echo "Setting up logrotate to prevent disk exhaustion from video-streamer's RTMP retry loop"
+# streaming_urlが未設定(ダミー値)のまま、あるいは配信先が一時的に切れた状態で運用すると、
+# video-streamerが数秒おきにRTMP接続失敗をリトライし続け、単一のログファイルが際限なく
+# 肥大化する(実測: 約2時間で45GB、ディスクを100%使い果たしフリーズ寸前になった)。
+# DC-7-2で発見。毎分size監視でローテーションし、ディスクフルを防ぐ
+sudo tee /etc/logrotate.d/racecapture-dashcam > /dev/null <<EOF
+/home/$USER/logs/*.log {
+    su $USER $USER
+    size 50M
+    rotate 2
+    missingok
+    notifempty
+    nocompress
+    copytruncate
+}
+EOF
+sudo tee /etc/cron.d/racecapture-dashcam-logrotate > /dev/null <<EOF
+* * * * * root /usr/sbin/logrotate /etc/logrotate.d/racecapture-dashcam --state /var/lib/logrotate/racecapture-dashcam.status
+EOF
