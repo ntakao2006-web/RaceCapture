@@ -3,11 +3,14 @@
 # DC-5/DC-6向けに、AutosportLabs公式スクリプト(racecapture_video_data_livestreaming
 # リポジトリのracecapture_streaming_install.sh)をUbuntu Server 24.04(noble)向けに
 # 最小限だけ修正した版。Intel実機(EliteDesk 800 G3等)向け。
-# 修正点は3箇所のみ、いずれもUbuntu 24.04でのパッケージ変更に追随するためで、
+# 修正点は4箇所、うち1〜3はUbuntu 24.04でのパッケージ変更に追随するためで、
 # Intel/AMDの違いによるものではない（詳細はtask_dashcam_breakdown.md DC-4-2/DC-5-2参照）。
 #   1. libegl1-mesa -> libegl1 (24.04でのパッケージ名変更)
 #   2. gconf2 を削除 (24.04に存在しないGNOME2時代のパッケージ、依存関係には無関係と確認済み)
 #   3. gstreamer1.0-vaapi gstreamer1.0-tools を追加 (公式スクリプトに元々欠けていた項目)
+#   4. adduser $USER audio を追加 (公式スクリプトに元々欠けていた項目。USBカメラ内蔵マイクの
+#      /dev/snd/pcmC*D0cはroot:audio権限のため、これがないとvideo-streamerの音声キャプチャが
+#      失敗する。DC-6-6-7で発見、詳細はtask_dashcam_breakdown.md参照)
 # 元スクリプトのIntel向け記述(intel-media-va-driver-non-free)はそのまま維持している。
 
 # install dependencies
@@ -28,6 +31,7 @@ sudo adduser $USER dialout >/dev/null 2>&1
 sudo adduser $USER render >/dev/null 2>&1
 sudo adduser $USER video >/dev/null 2>&1
 sudo adduser $USER input >/dev/null 2>&1
+sudo adduser $USER audio >/dev/null 2>&1
 sudo echo "ATTRS{idVendor}==16d0, ATTRS{idProduct}==07f1, MODE=0666" | sudo tee /etc/udev/rules.d/70-autosportlabs.racecapture.rules >/dev/null 2>&1
 
 # The commands below assume we're in $HOME so just change directories now

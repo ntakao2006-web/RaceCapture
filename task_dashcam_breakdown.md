@@ -40,9 +40,10 @@
     - `gst-inspect-1.0`(診断コマンド)・GStreamerの`vaapi`プラグイン本体がいずれもインストールされておらず、元のインストールスクリプトのパッケージリストにも含まれていなかった(**`gstreamer1.0-vaapi`・`gstreamer1.0-tools`を追加導入する必要がある**、AMD/Intel問わず本来必要な項目だった可能性)。追加後`gst-inspect-1.0 vaapi`で`vaapih264enc`(VA-API H264エンコーダー)を含む7エレメントが登録されることを確認
     - それでも`file_h264_enc`作成には失敗。`/dev/video*`が存在せず(`ls`で確認)、USBカメラ未接続がキャプチャパイプライン構築失敗の直接原因と判断。**これはDC-5(実機/USBカメラ接続)待ちの想定内の制約**であり、video-streamer自体はプロセスとして正常に起動しログも適切に出力することを確認できた
 
-## DC-5: 実機接続検証 ※DC-5-1完了、DC-5-2は途中で新たな課題を発見し中断中
+## DC-5: 実機接続検証 ※DC-5-1完了、DC-5-2はAMD機+Ubuntu24.04では中断のままだが、DC-6-6-7(Intel機+Ubuntu22.04)で元々の目的自体は達成された
 - [x] DC-5-1: RaceCapture実機・USBカメラをAMD PCへ接続する ※購入済みのRaceCapture実機がまだ無いため、Phase1本開発ファームウェア(`firmware/src/main.cpp`、RCP応答・ダミーテレメトリ送信まで実装済み)を予備のESP32-C3へ書き込み、「実機」代わりとしてAMD PC(dashcam-test)へUSB接続する方式を採用（ユーザー判断）。COM12でビルド・書き込み・シリアルログ確認後、AMD PCへ物理接続。SSH側で`/dev/ttyACM0`(Espressif USB JTAG/serial, VID 303a:1001)として認識、`ntakao`ユーザーは`dialout`グループ所属済みでsudoなしアクセス可能、実際にテレメトリーログがシリアル経由で流れてくることを確認済み。USBカメラ(BUFFALO BSWHD06M)も`/dev/video0`/`/dev/video1`として認識済み(DC-4以前から接続済み)
 - [ ] DC-5-2: ダッシュ表示・映像へのデータ焼き込みが実際に動作するか確認する ※**video-streamer側は根本原因を特定・解消できたが、race_capture(ダッシュGUI)側で新たな未解決課題が見つかり中断中**。詳細は次の2項目
+  - 🎉 **後日談**：本項目自体(AMD機+Ubuntu24.04環境)はFBConfig問題未解決のまま中断しているが、「ダッシュ表示・映像へのデータ焼き込みが実際に動作するか」という**元々の目的自体は、DC-6（Intel機+Ubuntu22.04ダウングレード）のDC-6-6-7で最終的に達成された**。詳細はDC-6-6-7参照
   - ✅ **video-streamerのVAAPI初期化失敗を解消**：DC-4-3で確認した`file_h264_enc`エレメント作成失敗の真因は、USBカメラ未接続ではなく（カメラは今回接続済みでも同じ失敗が再現した）、`video-streamer`にバンドルされた2022年当時の古い`libstdc++.so.6`/`libva*.so.2`が、Ubuntu 24.04環境のMesa VAAPIドライバ(`r600_drv_video.so`が要求する`GLIBCXX_3.4.32`や、システムの新しいlibva ABI)と非互換だったことが原因と判明。`LD_PRELOAD=/usr/lib/x86_64-linux-gnu/{libstdc++.so.6,libva.so.2,libva-drm.so.2,libva-x11.so.2}`でシステム側の新しいライブラリを優先させることで解消し、`file_h264_enc`の作成に初めて成功、パイプライン(`telemetry-vid-pipeline`)が実際に起動することを確認した
   - ⚠️ **新発見：video-streamerの映像取り込み方式が判明し、race_capture(ダッシュGUI)の実描画が必須と確定**。video-streamerの映像ソースはUSBカメラ(V4L2)を直接GStreamerで合成しているのではなく、`ximagesrc`（X11画面キャプチャ）で**race_captureアプリのダッシュ画面の描画結果を丸ごとキャプチャする**方式だった。そのため「データ焼き込み」を機能させるには、race_captureアプリのGUIが実際にX11セッション上で描画されている状態が構造的に必須（ヘッドレスでは`Could not open X display for reading`で失敗し続ける）
   - ⚠️ **race_capture(Kivy/SDL2アプリ)がX11セッション上で`No matching FB config found`により起動失敗、原因未特定のまま中断**。DC-4-3では「Xvfb(ソフトウェアレンダラ)特有の問題」という仮説だったが、今回**実GPU(Radeon HD 8470D、Mesaのradeonクラシックドライバ、DRI2/r600)を使った本物のXorgセッションでも全く同じエラーが再現**し、この仮説は否定された。検証手順：`xserver-xorg-core`/`xserver-xorg-video-ati`/`xinit`を新規導入し、`sudo X :1`で物理モニター非接続のままXorgを起動（カーネル起動オプションに残っていた`drm.edid_firmware=VGA-1:edid/1920x1080.bin`のおかげでVGA-1が「connected」として扱われ、EDID偽装だけでXサーバー自体は起動できた。これはDC-2で試して「解消せず」と記録した方法だが、物理モニターに映すことは諦めても**Xサーバーを起動させるためのEDID偽装としては機能していた**という新しい理解）。`glxinfo`で`direct rendering: Yes`・`OpenGL 4.5`・528件のGLXFBConfigs（depth24/stencil8/RGBA8888/ダブルバッファ付きの標準的な組み合わせを含む）を確認し、GLX自体は正常に機能しているにもかかわらず、`race_capture`実行時は変わらず`No matching FB config found`で終了(exit 102)。`SDL_VIDEO_X11_FORCE_EGL=1`環境変数、`~/.kivy/config.ini`の`multisamples`を2→0に変更、のいずれも効果なし。`strace`で見る限りGLXライブラリ自体は正常にロードされている。原因はKivy 2.3.1同梱のSDL2(2.30.7、`Kivy.libs/libSDL2-2-d9872e50.0.so.0.3000.7`)とこの古い世代のMesa `radeon`クラシックDDX/glamorスタックとの間のFBConfig選択ロジックの非互換と推測されるが、未特定
@@ -144,7 +145,7 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
     という仮説を強く支持する結果。これ以上の解決にはrace_capture自体のソースからの再ビルド、
     または旧バージョンのUbuntu/Mesaへのダウングレードが必要と判断し、実機切り替えによる
     切り分け調査はここで完了とする
-- [ ] DC-6-6: ダッシュ表示・映像へのデータ焼き込みが実際に動作するか最終確認（DC-5-2の元々の目的）
+- [x] DC-6-6: ダッシュ表示・映像へのデータ焼き込みが実際に動作するか最終確認（DC-5-2の元々の目的） ※完了、達成
   - DC-6-5の結果により、現状の配布バイナリのままでは本タスクの達成は困難と判明。対応方針は
     ユーザー判断で**「EliteDeskをUbuntu 22.04 LTSへダウングレードし、race_capture配布バイナリが
     動作実績を持つ世代のMesa/Xorgへ戻す」**に決定（他候補：ソース再ビルド／旧バージョン入手／
@@ -216,8 +217,38 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
       安定して動作し続けた
     - なお`xsel`/`xclip`未導入によるクリップボード機能の警告が出ているが、これも動作の
       本質には影響しない軽微な問題（クリップボード機能が使えないだけ）
-  - [ ] DC-6-6-7: 上記が解消した場合、ダッシュ表示＋`ximagesrc`経由の映像データ焼き込みが
-        実際に一連の流れとして動作するか最終確認（DC-5-2/DC-6全体の元々の目的の達成確認）
+  - [x] DC-6-6-7: 上記が解消した場合、ダッシュ表示＋`ximagesrc`経由の映像データ焼き込みが
+        実際に一連の流れとして動作するか最終確認（DC-5-2/DC-6全体の元々の目的の達成確認） ※完了、達成
+    - DC-6-6-6で起動したままのXorg(`:1`)上で、`race_capture --size=1920x1080`をバックグラウンド
+      永続起動（`nohup`）。続けて`video-streamer`を`start-video-streamer.sh -w 1`（DC-6-6-5と
+      同じ`LD_PRELOAD`付き、`DISPLAY=:1`）で起動したところ、`ximagesrc`の
+      `Could not open X display for reading`は再発せず、race_captureのウィンドウを正しく
+      画面キャプチャできていることを確認
+    - ⚠️ 新たな軽微な問題を発見・解消：オーディオキャプチャが`Recording open error on device
+      'hw:1,0': No such file or directory`で失敗しパイプラインが再起動ループしていた。原因は
+      `racecapture_streaming_install_intel.sh`が`ntakao`ユーザーを`audio`グループに追加して
+      おらず、USBカメラ内蔵マイク(`/dev/snd/pcmC1D0c`、`root:audio`権限)にアクセスできな
+      かったこと。`sudo adduser ntakao audio`で解消したため、**インストールスクリプト自体に
+      `audio`グループ追加を追記**（`racecapture_streaming_install_intel.sh`）し、今後の
+      再インストールでも同じ問題が起きないようにした
+    - オーディオ問題解消後、パイプラインは`READY→PAUSED→PLAYING`まで正常に到達。唯一残る
+      エラーは`video-config.ini`の`streaming_url`がインストール時のダミー値
+      (`rtmp://a.rtmp.youtube.com/live2/<streaming key>`)のままのため`Could not connect to
+      RTMP stream`で失敗する点のみ（未設定の配信キーが原因の想定内のエラーで、ローカル録画側
+      には影響しない別経路と判明）
+    - 🎉 **確定：`~/Videos/<timestamp>/video_*.mp4`に実際にmp4動画ファイルが生成され続けている
+      ことを確認**（1ファイルあたり約8万バイト、`file`コマンドで正常なISO Media/MP4と確認）。
+      `gst-launch-1.0`で1本のmp4から静止フレームを抽出しダウンロードして目視確認したところ、
+      **race_captureのGUI画面（ようこそ画面、ESP32-C3デバイス名・緑の接続ステータスドット
+      表示込み）がそのまま録画データとして焼き込まれていることを画像で確認できた**。これにより
+      「ダッシュ表示＋映像データ焼き込み」というDC-5-2/DC-6全体の元々の目的が
+      **Intel機(EliteDesk 800 G3)+Ubuntu 22.04 LTS環境で最終的に達成された**
+    - なお実際のYouTube等へのライブ配信(RTMP)自体は今回未検証（ダミーURLのまま）。配信機能を
+      使う場合は実際の配信キーを`video-config.ini`の`streaming_url`に設定すれば動作する見込み
+      だが、これは車載本番導入時に別途確認が必要
+    - 検証終了後、確認用に起動していた`race_capture`・`video-streamer`・Xorg(`:1`)は停止し、
+      検証中に大量生成されたテスト録画ファイル(`~/Videos`配下、100件超の短い断片)は削除して
+      クリーンアップ済み
 
 ---
 
