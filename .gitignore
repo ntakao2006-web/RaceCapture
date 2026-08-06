@@ -4,3 +4,5 @@ mock_device*.log
 __pycache__/
 *.pyc
 .claude/settings.local.json
+*_auto_survey.json
+*_auto_survey_log.txt
