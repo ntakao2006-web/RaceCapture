@@ -196,9 +196,26 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
       再発せず）。**Ubuntu 22.04環境でも同じ`LD_PRELOAD`回避策が有効であることを確認**
     - その後`Could not open X display for reading`で失敗するのはDC-5-2/DC-6-4で判明済みの
       仕様通り（race_captureのGUI描画＝X11セッションが必須なため、単体起動では想定内のエラー）
-  - [ ] DC-6-6-6: `race_capture`アプリを起動し、`No matching FB config found`が
+  - [x] DC-6-6-6: `race_capture`アプリを起動し、`No matching FB config found`が
         Ubuntu 22.04世代のMesa/Xorgでも再発するか検証（DC-6-5相当の手順。ここでOKなら
-        ダウングレード方針の有効性が実証される）
+        ダウングレード方針の有効性が実証される） ※完了
+    - DC-6-6-5と同様`sudo X :1`で物理モニター非接続のままXorgを起動（`xinit`パッケージは
+      未導入だが`/usr/bin/X`は`xserver-xorg-core`に同梱済みで起動可能）。`glxinfo`で
+      `direct rendering: Yes`・OpenGL 4.6・Mesa 23.2.1(Intel UHD Graphics 630)・
+      GLXFBConfigs 1176件を確認
+    - 🎉 **確定：`DISPLAY=:1 /opt/racecapture/race_capture`を実行したところ、DC-5-2/DC-6-5で
+      発生していた`No matching FB config found`/`Couldn't find matching GLX visual`は
+      **再発せず**、`[INFO] [GL] NPOT texture support is available`でGLウィンドウ生成に成功、
+      `[INFO] [Base] Start application main loop`でメインループへ到達した。これにより
+      **「Ubuntu 22.04 LTSへのダウングレードでrace_capture配布バイナリのFBConfigクラッシュが
+      解消する」というDC-6全体の方針の有効性が実証された**
+    - 初回起動時は`FileNotFoundError: .../.config/racecapture`（設定ディレクトリ未作成）で
+      即終了したが、これはFBConfig問題とは無関係の別問題。`mkdir -p ~/.config/racecapture`で
+      解消し、以降はESP32-C3(`/dev/ttyACM0`)への接続試行・データストア初期化・セッション記録
+      開始まで進み、20秒のタイムアウトで正常終了（`exiting mainloop and closing`）するまで
+      安定して動作し続けた
+    - なお`xsel`/`xclip`未導入によるクリップボード機能の警告が出ているが、これも動作の
+      本質には影響しない軽微な問題（クリップボード機能が使えないだけ）
   - [ ] DC-6-6-7: 上記が解消した場合、ダッシュ表示＋`ximagesrc`経由の映像データ焼き込みが
         実際に一連の流れとして動作するか最終確認（DC-5-2/DC-6全体の元々の目的の達成確認）
 
