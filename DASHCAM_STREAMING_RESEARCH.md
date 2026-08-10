@@ -258,6 +258,17 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
 
 > 実作業ログ・進捗は`task_dashcam_breakdown.md`（タスクID: `DC-N`）を参照。
 
+- 🔄 **【2026-08-10追記】ROCK 5B（Radxa、Rockchip RK3588、ARM）への移行を検討・決定**：
+  DC-6/DC-7で確立したEliteDesk(Intel, x86)ルートは約1.2kgと車載搭載には重量面で不利。
+  軽量なx86 SBCの代替候補として調査した「LattePanda 3 Delta 864」も、実際の国内価格
+  （秋月電子で¥65,400、Windows 10ライセンス込み）・直輸入価格（DFRobot Linux版で
+  $279、送料・関税込み概算¥48,000〜53,000）とも高価と判明。一方、国内代理店
+  （IoT本舗）で約¥23,000で入手できるRadxa ROCK 5B（RK3588、ARM）はコスト面で
+  明確に有利なため、こちらへの切り替えを決定した。ただし公式の`video-streamer`は
+  VAAPI専用のクローズドバイナリ（ソース非公開）でARM非対応のため、ハードウェア
+  エンコード機能はRKMPP（`ffmpeg-rockchip`）ベースでの自作が必須になる見込み。
+  詳細な比較・トレードオフ・電源仕様は`DASHCAM_ROCK5B_REPORT.md`
+  （友人向け共有レポートと兼用）、進め方は`task_dashcam_breakdown.md`のDC-9参照
 - 🔴 **DC-6で結論確定**：手元にあったHP EliteDesk 800 G3系(Intel Core i5、Mesa `iris`系ドライバ、
   AMD機とは全く異なるGPUベンダー)でAMD機(DC-1〜DC-5)と同じ検証を行った結果、race_captureの
   `No matching FB config found`(exit 102)が**同一のまま再現した**。depth32 Visual・
