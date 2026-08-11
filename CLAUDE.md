@@ -37,6 +37,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 ## ファイル構成
 - `ARCHITECTURE.md`：プロジェクト全体のマスターファイル
 - `hardware_interface_spec.md`：電気・回路系担当の友人と認識合わせをするための入出力インターフェース仕様書
+- `hardware_meeting_agenda.md`：友人とのミーティングをどの順番で進めるかの道しるべ（`hardware_interface_spec.md`各章への案内役）
 - `HANDOFF.md`：RCP JSONプロトコルの実測仕様の詳細
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
 - `firmware/`：ESP32（Seeed Studio XIAO ESP32C3）向けPlatformIO（ESP-IDF）プロジェクト

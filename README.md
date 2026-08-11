@@ -6,6 +6,7 @@ RaceCaptureのロギングシステムのうち、ロガー端末部分だけを
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — プロジェクト全体の唯一の一次情報源（目的・全体構成・現状ステータス・開発ロードマップ）
 - **[hardware_interface_spec.md](hardware_interface_spec.md)** — 電気・回路系担当の方向け：入出力インターフェース仕様・相談事項まとめ
+  - 友人とのミーティング前は **[hardware_meeting_agenda.md](hardware_meeting_agenda.md)**（進め方の道しるべ）も参照
 
 ## その他の主なドキュメント
 
