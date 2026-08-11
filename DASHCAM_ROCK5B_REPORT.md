@@ -3,7 +3,9 @@
 > 電源回路設計を担当する友人への共有用レポート。「なぜx86ミニPCではなくRadxa ROCK 5B
 > （ARM/Rockchipボード）を使うのか」という背景と、電源回路設計に関わる仕様をまとめている。
 > 検証の詳細な作業ログは`task_dashcam_breakdown.md`、意思決定の調査記録は
-> `DASHCAM_STREAMING_RESEARCH.md`を参照（いずれも本リポジトリ内）。
+> `DASHCAM_STREAMING_RESEARCH.md`を参照（いずれも本リポジトリ内）。ROCK 5Bで残っている
+> 2つのソフトウェア的ハードル（GPU描画・ハードウェアエンコード）の詳しい背景は
+> `DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`にまとめた。
 
 作成日：2026-08-10
 
