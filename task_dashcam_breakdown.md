@@ -386,8 +386,10 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
 
 - [ ] DC-9-1: 手元のRaspberry Pi単体で、自作ESP32ファームウェア＋`race_capture`アプリの
       接続・動作を確認する（外部モニター使用、追加購入なしで着手可能）
-- [ ] DC-9-2: ROCK 5Bを購入する（USB PD対応電源、冷却ファン付きヒートシンク、microSDを
-      同時手配すること。詳細仕様は`DASHCAM_ROCK5B_REPORT.md`4章参照）
+- [ ] DC-9-2: ROCK 5Bを購入する（USB PD対応電源、冷却ファン付きヒートシンク、
+      eMMCモジュール16GB（OS起動用）、microSD（動画保存用・振動対策の物理固定を検討）を
+      同時手配すること。M.2 NVMe SSDは消費電力・発熱の懸念から今回は見送り。
+      詳細仕様は`DASHCAM_ROCK5B_REPORT.md`4章参照）
 - [ ] DC-9-3: ROCK 5B上で`race_capture`アプリがMali GPU（Mali G610）上で正常に描画・
       起動できるか確認する（DC-5/DC-6で発生した`No matching FB config found`級の
       問題が再発しないか、が最大の技術的未知数）
