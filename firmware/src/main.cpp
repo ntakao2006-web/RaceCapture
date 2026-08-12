@@ -1145,6 +1145,13 @@ static bool lapDetectorUpdate(double lat, double lon, double elapsedSec,
 // 必要がある。そうしないと1周目のサンプルに電源投入からの経過時間が混入してしまう。
 constexpr size_t kMaxLapSamples = 2048; // 100ms周期で約204秒(3.4分)分。長めの周回コースも見込んだ余裕
 
+// 5-8-3: ジオフェンスの二重発火やピットレーン等がスタート/フィニッシュ付近を通る
+// コース形状で、実際には数秒しかない「ラップ」が誤検出されるとベストラップとして
+// 恒久的に記録されてしまう(以降のPredTimeが壊れる)ため、明らかに短すぎるラップは
+// ベスト更新の対象外とする下限値。市販車のミニサーキットでも1周十数秒はまず無いため、
+// 十分安全側の値として10秒を採用。
+constexpr double kMinValidLapTimeSec = 10.0;
+
 struct LapDistanceSample {
     float distanceM; // 現在ラップ開始からの累積走行距離(m)
     float timeSec;   // 同じく現在ラップ開始からの経過時間(秒)
@@ -1287,7 +1294,9 @@ static void lapRecorderUpdate(double lat, double lon, double elapsedSec,
 {
     if (crossedStartFinish) {
         // 直前まで記録していたラップが完了(2周目以降)かつベスト更新なら確定させる。
-        if (lapCompleted && (g_bestLapTimeSec < 0.0 || lapTimeSec < g_bestLapTimeSec)) {
+        // 5-8-3: 異常に短いラップ(ジオフェンス二重発火・ピットレーン等)はベスト対象外。
+        if (lapCompleted && lapTimeSec >= kMinValidLapTimeSec
+            && (g_bestLapTimeSec < 0.0 || lapTimeSec < g_bestLapTimeSec)) {
             memcpy(g_bestLapSamples, g_currentLapSamples,
                    sizeof(LapDistanceSample) * g_currentLapSampleCount);
             g_bestLapSampleCount = g_currentLapSampleCount;
