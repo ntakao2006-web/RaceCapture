@@ -257,6 +257,9 @@
 - ✅ **Raspberry Pi 4B用microSDにRaspberry Pi OS Lite(64-bit, Debian 13 trixie)を書き込み、SSH公開鍵認証・専用ユーザー(`ntakao`)・タイムゾーン(Asia/Tokyo)等の初期設定を完了**。ホスト名`rc-dash`。NOPASSWD sudoを設定し、以降のセットアップ作業をリモートから代行できる状態にした。
 - ✅ **公式インストール手順（Autosport Labs wiki「RaceCapture on Raspberry Pi」）に基づき、RaceCapture App(v2.18.0)のインストールを完了**。公式インストールスクリプトはDebian 12(bookworm)・whiptailによる対話式操作が前提のため、trixie向けのパッケージ名差異（`libegl1-mesa`→`libegl1`への置き換えが必要）を修正し、対話部分を展開した非対話スクリプトとして実行した（モードはフレームバッファ直接描画、自動ログイン有効、WiFi自動再接続/USB自動マウント有効）。
 - ⚠️ **現状、HDMIディスプレイ未接続のため実際の画面表示確認ができていない**。`race_capture`起動時、SDL2がKMSDRM/X11いずれの方式でもウィンドウを作成できず`Couldn't connect to X server`でクラッシュし、ウォッチドッグ機能により再起動を繰り返す状態になっている。`/sys/class/drm/card1-HDMI-*`（vc4-drm、実際のディスプレイ出力側）のステータスがいずれも`disconnected`であることを確認しており、ディスプレイ未接続が原因と判断（インストール自体の失敗ではない）。次回、実際のタッチパネル/HDMIモニタを接続した状態での起動確認が必要。
+- ✅ **Raspberry Pi 3B（ホスト名`rc-dash-3b`）でも同様にSSH公開鍵認証・専用ユーザー(`ntakao`)・NOPASSWD sudo・タイムゾーン設定、RaceCapture App(v2.18.0)のインストールを完了**。HDMIモニタ（一般的なHDMI入力モニタ、Raspberry Pi公式タッチパネルではない）接続済みの状態で起動確認を実施した。trixie対応（`libegl1-mesa`→`libegl1`置き換え）は4Bと同様。
+- ✅ **インストール直後、`race_capture`が起動2秒程度でクラッシュしウォッチドッグが再起動を繰り返す問題を特定・解消**。原因は`/opt/racecapture/_internal/libstdc++.so.6`（バンドル版、GLIBCXX_3.4.30まで対応）と、trixieで新規インストールされたMesa関連パッケージが要求するGLIBCXX_3.4.31以降のシンボルとの不整合で、DRIドライバ（Mesa/VC4）のロードに失敗していたため。バンドル版`libstdc++.so.6`をリネームし、システム版`/usr/lib/aarch64-linux-gnu/libstdc++.so.6`（GLIBCXX_3.4.33まで対応）へのシンボリックリンクに置き換えることで解消し、`OpenGL renderer: VC4 V3D 2.1`でのGLコンテキスト作成・RCPAPI起動まで確認した。
+- ⚠️ **上記修正後もモニターに`race_capture`のGUIが表示されず、通常のコンソールログイン画面が表示されたままになる問題が発生、原因は電源のアンダーボルテージと判明**。`vcgencmd get_throttled`で`throttled=0x50005`（アンダーボルテージ・スロットリングが現在進行形で発生中、CPU周波数が定格1.2GHzから600MHzに制限）を確認、`dmesg`にも`hwmon1: Undervoltage detected!`が多数記録され、GPUの`Resetting GPU`ログとも符合した。使用電源はスマホ用急速充電器（QC/PD等の可変電圧プロトコル想定）で、Raspberry Pi 3Bが要求する安定した5V/2.5A供給に適さないと判断。次回、Raspberry Pi公式電源アダプタ等（通常の5V/2.5A以上、急速充電プロトコルなし）への交換後に再度起動確認が必要。
 
 ---
 
