@@ -78,8 +78,12 @@ ESP32実機を接続しGPS/telemetryが正常に流れている「完全に正�
 - `~/capture_4-4-2/`：連続kmsgrabキャプチャの結果（15枚、全て背景2色のみ）を保存
 - `~/racecapture.log` / `~/racecapture_mesadebug.log`：デバッグログ・Mesa詳細ログを保存
 
+**stencilバッファ仮説の追加検証（`mesa-utils`の`eglinfo`が実機に導入済みと判明、これを使用）**：
+`sudo EGL_PLATFORM=drm eglinfo`（結果は`/tmp/eglinfo_full.txt`、実機に保存済み）でGBMプラットフォームのEGL Configuration一覧を取得したところ、**このPi（Mesa 26.2.0、trixie backports）のVC4ドライバは実際にはstencil=8bitのConfigを複数提供している**ことを確認した（例：`0x03`, `0x06`, `0x09`, `0x0c`, `0x0f`, `0x12`。`0x06`はMSAA(ms=4)とstencil=8の両立configも存在）。これは「Web検索で見つけたRaspberry Pi Forums/kivy#5511の"stencil buffer support missing"という既知issue」が**現在のMesaバージョンでは解消済みの可能性がある**ことを意味し、当初の「ドライバがstencilを全くサポートしていない」という仮説はやや単純化しすぎだったと訂正する必要がある。
+真の焦点は「ドライバがstencilを提供できるか」ではなく、**「KivyのSDL2ウィンドウ生成時に、実際にstencil対応のConfigが選択され使われているか」**に絞られる。これを直接確認するため`EGL_LOG_LEVEL=debug`環境変数を付けて再起動してみたが、`~/racecapture_egldebug.log`にはConfig選択に関するログ出力は得られなかった（Mesa側のEGL実装がこの環境変数によるConfig選択ログを出さない、またはKivyのSDL2部分でリダイレクトされていない可能性）。
+
 **未解決・次回の調査候補（優先度順、更新）**：
-0. **最優先：stencilバッファ仮説の検証**。①EGL/GBM経由で実際に選択されているEGLConfigの`EGL_STENCIL_SIZE`を照会する小さなPython/ctypesスクリプトを書いて実測する、②Kivyの`window_sdl2`のCython実装（`.so`）を`objdump`等で調べてstencilサイズ要求箇所を特定する、③試しにOSやMesa側でstencilバッファを強制する設定（`MESA_GLES_VERSION_OVERRIDE`、EGL関連の環境変数等）がないか調べる。
+0. **最優先：Kivy(SDL2)ウィンドウが実際に選択したEGL Configのstencilサイズを特定する**。`EGL_LOG_LEVEL=debug`では確認できなかったため、①SDL2自体のデバッグ変数（`SDL_VIDEO_GL_DRIVER`関連や`SDL_HINT_*`）を試す、②実行中プロセスのGLコンテキストに対し`glGetIntegerv(GL_STENCIL_BITS)`を照会する小さなPython/ctypesアタッチスクリプトを書く、③Kivyの`window_sdl2`のCython実装（`.so`、今回の逆コンパイルでは`.pyc`のみ対象としたため未解析）を`objdump`等で調べ、`SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, ...)`相当の呼び出し箇所・要求値を特定する。
 1. 上記で確定困難な場合、`racecapture/views/dashboard/dashboardview.py`側で`DigitalGaugeElement`以外の一般的な`MDLabel`（Stencilを使わない箇所、例えばツールバーのタイトル等）が表示されているかどうかを別途連続キャプチャで確認し、「Stencil配下のLabelだけが非表示」なのか「全てのLabelが非表示」なのかを切り分ける（現状は判別できていない）。
 2. 実解像度がアプリ内部で上書きされる現象（1024x768に固定される件）は今回未着手。逆コンパイル済みソース（`~/decompile_4-4-2/race_capture_extracted/`）から`Config.set('graphics', ...)`のような呼び出し箇所を探索する。
 3. KivyMD側の既知issue（背景色/canvas色指定が反映されないバグ報告）との関連は、逆コンパイル済みソースと突き合わせてまだ未実施。
