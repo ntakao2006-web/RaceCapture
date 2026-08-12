@@ -83,10 +83,40 @@ ESP32実機を接続しGPS/telemetryが正常に流れている「完全に正�
 真の焦点は「ドライバがstencilを提供できるか」ではなく、**「KivyのSDL2ウィンドウ生成時に、実際にstencil対応のConfigが選択され使われているか」**に絞られる。これを直接確認するため`EGL_LOG_LEVEL=debug`環境変数を付けて再起動してみたが、`~/racecapture_egldebug.log`にはConfig選択に関するログ出力は得られなかった（Mesa側のEGL実装がこの環境変数によるConfig選択ログを出さない、またはKivyのSDL2部分でリダイレクトされていない可能性）。
 
 **未解決・次回の調査候補（優先度順、更新）**：
-0. **最優先：Kivy(SDL2)ウィンドウが実際に選択したEGL Configのstencilサイズを特定する**。`EGL_LOG_LEVEL=debug`では確認できなかったため、①SDL2自体のデバッグ変数（`SDL_VIDEO_GL_DRIVER`関連や`SDL_HINT_*`）を試す、②実行中プロセスのGLコンテキストに対し`glGetIntegerv(GL_STENCIL_BITS)`を照会する小さなPython/ctypesアタッチスクリプトを書く、③Kivyの`window_sdl2`のCython実装（`.so`、今回の逆コンパイルでは`.pyc`のみ対象としたため未解析）を`objdump`等で調べ、`SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, ...)`相当の呼び出し箇所・要求値を特定する。
-1. 上記で確定困難な場合、`racecapture/views/dashboard/dashboardview.py`側で`DigitalGaugeElement`以外の一般的な`MDLabel`（Stencilを使わない箇所、例えばツールバーのタイトル等）が表示されているかどうかを別途連続キャプチャで確認し、「Stencil配下のLabelだけが非表示」なのか「全てのLabelが非表示」なのかを切り分ける（現状は判別できていない）。
+0. ~~最優先：Kivy(SDL2)ウィンドウが実際に選択したEGL Configのstencilサイズを特定する~~ → **今回のセッションで実施・解決（下記参照）。stencil仮説は完全に否定された。**
+1. 上記で確定困難な場合、`racecapture/views/dashboard/dashboardview.py`側で`DigitalGaugeElement`以外の一般的な`MDLabel`（Stencilを使わない箇所、例えばツールバーのタイトル等）が表示されているかどうかを別途連続キャプチャで確認し、「Stencil配下のLabelだけが非表示」なのか「全てのLabelが非表示」なのかを切り分ける（現状は判別できていない）。→ **これも今回のセッションで判明：Stencilを使わないツールバーのLabelも含め、GPU上には正しく描画されているのに画面には一切出ない、という、より根深い問題であることが確定した（下記参照）。**
 2. 実解像度がアプリ内部で上書きされる現象（1024x768に固定される件）は今回未着手。逆コンパイル済みソース（`~/decompile_4-4-2/race_capture_extracted/`）から`Config.set('graphics', ...)`のような呼び出し箇所を探索する。
 3. KivyMD側の既知issue（背景色/canvas色指定が反映されないバグ報告）との関連は、逆コンパイル済みソースと突き合わせてまだ未実施。
+
+---
+
+**今回のセッション（4-4-2続き・第3回）で得た決定的な新知見：stencil仮説を完全否定し、問題の所在をアプリ内部からEGL/KMS境界へ移した**：
+
+**接続情報の補記（次回用）**：`rc-dash-3b`へのSSH秘密鍵は`C:\Users\ntaka\.ssh\racecapture_dash_ed25519`（`ntakao@rc-dash-3b.local`、mDNS名で到達可能、IPアドレス固定不要）。今回のセッション開始時、前回セッションの`EGL_LOG_LEVEL=debug`検証用に起動されたままだった`race_capture`（`~/racecapture_egldebug.log`向け起動）が58分間放置されて残っていたため停止した。**次回セッション開始時は必ず`ps aux | grep race_capture`で放置プロセスがないか確認すること。**
+
+**1. `gdb`によるライブプロセスへの直接介入という新しい調査手法を確立**：
+`sudo apt-get install -y libegl1-mesa-dev libgles2-mesa-dev`でEGLヘッダーを導入した上で、当初は`LD_PRELOAD`/`LD_LIBRARY_PATH`によるEGL関数フック（`eglChooseConfig`等をラップする共有ライブラリ、ソース一式`/tmp/egl_hook.c`）を試みたが、SDL2が`dlopen`で読み込む実体を完全に置き換える方式は、未実装のEGL関数が芋づる式に必要になり(`No matching FB config found`で起動失敗)、実用的でないと判断し断念した。
+代わりに、**稼働中の`race_capture`プロセスに`sudo gdb -p <PID>`でアタッチし、Python C API（`PyGILState_Ensure()`→`PyRun_SimpleString("exec(open('/tmp/script.py').read())")`→`PyGILState_Release()`）を`call`コマンドで直接呼び出すことで、アプリを再起動せずにライブのPythonインタプリタ内で任意のコードを実行する**手法を確立した。これにより：
+- まず`thread apply all p (void*)eglGetCurrentContext()`で9スレッド中どれがGLコンテキストをcurrentにしているか特定（Thread 1、メインスレッドのみ非ゼロ）。
+- そのスレッド上で`glGetIntegerv(GL_STENCIL_BITS, ...)`等を直接呼び出し、**このPiの実際に使用中のGLコンテキストは`GL_STENCIL_BITS=8`（有効）、`GL_DEPTH_BITS=24`、RGBA8888、`GL_SAMPLES=0`、`glGetError()=0`（エラーなし）であることを実測で確定**。前回セッションで最有力とされていた「stencilバッファが機能していない」という仮説は、**推測ではなく実測で完全に否定された**。
+- ⚠️ **重要な注意点（次回のためのハマりどころ）**：`eglQuerySurface`等の出力引数に誤って`(int*)0`（NULLポインタ）を渡したところ、`race_capture`プロセスがgdbの`call`実行中にSIGSEGVでクラッシュした。**`gdb call`で関数を呼ぶ際、出力引数には必ず`(void*)malloc(N)`で確保した有効なポインタを渡すこと。ライブの実プロセスに対して行う操作のため、雑なテストコードがそのままプロセスを落とす**。クラッシュ後は`cd /opt/racecapture && nohup ./run_racecapture_rpi.sh -w 1 -- ... &`で通常のwatchdog付き起動に復旧させ、実機は正常稼働状態に戻して今回のセッションを終えている。
+
+**2. Python C API注入により、ウィジェットツリー・canvas命令・実テクスチャの中身を直接検証、いずれも正常と判明**：
+- `kivy.app.App.get_running_app()`経由でアプリのウィジェットツリー全体を再帰的にダンプ。`AppMainFrame`（1920x1080、opacity=1.0）配下、`NavigationDrawer`（閉状態のためx=-230の画面外、これは仕様通り正常）、`ToolbarView`、`ScreenManager > SetupView`（起動直後は設定未了のためSetupViewが表示されている）と、ツリー構造・各ウィジェットの`text`/`color`/`opacity`/`size`/`pos`はすべて一見して正常な値だった（例：`Label text='EXIT' color=[1,1,1,1] opacity=1.0`、`MDIcon color=[0.0,1.0,0.0,1.0]`等）。Python/Kivyのプロパティレベルには異常なし。
+- ツールバーの`ProgressLabel`（"RaceCapture/Pro MK3 (esp32-c3 proto fw) esp32-c3-proto-build"）のcanvas命令を直接ダンプしたところ、実際のテキスト描画に使われる`Rectangle`命令（`pos=(1558.0, 1050.0) size=(250.0, 19.0)`、画面内に収まる座標、`Color rgba=[1.0,1.0,1.0,1.0]`＝不透明白、`texture`は250x19のRGBAテクスチャ）が完全に正しい状態で存在することを確認。StencilPush/StencilUse等の命令も別途あるが、これはKivyMDのリップルエフェクト用（幅0の矩形、通常時は無効）であり、本題の文字描画とは別系統と判明。
+- **このテクスチャの実体（`texture.pixels`、実際にGPUからglReadPixels相当で読み戻される250x19=19000バイトのRGBAデータ）を`texture.save()`でPNGファイルへ書き出し、目視確認したところ、`"RaceCapture/Pr...32-c3-proto-build"`という完全に判読可能な文字がアンチエイリアス付きで正しくレンダリングされていた**（非ゼロバイト数15126/19000）。フォントレンダリング（sdl2_ttf）・テクスチャアップロードは完全に正常に機能している。
+
+**3. 🔴🎉 最大の発見：Kivy自身の`Window.screenshot()`（実際のGPUからのglReadPixels）は文字・アイコンを完璧に描画しているが、`ffmpeg kmsgrab`（DRM/KMSの実スキャンアウトバッファを直接読む方式）や物理モニタは背景色2色のみしか見せない、という決定的な乖離を実測で確認**：
+- `from kivy.core.window import Window; Window.screenshot('/tmp/kivy_window_screenshot.png')`をgdb経由で呼び出し（実際には`kivy_window_screenshot0001.png`として保存される仕様）、得られた1920x1080のPNGを解析したところ、**465種類ものユニークな色**が存在し、ツールバーの文字列「RaceCapture/Pr...32-c3-proto-build」が完全に判読可能な形で描画され、さらに状態アイコン（緑の円、黄色のターゲットアイコン、緑の雲アイコン）も正しい色で表示されていた。文字のアンチエイリアシングによる中間階調グレー（1〜239の多数の濃淡）も確認でき、**フォント・アイコン描画パイプラインはGPU上で完全に正常に機能している**ことが実測で確定した。
+- 一方、**同じタイミング帯で`ffmpeg -f kmsgrab`により物理ディスプレイの実スキャンアウトバッファを直接キャプチャすると、これまでの全セッションと同様、`RGBA(0,0,0,0)`（透過）と`RGBA(18,18,18,255)`（背景色）の2色のみしか存在しない**（8フレーム連続バーストキャプチャでも全フレーム同じ結果）。ただし背景色矩形の面積（11520〜840044ピクセルの範囲で変動）はフレームごとに変化しており、**表示バッファ自体は継続的に更新されている（完全に静止した古いバッファではない）ことも確認**。つまり「一度も更新されない」のではなく「更新はされ続けているが、文字・アイコン相当のピクセルだけが一度も乗ってこない」という状態。
+- `Window.canvas`（アプリ全体のルートcanvas）を再帰的にダンプし、プロセス内の全オブジェクトを`gc.get_objects()`で走査して`kivy.graphics.fbo.Fbo`インスタンスの有無を確認したところ、**Fboインスタンスはプロセス内に一つも存在しなかった**（0件）。これにより「オフスクリーンFBOで一旦描画してから最終スクリーンへblitする」という仮想解像度スケーリング層のような仕組みは存在しないことが確定し、その方向の仮説は排除できる。
+- **結論・新しい最有力仮説**：この乖離パターン（GPU/Kivyが認識している描画内容は完全に正しいが、実際にKMSでスキャンアウトされる＝物理的に画面に映る内容とは食い違う）は、**アプリ側（race_capture本体・Kivy・KivyMD・フォント・stencil等）の問題では一切なく、`eglSwapBuffers`からGBMバッファの確保・DRM/KMSのページフリップに至る、SDL2のKMSDRMバックエンド〜Mesa VC4ドライバ間のどこかにある**と強く示唆される。これまでの全調査対象（4-4-2でこれまで検証してきたstencil、フォント、multisamples、full_screen_mode等）は的外れではなかった（実際に改善もしたが）ものの、**核心的な残課題は全く別のレイヤーにあった**という大きな方向転換。
+
+**未解決・次回の最優先調査候補（更新）**：
+0. **最優先：EGLサーフェスのダブルバッファリング設定を確認する**：`eglQuerySurface`で`EGL_RENDER_BUFFER`（シングル/ダブルバッファのどちらか）・`EGL_SWAP_BEHAVIOR`（`EGL_BUFFER_PRESERVED`か`EGL_BUFFER_DESTROYED`か）を照会する（今回はgdbでのNULLポインタミスによりクラッシュさせてしまい未完了。出力引数に`malloc`で確保したポインタを渡し直せば実行できるはず）。特に`EGL_BUFFER_DESTROYED`（多くのGLESドライバのデフォルト）の場合、Kivyが毎フレーム全キャンバスを再描画する前提（immediate-mode的なreplay）とバッファの実際のpreserve/destroy挙動に不整合がないか確認する。
+1. **`/sys/kernel/debug/dri/0/state`を連続して複数回ダンプし、プレーンにバインドされているフレームバッファID（fb_id）がフレームごとに変化しているか固定されているかを確認する**。変化していれば正常にページフリップしていることになり、フリップ先のバッファの中身自体が問題ということになる。固定されたままなら、ページフリップ自体が実質的に機能していない可能性がある。
+2. **最小限のKivyアプリ（`Label`一つだけを表示するだけのシンプルなスクリプト）を同じRaspberry Pi・同じKMSDRM/Mesa VC4環境で動かし、同じ「文字だけ消える」症状が再現するか確認する**。再現すれば、race_capture固有ではなく環境（SDL2 KMSDRM＋Mesa VC4 26.2.0）側の一般的な不具合と確定でき、Kivy/SDL2側のissueトラッカーでの既知問題の有無を調べる方向に絞れる。再現しなければ、race_capture側の何らかの特殊なOpenGL呼び出しパターン（例えば非標準のバッファクリア方法、あるいは`RenderContext`の使い方）に原因を絞り込める。
+3. SDL2のKMSDRMバックエンドが利用するGBMサーフェスのバッファ数（`gbm_surface_create`のフラグ、ダブル/トリプルバッファ）を、`strace`等でシステムコールレベルから確認する。
 
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
