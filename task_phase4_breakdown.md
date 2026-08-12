@@ -134,7 +134,14 @@ ESP32実機を接続しGPS/telemetryが正常に流れている「完全に正�
 
 **今回のセッションのまとめ**：stencil仮説の完全否定、Kivy内部描画の正常性の実証（Window.screenshot()で文字・アイコン完璧に表示）、DRM側のページフリップが正常に機能し続けていることの確認、という大きな前進があった一方、2つの簡易ワークアラウンド候補はいずれも空振りに終わり、**根本原因の特定にはさらに踏み込んだ調査（優先度2の「最小Kivyアプリでの再現実験」、または`window_sdl2`のCython実装(`.so`)をobjdump等でのフレームループ処理自体の解析）が必要**という状態で次回に持ち越す。
 
-**実機（`rc-dash-3b`）の状態**：セッション終了時点で、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み。今回の調査で作成した一時ファイル（`/tmp/egl_hook.c`、`/tmp/egllib/`、`/tmp/introspect*.py`、`/tmp/gdb_*.txt`、各種キャプチャ画像等）は`/tmp`配下のため次回リブートで自然に消える想定で、明示的なクリーンアップはしていない。
+**4. 最小限のKivyアプリでの再現実験を試みたが、race_captureとは異なるパターンの不具合が出て決定的な結論には至らなかった（次回への引き継ぎ事項）**：
+apt経由で`python3-kivy`（v2.3.1-1+b1、race_captureがバンドルするKivyと同系統のバージョン）を導入し、`Label`一つと単色背景`Rectangle`だけを描画する最小限のアプリ（`BoxLayout`+`Color`+`Rectangle`を`canvas.before`に設置、全画面1920x1080、`multisamples=0`）を作成して実行した（race_captureは一時停止してDRMマスター権を空けてから実行）。
+- **結果はrace_captureとは異なるパターンだった**：`ffmpeg kmsgrab`では完全な透過`(0,0,0,0)`のみ（race_captureのように背景色すら出ない）、`Window.screenshot()`によるKivy自身のGPU読み戻しでも**不透明な黒`(0,0,0,255)`一色のみ**（Kivyのデフォルトクリアカラーそのもので、こちらも背景矩形・文字とも一切描画された形跡がない）。
+- ウィジェットツリー・canvas命令を同様にgdb経由でダンプしたところ、`root`（1920x1080）・`Label`（1920x1080、`text`正しく設定）・`canvas.before`の`Color rgba=[0.0706,0.0706,0.0706,1.0]`＋`Rectangle pos=(0,0) size=(1920,1080)`と、**Python/canvas命令レベルでは完全に正しい状態**であることを確認した（race_capture同様、Python側は無罪）。にもかかわらずKivy自身の読み戻しでも何も描画されていなかった。
+- **これはrace_captureの症状（背景だけは常に正しく出る）とは異なる新しいパターンであり、「race_captureとは別の要因（このミニマルスクリプト固有の初期化タイミング、または`python3-kivy`パッケージ版とrace_capture同梱版のビルド設定差）が別途作用している」可能性がある**。今回は数秒待ってから2回スクリーンショットを試したがいずれも同じ結果で、単純な「初回フレーム未描画」というタイミング問題だけでは説明しづらい。
+- **次回への引き継ぎ**：このテスト自体は結論を出せなかったため、優先度2の課題（最小Kivyアプリでの再現実験）は依然として未完了として扱う。次回は①`Window.screenshot()`を呼ぶ前に明示的に`Clock.tick()`や`EventLoop.idle()`を複数回手動で回して「確実に最低1フレームは描画済み」の状態を作ってから読み戻す、②`canvas.before`ではなく素の`canvas`に描画する、③そもそも`App`のライフサイクル（`on_start`等）のタイミングを使う、といった改善を加えた上で再実験するとよい。テストスクリプトは`/tmp/minimal_kivy_test.py`として実機に残していない（セッション終了時に`race_capture`を優先して復旧したため、この一時ファイル自体の保存状況は未確認）。
+
+**実機（`rc-dash-3b`）の状態**：セッション終了時点で、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み。今回の調査で作成した一時ファイル（`/tmp/egl_hook.c`、`/tmp/egllib/`、`/tmp/introspect*.py`、`/tmp/gdb_*.txt`、各種キャプチャ画像、`/tmp/minimal_kivy_test.py`等）は`/tmp`配下のため次回リブートで自然に消える想定で、明示的なクリーンアップはしていない。なお`python3-kivy`（v2.3.1-1+b1）とEGL/GLES開発ヘッダー（`libegl1-mesa-dev`・`libgles2-mesa-dev`）は今回のセッションでシステムに恒久導入済み（次回セッションでも再インストール不要）。
 
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
