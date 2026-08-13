@@ -233,6 +233,69 @@ apt経由で`python3-kivy`（v2.3.1-1+b1、race_captureがバンドルするKivy
 
 ---
 
+**今回のセッション（4-4-2続き・第8回）で得た知見：`eglChooseConfig`はそもそも呼ばれていないと判明、そして最有力の新仮説──`race_capture`同梱の独自「WindowPatch」がリサイズの度に描画を無効化する仕組みを発見**：
+
+**接続情報の補記**：`rc-dash-3b`へのSSH接続（`ntakao@rc-dash-3b.local`、鍵は`C:\Users\ntaka\.ssh\racecapture_dash_ed25519`）は今回も正常。セッション開始時、放置プロセスはなく`race_capture`はwatchdog経由でクリーンに稼働中だった。
+
+**1. LD_PRELOADによるEGL関数フック（v1）は失敗、原因はSDL2がdlopen+dlsym(handle,...)で直接シンボル解決していること**：
+Web調査（SDL公式コミット履歴）で、`SDL_VIDEO_DOUBLE_BUFFER`ヒントをKMSDRMバックエンドで実際に有効化するコミット(`5ab1151`、2024-07-18)は、実機バンドル版SDL2 2.30.7のリリース日(2024-09-01、GitHub API`release-2.30.7`タグで確認)より前で、**既にバンドル版に含まれていたと判明**。これにより前回セッション(第4回)で「`SDL_VIDEO_DOUBLE_BUFFER=0`が効かなかった」のはヒント自体の不備ではないと分かった。
+続けて、`eglChooseConfig`/`eglCreateWindowSurface`/`eglSwapBuffers`をログ出力する素朴なLD_PRELOADフック(`egl_interpose.c`、単純にシンボルを再定義するだけの非侵襲的な手法)を作成・コンパイルし、稼働中の`race_capture`を安全に停止→`LD_PRELOAD`付きで15秒間だけ手動起動→watchdogで自動復旧、という手順（gdb注入より低リスク）で試したが、**ログファイルが一切生成されず、フックは一度も呼ばれなかった**。原因を調査した結果、**SDL2はEGL関数を通常のリンク（PLT経由）ではなく`dlopen("libEGL...")`＋`dlsym(handle, "eglChooseConfig")`のように特定ハンドル指定で解決しており、この方式はグローバルシンボルテーブルを経由しないため`LD_PRELOAD`による通常のシンボル差し替えでは横取りできない**ことが判明した（video-streamerの`libstdc++`/`libva`差し替えが効いたのとは対照的な結果）。
+
+**2. `dlsym()`自体をフックする改良版(v2)で横取りに成功、そして重要な発見：`eglChooseConfig`は実際には一度も呼ばれていなかった**：
+`dlsym()`を横取りし、呼び出し名が`eglChooseConfig`/`eglCreateWindowSurface`/`eglSwapBuffers`の場合だけ自前のロギングラッパーを返す（それ以外は本来の`dlsym`結果をそのまま返す）方式の`egl_interpose2.c`を作成。`dlvsym(RTLD_NEXT, "dlsym", "GLIBC_2.2.5")`で無限再帰を回避。同じ「安全な停止→15秒稼働→watchdog自動復旧」手順で実機`race_capture`に適用したところ、今度は正常にフックが機能し(`/tmp/egl_interpose2.log`)、以下が判明した：
+- `eglChooseConfig`はシンボルとしてフックはされた（`dlsym()`で名前解決はされている）が、**実行された形跡（ログ）が一切無い**。つまりKivy/SDL2はconfig選択に`eglChooseConfig`を使っておらず、`eglGetConfigs`＋`eglGetConfigAttrib`による手動フィルタリング、または既知のconfig IDを直接指定する等の別経路を使っていると推測される（未確認、次回調査候補）。
+- `eglCreateWindowSurface`が**同一のウィンドウハンドルに対して2回呼ばれ**、2回とも同じサーフェスポインタが返っていることを確認：1回目はプロセス起動直後（`config_id=3、RGBA=8/8/8/8、depth=24、stencil=8、samples=0`——過去セッションでgdb実測した値と完全に一致）、**2回目はその約14秒後**。この「起動から一定時間後にEGLサーフェスが再作成されるイベントが実在する」という事実を、ログという確たる証拠で初めて捉えた。
+- `eglSwapBuffers`は2回目の`eglCreateWindowSurface`直後に1回だけ呼ばれたところで15秒のタイムアウトに達した（テスト時間が短すぎて継続動作は未確認）。
+
+**3. 🔴🎉 最有力の新仮説を発見：`race_capture`にバンドルされている独自の「WindowPatch」(`autosportlabs/monkey_patches/window.py`)が、ウィンドウリサイズの度に`Window.on_draw`/`Window.update_viewport`を一時的に何もしないラムダへ差し替える仕組みだと判明**：
+起動ログ(`race_capture_egltest2.log`)に`[DEBUG] [WindowPatch] Applied window resize patch`という、これまでのセッションで見落としていたログ行を発見。逆コンパイル済みソース(`~/decompile_4-4-2/`、前回までのセッションの成果物で今回も再利用可能だった)から該当モジュール`autosportlabs/monkey_patches/window.pyc`を`pydisasm`で逆アセンブルし、ロジックを完全に復元した。要約すると（疑似コード）：
+```python
+_original_on_draw = Window.on_draw
+_original_update_viewport = Window.update_viewport
+
+def _restore_drawing(*args):
+    Window.on_draw = _original_on_draw
+    Window.update_viewport = _original_update_viewport
+    _original_update_viewport()
+    _original_on_draw()
+
+_restore_drawing_trigger = Clock.create_trigger(_restore_drawing, 0.25)  # デバウンス
+
+def _on_resize(instance, width, height):
+    Window.clear()
+    Window.flip()
+    Window.on_draw = lambda *_: None          # ← 描画を無効化
+    Window.update_viewport = lambda *_: None  # ← ビューポート更新も無効化
+    _restore_drawing_trigger.cancel()
+    _restore_drawing_trigger()                # 0.25秒後方に再スケジュール
+
+Window.bind(on_resize=_on_resize)
+```
+つまり**リサイズイベントが起きるたびに、`on_draw`/`update_viewport`を0.25秒間（かつ、その間に新たなリサイズが来るたびに0.25秒延長され続ける）まるごと無効化し、リサイズが収まってから1回だけ強制再描画して元に戻す**という設計。おそらくKivy側の「リサイズ中にGL関連クラッシュが起きる」既知問題への対策として実装されたものと推測される。
+
+**4. この発見が、これまでの全セッションの観測結果を矛盾なく統一的に説明できる可能性が高いことに気づいた（未検証・次回最優先）**：
+- DC-4以来ずっと「背景色（`(18,18,18,255)`の単色矩形）だけは常に正しく描画されるが、文字・アイコンは一切乗らない」というパターンが再現し続けていた。**背景色はKivyの毎フレームの`glClear()`（クリアカラー）で塗られる一方、文字・アイコンはKivyの「変更が無ければ再描画をスキップする」最適化のもとで`on_draw`経由のみ描画される**——これは、`on_draw`が`WindowPatch`によって断続的に（あるいは何らかの理由で継続的に）no-opへ差し替えられている状態と矛盾しない。
+- 第4回セッションでDRM側が3枚のバッファをローテーションしていること(`672/674/675`)を確認済み、かつ`EGL_SWAP_BEHAVIOR=EGL_BUFFER_DESTROYED`（バッファ内容がスワップ間で保持されない）ことも確認済み。**`on_draw`が一時的にno-opの間はどのバッファにも新規コンテンツが乗らず、ローテーション中の他バッファも空のまま流れ続ける**ため、単発の`kmsgrab`キャプチャが「たまたま正しく描画された1/3のタイミング」を捉えられず「空/背景のみ」ばかり観測されていたのだとすれば、これまでの全結果と整合する。
+- 第5〜6回セッションで試した「gdb注入による強制再描画ワークアラウンド」が最小アプリでは効いたのに実機`race_capture`では一切効かなかった理由も、**`WindowPatch`が`Window.on_draw`/`update_viewport`を自分の管理下に置いて頻繁に上書きしている**なら説明がつく（注入したコールバックが`Window.canvas.ask_update()`等を呼んでも、実際の描画エントリポイントである`on_draw`自体が`WindowPatch`のno-opラムダに握られていれば、いくら「再描画をリクエスト」しても意味がなかったことになる）。
+- ただし**この仮説はまだ検証していない**。特に「リサイズイベントが本当に継続的・周期的に発生し続けているのか（単発の14秒後の1回だけなのか）」「`Window.on_draw`が実際に長時間no-opラムダのままになっているのか」は未確認。次回セッションの最優先事項とする。
+
+**実機（`rc-dash-3b`）に今回のセッションで加えた変更・生成物（次回セッション用の記録）**：
+- `/tmp/egl_interpose.c` / `.so`：単純なLD_PRELOADフック（v1、失敗版だが原理を示す参考として残置）
+- `/tmp/egl_interpose2.c` / `.so`：`dlsym()`フック版（v2、動作確認済み）。次回もそのまま`LD_PRELOAD=/tmp/egl_interpose2.so`で再利用可能
+- `/tmp/egl_interpose2.log`：v2フックで取得したEGL呼び出しログ（今回の主要な証拠）
+- `/tmp/race_capture_egltest2.log`：interposer v2適用時の`race_capture`本体の標準出力ログ（`WindowPatch`のログ行を含む）
+- `/tmp/windowpatch_disasm.txt`：`autosportlabs/monkey_patches/window.pyc`の逆アセンブル結果
+- いずれも`/tmp`配下のため次回リブートで消滅する想定。`~/decompile_4-4-2/`（既存、前回までの成果物）は今回も無傷で再利用できた
+- セッション終了時点、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み。gdb等の注入は一切行っておらず（今回はLD_PRELOADベースの手法のみで、gdb infcallのリスクを回避できた）、プロセスの停止・再起動はいずれも「kill→15秒待機→watchdog自動復旧」という確立済みの安全な手順のみを使用した
+
+**次回の最優先調査候補（優先度順、更新）**：
+0. **最優先：`Window.on_draw`/`Window.update_viewport`が実際に`WindowPatch`のno-opラムダへ差し替わっている時間帯があるか、gdb Python注入（`set scheduler-locking off`必須、既存の安全な手順を使用）で`Window.on_draw.__module__`等を数秒間隔で複数回サンプリングして確認する。あわせて、リサイズイベント自体が起動後も継続的に発生し続けているか（`_on_resize`にログ埋め込み、または`~/racecapture.log`の`WindowPatch: Window resize detected`行の出現頻度で確認）を突き合わせる。
+1. 上記が確認できれば、`WindowPatch`を無効化する検証を行う（例：`sys.modules['autosportlabs.monkey_patches.window']._on_resize`を取得して`Window.unbind(on_resize=...)`で解除する、または`apply_window_patch`が呼ばれる前に何らかの方法で先回りする）。無効化した状態でKMS実スキャンアウトに文字・アイコンが乗るようになれば、根本原因が確定し恒久対策（アプリ側のバグとして`0.25`秒のデバウンス設計自体に問題があるのか、そもそもこの環境でリサイズイベントが誤発生し続けているのが真因なのか、の切り分けへ進める）。
+2. `eglCreateWindowSurface`が2回目に呼ばれる「起動14秒後」のタイミングと、リサイズイベント・ESP32接続シーケンス（`capabilities`タイムアウトのリトライ間隔）との相関を確認する。
+3. `eglChooseConfig`が呼ばれていない件（config選択の実際の経路）は、本流の調査（WindowPatch仮説の検証）が一段落してから余裕があれば追う（優先度は下げた）。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
