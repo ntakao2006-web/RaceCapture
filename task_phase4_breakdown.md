@@ -830,6 +830,33 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 ---
 
+**今回のセッション（4-4-2続き・第21回、ユーザー不在の自律調査、4時間枠）で得た知見：GL描画コール発行を`apitrace`で確定的に確認、テクスチャ内容も正常と判明した一方、GPU側の実測ツール（オフラインsnapshot・occlusion query）2種が本ドライバ上でいずれも機能不全と判明し、真犯人候補として「異常に新しいMesaバックポート版」という新方針に到達**：
+
+**背景**：ユーザー就寝中の単独調査（4時間枠）。第20回セッションの「次回の最優先候補#0」（`apitrace`と`switchMainView`の組み合わせ）から着手。
+
+**1. 🔴🎉 新手法確立：GL/EGL関数を一切フックしないpthreadコンストラクタ方式のインジェクタ（`timer_inject23.c`）を確立し、`apitrace`（`egltrace.so`）と完全に競合なく共存できることを実証した**。手法は、ライブラリロード時に`__attribute__((constructor))`でdetached pthreadを1本起動し、そのスレッド内でのみ`sleep`＋ポーリングののち`PyGILState_Ensure`→`PyRun_SimpleString`で`app.switchMainView('dash')`を呼ぶという設計（`eglSwapBuffers`等のGLシンボルは一切オーバーライドしない）。`LD_PRELOAD=/tmp/timer_inject23.so:/usr/lib/aarch64-linux-gnu/apitrace/wrappers/egltrace.so`（自作ライブラリを先頭に）＋`TRACE_FILE=...`を`apitrace trace`コマンドを介さず直接環境変数で指定することで、`apitrace trace`自身が`LD_PRELOAD`を上書きしてしまう問題も回避した。この手法により、タッチ入力なしで`dash`画面表示中の完全なGLトレース（297,683コール、うち`glDrawElements`/`glDrawArrays`が28,894回、スイッチ後だけでも26,168回）を取得することに成功した。
+
+**2. 🎉 第20回の最優先課題「dash画面表示中に実際にGL描画コールが発行されているか」に決定的な決着：`apitrace dump`で確認した結果、`dash`画面表示中も`glDrawElements`/`glDrawArrays`は大量かつ継続的に発行されていることを確定した**。自作インタポーザによる直接フック（第20回で試みて技術的な壁にぶつかった手法）ではなく、実績のある`apitrace`経由で確認できたことが第20回からの前進。サンプリングした個別の描画コール（`eglretrace -D <call>`でGLステート全体をJSONダンプ）についても、stencil/scissor/depthテストはいずれも無効、viewportは正しく`[0,0,1920,1080]`、`GL_DRAW_FRAMEBUFFER_BINDING=0`（正しいデフォルトFB）、blendも正常と、既存セッションの知見と完全に整合する「異常なし」の結果だった。
+
+**3. 🎉 新規の検証観点：`apitrace dump --blobs`でテクスチャの実バイト内容を初めて直接検証し、`dash`画面のラベルテクスチャの内容自体は正常（空白ではない）と判明した**。`glTexImage2D`単体（テクスチャ確保のみ）はsetup画面・dash画面どちらのラベルも全ピクセルalpha=0の空バッファだったが、これは正常な初期確保パターンで、直後に続く`glTexSubImage2D`（実内容の書き込み）を確認したところ、setup画面・dash画面の両方でmax_alpha=255の本物のグリフ内容が含まれていることを確認した。これにより「dash画面のラベルはラスタライズ自体が空になっている」という仮説を明確に否定できた。
+
+**4. ⚠️ GPUハードウェアパフォーマンスカウンタ（`GL_AMD_performance_monitor`、`eglretrace --pdrawcalls`）によるプロファイリングを試みたが、ツール側の問題（正しいbackend:metric構文でも per-drawcall の出力が一切得られない）で未達に終わった**。apitrace本家ソース（`retrace/metric_helper.cpp`）を読み構文は`GL_AMD_performance_monitor:MetricName`で合っていることを確認し、`--list-metrics`ではVC4の実カウンタ（`TLB-quads-written-to-color-buffer`等）が正しく列挙されるにもかかわらず、実際のプロファイリング実行では警告もエラーも出さずに単に出力が生成されない。原因は未特定（今回はここで打ち切り、深追いしない判断）。
+
+**5. 🔴🎉🚨 決定的な発見：`eglretrace`のオフラインsnapshot機能（`-S`/`--snapshot-prefix`、GBMヘッドレスリプレイ）を使い`dash`画面表示中の描画コール（call 282827）を可視化したところ背景色のみの完全な単色画像が得られ、一見「オフラインリプレイでもバグが再現した」ように見えたが、サニティチェックとして同じ手法でsetup画面（既知の正常系）を同様にsnapshotしたところ、こちらも完全な単色（黒一色、PILで2,073,600ピクセル全て同一色と確認）となり、**このオフラインリプレイ機能自体がこのドライバ環境では前景コンテンツを一切正しく再現できない、壊れた/信頼できないツールであると判明した**。この誤った初期解釈（オフラインリプレイでバグ再現）は危険な早合点になりかねなかったが、正常系での必須サニティチェックにより正しく訂正できた。今後のセッションはこのオフラインsnapshot手法を追加のドライバ調査なしに信頼しないこと。
+
+**6. 🔴🎉🚨🔑 さらに決定的な発見：ライブプロセス内でのcore GL Occlusion Query（`GL_SAMPLES_PASSED`、`eglSwapBuffers`境界でbegin/end）という第3の独立した検証手法を確立したところ、`dash`画面表示中の190フレーム連続ですべて`samples_passed=0`（`glGetError`は常に`0x0`でエラーなし）という結果を得たが、これも上記5と同様の理由でサニティチェックが必須と判断し検証した結果、**Kivy/race_captureの内容に一切依存しない自前のimmediate mode描画（画面の大部分を覆う単純なマゼンタ三角形、`glBegin`/`glVertex2f`/`glEnd`）でも同一のocclusion queryで`samples_passed=0`（エラーなし）という結果になった**。これにより、GPUハードウェアレベルでの実測手段として最も信頼できるはずだったocclusion query自体がこのドライバ上で機能不全であることが確定し、5・6いずれの「dash画面はゼロ」という結果も**バグの実証ではなくツールの不具合であると判明した**（setup画面での強制再描画テストでも同様にsamples_passed=0だったため、これも同じツール不具合の影響だったと考えられる）。
+
+**7. 🔴🎉🔑🔑 上記5・6を踏まえた最重要の新方針：本機のMesaドライバのバージョンを確認したところ、Raspberry Pi公式リポジトリ由来の非常に新しいバックポート版`26.2.0-1~bpo13+0~rpt2`（`libegl-mesa0`/`libgbm1`/`libgl1-mesa-dri`/`libglx-mesa0`/`mesa-libgallium`等）がインストールされている一方、Debian trixie標準リポジトリには明らかに枯れた`25.0.7-2+deb13u1`が存在することが判明した**。オフラインリプレイ・occlusion queryという独立した2つのGPU観測手段がいずれもこの特定のドライバ上でのみ機能不全を起こしているという事実は、単なる偶然の2重のツール不具合というより、**このバックポート版Mesa/VC4ドライバ自体に何らかの根本的な欠陥がある可能性を強く示唆する**。これは20回のセッションを通じて一度も検証されていなかった、全く新しい切り口であり、これまでの「アプリ・Kivy・GLコマンドストリームはすべて正常なのに画面に出ない」という膠着状態を説明しうる最有力候補となった。
+
+**次回（第22回）の最優先候補（優先度順）**：
+0. **最優先・要ユーザー判断：`libegl-mesa0`/`libgbm1`/`libgl1-mesa-dri`/`libglx-mesa0`/`mesa-libgallium`をDebian標準の`25.0.7-2+deb13u1`へダウングレードし（`apt install <pkg>=25.0.7-2+deb13u1`の形で一括指定）、(a) オフラインsnapshot・occlusion queryが正常に機能するようになるか、(b) 本題の`dash`画面の描画欠落自体が解消するか、の両方を確認する。** パッケージのダウングレードは`apt`で理論上は元のバージョンへ戻せる（キャッシュが残っていれば`apt install <pkg>=26.2.0-1~bpo13+0~rpt2`で復元可能）が、ディスプレイ出力に関わる低レベルドライバの変更でありSSH接続自体は生きたまま作業できる一方、万一の非互換で表示系が余計に不安定化するリスクもゼロではないため、**ユーザー立ち会いのもとで実施することを推奨**（今回は自律調査のため実行を見送った）。
+1. 上記ダウングレードが効果なしだった場合、GPUハードウェアパフォーマンスカウンタ（`eglretrace --pdrawcalls`）が出力を生成しない問題を深掘りする（apitrace側のバグ報告・Issueの確認、あるいは`--pcalls`/`--pframes`など他の粒度での再試行）。
+2. 今回確立した3つの新手法（GL/EGLフック無しのpthreadインジェクタ、`apitrace --blobs`によるテクスチャ内容検証、occlusion queryによるGPU実測）は、ダウングレード後の再検証にそのまま使い回せる。特にocclusion queryはツール不具合さえ解消すれば非常に強力な検証手段になる。
+
+**実機（`rc-dash-3b`）の状態（セッション終了時点）**：セッション中に作成した複数のテスト用インタポーザ（`timer_inject23.so`、`query_interpose24/25/26.so`等、いずれも`/tmp`配下）でrace_captureを何度も再起動したが、いずれもハードウェアへの影響はなし。最終的に`sudo kill -9`で全テストプロセスを終了し、`run_racecapture_rpi.sh -w 1`（LD_PRELOADなし、通常のwatchdog付き）で正常に再起動・復旧したことを確認済み。Mesaパッケージ自体には一切手を加えていない（バージョン確認のみ、ダウングレードは未実施）。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
