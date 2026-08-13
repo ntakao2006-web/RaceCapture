@@ -6,7 +6,8 @@
 > を踏まえてまとめた。背景・トレードオフは`DASHCAM_ROCK5B_REPORT.md`・`DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`
 > を参照。
 
-作成日：2026-08-13（Web調査ベース、ROCK 5B実機未着手のため机上調査段階の内容を含む）
+作成日：2026-08-13、同日OSインストール手順（1章）を公式ドキュメント再調査のうえ全面改訂
+（Web調査ベース、ROCK 5B実機未着手のため机上調査段階の内容を含む）
 
 ---
 
@@ -45,34 +46,80 @@ Web調査からの推測であり、実機での検証（DC-9-3）で確認す�
 
 ### 1.1 イメージの選定
 
-Radxa公式ビルド（[radxa-build/rock-5b releases](https://github.com/radxa-build/rock-5b/releases)）
-は、2024年8月リリース時点で**Debian 12 Bookworm + KDEデスクトップ**版（`rock-5b_bookworm_kde_*.img.xz`）
-が主要な配布形態。より軽量なXFCE版・CLI版が用意されているかは到着時に改めてダウンロードページで
-確認すること（x86ルートではキオスク自動起動のためratpoison等の軽量WMに後から切り替えた実績が
-あるので、KDE版で入手してもDC-9-3以降の作業に支障はない）。
+Radxa公式ビルド（[radxa-build/rock-5b releases](https://github.com/radxa-build/rock-5b/releases)、
+[ダウンロードページ](https://docs.radxa.com/en/rock5/rock5b/download)）は、現時点で
+**Debian 12 Bookworm + KDEデスクトップ**版（`rock-5b_bookworm_kde_b5.output.img.xz`、Kernel 6.1）
+が主要な配布形態（Bullseye版も別途あるが、race_captureのRaspberry Pi版インストーラーが
+要求する「Debian 12 (bookworm) 64bit」に合わせ、**Bookworm版を選ぶこと**）。より軽量な
+XFCE版・CLI版が用意されているかは到着時に改めてダウンロードページで確認すること（x86ルートでは
+キオスク自動起動のためratpoison等の軽量WMに後から切り替えた実績があるので、KDE版で入手しても
+DC-9-3以降の作業に支障はない）。
 
-- ダウンロード元：[Summary of resource downloads | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/download)
 - 入手後、SHA256等のチェックサムをリリースページ記載値と照合すること（x86ルートDC-1-2/DC-6-6-1
   で毎回実施している習慣を踏襲）
+- イメージは`.img.xz`形式で配布されているため、書き込み前に7-Zip等で解凍が必要
+  （balenaEtcherが直接`.xz`を扱える場合もあるが、公式ドキュメントは「解凍してから」と明記）
 
-### 1.2 書き込み方式（メモリ記録済みの決定事項）
+### 1.2 書き込み方式（⚠️ メモリに記録していた従来方針からの訂正）
 
-`microSDカードから起動 → `dd`コマンドでeMMCモジュールへ書き込む`方式で確定済み
-（M.2 NVMeは消費電力・発熱懸念で見送り、USB専用書き込みモジュールは不要）。
+過去のチャットで「microSDから起動して`dd`でeMMCに書き込む」方式に決定済みと記録していたが、
+今回Radxa公式ドキュメント・フォーラムを調べ直したところ、**この方式には確立された手順が
+存在せず、実運用上の問題が報告されている**ことが判明した。訂正する。
 
-1. microSDカードにイメージを書き込み、ROCK 5Bに挿してmicroSD起動
-2. microSD起動後、SSH等でログインし、eMMCモジュールが取り付けられた状態で
-   `lsblk`等でeMMCのデバイスノード（例：`/dev/mmcblk0`や`/dev/mmcblk1`、microSD自体と
-   取り違えないよう`lsblk`の容量表示で確認すること）を特定
-3. 同じイメージファイル（または`dd if=/dev/mmcblk_microSD of=... `でmicroSDの内容を丸ごと）を
-   `dd if=<image> of=/dev/<eMMCデバイス> bs=4M status=progress conv=fsync`でeMMCへ書き込み
-   （公式ドキュメントに記載の方式。具体的なコマンド例は
-   [Rock5/install/eMMC - Radxa Wiki](https://wiki.radxa.com/Rock5/install/eMMC)を到着後に再確認）
-4. 書き込み完了後、microSDを抜いてeMMCから起動することを確認
+- ⚠️ **問題点**：ROCK 5Bは**eMMCモジュールが装着されていると優先的にそちらから起動する**
+  仕様のため、eMMCを挿したままmicroSDから起動させることができない（Radxa公式フォーラム
+  [Is it possible to flash the eMMC from SD memory card boot](https://forum.radxa.com/t/is-it-possible-to-flash-the-emmc-from-sd-memory-card-boot/19007)
+  で議論されているが、確実な回避策・具体的な成功コマンド例は示されないまま「別の方法を
+  推奨する」という結論で終わっている）
+- Radxa公式ドキュメントが実際に案内しているのは、次の2方式のいずれか
 
-### 1.3 初期セットアップ
+**方式A：eMMCモジュールを取り外し、USBリーダー経由でPCから直接書き込む（公式の主推奨）**
 
-x86ルートDC-1-5/DC-6-2と同様の手順で以下を構築する。
+1. 必要なもの：**eMMC USBリーダー（別売りアダプタ）**、Windows PC、balenaEtcher
+2. ROCK 5B基板からeMMCモジュールを取り外し、USBリーダーに挿してPCへ接続
+3. balenaEtcherで「Flash from file」→解凍済みイメージを選択→「Select target」で
+   **対象デバイスを慎重に確認**（誤って別のドライブを選ぶとそちらのデータが消える）→「Flash!」
+4. 書き込み完了後、eMMCモジュールをROCK 5B基板へ戻す
+   （出典：[Install the system on the eMMC Module | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/getting-started/install-os/boot-from-emmc)）
+5. ⚠️ 今回の購入品リストに「eMMC USBリーダー」が含まれているか要確認（DC-9-2時点では
+   本体・eMMC・電源・冷却ファン・microSDの手配は確認済みだが、USBリーダーについては
+   別途確認が必要。無ければ方式Bを使う）
+
+**方式B：ROCK 5B本体をMaskromモードにし、USB Type-C接続でRKDevTool（Windows）から直接書き込む**
+
+USBリーダーを別途用意しなくても、ROCK 5B本体とPCをUSBケーブル1本で繋ぐだけで完結する方式。
+Windows環境（PowerShell運用）のこのプロジェクトとは相性が良い。
+
+1. 必要なもの：**RKDevTool**（Windows用ツール、Radxaダウンロードページから入手）、
+   **USB Type-A to Type-Cケーブル（データ通信対応品。充電専用ケーブルは不可）**、
+   対応するローダーファイル（loader.bin相当、イメージと同じダウンロードページに同梱の想定）
+2. ROCK 5Bの電源を切り、（可能なら）microSD・NVMe等の他のブートメディアを外した状態にする
+3. 基板上の**Maskromボタン（ラベル25、位置は到着後に基板シルクを確認）を押しながら**、
+   USB Type-CケーブルでPCと接続し、接続後にボタンを離す
+4. Windows側でRKDevToolを起動。左下に`Found One MASKROM Device`と表示されれば認識成功
+   （USBドライバが必要な場合はRKDevTool付属のドライバをインストール）
+5. RKDevToolで対応するLoaderファイルを選択→システムイメージファイルを選択→
+   保存先メディアとして`eMMC`を選択→`Write by Address`にチェック→`RUN`ボタンで書き込み実行
+6. 完了後、USBケーブルを外して電源を入れ直すと、eMMCから自動的に起動する
+   （出典：[USB Flashing | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/low-level-dev/install-os/rkdevtool-emmc)、
+   [Entering Maskrom Mode | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/low-level-dev/install-os/rkdevtool_maskrom)）
+
+**方式選択の目安**：eMMC USBリーダーが手元にあれば方式A（GUIのみで完結し失敗しにくい）、
+無ければ方式B（データ通信対応USBケーブルさえあれば追加ハードウェア不要）。到着後、
+まず購入品にUSBリーダーが含まれているか確認してから方式を決めること。
+
+### 1.3 microSDの用途について（訂正の補足）
+
+eMMCへの書き込み自体にはmicroSDからの起動は使わない（1.2参照）。ただし今回のストレージ構成
+（`DASHCAM_ROCK5B_REPORT.md`4.3節・メモリ記載の決定事項）では、microSDは**OS起動用ではなく
+動画保存用**として使う想定のため、購入したmicroSDカードはeMMCでのOS起動が確認できた後、
+録画データ保存用ストレージとしてマウントする（振動によるスロット脱落対策の物理固定は
+別途検討）。この用途分担自体は変更なし。
+
+### 1.4 初期セットアップ
+
+初回起動後のデフォルトログイン情報は`radxa`/`radxa`（Radxa公式Debianイメージ共通）。まず
+これでログインし、パスワード変更後、x86ルートDC-1-5/DC-6-2と同様の手順で以下を構築する。
 
 - SSH鍵登録（ed25519、パスワード認証で一度ログイン→`~/.ssh/authorized_keys`へ公開鍵追記）
   ※既存の`amdpc_dashcam_ed25519`鍵を流用するか、ROCK 5B専用に新規鍵を作るかは到着時に判断
@@ -232,4 +279,9 @@ DC-5-1と同じ要領で、Phase1本開発ファームウェアを書き込ん�
 - [RaceCapture app 2.9.0 with improved video support, plus a better Raspberry Pi installer – Autosport Labs](https://www.autosportlabs.com/racecapture-app-2-9-0-with-improved-video-support-plus-a-better-raspberry-pi-installer/)
 - [Releases · radxa-build/rock-5b](https://github.com/radxa-build/rock-5b/releases)
 - [Summary of resource downloads | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/download)
-- [Rock5/install/eMMC - Radxa Wiki](https://wiki.radxa.com/Rock5/install/eMMC)
+- [Install the system on the eMMC Module | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/getting-started/install-os/boot-from-emmc)
+- [Install the system on the MicroSD card | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/getting-started/install-os/boot_from_sd_card)
+- [USB Flashing (RKDevTool/eMMC) | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/low-level-dev/install-os/rkdevtool-emmc)
+- [Entering Maskrom Mode | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/low-level-dev/install-os/rkdevtool_maskrom)
+- [Is it possible to flash the eMMC from SD memory card boot - Radxa Community](https://forum.radxa.com/t/is-it-possible-to-flash-the-emmc-from-sd-memory-card-boot/19007)
+- [Rock5/install/eMMC - Radxa Wiki（旧版、参考）](https://wiki.radxa.com/Rock5/install/eMMC)
