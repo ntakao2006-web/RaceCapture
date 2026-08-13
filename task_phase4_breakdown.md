@@ -471,6 +471,38 @@ Home画面の各swapチェックポイントで一貫して`last_clear_mask_fb0=
 
 ---
 
+**今回のセッション（4-4-2続き・第11回）で得た知見：前回セッションの2大仮説（`GL_COLOR_BUFFER_BIT`欠落・RGB側ブレンド異常）をいずれも実測で完全否定。新ツール`apitrace`の導入により、自作LD_PRELOADインターポーザより遥かに安全・高精度な計測手法を確立**：
+
+**接続情報の補記（重要、次回以降必読）**：今回セッション開始時、`rc-dash-3b.local`のmDNS解決がWindows側で完全に機能せず（Bonjour/mDNSサービス自体が見当たらない）、かつ前回記録のホットスポットIP(`192.168.137.162`)へも接続不能という状態から開始した。診断の結果、PC⇔Pi間は直結LANケーブル＋Windows ICS（Internet Connection Sharing、Wi-Fi→イーサネット共有）方式に変更されていたと判明（**Piの無線モジュールが物理的に故障しているための恒久措置、今後もこの接続方式が基本になる**）。イーサネットの物理リンクは終始「Up」だったが、Pi再起動後もICSのDHCPリースが一切払い出されない状態が続き、最終的に**Windows側で「ネットワーク接続」→Wi-Fiのプロパティ→「共有」タブのチェックを一度外して再度入れ直す**操作でICSのDHCPサーバーが再初期化され、Piが`192.168.137.162`でリースを取得して疎通した。**次回以降、同様に`rc-dash-3b.local`のmDNSが引けない場合は、まず`arp -a`で`192.168.137.x`帯を確認し（PowerShellの`Test-Connection`によるpingスイープが有効）、見つからなければ上記のICS共有チェックボックスの入れ直しを試すこと**（Pi本体の再起動は今回は直接の解決には寄与しなかった＝ネットワークが繋がらない場合の切り分けとしてはICS側を先に疑うべきという教訓）。SSH鍵・接続コマンドは`ssh -i ~/.ssh/racecapture_dash_ed25519 -o HostKeyAlias=rc-dash-3b.local ntakao@<取得したIP>`（IPが変わるためHostKeyAliasで`known_hosts`の既存エントリと同一視する）。
+
+**1. 🔴🎉 決定的な発見：`apitrace`（Debian trixie公式リポジトリから`apt install apitrace apitrace-tracers`で導入可能、`/usr/lib/aarch64-linux-gnu/apitrace/wrappers/egltrace.so`）を使い、gdb/自作LD_PRELOADインターポーザより遥かに安全・簡便にEGL/GLES全呼び出しを引数付きで記録できることを確認**：
+使い方は、①`sudo systemctl stop getty@tty1.service`でtty1のログインセッション（＝現在稼働中の`race_capture`とDRMマスター権限）を停止、②`cd /opt/racecapture && apitrace trace -a egl -o /tmp/rc.trace ./race_capture -c graphics:show_cursor:0 -a -m cursor -c kivy:keyboard_mode:systemandmulti`をSSH経由で（`nohup ... & disown`で明示的にバックグラウンド化・デタッチして）起動、③数十秒稼働させてから対象PIDに`kill -TERM`を送りトレースファイルを確定、④`apitrace dump --grep='<正規表現>' /tmp/rc.trace`で関数名フィルタしつつ引数付きでダンプ、という流れ。gdb infcallのGILデッドロックリスクや、`SDL_GL_GetProcAddress`のRTLD_LOCALスコープ問題（前回セッションで苦労した箇所）を一切気にする必要がなく、`eglGetProcAddress`経由のGL関数解決を`dlopen`フックも含めて透過的に処理してくれる。**次回以降のGL計測は、原則としてこの`apitrace`を第一選択とすべき**（自作インターポーザは`apitrace`で追えない情報（DRM ioctl等）が必要な場合のみ検討）。なお、SSH経由でバックグラウンド起動する際、`nohup cmd & disown; echo DONE`という一つのコマンド文字列をssh経由で送るとプロセス自体は正しくデタッチされる（`PPID=1`に再親化される）にもかかわらずSSHセッション自体がハングし続ける事象を確認した（原因未特定、子プロセスの標準入出力がリダイレクト済みでも発生）。実害はなく、ローカル側のタイムアウトで強制終了して問題ないが、次回は`ssh -f user@host "cmd > log 2>&1"`（`-f`でSSHクライアント自体をバックグラウンド化）を先に試すとよい。
+
+**2. 🔴🎉 「`glClear`が`GL_COLOR_BUFFER_BIT`を含まない」という前回セッションの最有力仮説を完全否定**：
+`apitrace dump`で全`glClear`系呼び出しを時系列で確認したところ、**各フレームの先頭で`glClearColor(0.0706, 0.0706, 0.0706, 1)`（アプリのダーク背景色）に続けて`glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT)`が正しく1回発行されている**ことを確認した。その後、同一フレーム内でネストしたstencilクリッピングウィジェット（`RelativeLayout`/`ScrollView`等）由来と見られる`glClearStencil(0)`+`glClear(GL_STENCIL_BUFFER_BIT)`（stencilのみ）が3〜4回追加で発行されており、**前回セッションの計測（`SDL_GL_GetProcAddressフックで「最後に観測された`glClear`のmask」だけを記録する方式）は、たまたまフレーム末尾に来るこの「ウィジェット単位のstencil専用クリア」を捕捉してしまい、「カラーバッファがクリアされていない」という誤った結論を導いていたことが判明した**（実際にはフレーム冒頭で正しくクリアされている）。この仮説はこれで完全に否定される。
+
+**3. 🔴🎉 「`glBlendFunc`のRGB側が退化した組み合わせ（`GL_ZERO,GL_ZERO`等）になっているのでは」という仮説も完全否定**：
+`glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)`・`glBlendFuncSeparate(sfactorRGB=GL_SRC_ALPHA, dfactorRGB=GL_ONE_MINUS_SRC_ALPHA, sfactorAlpha=GL_ONE, dfactorAlpha=GL_ONE)`が起動直後（呼び出し#185/#186）に一度だけ設定されており、以降変更されていないことを確認。RGB側は`GL_SRC_ALPHA`/`GL_ONE_MINUS_SRC_ALPHA`という、通常の半透明合成でよく使われる標準的な組み合わせであり、退化した値ではない。
+
+**4. ⚠️ 副産物：過去セッションから未解決だった「実解像度が1024x768に内部上書きされる現象」の正体が判明（今回の黒画面バグとは無関係と確定）**：
+`apitrace dump`で`glViewport`呼び出しを確認したところ、最初の1回（呼び出し#42）だけ`glViewport(0,0,1024,768) // fake`（apitrace自身が付与した"fake"注記＝実際のアプリ呼び出しではなくEGLコンテキスト生成直後の仮の初期値）となっており、以降（#234〜）は実ウィンドウサイズと一致する`glViewport(0,0,1920,1080)`が正しく呼ばれ続けている。つまり「1024x768」はEGLサーフェス生成直後・実際のリサイズイベント反映前の初期プレースホルダ値に過ぎず、アプリ側のバグではない。第10回セッションで見つかった`GL_SCISSOR_BOX`の`(0,0,1024,768)`という値も、同じ理由（GLコンテキストの未使用の初期値）で説明がつき、これで完全に解明・クローズできる。
+
+**5. ⚠️ 未達：`apitrace dump-images`によるバッファ内容の直接画像化は今回失敗、次回への持ち越し**：
+`apitrace dump-images -o frame /tmp/rc.trace`は`WAFFLE_PLATFORM=gbm`を指定すれば実行はできる（`surfaceless`は未対応で`unsupported WAFFLE_PLATFORM`エラー）ものの、出力される全PNGが94バイトの実質空画像だった。ログに`could not infer drawable size (glViewport never called)`という警告が出ており、トレース内には実際には正しい`glViewport(1920,1080)`呼び出しが存在するにもかかわらず、`gbm`プラットフォームでのオフスクリーン再生時にサーフェスサイズの自動推定に失敗している模様（ツール側の制約と見られる）。もしこれが動けば、`Window.screenshot()`（正常表示を確認済み）・`ffmpeg kmsgrab`（黒画面を確認済み）に次ぐ**第三の独立した経路でバッファ内容を直接確認**でき、問題がKivy/EGL側かDRM scanout側かの切り分けに強い証拠を追加できる。次回は`glretrace`（`apitrace dump-images`が内部的に使うツール）の直接呼び出しオプションで明示的に`-w 1920 -h 1080`のような幅・高さ指定ができないか確認する。
+
+**実機（`rc-dash-3b`）に今回のセッションで加えた変更・生成物（次回セッション用の記録）**：
+- `apitrace`・`apitrace-tracers`・`libwaffle-1-0`パッケージを`apt`でインストール済み（**恒久的な変更、次回以降も引き続き利用可能**）
+- `/tmp/rc.trace`（約19.5MB、EGL/GLES全呼び出しのトレース、491フレーム分）・`/tmp/frame2*.png`（`dump-images`の失敗出力、94バイトの空画像）・`/tmp/rc_apitrace_stdout.log`：いずれも`/tmp`配下のため次回リブートで消滅する想定
+- セッション終了時点、`race_capture`は`sudo systemctl start getty@tty1.service`により通常のtty1自動ログイン→watchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み。gdbや手動プロセスkillは一切使用していない（`apitrace`配下のプロセスへの`kill -TERM`のみ）
+
+**次回の最優先調査候補（優先度順、更新）**：
+0. **最優先：`apitrace dump-images`のサイズ推定失敗を解消し、GBM経由オフスクリーン再生でのバッファ内容を画像として直接確認する**（`glretrace`の直接オプション調査、または`--calls`で特定の`eglSwapBuffers`呼び出し直前の`glReadPixels`挿入等の代替手段も検討）。もしここで正常な描画内容が見えれば、「アプリ・GL呼び出しは完全に正常、原因はDRM scanout経路のみ」がほぼ確定する。
+1. `glClear`/`glBlendFunc`の仮説がいずれも否定されたことで、焦点は改めてDRM/KMS側（`eglSwapBuffers`が実際にどのGBMバッファ/DRMフレームバッファオブジェクトを渡しているか、`drmModePageFlip`で本当にそのバッファがスキャンアウトされているか）に戻る。`modetest`（`libdrm-tests`パッケージ）や`/sys/kernel/debug/dri/*/state`（`debugfs`、root権限要）で、実際にアクティブなプレーンがどのフレームバッファIDを指しているかを、`race_capture`稼働中に直接確認する。
+2. `apitrace`は`-a egl`だけでなくDRM関連の呼び出し自体は追えない（EGL/GLESレイヤーまでのツールのため）。DRM ioctlレベルのトレースが必要になった場合は、`strace -e trace=ioctl`や`drm_info`等の別ツールを検討する。
+3. `eglChooseConfig`が呼ばれていない件は引き続き優先度低のまま。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
