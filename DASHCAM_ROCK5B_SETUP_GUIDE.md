@@ -71,27 +71,25 @@ DC-9-3以降の作業に支障はない）。
   [Is it possible to flash the eMMC from SD memory card boot](https://forum.radxa.com/t/is-it-possible-to-flash-the-emmc-from-sd-memory-card-boot/19007)
   で議論されているが、確実な回避策・具体的な成功コマンド例は示されないまま「別の方法を
   推奨する」という結論で終わっている）
-- Radxa公式ドキュメントが実際に案内しているのは、次の2方式のいずれか
+- Radxa公式ドキュメントが実際に案内しているのは次の2方式で、**eMMC USBリーダーは手元にないと
+  確認済みのため、本プロジェクトでは方式Bを採用する**（方式Aは参考として残す）
 
-**方式A：eMMCモジュールを取り外し、USBリーダー経由でPCから直接書き込む（公式の主推奨）**
+**方式A（不採用・参考）：eMMCモジュールを取り外し、USBリーダー経由でPCから直接書き込む**
 
-1. 必要なもの：**eMMC USBリーダー（別売りアダプタ）**、Windows PC、balenaEtcher
-2. ROCK 5B基板からeMMCモジュールを取り外し、USBリーダーに挿してPCへ接続
-3. balenaEtcherで「Flash from file」→解凍済みイメージを選択→「Select target」で
-   **対象デバイスを慎重に確認**（誤って別のドライブを選ぶとそちらのデータが消える）→「Flash!」
-4. 書き込み完了後、eMMCモジュールをROCK 5B基板へ戻す
-   （出典：[Install the system on the eMMC Module | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/getting-started/install-os/boot-from-emmc)）
-5. ⚠️ 今回の購入品リストに「eMMC USBリーダー」が含まれているか要確認（DC-9-2時点では
-   本体・eMMC・電源・冷却ファン・microSDの手配は確認済みだが、USBリーダーについては
-   別途確認が必要。無ければ方式Bを使う）
+eMMC USBリーダー（別売りアダプタ）が必要なため今回は使わない。もし後日入手した場合の
+手順は：ROCK 5B基板からeMMCモジュールを取り外し→USBリーダーに挿してPCへ接続→balenaEtcherで
+「Flash from file」→解凍済みイメージ選択→「Select target」で**対象デバイスを慎重に確認**
+（誤って別のドライブを選ぶとそちらのデータが消える）→「Flash!」→書き込み完了後、
+eMMCモジュールをROCK 5B基板へ戻す
+（出典：[Install the system on the eMMC Module | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/getting-started/install-os/boot-from-emmc)）
 
-**方式B：ROCK 5B本体をMaskromモードにし、USB Type-C接続でRKDevTool（Windows）から直接書き込む**
+**方式B（採用）：ROCK 5B本体をMaskromモードにし、USB Type-C接続でRKDevTool（Windows）から直接書き込む**
 
-USBリーダーを別途用意しなくても、ROCK 5B本体とPCをUSBケーブル1本で繋ぐだけで完結する方式。
-Windows環境（PowerShell運用）のこのプロジェクトとは相性が良い。
+データ通信対応のUSB Type-A to Type-Cケーブルは確保済み。ROCK 5B本体とPCをこのケーブル1本で
+繋ぐだけで完結する。Windows環境（PowerShell運用）のこのプロジェクトとは相性が良い。
 
 1. 必要なもの：**RKDevTool**（Windows用ツール、Radxaダウンロードページから入手）、
-   **USB Type-A to Type-Cケーブル（データ通信対応品。充電専用ケーブルは不可）**、
+   データ通信対応のUSB Type-A to Type-Cケーブル（確保済み）、
    対応するローダーファイル（loader.bin相当、イメージと同じダウンロードページに同梱の想定）
 2. ROCK 5Bの電源を切り、（可能なら）microSD・NVMe等の他のブートメディアを外した状態にする
 3. 基板上の**Maskromボタン（ラベル25、位置は到着後に基板シルクを確認）を押しながら**、
@@ -103,10 +101,6 @@ Windows環境（PowerShell運用）のこのプロジェクトとは相性が良
 6. 完了後、USBケーブルを外して電源を入れ直すと、eMMCから自動的に起動する
    （出典：[USB Flashing | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/low-level-dev/install-os/rkdevtool-emmc)、
    [Entering Maskrom Mode | Radxa Docs](https://docs.radxa.com/en/rock5/rock5b/low-level-dev/install-os/rkdevtool_maskrom)）
-
-**方式選択の目安**：eMMC USBリーダーが手元にあれば方式A（GUIのみで完結し失敗しにくい）、
-無ければ方式B（データ通信対応USBケーブルさえあれば追加ハードウェア不要）。到着後、
-まず購入品にUSBリーダーが含まれているか確認してから方式を決めること。
 
 ### 1.3 microSDの用途について（訂正の補足）
 
