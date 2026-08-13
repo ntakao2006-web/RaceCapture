@@ -670,6 +670,82 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 ---
 
+**今回のセッション（4-4-2続き・第17回、実機直接操作なし・静的解析のみ）で得た知見：矢印ボタン(IconButton)と他ウィジェットの違いを「pos/sizeの絶対値指定 vs pos_hint/size_hint依存」という観点で特定し、過去に未解決だった「実解像度1024x576固定」問題・Home画面とDashboard画面の描画差との整合性を確認、FloatLayoutのpos_hint計算が本件の核心である可能性が高いという統一仮説に到達した**：
+
+**接続情報の補記**：`rc-dash-3b`（`ntakao@192.168.137.162`、鍵は`C:\Users\ntaka\.ssh\racecapture_dash_ed25519`）。セッション開始時、`race_capture`はPID 9260（前回セッション終了時のPID 3848とは異なるため間に何らかの再起動があった模様だが、前回終了時点で正常復旧済みだったことは確認済みのため特段の異常ではないと判断）で正常稼働中だった。今回のセッションは全て読み取り専用のSSH操作（既存の`~/decompile_4-4-2/`配下の`.pyc`を`xdis`/`pydisasm`で解析）のみで完結しており、`race_capture`本体プロセスやDRM/KMS状態には一切変更を加えていない。
+
+**1. 🔴🎉 `IconButton`クラス自体の実装を`autosportlabs/uix/button/iconbutton.pyc`から確認、特別な描画機構を持たないと判明**：
+`IconButton(FadeableWidget, Button)`（`FadeableWidget`は`EventDispatcher`のみを継承する軽量ミックスイン、実体はKivy標準の`kivy.uix.button.Button`）であり、KVルールは
+```
+<IconButton>:
+    background_color: [0, 0, 0, 0]
+    background_down: ''
+    font_size: self.height
+    color: [1.0, 1.0, 1.0, 0.2] if self.disabled else [1.0, 1.0, 1.0, 0.8]
+    font_name: 'resource/fonts/fa_otf.ttf'
+```
+のみ。背景は透過（`background_color`のalpha=0、`background_down`は空文字で下状態画像も無効化）、可視部分はKivy標準`Label`のテクスチャベース文字グリフ描画（`font_name`にFontAwesomeアイコンフォントを指定）のみで完結しており、他の候補ウィジェットと比べて特別なcanvas命令・独自RenderContext等は一切持たない。次回セッション最優先候補(a)「`IconButton`が特殊な描画経路を使っている」は説明力が低いと判明した。
+
+**2. 🔴🎉 前回3000文字で打ち切られていた`DashboardView`のKVソース全文を、`pydisasm`のCLI出力ではなく`xdis`のPython API（`load_module()`の`co_consts`を再帰的に走査）で取得し直し打ち切り問題を解消、決定的な構造上の違いを発見した**：
+```
+<DashboardView>:
+    canvas.before: Color / Rectangle（背景）
+    FloatLayout: id: dash_container   # ← pos_hint/size_hint指定なし（デフォルトsize_hint=(1,1)で親いっぱいに広がる想定）
+        MDLabel: id: dash_notice       # ← size_hint/pos指定なし（デフォルト(1,1)、全面表示想定）
+        AnalysisCarousel: id: tabs
+            pos_hint: {"top": 1}
+            size_hint_y: None
+            height: root.height - gauge_bar.top     # widthはsize_hint_x未指定＝デフォルト1（親いっぱい）
+        TripleGaugeBar: id: gauge_bar
+            size_hint: None, None
+            width: root.width - dp(150)
+            height: dp(75)
+            pos_hint: {"center_x": 0.5, "y": 0}      # ← サイズは絶対値だが位置はpos_hint
+        IconButton: (左矢印)
+            size_hint: None, None
+            size: dp(45), dp(45)
+            pos: 0, dp(15)                            # ← サイズ・位置とも絶対値
+        IconButton: (右矢印)
+            size_hint: None, None
+            size: dp(45), dp(45)
+            right: root.right
+            y: dp(15)                                 # ← 絶対値（Widget.rightは絶対座標プロパティ）
+        AnchorLayout → PreferencesLockComboButton      # ← AnchorLayoutのデフォルトlayout依存
+        FullCourseFlagIndicator: id: fcflag             # ← size/pos指定なし
+        AnchorLayout → MDBoxLayout → PopupAlertView 等  # ← AnchorLayoutのデフォルトlayout依存
+```
+**描画される矢印ボタン2つだけが、`size`・`pos`（または`right`/`y`）を全て絶対値（`dp()`定数、または一度確定すれば固定される`root.right`）で指定しており、`FloatLayout`の`pos_hint`計算を一切経由していない。それ以外（`AnalysisCarousel`・`TripleGaugeBar`の位置・`MDLabel`・`AnchorLayout`系）は全て`pos_hint`または無指定（デフォルトsize_hint=(1,1)、`FloatLayout`の`do_layout()`による計算に依存）である。** この境界線は、これまでに発見した「矢印ボタンだけ描画される」という現象を完全に一貫して説明する。
+
+**3. 🔴🎉 正常に描画される「Home画面」（`racecapture/menu/homepageview.pyc`）のKVを同様に取得・比較し、この仮説をさらに補強する事実を発見**：
+```
+<HomePageView>:
+    MDBoxLayout:              # ← ルートがFloatLayoutではなくBoxLayout系
+        orientation: 'horizontal' if root.width > root.height else 'vertical'
+        AnchorLayout: size_hint: (1,1) if ... else (0,0)
+            Image: size_hint: (0.7, 0.7)
+        MDBoxLayout:
+            FeatureButton: size_hint_y: 0.5 ...
+            MDBoxLayout: size_hint_y: 0.5
+                FeatureButton × 2
+        AnchorLayout: size_hint: (0.0, 0.0) if ... else (1,1)
+            Image: size_hint: (0.7, 0.7)
+```
+**Home画面のルートコンテナは`FloatLayout`ではなく`MDBoxLayout`（`BoxLayout`系）であり、子要素の配置は全て`BoxLayout`独自の`do_layout()`（`orientation`に沿った単純な逐次配置アルゴリズム）に依存している。`FloatLayout`の`pos_hint`計算は一切使われていない。** これは「Home画面は完璧に描画される・Dashboard画面はほぼ描画されない」という第9回セッション以来の未解明の矛盾（`ScreenManager`のcurrent Screen配下という共通点だけでは説明できなかった差異）に対しても、**「`FloatLayout`のpos_hint計算経路を通るかどうか」という同一の軸で一貫した説明を与える**。
+
+**4. 補記：以前から未着手のまま残っていた「実解像度が1024x768（実際は1024x576）に固定される現象」を`main.py`で確認**：
+`main.py`は、Android/iOS以外のプラットフォームでは`--size`起動引数が無い限り`Config.set('graphics', 'width', 1024)` / `Config.set('graphics', 'height', 576)`を明示的に設定した後、`autosportlabs.util.fullscreen_wrapper.enable_full_screen_mode(True)`を呼び出す（Linux/RPi等では`Window.fullscreen = 'auto'`をセットするのみで、`Window.size`を明示的に上書きするコードはこのラッパー内には無い）。実機の起動スクリプト`run_racecapture_rpi.sh`は`-w`/`-l`オプションのみを解釈し、`--size`は一切渡していないことを確認した。**この「1024x576固定 → `fullscreen='auto'`」という流れが、`FloatLayout`のpos_hint計算に使われる`Window.size`ないし`dash_container.size`にどう影響しているか（設定値の1024x576のまま止まっているのか、fullscreen化で実際の1920x1080に更新されているのか）は、今回は静的解析の範囲では確定できず、次回のライブ確認が必要**。
+
+**結論・今回のセッションの意義**：今回のセッション（純粋な静的解析、実機への操作は一切なし）により、これまで別々に扱われていた3つの謎──①矢印ボタンだけ描画される現象（第16回）、②Home画面は完璧・Dashboard画面はほぼ描画されない現象（第9回）、③実解像度1024x576固定問題（未着手のまま放置）──が、**「`FloatLayout`のpos_hint/デフォルトsize_hint(1,1)計算が、この実機環境で正しく機能していない（あるいは計算の元になる`Window.size`/親サイズが異常な値になっている）」という単一の仮説で統一的に説明できる**という重要な進展を得た。
+
+**実機（`rc-dash-3b`）の状態（セッション終了時点）**：`race_capture`は最初から最後まで中断なく正常稼働を継続（PID 9260、GPS/テレメトリ等への影響なし）。今回のセッションは実機への変更を一切伴わない読み取り専用のSSH操作のみで完結した。
+
+**次回の最優先調査候補（優先度順、第17回セッション完了時点で更新）**：
+0. **最優先・ライブ確認（ユーザー立ち会い推奨）：DASHBOARD画面表示中に`Window.size`・`dash_container.size`・`dash_container.pos`・`tabs.size`（AnalysisCarousel）・`gauge_bar.pos`（TripleGaugeBarの実際に計算されたpos_hint結果）を実際に読み取る。** 既存の`egl_interpose17.so`（トリガーファイル方式、`eglSwapBuffers`フック内で安全に実行）を拡張し、GL呼び出しではなく`PyGILState_Ensure()`→`PyRun_SimpleString()`でPythonレベルの値をファイルへ書き出す方式を検討する。これは第9回セッションでGILデッドロックを起こした「gdbによる非同期的な割り込み」とは異なり、`eglSwapBuffers`が呼ばれるその瞬間（メインスレッドの正常な実行フロー内）に同期的にPython C APIを呼ぶ設計のため理論上はより安全なはずだが、実機での実証は未検証。慎重に、まず無害な読み取り（`repr()`をログファイルへ書くのみ）から始めること。
+1. もし上記(0)で`dash_container.size`等が明らかに異常な値（0や1024x576のまま等）であれば、その値がどの時点で・なぜ確定してしまうのか（`on_pre_enter`/`on_enter`のタイミング、`Window.size`変更イベントの伝播有無等）をさらに追う。
+2. 上記(0)で仮に`dash_container.size`等が正常（1920x1080相当）であった場合は、この統一仮説自体が崩れるため、`FloatLayout.do_layout()`実装そのもの（`kivy/uix/floatlayout.py`）の実機バイナリと本家ソースの再突き合わせ、または全く別の角度を再検討する。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
