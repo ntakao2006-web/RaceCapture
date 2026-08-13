@@ -347,8 +347,34 @@ ESP32(`/dev/ttyACM0`)は接続済み・RCPAPI通信（`Tx: {"s":0}`等の定期�
 - セッション終了時点、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み（新PID、gdb等の注入は一切残っていないクリーンな状態）
 
 **次回の最優先調査候補（優先度順、更新）**：
-0. **最優先：何らかの方法でSetup画面を通過しHome画面（Dashboard）へ到達させた状態で、`egl_interpose3.so`によるバックバッファ直接読み取りを行い、メイン画面のコンテンツが正しく描画されているか確認する**。方法の候補：①ユーザーに実機へタッチパネル/マウスを接続してもらい手動でSetup画面を進めてもらう、②`xdotool`等（DC-7-1のkeyring初期化で実績あり）でタップイベントを合成する、③Kivy側からPython注入でScreenManagerを直接`Home`へ遷移させる（ただしgdb注入が必要になり今回のリスクと同種の懸念がある。LD_PRELOAD側からPython層を操作する経路が無いか要検討）。
-1. もしHome画面到達後もメイン画面のコンテンツが描画されないままなら、「ScreenManager配下のコンテンツ描画パスに固有の問題がある」という新しい方向へ絞り込める。逆に正しく描画されていれば「アプリ側は完全に正常、真因はKMS/DRM/カーネル側」と確定し、調査対象をkernelのDRMドライバ側（VC4）へ完全に移せる。
+0. ~~何らかの方法でSetup画面を通過しHome画面（Dashboard）へ到達させる~~ → **今回のセッションで手順を確立（下記参照）**。
+1. **最優先：確立した手順でHome画面へ遷移させた上で、Home画面遷移後に`eglSwapBuffers`（≒`Window.flip`）が全く呼ばれなくなる現象の原因を特定する**。詳細は下記セッション記録参照。
+2. `eglChooseConfig`が呼ばれていない件は引き続き優先度低。
+
+---
+
+**今回のセッション（4-4-2続き・第9回、さらに後半）で得た知見：Setup→Home画面遷移の手順を確立、しかし遷移後に`eglSwapBuffers`が完全に停止するという新たな謎を発見**：
+
+**1. 🎉 gdb Python注入により、Setup画面からHome画面への遷移手順を確立**：
+逆コンパイル済みソース(`racecapture/views/setup/setupview.py`、`/tmp/setupview_disasm.txt`に逆アセンブル結果保存済み)を解析し、以下の遷移ロジックを完全に復元した：
+- `SetupView.on_skip()` → `_skip_request()` → `confirm_popup("Skip", "Continue setup next time?", confirm_skip, cancel_text="NO THANKS")`でダイアログ表示
+- ダイアログの`buttons_and_callbacks['OK']['callback']`を直接呼ぶとダイアログが`dismiss()`され、`_setup_complete(skip)`が呼ばれる（`UserPrefs.set_pref("setup","setup_enabled",...)`保存を実測で確認）
+- `_setup_complete`は`Clock.schedule_once(lambda dt: self.dispatch('on_setup_complete'), SETUP_COMPLETE_DELAY_SEC=1.0)`を登録するのみで、実際の画面遷移トリガーは`on_setup_complete`イベントのdispatch
+- **`screen.dispatch('on_setup_complete')`を直接呼び出すことで、`sm.screen_names`が`['setup']`→`['setup', 'home']`、`sm.current`が`'setup'`→`'home'`へ実際に変わることを確認**（実機実証済み）。この一連の操作は実機の設定ファイルには影響せず、実験用の一時プロセス（本番watchdogとは別、既にkill済み）のメモリ内状態のみに作用する。なお`SetupView.on_skip()`は実UI上ではツールバーの「EXIT」ボタン(`LabelIconButton id=next`)の`on_release`にバインドされている（`.kv`定義より判明）。
+
+**2. 🔴🔍 新たな謎：Home画面遷移後、`eglSwapBuffers`が完全に停止する（呼ばれなくなる）現象を発見**：
+`egl_interpose3.so`のログでスワップ回数を監視したところ、Setup画面表示中に`swap#2`まで到達した後、上記の手順でHome画面へ遷移させ、`app_icon_512x512.png`のロードなどHome画面のアセット構築が進行しているログも確認できたにもかかわらず、**`swap#3`以降が一度も記録されなかった**（15秒以上待っても`swap#2`のまま）。念のため`Window.canvas.ask_update()`→`Window.dispatch('on_draw')`→`Window.dispatch('on_flip')`を明示的に注入して強制的に描画・スワップを促したが、それでも`eglSwapBuffers`は一度も呼ばれなかった。
+- ⚠️ **重要な留保**：今回の実験環境ではESP32のシリアルポートオープンが`[DEBUG] [RCPAPI] Port not open...`で失敗し続けており（原因未特定、複数回のプロセス起動・killを繰り返したことによるポートの一時的な専有状態の可能性がある）、これが本番運用（ESP32接続済み）とは異なる特殊な状態だった可能性が高い。本セッション前半で確認した「on_draw ~70Hz、flip ~24Hz」という高頻度動作は、ESP32接続済み・RCPAPI通信が継続している本番watchdogプロセスに対する計測だったため、**「on_draw/flipの高頻度呼び出しは、実はClock.schedule_intervalによるRCPAPI通信ポーリングが間接的にトリガーしている可能性がある」という新しい仮説**が浮上した。この仮説が正しければ、ESP32との通信が確立できない状態（あるいは何らかの理由でポーリングが止まる状態）でHome画面に遷移すると、レンダーループ自体が実質的に停止し、その結果としてGPU上には正しい内容が構築されても実際の画面には一切反映されない、という一連の症状（本タスクでこれまで観測してきた全ての症状）を統一的に説明できる可能性がある。**ただし今回はこの仮説を裏付ける決定的な証拠は得られておらず、次回の最優先検証事項とする**。
+
+**実機（`rc-dash-3b`）に今回のセッションで加えた変更・生成物（次回セッション用の記録）**：
+- `/tmp/setupview_disasm.txt`：`setupview.py`の完全な逆アセンブル結果（Setup→Home遷移ロジックの参照用、次回も再利用可）
+- `/tmp/probe_sm.py`、`/tmp/probe_setup.py`、`/tmp/probe_skip.py`、`/tmp/probe_dialog.py`、`/tmp/probe_dialog2.py`、`/tmp/click_ok.py`、`/tmp/dispatch_complete.py`、`/tmp/force_flip.py`：一連の調査用インジェクションスクリプト（Setup→Home遷移の再現手順として次回も再利用可能）
+- ⚠️ **二重起動インシデントが再発**：実験用プロセスを起動する際、誤って本番watchdog（PID 3423）を停止せずに新規プロセス（PID 3480）を追加起動してしまい、一時的に二重起動状態になった。数秒以内に気付いて実験用プロセスのみをkillし復旧させたが、**セッション6で警告されていた同じ種類の事故が今回も発生した**。今後は実験用プロセスを起動する前に必ず`ps -ef | grep race_capture`で本番プロセスの有無を確認し、確実に停止してから実験用プロセスを起動する手順を徹底すること。
+- セッション終了時点、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み（新PID、実験用の注入は一切残っていないクリーンな状態）
+
+**次回の最優先調査候補（優先度順、更新）**：
+0. **最優先：ESP32のシリアルポートが正常にオープンできる状態（本番watchdogを止めてから実験用プロセスを起動する等、ポート専有状態を正しくクリーンにした上で）でHome画面まで遷移させ、その状態で`eglSwapBuffers`が正常に呼ばれ続けるか確認する**。もし正常に呼ばれるなら「RCPAPI通信ポーリングが間接的にレンダーループを駆動している」仮説が支持され、真因は「ESP32との通信が何らかの理由で不安定になるとレンダーループが停止する」という方向に絞り込める。
+1. 上記が確認できたら、`egl_interpose3.so`のバックバッファ直接読み取り手法で、Home画面のメインコンテンツ（Label/MDIcon等）が実際にスワップされるバッファに描画されているかを確認する（本セッション未達のまま持ち越し）。
 2. `eglChooseConfig`が呼ばれていない件は引き続き優先度低。
 
 ---
