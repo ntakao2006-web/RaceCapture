@@ -611,6 +611,28 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 ---
 
+**今回のセッション（4-4-2続き・第15回、実機直接操作・ライブ注入なし）で得た知見：前回の最優先候補0（(a)(b)(c)の静的解析）を実施した結果、いずれも「Kivyライブラリ側の一般的な不具合」としては説明力を持たないと判明し、この方向性を実質的にクローズした**：
+
+**接続情報の補記**：`rc-dash-3b`へのSSH接続（`ntakao@192.168.137.162`、直結LAN＋Windows ICS方式、鍵は`C:\Users\ntaka\.ssh\racecapture_dash_ed25519`）は正常。セッション開始時点で`race_capture`（PID 3848、前回セッション終了時と同一PID）がwatchdog付きクリーンな状態で稼働継続中（uptime約4時間強）だった。今回のセッションは全て読み取り専用操作（`~/decompile_4-4-2/`配下の`.pyc`を`xdis`で解析、GitHub上の本家Kivyソース取得、GitHub issue検索）のみで完結しており、`race_capture`本体プロセスやDRM/KMS状態には一切変更を加えていない（SSH接続も`find`/`strings`/`xdis`による静的解析コマンドのみ）。
+
+**1. 🔴🎉 バンドルされているKivyの正確なバージョンを確定：`kivy/_version.pyc`から`2.3.1`（git commit `20d74dcd30f143abbd1aa94c76bafc5bd934d5bd`、ビルド日`20241226`）と判明**。これは第6〜7回セッションの最小再現実験で使用した`apt`版`python3-kivy`（`2.3.1-1+b1`）と**同一バージョン**であることが判明し、「バンドル版とapt版でKivyバージョンが違うのでは」という潜在的な疑問を解消した。
+
+**2. 🔴🎉 `kivy/uix/widget.py`・`floatlayout.py`・`relativelayout.py`・`screenmanager.py`の実機`.pyc`を、GitHub上の本家Kivy 2.3.1タグのソースと突き合わせ（`co_names`/`co_consts`/関数一覧の構造比較）、いずれも標準ライブラリと完全に一致し独自パッチが無いことを確認した**。`DashboardView`（`racecapture/views/dashboard/dashboardview.pyc`）についても`co_names`を横断検索し、`canvas`/`opacity`/`RenderContext`/`Fbo`のいずれも一切参照していないことを確認。また同ファイルのimport一覧から`DashboardView`は`kivymd.uix.screen.MDScreen`ではなく**素の`kivy.uix.screenmanager.Screen`**をインポート・継承していることも再確認した（前回セッションの逆コンパイル読解結果と整合）。**RaceCapture独自コードがScreen配下で特別な描画操作をしている可能性も排除された。**
+
+**3. 🔴🎉 候補(a)「`PushMatrix`/`Translate`/`PopMatrix`の二重ネスト」を、本家`kivy/graphics/context_instructions.pyx`と`instructions.pyx`のソースで裏付け確認し、仮説としての説得力が大きく低下した**：`<RelativeLayout>`の`canvas.before`（`kivy/data/style.kv`）は`PushMatrix`+`Translate: xy: self.pos`、`canvas.after`は`PopMatrix`という標準パターンだが、これらは**レガシー固定機能GLの`glPushMatrix`/`glPopMatrix`ではなく、Kivy独自のPythonリストベースのソフトウェア行列スタック**（`RenderContext.state_stacks['modelview_mat']`への`push_state`/`pop_state`、単一グローバルな`RenderContext`＝`Window.render_context`を全ウィジェットが共有）であることをソースで確認した。GPU/ドライバ側の行列スタック深度制限とは無関係な、CPU側の単純なリストpush/pop＋行列乗算にすぎず、`ScreenManager`（`FloatLayout`、変換なし）の下で`Screen`（`RelativeLayout`）が1段ネストするだけの構成は、Kivyエコシステムで極めて日常的に使われるパターンである。この機構自体が本件のような「全か無か」の一貫した描画消失を引き起こす可能性は低いと判断した。
+
+**4. ⚠️ 候補(c)「既知issue」をGitHub検索・調査したが、直接関連する既知issueは見つからなかった**：`kivy/kivy#5581`（"Raspberry Pi OpenGL issue with screenmanager"）がヒットしたが、内容を精読した結果、2018年当時の**画像スライドショーアプリでのメモリリークに起因する`SwapTransition`（Fbo使用）時の`glGetError 0x502`/FBO初期化失敗**であり、本件（`NoTransition`使用でFbo不使用、メモリリークなし、ステンシルテストで静かにフラグメント破棄という異なる症状）とは無関係と判断しクローズした。
+
+**結論・今回のセッションの意義**：前回セッションが立てた3つの候補(a)(b)(c)はいずれも「Kivyライブラリまたはアプリコード側の一般的な不具合」としては説明力を持たないと判明した。`ScreenManager`の`current`Screen配下だけ描画が消失するという境界線は、静的解析（ソースコード読解）だけでは原因を特定できず、**GPU側で実際にピクセルが書き込まれているかどうかを直接確認する（`glReadPixels`によるライブ検証）以外に前進する手段がない**という結論に至った。これは前々回セッションの最優先候補1（現・優先候補0に降格）と実質的に同じ結論であり、次回セッションは静的解析ではなくライブ注入によるピクセル値直接確認から着手するのが妥当。
+
+**実機（`rc-dash-3b`）の状態（セッション終了時点）**：`race_capture`は最初から最後まで中断なく正常稼働を継続（PID 3848、GPS/テレメトリ等への影響なし）。今回のセッションは実機への変更を一切伴わない読み取り専用のSSH操作のみで完結した。
+
+**次回の最優先調査候補（優先度順、第15回セッション完了時点で更新）**：
+0. **最優先（静的解析では決着しないため、優先候補が実質1本化）：カラーバッファの実ピクセル値を`glReadPixels`で直接確認する。** DASHBOARD画面表示中の既知の座標（例：第13回セッションで画面内の妥当な座標と確認済みのcall 1858033の領域、x=[1830,1902) y=[10,60)）に対し、`glDrawElements`直後に1回だけ低オーバーヘッドで`glReadPixels(GL_RGBA, ...)`を実行する（第14回セッションの`egl_interpose7.so`のような毎コールステート照会は重すぎて描画をさらに悪化させたため、`swap_count`や累積`glDrawArrays`呼び出し回数が特定の値に達した1回のみサンプリングするワンショット方式に改良すること）。**ライブプロセスへの注入を伴うためユーザー立ち会いのもとで慎重に実施することを推奨。**
+1. 今回発見した「単一スキャンライン状の断続コンテンツ」（第14回セッション前半の記録参照）は正体未確認のまま優先度低で保留。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
