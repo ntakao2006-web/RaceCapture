@@ -434,6 +434,43 @@ ESP32(`/dev/ttyACM0`)は接続済み・RCPAPI通信（`Tx: {"s":0}`等の定期�
 
 ---
 
+**今回のセッション（4-4-2続き・第10回）で得た知見：前回セッション最後に持ち越した`SDL_GL_GetProcAddress`フックのクラッシュ原因を特定・修正し、Home画面で実際に大量のGL描画コマンドがデフォルトフレームバッファへ発行され続けていることを実測。FBO誤指定・シザークリップの2仮説を新たに否定し、`glClear`の引数異常という新しい手がかりを発見**：
+
+**接続情報の補記（重要、次回以降必読）**：今回のセッション中、`rc-dash-3b.local`のmDNS名前解決がWindows側で断続的に完全失敗する事象が頻発した（`ssh: Could not resolve hostname`。過去セッションの「kill/pkill直後の瞬断は再接続すればすぐ復帰する」という軽微な事象とは異なり、今回は数十秒単位で完全に無応答になることが複数回あった）。`Resolve-DnsName -Type AAAA`で得られるIPv6リンクローカルアドレス（例：`fe80::a169:75dc:2a58:4f16`）に対し、`ssh -o HostKeyAlias=rc-dash-3b.local ntakao@<addr>%10`（`%10`はWindows側のインターフェースindex、`ipconfig`や`Resolve-DnsName`後に確認）の形で接続することで回避できた（`HostKeyAlias`を指定することで、既存の`known_hosts`のホスト名エントリと同じ鍵として検証される）。`scp`の場合は`ntakao@[fe80::...%10]:/path`とブラケットで囲む必要がある。Pi本体は`uptime`で確認した限り再起動しておらず（電源系の再発ではなく）、Windows側のネットワークスタック（mDNS解決 or IPv6近隣キャッシュ）の問題だったと推測される。今回は`Resolve-DnsName`のポーリングで復旧を検知して対処した。
+
+**1. 🔴🎉 前回セッション最後の未解決事項だった`egl_interpose6.so`（`SDL_GL_GetProcAddress`フック版）のクラッシュ原因を特定・修正**：
+`strace -f`でクラッシュ箇所を特定したところ、`SIGSEGV`（`si_addr=NULL`、`SEGV_MAPERR`）はSDL2の独自クラッシュハンドラ経由で観測され、実際の原因は`dlerror()`のログ出力で判明した：`dlsym(RTLD_NEXT, "SDL_GL_GetProcAddress")`が**`undefined symbol: SDL_GL_GetProcAddress`としてNULLを返し**、そのNULL関数ポインタをそのまま呼び出していたことがSIGSEGVの直接原因だった。根本原因は、`libSDL2.so`が`_window_sdl2.cpython-311-*.so`から**`RTLD_LOCAL`でdlopenされている**ため、そのシンボルが`RTLD_NEXT`のグローバルスコープ探索から見えないこと（`RTLD_NEXT`はグローバルスコープに参加しているモジュールしか探索できず、`RTLD_LOCAL`でdlopenされたライブラリはたとえロード済みでも対象外という、glibcのよく知られた落とし穴）。同じ仕組みで動いていた`eglChooseConfig`等（第8回セッション確立）が問題なかったのは、あちらは「SDL2自身が`dlsym(handle, name)`を呼ぶ際の`handle`」を横取りして中継する方式（`handle`はSDL2自身の`dlopen`が返した実ハンドル）であり、`RTLD_NEXT`のグローバルスコープ制約を最初から受けていなかったため。**修正**：`dlopen("/opt/racecapture/_internal/Kivy.libs/libSDL2-2-87637523.0.so.0.3000.7", RTLD_NOW|RTLD_NOLOAD)`で既にロード済みのSDL2ライブラリへの実ハンドルを直接取得し（`RTLD_NOLOAD`により新規ロードは発生せず参照カウントのみ増加）、そのハンドル経由で`dlsym`することでスコープ制約を回避した。この修正版（`egl_interpose8.so`〜）は20秒間・swap#400超までクラッシュなしで安定動作することを確認済み。
+
+**2. ⚠️ 副産物として発見：前回セッション（第7回）が「MD5一致で復元済みと確認した」と記録していた`libSDL2`バンドル版ファイルが、実際にはシステムSDL2へのシンボリックリンクのまま放置されていたことが判明**：
+`/opt/racecapture/_internal/Kivy.libs/libSDL2-2-87637523.0.so.0.3000.7`が、通常のファイルではなく`/usr/lib/aarch64-linux-gnu/libSDL2-2.0.so.0`（システムSDL2へのシンボリックリンク）を指すシンボリックリンクになっていた。ただし内容自体は同一ファイル（`.bak_4-4-2`とMD5完全一致：`60689a9cef510e5b73ff3fba29bd3869`）だったため、これまでの検証結果（システムSDL2/バンドル版いずれでも症状不変）への影響はない。`sudo rm`＋`sudo cp -p .bak_4-4-2 → 正規ファイル名`でシンボリックリンクを解消し、通常の実体ファイルへ復元済み（MD5一致を再確認）。**教訓**：ファイル操作を伴う実験の「復元確認」は、MD5だけでなく`ls -la`（シンボリックリンクか実体か）も併せて確認すること。
+
+**3. 🔴🎉 決定的な実測：修正済み`SDL_GL_GetProcAddress`フックで`glClear`/`glDrawArrays`/`glDrawElements`の実発行回数を計測した結果、Home画面で数千回規模の`glDrawElements`が実際に発行され続けていることを確認**：
+Setup→Home遷移後、swap#2〜#400にかけて`glDrawElements`は継続的に増加し続けた（swap#40時点で11,048回、swap#400時点で108,638回、1フレームあたり約270回のペース）。`glClear`も1フレームあたり約5回のペースで継続して呼ばれている。これは「レンダーループは回り続けているが、canvas命令が実際にGPU呼び出しとして発行されていないのではないか」という第9回セッション末尾の推測を覆す、初めての直接計測による実証結果である。
+
+**4. 🔴🎉 追加検証：これらの描画コマンドの発行先フレームバッファを`glBindFramebuffer`フックで計測し、ほぼ全て（99.99%以上）がFBO 0（デフォルト＝画面に出るフレームバッファ）向けであることを確認、「オフスクリーンFBO（テキストのグリフアトラス等）への描画がほとんどで、画面向けはごく僅か」という仮説を否定**：
+swap#40時点でglDrawElements合計11,048回のうちfb0向けが11,047回（glClear合計202回のうちfb0向けが200回）と、ほぼ全てがデフォルトフレームバッファを対象にしていた。KivyMDがRenderContext/Fbo/InstructionGroupを使わないことは第7回セッションで既に確認済みだが、今回の計測はKivyコア自体の内部FBO使用（グリフアトラス生成等）も実質的に無視できる量であることを示している。
+
+**5. ⚠️ 新たな手がかり：`glClear`の実引数を記録したところ、最後に観測された値が`0x400`（`GL_STENCIL_BUFFER_BIT`のみ）であり、`GL_COLOR_BUFFER_BIT`(`0x4000`)を含んでいないことが判明**：
+Home画面の各swapチェックポイントで一貫して`last_clear_mask_fb0=0x400`のみが観測された。カラーバッファを明示的にクリアしていないこと自体が「画面が常に透過のまま」という症状の直接原因かは未確定（十分な量の`glDrawElements`で画面全域を毎フレーム上書きしているなら、クリアの有無自体は本質的でない可能性もある）が、通常のアプリでは考えにくい構成であり、次回優先的に深掘りすべき具体的な手がかりとして記録する。
+
+**6. ⚠️ シザーテスト（スカラー矩形クリッピング）仮説を実測で否定**：
+同じHome画面のswapチェックポイントで`glGetIntegerv(GL_SCISSOR_BOX,...)`を照会したところ`(0,0,1024,768)`という、実ウィンドウサイズ(1920x1080)と食い違う値が一貫して観測され、これまで未着手だった「実解像度が1024x768に内部上書きされる現象」（本ファイル4-4-2冒頭の次回候補リストに古くから残っていた項目）との関連を疑い、`glScissor`/`glEnable`/`glDisable(GL_SCISSOR_TEST)`を直接フックして実際の使用状況を計測した。結果、**Home画面描画中に`glScissor`は一度も呼ばれておらず、`GL_SCISSOR_TEST`も常に無効のままだった**（`drawelements_fb0_scissorON=0`、11,047回のfb0向け`glDrawElements`は全てシザー無効時に発行）。よってこの`(0,0,1024,768)`という値は、GLコンテキストの未使用の初期値（初期ウィンドウサイズがこの値だった名残）に過ぎず、実際のクリッピングには関与していないと判明。「解像度1024x768上書き」自体は依然として謎だが、少なくとも今回の画面表示問題（黒画面）の直接原因ではないと切り分けられた。
+
+**実機（`rc-dash-3b`）に今回のセッションで加えた変更・生成物（次回セッション用の記録）**：
+- `/opt/racecapture/_internal/Kivy.libs/libSDL2-2-87637523.0.so.0.3000.7`：シンボリックリンクから通常ファイルへ復元済み（MD5確認済み、内容は変化なし）
+- `/tmp/egl_interpose7.c`〜`/tmp/egl_interpose11.c`／対応する`.so`：段階的にクラッシュ修正・GL計測機能を追加していった一連のバージョン。**次回使うなら`egl_interpose11.so`が最新かつ全機能入り**（クラッシュ修正版`SDL_GL_GetProcAddress`フック＋`glClear`/`glDrawArrays`/`glDrawElements`のfb0別カウント＋`glBindFramebuffer`／`glScissor`／`glEnable`／`glDisable`フック＋スワップ時のGL状態ダンプ、`swap_count==3`でSetup→Home自動遷移・`swap_count==30`でウィジェットツリーダンプも内蔵）。ログは全バージョン共通で`/tmp/egl_interpose2.log`（旧バージョンからの名残、ファイル名は変えていない）。
+- `/tmp/patch_egl7.py`〜`/tmp/patch_egl13.py`：各バージョンへの差分パッチスクリプト（Pythonの文字列置換ベース、次回の改造のベースとして再利用可）
+- いずれも`/tmp`配下のため次回リブートで消滅する想定
+- セッション終了時点、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み（詳細は本セッションの実行ログ参照）
+
+**次回の最優先調査候補（優先度順、更新）**：
+0. **最優先：`glClear`が`GL_COLOR_BUFFER_BIT`を含まない件を深掘りする**。具体的には、①この`0x400`という値がフレームの「毎回」なのか「初回のみ」なのか（`my_glClear`のログを間引かず全件記録して確認）、②`glClearColor`の実引数（アルファ値含む）も併せて記録、③このタイミングで実際にバインドされているシェーダープログラム(`glGetIntegerv(GL_CURRENT_PROGRAM)`)・テクスチャ(`GL_ACTIVE_TEXTURE`/`glGetIntegerv(GL_TEXTURE_BINDING_2D)`)を記録し、描画コマンドが有効なシェーダー・テクスチャを伴っているかを確認する。
+1. **`glBlendFunc`のRGB側（`GL_BLEND_SRC_RGB`/`GL_BLEND_DST_RGB`、今回はアルファ側しか計測していない）を追加計測する**。もしRGB側が`GL_ZERO,GL_ZERO`のような退化した組み合わせだった場合、描画コマンド自体は正しく発行されていても最終的な色出力が常にゼロになり、今回の症状（発行はされるが画面には出ない）を説明できる可能性がある。
+2. 上記いずれでも手がかりが掴めない場合、`glDrawElements`直後（`eglSwapBuffers`を待たず、描画のごく直後）に`glReadPixels`でサンプリングし、「描画命令発行の直後ですら何も反映されていないのか」「スワップ直前になって初めて消えるのか」を切り分ける（現状は毎回swap直前の1点だけしかサンプリングしていない）。
+3. `eglChooseConfig`が呼ばれていない件は引き続き優先度低のまま。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
