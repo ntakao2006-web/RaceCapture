@@ -289,10 +289,67 @@ Window.bind(on_resize=_on_resize)
 - セッション終了時点、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み。gdb等の注入は一切行っておらず（今回はLD_PRELOADベースの手法のみで、gdb infcallのリスクを回避できた）、プロセスの停止・再起動はいずれも「kill→15秒待機→watchdog自動復旧」という確立済みの安全な手順のみを使用した
 
 **次回の最優先調査候補（優先度順、更新）**：
-0. **最優先：`Window.on_draw`/`Window.update_viewport`が実際に`WindowPatch`のno-opラムダへ差し替わっている時間帯があるか、gdb Python注入（`set scheduler-locking off`必須、既存の安全な手順を使用）で`Window.on_draw.__module__`等を数秒間隔で複数回サンプリングして確認する。あわせて、リサイズイベント自体が起動後も継続的に発生し続けているか（`_on_resize`にログ埋め込み、または`~/racecapture.log`の`WindowPatch: Window resize detected`行の出現頻度で確認）を突き合わせる。
-1. 上記が確認できれば、`WindowPatch`を無効化する検証を行う（例：`sys.modules['autosportlabs.monkey_patches.window']._on_resize`を取得して`Window.unbind(on_resize=...)`で解除する、または`apply_window_patch`が呼ばれる前に何らかの方法で先回りする）。無効化した状態でKMS実スキャンアウトに文字・アイコンが乗るようになれば、根本原因が確定し恒久対策（アプリ側のバグとして`0.25`秒のデバウンス設計自体に問題があるのか、そもそもこの環境でリサイズイベントが誤発生し続けているのが真因なのか、の切り分けへ進める）。
-2. `eglCreateWindowSurface`が2回目に呼ばれる「起動14秒後」のタイミングと、リサイズイベント・ESP32接続シーケンス（`capabilities`タイムアウトのリトライ間隔）との相関を確認する。
-3. `eglChooseConfig`が呼ばれていない件（config選択の実際の経路）は、本流の調査（WindowPatch仮説の検証）が一段落してから余裕があれば追う（優先度は下げた）。
+0. **最優先：`Window.on_draw`/`Window.update_viewport`が実際に`WindowPatch`のno-opラムダへ差し替わっている時間帯があるか、gdb Python注入（`set scheduler-locking off`必須、既存の安全な手順を使用）で`Window.on_draw.__module__`等を数秒間隔で複数回サンプリングして確認する。あわせて、リサイズイベント自体が起動後も継続的に発生し続けているか（`_on_resize`にログ埋め込み、または`~/racecapture.log`の`WindowPatch: Window resize detected`行の出現頻度で確認）を突き合わせる。** → **今回のセッション(第9回)で実施・完全否定（下記参照）。**
+1. ~~上記が確認できれば、`WindowPatch`を無効化する検証を行う~~ → **仮説自体が否定されたため不要に**。
+2. `eglCreateWindowSurface`が2回目に呼ばれる「起動14秒後」のタイミングと、リサイズイベント・ESP32接続シーケンス（`capabilities`タイムアウトのリトライ間隔）との相関を確認する。→ リサイズが一度も起きていないと判明した今、この相関調査自体の前提が崩れたため優先度を下げる。
+3. `eglChooseConfig`が呼ばれていない件（config選択の実際の経路）は優先度低のまま。
+
+---
+
+**今回のセッション（4-4-2続き・第9回）で得た知見：WindowPatch仮説を完全否定、on_draw/flipは高頻度で正常動作と確認、そして新たな重大インシデント（gdb連続注入によるGILデッドロック）が発生・復旧**：
+
+**接続情報の補記**：`rc-dash-3b`へのSSH接続は今回も正常（`ntakao@rc-dash-3b.local`、鍵`C:\Users\ntaka\.ssh\racecapture_dash_ed25519`）。セッション開始時、放置プロセスはなく`race_capture`（PID 1581、watchdog経由）が正常稼働中だった。
+
+**1. 🔴 WindowPatch仮説（前回セッションの最有力仮説）を完全否定**：
+`~/racecapture.log`（`log_level=debug`のまま）を精査したところ、`_on_resize`/`_restore_drawing`はいずれも明示的なdebugログ（`WindowPatch: Window resize detected - {w}x{h}` / `WindowPatch: Resize operation completed`、逆アセンブル済みソースから確認）を持つにもかかわらず、起動から13分以上（21450行のログ全体）を通じて**一度もこれらのログが出現しなかった**（`apply_window_patch`実行時の`Applied window resize patch`が1回出るのみ）。gdb Python注入（`set scheduler-locking off`使用、安全な既存手順）で直接確認したところ、`Window.on_draw is wp._original_on_draw` → `True`、`wp._restore_drawing_trigger.is_triggered` → `0`と、**リサイズイベントは一度も発火しておらず、`Window.on_draw`は常にオリジナルのままだった**ことが確定した。「WindowPatchが継続的にリサイズを検知しon_drawを無効化し続けている」という前回の仮説は、この環境（`race_capture`単体起動、外部からのウィンドウリサイズ操作なし）では成立しないことが判明した。
+
+**2. 🎉 `on_draw`/`flip`（実際のバッファスワップ）はいずれも高頻度で正常に呼ばれ続けていることを実測で確認**：
+`Window.on_draw`と`Window.flip`をそれぞれgdb Python注入でカウンタ付きラッパーに置換し、数秒間隔で2回読み取ることで呼び出し頻度を実測した。`on_draw`は約5〜7秒間で444回（約70Hz）、`flip`は約10秒間で245回（約24〜25Hz）と、**いずれも実用的な頻度で継続的に呼ばれ続けている**ことを確認した。これは「Kivyが再描画自体をスキップしている」という単純な仮説（セッション5〜6で検証してきた方向）に対する新たな反証材料であり、少なくともイベントディスパッチのレベルでは描画ループは正常に回り続けている。
+
+**3. 🔴⚠️ 重大インシデント：短時間の連続gdb attach/call注入により、メインスレッドが`Texture.blit_buffer`内でGILデッドロックに陥り、レンダーループが完全停止する事故が発生**：
+上記2の計測を行うため、短時間（数分間）に合計8回程度のgdb attach/PyGILState_Ensure/PyRun_SimpleString/PyGILState_Release/detachサイクルを実行した。その後、`flip_count`/`on_draw_count`の値を2度連続で読み取ったところ、**約6秒の間隔を空けたにもかかわらず値が完全に同一のまま**（`flip_count=245 ondraw_count=2679`が変化しない）だった。心拍テスト（`Clock.schedule_interval`で0.1秒ごとに発火するはずのコールバック）も8秒間で0回しか発火せず、**Kivyのイベントループ自体が完全に停止していた**ことを確認した。一方でCPU使用率は108%と高いままで、`ps -T`でスレッド別に確認するとメインスレッド（TID=PID）のみが75%前後を消費し続けていた。`bt`（Cレベルのバックトレース）を2回連続で取得したところ、**全く同一のアドレス**（`pthread_cond_timedwait` → `PyEval_RestoreThread` → `Texture.blit_buffer`のGL呼び出し前後のnogilセクション境界）で静止していることを確認し、**真性のデッドロックと確定**した。
+- **原因の推測**：セッション6で確立済みの「gdb infcallは選択中スレッド（今回は常にメインスレッド）に割り込んで実行される」という性質上、メインスレッドがちょうど`Texture.blit_buffer`のnogilブロック（テクスチャアップロードのGL呼び出し中、GIL解放中）にいたタイミングでgdb callによる割り込みが発生すると、GILの内部状態（スレッドローカルな保持カウンタ等）が破壊され、後続の`PyEval_RestoreThread`が永久に返ってこなくなると考えられる。8回中のどこかで運悪くこのタイミングに重なったものと推測される。`scheduler-locking off`は「他スレッドを停止させない」対策であり、この种類の「メインスレッド自身への割り込みタイミング事故」は防げないことが今回判明した。
+- **対処・復旧**：`sudo kill -9 <PID>`でプロセスを強制終了し、watchdog（`run_racecapture_rpi.sh -w 1`）による自動再起動を確認（新PID、正常稼働・RCPAPI通信ログも正常に流れていることを確認済み）。実機は正常な状態に復旧済み。
+- **⚠️ 今後の必須運用ルール（次回以降のセッションで厳守）**：**同一プロセスへのgdb attach/call注入は、短時間に何度も繰り返さず、可能な限り「1回のattachで複数の目的を完結させる」設計にすること**（Pythonスクリプト内で`time.sleep()`を使い、GILを解放しながら一定時間ポーリング・ログ収集を行うなど）。やむを得ず複数回に分ける場合も、可能な限り間隔を空け、各回の後に`ps -T -p <PID>`でメインスレッドのCPU使用率・状態が異常でないか確認する習慣をつけること。
+
+**この事故が示唆する副次的な仮説（未検証、次回の調査候補として記録）**：
+今回のデッドロックは外部からの人為的な割り込み（gdb call）が引き金だったと考えられ、通常運用下で自然発生する現象ではないと推測される。ただし、`Texture.blit_buffer`のnogilセクション境界という**GIL関連の脆弱なポイントが実際に存在する**ことが図らずも判明した。もし将来的に「文字が全く表示されない」バグの原因調査で他の仮説が尽きた場合、「通常運用下でも何らかの理由（他スレッドの長時間GIL保持等）でテクスチャアップロード処理が完了しないまま滞留するケースがないか」を调べる方向性もあり得るが、現時点では優先度の低い推測に留める。
+
+**実機（`rc-dash-3b`）の状態（セッション終了時点）**：`race_capture`は新PID（watchdog経由の自動復旧後）で正常稼働中。今回の調査で作成した一時ファイル（`/tmp/probe_ondraw.py`、`/tmp/inject_counter.py`、`/tmp/inject_flipcounter.py`、`/tmp/inject_heartbeat2.py`、各種`/tmp/gdb_*.txt`、`/tmp/kmscap9/`等）は`/tmp`配下のため次回リブートで自然に消える想定。実機に恒久的な変更は加えていない。
+
+**次回の最優先調査候補（優先度順、更新）**：
+0. ~~`window_sdl2`のCython実装（`.so`）を`objdump`等で静的解析~~ → 静的解析ではなく、下記の新手法（LD_PRELOADベースのバックバッファ直接読み取り）でより直接的な証拠が得られたため、この方向は保留。
+1. **最優先：Setup画面からHome画面（Dashboard）へ実際に遷移させた状態で、下記のLD_PRELOADベースのバックバッファ直接読み取り手法を使い、メイン画面のコンテンツ（Label/MDIcon等）がスワップ直前のバックバッファに正しく描画されているかを確認する**。詳細は下記セッション記録参照。
+2. `eglChooseConfig`が呼ばれていない件（config選択の実際の経路）は引き続き優先度低。
+
+---
+
+**今回のセッション（4-4-2続き・第9回、後半）で得た知見：LD_PRELOADベースの新しい安全な調査手法を確立、スワップ直前バッファにtoastが完璧に描画されていることを画像で実証**：
+
+**背景**：本セッション前半（上記参照）でgdb call注入によるGILデッドロック事故が2回連続で発生したため、以降はgdbを使わない静的解析・LD_PRELOADベースの手法に方針転換した。
+
+**1. 🎉 `egl_interpose2.c`（第8回セッションで確立済みのdlsymフック）を拡張し、`eglSwapBuffers`直前に`glReadPixels`でバックバッファの中身を直接読み取り、色のヒストグラムと実画像（PPM形式）を保存する`egl_interpose3.c`を新規作成**：
+`GLES2/gl2.h`をインクルードし、`my_eglSwapBuffers`内で`glGetIntegerv(GL_VIEWPORT,...)`でサイズを取得した上で`glReadPixels`を実行、透過(0,0,0,0)・既知の背景色(18,18,18,255)・それ以外(other)の3種類にサンプリング分類してログに記録する機構を実装（`/tmp/egl_interpose3.c`、コンパイル済み`.so`を実機に保存済み）。当初は毎フレーム`glReadPixels`していたところ大幅なフレームレート低下を招いたため、最終版では離散的なチェックポイント（swap#2,5,10,20,40,80,150,250,400,600,900,1300,1800）でのみ読み取るよう調整した。
+
+**2. 手順（LD_PRELOADによる安全な検証、gdb不使用）**：`sudo kill`でwatchdogスクリプト本体（`run_racecapture_rpi.sh`）とrace_capture本体の両方を停止 → `LD_PRELOAD=/tmp/egl_interpose3.so ./race_capture ...`で手動起動（バックグラウンド、ログを別ファイルへ） → 一定時間後`sudo kill -9`で停止 → `nohup ./run_racecapture_rpi.sh -w 1 -- ...`でwatchdogを再起動、という一連の流れを複数回繰り返した。gdbのattach/detachは一切使用しておらず、今回のようなデッドロックのリスクは無い。
+
+**3. 🔴🎉 決定的な発見：スワップ直前のバックバッファに`"Session recording started"`というtoastの文字が、アンチエイリアス込みで完璧に描画されていることを実際の画像として確認**：
+起動から約24〜25秒後（swap#9〜#12付近）に、サンプリングで「other」ピクセル（158サンプル、実ピクセル数約8000強）が複数フレームにわたって継続的に検出された。該当フレームのPPM画像をダウンロードし、非黒領域のバウンディングボックス（画面下部中央、x=862-1056, y=950-992付近）を切り出してPNG化・目視確認したところ、**`"Session recording started"`という文字列が完全に判読可能な形で、実際にKMSへスワップされる直前のバックバッファに正しく描画されていた**。これは、これまで`Window.screenshot()`という間接的な読み取り経路でしか確認できていなかった「文字描画パイプラインは正常」という知見を、**実際にハードウェアへ渡される直前のバッファの直接読み取り**によって、より強い証拠で裏付けるものである。第8回セッションで発見した「toastはWindow直下の別描画経路（ModalView系）を使う」という知見とも整合し、**toastに関しては、アプリ側の描画からEGLのスワップまでの経路全体が完全に正常であることが実証された**。
+
+**4. ⚠️ 一方、90秒間・最大900回のスワップを観測してもメイン画面（Home/Dashboard）への遷移が確認できず、背景色矩形(18,18,18,255)すら一度も出現しなかった**：
+ESP32(`/dev/ttyACM0`)は接続済み・RCPAPI通信（`Tx: {"s":0}`等の定期ポーリング）も正常に継続していたが、ログの最後は`Load .../setup/background_intro.jpg`（Setup画面のイントロ背景画像ロード）で止まっており、**Setup画面から抜けていない可能性が高い**。これまでの複数セッションで確認してきた「背景色矩形(18,18,18,255)は常に正しく描画される」という観測は、実際にはHome画面（Dashboard）到達後の話であった可能性があり、**Setup画面自体はそもそも全画面背景矩形を持たないUIデザインである可能性**が新たに浮上した。ヘッドレス環境（マウス/タッチ入力なし）ではSetup画面のフロー（デバイス検出確認→ユーザーによる次へ操作等）を自動で通過できず、Home画面まで到達できていないと推測される。
+
+**実機（`rc-dash-3b`）に今回のセッションで加えた変更・生成物（次回セッション用の記録）**：
+- `/tmp/egl_interpose3.c` / `.so`：バックバッファ直接読み取り＋画像保存機能付きのdlsymフック（次回もそのまま`LD_PRELOAD=/tmp/egl_interpose3.so`で再利用可能。現状は離散チェックポイント版・`other>20 || bgcolor>20`の時のみPPM保存する設定になっている）
+- `/tmp/rebuild_egl3.py`：`egl_interpose2.c`から`egl_interpose3.c`を再生成するPythonパッチスクリプト（コード修正時の再現用に保存済み）
+- `/tmp/race_capture_egltest3.log`〜`egltest7.log`：各回の手動起動時のrace_capture標準出力ログ
+- `/tmp/swapframe_*.ppm`：保存された生画像（次回リブートまたは`/tmp`クリーンアップで消滅する想定、重要なものは`swapframe_009_crop.png`としてローカルにダウンロード済み・toast文字列を確認済み）
+- セッション終了時点、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み（新PID、gdb等の注入は一切残っていないクリーンな状態）
+
+**次回の最優先調査候補（優先度順、更新）**：
+0. **最優先：何らかの方法でSetup画面を通過しHome画面（Dashboard）へ到達させた状態で、`egl_interpose3.so`によるバックバッファ直接読み取りを行い、メイン画面のコンテンツが正しく描画されているか確認する**。方法の候補：①ユーザーに実機へタッチパネル/マウスを接続してもらい手動でSetup画面を進めてもらう、②`xdotool`等（DC-7-1のkeyring初期化で実績あり）でタップイベントを合成する、③Kivy側からPython注入でScreenManagerを直接`Home`へ遷移させる（ただしgdb注入が必要になり今回のリスクと同種の懸念がある。LD_PRELOAD側からPython層を操作する経路が無いか要検討）。
+1. もしHome画面到達後もメイン画面のコンテンツが描画されないままなら、「ScreenManager配下のコンテンツ描画パスに固有の問題がある」という新しい方向へ絞り込める。逆に正しく描画されていれば「アプリ側は完全に正常、真因はKMS/DRM/カーネル側」と確定し、調査対象をkernelのDRMドライバ側（VC4）へ完全に移せる。
+2. `eglChooseConfig`が呼ばれていない件は引き続き優先度低。
 
 ---
 
