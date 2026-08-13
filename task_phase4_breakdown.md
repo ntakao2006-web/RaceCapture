@@ -533,9 +533,17 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 - `/tmp/state_dump.json`・`/tmp/frametest_sw_*.png`・`/tmp/framemid_sw_*.png`・`/tmp/framemid*.png`・`/tmp/framelast*.png`・`/tmp/summarize_state.py`・`/tmp/survey_state.py`・`/tmp/sample_calls.txt`・`/tmp/blobs/`等、今回生成した検証用の一時ファイルは全て`/tmp`配下のため次回リブートで消滅する想定。
 - セッション終了時点、`race_capture`は最初から最後まで中断なく正常稼働を継続していた（`ps aux`でPID 1685が一貫して稼働、GPS/テレメトリ等への影響なし）。
 
+**7. ✅ 補足：「デスクトップGL 2.1 Compatibility Profileで描画している」件は、SDL2側の不具合・想定外のフォールバックではなく、アプリ自身の意図的な選択だったと判明しクローズ**：
+トレース冒頭（call 9-40）を確認したところ、アプリ自身が明示的に`eglBindAPI(api = EGL_OPENGL_API)`（デスクトップGL API）を呼び、`eglChooseConfig`の`attrib_list`にも`EGL_RENDERABLE_TYPE = EGL_OPENGL_BIT`（GLESではなくデスクトップGL明示）を指定した上で`eglCreateContext`していることを確認した。つまりGLESへのフォールバック失敗や想定外の挙動ではなく、SDL2（またはKivyのSDL2 window provider）がこのプラットフォームで意図的にデスクトップGLを要求している、通常の設計通りの動作である。次回優先候補1（GLES/デスクトップGLの食い違い調査）はこれでクローズする。
+
+**実機（`rc-dash-3b`）に今回のセッションで加えた変更・生成物（次回セッション用の記録）**：
+- 今回のセッションは全て`race_capture`稼働中の読み取り専用操作（既存の`/tmp/rc.trace`に対する`eglretrace`/`apitrace`によるオフスクリーンreplay、`/tmp/blobs/`へのバッファ内容抽出、`/sys/kernel/debug/dri/`配下の読み取り、`dmesg`の読み取り）のみで完結しており、`race_capture`本体プロセスやDRM/KMSの状態には一切変更を加えていない（`getty@tty1`の停止・再開も今回は不要だった）。
+- `/tmp/state_dump.json`・`/tmp/frametest_sw_*.png`・`/tmp/framemid_sw_*.png`・`/tmp/framemid*.png`・`/tmp/framelast*.png`・`/tmp/summarize_state.py`・`/tmp/survey_state.py`・`/tmp/sample_calls.txt`・`/tmp/blobs/`等、今回生成した検証用の一時ファイルは全て`/tmp`配下のため次回リブートで消滅する想定。
+- セッション終了時点、`race_capture`は最初から最後まで中断なく正常稼働を継続していた（`ps aux`でPID 1685が一貫して稼働、GPS/テレメトリ等への影響なし）。
+
 **次回の最優先調査候補（優先度順、更新）**：
-0. **最優先：「画面内の妥当な座標・形状を持つ実コンテンツがGPUへ正しく送出され、KMSページフリップも正常に機能しているのに、画面には背景色しか表示されない」という、これまでで最も強く絞り込まれた矛盾を、GPU（V3D）が実際にそのジオメトリのピクセルを書き込んでいるかどうかのレベルで検証する。** 具体的な候補：(a) 今回確立した`apitrace dump --blobs`によるインデックスバッファ抽出手法を使い、画面内に収まることが確認できた呼び出し（例：call 1855764、1858033）について`glDrawElements`直後に`glReadPixels`でその領域をサンプリングする（LD_PRELOADインターポーザ`egl_interpose11.so`の後継版が必要、`/tmp`は消えているので再構築要）。(b) 同じ領域を`ffmpeg kmsgrab`で座標を絞ってキャプチャし、glReadPixels結果と比較する。
-1. デスクトップGL 2.1 Compatibility Profile（GLESではない）という今回発見した意外な事実を深掘りする。SDL/EGLのコンテキスト要求属性（`EGL_RENDERABLE_TYPE`、`EGL_CONTEXT_CLIENT_VERSION`等）をLD_PRELOADフックで確認し、アプリが本来GLESを要求しているのにデスクトップGLへフォールバックしている等の食い違いがないか確認する。またMesa `26.2.0-1~bpo13`という非常に新しいバックポート版ドライバの既知不具合がないか調査する。
+0. **最優先：「画面内の妥当な座標・形状を持つ実コンテンツがGPUへ正しく送出され、KMSページフリップも正常に機能しているのに、画面には背景色しか表示されない」という、これまでで最も強く絞り込まれた矛盾を、GPU（V3D）が実際にそのジオメトリのピクセルを書き込んでいるかどうかのレベルで検証する。** 具体的な候補：(a) 今回確立した`apitrace dump --blobs`によるインデックスバッファ抽出手法を使い、画面内に収まることが確認できた呼び出し（例：call 1855764、1858033）について`glDrawElements`直後に`glReadPixels`でその領域をサンプリングする（LD_PRELOADインターポーザ`egl_interpose11.so`の後継版が必要、`/tmp`は消えているので再構築要。**ライブプロセスへの注入を伴うためリスクがあり、過去セッションでもgdb関連のクラッシュ・GILデッドロックが複数回発生している。ユーザー立ち会いのもとで慎重に実施することを推奨**）。(b) 同じ領域を`ffmpeg kmsgrab`で座標を絞ってキャプチャし、glReadPixels結果と比較する。
+1. ~~デスクトップGL 2.1 Compatibility Profile（GLESではない）という意外な事実の深掘り~~ → 今回の課題7でクローズ済み（アプリの意図的な選択と判明）。
 2. `apitrace dump-images`/`glretrace`のGBMヘッドレスreplayは、最初の`eglSwapBuffers`を過ぎると恒久的に使用不能になることが判明したため、今後この経路（ピクセルスナップショット目的）への依存は避ける。ただし`eglretrace -D`（GL状態JSONダンプ）・`apitrace dump --blobs`（バッファ実データ抽出）はswap境界に関係なく機能するため、今後も有効な調査手段として活用する。
 
 ---
