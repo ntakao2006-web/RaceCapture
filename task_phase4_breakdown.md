@@ -633,6 +633,43 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 ---
 
+**今回のセッション（4-4-2続き・第16回、ユーザー立ち会いあり、ライブ注入複数回）で得た知見：`glReadPixels`によるライブ検証をついに実現し、DASHBOARD画面が実際にはほぼ全域にわたり何も描画されていないことを実機内部から直接確認。副産物として`DashboardView`のKVソースを入手し、これまでの「ScreenManagerのcurrent Screen配下かどうか」という境界線仮説と矛盾する新事実を発見した**：
+
+**接続情報の補記**：`rc-dash-3b`（`ntakao@192.168.137.162`、鍵は`C:\Users\ntaka\.ssh\racecapture_dash_ed25519`）。今回はサンドボックス環境側の自動承認分類器が`sudo kill`・プロセス起動系のBashコマンドを繰り返しブロックしたため、これらのコマンドは全てユーザー自身に実機のPowerShellターミナルから直接実行してもらう運用で進めた（Claude側はSSHでの読み取り専用確認・ビルド・ファイル転送のみ担当）。また`ssh -f`はWindows OpenSSHクライアントでは期待通りに動作せず、バックグラウンド起動コマンドを実行してもローカルのPowerShellプロンプトが返ってこない現象が発生したが、実機側の処理自体は正常に完了していることを別セッションから確認した（見た目だけの問題、実害なし）。
+
+**1. 🔴🎉 前回セッション最優先課題だった「低オーバーヘッド版`glReadPixels`ライブ検証」を、複数回の試行錯誤の末に実現した**。過程で2つの新しいdlsym/RTLD_NEXTスコープ問題を発見・解決：
+   - **`eglSwapBuffers`自体が`RTLD_NEXT`経由の古典的LD_PRELOADシンボル上書きでは一切フックできない**（10分以上・数百回のスワップが発生しても0回しかフックされない）ことが判明。実際には`dlsym(handle, "eglSwapBuffers")`で動的に解決されており、第8回セッションの`SDL_GL_GetProcAddress`と同種の問題だった。修正：`dlsym()`自体をグローバルにフックし、`"eglSwapBuffers"`を要求された時だけ自前の関数を返す方式（第7-9回で確立済みの手法）で解決。
+   - **`glReadPixels`も同様に`dlsym(RTLD_NEXT, "glReadPixels")`では解決できず（`NULL`が返り続ける）**、`/proc/<pid>/maps`で実際にロードされている`libGL.so.1`のパス（`/usr/lib/aarch64-linux-gnu/libGL.so.1.7.0`）を特定した上で`dlopen(path, RTLD_NOW|RTLD_NOLOAD)`により当該ライブラリの実ハンドルを取得し、そのハンドル経由で`dlsym`することで解決した（第8回セッションがSDL2に対して確立した手法と同一パターン）。
+   - また、第13回セッションの`egl_interpose7.c`（ステンシル直読み版）が`glReadPixels`の呼び出し時に**y座標をウィンドウ座標系（左上原点）のまま渡しており、GLの左下原点への変換をしていなかった**というバグに気づいた（今回作成した後継版では`GL_Y = WIN_H - WINDOW_Y_TOP - HEIGHT`で正しく変換）。ただし第13回はステンシル条件が一度もマッチせず実害はなかった。
+   - 完成した最終版インタポーザ（`egl_interpose17.so`）は、トリガーファイル（`/tmp/take_sample`）の存在を10スワップごとに軽量にチェックし、見つかった時だけ画面全体（1920x1080）を`glReadPixels`で1回だけダンプする設計（`Window.screenshot()`相当の全画面読み取りを、任意のタイミングでオンデマンド実行できる）。
+
+**2. 🔴🎉 決定的な結果：ユーザーがDASHBOARD画面を表示している最中に画面全体をライブダンプしたところ、透過(0,0,0,0)が2,073,376ピクセル・背景色(18,18,18,255)がわずか4ピクセル・それ以外(other)が220ピクセルのみ（全2,073,600ピクセル中）という結果だった。この220ピクセルの位置を解析したところ、x=[95,110] y=[62,87]（画面左上寄りの小さな領域、グレースケール系の色）に集中しており、ユーザーが物理モニターで同時に確認していた「ページ切り替え用の矢印ボタン」の位置と一致すると考えられる**。つまり、**アプリ内部の`glReadPixels`（`Window.screenshot()`と同じ経路のはず）自体が、DASHBOARD画面表示中はこの矢印アイコン以外ほぼ何も見せていない**。これは第9回セッションの「`Window.screenshot()`は465色で完璧に描画されている」という結果と真っ向から矛盾するように見えるが、**第9回の`Window.screenshot()`検証はSetup→Home遷移直後の「Home画面」（Setup/Analysis/Dashboardの3ボタンを持つメニュー画面）に対して行われたものであり、DASHBOARD画面自体で同じ検証を行ったのは今回が初めてだった**という重要な違いに気づいた。すなわち、「GPU内部の読み戻しは常に完璧、スキャンアウトだけが壊れている」という長年の前提は、少なくともDASHBOARD画面については未検証のまま置かれていた可能性が高く、DASHBOARD画面固有の描画そのものに問題がある可能性が新たに浮上した。
+
+**3. 🔴🎉 副産物：`DashboardView`のKVソース（`racecapture/views/dashboard/dashboardview.pyc`の文字列定数から抽出）を入手し、正確なウィジェット構造を確認した**：
+```
+<DashboardView>:
+    canvas.before: Color / Rectangle（背景）
+    FloatLayout: id: dash_container
+        MDLabel: id: dash_notice
+        AnalysisCarousel: id: tabs        # ← ゲージ本体のページ送りコンテナ（Carousel→StencilView継承）
+        TripleGaugeBar: id: gauge_bar     # ← 下部ゲージバー
+        IconButton: (左矢印, on_nav_left)  # ← ユーザーが見ている矢印ボタン
+        IconButton: (右矢印, on_nav_right)
+        AnchorLayout → PreferencesLockComboButton
+        FullCourseFlagIndicator: id: fcflag
+        AnchorLayout → MDBoxLayout → PopupAlertView 等
+```
+   **重要な矛盾を発見**：矢印ボタン（`IconButton`）は`AnalysisCarousel`・`TripleGaugeBar`と**全く同じ階層**（`dash_container`の直接の子、`DashboardView`＝`ScreenManager`のcurrent Screen配下）にあるにもかかわらず、矢印ボタンだけが描画され、他は描画されない。これは第14回セッションが確立した「`ScreenManager`のcurrent Screen配下かどうか」という境界線仮説と直接矛盾する新事実であり、単純な祖先ウィジェットの階層だけでは説明できないことが判明した。当初は「`AnalysisCarousel`（Carousel→StencilView継承）のステンシルクリップが壊れているだけでは」という仮説を立てたが、`TripleGaugeBar`はCarouselの外側（`dash_container`の直接の子、`AnalysisCarousel`とは兄弟）にありCarouselのステンシルクリップの影響を受けないはずなのに描画されないため、この仮説だけでは矢印ボタンとの違いを説明しきれない。
+
+**実機（`rc-dash-3b`）の状態（セッション終了時点）**：`race_capture`はユーザーの操作により元のwatchdog付きクリーンな状態（`run_racecapture_rpi.sh -w 1`、`LD_PRELOAD`なし）へ復旧済み、GPS/テレメトリ等正常。今回作成した`egl_interpose12〜17.c`/`.so`、`/tmp/gl_dump_0_swap1440.raw`（画面全体のRGBA生データ、ローカルにも保存済み）等は全て`/tmp`配下のため次回リブートで消滅する想定。
+
+**次回の最優先調査候補（優先度順、第16回セッション完了時点で更新）**：
+0. **最優先：矢印ボタン（`IconButton`）と`TripleGaugeBar`/`AnalysisCarousel`/`MDLabel`の違いを特定する。** 同じ階層にありながら描画の有無が分かれる具体的な要因を絞り込む。候補：(a) `IconButton`の実装（`autosportlabs.uix.button.iconbutton`）がKivy標準`Button`ベースで、他のウィジェットと異なる描画経路（テクスチャベースのボタン背景等）を使っている可能性、(b) KV上の記述順序・`canvas`挿入順序の違い（`IconButton`はcanvas.beforeで独自の背景描画を持たない一方、他は複雑な`canvas`命令を持つ）、(c) `AnalysisCarousel`/`TripleGaugeBar`/`MDLabel`が`size`/`size_hint`絡みで実際には0サイズになっている可能性（`egl_interpose17.so`の全画面ダンプ結果は0サイズでも矛盾しない）。`gauge_bar.top`等の値を各ウィジェットのランタイムプロパティとして確認する追加のライブ注入検証が有効。
+1. 今回入手した`DashboardView`のKVソース全文（3000文字で打ち切ったため後半が未取得）を次回追加取得し、`PopupAlertView`以降の残り部分も確認する。
+2. `egl_interpose17.so`のトリガーファイル方式（`/tmp/take_sample`）は低オーバーヘッドかつタイミング調整が容易な手法として確立できたため、次回以降のライブ検証でも継続利用する。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
