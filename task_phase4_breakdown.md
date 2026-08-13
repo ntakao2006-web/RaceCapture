@@ -595,6 +595,20 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
    
    この結果は、**「`ScreenManager`が画面切り替えで表示するメインコンテンツ領域だけが描画されず、ウィンドウに直接オーバーレイされる系のウィジェット（ナビゲーションドロワー、各種パネル、ポップアップ、カーソル）は正常」という、非常にクリーンな境界線**を示しており、これまで複数セッションかけて追ってきた「ステンシルクリッピング仮説」（ネストしたスクロール領域等のクリッピングに使われるステンシルテストが、メインコンテンツ領域内でのみ機能不全を起こしている）と強く整合する。またサイドバー等の操作感が「乱れはないが遅延はある」点は、描画の可否とは別に一般的なパフォーマンス問題（重い`busy-work`ダミータスク・電源対策によるCPUクロック制限800MHz等）が存在することも示しており、これは「単純な処理能力不足」では説明できない今回の主症状（0か100かの一貫した描画有無）とは区別して記録しておく。
 
+**7. 🔴 上記6を受けて逆コンパイル済みソース（`~/decompile_4-4-2/`）上でウィジェット構造を突き合わせたところ、「ステンシルクリッピング仮説」は単独では説明力不足であることが判明し、「`ScreenManager`の`current`Screenの中に入っているかどうか」という構造的な境界の方がより正確であることが強まった**：
+   - `AppMainFrame`の実際のウィジェットツリーを確認：`<AppMainFrame>: RelativeLayout: BoxLayout: ToolbarView(id: status_bar) / ScreenManager(id: main) / NavigationDrawer(id: navigation_drawer)`。**`NavigationDrawer`は`ScreenManager`の外側にある特別な存在ではなく、同じ`RelativeLayout`内の兄弟ウィジェット**（`ToolbarView`と`NavigationDrawer`はいずれも`ScreenManager`の外）。
+   - `ScreenManager`の`transition`には明示的に**`NoTransition`が設定されている**ことを確認（`main.py`内`LOAD_GLOBAL (NULL + NoTransition)`）。これにより、`screenmanager.py`内に存在する`RenderContext`/`Fbo`ベースの遷移エフェクト機構は実際には一切使われていないことが確定し、第13回セッションでapitraceが実測した「`glBindFramebuffer`呼び出し0回」と完全に整合した。**FBO関連の仮説はこれで完全にクローズしてよい。**
+   - `kivy/uix/screenmanager.py`本体（`real_add_widget`/`real_remove_widget`/`on_current`）を確認したが、標準的なKivyライブラリの素のコードで、`opacity`操作やクリッピングの類は一切なく、疑わしい点は見当たらなかった。
+   - **`NavigationDrawer`自体は`FloatLayout`と`StencilView`の両方を継承しており、実は独自のステンシルクリッピングを使っている**（KVコメントに`# stencil boundaries`と明記）。つまり「ステンシルクリッピングを使っているかどうか」自体は描画可否の分かれ目ではない。
+   - `DashboardView`は素の`Screen`（`RelativeLayout`）を継承するのみでStencilViewは無し。その子ウィジェットのうち`AnalysisCarousel`は`Carousel`（→`StencilView`）を継承しステンシルクリッピングを使うが、**同じく描画されなかった`TripleGaugeBar`（`BoxLayout`ベース）・`FullCourseFlagIndicator`（素の`Widget`ベース）・`MDLabel`（`dash_notice`）はいずれもステンシルクリッピングを一切使っていない**。それでも実機ではDASHBOARD画面の中身は（カルーセル部分に限らず）全体が表示されなかった。
+   
+   **結論：「ステンシルクリッピングの有無」では、描画される／されないの境界線を説明しきれないことが今回の調査で判明した。** より正確な境界線は「`ScreenManager`の`current`として表示されるScreenの子孫かどうか」であり、そのメカニズム自体（`ScreenManager`本体のコードは正常と確認済み）はまだ特定できていない。
+
+**次回の最優先調査候補（優先度順、第14回セッション完了時点で更新）**：
+0. **最優先：`ScreenManager`配下でだけ描画が壊れる具体的なメカニズムを特定する。** `ScreenManager`自体のコードは正常と確認済みのため、次に疑うべきは(a) `kivy.uix.screenmanager.Screen`（`RelativeLayout`継承）が`AppMainFrame`の外側`RelativeLayout`とネストすることで生じる座標変換（`PushMatrix`/`Translate`/`PopMatrix`）の二重ネストが、このMesa/VC4ドライバで問題を起こしていないか、(b) `Widget.canvas`の親子関係で`current`Screen切り替え時にcanvasの追加順序・グループ分けが崩れていないか（`kivy/uix/widget.py`の`add_widget`/`canvas`まわりを次回確認）、(c) バンドルされているKivyのバージョンに既知の関連issueがないか（バージョン確認と変更履歴の確認）。ライブ注入なしで進められる。
+1. どうしても静的解析で決着しない場合は、ステンシルバッファではなく**カラーバッファの実ピクセル値**を`glReadPixels`で、DASHBOARD画面表示中の既知の座標（例：`gauge_bar`領域）に対して1回だけ低オーバーヘッドで読み取る（今回の`egl_interpose7.so`のような毎コールステート照会ではなく、`swap_count`一致等のワンショット方式に改良すること）。
+2. 今回発見した「単一スキャンライン状の断続コンテンツ」（第14回セッション前半の記録参照）は正体未確認のまま優先度低で保留。
+
 ---
 
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
