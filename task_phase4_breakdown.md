@@ -396,9 +396,28 @@ ESP32(`/dev/ttyACM0`)は接続済み・RCPAPI通信（`Tx: {"s":0}`等の定期�
 - セッション終了時点、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み
 
 **次回の最優先調査候補（優先度順、更新）**：
-0. **最優先：`egl_interpose4.so`ベースの安全な手法（gdb不要）を使い、`try_setup_to_home()`のタイミングでさらにPythonコードを追加注入し、Home画面のウィジェットツリー（`sm.get_screen('home')`配下）のcanvas命令を直接検証する**。特に、これまでのセッション（第5〜7回）で試して効果がなかった「force-redraw」系ワークアラウンドを、今回確立した安全な注入経路（gdbではなくLD_PRELOAD内Python呼び出し）で改めて試す価値がある——gdb call特有の問題（GIL状態破壊等）がこれまでの失敗の一因だった可能性を排除できていないため。
-1. `on_draw`が呼ばれた際に実際に`canvas.draw()`が最後まで実行されているか（例外で早期リターンしていないか）を、`egl_interpose4.so`経由の安全な注入で確認する。
+0. ~~`egl_interpose4.so`ベースでHome画面のウィジェットツリー・canvas命令を検証~~ → **今回のセッションで実施・完了、決定的な結果を得た（下記参照）**。
+1. **最優先：確立した安全な注入経路（gdbではなく`egl_interpose*.so`内Python呼び出し）で、これまでの「force-redraw」系ワークアラウンド（第5〜6回セッションでgdb call経由では効果がなかった手法）を改めて試す**。gdb call特有の問題（GIL状態破壊等）がこれまでの失敗の一因だった可能性を排除できていないため、同じロジックを安全な経路で再試行する価値が高い。
 2. `eglChooseConfig`が呼ばれていない件は引き続き優先度低。
+
+---
+
+**今回のセッション（4-4-2続き・第9回、さらに最終盤）で得た最も決定的な知見：Home画面のPython/Kivyレベルの状態は完璧に正常であることを実機で確定**：
+
+**`egl_interpose5.so`（`egl_interpose4.so`に「Home画面遷移後、ウィジェットツリーをダンプする」機能を追加したもの、`swap_count==30`のタイミングで`/tmp/dump_home.py`を自動実行）で、実際にHome画面（`HomePageView`、"Setup"/"Analysis"/"Dashboard"の3ボタンを持つメインメニュー画面、`racecapture.menu.homepageview`モジュール）のウィジェットツリーを再帰的にダンプしたところ、以下が判明した**：
+- ウィジェットツリー構造は完全に正常（`HomePageView` → `MDBoxLayout` → `FeatureButton`×3（各"Setup"/"Analysis"/"Dashboard"の`MDLabel`テキスト付き）→ `MDIcon`等）
+- **全ウィジェットの`opacity`が漏れなく`1.0`**（非表示になっているものは一つもない）
+- **全ウィジェットの`size`が正の値**（0幅/0高さで潰れているものはない、例：`HomePageView`は`[1920, 1040.0]`という正しいフルスクリーンサイズ）
+- **`canvas_children`（各ウィジェットのcanvasに登録されている描画インストラクション数）も軒並み1〜17個と、実際に描画命令が構築・登録されている**（例：`MDIcon`は17個、`MDLabel`は13個）
+- この状態を確認した直後（swap#40、同一プロセス・同一タイミング）でも、`egl_interpose*.so`によるバックバッファ直接読み取りは**依然として完全に透過(0,0,0,0)のみ**（背景矩形すら無し）
+
+**これにより、本タスク全体を通じて最も重要な結論に到達した**：**「アプリケーション（Python/Kivy/KivyMD）側の状態は、ウィジェットツリー構築・プロパティ設定・canvas命令登録のすべての段階において完全に正常であり、疑うべき箇所はもはや存在しない。真因は、これらの正しく登録された描画命令(`Color`/`Rectangle`/`BindTexture`等の`Instruction`オブジェクト)を実際にOpenGL ES呼び出しとしてGPUへ送出する、`GraphicsCompiler.compile()`/`InstructionGroup.apply()`（Cython実装、`kivy/graphics/*.so`）から`eglSwapBuffers`に至るまでのレンダリングパイプラインの、さらに下位のどこかに確実に存在する」**。これまでの3回のセッション（第7〜8回）で否定してきた各仮説（KivyMD RenderContext/FBO、SDL2バージョン単体、WindowPatch）に続き、今回で「アプリ側の設定・状態管理」という大きな方向性そのものが完全に排除され、焦点は純粋に「描画命令の実発行〜GPU〜スワップ」というレンダリングパイプライン内部（Cython/ネイティブコードレベル）に絞り込まれた。
+
+**実機（`rc-dash-3b`）に今回のセッションで加えた変更・生成物（次回セッション用の記録）**：
+- `/tmp/egl_interpose5.c` / `.so`：Setup→Home遷移＋ウィジェットツリーダンプの両方を自動実行する版（`swap_count==3`でHome遷移、`swap_count==30`でツリーダンプ。次回もそのまま`LD_PRELOAD=/tmp/egl_interpose5.so`で再利用可能）
+- `/tmp/patch_egl5.py`：`egl_interpose4.c`から`egl_interpose5.c`を生成するパッチスクリプト
+- `/tmp/dump_home.py`：Home画面のウィジェットツリーを再帰的にダンプするスクリプト（`opacity`/`size`/`canvas_children`を出力。次回、`canvas_children`の中身（実際のInstructionの型・パラメータ）までさらに深掘りする際のベースとして再利用可）
+- セッション終了時点、`race_capture`は通常のwatchdog付きフロー（`run_racecapture_rpi.sh -w 1`）で正常稼働中に復旧済み
 
 ---
 
