@@ -397,8 +397,12 @@ ESP32(`/dev/ttyACM0`)は接続済み・RCPAPI通信（`Tx: {"s":0}`等の定期�
 
 **次回の最優先調査候補（優先度順、更新）**：
 0. ~~`egl_interpose4.so`ベースでHome画面のウィジェットツリー・canvas命令を検証~~ → **今回のセッションで実施・完了、決定的な結果を得た（下記参照）**。
-1. **最優先：確立した安全な注入経路（gdbではなく`egl_interpose*.so`内Python呼び出し）で、これまでの「force-redraw」系ワークアラウンド（第5〜6回セッションでgdb call経由では効果がなかった手法）を改めて試す**。gdb call特有の問題（GIL状態破壊等）がこれまでの失敗の一因だった可能性を排除できていないため、同じロジックを安全な経路で再試行する価値が高い。
-2. `eglChooseConfig`が呼ばれていない件は引き続き優先度低。
+1. **最優先：`egl_interpose6.so`（`SDL_GL_GetProcAddress`フックで実描画コマンド発行数を計測する版）がクラッシュした原因を切り分けて修正し、実際に`glDrawArrays`/`glDrawElements`/`glClear`がHome画面で何回呼ばれているかを計測する**。詳細は下記セッション記録参照。
+2. **上記が確認できれば、確立した安全な注入経路（gdbではなく`egl_interpose*.so`内Python呼び出し）で、これまでの「force-redraw」系ワークアラウンド（第5〜6回セッションでgdb call経由では効果がなかった手法）を改めて試す**。gdb call特有の問題（GIL状態破壊等）がこれまでの失敗の一因だった可能性を排除できていないため、同じロジックを安全な経路で再試行する価値が高い。
+3. `eglChooseConfig`が呼ばれていない件は引き続き優先度低。
+
+**⚠️ 今回のセッション最後に発生した未解決事項：`SDL_GL_GetProcAddress`フックでrace_captureがクラッシュ**：
+`kivy/graphics/cgl_backend/cgl_sdl2.so`が全GLES関数ポインタを`SDL_GL_GetProcAddress`経由で動的解決している（`eglChooseConfig`等と同じdlsym的パターン）ことを`objdump -T`で確認し、この関数自体をLD_PRELOADでフックして`glDrawArrays`/`glDrawElements`/`glClear`の呼び出し回数を計測する`egl_interpose6.c`を作成したが、実行したところ**race_capture本体がウィンドウ初期化の途中（ログの最後は`[GL] Using the "OpenGL" graphics system`）でクラッシュし、プロセスごと消滅した**（`dmesg`にはセグフォルト等の記録なし）。原因は未特定（フック関数のシグネチャ不一致、`dlsym(RTLD_NEXT,...)`の呼び出しコスト、`SDL_GL_GetProcAddress`が想定より高頻度・別スレッドから呼ばれている可能性等が考えられる）。実機は`kill`不要でプロセスが既に消滅していたため、`watchdog`を再起動するだけで復旧できた（`egl_interpose6.so`自体は実機に保存済み、`/tmp/egl_interpose6.c`が原因調査のベース）。
 
 ---
 
