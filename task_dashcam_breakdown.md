@@ -386,13 +386,19 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
 
 - [ ] DC-9-1: 手元のRaspberry Pi単体で、自作ESP32ファームウェア＋`race_capture`アプリの
       接続・動作を確認する（外部モニター使用、追加購入なしで着手可能）
-- [ ] DC-9-2: ROCK 5Bを購入する（USB PD対応電源、冷却ファン付きヒートシンク、
+- [x] DC-9-2: ROCK 5Bを購入する（USB PD対応電源、冷却ファン付きヒートシンク、
       eMMCモジュール16GB（OS起動用）、microSD（動画保存用・振動対策の物理固定を検討）を
       同時手配すること。M.2 NVMe SSDは消費電力・発熱の懸念から今回は見送り。
-      詳細仕様は`DASHCAM_ROCK5B_REPORT.md`4章参照）
+      詳細仕様は`DASHCAM_ROCK5B_REPORT.md`4章参照） ※完了。2026-08-13、本体8GBモデル・
+      eMMCモジュールを注文（USB PD対応電源・冷却ファン付きヒートシンク・microSDも
+      同時注文済み）。到着後の作業手順は`DASHCAM_ROCK5B_SETUP_GUIDE.md`にまとめた
 - [ ] DC-9-3: ROCK 5B上で`race_capture`アプリがMali GPU（Mali G610）上で正常に描画・
       起動できるか確認する（DC-5/DC-6で発生した`No matching FB config found`級の
-      問題が再発しないか、が最大の技術的未知数）
+      問題が再発しないか、が最大の技術的未知数）。実務手順は`DASHCAM_ROCK5B_SETUP_GUIDE.md`
+      参照（2026-08-13作成、ROCK 5B到着前のWeb調査ベース。AutosportLabs公式の
+      Raspberry Pi向けインストーラーはEGL/OpenGL ES系の依存パッケージ構成であり、
+      x86版が使うGLX（デスクトップOpenGL）とは異なるレンダリング経路の可能性が高いため、
+      x86ルートのFBConfigクラッシュがそのまま再発するとは限らないという新しい仮説を記載）
 - [ ] DC-9-4: `video-streamer`相当の機能（画面キャプチャ＋RKMPPハードウェアエンコード＋
       ローカルmp4保存）を、ffmpeg-rockchip（`nyanmisaka/ffmpeg-rockchip`）ベースで自作し、
       動作確認する（公式`video-streamer`はクローズドバイナリでVAAPI専用のため移植不可、
@@ -405,6 +411,31 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
       待たず、検証用のESP32-C3代替機のまま実車に持ち込み、2週間程度の実運用テストを
       実施する（真夏〜初秋の高温環境は、連続エンコード時の熱設計・スロットリング挙動を
       検証する上で好条件と判断）
+
+---
+
+## DC-10: 2台目車両向け構成の検討（ROCK 4 SE、動画配信なし） ※検討中、未購入
+ロードスター以外にもう1台、動画配信機能が不要な車両があり、そちらにはROCK 5Bとは
+別の安価なボードを充てる方向で検討中。**両者の用途の違いを明確に区別しておく**：
+
+- **ROCK 5B（Rockchip RK3588）**：ロードスター向け。`race_capture`（ダッシュ表示）＋
+  `video-streamer`相当（画面キャプチャ＋RKMPPハードウェアエンコード＋ローカルmp4保存＋
+  YouTube等へのライブ配信）**込みのフル構成**。DC-9で検討・計画中
+- **ROCK 4 SE（Rockchip RK3399-T、4GBメモリ）**：2台目車両向け。動画配信・録画機能は
+  不要で、`race_capture`によるダッシュ表示＋podium.live経由の**ライブテレメトリー配信の
+  みの軽量構成**。カメラ接続なし、ハードウェアエンコード不要。USB-C PD（9-20V）対応かつ
+  Raspberry Pi 4クラスの性能・安価（¥9,988、国内ショップ）という条件で選定した
+  （購入先：https://shop.iothonpo.com/product/rock-4se/ )
+
+- [ ] DC-10-1: ROCK 5B側でDC-9-3（`race_capture`アプリのMali GPU描画確認）が完了したら、
+      その結果・回避策（Ubuntu バージョン、Panfrostドライバの明示的な有効化設定など）を
+      記録した上でROCK 4 SEでも同様の確認を行う（Mali世代・SoC世代が異なる（G610/Valhall
+      系 vs T860/Midgard系）ため、ROCK 5Bで解決してもそのまま通用するとは限らない点に注意。
+      詳細な理由は本チャットの検討記録を参照）
+- [ ] DC-10-2: ROCK 4 SEを購入する（USB-C PD対応電源を別途手配。詳細な周辺機材リストは
+      DC-9-2のROCK 5B分と同様に検討する）
+- [ ] DC-10-3: ライブテレメトリー配信（podium.live経由）のみの軽量構成での動作確認
+      （DC-8で実証済みの経路をROCK 4 SE上で再確認）
 
 ---
 
