@@ -409,18 +409,31 @@ Kivy標準の設定ファイルは`~/.kivy/config.ini`だが、`KIVY_HOME`環境
 **今回自作しているESP32-C3代替ファームウェア（[firmware/src/main.cpp](firmware/src/main.cpp:1444)）はUSB接続のみの設計でWiFi/
 Bluetoothを持たない**ため、公式機のような複数配信機構には頼れない。
 
-回避策の候補（優先度順、いずれも未検証）：
-1. **`socat`等でシリアルポートを仮想的に複製**し、1つの物理ポートからの読み取りを
-   複数の仮想ポート（PTY）にコピーして、各race_captureインスタンスが別々の仮想ポートを
-   読む（Linuxの標準的なシリアル多重化手法）。通信が「常時ストリーム読み取り」かつ
-   書き込み（設定変更コマンド等）はダッシュ表示用途では基本的に発生しない想定のため、
-   読み取り専用の複製という単純な構成で足りる可能性が高く、実装が読めた今は
-   この案の実現性がより具体的に見積もれる
-2. 将来的にファームウェア側でWiFi配信機能を追加する（当面の対象外、大きな設計変更）
-3. `reference/RaceCapture_App`のソースが読めるため、`SerialConnection`/`Comms`クラス
+回避策の候補（優先度順）：
+
+1. 🔴 **【訂正】単純な`socat`によるポート複製では解決しない**：当初「`socat`でシリアル
+   ポートを仮想的に複製すれば読み取り専用の複製で足りる」と考えていたが、追加調査の結果、
+   **`socat`の標準的な複製構成（`TCP-LISTEN,fork`や単純な`PTY`作成）は「1つのソースの
+   データを複数の購読者で奪い合う」形になり、シリアル直結と同じ分断問題が起きる**ことが
+   判明した。「1つのソースから複数の購読者へ“同じ”データを配信する」ブロードキャストは
+   単純な複製コマンドでは実現できない
+2. ✅ **正しい設計方針：gpsd型のfan-outブリッジデーモンを自作する**。GPSデバイス用の
+   定番デーモン`gpsd`は「1つのデーモンプロセスだけがシリアル/USBデバイスを排他的に読み、
+   読み取った内容を複数のクライアントに配信する」という構成（fan-out architecture）を
+   取っており、これが本件の正解パターンと判断できる。具体的には、①専用のブリッジ
+   プロセス（Pythonで数十行程度の自作で足りる規模）がESP32実機のシリアルポートを
+   唯一読み取り、②受信した行を複数の仮想シリアルポート（`socat PTY,link=/dev/ttyV0`等で
+   作成）へ複製して書き込み、③各race_captureインスタンスは`--port /dev/ttyV0`
+   `--port /dev/ttyV1`のように別々の仮想ポートを読む、という構成。双方向の書き込み
+   （race_capture側からのコマンド送信）は今回の用途（表示のみ、設定変更なし）では
+   基本的に発生しない想定のため、まずは読み取り方向（実機→race_capture）のfan-outだけ
+   自作すれば足りる可能性が高い
+3. 将来的にファームウェア側でWiFi配信機能を追加する（当面の対象外、大きな設計変更）
+4. `reference/RaceCapture_App`のソースが読めるため、`SerialConnection`/`Comms`クラス
    自体に「1つの接続から複数の購読者にメッセージをブロードキャストする」機能を
    自分たちで追加改造するという選択肢も、(c)の訂正により現実的な選択肢に浮上した
-   （フォーク元のライセンス確認は必要）
+   （フォーク元のライセンス確認は必要。ただし②のブリッジデーモン方式の方がrace_capture
+   本体の改造が不要で影響範囲が小さく、優先度は②の方が高い）
 
 #### (e) video-streamer側のキャプチャ範囲
 
@@ -440,6 +453,61 @@ DC-9-1（手元のRaspberry Pi単体での先行検証）は、実はこのマ�
 ただし、Raspberry Pi版とROCK 5B版のrace_captureバイナリ・OS（Raspbian vs Radxa OS/Debian）は
 別物であり、x86→ARMほどの隔たりはないにせよ、**Raspberry Piでの検証結果がそのまま
 ROCK 5Bに転用できる保証はない**点は既存の注意点（DASHCAM_ROCK5B_REPORT.md等）と同様。
+
+#### (g) 🔴 新論点：ROCK 5Bのスペックで2インスタンス同時稼働の余力があるか（2026-08-15追記）
+
+`DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`4章のCPU/メモリ検討は「race_capture 1インスタンス＋
+エンコード」を前提にしたものであり、2インスタンス化での追加負荷は未検討だった。整理すると：
+
+- **メモリ**：1インスタンスで2GB未満の実績があるため、2インスタンスでも4GB未満で収まる
+  見込み。8GBモデルなら比較的楽観視できる
+- **エンコード（VPU）**：8K30対応でオーバースペックのまま変わらず、CPUを圧迫しない
+- **CPU（シングルコア、既存最大の懸念）**：ROCK 5B（Geekbench6シングルコア約849）は
+  公式最小要件Core i5-6500（約2,200前後）よりかなり弱く、1インスタンスの時点で
+  「race_captureのGUI描画ループがボトルネックになるリスク」が指摘されていた。Kivy
+  プロセスが2つに増えると単純には負荷が倍増するが、ROCK 5Bは**4×Cortex-A76（高性能）＋
+  4×Cortex-A55（高効率）のbig.LITTLE構成**のため、`taskset`/cgroupsで2インスタンスを
+  それぞれ別のA76コアに固定すれば「1コアの奪い合い」は回避できる見込み
+- 🔴 **未知数：Mali G610（Panfrost/Panthorドライバ）での複数プロセス同時描画の実効性能**。
+  Web調査では、PanthorカーネルドライバがMali-G610でOpenGL ES 3.1公式適合を達成したという
+  情報（2024年、[Collabora記事](https://www.collabora.com/news-and-blog/news-and-events/taming-the-panthor-opengl-es-31-conformance-achived-mali-g610.html)、テスト環境はまさにROCK 5B）は見つかったが、
+  **複数プロセス・複数EGLコンテキストを同時実行した際のパフォーマンス特性についての
+  公開情報は見つからなかった**。そもそも1インスタンスでの描画自体が未検証（ハードル①）
+  なので、この点は実測以外に確認する方法がない
+- 画面キャプチャ（`ximagesrc`または自作RKMPPパイプラインでのキャプチャ）は配信用の
+  1画面のみが対象のため、2画面分キャプチャする必要はなく、負荷は増えない見込み
+
+対応策の候補（既存4章の対応策の延長）：`taskset`/cgroupsでのコア固定・CPUガバナー
+`performance`固定、解像度/フレームレート低減、表示用ダッシュのレイアウトを配信用より
+軽量にする（重いグラフ/マップ描画は配信用のみに限定する等）。
+
+**結論として、絶望的に足りないと判断する材料はないが、「余裕」とも言い切れず、実測でしか
+判断できない**。DC-9-1に「2インスタンス＋エンコード＋配信を同時実行した際のCPU/GPU負荷
+実測（`mpstat -P ALL`、体感フレームレート等）」を検証項目として追加する。
+
+#### (h) EliteDeskでの先行検証の実現性とDC-2の既知の注意点
+
+DC-9-1-b（2インスタンス同時起動＋別出力＋別レイアウト）・(g)のCPU負荷検証の一部は、
+Kivy/pyserierの挙動に依存するためROCK 5B（ARM）を待たずに**EliteDesk（x86、既に
+race_capture動作実績あり、DC-6-6-7）で先行して着手できる**。
+
+- **マルチディスプレイ出力**：EliteDesk 800 G3（Mini型ではなく通常サイズ＝SFF/Tower系）は
+  背面に**DisplayPort×2ポートを標準搭載**しており（DC-6-1で判明済み）、2系統独立出力の
+  検証環境として使える
+- ⚠️ **既知の注意点（DC-2で未解決のまま保留中）**：過去にDP→D-Sub変換アダプター経由・
+  VGA直結経由いずれでも、BIOS/HPロゴまでは表示されるが**Ubuntu起動直後に信号が消える**
+  症状が発生し、原因未特定のまま「SSH中心の運用に切り替え、車載本番接続時に再検討」と
+  して保留していた。マルチディスプレイ検証で物理モニターへの表示確認まで行う場合は、
+  この既知の問題を踏まえ、DPケーブル直結（D-Sub変換アダプターを介さない）で改めて
+  試す・`video=`強制モード指定を再検討する等の対応が必要になる可能性がある。ただし
+  DC-6-6-6/DC-6-6-7では「物理モニター非接続のままEDID偽装でXサーバーを起動し、
+  race_captureの動作自体は確認できた」という実績があるため、**物理モニター表示に
+  こだわらなければ（EDID偽装のみで）2出力分のXサーバー起動・race_capture動作確認自体は
+  可能**と見込まれる
+- CPU/GPU負荷実測（(g)参照）はIntel UHD Graphics 630（EliteDesk搭載）とMali G610
+  （ROCK 5B）で特性が全く異なるため、**EliteDeskでの負荷実測結果はROCK 5Bにそのまま
+  転用できない**点に注意。あくまで「Kivyマルチプロセス化・シリアル競合・ブリッジ
+  デーモンの設計・動作ロジック」の先行検証と割り切る
 
 ### 8.4 まとめ・優先度
 
@@ -474,3 +542,5 @@ ROCK 5Bに転用できる保証はない**点は既存の注意点（DASHCAM_ROC
 - [RaceCapture/Pro Multi-Display Demo - EvolutionM（公式ハードウェアのWiFi/Bluetooth複数配信について）](https://www.evolutionm.net/forums/motor-sports/740681-racecapture-pro-multi-display-demo.html)
 - [autosportlabs/RaceCapture_App - Wayback Machine 2018年6月時点のアーカイブ（現在はGitHub上で404）](http://web.archive.org/web/20180611003737/https://github.com/autosportlabs/RaceCapture_App)
 - [Multiple monitor problems - Kivy Users Google Group](https://groups.google.com/g/kivy-users/c/hav2pvRoIa4)
+- [Taming the Panthor: OpenGL ES 3.1 conformance achieved on Mali-G610 - Collabora（ROCK 5B実機でのPanthorドライバ検証）](https://www.collabora.com/news-and-blog/news-and-events/taming-the-panthor-opengl-es-31-conformance-achived-mali-g610.html)
+- [The Architecture of Open Source Applications: GPSD（fan-out型ブリッジデーモンの設計参考）](https://aosabook.org/en/v2/gpsd.html)
