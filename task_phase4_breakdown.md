@@ -1293,13 +1293,21 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
    - **colorMask/描画のインターリーブ順序**：`glColorMask`は`(TRUE×4)`/`(FALSE×4)`が全体でちょうど7,613回ずつと完全に対（既知）だが、今回初めて実際の呼び出し順序を1フレーム分通しで確認し、`count=3462`という大きな描画（ステンシルスタンプ、第28回セッションで特定済みの巨大描画と一致）は一貫して`colorMask=(FALSE,FALSE,FALSE,FALSE)`の直後に、`count=6`等の小さな本描画は一貫して`colorMask=(TRUE,TRUE,TRUE,TRUE)`の直後に発行されており、ペアの対応関係・順序ともに破綻は見られなかった（新たに検証・否定した仮説）。
    - 成果物は`~/apitrace_4-4-2/`（`dash_session31.trace`本体、`dump_texparam.txt`/`dump_uniform1f.txt`/`dump_misc.txt`の分析結果、突き合わせ用`correlate.py`）に保存済み。**トレース取得自体が初めて成功したことは、今後Mesa GitLabへの不具合報告を行う際の直接的な証拠としても活用できる**。
 
-**11. 実機（`rc-dash-3b`）の状態（セッション終了時点）**：apitrace検証用に起動した`race_capture`は`kill -INT`で正常終了（トレースファイルも正常にフラッシュ・完了）、その後`sudo systemctl restart getty@tty1.service`で標準の自動ログイン経由・LD_PRELOADなし・watchdog付きの状態へ再度復旧したことを確認済み（`throttled=0x0`）。ハードウェアへの恒久的な変更なし。
+**11. 実機（`rc-dash-3b`）の状態（セッション中盤時点）**：apitrace検証用に起動した`race_capture`は`kill -INT`で正常終了（トレースファイルも正常にフラッシュ・完了）、その後`sudo systemctl restart getty@tty1.service`で標準の自動ログイン経由・LD_PRELOADなし・watchdog付きの状態へ再度復旧したことを確認済み（`throttled=0x0`）。ハードウェアへの恒久的な変更なし。
+
+**12. 🔴🎉🎯🔑 セッション最終盤、「最小構成の再現アプリ」を作成・実機検証し、これまでの調査全体の方向性を覆す決定的な結果を得た：RaceCaptureのコードを一切含まない標準Kivy（システムパッケージ`python3-kivy` 2.1.0、bookwormリポジトリ）だけで、apitraceで特定した構造パターン（`ScrollView`によるステンシルpush/use/unuse/pop・多数の半透明角丸矩形・ウィジェットごとのVBO・colorMaskトグル）を再現したところ、色・影・角丸・スクロールバーとも完璧に正常描画された。同じ実機・同じMesa VC4ドライバ・同じOSの上で標準Kivyの同種パターンが問題なく動作することが実証され、「Mesa VC4ドライバのタイラー固有バグ」という前回（本セッション前半）の最有力仮説は覆り、焦点はRaceCapture固有のビルド・コードへ戻った**：
+   - **検証方法**：`race_capture`を停止してDRMマスター権を空け、`ScrollView`＋`GridLayout`（60個の`ShadowedCell`、各セルは`RoundedRectangle`×2枚の半透明黒シャドウ（`(0,0,0,0.5)`/`(0,0,0,0.15)`、apitraceで確認済みのRaceCapture本体のシャドウ色パターンと同一）＋不透明カード本体）を持つ最小アプリ（`~/minimal_repro_4-4-2/minimal_repro.py`）を作成し、`frametrace15.so`（今回のセッションで構築した最新インタポーザ、`glClear`ワークアラウンド込み）を`LD_PRELOAD`して`Window.screenshot()`で撮影した。
+   - **結果**：グリッド全体（ダークグレー・別トーンのグレー・ティール・白の角丸カード、下に薄い影）が実機モニタ相当のスクリーンショット上で完璧に正常表示された。テキストレンダリング単体（`Label`のみの別アプリ）も、強制再描画してから撮影した場合は正常表示された（最初の撮影が黒一色だったのは、静的シーンでは`eglSwapBuffers`が最初の数フレーム後に停止するという既知の挙動下で撮影タイミングが早すぎた単なるテスト側の不備と判明、`Clock.schedule_interval`で強制的に`ask_update()`し続けてから撮影したところ再現しなくなった）。
+   - **意味合い**：GLコールレベルで検証可能な原因（第31回セッション前半で全て潰した）に続き、「Mesa VC4ドライバのタイル化レンダラ自体に、大量の小さな半透明描画＋頻繁なステンシルpush/popという構造に起因する固有バグがあるのでは」という前半の推測も、より直接的な形で否定された。**残る可能性は、RaceCapture本体固有の何か**（PyInstallerでバンドルされたKivy 2.3.1・KivyMD 1.0.2・バンドルSDL2 2.30.7という、システム版（今回のテストで使ったKivy 2.1.0・システムSDL2）とは異なるバージョン構成、または`DashboardView`等アプリ自身のKV/Pythonコード）に絞り込まれた。次回はバンドル版と同じバージョン構成（Kivy 2.3.1・KivyMD 1.0.2・SDL2 2.30.7）での再現実験、または実際の`DashboardView`のKVソース（`~/decompile_4-4-2/`、今回のクリーン環境では再取得が必要）を土台にした再現実験が最優先候補となる。
+
+**13. 実機（`rc-dash-3b`）の状態（セッション最終盤・終了時点）**：全ての検証プロセスは終了済み、`sudo systemctl restart getty@tty1.service`で標準の自動ログイン経由・LD_PRELOADなし・watchdog付きの`race_capture`に復旧したことを確認済み（`throttled=0x0`）。ハードウェアへの恒久的な変更なし。最小構成再現アプリのソース（`minimal_repro.py`・`label_only2.py`）は`~/minimal_repro_4-4-2/`に保存済みのため次回セッションでも再利用可能。
 
 **次回の最優先候補（優先度順、第31回セッション終了時点で更新）**：
-0. **最優先：GLコールレベルの原因が出尽くした状況を踏まえ、方向性を転換する**。候補①最小構成の再現アプリ（大量の小さな半透明矩形＋ネストしたステンシルpush/popという今回特定した構造的パターンを再現）を作成し、RaceCapture固有のバグかMesa VC4ドライバ固有のバグかを切り分ける。候補②Mesa GitLabで同種のタイラー不具合が報告されていないか検索する（今回取得に成功した`~/apitrace_4-4-2/dash_session31.trace`が直接の証拠として使える。既に発見済みの`glClear`部分マスクバグ自体も未報告の可能性が高いとされており、あわせて報告する価値がある）。
+0. **最優先：最小構成の再現アプリが正常描画された（=Mesa VC4ドライバ固有バグ説が否定された）ことを踏まえ、システム版Kivy 2.1.0ではなくRaceCaptureがバンドルする正確なバージョン構成（Kivy 2.3.1・KivyMD 1.0.2・バンドルSDL2 2.30.7）で同じ最小構成再現アプリ（`~/minimal_repro_4-4-2/minimal_repro.py`）を動かし、バンドル版特有の問題かを切り分ける**。バンドル版Kivy/KivyMDはRaceCaptureの`_internal`ディレクトリに同梱されているため、`PYTHONPATH`調整で単体実行できる可能性がある。これで再現すれば、次はバンドル版ライブラリのバージョンを1つずつシステム版へ差し替えて絞り込む。再現しなければ、RaceCaptureアプリ自身のKV/Pythonコード（`DashboardView`等）に焦点を絞った再現実験（要デコンパイル再取得、クリーン環境で`~/decompile_4-4-2/`が消失済みのため）に進む。
 1. `frametrace12〜15`系列の頂点バッファ解析における`stride=16`前提の限界（KivyMDの角丸シャドウ等、複雑なメッシュで異常値が出る問題）を解消し、全描画コールのbounding boxを正確に把握できるようにする。
 2. ~~`apitrace`のトレース書き出し失敗の原因調査~~ → **今回のセッションで解消済み（`TRACE_FILE`環境変数を明示指定すればよい）**。`dump-images`（GPU実画像化）は引き続き使用不能（`waffle_display_connect failed`）だが、テキストダンプは問題なく使えるため、次回以降も独自インタポーザと併用したクロスチェック手段として活用できる。
 3. 今回再確認した`glClear`部分マスクワークアラウンドの本番適用（`run_racecapture_rpi.sh`への組み込み）は、メインコンテンツ問題の解決とは独立に、背景色・サイドバー・トーストの正常化という実利があるため、ユーザーと相談の上で先行適用を検討する価値がある。
+4. Mesa GitLabへの`glClear`部分マスクバグ報告は、上記0の切り分けとは独立に、`~/apitrace_4-4-2/dash_session31.trace`を証拠として引き続き価値がある。
 
 ---
 
