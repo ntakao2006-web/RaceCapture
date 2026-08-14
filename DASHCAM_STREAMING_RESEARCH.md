@@ -316,6 +316,127 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
 
 ---
 
+## 8. 配信用ダッシュと運転中表示用ダッシュの分離（2026-08-15追記）
+
+### 8.1 発端
+
+当初の構想では「YouTube配信・録画される映像＝ダッシュ表示画面そのもの」を前提にしていたが、
+ユーザーから「配信用に自分で設定したゲージを重ねた画面と、走行中に実際に見る通常のダッシュ
+表示を分けたい。ROCK 5Bで、HDMIダミープラグ等を使って複数画面に別々のダッシュを表示する
+ことはできるのか」という疑問が出た。これができないと構想の前提が崩れるため、緊急度の
+高い技術調査として着手した。
+
+### 8.2 結論：ハードウェア的には実現可能。むしろ「分離には必須」の構造だった
+
+**ROCK 5Bは公式に3系統の独立ディスプレイを同時出力できる**（HDMI 2.1×2ポート＋USB-C経由の
+DisplayPort、最大8K対応。[Radxa公式ドキュメント](https://docs.radxa.com/en/rock5/rock5b/getting-started/introduction)）。
+Linuxの標準的な「拡張デスクトップ」機能で各出力に別々の内容を描画でき、特殊な裏技は不要。
+
+さらに、既存の調査記録（6章）で判明済みの通り、`video-streamer`の「データ焼き込み」は
+**race_captureアプリが今まさに画面に描画しているダッシュ画面そのものを、X11の`ximagesrc`で
+そのままキャプチャする方式**であり、裏で別レイアウトを合成する仕組みではない。つまり
+配信用と表示用を分けるには、「別々の出力に、別々のレイアウトのrace_captureをそれぞれ
+全画面表示し、配信用の出力だけをキャプチャする」という構成が唯一の実現方法であり、
+**ユーザーの想定していた「マルチディスプレイ操作」が構造的に必須**だったことが分かった。
+
+配信用の出力に物理モニターを車内にもう1台置きたくなければ、想定通り**ダミーHDMIプラグ
+（EDIDエミュレータ）**でOSに「モニターが繋がっている」と錯覚させれば、実際に運転者が見る
+モニターは1台のままで完結する。
+
+### 8.3 最重要確認事項：race_captureアプリを2インスタンス同時起動できるか
+
+上記の構成を実現するには、**race_captureアプリを2つのプロセスとして同時起動し、それぞれ
+別出力・別レイアウトで動作させられるか**が技術的な生命線になる。この確認が取れなければ
+分離構想自体が成立しないため、GPU描画確認（DC-9-3）以上に優先度の高い最重要事項と位置づける。
+
+机上調査（Web調査ベース、ROCK 5B実機未着手）で分かったこと・懸念点は以下の通り。
+
+#### (a) Kivyのマルチウィンドウ制約とワークアラウンド
+
+Kivyフレームワーク自体は**1プロセス＝1ウィンドウという設計で、ネイティブなマルチウィンドウ
+機能を持たない**。ただし、Kivyコミュニティでは「別々のプロセスとして複数のKivyアプリを
+起動し、それぞれ異なる`DISPLAY`環境変数や`Config`のウィンドウ位置設定(`graphics`の`top`/
+`left`)で別モニタに配置する」というワークアラウンドが確立されている。**「2インスタンス
+同時起動」というアプローチ自体はKivyアプリとして正攻法**であり、目新しい裏技ではない。
+
+#### (b) 設定ファイル（ゲージレイアウト）の分離
+
+Kivy標準の設定ファイルは`~/.kivy/config.ini`だが、`KIVY_HOME`環境変数で保存先ディレクトリを
+変更できる（Kivy標準機能）。2インスタンスをそれぞれ別の`KIVY_HOME`で起動すれば、Kivy自体の
+設定競合は回避できる見込み。ただし、`race_capture`アプリ固有の設定・ゲージレイアウトの
+保存先が`~/.kivy/`配下なのか、独自パス（`task_dashcam_breakdown.md`のDC-6-6-6で実際に
+使われている`~/.config/racecapture`という独自ディレクトリの可能性が高い）なのかは未確認。
+独自パスの場合、`KIVY_HOME`だけでは解決せず、race_capture独自の設定パス指定手段
+（環境変数・コマンドライン引数）が必要になる。**実機での確認が必須**。
+
+#### (c) 🔴 新発見：race_captureアプリのソースコードは現在非公開
+
+これまでのメモでは「race_captureはオープンソースなので、詰まっても最悪ソースから
+作り直せる」という前提だったが、今回GitHub APIで確認したところ、**該当リポジトリ
+`autosportlabs/RaceCapture_App`は現在404（存在しない）**。Wayback Machineで履歴を
+確認すると、2018年6月時点では公開（200）されていたが、2021年1月時点では既に404に
+なっていた。つまりどこかのタイミングで非公開化・削除されている。
+
+- 2018年6月時点のアーカイブ自体は[Wayback Machine](http://web.archive.org/web/20180611003737/https://github.com/autosportlabs/RaceCapture_App)に残っているが、8年前の古いバージョンであり、
+  現行配布バイナリ（`racecapture` 2.18.0）とは大きく異なる可能性が高く、参考程度にしかならない
+- **この訂正は重要**：マルチインスタンス対応でつまずいた場合の「最後の手段」として
+  `DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`に書いた「ソースを読んで直す」という選択肢は、
+  現状ほぼ使えないと考えたほうがよい。実機での試行錯誤・設定ファイル/コマンドライン
+  引数の総当たり確認が頼りになる
+
+#### (d) 🔴 新発見：ESP32/RaceCapture実機とのシリアル接続競合リスク（最大の懸念）
+
+2つのrace_captureインスタンスが**同時に同じシリアルポート（USB接続のESP32-C3代替機）へ
+直接接続しようとした場合、データの奪い合いにより両方とも不完全にしかテレメトリを
+受信できないリスク**がある。シリアルデバイスは複数プロセスから同時に`open`はできても、
+片方が読み取ったバイト列はカーネルバッファから消費されるため、単純に2プロセスが同じ
+ポートを読むと データが分断される。
+
+公式のRaceCapture Pro/Track/Apex/MK2は「WiFi/Bluetoothで最大2〜4台の受信側に同時配信」
+という設計を持つが（[EvolutionMフォーラムでの実演事例](https://www.evolutionm.net/forums/motor-sports/740681-racecapture-pro-multi-display-demo.html)）、これは公式ハードウェア側の機能であり、
+**今回自作しているESP32-C3代替ファームウェア（[firmware/src/main.cpp](firmware/src/main.cpp:1444)）はUSB接続のみの設計でWiFi/
+Bluetoothを持たない**ため、公式機のような複数配信機構には頼れない。
+
+回避策の候補（優先度順、いずれも未検証）：
+1. **`socat`等でシリアルポートを仮想的に複製**し、1つの物理ポートからの読み取りを
+   複数の仮想ポート（PTY）にコピーして、各race_captureインスタンスが別々の仮想ポートを
+   読む（Linuxの標準的なシリアル多重化手法）
+2. 将来的にファームウェア側でWiFi配信機能を追加する（当面の対象外、大きな設計変更）
+3. 1インスタンスだけが実機に接続し、そのプロセスがローカルで受信したデータを何らかの
+   形（共有メモリ・ローカルソケット等）でもう一方のインスタンスへ中継する自作ブリッジ
+   （race_captureアプリ自体の改造が必要になる可能性が高く、(c)のソース非公開と合わせて
+   ハードルが高い）
+
+#### (e) video-streamer側のキャプチャ範囲
+
+`video-streamer`が使うGStreamerの`ximagesrc`要素自体には特定ウィンドウ（XID）だけを
+キャプチャする機能があるが、`video-streamer`の設定ファイル（`video-config.ini`）で
+これが指定可能かは、クローズドバイナリのため不明（[配布リポジトリ](https://github.com/autosportlabs/racecapture_video_data_livestreaming)には
+インストールスクリプトのみでREADME以外の設定サンプルなし）。ただし、**配信用インスタンスの
+出力先を専用の出力（ディスプレイ）に固定する設計であれば、ximagesrcはデフォルトの
+ルートウィンドウキャプチャのままでよく**、xidプロパティに頼る必要はない見込み
+（＝出力を分ければこの懸念は実質解消する）。
+
+#### (f) 検証はROCK 5B到着済みだが、Raspberry Piでも先行して着手できる可能性
+
+DC-9-1（手元のRaspberry Pi単体での先行検証）は、実はこのマルチインスタンス・
+マルチディスプレイ検証にも使える可能性が高い。**Raspberry Pi 4/5はマイクロHDMI×2ポートで
+2系統の独立ディスプレイ出力に対応**しており、ROCK 5B同様の検証環境として使える。
+ただし、Raspberry Pi版とROCK 5B版のrace_captureバイナリ・OS（Raspbian vs Radxa OS/Debian）は
+別物であり、x86→ARMほどの隔たりはないにせよ、**Raspberry Piでの検証結果がそのまま
+ROCK 5Bに転用できる保証はない**点は既存の注意点（DASHCAM_ROCK5B_REPORT.md等）と同様。
+
+### 8.4 まとめ・優先度
+
+この「2インスタンス同時起動＋別出力＋別レイアウト」の検証は、**GPU描画確認（DC-9-3）と
+並ぶ、あるいはそれ以上に構想全体の前提を左右する最優先確認事項**と位置づける。特に
+(d)のシリアル接続競合は、GPU描画問題（回避策が複数あり詰まっても対応可能）とは異なり、
+**回避策自体が未検証かつソースコードにも手が出せない**という点で、リスクの質が異なる。
+`task_dashcam_breakdown.md`のDC-9-1にこの検証を明記し、ROCK 5B/Raspberry Pi問わず
+何か具体的な作業に着手する前に最優先で確認する方針とする。
+
+---
+
 ## 出典
 
 - [Video plus data streaming with racecapture - Autosport Labs](https://wiki.autosportlabs.com/Video_plus_data_streaming_with_racecapture)
@@ -331,3 +452,7 @@ Raspberry Piでの「ダッシュ表示専用」構成(RaceCaptureアプリの�
 - [HP EliteDesk 800 G3 Mini - hardware-corner.net](https://www.hardware-corner.net/desktop-models/HP-EliteDesk-800-G3-Mini/)
 - [Beelink Mini S12 Pro - Starry Hope](https://www.starryhope.com/minipcs/models/beelink-mini-s12-pro/)
 - [Raspberry Pi 5 - Technical Specifications and Mechanical Drawings - element14 Community](https://community.element14.com/products/raspberry-pi/b/blog/posts/raspberry-pi-5-technical-specifications-and-mechanical-drawings)
+- [Product Introduction | Radxa Docs (ROCK 5B、3系統独立ディスプレイ出力の記載)](https://docs.radxa.com/en/rock5/rock5b/getting-started/introduction)
+- [RaceCapture/Pro Multi-Display Demo - EvolutionM（公式ハードウェアのWiFi/Bluetooth複数配信について）](https://www.evolutionm.net/forums/motor-sports/740681-racecapture-pro-multi-display-demo.html)
+- [autosportlabs/RaceCapture_App - Wayback Machine 2018年6月時点のアーカイブ（現在はGitHub上で404）](http://web.archive.org/web/20180611003737/https://github.com/autosportlabs/RaceCapture_App)
+- [Multiple monitor problems - Kivy Users Google Group](https://groups.google.com/g/kivy-users/c/hav2pvRoIa4)
