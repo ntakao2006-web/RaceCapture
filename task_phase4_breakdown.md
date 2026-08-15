@@ -1436,7 +1436,9 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 2. `Carousel.slides`プロパティへの直接代入（`car.slides = list(car.slides)`のような再代入トリガー）や、`Carousel`を経由せず`AnalysisCarousel`のページ自体を`FloatLayout`等の`RelativeLayout`を使わない代替コンテナへ差し替える改造（`autosportlabs.views.analysis.analysiscarousel`側のコード変更）を検討する。ただし候補7・10の結果を踏まえると「救済の使い回し」自体が原理的に不可能、または非決定的である可能性が高く、優先度は候補0・1の後段へ見直し。
 3. Mesa GitLabへの`glClear`部分マスクバグ報告（第31回セッションから持ち越し、`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度中で残置。
 4. 恒久適用の実装経路（`main.pyc`バイトコード注入 or `LD_PRELOAD`常駐、第32回セッション候補1・2）は、根本メカニズム（0・1）が判明してから着手する。
-5. 🆕 候補12でユーザーが目視確認した「Raw Dataモードで枠は出るが数値が出ない」現象のウィジェット構造を調査し、"No data"ラベル（表示される）とRaw Dataの数値（表示されない）の描画経路の違いを特定する。統一仮説（RelativeLayout限定）で説明できるか、別の描画経路（動的テキスト更新特有の問題等）が関与しているかの切り分けが目的。
+5. ~~候補12でユーザーが目視確認した「Raw Dataモードで枠は出るが数値が出ない」現象のウィジェット構造調査~~ → **クローズ。原因はGPU描画バグではなく、公式アプリ自体のRCPサンプル送信スレッド再起動ロジックのバグ（`DataBusPump._start_polling_telemetry()`の`if self._sample_thread:`が生存確認ではなく存在チェックになっている）と判明・確認済み。詳細は`task_phase1_breakdown.md`の1-8参照。この件はPhase4-4-2の描画バグとは無関係な別問題として切り分け完了。**
+
+**13. 🆕🔑 Kivy本家ソース（GitHub、`kivy/uix/relativelayout.py`・`kivy/data/style.kv`、いずれも2.3.1タグ）を確認し、第32回セッションの推測（`RelativeLayout`がcanvas.beforeで`PushMatrix`+`Translate`を行う）の正確な出典を特定した。ただし推測していた「一度きり」現象への直接的な説明にはならないと判明した**：`relativelayout.py`自体のPython `__init__`にはcanvas操作が一切無く（`_apply_transform`はタッチ座標変換専用でGL描画には無関係）、実際の`PushMatrix`/`Translate(xy=self.pos)`/`PopMatrix`は**Kivy本体が起動時に一度だけ読み込む共通KVスタイル定義`kivy/data/style.kv`の`<RelativeLayout>:`ルール**として定義されており、Kivyの`Builder`により**全ての`RelativeLayout`インスタンスに対して、生成タイミング（起動時か実行時か）に関わらず完全に同一の手順で一律適用される**。この適用機構自体に「最初のインスタンスだけ特別」という余地は無いため、候補0（`RelativeLayout`固有のcanvas再構築ロジックを読む）はこの3命令（PushMatrix/Translate/PopMatrix）自体の"特別扱い"を疑う方向としては手詰まりで、**焦点はこの3命令がGPU側で実際にコンパイル・実行される際のタイミング・GL状態（Mesa VC4ドライバのタイル管理・行列スタックの内部実装）へ絞り込まれた**。次回、`apitrace`等で「救済に成功した最初のRelativeLayout」と「救済されなかった後発のRelativeLayout」の、この3命令に対応する実際のGLコール列（`glUniformMatrix4fv`等）を直接比較することが、GLレベル調査の最も具体的な次の一歩となる。
 
 ---
 
