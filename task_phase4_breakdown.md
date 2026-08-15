@@ -20,10 +20,10 @@
 - [x] 4-4-1-1: Raspberry Pi 4Bへの初期セットアップ・RaceCapture App(v2.18.0)インストール → 完了。SSH公開鍵認証・NOPASSWD sudo設定、trixie向けパッケージ名差異（`libegl1-mesa`→`libegl1`）対応した非対話インストールスクリプトを使用。HDMIディスプレイ未接続のため起動確認は次回持ち越し（詳細は`ARCHITECTURE.md`4章参照）。
 - [x] 4-4-1-2: Raspberry Pi 3B（`rc-dash-3b`）への同様のセットアップ・インストール → 完了。HDMIモニタ接続済み環境で起動確認まで実施。
 
-### 4-4-2: 画面表示問題（黒画面）のデバッグ・解決 ※恒久修正実装・本番組み込み・動作確認まで完了（第35回セッション）。残作業は軽微（下記参照）。次回もタスクID指定は引き続き4-4-2でOK。
+### 4-4-2: 画面表示問題（黒画面）のデバッグ・解決 ※恒久修正（初回描画＋画面遷移の両方）実装・本番組み込み・動作確認まで完了（第36回セッション）。残作業は軽微（下記参照）。次回もタスクID指定は引き続き4-4-2でOK。
 
-**現状（第35回セッション時点）**：`ScreenManager`（メインコンテンツ）が描画されない根本原因は、Mesa VC4 GLドライバが`RelativeLayout`配下の一部ウィジェットを"最後にadd_widgetされた1つ"しか正しく描画しない特性にあると特定済み。恒久修正として、起動から30秒後に`ScreenManager`を`box_layout`から`relative_layout`へ自動的に移し替えるLD_PRELOAD常駐ライブラリ`scmove_persist.so`を実装し、本番の`run_racecapture_rpi.sh`に組み込み済み。電源投入・アプリ再起動のたびに開発者の手動操作なしで自動的にメインコンテンツが正しく描画されることを実機で確認済み。`ToolbarView`（画面上部の状態バー）は`ScreenManager`との共存が原理的に不可能と確定したため、恒久修正の対象外（非表示のまま）とした。
-残作業：①実運用（複数回の電源サイクル・通常のナビゲーション操作）での継続的安定性確認、②`ToolbarView`代替のオーバーレイ配置（QOL、優先度低）、③Mesa GitLabへの`glClear`部分マスクバグ報告（任意、優先度低〜中）。詳細な調査経緯・実装内容は本セクション末尾（第35回セッション、候補20）参照。
+**現状（第36回セッション時点）**：`ScreenManager`（メインコンテンツ）が描画されない根本原因は、Mesa VC4 GLドライバが`RelativeLayout`配下の一部ウィジェットを"最後にadd_widgetされた1つ"しか正しく描画しない特性にあると特定済み。恒久修正として、起動から30秒後に`ScreenManager`を`box_layout`から`relative_layout`へ自動的に移し替え、以降は`ScreenManager.current`が変化する（＝画面遷移する）たびに同じ再配置を自動再適用するLD_PRELOAD常駐ライブラリ`scmove_persist.so`を実装し、本番の`run_racecapture_rpi.sh`に組み込み済み。電源投入・アプリ再起動のたびに開発者の手動操作なしで自動的にメインコンテンツが正しく描画され、かつHome→Setup→Dashboard→Homeのような通常のナビゲーション操作を繰り返しても都度正しく描画されることを実機で確認済み（第36回セッションで新規に実証）。`ToolbarView`（画面上部の状態バー）・`NavigationDrawer`は`ScreenManager`との共存が原理的に不可能と確定したため、恒久修正の対象外（非表示のまま）とした。ただし逆コンパイルにより、Home画面のタイルボタン（Dashboard/Analysis/Setup）と、アプリ内蔵のキーボードショートカット（`a`=Analysis/`d`=Dashboard/`s`=Setup/`p`=Preferences/`t`=Status、Escapeキーで常にHomeへ）だけで全画面へのナビゲーションが可能なことが判明しており、`ToolbarView`/`NavigationDrawer`が無くても実用上は操作可能。
+残作業：①実運用（複数回の電源サイクル）での継続的安定性確認、②車載時（キーボードなし・タッチのみ）を見据えたHome画面への「戻る」導線の検討（QOL、優先度中）、③`ToolbarView`代替のオーバーレイ配置（QOL、優先度低）、④Mesa GitLabへの`glClear`部分マスクバグ報告（任意、優先度低〜中）。詳細な調査経緯・実装内容は本セクション末尾（第35回セッション候補20、第36回セッション追記）参照。
 **現象**：`race_capture`プロセスはクラッシュせず安定動作（USB通信・DB・RCPAPI等は正常）しているが、
 実際のディスプレイ出力はほぼ真っ黒。通知（Snackbar）だけは表示される。FBモード・X11モードいずれでも再現。
 
@@ -1480,6 +1480,25 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 2. Mesa GitLabへの`glClear`部分マスクバグ報告（`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度低〜中で残置。
 
 **21. 実機（`rc-dash-3b`）の状態（本追記時点）**：本番の`/opt/racecapture/run_racecapture_rpi.sh`は恒久修正組み込み済み（バックアップ`/home/ntakao/run_racecapture_rpi.sh.bak_4-4-2`、本番用ライブラリ本体`/home/ntakao/scmove_persist.so`、ソース`/home/ntakao/scmove_persist.c`、検証用デバッグ版`/home/ntakao/scmove_persist_debug.c`/`.so`はいずれも保存済み・次回セッションでも再利用可能）。標準の起動コマンド（`LD_PRELOAD`明示指定なし）でクリーンに起動し直した状態。`throttled=0x0`（電圧健全）。
+
+---
+
+**（第36回セッション、ユーザーから「4-4-2を続けて」との指示を受けて再開）**
+
+**22. 🔴🎉🔑🎯🎯🎯 上記「残作業①実運用での安定性確認」を実際に検証したところ、初回描画後に`ScreenManager.current`が一度でも変化する（＝通常のナビゲーション操作）と再び黒画面へ戻る、という重大な未発見の制約があることが判明。ユーザーからも「サイドバー・インジケーターランプが出ておらず画面遷移操作ができず実用上不便、直してほしい」と明確な修理依頼を受けた**：
+   - `rc-dash-3b`にSSH再接続し（`rc-dash-3b.local`、鍵は`~/.ssh/racecapture_dash_ed25519`）、稼働中の本番プロセスで`LD_PRELOAD=scmove_persist.so`が正しく効いていることをまず確認。逆コンパイル済み`main.pyc`を`pydisasm`で再解析し、`RaceCaptureApp.switchMainView(view_name)`（`main.py`571〜584行目付近）が全ナビゲーション経路（NavigationDrawerのメニュー項目、Home画面のFeatureButtonタイル、アプリ内蔵キーボードショートカット`_on_keyboard`の`a`=analysis/`d`=dash/`s`=config/`p`=preferences/`t`=status、Escapeキーの`on_esc_pressed`→`switchMainView('home')`無条件）が最終的に呼び出す共通の正規APIであることを特定した。内部は`self._main_frame_scr_manager.current = screen.name`（または`switch_to(screen)`）を呼ぶだけのシンプルな実装。
+   - `frametrace16.so`（`rc_trigger_pyexec`/`rc_trigger_shot`機構）をLD_PRELOADしたテストインスタンスで、初回のScreenManager救済（`box_layout`→`relative_layout`の`remove_widget`/`add_widget`）後に`app.switchMainView('dash')`を実行したところ、**Home画面のタイルボタンは正常表示されていたにもかかわらず、Dashboard画面への遷移後は再び黒画面（`Window.screenshot()`のファイルサイズが2,600〜3,000バイト程度、単色相当）に戻ることを実機で確認した**。これは本番の恒久修正が「初回描画のみ」にしか有効でないことを意味する、見落とされていた重大な制約。
+   - 切り分け実験として、黒画面に戻った状態から改めて`relative_layout.remove_widget(sm); relative_layout.add_widget(sm)`（初回救済と全く同じ操作、ただし`box_layout`は経由せず`relative_layout`上で直接remove/re-add）を実行したところ、**Dashboard画面のゲージ・ラップタイム等のライブデータが完璧に正常描画されることを確認した（`Window.screenshot()`が69,904バイトへ増大）**。同様の再配置操作をHome→Setup（`config`）→Dashboard（`dash`）→Home の一連の遷移で繰り返し適用したところ、毎回例外なく正しく描画されることを確認した。**つまり「救済トリックは使い切りではなく、`ScreenManager.current`が変わるたびに再適用すれば毎回有効」という、第33回セッションで「アプリ生涯で最初の1回だけ」と結論づけていた理解をさらに修正する新知見が得られた**（第34回セッションが覆した「1回だけ」を、今回は「画面遷移時にも当てはまる」という形でさらに一般化）。
+   - 上記を踏まえ、`scmove_persist.c`を拡張：初回の`remove_widget`/`add_widget`実行直後に`sm.bind(current=_rc_on_current)`を追加し、`current`プロパティが変化するたび`Clock.schedule_once`で約0.6秒後に同じ`remove_widget`/`add_widget`を自動再実行するようにした（`Clock.unschedule`で連続遷移時の多重スケジュールを防止）。デバッグ版（`rc_trigger_shot`/`rc_trigger_pyexec`付き）でHome→Setup→Dashboard→Homeの一巡を実機検証し、いずれの画面も自動的に正しく描画されることを確認（ログでも`on_current fired`→`scheduled reheal`→`reheal firing`→`reheal done ok`の流れを確認済み）。検証後、本番の`/home/ntakao/scmove_persist.so`をこの拡張版に差し替え（旧版は`scmove_persist.so.bak_session36`としてバックアップ）、標準の起動コマンド（`run_racecapture_rpi.sh -w 1 -- ...`、`LD_PRELOAD`明示指定なし）でクリーンに起動し直した。`run_racecapture_rpi.sh`自体はファイル名を変更していないため編集不要。
+   - **副産物として、`ToolbarView`/`NavigationDrawer`が使えなくても、Home画面のFeatureButtonタイル（Dashboard/Analysis/Setupの3つ）とキーボードショートカット（USBキーボード接続時、`a`/`d`/`s`/`p`/`t`+Escape）だけで全画面へのナビゲーションが可能なことが判明した**。ただし車載時（タッチのみ・キーボードなし）を想定すると、Dashboard/Analysis/Setup以外（Preferences/System Status）や、各画面からHomeへの「戻る」導線がタッチだけでは存在しない点は今後の課題として残る（下記次回候補②参照）。
+
+**23. 実機（`rc-dash-3b`）の状態（本追記時点）**：本番の`/opt/racecapture/run_racecapture_rpi.sh`は無変更（ファイル名`scmove_persist.so`のまま拡張版へ差し替えたため）。本番用ライブラリ`/home/ntakao/scmove_persist.so`は画面遷移時の自動再修復バインドを含む新版（バックアップ`/home/ntakao/scmove_persist.so.bak_session36`・`scmove_persist.c.bak_session36`）。検証用生成物：`/home/ntakao/scmove_persist_v2.c`/`.so`（トリガーなしの本番相当版）、`/home/ntakao/scmove_persist_v2_debug.c`/`.so`（`rc_trigger_shot`/`rc_trigger_pyexec`付き検証版）、`/home/ntakao/probe_tree.py`・`switch_dash.py`・`switch_config.py`・`switch_home.py`・`reheal.py`・`debug_bind.py`・`probe2.py`（いずれも次回セッションで再利用可能）。標準の起動コマンドで本番プロセスがクリーンに稼働中、`throttled=0x0`（電圧健全）。解像度設定（`~/.kivy/config.ini`が`800x480`）はユーザーが別作業で意図的に変更したものと確認済みのため今回は触れていない。
+
+**次回の最優先候補（優先度順、第36回セッション最終更新）**：
+0. ~~本番組み込み後の実運用での安定性を継続確認する~~ → **第36回セッションで検証・恒久修正完了（画面遷移時の自動再修復含む）**。
+1. **車載時（タッチのみ・キーボードなし）を見据えたHome画面への「戻る」導線の検討**（優先度中）。各画面（Dashboard/Analysis/Setup等）からHomeへ戻る手段が現状Escapeキー（`on_esc_pressed`）しかなく、キーボード非接続の車載環境では機能しない。案：`Window`直下（`RelativeLayout`を経由しないため常に正常描画される領域）へ「Home」ボタンを1つだけ常設オーバーレイし、タップで`app.switchMainView('home')`を呼ぶ（ScreenManager内部の操作のみで完結し、`NavigationDrawer`/`ToolbarView`には触れないため今回確立した自動再修復の対象内）。
+2. `ToolbarView`を失う代替として、接続状態相当の最小限の情報を`Window`直下へ別途オーバーレイ配置する改造（QOL、優先度低）。
+3. Mesa GitLabへの`glClear`部分マスクバグ報告（`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度低〜中で残置。
 
 ---
 
