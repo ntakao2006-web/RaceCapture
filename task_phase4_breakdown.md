@@ -1430,15 +1430,29 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
    - ユーザーの目視で、Home画面の画像・DASHBOARD画面周辺の枠・歯車アイコンが実際に表示されていることを確認（本セッションのスクリーンショット調査結果と整合）。
    - **Raw Data表示モードでは、データ項目の枠（レイアウト構造）自体は表示される一方、RaceCaptureからの実際の数値は表示されないという新しい観察を得た**。これは本セッションで確認した「歯車・ロックアイコン・ゲージカードの"No data"ラベルは表示されるがAnalysisCarouselの中身は非表示」というパターンとは微妙に異なる（"No data"は文字自体が表示されているのに対し、Raw Dataモードでは数値そのものが非表示になっている）。次回、Raw Data画面のウィジェット構造を調査し、これが「RelativeLayout限定」という統一仮説（候補6〜8）で説明できるか、あるいは数値ラベル自体の別の描画経路（動的テキスト更新特有の問題等）が関与しているかを切り分ける価値がある。
 
-**次回の最優先候補（優先度順、第33回セッション最終更新）**：
-0. **最優先：GL API呼び出しレベル・Kivyの一度きりGL初期化ゲート（`_need_reset_gl`、候補11で調査済みだがタイミング不一致で直接原因ではないと判断）のいずれでも説明できないため、`kivy/graphics/instructions.pyx`の`InstructionGroup.build()`/`Canvas.apply()`・`flag_update()`の伝播ロジックをさらに深く読み、「特定の`RelativeLayout`インスタンスのcanvas再構築だけがなぜ一度きりでしか正しく完了しないのか」をより狭い範囲（`RelativeLayout`固有のcanvas.before構築コード、`kivy/uix/relativelayout.py`）に絞って特定する**。
-1. 🆕 候補10で観測した「1回だけ再現した成功」の再現条件を、複数回（5〜10回）の反復試行で統計的に探る（第25回セッションのスワップ非決定性調査と同様のアプローチ）。もし一定確率で再現するなら、"救済"が真に一度きりではなく確率的事象である可能性が浮上し、統一仮説（候補6〜8）の見直しが必要になる。
-2. `Carousel.slides`プロパティへの直接代入（`car.slides = list(car.slides)`のような再代入トリガー）や、`Carousel`を経由せず`AnalysisCarousel`のページ自体を`FloatLayout`等の`RelativeLayout`を使わない代替コンテナへ差し替える改造（`autosportlabs.views.analysis.analysiscarousel`側のコード変更）を検討する。ただし候補7・10の結果を踏まえると「救済の使い回し」自体が原理的に不可能、または非決定的である可能性が高く、優先度は候補0・1の後段へ見直し。
+**次回の最優先候補（優先度順、第34回セッション最終更新）**：
+0. **最優先：候補14で確立した「settlingモデル」（`ScreenManager`移動→60〜90秒完全放置→安定描画）を土台に、`apitrace`で60〜90秒間の長時間GLコールトレースを取得し、settling期間中に何が起きているか（`Carousel`の子孫`RelativeLayout`がいつ・どう構築されるか、`PushMatrix`/`Translate`/`PopMatrix`に対応する`glUniformMatrix4fv`等のGLコールがsettling完了の前後でどう変化するか）を直接観察する**。これまでのGLコールレベル調査は全て「操作直後」のスナップショットに限られており、settling期間全体を通したトレースは未取得。
+1. 🆕 `ToolbarView`についても`ScreenManager`とは別に「`box_layout`から`relative_layout`または`Window`直下へ移動→他に触れず60〜90秒放置」という同じsettlingパターン単独で試し、`ToolbarView`単体なら安定描画するか確認する（候補14の反証実験は`ScreenManager`のsettling完了"前"に`ToolbarView`を触ったケースであり、`ScreenManager`側を一切操作せず`ToolbarView`側だけを独立にsettleさせる、という順序は未検証）。もし両者を「別々のタイミングで」settleさせれば共存できるなら、恒久修正の設計（起動時に`ScreenManager`→(60秒待つ的な処理は不要、単に)通常のアプリ起動シーケンスの中で`ToolbarView`と`ScreenManager`を時間差で"タッチ"する）に直結する重要な手がかりになる。
+2. `Carousel.slides`プロパティへの直接代入や、`AnalysisCarousel`のページ自体を`RelativeLayout`を使わない代替コンテナへ差し替える改造は、候補14により「settlingさせれば`Carousel`は自然に直る」と判明したため優先度を下げてよい（もはや不要な可能性が高い）。
 3. Mesa GitLabへの`glClear`部分マスクバグ報告（第31回セッションから持ち越し、`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度中で残置。
-4. 恒久適用の実装経路（`main.pyc`バイトコード注入 or `LD_PRELOAD`常駐、第32回セッション候補1・2）は、根本メカニズム（0・1）が判明してから着手する。
+4. 恒久適用の実装経路（`main.pyc`バイトコード注入 or `LD_PRELOAD`常駐）は、候補0・1でsettlingの正体とToolbarViewの扱いが判明してから設計する。案として、`run_racecapture_rpi.sh`起動時にLD_PRELOADされる軽量な常駐フックが「`ScreenManager`移動→90秒待機→（`ToolbarView`も安定分離できるなら）`ToolbarView`移動→90秒待機」のような一度きりの起動シーケンスを自動実行する、という設計が現実的な候補になる。
 5. ~~候補12でユーザーが目視確認した「Raw Dataモードで枠は出るが数値が出ない」現象のウィジェット構造調査~~ → **クローズ。原因はGPU描画バグではなく、公式アプリ自体のRCPサンプル送信スレッド再起動ロジックのバグ（`DataBusPump._start_polling_telemetry()`の`if self._sample_thread:`が生存確認ではなく存在チェックになっている）と判明・確認済み。詳細は`task_phase1_breakdown.md`の1-8参照。この件はPhase4-4-2の描画バグとは無関係な別問題として切り分け完了。**
+6. ~~候補10で観測した「1回だけ再現した成功」の再現条件の統計的探索~~ → **クローズ。候補14で確定的に再現条件（settling）を特定できたため、統計的アプローチは不要になった。**
 
 **13. 🆕🔑 Kivy本家ソース（GitHub、`kivy/uix/relativelayout.py`・`kivy/data/style.kv`、いずれも2.3.1タグ）を確認し、第32回セッションの推測（`RelativeLayout`がcanvas.beforeで`PushMatrix`+`Translate`を行う）の正確な出典を特定した。ただし推測していた「一度きり」現象への直接的な説明にはならないと判明した**：`relativelayout.py`自体のPython `__init__`にはcanvas操作が一切無く（`_apply_transform`はタッチ座標変換専用でGL描画には無関係）、実際の`PushMatrix`/`Translate(xy=self.pos)`/`PopMatrix`は**Kivy本体が起動時に一度だけ読み込む共通KVスタイル定義`kivy/data/style.kv`の`<RelativeLayout>:`ルール**として定義されており、Kivyの`Builder`により**全ての`RelativeLayout`インスタンスに対して、生成タイミング（起動時か実行時か）に関わらず完全に同一の手順で一律適用される**。この適用機構自体に「最初のインスタンスだけ特別」という余地は無いため、候補0（`RelativeLayout`固有のcanvas再構築ロジックを読む）はこの3命令（PushMatrix/Translate/PopMatrix）自体の"特別扱い"を疑う方向としては手詰まりで、**焦点はこの3命令がGPU側で実際にコンパイル・実行される際のタイミング・GL状態（Mesa VC4ドライバのタイル管理・行列スタックの内部実装）へ絞り込まれた**。次回、`apitrace`等で「救済に成功した最初のRelativeLayout」と「救済されなかった後発のRelativeLayout」の、この3命令に対応する実際のGLコール列（`glUniformMatrix4fv`等）を直接比較することが、GLレベル調査の最も具体的な次の一歩となる。
+
+---
+
+**（同日、ユーザーがPhase1-8のファームウェア書き込み作業に立ち会った流れで、Phase4-4-2の続きにも波及。第34回セッション相当）**
+
+**14. 🔴🎉🔑🎯🎯 決定的な前進：候補1（「1回だけ再現した成功」の再現条件の探索）に着手し、ユーザー自身が実機モニターを目視して「本物の直った画面」を複数回にわたり直接確認した。再現条件は「`ScreenManager`移動後、他に一切触れず60〜90秒程度放置する」ことであり、これにより`AnalysisCarousel`の中身（チャンネル一覧・複数種類のゲージ画面）まで自然に正常描画されることが、独立した2回の試行で確定的に再現した**：
+   - **試行1**：`switchMainView('dash')`→`ScreenManager`移動（`box_layout.remove_widget(sm)`→`relative_layout.add_widget(sm)`のみ、他は一切触れない）→**75秒放置**→スクリーンショット（50,655バイト）で、チャンネル一覧（RPM/Speed/WaterTemp等24項目）・ラベル・ゲージカード・歯車/鍵アイコンが完璧に描画されていることを確認。ユーザーもこの瞬間、物理モニターで同一内容を直接目撃したと証言（本セッション最大の収穫）。20秒追加放置後も劣化せず安定継続を確認。
+   - **試行2（独立再現）**：プロセスを再起動し、同一手順（`switchMainView`→`ScreenManager`移動→**90秒放置**、今度は一切の追加操作なし）で実施したところ、今度は`AnalysisCarousel`が自然に別ページ（PredTime/BestLap/CurrentLap/LapTime/SessionTimeの色分けされたゲージ、65,097〜66,522バイト）へ切り替わった状態で完璧に描画されることを再確認した。ユーザーも物理モニターでこの状態を確認済み。
+   - **反証実験（失敗、重要な追加知見）**：試行1と2の間に行った1回の試行では、`ScreenManager`移動の直後（3〜10秒以内）に他の操作（`SerialConnection.read_line`のライブパッチ、`DataBusPump`のスレッド状態確認・修正、`Clock.schedule_interval`ウォッチドッグのインストールなど、**いずれもウィジェットツリー/canvasには一切触れない純粋なPython操作**）を複数回連続して実行したところ、その後60秒・さらに30秒（計90秒）放置しても一切回復せず黒画面のまま固定された。**「一度壊れると待っても二度と回復しない」という第33回セッションまでの知見と完全に整合する一方、`ScreenManager`移動後の"未確定・settling中"の数十秒間は、canvasに直接触れない操作であってもこのタイミングに割り込むと自然な描画完了プロセスを阻害しうる（あるいは操作のたびにレンダースレッドで同期的に実行されるPyRun_SimpleString自体がフレームタイミングに影響する）ことが新たに示唆された**。
+   - **成功パターンの確立**：`ScreenManager`移動 →（何もせず60〜90秒放置）→ スクリーンショット等で安定描画を確認 →（確認後であれば）`DataBusPump`のサンプルスレッド修正等の純粋なPython操作を追加しても、その後は描画状態を破壊しないことも確認した（試行1・2とも、安定描画確認後に1-8のデータ受信修正を追加適用し、実際の数値が表示され続けることまで確認済み。ユーザーが目撃した完成形のスクリーンショットは本ファイル冒頭の会話に添付済み）。
+   - **未解決のまま残る制約**：この状態でも`ToolbarView`（画面上部の状態バー）・`NavigationDrawer`を開くボタン（`ToolbarView`内にあるため連動して使用不可）は直っていない。試行として`ToolbarView`も同様に`box_layout`から`relative_layout`へ移動してみたが、これは`ScreenManager`移動後の新たな「触る」操作にあたるため、`ToolbarView`自体は描画されるようになった（ただし`pos`が意図した位置(画面上部)ではなく`[0,0]`(画面下部)になった）一方、`ScreenManager`側の描画は即座に黒画面へ戻った。**「同時に2つ以上を直した状態を維持することはできない」という制約は本質的に変わっていない。**
+
+**15. 🎯 総括・次回への申し送り**：「アプリ生涯で最初の1回だけ」という第33回セッションの理解は不正確だった。より正確には**「`ScreenManager`移動という単一の操作の後、他に一切妨害されない数十秒（60〜90秒が目安）の"settling"期間を経ることで、Kivyが内部的に構築する子孫ウィジェット（`Carousel`のページ等）まで含めて自然に正しく描画されるようになる。ただし、この期間中・期間後を問わず、ウィジェットツリーやcanvasに影響しうる新たな操作（settling期間中は純粋なPython操作すら含む）が入ると、その時点で不可逆的に黒画面へ戻り、二度と回復しない」**というモデルがより正確である。この「settling」の正体（Kivyのcanvas再構築が完了するまでの時間なのか、GPU/ドライバ側の何らかの非同期処理が完了するまでの時間なのか）は依然として未解明。次回はこのモデルを土台に、①`ToolbarView`側も同様に「移動→settling待ち」を単独で試し安定描画するか確認する（`ScreenManager`とは別々にsettleさせられるか）、②settling中に何が起きているかをGLコールトレース（`apitrace`、60〜90秒間の長時間トレース）で直接観察する、の2方向を優先すべきである。
 
 ---
 
