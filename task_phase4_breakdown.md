@@ -1521,12 +1521,13 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 **29. 🔴🎉🔑 （第37回セッション、追加検証・4回目の15分枠）破壊の犯人が我々自身の`_rc_reheal`ではなく、Kivy自身のScreenManager画面遷移機構であることを実機実証で確定した**：`sm.bind(current=...)`による自動再修復を一切セットアップせず（＝`_rc_reheal`が存在しない状態）、Home画面で`canvas.after`重ね描きに成功させた直後、`app.switchMainView('dash')`を素朴に1回呼ぶだけの実験を行った。この場合`sm`本体のコンテンツは（`_rc_reheal`が無いため）予想通り黒画面のままだったが、**ツールバーの重ね描きも同時に跡形もなく消えていた**（`noa_dash0001.png`、2,869バイト＝完全な黒画面と一致）。これにより、**`canvas.after`を破壊しているのは我々が実装した`relative_layout.remove_widget(sm)`/`add_widget(sm)`という再配置トリックではなく、Kivy標準の`ScreenManager`が`current`変更時に内部で行う画面遷移アニメーション機構（`TransitionBase`のサブクラス、おそらくFBOベースの画面合成に`canvas.after`を使っている）そのものである**ことが確定した。これは第37回セッション冒頭で`probe_canvas.py`により`sm.canvas.after`の中に`StencilUnUse`/`BindTexture`/`Rectangle(0,0,800,480)`/`StencilPop`というScreenManager自身が管理していると見られる命令列が既に存在していたことの直接的な裏付けとなる。一方で`'home'`への遷移だけはこの破壊を免れる（またはKivy自身のtransition機構が`'home'`遷移時だけ何か違う処理をしている）という非対称性の理由は依然として未解明。
 
+**30. ⚠️ （第37回セッション、追加検証・5回目の15分枠）候補1「`NoTransition`化」を検証したが効果なしと判明。同時に、`sm.canvas.after`内の謎の`Stencil`/`Rectangle(0,0,800,480)`構造が、`Transition`の種類に関係なく常に存在することを確認した**：`sm.transition = NoTransition()`をアプリ起動直後・`sm`の再配置より前に注入した状態で同じ手順を実施したが、Home画面では従来通り成功（38,864バイト）した一方、`'dash'`への遷移では**やはりツールバーは表示されなかった**（`nt_dash30001.png`、70,661バイト＝ツールバー無しのDashboardのみのサイズと一致）。`NoTransition`適用下で`sm.canvas.after`の中身を`probe_canvas.py`で確認したところ、`['StencilUnUse', 'BindTexture', 'Rectangle(0,0,800,480)', 'StencilPop', ...]`という、デフォルトTransition使用時と全く同じ構造が存在していることを確認した。**これにより、この`Stencil`/`Rectangle`構造は画面遷移アニメーション（`Transition`クラス）由来ではなく、`ScreenManager`のより基本的な機構（現在のScreenの描画範囲をクリップする等の恒常的な仕組み）に由来すると判明し、`Transition`変更というアプローチ自体の望みは薄いと判断される**。
+
 **次回の最優先候補（優先度順、第37回セッション最終更新）**：
-0. **最優先：そもそも`'home'`を経由せず、起動直後から`'dash'`等を`ScreenManager`の初期`current`にした場合に同じ問題が起きるか検証する。** `main.pyc`のKV文字列（`<AppMainFrame>`の`ScreenManager: id: main`部分に`current: 'dash'`相当を追記、または`main.py`のApp初期化コードで`self.root.ids.main.current`を起動直後に変更する等）を書き換える実験（第32回セッションのリパックパイプライン`~/repack_4-4-2/repack_main_kv.py`が再利用可能）。もしこれで`'dash'`が「常に安全な画面」に変わるなら、破壊はKivy自身のTransition機構が「ScreenManagerが起動時から一度も抜けたことのない画面」に対してだけ特別な扱いをしていることに起因すると確定でき、恒久修正の設計（起動時のデフォルト`current`をアプリの主要画面、例えば`'dash'`に変更する）に直結する。`_rc_reheal`は無罪と判明した（候補29参照）ため、`canvas`のどこに重ね描きするかという工夫では解決せず、この根本原因の特定を最優先とする。
-1. 代替候補：Kivyの`ScreenManager.transition`をデフォルト（おそらく`SlideTransition`または`NoTransition`ではない何か）から**`NoTransition`へ明示的に変更する**（`sm.transition = NoTransition()`をアプリ起動直後に注入）ことで、FBOベースの画面合成処理自体を回避できないか検証する。これは`main.pyc`のパッチが不要な、より簡便な次善候補として優先度を上げる価値がある（次回未検証）。
-2. 上記0/1が解決すれば、Home画面同様に全画面でステータスバーの常時表示が可能になる。解決しない場合の次善策：Home画面以外はステータスバー無し、Home画面のみステータスバー表示、という画面ごとの妥協案を検討する。
-3. 車載時のHome導線（前回候補1）は本セッションで`Window.bind(on_touch_down=...)`によるタップ→`switchMainView('home')`という実装案を確立済み（`combined_fix4.py`〜`5.py`に実装・動作確認込み）。ステータスバー問題と合わせて本番組み込みを検討する。
-4. Mesa GitLabへの`glClear`部分マスクバグ報告は引き続き優先度低〜中で残置。
+0. **最優先：そもそも`'home'`を経由せず、起動直後から`'dash'`等を`ScreenManager`の初期`current`にした場合に同じ問題が起きるか検証する。** `main.pyc`のKV文字列（`<AppMainFrame>`の`ScreenManager: id: main`部分に`current: 'dash'`相当を追記、または`main.py`のApp初期化コードで`self.root.ids.main.current`を起動直後に変更する等）を書き換える実験（第32回セッションのリパックパイプライン`~/repack_4-4-2/repack_main_kv.py`が再利用可能）。`Transition`変更（候補30で反証済み）ではなく、`ScreenManager`自身の基本的なクリップ機構が絡んでいる可能性が高まったため、これが`'home'`かどうかに依存する理由を突き止めるには、Kivyの`ScreenManager`/`Screen`ソースコード自体を読む（`/opt/racecapture/_internal`または`pip`で同一バージョンを取得）ことが最も確実な次の一手になりうる。
+1. 上記0が解決すれば、Home画面同様に全画面でステータスバーの常時表示が可能になる。解決しない場合の次善策：Home画面以外はステータスバー無し、Home画面のみステータスバー表示、という画面ごとの妥協案を検討する。
+2. 車載時のHome導線（前回候補1）は本セッションで`Window.bind(on_touch_down=...)`によるタップ→`switchMainView('home')`という実装案を確立済み（`combined_fix4.py`〜`5.py`に実装・動作確認込み）。ステータスバー問題と合わせて本番組み込みを検討する。
+3. Mesa GitLabへの`glClear`部分マスクバグ報告は引き続き優先度低〜中で残置。
 
 ---
 
