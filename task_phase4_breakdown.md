@@ -1392,6 +1392,37 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 ---
 
+**（ユーザーが3時間就寝、その間の自律調査を依頼。第33回セッション）**
+
+**1. 🔴🚨🔑 候補0の①②（`ToolbarView`を`Window`直下へオーバーレイ配置し`ScreenManager`を`RelativeLayout`側の最終操作として温存する案）を、順序を入れ替えた2パターンで検証したが、いずれも失敗し、「`RelativeLayout`部分木への最後の操作だけが得をする」という第32回セッションの仮説が、より厳密には「その時点でアプリ全体を通じて生涯最初の1回だけ得をする」という、さらに厳しい制約であることを実証した**：
+   - **パターンA（`ToolbarView`移動→`ScreenManager`移動の順、単一exec内で連続実行）**：`box_layout.remove_widget(toolbar)`→`Window.add_widget(toolbar)`→`box_layout.remove_widget(sm)`→`relative_layout.add_widget(sm)`を1回のpyexecで連続実行。`ToolbarView`は`Window`直下で完璧に描画された（`RaceCapture/Pr...32-c3-proto-build`の文字・アイコン4つを実際にスクリーンショットで確認）が、`ScreenManager`側は描画されなかった。
+   - **パターンB（`ScreenManager`移動→`ToolbarView`移動の順、別々のpyexecトリガーで数秒の間隔を空けて実行）**：まず`ScreenManager`のみを`box_layout`から`relative_layout`へ移動（単独操作）した直後にスクリーンショットで完璧な描画（149,187バイト、SetupViewの案内文・レーシングカー画像とも正常）を確認。**続けて`ToolbarView`を`box_layout`から`Window`直下へ移動する操作（`ScreenManager`自体には一切触れない、`relative_layout`への直接の`add_widget`でもない、`box_layout`という既に空になっていた別のコンテナを触るだけの操作）を追加しただけで、直前まで完璧に描画されていた`ScreenManager`側のコンテンツが再び完全に消失した**（8,622バイト、単色パターンに一致）。
+   - **意味合い**：パターンBは「`ScreenManager`への操作を文字通り最後にする」という第32回セッションの仮説①②を最も素直な形で実装したものだが失敗した。これにより、「`RelativeLayout`部分木の中で最後に触られた1つが勝つ」という理解も不十分であり、**「`box_layout`という、その時点では`ScreenManager`と全く無関係な別コンテナを触っただけ」でも巻き添えで壊れる**ことが確定した。
+
+**2. 🔴🎉🔑🎯 上記1を受けて「そもそも“最後の操作”という考え方自体が誤りで、実際には“アプリ生涯で最初の1回”しか効かないのでは」という、より厳しい仮説を検証するため、`Clock.schedule_interval`で1秒おきに全く同一の`relative_layout.remove_widget(sm); relative_layout.add_widget(sm)`を反復実行する永続リフレッシュタイマーを実装し検証したところ、この仮説が正しいことが確定した**：
+   起動直後に`ScreenManager`を`relative_layout`へ一度だけ移動（1回目の実行）した後、1秒間隔のタイマーで同一の`remove_widget`+`add_widget`を46回以上反復させ、タイマー発火直後（0.数秒以内）のタイミングでスクリーンショットを取得したが、**結果は一貫して単色（7,706バイト）で、一度も描画状態には戻らなかった**。これにより、「`RelativeLayout`への`add_widget`」という操作自体を何度繰り返しても、2回目以降は一切効果がない（＝救済されるのは文字通りアプリのプロセス生涯で最初の1回限りの、二度と再現しない一過性のイベントである）ことが確定した。この結果は第32回セッションが未検証のまま候補として残していた「起動時に定期的にreparentサイクルを回し続けるタイマー」というワークアラウンド案（次回候補2の一部）を実証的に完全否定するものである。
+
+**3. 🔴🎉🎯 一方、ウィジェットツリー・canvasを一切変更しない操作（プロパティアニメーションのみ）は、既に成立している「救済」状態を壊さないことを実証した。`NavigationDrawer`の正規`nav.open()`メソッド呼び出し（ドロワーの開閉アニメーション、第29回セッションでは`ScreenManager`が未修正の状態でしか試していなかった組み合わせ）を、`ScreenManager`移動が成功した直後に実行したところ、ドロワーが開閉して自動的に閉じるまでの間（`state`が`pre_open`→おそらく`open`→`close`と遷移する間）を通じて、`SetupView`のコンテンツ（案内文・レーシングカー画像・EXIT/NEXTボタン）は一度も消えず描画され続けた**（3回のスクリーンショットいずれも149,187〜152,069バイトの範囲で安定）。これにより、実運用で頻繁に発生するドロワーの開閉操作自体は、この救済状態を破壊しないことが確認できた（実用上重要な安定性の裏付け）。
+
+**4. 🔴🎉🔑🎯🎯 最大の新発見：`ScreenManager`移動が成功した状態のまま`app.switchMainView('dash')`で画面を切り替えたところ、これまで29セッション以上にわたり完全な黒一色としてしか観測されたことのなかったDASHBOARD画面で、初めて実質的なコンテンツ（歯車アイコン・ロックアイコン・`TripleGaugeBar`の3枚の"No data"ゲージカード・左右ナビゲーション矢印）が描画されることを実写のスクリーンショットで確認した**：
+   `switchMainView('dash')`実行後のスクリーンショットで、画面右上の歯車＋赤い鍵アイコン、画面下部の緑・オレンジ・青の角丸枠で縁取られた3枚の"No data"ゲージカード（各カードの下に小さく`CurrentLap`/`SessionTime`等のラベルも確認）、左右の三角矢印ボタンが、いずれも正しい色・位置で描画されていた。一方、画面中央の大きな領域（`AnalysisCarousel`が占める部分）は依然として完全な黒のままだった。
+   ウィジェットツリーを直接照会したところ、この黒い領域には`AnalysisCarousel`（`kivy.uix.carousel.Carousel`）が実在し、その直下に**`RelativeLayout`インスタンスが2つ**（Carousel自身がスライド用に内部生成する、標準Kivyの実装パターン）、いずれも画面内の妥当な座標（`pos=[0, 75.0]`/`pos=[-800, 75.0]`、`size=[800, 405.0]`）を持つ子として存在していることを確認した。
+   **これにより、「`ScreenManager`と`ToolbarView`のどちらが勝つか」という第32回セッションの二択の構図は誤りだったと判明した。実際には`TripleGaugeBar`（`kivy.uix.scatter.Scatter`のサブクラス）や歯車・鍵アイコン（`RelativeLayout`を経由しない通常のWidget/Image系）は最初から問題なく描画されており、"救済"を必要とするのは常に「`RelativeLayout`（またはそのサブクラス）が新しくcanvasに組み込まれた（かつ、生涯最初の1回の救済イベントの受益者になれなかった）瞬間」に限られる**、という、これまでで最も的を絞った統一仮説に到達した。`AnalysisCarousel`内の2つの`RelativeLayout`は、`dash`画面が`switchMainView`により（アプリ生涯で最初の`ScreenManager`移動より後に）構築されたため、この一度きりの救済に間に合わなかったものと解釈できる。
+
+**5. ⚠️ 上記4を踏まえ、`AnalysisCarousel`自身のページ（`RelativeLayout`×2）に同じ`remove_widget`+`add_widget`トリックを適用しようと試みたが、`Carousel`ウィジェット独自の`add_widget`実装（`slides`プロパティ経由の内部管理、`on_slides`イベントで`_insert_visible_slides()`が自動的に再実行される）と衝突し、`WidgetException: ...it already has a parent`で失敗した**。`Carousel`は生の`children`リストではなく`slides`プロパティを介して独自にページを管理しているため、汎用ウィジェットに対して確立してきた素朴な`remove_widget`/`add_widget`パターンはそのまま適用できないと判明した。`car.slides`プロパティを直接操作する（`slides`リストへの再代入等）か、`Carousel`のソース（`kivy/uix/carousel.py`の`_insert_visible_slides`/`_curtain`実装）を読んでその内部状態遷移に沿った形で「remove→re-add相当」を行う必要があり、次回への持ち越し課題となった。
+
+**6. 🎯 総括：「`ScreenManager`と`ToolbarView`の共存」という第32回セッション末尾の問いは、実際には「両者は競合しない（`ToolbarView`は元々問題なく描画される部類のウィジェットである）」という形で解消されたが、より本質的な制約（`RelativeLayout`系ウィジェットの救済はアプリ生涯で1回限りで、かつ後から生成される`RelativeLayout`（`Carousel`のページ等）には及ばない）が新たに確定し、「1箇所を直しても他が直せない」問題の射程が`ScreenManager`本体だけでなく、その配下で新しく作られる`RelativeLayout`全てに及ぶことが判明した。次回はこの統一仮説（RelativeLayout限定・生涯1回限りの救済）を土台に、①`Carousel.slides`の直接操作による救済トリックの適用、②そもそも複数の`RelativeLayout`を同時に"救済"できる一括操作（複数ウィジェットをまとめて1回の`remove_widget`+`add_widget`バッチにする、または`RelativeLayout`を極力使わない代替コンテナへ差し替える）の探索、③GL/apitraceレベルでの根本メカニズム解明（`RelativeLayout`のcanvas.beforeが`PushMatrix`+`Translate`をどう構築するか、Mesa VC4のどの一度きりのリソース確保と結びついているか）のいずれかを優先すべきである。**
+
+**7. 実機（`rc-dash-3b`）の状態（セッション終了時点）**：全ての検証プロセス（`LD_PRELOAD=frametrace16.so`で起動した複数の一時インスタンス）は`sudo kill -9`で終了済み。標準の`run_racecapture_rpi.sh -w 1`（`LD_PRELOAD`なし、watchdog付き）で本番相当のクリーンな状態へ復旧し、`throttled=0x0`（電圧健全）・`dmesg`上のGPUリセット0件を確認済み。ハードウェアへの恒久的な変更なし。接続先IPは今回`192.168.137.83`（前回セッションから不変）。生成物：`~/isolate_tests_4-4-2/`に`s33_approach1.py`・`s33_step_sm_only.py`・`s33_step_toolbar_to_window.py`・`s33_perpetual_refresh.py`・`s33_step_nav_open.py`・`s33_nav_state.py`・`s33_switch_dash.py`・`s33_list_screens.py`・`s33_inspect_carousel.py`・`s33_fix_carousel.py`（Carousel特有の例外で未完成、次回の起点）を追加保存済み。`~/frametrace16.c`/`.so`は前回同様、無改造のまま再利用できることを確認した。
+
+**次回の最優先候補（優先度順、第33回セッション最終更新）**：
+0. **最優先：`Carousel.slides`プロパティを直接操作する（またはKivy `carousel.py`のソースを読み内部状態遷移に沿った形で）"救済"トリックを`AnalysisCarousel`のページ`RelativeLayout`へ適用し、`DASHBOARD`画面の中央領域も描画されるか検証する**。成功すれば「`RelativeLayout`限定・生涯1回限りの救済」という統一仮説がさらに補強され、恒久修正の設計（起動シーケンス全体を通じて必要な`RelativeLayout`群をどうバッチで救済するか）の土台になる。
+1. 上記0とは独立に、「複数の`RelativeLayout`（`ScreenManager`本体＋現在の画面が内包する全ての`RelativeLayout`子孫）を1回の操作でまとめて救済できるか」を検証する。もし複数ウィジェットの同時`remove_widget`+`add_widget`が「まとめて1回」として扱われ全て救済されるなら、恒久修正は「起動直後、画面遷移直後いずれのタイミングでも、現在の画面配下の全`RelativeLayout`子孫を列挙し一括で`re-parent`する」という汎用ロジックとして実装できる可能性が高まる。
+2. Mesa GitLabへの`glClear`部分マスクバグ報告（第31回セッションから持ち越し、`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度中で残置。
+3. 恒久適用の実装経路（`main.pyc`バイトコード注入 or `LD_PRELOAD`常駐、第32回セッション候補1・2）は、救済ロジック自体（0・1）が確立してから着手する。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
