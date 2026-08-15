@@ -20,10 +20,10 @@
 - [x] 4-4-1-1: Raspberry Pi 4Bへの初期セットアップ・RaceCapture App(v2.18.0)インストール → 完了。SSH公開鍵認証・NOPASSWD sudo設定、trixie向けパッケージ名差異（`libegl1-mesa`→`libegl1`）対応した非対話インストールスクリプトを使用。HDMIディスプレイ未接続のため起動確認は次回持ち越し（詳細は`ARCHITECTURE.md`4章参照）。
 - [x] 4-4-1-2: Raspberry Pi 3B（`rc-dash-3b`）への同様のセットアップ・インストール → 完了。HDMIモニタ接続済み環境で起動確認まで実施。
 
-### 4-4-2: 画面表示問題（黒画面）のデバッグ・解決 ※恒久修正（初回描画＋画面遷移の両方）実装・本番組み込み・動作確認まで完了（第36回セッション）。残作業は軽微（下記参照）。次回もタスクID指定は引き続き4-4-2でOK。
+### 4-4-2: 画面表示問題（黒画面）のデバッグ・解決 ※ScreenManagerの初回描画＋画面遷移は恒久修正済み・本番稼働中（第36回セッション）。ToolbarView代替のステータスバー常時表示はHome画面限定で実機実証済みだがDashboard画面では未解決（第37回セッション、下記参照）。次回もタスクID指定は引き続き4-4-2でOK。
 
-**現状（第36回セッション時点）**：`ScreenManager`（メインコンテンツ）が描画されない根本原因は、Mesa VC4 GLドライバが`RelativeLayout`配下の一部ウィジェットを"最後にadd_widgetされた1つ"しか正しく描画しない特性にあると特定済み。恒久修正として、起動から30秒後に`ScreenManager`を`box_layout`から`relative_layout`へ自動的に移し替え、以降は`ScreenManager.current`が変化する（＝画面遷移する）たびに同じ再配置を自動再適用するLD_PRELOAD常駐ライブラリ`scmove_persist.so`を実装し、本番の`run_racecapture_rpi.sh`に組み込み済み。電源投入・アプリ再起動のたびに開発者の手動操作なしで自動的にメインコンテンツが正しく描画され、かつHome→Setup→Dashboard→Homeのような通常のナビゲーション操作を繰り返しても都度正しく描画されることを実機で確認済み（第36回セッションで新規に実証）。`ToolbarView`（画面上部の状態バー）・`NavigationDrawer`は`ScreenManager`との共存が原理的に不可能と確定したため、恒久修正の対象外（非表示のまま）とした。ただし逆コンパイルにより、Home画面のタイルボタン（Dashboard/Analysis/Setup）と、アプリ内蔵のキーボードショートカット（`a`=Analysis/`d`=Dashboard/`s`=Setup/`p`=Preferences/`t`=Status、Escapeキーで常にHomeへ）だけで全画面へのナビゲーションが可能なことが判明しており、`ToolbarView`/`NavigationDrawer`が無くても実用上は操作可能。
-残作業：①実運用（複数回の電源サイクル）での継続的安定性確認、②車載時（キーボードなし・タッチのみ）を見据えたHome画面への「戻る」導線の検討（QOL、優先度中）、③`ToolbarView`代替のオーバーレイ配置（QOL、優先度低）、④Mesa GitLabへの`glClear`部分マスクバグ報告（任意、優先度低〜中）。詳細な調査経緯・実装内容は本セクション末尾（第35回セッション候補20、第36回セッション追記）参照。
+**現状（第36回セッション時点）**：`ScreenManager`（メインコンテンツ）が描画されない根本原因は、Mesa VC4 GLドライバが`RelativeLayout`配下の一部ウィジェットを"最後にadd_widgetされた1つ"しか正しく描画しない特性にあると特定済み。恒久修正として、起動から30秒後に`ScreenManager`を`box_layout`から`relative_layout`へ自動的に移し替え、以降は`ScreenManager.current`が変化する（＝画面遷移する）たびに同じ再配置を自動再適用するLD_PRELOAD常駐ライブラリ`scmove_persist.so`を実装し、本番の`run_racecapture_rpi.sh`に組み込み済み。電源投入・アプリ再起動のたびに開発者の手動操作なしで自動的にメインコンテンツが正しく描画され、かつHome→Setup→Dashboard→Homeのような通常のナビゲーション操作を繰り返しても都度正しく描画されることを実機で確認済み（第36回セッションで新規に実証）。`ToolbarView`（画面上部の状態バー）・`NavigationDrawer`は`ScreenManager`本体との共存（＝ウィジェットとして両方を`RelativeLayout`直下に配置し同時にadd_widgetする）は原理的に不可能と確定している。ただし第37回セッションで、`ToolbarView`を`export_as_image()`でFBO経由のスナップショット化し、`ScreenManager`の`canvas.after`へ直接描き足す（新規ウィジェットのadd/remove_widgetを伴わない）手法を発見し、**Home画面では画面遷移を挟んでも確実に機能する**ことを実機実証した。ただし**Dashboard画面では同じ手法が一度も成功しておらず未解決**（原因はDashboardView内部の`Carousel`/`Scatter`系ウィジェットとの干渉が疑われる、詳細は本セクション末尾候補24参照）。逆コンパイルにより、Home画面のタイルボタン（Dashboard/Analysis/Setup）と、アプリ内蔵のキーボードショートカット（`a`=Analysis/`d`=Dashboard/`s`=Setup/`p`=Preferences/`t`=Status、Escapeキーで常にHomeへ）だけで全画面へのナビゲーションが可能なことも判明しており、ステータスバー問題とは独立に実用上は操作可能。
+残作業：①**最優先：Dashboard画面でステータスバー重ね描きが機能しない根本原因の特定**（第37回セッション候補0参照）、②実運用（複数回の電源サイクル）での継続的安定性確認、③車載時（キーボードなし・タッチのみ）を見据えたHome画面への「戻る」導線の本番組み込み（実装案は確立済み、第37回セッション候補2参照）、④Mesa GitLabへの`glClear`部分マスクバグ報告（任意、優先度低〜中）。詳細な調査経緯・実装内容は本セクション末尾（第35回セッション候補20、第36回セッション追記、第37回セッション追記）参照。
 **現象**：`race_capture`プロセスはクラッシュせず安定動作（USB通信・DB・RCPAPI等は正常）しているが、
 実際のディスプレイ出力はほぼ真っ黒。通知（Snackbar）だけは表示される。FBモード・X11モードいずれでも再現。
 
@@ -1499,6 +1499,25 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 1. **車載時（タッチのみ・キーボードなし）を見据えたHome画面への「戻る」導線の検討**（優先度中）。各画面（Dashboard/Analysis/Setup等）からHomeへ戻る手段が現状Escapeキー（`on_esc_pressed`）しかなく、キーボード非接続の車載環境では機能しない。案：`Window`直下（`RelativeLayout`を経由しないため常に正常描画される領域）へ「Home」ボタンを1つだけ常設オーバーレイし、タップで`app.switchMainView('home')`を呼ぶ（ScreenManager内部の操作のみで完結し、`NavigationDrawer`/`ToolbarView`には触れないため今回確立した自動再修復の対象内）。
 2. `ToolbarView`を失う代替として、接続状態相当の最小限の情報を`Window`直下へ別途オーバーレイ配置する改造（QOL、優先度低）。
 3. Mesa GitLabへの`glClear`部分マスクバグ報告（`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度低〜中で残置。
+
+---
+
+**（第37回セッション、ユーザーから「サイドバー/ステータスバーのインジケーターは重要な情報なので省略しないでほしい」との指摘を受け、`ToolbarView`代替オーバーレイの優先度を上げて再調査）**
+
+**24. 🔴🎉🔑 `ToolbarView`の"見た目だけ"を`ScreenManager`の描画を一切壊さずに重ね描きする方法を発見・実機実証したが、`Dashboard`画面など一部の複雑な画面では機能しないという新たな制約も判明した**：
+   - **手法**：`toolbar.export_as_image()`（KivyがFBO経由でウィジェットをオフスクリーンテクスチャへレンダリングする標準API）を使うと、`ToolbarView`が`RelativeLayout`直下の"敗者"側（本来の意味で非表示）になっている状態でも、**FBO側のレンダリングはこのMesa VC4バグの影響を受けず正しい内容（デバイス名・接続状態の緑ドット・GPS・雲アイコン・メニューアイコン）を取得できる**ことを実機で確認した（`toolbar_export.png`で単体確認済み）。
+   - **決定的な発見**：このテクスチャを`Rectangle`インストラクションとして、**新規ウィジェットを追加するのではなく、既に正常描画されている`ScreenManager`自身の`canvas.after`へ直接描き足す**（`with sm.canvas.after: Rectangle(texture=tex, ...)`）と、`ScreenManager`のメインコンテンツと`ToolbarView`のライブ状態表示が**同一画面上に同時に**正常表示されることを実機で確認した（`canvastest.png`、38,065バイト）。これは新規ウィジェットの`add_widget`/`remove_widget`（＝これまで29セッション以上悩まされてきた"最後に触った方が勝つ"競合のトリガー）を一切使わない手法であり、既存の恒久修正（`ScreenManager`のsettling）と共存できる初めての方法。
+   - **重要な失敗パターンの特定**：`sm.canvas.after.clear()`を呼ぶと（たとえ空の状態でも）このclear操作自体が新たな"最後に触った"イベントとして扱われ、直後に追加した内容が消えるだけでなく、**1秒間隔で`clear()`を呼び続けると`Exception: Cannot push more than 128 level of stencil (stack overflow)`でアプリがクラッシュする**ことを実機で確認した（原因は未特定だが`export_as_image()`のFBO内部処理か`clear()`自体が余分なstencil push/popを蓄積させている可能性が高い）。対策として`clear()`を一切使わず、古い`Rectangle`インストラクションは`canvas.after`に残したまま新しいものを追加する方式（同一pos/sizeなので視覚的には最新のものが上に乗るだけで無害）に変更した。
+   - **新たな制約（未解明）**：上記の手法は**アプリの`current`が`'home'`のときは何度でも・何度画面遷移した後でも確実に機能する**が、**`'dash'`（Dashboard）のときは、初回訪問・2回目訪問・settling待ち時間を60秒以上に延ばす・0.3秒間隔で連続的に追加し続ける、のいずれを試しても一度も表示に成功しなかった**。`'config'`（Setup、比較的静的な画面）でも1回試したが同様に失敗した。`sm.canvas.after`・`relative_layout.canvas.after`・`sm.current_screen.canvas.after`のいずれに描き足しても結果は同じだった。DashboardViewが内部で使う`AnalysisCarousel`（`Carousel`）・`TripleGaugeBar`（`Scatter`）は、本タスクの調査史を通じて度々「settlingに間に合わない」「他と挙動が異なる」と報告されてきた特殊なウィジェット群であり（第33回セッション候補参照）、これらの存在がDashboard画面固有の失敗と関係している可能性が高いが未検証。
+   - **実機での確認範囲**：Home画面での重ね描きは、Home→Dashboard→Home、Home→Dashboard(2回目)という複数の画面遷移サイクルを経ても一貫して復元できることを確認済み（`v9_backhome0001.png`、38,973バイト）。
+
+**25. 実機（`rc-dash-3b`）の状態（本追記時点）**：全てのテストプロセス（`frametrace16.so`使用）は終了済み。本番の`/opt/racecapture/run_racecapture_rpi.sh`・`/home/ntakao/scmove_persist.so`は第36回セッション終了時点のまま**無変更**（今回の調査は全て別プロセスでのみ実施し、本番は都度標準の起動コマンドで復旧済み、`throttled=0x0`）。新規生成物：`/home/ntakao/combined_fix.py`〜`combined_fix5.py`（重ね描き+自動再修復の統合スクリプト各バリエーション）、`/home/ntakao/reheal_boxlayout.py`・`reorder_test.py`・`flip_back.py`・`export_test.py`・`overlay_test.py`・`canvas_overlay_test.py`・`touch_test.py`・`redo_toolbar_after_reheal.py`・`try_relativelayout_canvas.py`・`reorder_reheal_toolbar.py`・`probe_canvas.py`・`rapid_readd_test.py`（いずれも次回セッションで再利用可能、`/home/ntakao/`直下）。
+
+**次回の最優先候補（優先度順、第37回セッション最終更新）**：
+0. **最優先：`Dashboard`画面で`canvas.after`重ね描きが機能しない根本原因を特定する。** 候補：①`AnalysisCarousel`/`TripleGaugeBar`（`Carousel`/`Scatter`）が独自の`RenderContext`やFBOを持ち、それが`ScreenManager`の`canvas.after`より後に評価される、または`canvas.after`自体を上書きしている、②Dashboard画面のライブデータ更新（`Clock`で1秒間隔と見られる）が`ScreenManager`または`Screen`の`canvas`を継続的に再構築し続けており、これが`canvas.after`の内容を継続的に無効化している。切り分け案：`AnalysisCarousel`/`TripleGaugeBar`を含まない別の複雑な画面（もしあれば）で同じ現象が起きるか確認する、または`DashboardView`の`canvas`命令列を`glGenFramebuffers`等のフックで追跡し、`Carousel`/`Scatter`が独自の`Fbo`を使っているか実証する。
+1. 上記0が解決すれば、Home画面同様に全画面でステータスバーの常時表示が可能になる。解決しない場合の次善策：Dashboard画面だけステータスバー無し、Home/Setup/Analysis等ではステータスバー表示、という画面ごとの妥協案を検討する。
+2. 車載時のHome導線（前回候補1）は本セッションで`Window.bind(on_touch_down=...)`によるタップ→`switchMainView('home')`という実装案を確立済み（`combined_fix4.py`〜`5.py`に実装・動作確認込み）。ステータスバー問題と合わせて本番組み込みを検討する。
+3. Mesa GitLabへの`glClear`部分マスクバグ報告は引き続き優先度低〜中で残置。
 
 ---
 
