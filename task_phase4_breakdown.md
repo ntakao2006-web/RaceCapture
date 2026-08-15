@@ -1456,6 +1456,22 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 ---
 
+**（同日、ユーザー立ち会いなしで作業を継続。第35回セッション相当）**
+
+**16. 🔴🎯🔑 決定的な知見：候補1（`ToolbarView`単独settling）を検証した結果、「`ScreenManager`のsettling救済成功後に`ToolbarView`を移動すると、90秒間放置しても`ScreenManager`側の描画は一切回復しない」ことが確定した**：
+   前回セッション終了時点から継続して稼働していたプロセス（`ScreenManager`移動→settling済み、DASHBOARD画面のPredTime/BestLap/CurrentLap/LapTime/SessionTimeゲージが実データ付きで完璧に描画された安定状態。加えてPhase1-8のデータ受信パッチ（`s34_fix_sample_thread.py`等）も適用済みで、その後もこの安定描画状態がswap数にして1746から10795まで（アイドル状態で長時間）破壊されず継続することも確認できた）に対し、`s35_rescue_toolbar.py`（`ToolbarView`を`box_layout`から`relative_layout`直下へ`remove_widget`+`add_widget`で移動、`pos`/`size`は移動前の値を保持して再代入）を実行し、その後**一切操作を加えず90秒間放置**してからスクリーンショットを取得した。結果は、`ToolbarView`自体は正しく描画された（`RaceCapture/Pr...32-c3-proto-build`の文字・アイコン4つ、ただし`pos`は意図した画面上部ではなく`[0,0]`＝画面下部になる問題は未解決のまま）一方、**直前まで完璧に描画されていた`ScreenManager`側のコンテンツは完全に消失し、90秒待っても一切回復しなかった**（画面はほぼ全面黒、ファイルサイズ8,650バイトで単色に近い）。
+   **これにより、「`ScreenManager`の救済成立後に新たな`remove_widget`/`add_widget`操作が入ると、その時点で不可逆的に破壊が確定し、settling期間を与えても回復しない」ことが確定した。「settling」は"操作の悪影響を打ち消す猶予期間"ではなく、"操作をトリガーとした一過性の再構築プロセスが完了するまでの時間"であり、既に破壊が起きた後にいくら待っても意味がないという理解がより正確になった。** 次回最優先候補1（「両者を別々のタイミングでsettleさせれば共存できるか」）はこの順序（`ScreenManager`→`ToolbarView`）では否定されたが、逆順（`ToolbarView`を先に移動しsettling→その後`ScreenManager`を移動しsettling）は本セッションでは未検証のまま残っている。
+
+**次回の最優先候補（優先度順、第35回セッション最終更新）**：
+0. **最優先：逆順パターンの検証。プロセスを再起動し、まず`ToolbarView`のみを`box_layout`から`relative_layout`（または`Window`直下）へ移動→60〜90秒settling→安定描画を確認→その後`ScreenManager`を移動→60〜90秒settling→両者が同時に生きているか確認する。** 候補16により「後から触った側が勝ち、先に救済された側は不可逆的に失われる」という規則性が示唆されているため、この順序でも「`ScreenManager`側は生きるが`ToolbarView`側は再び失われる」という同じ結果になる可能性が高いと予想されるが、実証はまだ済んでいない。もしこの逆順でも両者が共存できないなら、「同時に2つ以上のトップレベル救済を維持することは原理的に不可能」という、より強い結論が得られる。
+1. 上記0が失敗に終わった場合、`ToolbarView`の恒久修正は諦め、「`ScreenManager`のみ救済し、`ToolbarView`（画面上部の状態バー・ハンバーガーメニュー）は非表示または別経路（例えば`Window`直下への固定配置を`ScreenManager`のsettling"前"に済ませておき、settling中は一切触れない、という第32回パターンA相当だが今度はsettling込みで再検証）で妥協する」という現実的な着地点を検討する。
+2. 恒久適用の実装経路（`run_racecapture_rpi.sh`への`LD_PRELOAD`常駐フックによる起動時1回限りの自動シーケンス実行）の設計・実装に着手してよい時期に来ている。`ScreenManager`移動→90秒待機（→もし候補0が成功すれば`ToolbarView`移動→90秒待機）という手順を、`frametrace16.so`の`rc_trigger_pyexec`相当の仕組みを流用した軽量な常駐ライブラリとして実装し、`run_racecapture_rpi.sh`起動時に`LD_PRELOAD`する案が現実的。
+3. Mesa GitLabへの`glClear`部分マスクバグ報告（`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度低〜中で残置。
+
+**17. 実機（`rc-dash-3b`）の状態（本追記時点）**：`LD_PRELOAD=frametrace16.so`で起動した`race_capture`プロセス（`racecapture_s35c.log`、PID 16635）が稼働中。`ScreenManager`側は候補16の実験により黒画面（破壊済み）、`ToolbarView`のみ画面下部に描画されている状態。`throttled=0x0`（電圧健全）。次回セッション（本セッションの続きの可能性を含む）で候補0（逆順パターン）を試す場合は、このプロセスを終了し新規起動からやり直す必要がある。
+
+---
+
 ### 4-4-3: X11+VNCでの目視調査時の電源負荷問題 ※記録のみ・要注意
 `Xorg` + `x11vnc` + `race_capture`を同時稼働させた状態で、`throttled=0x50005`（アンダーボルテージ再発）が発生し、
 システムウォッチドッグ（1分タイムアウト）による強制リブートが発生した。改善後の電源（PD/QC非対応 5V/2.1A固定出力）でも、
