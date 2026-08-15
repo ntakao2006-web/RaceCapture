@@ -1419,11 +1419,14 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 **9. 実機（`rc-dash-3b`）の状態（セッション終了時点）**：全ての検証プロセス（`LD_PRELOAD=frametrace16.so`/`frametrace17.so`で起動した複数の一時インスタンス）は`sudo kill -9`で終了済み。標準の`run_racecapture_rpi.sh -w 1`（`LD_PRELOAD`なし、watchdog付き）で本番相当のクリーンな状態へ復旧し、`throttled=0x0`（電圧健全）・`dmesg`上のGPUリセット0件を確認済み。ハードウェアへの恒久的な変更なし。接続先IPは今回`192.168.137.83`（前回セッションから不変）。生成物：`~/isolate_tests_4-4-2/`に`s33_approach1.py`・`s33_step_sm_only.py`・`s33_step_toolbar_to_window.py`・`s33_perpetual_refresh.py`・`s33_step_nav_open.py`・`s33_nav_state.py`・`s33_switch_dash.py`・`s33_list_screens.py`・`s33_inspect_carousel.py`・`s33_fix_carousel.py`（Carousel独自APIとの衝突で例外、失敗記録として保存）・`s33_fix_carousel2.py`（基底`Widget`メソッド直接呼び出し版、実行は成功したが救済されず）を追加保存済み。`~/frametrace16.c`/`.so`（無改造のまま再利用）に加え、`~/frametrace17.c`/`.so`（GPUリソース生成フック追加版、テクスチャ/FBO/レンダーバッファのgen/delete計6関数）を新規保存、次回も再利用可能。
 
+**10. ⚠️🔑 セッション最終盤、`switchMainView('dash')`直後に`ScreenManager`移動を行い数秒待ってから`AnalysisCarousel`のコンテナ（`car.children`を直接、`Widget.add_widget`/`remove_widget`基底メソッドで）を追加で再接続する一連の操作を試したところ、1回だけチャンネル一覧（RPM/Speed/WaterTemp等、約24項目のラベルグリッド）とゲージカードが完璧に描画される結果が得られたが、直後に全く同一の手順・同等のタイミングで再現を試みたところ再現せず、単独の`AnalysisCarousel`のみを最初の一度きりの操作として触れる制御実験でも変化なし（黒画面のまま、ファイルサイズも操作前後で完全に同一の2908バイト）だった**。これにより、この1回限りの「成功」は手順の因果的な再現性を持たず、本セッションが確立した「アプリ生涯で最初の1回だけ効く」という統一仮説（候補6〜8）とは別の、非決定的な現象（第25回セッションで確立済みの「スワップ継続/停止の非決定性」等と同系統の可能性）によるものだった可能性が高いと判断する。**この観測自体は今後の調査で再訪する価値があるが、現時点では再現条件が不明な単発のアノマリーとして記録するにとどめ、確立した手法としては採用しない。**
+
 **次回の最優先候補（優先度順、第33回セッション最終更新）**：
 0. **最優先：GL API呼び出しレベルでは説明できないと確定した（候補8）ため、Kivy自身のcanvas命令グラフ構築ロジック（`kivy/graphics/instructions.pyx`の`Canvas`/`InstructionGroup`のcompileキャッシュ・`flag_update`伝播）を読み、「`RelativeLayout.add_widget()`によるcanvas再構築で何が１回限り特別なのか」をソースレベルで特定する**。特に、`RelativeLayout`のcanvas.before（`PushMatrix`+`Translate`）がKivy内部でどうキャッシュ・再コンパイルされるか、既存の兄弟`RelativeLayout`（`app.root`直下の元々の`relative_layout`インスタンス）との違いに注目する。
-1. `Carousel.slides`プロパティへの直接代入（`car.slides = list(car.slides)`のような再代入トリガー）や、`Carousel`を経由せず`AnalysisCarousel`のページ自体を`FloatLayout`等の`RelativeLayout`を使わない代替コンテナへ差し替える改造（`autosportlabs.views.analysis.analysiscarousel`側のコード変更）を検討する。ただし候補7の結果を踏まえると「救済の使い回し」自体が原理的に不可能な可能性が高く、優先度は候補0の後段へ見直し。
-2. Mesa GitLabへの`glClear`部分マスクバグ報告（第31回セッションから持ち越し、`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度中で残置。
-3. 恒久適用の実装経路（`main.pyc`バイトコード注入 or `LD_PRELOAD`常駐、第32回セッション候補1・2）は、根本メカニズム（0）が判明してから着手する。
+1. 🆕 候補10で観測した「1回だけ再現した成功」の再現条件を、複数回（5〜10回）の反復試行で統計的に探る（第25回セッションのスワップ非決定性調査と同様のアプローチ）。もし一定確率で再現するなら、"救済"が真に一度きりではなく確率的事象である可能性が浮上し、統一仮説（候補6〜8）の見直しが必要になる。
+2. `Carousel.slides`プロパティへの直接代入（`car.slides = list(car.slides)`のような再代入トリガー）や、`Carousel`を経由せず`AnalysisCarousel`のページ自体を`FloatLayout`等の`RelativeLayout`を使わない代替コンテナへ差し替える改造（`autosportlabs.views.analysis.analysiscarousel`側のコード変更）を検討する。ただし候補7・10の結果を踏まえると「救済の使い回し」自体が原理的に不可能、または非決定的である可能性が高く、優先度は候補0・1の後段へ見直し。
+3. Mesa GitLabへの`glClear`部分マスクバグ報告（第31回セッションから持ち越し、`~/apitrace_4-4-2/dash_session31.trace`が証拠として利用可能）は引き続き優先度中で残置。
+4. 恒久適用の実装経路（`main.pyc`バイトコード注入 or `LD_PRELOAD`常駐、第32回セッション候補1・2）は、根本メカニズム（0・1）が判明してから着手する。
 
 ---
 
