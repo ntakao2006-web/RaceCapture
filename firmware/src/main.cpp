@@ -2079,16 +2079,13 @@ static void taskB(void *pvParameters)
 #else
 // 1-1-6: タスクB（SD書き込み役）の優先度検証用プレースホルダー
 // C3はSDMMCホストペリフェラル非搭載のためSD保存機能自体がスコープ外(1-2-3参照)。
-// タスクB=最優先が狙い通り動くかを確認するため、CPUを一定時間占有する
-// ダミー処理のみ行う（タスクA/Cとの実行順・詰まり具合を観察する用途）
+// 元々はCPUを一定時間占有するビジーループでタスクB=最優先の動作を確認していたが、
+// このビジーループが最優先(+3)のままRCP処理タスクC(+1)を長時間ブロックし、
+// 実機での`getLapCfg`等RCPコマンド応答タイムアウトの原因になっていたと判明(4-4-2調査)。
+// 検証目的は1-1-6で既に達成済みのため、以後はCPUを占有しないダミー処理に変更する。
 static void taskB(void *pvParameters)
 {
     for (;;) {
-        volatile uint32_t dummyWork = 0;
-        for (uint32_t i = 0; i < 100000; i++) {
-            dummyWork += i;
-        }
-        printf("[taskB] busy-work cycle done (dummy=%lu)\n", static_cast<unsigned long>(dummyWork));
         vTaskDelay(pdMS_TO_TICKS(200));
     }
 }
