@@ -1339,12 +1339,56 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 **23. 実機（`rc-dash-3b`）の状態（セッション終了時点）**：全ての検証プロセスは終了済み、`sudo systemctl restart getty@tty1.service`で標準の自動ログイン経由・LD_PRELOADなし・watchdog付きの`race_capture`に復旧したことを確認済み（`throttled=0x0`、GPUリセット0件）。ハードウェアへの恒久的な変更なし。生成物：`~/frametrace16.c`/`.so`、`~/inject_scripts_4-4-2/`、`~/decompile_4-4-2/`（前回同様）に加え、`~/isolate_tests_4-4-2/`（`bypass_boxlayout.py`・`swap_boxlayout.py`・`reinsert_same_box.py`・`check_sizes.py`・`inject_box_proper.py`・`inject_box_direct.py`・`isolate_boxlayout_bug.py`・`isolate_clean.py`・`isolate_screenmanager.py`、いずれも再利用可能）。
 
 **次回の最優先候補（優先度順、第31回セッション最終更新）**：
-0. **最優先：`app.root`（`AppMainFrame`）を構成する実際のソースコードを特定し、`ScreenManager`を`BoxLayout`経由ではなく`RelativeLayout`直下（または`FloatLayout`等の別のコンテナ）で配置するよう恒久的にコード変更できないか検討する**。`racecapture`パッケージ内で`AppMainFrame`・`BoxLayout`・`ToolbarView`を検索すれば該当ファイルが見つかるはず（`~/decompile_4-4-2/search_kv.py`が既に利用可能）。`ToolbarView`（画面下部固定40px）との共存方法（`BoxLayout`の代わりに`FloatLayout`+`pos_hint`、または`ScreenManager`の`size_hint_y`を`ToolbarView`の高さ分だけ手動で引く等）を設計し、コード変更→再ビルド（PyInstallerでの再パッケージが必要か、`.pyc`の直接差し替えで足りるか要確認）→実機検証という流れが次回の中心作業になる。
+0. ~~最優先：`app.root`（`AppMainFrame`）を構成する実際のソースコードを特定し...~~ → **第32回セッション（ユーザー不在の自律調査、3時間枠）で特定・検証完了。静的KVトポロジー変更だけでは直らないという重要な訂正結果が出た。詳細は下記参照、次の最優先候補は下記32回セッション末尾に記載**。
 1. 上記0で完全解明に至らなかった根本メカニズム（`BoxLayout`のcanvas.before/afterが空でGL状態を明示的にリセットしないこと、`NavigationDrawer`の毎フレームのステンシルpush/pop列との関連）は、時間があれば引き続き深掘りする価値がある。
 2. NavigationDrawerの負アルファ値（`rgba=[0,0,0,-0.25]`）はメインバグの原因ではないと判明したが、RaceCaptureアプリ自身の実装バグとして記録し、いずれ`autosportlabs/menu/navigation_drawer`側の修正を検討する価値はある（優先度低）。
 3. `frametrace12〜15`系列の頂点バッファ解析における`stride=16`前提の限界（KivyMDの角丸シャドウ等、複雑なメッシュで異常値が出る問題）を解消し、全描画コールのbounding boxを正確に把握できるようにする。
 4. 今回再確認した`glClear`部分マスクワークアラウンドの本番適用（`run_racecapture_rpi.sh`への組み込み）は、メインコンテンツ問題の解決とは独立に、背景色・サイドバー・トーストの正常化という実利があるため、ユーザーと相談の上で先行適用を検討する価値がある。
 5. Mesa GitLabへの`glClear`部分マスクバグ報告は、`~/apitrace_4-4-2/dash_session31.trace`を証拠として引き続き価値がある。
+
+---
+
+**（ユーザーが3時間就寝、その間の自律調査を依頼。第32回セッション）**
+
+**1. 🔴🎉🎯🔑 `AppMainFrame`の実ソースを特定：`racecapture`パッケージ内ではなく、PyInstallerがELFバイナリに直接埋め込む「エントリスクリプト」（`main.py`、`pyinstxtractor-ng`で`main.pyc`として単独展開される、PYZアーカイブとは別物）の中に、`Builder.load_string()`へ渡す巨大なKV文字列リテラルとして存在していた**：
+`~/decompile_4-4-2/race_capture_extracted/main.pyc`を`pydisasm`（`xdis`付属）で逆アセンブルし、`AppMainFrame`という定数文字列を検索することで一発で特定した（`racecapture`パッケージ配下を`search_kv.py`でいくら探しても見つからなかった理由はこれだった）。実際のKVルールは以下の通りで、これまでの実機調査で判明していた構造（`RelativeLayout`直下に`BoxLayout`（`ToolbarView`+`ScreenManager`を内包）と`NavigationDrawer`が並ぶ）と完全に一致した：
+```
+<AppMainFrame>:
+    padding: self.app_padding
+    RelativeLayout:
+        BoxLayout:
+            orientation: 'vertical'
+            ToolbarView:
+                id: status_bar
+            ScreenManager:
+                id: main
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        NavigationDrawer:
+            id: navigation_drawer
+            size_hint_y: None
+            height: self.parent.height - status_bar.height
+```
+同じ`main.pyc`内に`RaceCaptureApp`（Appサブクラス）・`CrashHandler`も定義されていることも確認した。
+
+**2. 🔴🎉🔑 ELFバイナリ内に埋め込まれたPyInstaller CArchiveの当該エントリを安全に書き換える汎用リパックパイプラインを新規に構築し、実際に動作することを実証した**：
+`main`エントリ（type=`s`=ARCHIVE_ITEM_PYSOURCE、`race_capture`本体のELF内でzlib圧縮されて格納）は`pyinstxtractor-ng`の実装（`pip`で取得、ソース公開）を解析することでCArchiveのTOC（Table of Contents）構造とCookie構造を完全に把握し、以下を実現する`~/repack_4-4-2/repack_main_kv.py`を新規作成した：①対象エントリをzlib展開→②KV文字列を新しい内容へバイト列レベルで置換→③zlib再圧縮（圧縮後サイズは元と一致しなくてよい）→④TOC内の該当エントリの`entryPos`・`cmprsdDataSize`、後続する全エントリの`entryPos`、CArchive Cookieの`lengthofPackage`・`toc`オフセットを、サイズ差分（delta）に応じて漏れなく補正→⑤ファイル全体を再構築。**本番バイナリのコピー（`~/repack_4-4-2/race_capture.orig`）に対して実際にパッチを適用し（`race_capture.patched`）、`pyinstxtractor-ng`で再展開して`main.pyc`以外の全16ファイルがバイト単位で完全一致することを`diff -rq`で確認、`main.pyc`は`xdis`で正常にロードでき意図した新KV文字列(444バイト、元と同じ長さになるようパディング調整済み)が正確に反映されていることも確認した。実際に実機でこのパッチ済みバイナリを起動し、正常にKivy/RCPAPI/Datastore等が初期化されることも確認済み**（本番バイナリ自体には一切触れず、コピー上でのみ作業。本番の`/opt/racecapture/race_capture`はMD5ハッシュ一致でセッション終始無傷だったことを確認済み）。同一長パディングによる差し替えだけでなく、サイズが変わるパッチ（今回実測: delta=-29バイト）でも上記TOC補正ロジックにより正しく動作することも実証済みであり、**今後main.pyc内の任意の文字列定数を安全に書き換えるための再利用可能な基盤が整った**。
+
+**3. ⚠️🔴 重要な訂正：上記の静的KVトポロジー変更（`ScreenManager`を`BoxLayout`経由ではなく`RelativeLayout`直下に最初から配置）を実際にパッチしたバイナリで実機検証したところ、メインコンテンツは描画されなかった。第31回セッション最終盤の「トポロジーを変えれば直る」という想定は誤りだったと判明した**：
+新KVは`padding: self.app_padding; RelativeLayout: ScreenManager(id:main, size_hint_y:None, height: self.parent.height - status_bar.height) / ToolbarView(id:status_bar, pos_hint:{"top":1}) / NavigationDrawer(...)`という構成（`BoxLayout`を完全排除、`ToolbarView`も`ScreenManager`も`RelativeLayout`の直接の子）。パッチ済みバイナリを実機で起動し、`rc_trigger_pyexec`機構（第31回セッションで確立済みの`frametrace16.so`）でウィジェットツリーを確認したところ、**意図通り`RelativeLayout`の子が`[NavigationDrawer, ToolbarView, ScreenManager]`（`BoxLayout`なし）、`ToolbarView`の`pos=[0,440] size=[800,40]`（画面上部固定）、`ScreenManager`の`pos=[0,0] size=[800,440]`（残り全域）と、設計通りの幾何構造が正確に構築されていることを確認**した。ところが`Window.screenshot()`で実際の描画結果を確認すると、画面全体が単色`(18,18,18,255)`のみ（`PIL`のヒストグラム解析で1色のみ、384000ピクセル全てが同一色と確認）で、これまでの31セッション分と全く同じ「メインコンテンツが一切描画されない」症状がそのまま再現した。**つまり「ウィジェットツリーの静的な親子関係（トポロジー）」自体はメインバグの直接原因ではなく、構造が正しくてもバグは再現することが実証された**。
+
+**4. 🔴🎉🔑🎯 一方、第31回セッションが実機の稼働中プロセスに対して行った「動的な`remove_widget`→`add_widget`による付け替え」というワークアラウンド手順は、無改造の元バイナリ上で本セッションでも独立に再現に成功した（2回目の独立確認）**：
+無改造の`race_capture.orig`（`~/repack_4-4-2/`に保存済みのコピー）を`LD_PRELOAD=frametrace16.so`で起動し、`rc_trigger_pyexec`経由で「`box_layout.remove_widget(sm)`→`sm.size_hint=(1,1)`→`sm.pos=(0,0)`→`relative_layout.add_widget(sm)`」という第31回セッションと全く同じ操作を実行した。操作直後の`Window.screenshot()`は単色のままだったが、**操作から約1000スワップ分（数秒程度）待ってから再度スクリーンショットを撮ったところ、公式RaceCapture AppのSetupView（"Welcome / Device / Connection / Preset / Tracks / Podium / Cell Service / Tour"タブ・案内文・レーシングカー画像・EXIT/NEXTボタン）が完璧に描画されていることを確認した**（ファイルサイズ149,255バイト vs 単色時の2,608バイトという明確な差でも裏付けられる）。**「即座に確認すると直っていないように見えるが、数百〜千スワップ程度の猶予を置けば描画される」という重要なタイミング上の注意点も本セッションで再確認した**（第31回セッション点12の知見と一致）。
+
+**5. 🔴🎯🔑 決定的な新発見：このワークアラウンドは極めて脆弱（fragile）であり、`ScreenManager`が`size_hint=(1,1)`（`RelativeLayout`全域と完全に同一サイズ）のまま一切触れられない状態を維持する場合のみ有効。その後に加えるいかなる変更（`ScreenManager`自身のサイズ変更ですら）も、再び描画消失を引き起こす**：
+上記4で「直った」状態を確認した直後、`ToolbarView`との共存のため`ScreenManager`のサイズを`(1,1)`から`(1,None)`+`height=440`（`ToolbarView`の高さ40pxを除いた領域）へ**通常のPythonプロパティ代入のみで**（KVの反応的バインディングは使わず、`rl`と`tb`を直接参照する値を一度だけ計算して代入）変更したところ、**再び画面全体が単色`(18,18,18,255)`のみに戻り、メインコンテンツは消失した**（スクリーンショット8,296バイト、単色パターンと一致）。さらに、`ScreenManager`自体には一切触れず、**兄弟ウィジェットである`ToolbarView`だけを同様に`box`から`RelativeLayout`直下へ付け替える操作を追加で行っただけでも**、`ScreenManager`のメインコンテンツは再び消失した（8,608バイト）。**最後に、ウィジェットツリー（`parent`/`children`）を一切変更せず、`rl.canvas.remove(box.canvas)`→`rl.canvas.add(box.canvas)`というcanvasレベルのz-order入れ替えのみ（`ScreenManager`のウィジェットツリー上の親子関係やプロパティには無関係のはず）を行った場合でも、同様に`ScreenManager`のメインコンテンツは消失した**（8,326バイト）。**これにより、このワークアラウンドは「特定のウィジェットを恒久的に正しい状態へ『登録』する」ものではなく、「`RelativeLayout`のレイアウト/canvas再構築が発生した直後、最後にその再構築のトリガーとなった1つの操作に関連するウィジェットのみが、次の再構築が起きるまでの間だけ」正しく描画される、という極めて一時的（transient）な現象である可能性が高いと判明した**。`ToolbarView`単体を同じ手順で付け替えた場合も（実アイコン・接続状態の緑ドット・デバイス名テキストが正しく描画され、`SetupView`自身のタブとは明確に異なる見た目で確認済み）同様に描画に成功しており、**メカニズム自体はウィジェットの種類に依存しない一般的なものである**ことも確認できた。しかし「`ScreenManager`と`ToolbarView`の両方を同時に、かつ重ならないサイズで、共に正しく描画された状態を維持する」という実用上必要な組み合わせは、本セッションで試した全ての順序・手法（同時操作、順次操作、ウィジェットツリー操作、canvasのみの操作）で達成できなかった。
+
+**6. 実機（`rc-dash-3b`）の状態（セッション終了時点）**：全てのテストプロセス（`race_capture.orig`・`race_capture.patched`の一時起動、いずれも複数回）を終了済み。本番の`/opt/racecapture/race_capture`はMD5ハッシュ`887a219b47b57557951435ee924d0d77`でセッション開始時と完全一致（無改造）、`run_racecapture_rpi.sh -w 1`による標準watchdogフローで正常復旧済み（`LD_PRELOAD`なし、ESP32接続・GPS/テレメトリ・セッション記録とも正常動作を確認、`throttled=0x0`）。生成物：`~/repack_4-4-2/`（`pyinstxtractor_ng.py`・`repack_main_kv.py`・`race_capture.orig`・`race_capture.patched`・`_internal`シンボリックリンク、いずれも次回セッションでも再利用可能。`race_capture.patched`は「静的トポロジー変更のみ」パッチなので効果なしと判明済みだが、リパックパイプライン自体の動作実証サンプルとして有用）。`/tmp/stage*.py`・`/tmp/reparent*.py`等の一連の検証スクリプトは`/tmp`（tmpfs）上のため次回リブートで消滅する想定（重要なものは`~/repack_4-4-2/`等の永続領域に控えを残すことが望ましい、次回セッション冒頭で対応可）。
+
+**次回の最優先候補（優先度順、第32回セッション最終更新）**：
+0. **最優先：「`ScreenManager`と`ToolbarView`を同時に正しく描画された状態で共存させる」方法を見つける**。本セッションで試して効果がなかった手法（両者を同時/順次に`remove_widget`+`add_widget`、`ScreenManager`のみ移動して`ToolbarView`を後から別移動、canvasレベルのz-order入れ替えのみ）以外のアプローチを検討する。候補：①`ScreenManager`を`size_hint=(1,1)`のまま一切動かさず、`ToolbarView`側は`RelativeLayout`に頼らず`Window`直下（第21回セッションで確認済みの「`Window`直下は常に正常描画される」領域）に别途オーバーレイとして配置する、②`ScreenManager`の`remove_widget`+`add_widget`操作を、画面上で本当に「最後の」操作にできるよう、逆に`ToolbarView`を先に`RelativeLayout`直下へ配置してから`ScreenManager`を最後に正しいサイズで付け替える（本セッション未試行の順序）、③そもそも「なぜ`RelativeLayout`の再レイアウト直後の1回だけ有効なのか」というGL/ステンシルレベルの根本メカニズムを`apitrace`等で直接解明し、恒久的な修正（例えば`RelativeLayout`のcanvas再構築ロジック自体へのパッチ、または起動時に定期的にこのreparentサイクルを回し続けるタイマーを仕込む等）を設計する。
+1. 上記0が解決した場合、実際の恒久修正（`RaceCaptureApp.build()`または`on_start()`への、起動直後1回だけ実行するreparentコードの追加）を`main.pyc`へ実装する必要があるが、これは今回実証したような「同一/可変長の文字列定数置換」では実現できない（新しいPythonバイトコード命令列を追加する必要がある）。`main.pyc`の`build`/`on_start`メソッドのコードオブジェクトへ新規bytecodeを安全に挿入する方法（完全なPythonコンパイラでの再アセンブル、または`xdis`の逆アセンブル結果を土台にした手動bytecode合成）を確立する必要があり、これ自体が次回の技術的ハードルになる。
+2. 上記1の代替として、`main.pyc`を直接パッチするのではなく、`sitecustomize.py`等のPyInstaller外部フック機構でコード注入できないか改めて調査する価値がある（本セッションでは「PyInstallerのrthookは`.spec`ビルド時に固定されたリストのためCArchiveへの追加だけでは実行されない」という結論に達したが、他の注入経路（`PYTHONSTARTUP`、`.pth`ファイル、`LD_PRELOAD`を`run_racecapture_rpi.sh`へ恒久的に組み込む等）は未検討）。特に**`LD_PRELOAD`を`run_racecapture_rpi.sh`起動スクリプトへ恒久的に組み込み、`frametrace16.so`の`rc_trigger_pyexec`相当の仕組み（起動後1回だけ自動的にreparentコードを実行する軽量版）を常駐させる案は、`main.pyc`のバイトコード改造が一切不要で、`run_racecapture_rpi.sh`という通常の設定ファイル同然の箇所を書き換えるだけで済むため、最も低リスクかつ現実的な実装経路である可能性が高い**（次回最優先で検討する価値あり）。
+3. 第31回セッションまでの候補（上記「次回の最優先候補（優先度順、第31回セッション最終更新）」の1〜5）は、0が解決するまで据え置き。
 
 ---
 
