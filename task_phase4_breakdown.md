@@ -1584,3 +1584,17 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 - [ ] 4-4-4-10: 保留：エコマイレッジチャレンジ車両での実搭載・振動耐性の現物検証（ロードスターでの動作確認完了後、同車両へアクセスできる段階で着手）
 
 **並行する未解決事項（4-4-4とは別に要対応）**：外部/車載CAN用ケーブルがコネクタ規格変更（Micro-Fit 3.0）に伴いメーカー供給停止で入手困難、再選定・購入が必要（`project-can-connector-vh`メモリ参照）。配線作業の律速になりうるため、4-4-4と並行して進めることを推奨。
+
+---
+
+### 4-4-5: ROCK 5B（ダッシュカム録画用）へのOS導入・初期セットアップ ※前半完了（2026-08-19）
+
+車載ダッシュボードのハードウェア方針を整理：**Raspberry Pi 4B（`rc-dash-4B`）はダッシュカム録画なしの場合に使用、ROCK 5Bは外部カメラを接続し映像も保存する場合に使用**。ROCK 5Bはmicro SDでの動作確認を経て、最終的にeMMC起動へ移行する方針。
+
+- [x] 4-4-5-1: Radxa公式OSイメージ（`rock-5b_bookworm_kde_b5`、Debian 12 bookworm、kernel 6.1、KDEデスクトップ版）をダウンロードしSHA-512検証、microSDへ書き込み → 完了。Windows側の書き込みはbalenaEtcherの「flasher sidecarプロセス起動失敗」エラーで断念し、PowerShellのWin32 API直接呼び出し（ボリュームロック＋ダンプ書き込み）による自作スクリプトで実施した。
+- [x] 4-4-5-2: microSD起動での初期セットアップ（専用ユーザー`ntakao`作成、SSH公開鍵認証、NOPASSWD sudo、タイムゾーンAsia/Tokyo設定） → 完了。他のrc-dash機と同じ命名慣習で専用鍵`rc_dash_rock5b_ed25519`を新規発行。
+- [x] 4-4-5-3: GPU（Mali-G610、Panfrostドライバ）の動作確認 → 完了。`glxinfo`で`direct rendering: Yes`・OpenGL ES 3.1対応を確認し、Pi 3Bで踏んだVideoCore IV固有の描画バグ（4-4-2参照）のような兆候は現時点でなし。
+- [x] 4-4-5-4: eMMCモジュールの物理装着・OSイメージ書き込み・eMMC起動確認 → 完了。ROCK 5B上で直接同イメージをダウンロード・SHA-512検証し、`xz -dc | dd`でeMMC(`/dev/mmcblk0`、14.7GB)へ書き込み。初回起動時にrootパーティションが実容量まで自動拡張されることを確認（14.4GB）。
+- [x] 4-4-5-5: eMMC起動後の初期セットアップやり直し（専用ユーザー`ntakao`等） → 完了。eMMCへは（SDカードで作成したカスタム済みの状態ではなく）クリーンな公式イメージを書き込んだため、4-4-5-2と同じ初期設定を再実施した。
+- [ ] 4-4-5-6: RaceCapture Appのインストール（Autosport Labs公式手順は「Raspberry Pi OS Lite, Debian 12 bookworm」を明示的な対象としており、ROCK 5B（Rockchip RK3588、非Raspberry Pi）での動作は未検証。rc-dash-4B向け非対話インストールスクリプトを流用しつつ、Mali/Panfrost固有のパッケージ差異が出ないか確認しながら進める）
+- [ ] 4-4-5-7: 外部カメラを接続した録画動作の実機検証
