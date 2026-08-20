@@ -582,10 +582,29 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
         - 検証で作成したテストファイル（`/tmp/kmstest.png`）は実機上・ローカルとも
           削除済み。apt導入した`ffmpeg`(Debian標準版)はDC-9-4-2で`ffmpeg-rockchip`へ
           置き換える前提のため実機に残したままにしている
-  - [ ] DC-9-4-2: **RKMPPハードウェアエンコーダ単体の動作確認**。ffmpeg-rockchip
-        （`nyanmisaka/ffmpeg-rockchip`）をROCK 5B上でビルドまたは導入し、適当な
-        テスト映像（ダミー入力でよい）からH.264/H.265へのハードウェアエンコードが
-        単体で動作することを確認する。DC-9-4-1とは独立して並行着手可能
+  - [x] DC-9-4-2: **RKMPPハードウェアエンコーダ単体の動作確認** → 完了（2026-08-20）。
+        ROCK 5B実機（`rock-5b`、ホームディレクトリ`~/ffmpeg-rockchip`）に
+        `nyanmisaka/ffmpeg-rockchip`をgit clone・ソースビルド。事前にRadxaの
+        `rk3588-bookworm`リポジトリから`librockchip-mpp-dev`・`librga-dev`・
+        `libdrm-dev`（開発ヘッダー、ランタイム本体`librockchip-mpp1`/`librga2`は
+        RaceCapture Appインストール時の依存関係で既に導入済みだった）と
+        `meson`/`ninja-build`/`nasm`（ビルドツール）を導入した上で、
+        `./configure --enable-gpl --enable-version3 --enable-libdrm --enable-rkmpp
+        --enable-rkrga`でconfigureし`make -j8`でビルド（数分で完了）。
+        `h264_rkmpp`・`hevc_rkmpp`エンコーダが有効化されていることを確認済み。
+        `testsrc`（ffmpeg内蔵のダミー映像ソース、1280x800/30fps/3秒）から
+        両エンコーダで実際にmp4ファイルへエンコードし、`file`/`ffprobe`で
+        正常なISO Media/MP4（H.264 High Profile・HEVC Main Profile）であることを
+        確認した。速度はいずれも`speed=12x`（リアルタイムの12倍速）と高速。
+        ⚠️ **重要な設計上の発見**：RKMPPエンコード自体は非rootユーザー
+        （`ntakao`、`video`/`render`グループ所属）のまま`sudo`なしで正常に動作した。
+        DC-9-4-1で確認した`kmsgrab`（キャプチャ側）はroot権限必須だったのに対し、
+        エンコード側は権限昇格が不要という非対称性が判明。DC-9-4-4（起動フローへの
+        統合）では、キャプチャ→エンコードの一連パイプラインをroot権限で動かすか、
+        キャプチャ部分のみ権限分離するかの設計判断が必要になる
+        - テスト生成ファイル（`/tmp/rkmpp_test*.mp4`）・ビルドログ（`/tmp/ffmpeg_build.log`）
+          は削除済み。ビルド成果物自体（`~/ffmpeg-rockchip`、ビルド済み`ffmpeg`/`ffprobe`
+          バイナリ含む）はDC-9-4-3で引き続き使うため実機に残したまま
   - [ ] DC-9-4-3: **キャプチャ→RKMPPエンコード→mp4保存の最小パイプラインを試作・
         動作確認する**。DC-9-4-1で選定した方式とDC-9-4-2で動作確認したエンコーダを
         つなぎ、最小構成（race_capture本体は未連動でよい）でmp4ファイルへの

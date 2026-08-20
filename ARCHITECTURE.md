@@ -358,6 +358,12 @@
   のFBモード描画（1280x800）をゼロコピー取得できることを実証済み（root権限必須）。
   DRM Writeback connector・fbdev定期読み出し・race_capture本体改造は比較検討の上、
   不採用と判断した。詳細は`task_dashcam_breakdown.md` DC-9-4-1参照。
+- ✅ **RKMPPハードウェアエンコーダ単体の動作確認完了（2026-08-20）**：ROCK 5B実機に
+  `nyanmisaka/ffmpeg-rockchip`をソースビルドし、`h264_rkmpp`/`hevc_rkmpp`両エンコーダで
+  リアルタイム12倍速のハードウェアエンコードを実証。非root権限で動作する点が、
+  root権限必須の`kmsgrab`（画面キャプチャ側）との非対称性として判明し、次の
+  パイプライン統合時の設計課題として記録した。詳細は`task_dashcam_breakdown.md`
+  DC-9-4-2参照。
 
 ---
 
