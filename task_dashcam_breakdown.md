@@ -626,9 +626,59 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
           全体としては`sudo`が必要という結論になる
         - テストファイル（`/tmp/pipeline_test.mp4`・`/tmp/pipeline_frame.png`）は
           実機上・ローカルとも削除済み
-  - [ ] DC-9-4-4: **race_capture本体の起動フロー（`run_racecapture_rpi.sh`／FBモード
-        自動起動）へ統合し、常駐化する**。race_capture起動と連動した録画プロセスの
-        自動起動・停止、ログ・エラー時の扱いを整理する
+  - [x] DC-9-4-4: **race_capture本体の起動フロー（`run_racecapture_rpi.sh`／FBモード
+        自動起動）へ統合し、常駐化する** → 完了（2026-08-20）。公式配布物
+        `/opt/racecapture/run_racecapture_rpi.sh`自体は無改変のまま（将来の
+        RaceCapture App再インストールで上書きされても影響を受けないようにするため）、
+        新規に2本のラッパースクリプトをリポジトリで管理し実機`/opt/racecapture/`へ配置した：
+        - [dashcam_launch_rock5b.sh](../dashcam_launch_rock5b.sh)：`~/.bashrc`の
+          tty1自動ログインからこのスクリプトを呼ぶよう変更（元の
+          `run_racecapture_rpi.sh -w 1 -- ...`直接呼び出しから置換、`.bashrc.bak_before_dashcam`
+          にバックアップ保存済み）。録画プロセスをバックグラウンド起動した上でrace_capture
+          watchdogループをバックグラウンド起動・`wait`し、停止時はtrapで両方へシグナルを
+          転送する
+        - [dashcam_record_rock5b.sh](../dashcam_record_rock5b.sh)：DC-9-4-3の
+          kmsgrab→h264_rkmppパイプラインを、自身のwatchdogループでラップした録画本体
+        - 実機reboot検証を複数回繰り返す中で、以下3つの設計課題を発見・解消した：
+          1. **bashのシグナル配送遅延問題**：`run_racecapture_rpi.sh`を単純に
+             foreground実行すると、`dashcam_launch_rock5b.sh`へのSIGTERMが
+             （bashが「foreground子プロセスの終了を待っている間はシグナル配送を遅延する」
+             既知の挙動により）子プロセスへ伝播せず、race_capture・録画とも孤児化して
+             動き続けたまま止まらないことを実機で確認。対策として両方の子プロセスを
+             バックグラウンド起動＋`wait`にし、`trap`で明示的にシグナルを転送する設計へ変更
+          2. **race_capture本体がSIGTERM/SIGINTのいずれにも反応しない**：Kivy/FBモード
+             （DRM/KMS直接描画）のrace_captureプロセスは、SIGTERM・SIGINTを送っても
+             CPU使用率が下がらず終了しないことを実機で確認（クリーンシャットダウンの
+             ハンドラが機能していないと見られる）。対策として、trap内でSIGTERMを送った後
+             2秒待ち、それでも終了しなければSIGKILLへエスカレーションする設計にした
+          3. **停止時のtrap実行順序でのプロセス孤児化**：先に親プロセス
+             （`run_racecapture_rpi.sh`）をkillしてから`pkill -P`で子（race_capture）を
+             探すと、親が先に死んで子が孤児化(PPID=1)した後では`-P`検索にヒットしなくなり
+             race_captureだけ取り残される不具合を発見。対策として、trap発火時にまず
+             `pgrep -P`で子PIDを確保してから親・子それぞれへ個別にシグナルを送る順序に修正
+        - ⚠️ **mp4ファイルの破損問題を発見・解消**：強制終了（SIGKILL、および今回検証した
+          SIGTERM経由の"正常"停止でも）で録画を止めると、通常のmp4（moovアトムをファイル末尾に
+          書き込む形式）は`moov atom not found`で再生不能になることを実機で確認した
+          （電源断を模したテストで直接発覚。DC-9-4-3の検証時点では稼働中のffmpegを
+          正常終了させていなかったため気づいていなかった）。fragmented mp4
+          （`movflags=+frag_keyframe+empty_moov+default_base_moof`）へ切り替えて解消。
+          ただし**`-f segment`使用時、このオプションをトップレベルの`-movflags`として
+          渡しても内部のmp4サブmuxerへ確実には伝播しないことも実機で確認**（トップレベル
+          指定では、クリーンなSIGTERM終了ですら`moov atom not found`になる場合があった）。
+          `-segment_format mp4 -segment_format_options movflags=...`という専用の
+          渡し方に変更することで、SIGTERM経由の停止後も`ffprobe`で正しく読める
+          （`compatible_brands: iso5iso6mp41`）ことを確認した
+        - ⚠️ **sudo越しバックグラウンドプロセスのPID問題**：検証作業中、
+          `sudo <script> & PID=$!`で取得した`PID`に対し`sudo kill -9`（SIGKILL）を
+          送ると、実際に終了するのは`sudo`自体のみで、その子プロセス（実体の`ffmpeg`）は
+          孤児化してそのまま動き続けることを、検証中の事故（40分間ffmpegが野放しで
+          動き続けた）で発見した。SIGKILLはシグナルハンドラを持てないため`sudo`側で
+          子への転送処理が働かない。SIGTERM等の通常シグナルは`sudo`が正しく子へ転送する
+          ため、現行スクリプトのTERM系トラップ処理はこの問題の影響を受けない
+        - 最終検証（reboot→自動起動確認→稼働中の録画をSIGTERMで停止→ffprobeで
+          整合性確認、を一連で実施）で、自動起動・kmsgrabクラッシュからの自動復旧・
+          正常停止・録画ファイルの再生可能性のすべてを確認済み。検証用の録画ファイル・
+          ログは実機上ですべて削除済み
   - [ ] DC-9-4-5: **実機での録画動作を検証する**（`task_phase4_breakdown.md`
         4-4-5-7-2に対応）。USBカメラ・ESP32-C3接続、race_captureでのダッシュ表示・
         RCP通信中に実際に録画が正常に行われるか、ファイルサイズ・フレームレート・

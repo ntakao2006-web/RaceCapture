@@ -369,6 +369,17 @@
   ゼロコピー接続でき、稼働中のrace_capture画面（Speed/RPM等の更新込み）が実際に
   mp4として録画されることを実証した。パイプライン全体としては`sudo`が必要
   （kmsgrab側の制約に起因）。詳細は`task_dashcam_breakdown.md` DC-9-4-3参照。
+- ✅ **録画パイプラインをrace_capture起動フローへ統合・常駐化完了（2026-08-20）**：
+  [dashcam_launch_rock5b.sh](../dashcam_launch_rock5b.sh)・
+  [dashcam_record_rock5b.sh](../dashcam_record_rock5b.sh)を新規作成し、
+  `~/.bashrc`のtty1自動ログインから呼び出す形で統合（公式`run_racecapture_rpi.sh`
+  自体は無改変）。実機reboot検証で、bashのシグナル配送遅延・race_capture本体が
+  SIGTERM/SIGINTに無反応・停止時のプロセス孤児化という3つの問題を発見・解消した。
+  また録画ファイルが強制終了で`moov atom not found`となり再生不能になる問題も発見し、
+  fragmented mp4（`-segment_format_options movflags=...`経由で指定、トップレベル
+  `-movflags`では`-f segment`使用時に内部muxerへ伝播しないことも判明）へ切り替えて
+  解消した。自動起動・クラッシュ自動復旧・正常停止・録画ファイルの再生可能性を
+  reboot検証で確認済み。詳細は`task_dashcam_breakdown.md` DC-9-4-4参照。
 
 ---
 
