@@ -349,7 +349,8 @@
 ### ROCK 5B車載ダッシュボード（ダッシュカム録画用、4-4-5関連）のセットアップ進捗
 - ✅ **車載ダッシュボードのハードウェア方針を整理・確定（2026-08-19）**：Raspberry Pi 4B（`rc-dash-4B`）はダッシュカム録画なしの場合に使用し、ROCK 5Bは外部カメラを接続し映像も保存する場合に使用する。ROCK 5Bはmicro SDでの動作確認を経て、最終的にeMMC起動へ移行する方針とした。
 - ✅ **ROCK 5BへRadxa公式OSイメージ（`rock-5b_bookworm_kde_b5`、Debian 12 bookworm、kernel 6.1、KDEデスクトップ版）をmicroSD経由・eMMC経由の両方で導入し、eMMC起動まで確認完了**。eMMCモジュールは物理的に装着済み（14.7GB）で、初回起動時にrootパーティションが実容量まで自動拡張されることを確認した（14.4GB）。他のrc-dash機と同じ命名慣習で専用SSH鍵`rc_dash_rock5b_ed25519`を発行し、専用ユーザー`ntakao`・SSH公開鍵認証・NOPASSWD sudo・タイムゾーンAsia/Tokyo設定も完了（ホスト名`rock-5b`）。
-- ✅ **GPU（Mali-G610、Panfrostドライバ）の動作確認完了**：`glxinfo`で`direct rendering: Yes`・OpenGL ES 3.1対応を確認。Pi 3Bで29回以上のセッションを費やした描画バグ（VideoCore IV／VC4固有、4-4-2参照）のような兆候は現時点で見られない。ただしRaceCapture App自体のインストール・動作確認はまだ未実施（4-4-5-6以降）。
+- ✅ **GPU（Mali-G610、Panfrostドライバ）の動作確認完了**：`glxinfo`で`direct rendering: Yes`・OpenGL ES 3.1対応を確認。Pi 3Bで29回以上のセッションを費やした描画バグ（VideoCore IV／VC4固有、4-4-2参照）のような兆候は現時点で見られない。
+- ✅ **RaceCapture App(v2.19.0)のROCK 5Bへのインストール・自動起動を完了（2026-08-20）**。着手前にpodium.live配布物を精査し、「Linux」版(`racecapture_linux_x86_64`)はx86_64専用でROCK 5Bでは使えないこと、「Raspberry Pi」版(`racecapture_linux_raspberrypi_2.19.0.deb`)の実体はaarch64汎用Linuxバイナリ（Raspberry Pi OS専有ではない）であることを確認し、後者を採用した。公式インストーラの対話部分(whiptail)を非対話展開して適用。ROCK 5Bには`raspi-config`・`/boot/firmware/config.txt`等Raspberry Pi firmware固有のファイルが存在しない（RK3588はU-Boot/extlinuxブート）ため、コンソール自動ログインはsystemd `getty@tty1.service.d`のoverride、GUIログイン画面の抑止はGDM無効化＋`multi-user.target`化で代替した。reboot検証により「tty1へ`ntakao`が自動ログイン→FBモードで`race_capture`が自動起動→DRM pageflipエラーなし」を確認済み（GDM停止前はXorgとのDRMマスター競合でpageflipエラーが多発する現象があったが、GDM完全停止後は解消）。WiFi自動再接続・USB自動マウント（公式インストーラのオプション機能）は今回未設定のまま保留。
 - 詳細は`task_phase4_breakdown.md`の4-4-5参照。
 
 ---
