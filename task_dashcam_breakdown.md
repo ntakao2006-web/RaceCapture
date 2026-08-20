@@ -545,15 +545,43 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
       「画面キャプチャの手段そのものが未確定」という、他の全サブタスクの設計を左右する
       調査事項が新たに生じている。このため画面キャプチャ方式の調査・選定
       （DC-9-4-1）を最優先・最初に置く。
-  - [ ] 🔴 DC-9-4-1: **【最優先】FBモード環境での画面キャプチャ方式を調査・選定する**。
-        X11の`ximagesrc`に相当する、DRM/KMSフレームバッファを直接キャプチャする手段
-        （例：DRMのdumb buffer/フレームバッファデバイスの定期読み出し、GStreamerの
-        KMS対応エレメントの有無、V4L2ループバックへの書き込み等）を調査し、
-        ROCK 5B（Panfrostドライバ、Mali G610）上で実際に動く方式を1つ選定する。
-        `DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`4章に挙げた対応策候補3「Kivyアプリを改造し
-        GLテクスチャを`appsrc`経由で直接エンコーダへ渡す」方式（race_capture本体への
-        改造が必要、規模大）も選択肢として比較検討する。ここで選んだ方式によって
-        DC-9-4-3以降の設計が変わるため、結論が出るまで後続タスクは着手しない
+  - [x] 🔴 DC-9-4-1: **【最優先】FBモード環境での画面キャプチャ方式を調査・選定する** → 完了
+        （2026-08-20）。**`ffmpeg`標準の`kmsgrab`入力デバイスを採用に決定**。ROCK 5B実機
+        （`rock-5b`、race_capture稼働中）でDebian標準の`ffmpeg`(7:5.1.9)をapt導入し、
+        `sudo ffmpeg -f kmsgrab -device /dev/dri/card0 -i - -frames:v 1 -vf
+        hwdownload,format=bgra -f image2 out.png`を実行したところ、race_captureの
+        FBモード描画（1280x800、plane 57、DRMフォーマット`AR24`）を`drm_prime`フレーム
+        として正しく取得できることを実機で確認した。取得したPNGを目視確認し、Speed/RPM/
+        LapCount等のダッシュ画面が実際にキャプチャされていることも確認済み。
+        - 検証中に判明した候補技術の比較：
+          1. **kmsgrab（採用）**：`drm_prime`（DRMバッファのGEMハンドル）としてゼロコピー
+             取得できるため、`hwmap`経由でRKMPPハードウェアエンコーダへそのまま渡せる
+             見込みが高い（DC-9-4-3で検証）。ffmpeg標準機能で`ffmpeg-rockchip`にも
+             当然含まれる。要件：root権限（CAP_SYS_ADMIN）でのプロセス実行が必須
+             （非rootでは`No handle set on framebuffer`で失敗することを実機で確認済み）。
+             DC-9-4-4（起動フローへの統合）で、録画プロセスをroot権限で動かす設計に
+             する必要がある
+          2. **DRM Writeback connector**：ROCK 5B実機に`card0-Writeback-1`が実在する
+             ことを`/sys/class/drm/`で確認し、RK3588のkernel 6.1でwritebackが
+             サポートされていることも実証できたが、既存ツール（ffmpeg/GStreamer）に
+             標準対応する要素がなく、libdrmの低レベルAPIを直接叩く自作が必要。
+             kmsgrabで目的を達成できたため今回は不採用（将来kmsgrabで問題が出た場合の
+             代替候補として記録に残す）
+          3. **`/dev/fb0`(fbdev)の定期読み出し**：DRMのfbdev互換レイヤーとして存在は
+             確認した（1280x800、32bpp）が、CPUコピー主体でGPU/DRMバッファのゼロコピー
+             恩恵がなく性能面でkmsgrabに劣るため不採用
+          4. **v4l2loopbackへの書き込み**：単独の一次キャプチャ手段ではなく中間層。
+             ffmpegがkmsgrab→hwmap→rkmppを直接パイプライン化できる見込みのため
+             中間デバイスは不要と判断し不採用
+          5. **race_capture本体を改造しGLテクスチャを`appsrc`経由でエンコーダへ渡す方式**：
+             kmsgrabで目的を達成できたため、規模の大きいこの方式は不採用
+        - ⚠️ 軽微な既知事項：キャプチャしたPNGにマウスカーソルの矢印が写り込んでいた
+          （`-c graphics:show_cursor:0`でrace_capture側は非表示設定にしているにも
+          関わらず）。原因未調査だが録画の可否には影響しない軽微な問題のため、
+          気になる場合はDC-9-4-3以降で別途対応する
+        - 検証で作成したテストファイル（`/tmp/kmstest.png`）は実機上・ローカルとも
+          削除済み。apt導入した`ffmpeg`(Debian標準版)はDC-9-4-2で`ffmpeg-rockchip`へ
+          置き換える前提のため実機に残したままにしている
   - [ ] DC-9-4-2: **RKMPPハードウェアエンコーダ単体の動作確認**。ffmpeg-rockchip
         （`nyanmisaka/ffmpeg-rockchip`）をROCK 5B上でビルドまたは導入し、適当な
         テスト映像（ダミー入力でよい）からH.264/H.265へのハードウェアエンコードが

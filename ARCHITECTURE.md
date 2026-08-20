@@ -353,6 +353,11 @@
 - ✅ **RaceCapture App(v2.19.0)のROCK 5Bへのインストール・自動起動を完了（2026-08-20）**。着手前にpodium.live配布物を精査し、「Linux」版(`racecapture_linux_x86_64`)はx86_64専用でROCK 5Bでは使えないこと、「Raspberry Pi」版(`racecapture_linux_raspberrypi_2.19.0.deb`)の実体はaarch64汎用Linuxバイナリ（Raspberry Pi OS専有ではない）であることを確認し、後者を採用した。公式インストーラの対話部分(whiptail)を非対話展開して適用。ROCK 5Bには`raspi-config`・`/boot/firmware/config.txt`等Raspberry Pi firmware固有のファイルが存在しない（RK3588はU-Boot/extlinuxブート）ため、コンソール自動ログインはsystemd `getty@tty1.service.d`のoverride、GUIログイン画面の抑止はGDM無効化＋`multi-user.target`化で代替した。reboot検証により「tty1へ`ntakao`が自動ログイン→FBモードで`race_capture`が自動起動→DRM pageflipエラーなし」を確認済み（GDM停止前はXorgとのDRMマスター競合でpageflipエラーが多発する現象があったが、GDM完全停止後は解消）。WiFi自動再接続・USB自動マウント（公式インストーラのオプション機能）は今回未設定のまま保留。これにより`DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`が挙げていた2つのソフトウェア的ハードルのうち**ハードル①（GPU描画）はクリア**（`task_dashcam_breakdown.md` DC-9-3も本件をもって完了）。
 - ✅ **USBカメラ(BUFFALO BSWHD06M)・ESP32-C3実機をROCK 5Bへ接続し、デバイス認識とRCP通信を確認（2026-08-20）**：USBカメラは`/dev/video0`〜`/dev/video2`、ESP32-C3は`/dev/ttyACM0`として認識され、自動起動中のrace_captureが自動検出・RCP接続を確立、`SessionRecorder`によるセッション記録（ラップ集計の継続的な進行、`commit backlog: 0`）まで確認できた。ただし「録画」（mp4等への保存）自体はまだ検証できていない：x86機での先行調査により録画対象はUSBカメラ映像ではなくrace_captureのダッシュ画面のX11キャプチャ(`ximagesrc`)であり、これを担う`video-streamer`はVAAPI専用でROCK 5Bでは動作しない。ROCK 5B向け代替（`ffmpeg-rockchip`ベースの自作、`task_dashcam_breakdown.md` DC-9-4）が未着手のため、**ハードル②（ハードウェアエンコード）は依然未解決のまま**。詳細は`task_phase4_breakdown.md`4-4-5-7-1/4-4-5-7-2参照。
 - 詳細は`task_phase4_breakdown.md`の4-4-5参照。
+- ✅ **FBモード環境での画面キャプチャ方式を選定完了（2026-08-20）**：`ffmpeg`標準の
+  `kmsgrab`入力デバイスを採用に決定。ROCK 5B実機でDRM_PRIMEフレームとしてrace_capture
+  のFBモード描画（1280x800）をゼロコピー取得できることを実証済み（root権限必須）。
+  DRM Writeback connector・fbdev定期読み出し・race_capture本体改造は比較検討の上、
+  不採用と判断した。詳細は`task_dashcam_breakdown.md` DC-9-4-1参照。
 
 ---
 
