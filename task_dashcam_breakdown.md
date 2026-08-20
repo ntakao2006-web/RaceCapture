@@ -524,13 +524,17 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
       詳細仕様は`DASHCAM_ROCK5B_REPORT.md`4章参照） ※完了。2026-08-13、本体8GBモデル・
       eMMCモジュールを注文（USB PD対応電源・冷却ファン付きヒートシンク・microSDも
       同時注文済み）。到着後の作業手順は`DASHCAM_ROCK5B_SETUP_GUIDE.md`にまとめた
-- [ ] DC-9-3: ROCK 5B上で`race_capture`アプリがMali GPU（Mali G610）上で正常に描画・
+- [x] DC-9-3: ROCK 5B上で`race_capture`アプリがMali GPU（Mali G610）上で正常に描画・
       起動できるか確認する（DC-5/DC-6で発生した`No matching FB config found`級の
-      問題が再発しないか、が最大の技術的未知数）。実務手順は`DASHCAM_ROCK5B_SETUP_GUIDE.md`
-      参照（2026-08-13作成、ROCK 5B到着前のWeb調査ベース。AutosportLabs公式の
-      Raspberry Pi向けインストーラーはEGL/OpenGL ES系の依存パッケージ構成であり、
-      x86版が使うGLX（デスクトップOpenGL）とは異なるレンダリング経路の可能性が高いため、
-      x86ルートのFBConfigクラッシュがそのまま再発するとは限らないという新しい仮説を記載）
+      問題が再発しないか、が最大の技術的未知数） → 完了（2026-08-20、`task_phase4_breakdown.md`
+      4-4-5-6として実施）。x86ルートのFBConfigクラッシュ（GLX/OpenGLデスクトップ経路）は
+      再発せず、事前の仮説通りEGL/OpenGL ES系のレンダリング経路（Panfrostドライバ、
+      Radxa製rk3588-bookwormリポジトリ由来）で正常動作した。ただし起動直後はGDM/Xorgとの
+      DRMマスター競合で`Could not queue pageflip: -22`が多発する現象があり、GDM完全停止
+      （`systemctl disable gdm`＋`multi-user.target`化）が解決に必須と判明。reboot後の
+      コンソール自動ログイン→FBモード自動起動でpageflipエラーなしの安定動作を確認済み。
+      さらに4-4-5-7-1にてESP32-C3実機とのRCP通信・セッション記録（ラップ集計継続）まで確認済み。
+      詳細は`task_phase4_breakdown.md`4-4-5-6・4-4-5-7-1参照
 - [ ] DC-9-4: `video-streamer`相当の機能（画面キャプチャ＋RKMPPハードウェアエンコード＋
       ローカルmp4保存）を、ffmpeg-rockchip（`nyanmisaka/ffmpeg-rockchip`）ベースで自作し、
       動作確認する（公式`video-streamer`はクローズドバイナリでVAAPI専用のため移植不可、
