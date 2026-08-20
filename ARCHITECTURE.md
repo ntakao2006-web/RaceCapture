@@ -390,6 +390,25 @@
   ⚠️ 範囲外の既知課題：rebootのたびにrace_captureの設定が保存されず毎回
   Welcomeガイド画面から始まる現象を確認（原因未調査、車載本番導入前に別途対応要）。
   詳細は`task_dashcam_breakdown.md` DC-9-4-5参照。
+- ✅ **DC-9-1-b（「配信用ダッシュ」「走行中表示用ダッシュ」の2インスタンス分離・別出力表示）
+  が完了（2026-08-20）**：ROCK 5B実機で、FBモード（DC-9-3で確定したDRM/KMS直接描画）の
+  まま2インスタンスを同時起動すると、Xorgに限らずKivy(SDL2 KMSDRM)同士でも
+  DRMマスター競合（`Could not queue pageflip: -16`）が発生し共存不可と判明。
+  SDL2のDRM lease対応（外部リースfdを受け取る口が無い）は高リスクと判断し撤退し、
+  代わりに**「Zaphodモード」（単一Xorgプロセス＋`modesetting`ドライバの`ZaphodHeads`で
+  `:0.0`/`:0.1`を完全独立スクリーンとして分離）を採用**、DRMマスター競合が発生しない
+  ことを実機確認した。懸念していたX11/GLXレンダリング経路のクラッシュ（Raspberry Piで
+  悩まされた「No matching FB config found」級の問題）も再発せず。詳細は
+  `task_dashcam_breakdown.md` DC-9-1-b参照。
+- ✅ **DC-9-1-c（ESP32実機シリアル接続の2インスタンス共有用fan-outブリッジ）が完了
+  （2026-08-20）**：`serial_fanout_bridge.py`を全面改修し、ブリッジ自体が実機に対する
+  唯一のRCPクライアントとして定期ポーリングし、応答を全consumerへブロードキャストする
+  設計（各インスタンス自身のポーリングは実ポートへ転送せず握りつぶす）を実装・実機実証。
+  副次的な発見として、Kivyの`user_data_dir`（`last_known_device`等の保存先）は
+  `KIVY_HOME`ではなく`XDG_CONFIG_HOME`で決まることが判明し、これを2インスタンスで
+  分離することで接続先の仮想ポート・`datastore.sq3`を分離できた。実機で2インスタンス
+  同時のデータ受信・`SessionRecorder`正常動作を確認、データ破損なし。詳細は
+  `task_dashcam_breakdown.md` DC-9-1-c参照。
 
 ---
 
