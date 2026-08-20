@@ -380,6 +380,16 @@
   `-movflags`では`-f segment`使用時に内部muxerへ伝播しないことも判明）へ切り替えて
   解消した。自動起動・クラッシュ自動復旧・正常停止・録画ファイルの再生可能性を
   reboot検証で確認済み。詳細は`task_dashcam_breakdown.md` DC-9-4-4参照。
+- ✅ **🎉 DC-9-4（ダッシュカム録画機能の自作）全体が完了（2026-08-20）**：実機で
+  USBカメラ・ESP32-C3接続・race_capture稼働（RCP通信・ラップ集計継続）と並行して
+  約3分20秒の連続録画を実証。負荷実測ではffmpeg（kmsgrab+h264_rkmppハードウェア
+  エンコード）のCPU使用率が1.3%と非常に軽量であることを確認した（race_capture本体は
+  52.2%、Mali GPUは300MHz/負荷16%程度）。これにより`DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`
+  が挙げていたソフトウェア的ハードル②（ハードウェアエンコード）もクリアし、
+  ROCK 5Bでの「ダッシュ表示＋映像データ焼き込み」がハードル①②とも解消された。
+  ⚠️ 範囲外の既知課題：rebootのたびにrace_captureの設定が保存されず毎回
+  Welcomeガイド画面から始まる現象を確認（原因未調査、車載本番導入前に別途対応要）。
+  詳細は`task_dashcam_breakdown.md` DC-9-4-5参照。
 
 ---
 
