@@ -364,6 +364,11 @@
   root権限必須の`kmsgrab`（画面キャプチャ側）との非対称性として判明し、次の
   パイプライン統合時の設計課題として記録した。詳細は`task_dashcam_breakdown.md`
   DC-9-4-2参照。
+- ✅ **画面キャプチャ→RKMPPエンコード→mp4保存の最小パイプライン動作確認完了
+  （2026-08-20）**：`kmsgrab`→`h264_rkmpp`を単一ffmpegプロセスでフィルタなし・
+  ゼロコピー接続でき、稼働中のrace_capture画面（Speed/RPM等の更新込み）が実際に
+  mp4として録画されることを実証した。パイプライン全体としては`sudo`が必要
+  （kmsgrab側の制約に起因）。詳細は`task_dashcam_breakdown.md` DC-9-4-3参照。
 
 ---
 

@@ -605,10 +605,27 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
         - テスト生成ファイル（`/tmp/rkmpp_test*.mp4`）・ビルドログ（`/tmp/ffmpeg_build.log`）
           は削除済み。ビルド成果物自体（`~/ffmpeg-rockchip`、ビルド済み`ffmpeg`/`ffprobe`
           バイナリ含む）はDC-9-4-3で引き続き使うため実機に残したまま
-  - [ ] DC-9-4-3: **キャプチャ→RKMPPエンコード→mp4保存の最小パイプラインを試作・
-        動作確認する**。DC-9-4-1で選定した方式とDC-9-4-2で動作確認したエンコーダを
-        つなぎ、最小構成（race_capture本体は未連動でよい）でmp4ファイルへの
-        保存まで一気通貫で動くことを確認する
+  - [x] DC-9-4-3: **キャプチャ→RKMPPエンコード→mp4保存の最小パイプラインを試作・
+        動作確認する** → 完了（2026-08-20）。DC-9-4-2でビルド済みの
+        `~/ffmpeg-rockchip/ffmpeg`を使い、`sudo ./ffmpeg -f kmsgrab -device
+        /dev/dri/card0 -framerate 15 -i - -t 5 -c:v h264_rkmpp -b:v 4M
+        output.mp4`という単一ffmpegプロセスのコマンドで、稼働中のrace_capture
+        （FBモード、1280x800）画面のキャプチャ→エンコード→mp4保存を一気通貫で
+        実証した。🎉 **想定より単純に統合できた**：事前の想定では`hwmap`フィルタで
+        DRM_PRIMEフレームをrkmpp向けに明示変換する必要があるかもしれないと
+        考えていたが、実際にはフィルタなしでkmsgrabの`drm_prime`出力が
+        そのまま`h264_rkmpp`エンコーダの入力として受理され、ゼロコピーで
+        動作した（ffmpeg-rockchipがkmsgrab⇔rkmpp間のフレーム受け渡しに
+        既に対応済みだった）。生成されたmp4を`ffprobe`で正常なH.264/mp4と確認、
+        さらに動画から静止フレームを抽出してPNGとしてダウンロード・目視確認
+        したところ、race_captureのダッシュ画面（Speed/RPM/LapCount等）が
+        実際に更新され続けている様子（DC-9-4-1確認時と異なる値）が録画データ
+        として正しく焼き込まれていることを確認できた
+        - 実行にはDC-9-4-1同様`sudo`（kmsgrab側の要件）が必要だった。DC-9-4-2で
+          判明した「エンコード単体は非root」という結果と合わせて、パイプライン
+          全体としては`sudo`が必要という結論になる
+        - テストファイル（`/tmp/pipeline_test.mp4`・`/tmp/pipeline_frame.png`）は
+          実機上・ローカルとも削除済み
   - [ ] DC-9-4-4: **race_capture本体の起動フロー（`run_racecapture_rpi.sh`／FBモード
         自動起動）へ統合し、常駐化する**。race_capture起動と連動した録画プロセスの
         自動起動・停止、ログ・エラー時の扱いを整理する
