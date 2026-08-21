@@ -1831,6 +1831,68 @@ struct RcpChannelMeta {
     int sr;
 };
 
+// 6-1-1/6-1-2: RCPシリアル送信・CAN送信(6-3)・Luaバインディング(6-5)の3経路が共有する
+// 共通チャンネルテーブル。設計の詳細はtask_phase6_breakdown.md「6-1-1設計結果」を参照。
+// value取得は2通り：(a) sample!=nullptr の場合は既存グローバル変数等をラップした関数を
+// 毎回呼び出す(既存チャンネルはすべてこちら)。(b) sample==nullptrの場合はvalueを直接
+// 読み書きする(Lua addChannel(6-5-3)で動的追加されるチャンネル用、未実装)。
+struct ChannelDef {
+    const char *nm;
+    const char *ut;
+    int min, max, prec, sr;
+
+    double (*sample)();
+    double value;
+};
+
+constexpr size_t kMaxChannels = 64; // 既存23ch + Lua動的追加分の余裕
+static ChannelDef g_channelTable[kMaxChannels];
+static size_t g_channelCount = 0;
+static const char *kChannelTag = "channel";
+
+// テーブルへ新規チャンネルを1件登録する。起動時の初期化専用(実行中の動的追加はLua
+// addChannel(6-5-3)実装時に別途扱う)。
+static void channelRegister(const char *nm, const char *ut, int min, int max, int prec, int sr,
+                             double (*sample)())
+{
+    if (g_channelCount >= kMaxChannels) {
+        ESP_LOGE(kChannelTag, "channel table full, cannot register '%s'", nm);
+        return;
+    }
+    ChannelDef &ch = g_channelTable[g_channelCount++];
+    ch.nm = nm;
+    ch.ut = ut;
+    ch.min = min;
+    ch.max = max;
+    ch.prec = prec;
+    ch.sr = sr;
+    ch.sample = sample;
+    ch.value = 0.0;
+}
+
+// 全sample()持ちチャンネルを1回ずつ呼び出し、valueキャッシュを最新化する。
+// rcpSendSample()の冒頭等、値を使う直前に呼ぶ想定。
+static void channelTableSync()
+{
+    for (size_t i = 0; i < g_channelCount; i++) {
+        if (g_channelTable[i].sample != nullptr) {
+            g_channelTable[i].value = g_channelTable[i].sample();
+        }
+    }
+}
+
+// 名前引き(Lua addChannel/getChannel/setChannel用、6-5-3で使用予定)。チャンネル数が
+// 小規模(数十件)な組み込み用途のため線形探索で十分と判断した。
+[[maybe_unused]] static int channelFindByName(const char *nm)
+{
+    for (size_t i = 0; i < g_channelCount; i++) {
+        if (strcmp(g_channelTable[i].nm, nm) == 0) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
 static const RcpChannelMeta kDummyChannels[] = {
     {"RPM",       "rpm", 0,    10000, 0, 10},
     {"Speed",     "mph", 0,    200,   1, 10},
@@ -1840,25 +1902,91 @@ static const RcpChannelMeta kDummyChannels[] = {
     {"Lon",       "deg", -180, 180,   6, 10},
 };
 
-// 5-5-1: Phase5(5-1〜5-4)で実装したラップタイム・予測タイム計算の結果を公式アプリへ
+// 5-5-1/6-1-2: Phase5(5-1〜5-4)で実装したラップタイム・予測タイム計算の結果を公式アプリへ
 // 表示するためのチャンネル定義。5-1-1設計結果で洗い出した公式lapCfgの9チャンネル分
 // (nm/ut/prec/sr)を、`reference/RaceCapture-Pro_firmware`の実機応答例
 // (test/json_api_files/getMeta_response.json)に合わせてそのまま採用する。
 // Sector/SectorTimeは本プロジェクトでは複数セクター判定を実装しない方針(5-1-1参照)
 // のため値は常に0を送るのみになるが、公式アプリ側のUI要素(チャンネル選択リスト等)との
 // 互換性を優先し、メタデータ自体は他の8チャンネルと同様に定義しておく。
-// 値の実送信(sコマンドへの反映)は5-5-2でrcpSendSample()に実装した。
-static const RcpChannelMeta kLapChannels[] = {
-    {"LapCount",    "",    0, 0, 0, 10},
-    {"LapTime",     "Min", 0, 0, 4, 10},
-    {"Sector",      "",    0, 0, 0, 10},
-    {"SectorTime",  "Min", 0, 0, 4, 10},
-    {"PredTime",    "Min", 0, 0, 4, 5},
-    {"ElapsedTime", "Min", 0, 0, 4, 10},
-    {"CurrentLap",  "",    0, 0, 0, 10},
-    {"Distance",    "mi",  0, 0, 4, 10},
-    {"SessionTime", "Min", 0, 0, 4, 10},
-};
+//
+// 6-1-2でg_channelTable(ChannelDef)方式へ移行した。以前は静的配列(kLapChannels)として
+// nm/ut/prec/sr等のメタデータのみ保持し、値はrcpSendSample()内に手書きしていたが、
+// CAN送信(6-3)・Luaバインディング(6-5)が同じ値を必要とするため、sample関数でラップして
+// テーブルへ登録する形に変更した(task_phase6_breakdown.md「6-1-1設計結果」参照)。
+static double sampleLapCount()
+{
+    // g_lapDetector.lapCountはスタート/フィニッシュを外→内へ横切った通算回数=現在
+    // 走行中のラップ番号(公式のCurrentLap相当)。公式のLapCountは「完了したラップ数」
+    // を指すため、1周も完了していない間は0になるようcurrentLapから1引いてクランプする。
+    uint32_t currentLap = g_lapDetector.lapCount;
+    return (currentLap > 0) ? static_cast<double>(currentLap - 1) : 0.0;
+}
+
+static double sampleLapTime()
+{
+    return g_lastLapTimeSec / 60.0;
+}
+
+static double sampleSector()
+{
+    return 0.0; // 非対応、常に0
+}
+
+static double sampleSectorTime()
+{
+    return 0.0; // 非対応、常に0
+}
+
+static double samplePredTime()
+{
+    return g_predDeltaValid ? (g_predDeltaSec / 60.0) : 0.0;
+}
+
+static double sampleElapsedTime()
+{
+    // 現在ラップ開始からの経過時間。lapRecorderUpdate内のtimeSinceLapStartと同じ考え方だが、
+    // ここは呼び出しごとに自前のtで計算する必要がある。
+    double t = static_cast<double>(esp_timer_get_time()) / 1000000.0;
+    double elapsedLapTimeSec = t - g_lapDetector.lapStartTimeSec;
+    if (elapsedLapTimeSec < 0.0) {
+        elapsedLapTimeSec = 0.0;
+    }
+    return elapsedLapTimeSec / 60.0;
+}
+
+static double sampleCurrentLap()
+{
+    return static_cast<double>(g_lapDetector.lapCount);
+}
+
+static double sampleDistance()
+{
+    constexpr double kMilesPerMeter = 0.000621371;
+    return g_currentLapDistanceM * kMilesPerMeter;
+}
+
+static double sampleSessionTime()
+{
+    double t = static_cast<double>(esp_timer_get_time()) / 1000000.0;
+    return t / 60.0;
+}
+
+// 起動時に一度だけ呼び、kLapChannels(9ch)相当をg_channelTableへ登録する。
+// 残り3グループ(kDummyChannels/kImuChannels/kAttitudeChannels)の移行は別タスクで行うため
+// (task_phase6_breakdown.md 6-1-2参照)、この時点ではテーブルにはこの9チャンネルのみが並ぶ。
+static void channelTableInitLapChannels()
+{
+    channelRegister("LapCount",    "",    0, 0, 0, 10, sampleLapCount);
+    channelRegister("LapTime",     "Min", 0, 0, 4, 10, sampleLapTime);
+    channelRegister("Sector",      "",    0, 0, 0, 10, sampleSector);
+    channelRegister("SectorTime",  "Min", 0, 0, 4, 10, sampleSectorTime);
+    channelRegister("PredTime",    "Min", 0, 0, 4, 5,  samplePredTime);
+    channelRegister("ElapsedTime", "Min", 0, 0, 4, 10, sampleElapsedTime);
+    channelRegister("CurrentLap",  "",    0, 0, 0, 10, sampleCurrentLap);
+    channelRegister("Distance",    "mi",  0, 0, 4, 10, sampleDistance);
+    channelRegister("SessionTime", "Min", 0, 0, 4, 10, sampleSessionTime);
+}
 
 // 1-5-2: IMU(LSM6DSV16X)6軸分のチャンネル定義。Accel*は`reference/RaceCapture-Pro_firmware`
 // の実機応答例(test/json_api_files/getMeta_response.json)のnm/ut/min/max/prec/srをそのまま
@@ -1902,7 +2030,9 @@ static void rcpSendMeta()
         obj["prec"] = ch.prec;
         obj["sr"] = ch.sr;
     }
-    for (const auto &ch : kLapChannels) {
+    // 6-1-2: kLapChannels(9ch)はg_channelTableへ移行済み
+    for (size_t i = 0; i < g_channelCount; i++) {
+        const ChannelDef &ch = g_channelTable[i];
         JsonObject obj = meta.add<JsonObject>();
         obj["nm"] = ch.nm;
         obj["ut"] = ch.ut;
@@ -1968,32 +2098,19 @@ static void rcpSendSample()
     d.add(roundToPrec(simLat, 6));                                // Lat
     d.add(roundToPrec(simLon, 6));                                // Lon
 
-    // g_lapDetector.lapCountはスタート/フィニッシュを外→内へ横切った通算回数=現在
-    // 走行中のラップ番号(公式のCurrentLap相当)。公式のLapCountは「完了したラップ数」
-    // (reference/RaceCapture-Pro_firmwareのgetLapCount/lapstats_current_lapの違いを
-    // 参照)を指すため、1周も完了していない間は0になるようcurrentLapから1引いてクランプする。
-    uint32_t currentLap = g_lapDetector.lapCount;
-    int completedLaps = (currentLap > 0) ? static_cast<int>(currentLap - 1) : 0;
-
-    // 現在ラップ開始からの経過時間。lapRecorderUpdate内のtimeSinceLapStartと同じ考え方
-    // だが、taskC(このrcpSendSample)は自前のtで計算する必要があるためここで求め直す。
-    double elapsedLapTimeSec = t - g_lapDetector.lapStartTimeSec;
-    if (elapsedLapTimeSec < 0.0) {
-        elapsedLapTimeSec = 0.0;
+    // 6-1-2: kLapChannels(9ch、LapCount〜SessionTime)はg_channelTableへ移行済み。
+    // sample()を一括実行して最新値へ同期してから使う(値の計算自体はsampleLapCount()等、
+    // 各チャンネルのsample関数側へ移した)。JSON上の型(int/double)は元の実装同様、
+    // prec==0のチャンネル(LapCount/Sector/CurrentLap)のみintで送る。
+    channelTableSync();
+    for (size_t i = 0; i < g_channelCount; i++) {
+        const ChannelDef &ch = g_channelTable[i];
+        if (ch.prec == 0) {
+            d.add(static_cast<int>(ch.value));
+        } else {
+            d.add(roundToPrec(ch.value, ch.prec));
+        }
     }
-
-    double predDeltaMin = g_predDeltaValid ? (g_predDeltaSec / 60.0) : 0.0;
-    constexpr double kMilesPerMeter = 0.000621371;
-
-    d.add(completedLaps);                                             // LapCount
-    d.add(roundToPrec(g_lastLapTimeSec / 60.0, 4));                   // LapTime (Min)
-    d.add(0);                                                         // Sector (非対応、常に0)
-    d.add(0.0);                                                       // SectorTime (非対応、常に0)
-    d.add(roundToPrec(predDeltaMin, 4));                              // PredTime (Min)
-    d.add(roundToPrec(elapsedLapTimeSec / 60.0, 4));                  // ElapsedTime (Min)
-    d.add(static_cast<int>(currentLap));                              // CurrentLap
-    d.add(roundToPrec(g_currentLapDistanceM * kMilesPerMeter, 4));    // Distance (mi)
-    d.add(roundToPrec(t / 60.0, 4));                                  // SessionTime (Min)
 
     // 1-5-2: taskAで更新される最新IMU値(g_imuAccel*/g_imuGyro*)をkImuChannels(6ch)分追加。
     // 配線が無い/通信失敗の間はtaskA側のフォールバックにより直近値(未接続時は初期値の
@@ -2011,7 +2128,7 @@ static void rcpSendSample()
     d.add(roundToPrec(g_attitudeRollDeg, 1));                         // Roll (deg)
     d.add(roundToPrec(g_attitudePitchDeg, 1));                        // Pitch (deg)
 
-    d.add((1 << 23) - 1); // bitmask: kDummyChannels(6ch)+kLapChannels(9ch)+kImuChannels(6ch)+kAttitudeChannels(2ch)全23chとも有効
+    d.add((1 << 23) - 1); // bitmask: kDummyChannels(6ch)+g_channelTable(9ch、旧kLapChannels)+kImuChannels(6ch)+kAttitudeChannels(2ch)全23chとも有効
     rcpSendJsonLine(doc);
     tick++;
 }
@@ -2340,6 +2457,10 @@ extern "C" void app_main(void)
         nvsErr = nvs_flash_init();
     }
     ESP_ERROR_CHECK(nvsErr);
+
+    // 6-1-2: 共通チャンネルテーブルにkLapChannels(9ch)相当を登録する。他の初期化処理より
+    // 前でよい(グローバル変数の読み取りはsample()呼び出し時=channelTableSync()時のみ発生)。
+    channelTableInitLapChannels();
 
     // 1-7-1/1-7-2: analog較正設定をデフォルト値で初期化した上で、NVSに保存済みの値があれば読み込む
     analogCfgInitAll();

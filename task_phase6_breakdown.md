@@ -33,7 +33,7 @@
 
 ## 6-1: 共通チャンネルテーブルの設計・実装 ※追加ハードウェア不要、今すぐ着手可
 - [x] 6-1-1: RCPシリアル送信・CAN送信・Luaバインディングの3経路が共有する内部チャンネルテーブル（チャンネル名・現在値・単位・精度等）のデータ構造を設計する → 完了（下記「6-1-1設計結果」参照）
-- [ ] 6-1-2: 既存のLapTime/PredTime等9チャンネル（Phase 5で実装済み、`firmware/src/main.cpp`にハードコードされた個別送信処理）を、6-1-1のテーブル方式へ移行する
+- [x] 6-1-2: 既存のLapTime/PredTime等9チャンネル（Phase 5で実装済み、`firmware/src/main.cpp`にハードコードされた個別送信処理）を、6-1-1のテーブル方式へ移行する → 完了（下記「6-1-2実装結果」参照）
 - [ ] 6-1-3: 共通チャンネルテーブルを出力元とするSDカードCSVライターを実装し、現状の固定13列CSV（`kSdCsvHeader`）とテレメトリーチャンネル群（LapTime/PredTime/Roll/Pitch等23ch）のスキーマ乖離を解消する ※2026-08レビューで発見（ARCHITECTURE.md 7章「SDログのスキーマがテレメトリーチャンネル群から乖離」参照）。セッション区切り・絶対時刻の設計（同7章、`task_phase1_breakdown.md`の1-2-6）と整合を取ること
 - [ ] 6-1-4: 100チャンネル級のスループットを実機で実測する ※2026-08の検討で「帯域計算上は100ch×100Hzでも0.1〜0.2MB/秒程度でSDMMC(4bit/20MHz)の余力に収まるはず」という試算をしたが、実測はまだ行っていない。6-1-3実装後、実機（ESP32-S3-DevKitC-1）でダミー値による100チャンネル級・高頻度（50〜100Hz、1-1関連の高速化タスクとも整合）の書き込みを一定時間走らせ、①`fsync`込みの実際の書き込み所要時間がサイクル周期に収まるか、②キュー溢れ(dropped)が発生しないか、③1-2-1で確認済みのSDMMC 4bit信号品質問題(GNDリターン電流経路不足によるCRCエラー)が高頻度書き込みで再発しないか、を確認する
 
@@ -102,6 +102,25 @@ NVS等での永続参照は現時点で不要と判断）。CAN送信（6-3）�
 フィールドを持たせない案）も検討したが、Lua `addChannel`で動的追加されるチャンネルには
 「継続的に値を更新してくれる既存のグローバル変数・タスク」が存在しないため、`setChannel`が
 直接書き込める`value`スロットが必要と判断し、`sample`/`value`のハイブリッド方式を採用した。
+
+### 6-1-2実装結果
+
+`firmware/src/main.cpp`に6-1-1設計通りの`ChannelDef`/`g_channelTable`/`channelRegister`/
+`channelTableSync`/`channelFindByName`を実装し、`kLapChannels`(9ch: LapCount/LapTime/Sector/
+SectorTime/PredTime/ElapsedTime/CurrentLap/Distance/SessionTime)を対象に移行した。
+
+- 各チャンネルの値計算（従来`rcpSendSample()`内に手書きされていたもの）を`sampleLapCount()`
+  等9個の`sample`関数へ切り出し、`channelTableInitLapChannels()`（`app_main()`冒頭で1回呼び出し）
+  で`g_channelTable`へ登録する。
+- `rcpSendMeta()`は`kLapChannels`配列への直接ループを、`g_channelTable`（現状はこの9ch分のみ）
+  へのループに置き換えた。
+- `rcpSendSample()`は9個の`d.add()`手書き呼び出しを`channelTableSync()`＋テーブルループに
+  置き換えた。JSON上の型（int/double）は元の実装と同じになるよう、`prec==0`のチャンネル
+  （LapCount/Sector/CurrentLap）のみintで送る規則で統一した。
+- `kDummyChannels`(6ch)/`kImuChannels`(6ch)/`kAttitudeChannels`(2ch)の3グループは今回は
+  移行せず`RcpChannelMeta`のまま据え置き（6-1-1設計結果の想定通り、新旧混在）。
+- `esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功を確認。ハードウェア未接続のため
+  実機/`rcp_mock_device.py`との応答比較は未実施（次回実機検証時に確認）。
 
 ## 6-2: `getMeta`の動的化 ※6-1完了後に着手
 - [ ] 6-2-1: 現状の静的配列(`kDummyChannels`/`kLapChannels`)を、6-1のチャンネルテーブルから動的に生成する方式へ変更する
