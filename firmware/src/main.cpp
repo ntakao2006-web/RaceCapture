@@ -1497,6 +1497,35 @@ static void rcpHandleSetTrackCfg(JsonObjectConst payload)
     rcpSendJsonLine(doc);
 }
 
+// 5-8-2: ベストラップ統計のリセット手段。ARCHITECTURE.md 7章「ベストラップをクリアする
+// 手段が無く、ジオフェンス誤検出等で異常に短い『ラップ』がベスト登録されると再フラッシュ
+// でしか復旧できない」への対応。方式は、公式ファームウェア(reference/RaceCapture-Pro_
+// firmware/src/logger/loggerApi.c)のRCPコマンド`resetLapStats`(api_reset_lap_stats→
+// lapstats_reset(true))と同じコマンド名で実装する(5-8-2申し送りの4候補「RCPコマンド経由・
+// シリアルコマンド・setTrackCfg書き込み時の自動破棄・外部CAN経由の物理ボタン」のうち、
+// 外部CAN経由は受信(RX)経路自体が未実装(Phase6-3はTXのみがスコープ)で採用不可、
+// setTrackCfg時の自動破棄は既に5-8-1で対応済み・今回の「同じトラックのままベストラップ
+// だけ手動で消したい」ケースをカバーしない、シリアルコマンドは独自プロトコルになり公式
+// アプリ/ツールとの互換性が無いため、いずれも不採用とした)。
+//
+// ただし公式のlapstats_reset(true)はセッションタイム・ラップカウント・距離等セッション
+// 全体を丸ごとリセットする広い操作だが、本プロジェクトで解決したい課題(7章記載)は
+// 「異常なベストラップを手動でクリアしたい」のみのため、意図的にスコープを狭め、
+// ベストラップ統計(g_bestLapSamples関連)のみをリセットする。コマンド名を公式と揃える
+// ことで将来的な外部ツール・スクリプトからの呼び出し互換性は確保しつつ、本ファームウェア
+// 独自の判断としてラップカウント進行中のセッション自体には影響を与えない設計とした。
+static void resetLapStats()
+{
+    g_bestLapSampleCount = 0;
+    g_bestLapTimeSec = -1.0;
+    g_bestLapTrackId = -1;
+    g_bestLapStartFinishLat = 0.0f;
+    g_bestLapStartFinishLon = 0.0f;
+    g_predDeltaValid = false;
+    bestLapSaveToNvs();
+    printf("[lapRecorder] best lap stats reset via resetLapStats\n");
+}
+
 // 1-4-7: getConnCfg/setConnCfgの現状(空応答スタブ)を実データ保持へ変更する構造。
 // 1-4-6で判明した「Podium Connectのストリーミングキーが接続の度に再入力を要求される」
 // 問題への対応。公式ファームウェア(reference/RaceCapture-Pro_firmware/src/logger/loggerApi.c
@@ -1928,6 +1957,10 @@ static void rcpHandleMessage(const char *line)
         rcpSendSetCfgAck("setLapCfg");
     } else if (strcmp(cmdName, "setTrackCfg") == 0) {
         rcpHandleSetTrackCfg(obj["setTrackCfg"].as<JsonObjectConst>());
+    } else if (strcmp(cmdName, "resetLapStats") == 0) {
+        // 5-8-2: 公式RCPコマンド名と一致させる(詳細はresetLapStats()定義部のコメント参照)。
+        resetLapStats();
+        rcpSendSetCfgAck("resetLapStats");
     } else if (strcmp(cmdName, "setCanCfg") == 0) {
         rcpSendSetCfgAck("setCanCfg");
     } else if (strcmp(cmdName, "setObd2Cfg") == 0) {
