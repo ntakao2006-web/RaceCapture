@@ -38,6 +38,11 @@
 // 併せてincludeする(S3側は既にsdmmc用でincludeしているが、C3側は未includeのため)。
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
+// 6-5-1: 車載CAN(内蔵TWAI)受信用。C3/S3ともTWAIペリフェラルを搭載しているため
+// board条件分岐なしで共通include。レガシー`driver/twai.h`は非推奨化されているため
+// 新ドライバのヘッダーを使う。
+#include "esp_twai.h"
+#include "esp_twai_onchip.h"
 
 extern "C" {
 #include "minmea.h"
@@ -244,6 +249,148 @@ static bool imuReadSensor(float *gx, float *gy, float *gz, float *ax, float *ay,
     *ay = raw[4] * kImuAccelScaleGPerLsb;
     *az = raw[5] * kImuAccelScaleGPerLsb;
     return true;
+}
+
+// 6-5-1: 車載CAN(内蔵TWAI)用TX/RXピン。友人による最終基板配線(logger_v1.net)はまだ
+// GPIO番号レベルまで確定していないため、kImuSdaPin/kImuSclPinと同じ考え方で、
+// SDMMC/IMU I2Cと衝突しない空きGPIOを暫定値として選定した。実配線確定時に見直す。
+// 現時点では外部トランシーバ(MCP2562FD-E/P)が実機に未接続のため、ドライバの
+// インストール自体はハードウェア無しでも成功する見込みだが、実際のフレーム受信確認は
+// トランシーバ接続後の実機検証が必要(6-5-1時点ではビルド確認までが対象)。
+//
+// 補足(実装時に判明)：本プロジェクトのESP-IDFはレガシーTWAIドライバ(`driver/twai.h`、
+// `twai_receive()`によるポーリング型)が非推奨化されており(`-Werror`によりビルド停止)、
+// 新ドライバ(`esp_twai.h`/`esp_twai_onchip.h`)を使う必要があった。新ドライバは
+// イベントコールバック方式(`twai_node_register_event_callbacks()`の`on_rx_done`が
+// ISRコンテキストで呼ばれ、その中で`twai_node_receive_from_isr()`によりフレームを
+// 取り出す)のため、専用の受信タスク(ポーリングループ)は不要になった。
+constexpr gpio_num_t kCanTxPin = GPIO_NUM_4;
+constexpr gpio_num_t kCanRxPin = GPIO_NUM_5;
+static const char *kCanTag = "can_rx";
+
+// 6-5-1: 生CANフレーム(車載CAN)を保持する構造体。デコードはせず、ID・DLC・データバイト列を
+// そのまま保持する(Lua側(6-5-2以降)で未デコードのIDも自由にデコードできるようにする方針、
+// ARCHITECTURE.md Phase6参照)。
+struct CanFrame {
+    uint32_t id;
+    uint8_t dlc;
+    uint8_t data[TWAI_FRAME_MAX_LEN];
+    bool extended; // 標準(11bit)/拡張(29bit)ID
+};
+
+// 6-5-1: 生CANフレームの共有バッファ。既存のtaskAToTaskCQueueHandle等と同じくFreeRTOS
+// キューをリングバッファとして使う。ISRコンテキスト(on_rx_doneコールバック)から
+// xQueueSendFromISR()で書き込み、タスクコンテキストからcanRxPop()で読み出す。
+// 車載CAN(500kbpsの車両バスを全量受信する側)はTWAIのハードウェア受信フィルタが1系統のみ
+// (ESP-IDF sdkconfigのCONFIG_SOC_TWAI_MASK_FILTER_NUM=1で確認済み)という制約があるため、
+// フィルタは標準(11bit)ID全域を通す設定にし、ID単位の絞り込みはLua側(6-5-2以降)の
+// ソフトウェアフィルタに委ねる。満杯時はxQueueSendFromISRが失敗し最新フレームを1つ捨てる
+// (古いフレームを押し出す設計ではない、consumer側の読み出し頻度に委ねる)。
+//
+// 既知の制約：フィルタが1系統のみのハードウェア制約により、標準(11bit)ID全域を受信対象と
+// する設定と拡張(29bit)ID全域を受信対象とする設定を同時には持てない。本プロジェクトの
+// 対象車両はOBD2診断通信が標準IDである想定が高いため標準ID側を採用したが、実車で拡張ID
+// 主体と判明した場合はここを見直す必要がある。
+constexpr size_t kCanRxQueueLen = 64;
+static QueueHandle_t g_canRxQueueHandle = nullptr;
+static twai_node_handle_t g_canNodeHandle = nullptr;
+
+// on_rx_doneコールバック用の作業バッファ。ISR内で毎回ヒープ確保はできないため
+// ファイルスコープの固定バッファを使い回す(この用途では受信を1フレームずつ即座に
+// キューへ転記するため、複数フレーム分を同時に保持する必要はない)。
+static uint8_t g_canRxIsrBuffer[TWAI_FRAME_MAX_LEN];
+
+// 6-5-1: on_rx_doneイベントコールバック(ISRコンテキストで呼ばれる、ブロッキングAPI呼び出し
+// 禁止)。受信済みフレームが無くなるまでtwai_node_receive_from_isr()をループして取り出し、
+// デコードせずそのまま共有キューへ転記する。
+static bool canOnRxDone(twai_node_handle_t handle, const twai_rx_done_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t higherPriorityTaskWoken = pdFALSE;
+
+    twai_frame_t rxFrame = {};
+    rxFrame.buffer = g_canRxIsrBuffer;
+    rxFrame.buffer_len = sizeof(g_canRxIsrBuffer);
+
+    while (twai_node_receive_from_isr(handle, &rxFrame) == ESP_OK) {
+        CanFrame frame = {};
+        frame.id = rxFrame.header.id;
+        frame.dlc = static_cast<uint8_t>(rxFrame.header.dlc);
+        frame.extended = rxFrame.header.ide != 0;
+        size_t len = twaifd_dlc2len(rxFrame.header.dlc);
+        if (len > sizeof(frame.data)) {
+            len = sizeof(frame.data); // クラシックTWAI(FD無効)のため実際は最大8バイトのはず
+        }
+        memcpy(frame.data, g_canRxIsrBuffer, len);
+        xQueueSendFromISR(g_canRxQueueHandle, &frame, &higherPriorityTaskWoken);
+
+        // 次のフレーム用にバッファを再設定(twai_node_receive_from_isrがbuffer/buffer_lenを
+        // 上書きしている可能性があるため、ループのたびに明示的にリセットする)
+        rxFrame.buffer = g_canRxIsrBuffer;
+        rxFrame.buffer_len = sizeof(g_canRxIsrBuffer);
+    }
+
+    return higherPriorityTaskWoken == pdTRUE;
+}
+
+// 車載CANはlisten-onlyのまま維持し送信は行わない方針(ARCHITECTURE.md「送信先の物理バス
+// について」参照、純正ECU側への影響を避けるため)。500kbps固定は`hardware_interface_spec.md`
+// 「車載CANは500kbpsで流れる車両バス」の記載に基づく。
+static bool canRxInit()
+{
+    twai_onchip_node_config_t nodeConfig = {};
+    nodeConfig.io_cfg.tx = kCanTxPin;
+    nodeConfig.io_cfg.rx = kCanRxPin;
+    nodeConfig.io_cfg.quanta_clk_out = GPIO_NUM_NC;
+    nodeConfig.io_cfg.bus_off_indicator = GPIO_NUM_NC;
+    nodeConfig.bit_timing.bitrate = 500000;
+    nodeConfig.tx_queue_depth = 1; // listen-onlyのため送信キューはほぼ使わないが0不可のため最小値
+    nodeConfig.flags.enable_listen_only = 1;
+
+    esp_err_t newErr = twai_new_node_onchip(&nodeConfig, &g_canNodeHandle);
+    if (newErr != ESP_OK) {
+        ESP_LOGW(kCanTag, "twai_new_node_onchip failed: %s", esp_err_to_name(newErr));
+        return false;
+    }
+
+    // フィルタは標準ID全域を通す設定(mask=0で「全ビットdon't care」= 全ID一致)。
+    // 上記コメントの既知の制約(フィルタ1系統のみ)により拡張IDは対象外。
+    twai_mask_filter_config_t filterConfig = {};
+    filterConfig.id = 0;
+    filterConfig.mask = 0;
+    filterConfig.is_ext = false;
+    esp_err_t filterErr = twai_node_config_mask_filter(g_canNodeHandle, 0, &filterConfig);
+    if (filterErr != ESP_OK) {
+        ESP_LOGW(kCanTag, "twai_node_config_mask_filter failed: %s", esp_err_to_name(filterErr));
+        twai_node_delete(g_canNodeHandle);
+        g_canNodeHandle = nullptr;
+        return false;
+    }
+
+    twai_event_callbacks_t callbacks = {};
+    callbacks.on_rx_done = canOnRxDone;
+    esp_err_t cbErr = twai_node_register_event_callbacks(g_canNodeHandle, &callbacks, nullptr);
+    if (cbErr != ESP_OK) {
+        ESP_LOGW(kCanTag, "twai_node_register_event_callbacks failed: %s", esp_err_to_name(cbErr));
+        twai_node_delete(g_canNodeHandle);
+        g_canNodeHandle = nullptr;
+        return false;
+    }
+
+    esp_err_t enableErr = twai_node_enable(g_canNodeHandle);
+    if (enableErr != ESP_OK) {
+        ESP_LOGW(kCanTag, "twai_node_enable failed: %s", esp_err_to_name(enableErr));
+        twai_node_delete(g_canNodeHandle);
+        g_canNodeHandle = nullptr;
+        return false;
+    }
+    return true;
+}
+
+// 6-5-1: 共有バッファからの読み出しAPI(6-5-2でLuaのrxCAN相当バインディングから呼ばれる
+// 想定)。非ブロッキング。フレームが無ければfalseを返す。
+[[maybe_unused]] static bool canRxPop(CanFrame *outFrame)
+{
+    return xQueueReceive(g_canRxQueueHandle, outFrame, 0) == pdPASS;
 }
 
 // 1-5-2: taskAで更新される最新IMU値。taskC(RCPストリーム、rcpSendSample)からも
@@ -2240,6 +2387,9 @@ extern "C" void app_main(void)
     // 1-2-2: タスクA→タスクB間のリングバッファ(SDログ用レコード)を準備
     taskAToTaskBQueueHandle = xQueueCreate(kSensorLogQueueLength, sizeof(SensorLogRecord));
 
+    // 6-5-1: 車載CAN(内蔵TWAI)受信バッファを準備
+    g_canRxQueueHandle = xQueueCreate(kCanRxQueueLen, sizeof(CanFrame));
+
 #if CONFIG_IDF_TARGET_ESP32S3
     // 1-2-3: SDカード(SDMMC 4bit)をマウント。タスクB起動前に一度だけ実行する
     g_sdMounted = sdCardMount();
@@ -2261,4 +2411,12 @@ extern "C" void app_main(void)
     // 圧迫し、"stack overflow in task task_c"で実機がリセットする不具合を確認したため、
     // 4096→8192へ拡大した。
     xTaskCreate(taskC, "task_c", 8192, nullptr, tskIDLE_PRIORITY + 1, nullptr); // 低優先（RCP受信・応答を統合）
+
+    // 6-5-1: 車載CAN(内蔵TWAI)受信の初期化。新ドライバはイベントコールバック方式のため
+    // 専用タスクは不要(ISRコンテキストで自動的にg_canRxQueueHandleへ積まれる)。
+    // トランシーバ未接続の現段階では失敗しうる想定内の状態のため、失敗してもapp_main自体は
+    // 継続する(他の機能への影響なし、ハードウェア到着後にリブートすれば正常化する見込み)。
+    if (!canRxInit()) {
+        ESP_LOGW(kCanTag, "canRxInit failed (no CAN hardware attached?), continuing without CAN RX");
+    }
 }

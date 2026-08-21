@@ -32,10 +32,76 @@
 ---
 
 ## 6-1: 共通チャンネルテーブルの設計・実装 ※追加ハードウェア不要、今すぐ着手可
-- [ ] 6-1-1: RCPシリアル送信・CAN送信・Luaバインディングの3経路が共有する内部チャンネルテーブル（チャンネル名・現在値・単位・精度等）のデータ構造を設計する
+- [x] 6-1-1: RCPシリアル送信・CAN送信・Luaバインディングの3経路が共有する内部チャンネルテーブル（チャンネル名・現在値・単位・精度等）のデータ構造を設計する → 完了（下記「6-1-1設計結果」参照）
 - [ ] 6-1-2: 既存のLapTime/PredTime等9チャンネル（Phase 5で実装済み、`firmware/src/main.cpp`にハードコードされた個別送信処理）を、6-1-1のテーブル方式へ移行する
 - [ ] 6-1-3: 共通チャンネルテーブルを出力元とするSDカードCSVライターを実装し、現状の固定13列CSV（`kSdCsvHeader`）とテレメトリーチャンネル群（LapTime/PredTime/Roll/Pitch等23ch）のスキーマ乖離を解消する ※2026-08レビューで発見（ARCHITECTURE.md 7章「SDログのスキーマがテレメトリーチャンネル群から乖離」参照）。セッション区切り・絶対時刻の設計（同7章、`task_phase1_breakdown.md`の1-2-6）と整合を取ること
 - [ ] 6-1-4: 100チャンネル級のスループットを実機で実測する ※2026-08の検討で「帯域計算上は100ch×100Hzでも0.1〜0.2MB/秒程度でSDMMC(4bit/20MHz)の余力に収まるはず」という試算をしたが、実測はまだ行っていない。6-1-3実装後、実機（ESP32-S3-DevKitC-1）でダミー値による100チャンネル級・高頻度（50〜100Hz、1-1関連の高速化タスクとも整合）の書き込みを一定時間走らせ、①`fsync`込みの実際の書き込み所要時間がサイクル周期に収まるか、②キュー溢れ(dropped)が発生しないか、③1-2-1で確認済みのSDMMC 4bit信号品質問題(GNDリターン電流経路不足によるCRCエラー)が高頻度書き込みで再発しないか、を確認する
+
+### 6-1-1設計結果
+
+**現状確認**：`firmware/src/main.cpp`のチャンネル定義は`kDummyChannels`(6ch)/`kLapChannels`(9ch)/
+`kImuChannels`(6ch)/`kAttitudeChannels`(2ch)の4つの独立した`RcpChannelMeta`（`nm`/`ut`/`min`/`max`/
+`prec`/`sr`のメタデータのみ、値は保持しない）静的配列に分散している。`rcpSendMeta()`はこの4配列を
+順に走査してメタデータを送るだけだが、`rcpSendSample()`側は各チャンネルの値を配列とは独立に
+1行ずつ手書きしており（`d.add(...)`の羅列、ダミーチャンネルは`sin(t/N)`のその場計算、ラップ/IMU/
+姿勢チャンネルはグローバル変数`g_lapDetector`/`g_imuAccel*`/`g_attitude*Deg`を直接参照）、
+**配列の並び順とハードコードされた`d.add()`呼び出し順が一致していることに暗黙で依存**している
+（ビットマスクも`(1 << 23) - 1`の決め打ち）。CAN送信（6-3）・Luaバインディング（6-5）が今後
+「同じ値」を必要とする際、この手書きコードを経由しないと値を得られず、経路ごとに同じ計算を
+再実装することになってしまう。これが解消したい問題。
+
+**設計方針**：メタデータ（既存の`RcpChannelMeta`相当）に加えて「現在値を格納・取得する仕組み」を
+持つ`ChannelDef`構造体を新設し、固定長配列＋使用数カウンタ（本プロジェクトで一貫している
+`kMaxLapSamples`等と同じ、動的確保を避ける組み込み向けパターン）で管理する。
+
+```c
+// イメージ（6-1-2で実際の移行と併せて確定）
+struct ChannelDef {
+    const char *nm;
+    const char *ut;
+    int min, max, prec, sr;
+
+    // 値の取得方法は2通りをサポートする：
+    // (a) sample != nullptr: 既存のグローバル変数(taskA等が継続更新)やその場計算(sin波等)を
+    //     ラップする関数。呼ぶたびに最新値を返す。既存23チャンネルはすべてこちら側になる見込み。
+    // (b) sample == nullptr: valueフィールドを直接読み書きする。Lua addChannel(6-5-3)で
+    //     動的追加されるチャンネルはこちら（他に継続更新してくれる場所が無いため、
+    //     setChannelがこのvalueへ直接書き込む）。
+    double (*sample)();
+    double value; // sample()が無い場合の実値。sample()がある場合も直近値のキャッシュとして
+                  // channelTableSync()実行時に書き込まれ、CAN送信(6-3)等が使い回せる。
+};
+
+constexpr size_t kMaxChannels = 64; // 既存23ch + Lua動的追加分の余裕
+static ChannelDef g_channelTable[kMaxChannels];
+static size_t g_channelCount = 0; // 起動時に既存チャンネルで初期化、addChannelで増える
+
+// 全sample()持ちチャンネルを1回ずつ呼び出し、valueキャッシュを最新化する。
+// rcpSendSample()の冒頭・CANブロードキャストの送信直前等、値を使う直前に呼ぶ想定。
+void channelTableSync();
+
+// 名前引き(Lua addChannel/getChannel/setChannel用)。チャンネル数が小規模(数十件)な
+// 組み込み用途のため線形探索で十分と判断、ハッシュテーブル等は導入しない。
+int channelFindByName(const char *nm); // 見つからなければ-1
+```
+
+**ID・参照方法**：チャンネルIDは配列インデックスをそのまま使う（本セッション中は安定、
+NVS等での永続参照は現時点で不要と判断）。CAN送信（6-3）のフレームエンコードもLuaバインディング
+（6-5-3）の`getChannel`/`setChannel`も、このインデックスまたは`channelFindByName()`で引いた
+インデックス経由でテーブルへアクセスする。
+
+**移行方針（6-1-2以降で段階的に実施）**：6-1-2は`kLapChannels`(9ch)を対象に、`sample`関数
+（例：`LapTime`用に`g_lastLapTimeSec / 60.0`を返す関数）でラップし`g_channelTable`へ登録する
+形で移行する。この時点では`rcpSendMeta`/`rcpSendSample`は新旧混在（`kLapChannels`分だけ新方式、
+残りは既存のまま）でよく、既存の応答内容が変わらないことをビルド＋可能なら実機/`rcp_mock_device.py`
+比較で確認する。残り3グループ（`kDummyChannels`/`kImuChannels`/`kAttitudeChannels`）の移行は
+6-1-2の中で続けて行うか、6-2（`getMeta`の完全動的化、全チャンネルがテーブル化されている必要あり）
+着手までに済ませるかは、6-1-2着手時に作業量を見て判断する（無理に1タスクへ詰め込まない）。
+
+**あえて採用しなかった案**：値の取得を全チャンネル`sample()`関数方式に統一する案（`value`
+フィールドを持たせない案）も検討したが、Lua `addChannel`で動的追加されるチャンネルには
+「継続的に値を更新してくれる既存のグローバル変数・タスク」が存在しないため、`setChannel`が
+直接書き込める`value`スロットが必要と判断し、`sample`/`value`のハイブリッド方式を採用した。
 
 ## 6-2: `getMeta`の動的化 ※6-1完了後に着手
 - [ ] 6-2-1: 現状の静的配列(`kDummyChannels`/`kLapChannels`)を、6-1のチャンネルテーブルから動的に生成する方式へ変更する
@@ -59,11 +125,37 @@
 > いない生のCAN ID」もLuaスクリプト側で自由にデコードして新チャンネルとして命名・公開したい
 > （Pattern B）ため、`rxCAN`相当（生CANフレーム読み取り）は必要。GPIO/PWM/アナログ出力/
 > シリアルI/O/ShiftX/セルラー等、公式バインディングの大半（約45個）は恒久的に非対応とする。
-- [ ] 6-5-1: （6-1・6-4いずれにも依存せず今すぐ着手可）生CANフレームの共有リングバッファを設計・実装する。ESP32(TWAI)のハードウェア受信
+- [x] 6-5-1: （6-1・6-4いずれにも依存せず今すぐ着手可）生CANフレームの共有リングバッファを設計・実装する。ESP32(TWAI)のハードウェア受信
       フィルタが1系統のみ（`sdkconfig.esp32-s3`の`CONFIG_SOC_TWAI_MASK_FILTER_NUM=1`で確認済み）
       という制約があるため、ハードウェアフィルタは素通し設定にし、全フレームをバッファへ蓄積、
       ID単位のフィルタリングはLua側（ソフトウェア）で行う方式とする。既存のOBD2/車速デコード
       処理（Phase 2実装分）もこのバッファ経由に統一できないか合わせて検討する
+      → 完了。`firmware/src/main.cpp`に車載CAN(内蔵TWAI)受信を実装した。
+      - 🔴 **実装時に判明した重要な訂正**：本プロジェクトのESP-IDF（`framework-espidf 6.0.1`）では
+        レガシーTWAIドライバ（`driver/twai.h`、`twai_receive()`によるポーリング型）が非推奨化され
+        `#warning`が発せられ、本プロジェクトの`-Werror`設定によりビルド停止することが判明した。
+        新ドライバ（`esp_twai.h`/`esp_twai_onchip.h`、`twai_new_node_onchip()`）へ切り替えて対応。
+        新ドライバは**イベントコールバック方式**（`twai_node_register_event_callbacks()`の
+        `on_rx_done`がISRコンテキストで呼ばれ、その中で`twai_node_receive_from_isr()`により
+        フレームを取り出す設計）のため、当初想定していた「専用の受信タスク（ブロッキング
+        ポーリングループ）」は不要と判明し、ISRコールバック内で直接`xQueueSendFromISR()`により
+        共有キュー（`g_canRxQueueHandle`、FreeRTOSキューをリングバッファとして使用、既存の
+        `taskAToTaskCQueueHandle`等と同じパターン）へ書き込む設計に変更した
+      - GPIO割り当て（`kCanTxPin`=GPIO4、`kCanRxPin`=GPIO5）は友人による最終基板配線
+        （`logger_v1.net`）がまだGPIO番号レベルまで確定していないため、`kImuSdaPin`等と同じ
+        考え方でSDMMC/IMU I2Cと衝突しない空きピンを暫定選定した（実配線確定時に見直す）
+      - フィルタは`mask=0`（全ビットdon't care）の標準(11bit)ID全域受信に設定。ハードウェア
+        フィルタが1系統のみという制約上、標準ID全域と拡張ID全域を同時には受信対象にできない
+        ため、OBD2診断通信が標準ID主体という想定に基づき標準ID側を採用した（実車で拡張ID
+        主体と判明した場合は要見直し、コード内にコメントで明記済み）
+      - 車載CANは`enable_listen_only`のまま維持（送信は行わない、`task_phase6_breakdown.md`
+        冒頭の背景注記の方針通り）。ボーレートは`hardware_interface_spec.md`記載の500kbps固定
+      - `esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功を確認。外部トランシーバ
+        (MCP2562FD-E/P)は実機に未接続のため、`twai_new_node_onchip()`自体の成功可否・実際の
+        フレーム受信確認はハードウェア接続後の実機検証が必要（初期化失敗時も`app_main`は
+        継続する設計にしたため、他機能への影響なく安全に試せる）
+      - 読み出しAPI`canRxPop()`は6-5-2（Luaの`rxCAN`相当バインディング）で使用する想定のため
+        現時点では未呼び出し。`[[maybe_unused]]`を付与し`-Werror`の未使用関数警告を回避した
 - [ ] 6-5-2: 6-5-1のバッファから生CANフレーム（ID・データバイト列）をLuaへ渡す`rxCAN`相当の
       バインディング関数を実装する
 - [ ] 6-5-3: `addChannel`/`getChannel`/`setChannel`を、6-1の共通チャンネルテーブルへの読み書き
