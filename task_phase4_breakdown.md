@@ -1587,7 +1587,7 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 
 ---
 
-### 4-4-5: ROCK 5B（ダッシュカム録画用）へのOS導入・初期セットアップ ※前半完了（2026-08-19）
+### 4-4-5: ROCK 5B（ダッシュカム録画用）へのOS導入・初期セットアップ ※全体完了（2026-08-20、4-4-5-7-2は`task_dashcam_breakdown.md` DC-9-4経由で達成）
 
 車載ダッシュボードのハードウェア方針を整理：**Raspberry Pi 4B（`rc-dash-4B`）はダッシュカム録画なしの場合に使用、ROCK 5Bは外部カメラを接続し映像も保存する場合に使用**。ROCK 5Bはmicro SDでの動作確認を経て、最終的にeMMC起動へ移行する方針。
 
@@ -1598,4 +1598,4 @@ Home画面終盤（call 1859085、`glBindTexture(texture=180)`直後の`glDrawEl
 - [x] 4-4-5-5: eMMC起動後の初期セットアップやり直し（専用ユーザー`ntakao`等） → 完了。eMMCへは（SDカードで作成したカスタム済みの状態ではなく）クリーンな公式イメージを書き込んだため、4-4-5-2と同じ初期設定を再実施した。
 - [x] 4-4-5-6: RaceCapture Appのインストール → 完了。着手前に「Raspberry Pi版」と「Linux版」の違いを再確認：podium.live配布の"Linux"版(`racecapture_linux_x86_64`)はx86_64専用でROCK 5Bでは動作不可、"Raspberry Pi"版(`racecapture_linux_raspberrypi_2.19.0.deb`)の中身はaarch64汎用Linuxバイナリ（Raspberry Pi OS専有ではない）と判明し、後者の流用が正しい選択と確定した。公式インストーラ(`bit.ly/3yTbPyZ`)を読み解き対話部分(whiptail)を非対話展開して適用。依存パッケージは`libegl1`/`libegl-mesa0`/`libgl1-mesa-dri`/`libgbm1`がRadxa製rk3588-bookwormリポジトリのPanfrost対応Mesaで既に充足済みで、`mesa-utils`/`mtdev-tools`/`pmount`/`pv`/`jq`のみ追加インストール。ROCK 5B特有の非互換点として、`raspi-config`および`/boot/firmware/config.txt`,`cmdline.txt`が存在しない（RK3588はU-Boot/extlinuxブートでRaspberry Pi firmware設定と無関係）ため、公式スクリプトの`setup_rpi_image_config`・raspi-config依存の自動ログイン設定は使わず、systemd `getty@tty1.service.d`のoverrideによるコンソール自動ログイン＋GDM無効化(`systemctl disable gdm`/`set-default multi-user.target`)で代替した。reboot検証で「tty1へ`ntakao`が自動ログイン→`.bashrc`経由でFBモード自動起動→`race_capture`プロセス正常稼働・DRM pageflipエラーなし」を確認済み。WiFi自動再接続・USB自動マウント（公式インストーラのオプション機能）は今回未設定（ユーザー了承の上で保留、必要になれば別途設定）。ESP32本体との実接続・画面描画の目視確認は次タスクの範囲。
 - [x] 4-4-5-7-1: USBカメラ・ESP32-C3のデバイス認識、race_captureとESP32のRCP通信確認 → 完了（2026-08-20）。USBカメラ(BUFFALO BSWHD06M)は`/dev/video0`/`/dev/video1`/`/dev/video2`として、ESP32-C3(Espressif USB JTAG/serial debug unit)は`/dev/ttyACM0`として正しく認識された。自動起動中のrace_captureが`/dev/ttyACM0`を自動検出しRCP接続を確立、`SessionRecorder`が新規セッションを開始しラップ集計（`update aggregates for lap N`）が継続的に進行、`commit backlog: 0`で健全に記録され続けることを確認した（Phase1本開発ファームウェアのダミーテレメトリを正常受信）。
-- [ ] 4-4-5-7-2: 実際の録画動作（mp4等への保存）の実機検証 → **保留、着手前提条件あり**。x86機(EliteDesk)での先行調査(`task_dashcam_breakdown.md` DC-4/DC-5)で、録画対象は外部USBカメラの映像そのものではなく`ximagesrc`によるrace_captureダッシュ画面のX11キャプチャと判明しており、これを担う`video-streamer`はVAAPI専用クローズドバイナリでARM(ROCK 5B)では動作しない。ROCK 5B向けの代替（`ffmpeg-rockchip`ベースの自作、`task_dashcam_breakdown.md` DC-9-4、DC-9-4-1〜5に分解済み）がまだ未着手のため、DC-9-4-5（実機での録画動作検証）が完了するまで本タスクは着手できない。
+- [x] 4-4-5-7-2: 実際の録画動作（mp4等への保存）の実機検証 → **完了**。x86機(EliteDesk)での先行調査(`task_dashcam_breakdown.md` DC-4/DC-5)で、録画対象は外部USBカメラの映像そのものではなく`ximagesrc`によるrace_captureダッシュ画面のX11キャプチャと判明しており、これを担う`video-streamer`はVAAPI専用クローズドバイナリでARM(ROCK 5B)では動作しない。ROCK 5B向けの代替として`ffmpeg-rockchip`ベースの自作パイプライン（kmsgrabキャプチャ→RKMPPハードウェアエンコード→mp4保存）を`task_dashcam_breakdown.md` DC-9-4（DC-9-4-1〜5）で実装し、実機ROCK 5Bでの連続録画・RCP通信との並行動作・負荷実測まで2026-08-20付けで完了・実証済み。詳細はDC-9-4-1〜DC-9-4-5参照。
