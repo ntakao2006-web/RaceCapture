@@ -81,7 +81,7 @@ static void *luaEspAlloc(void *ud, void *ptr, size_t osize, size_t nsize)
 
 // luaEspAlloc()が実際にVM生成・標準ライブラリのオープン(この過程で多数のアロケーションが
 // 発生する)・スクリプト実行に耐えることを起動時に確認する自己診断(1-1-1のhelloTask等と同じ
-// 「まず動かして確かめる」パターン)。専用FreeRTOSタスクでの周期実行は6-4-3で実装する。
+// 「まず動かして確かめる」パターン)。専用FreeRTOSタスクでの周期実行は6-4-3(下記luaTask)。
 static void luaAllocSelfTest()
 {
     lua_State *L = lua_newstate(luaEspAlloc, nullptr);
@@ -98,6 +98,53 @@ static void luaAllocSelfTest()
         ESP_LOGE(kLuaTag, "self-test failed: %s", lua_tostring(L, -1));
     }
     lua_close(L);
+}
+
+// 6-4-3/6-4-4: Luaスクリプトを周期実行する専用タスク用の暫定スクリプト。6-6(setScriptCfg/
+// getScriptCfgの実データ化、NVS保存)が未実装のため、公式のgetScript()相当(ユーザーが
+// 書き込んだスクリプト本文を返す)の代わりにハードコードされたプレースホルダを使う。
+// 6-6実装時にNVSから読んだ文字列へ差し替える。
+static const char *kLuaPlaceholderScript =
+    "tickCount = 0\n"
+    "function onTick()\n"
+    "  tickCount = tickCount + 1\n"
+    "end\n";
+
+// 公式luaTask.cの`LUA_PERIODIC_FUNCTION`("onTick")呼び出し間隔と同じ既定値(1Hz)。
+constexpr TickType_t kLuaOnTickIntervalMs = 1000;
+
+// 6-4-4: 公式の実行契約(luaTask.cのload_script()/lua_invocation())を再現する。スクリプト
+// 本体(kLuaPlaceholderScript、6-6実装後はNVS由来の文字列)は起動時に一度だけluaL_dostring()
+// で実行し、以降は`onTick`関数(グローバル)が定義されていればタスクループ周期ごとに呼び出す
+// のみとする。`onTick`未定義は公式同様エラー扱いしない(RaceCapture-Pro Issue #707参照、
+// 「onTickを持たないスクリプトは合法」という判断を踏襲)。
+static void luaTask(void *pvParameters)
+{
+    lua_State *L = lua_newstate(luaEspAlloc, nullptr);
+    if (L == nullptr) {
+        ESP_LOGE(kLuaTag, "luaTask: lua_newstate failed, task exiting");
+        vTaskDelete(nullptr);
+        return;
+    }
+    luaL_openlibs(L);
+
+    // スクリプト本体は起動時に一度だけ実行(onTick関数の定義はこの実行の副作用として行われる)。
+    if (luaL_dostring(L, kLuaPlaceholderScript) != 0) {
+        ESP_LOGE(kLuaTag, "luaTask: script load failed: %s", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+
+    for (;;) {
+        lua_getglobal(L, "onTick");
+        if (lua_isnil(L, -1)) {
+            // onTick未定義は許容(公式同様エラーにしない)。スタックを戻すだけ。
+            lua_pop(L, 1);
+        } else if (lua_pcall(L, 0, 0, 0) != 0) {
+            ESP_LOGW(kLuaTag, "luaTask: onTick error: %s", lua_tostring(L, -1));
+            lua_pop(L, 1);
+        }
+        vTaskDelay(pdMS_TO_TICKS(kLuaOnTickIntervalMs));
+    }
 }
 
 // 1-1-1: Hello Taskレベルの疎通確認用タスク
@@ -2547,7 +2594,7 @@ extern "C" void app_main(void)
     }
 
     // 6-4-2: Luaの自前アロケータ(luaEspAlloc、ESP-IDFヒープAPI)が実際に機能することの
-    // 起動時自己診断。専用FreeRTOSタスクでの周期実行は6-4-3で実装する。
+    // 起動時自己診断。専用FreeRTOSタスクでの周期実行は下記luaTask(6-4-3)。
     luaAllocSelfTest();
 
     // 1-1-1: Hello Taskレベルの疎通確認用タスク
@@ -2588,6 +2635,13 @@ extern "C" void app_main(void)
     // 圧迫し、"stack overflow in task task_c"で実機がリセットする不具合を確認したため、
     // 4096→8192へ拡大した。
     xTaskCreate(taskC, "task_c", 8192, nullptr, tskIDLE_PRIORITY + 1, nullptr); // 低優先（RCP受信・応答を統合）
+
+    // 6-4-3: Luaスクリプトタスク。既存タスク構成(taskB=+3/taskA=+2/taskC=+1)に一切影響
+    // しないよう、アイドルタスクと同じ最低優先度(tskIDLE_PRIORITY)で動かす(時分割によって
+    // アイドルタスクと共存はするが、taskA/B/Cを含む他の全タスクより後回しになる)。
+    // スタックサイズはLuaパーサがスタックを多く消費する点(公式luaTask.cのコメント参照)を
+    // 踏まえ、taskC同様8192バイトとした(実測に基づくチューニングは実機到着後の課題)。
+    xTaskCreate(luaTask, "task_lua", 8192, nullptr, tskIDLE_PRIORITY, nullptr);
 
     // 6-5-1: 車載CAN(内蔵TWAI)受信の初期化。新ドライバはイベントコールバック方式のため
     // 専用タスクは不要(ISRコンテキストで自動的にg_canRxQueueHandleへ積まれる)。
