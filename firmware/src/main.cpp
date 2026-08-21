@@ -1168,6 +1168,14 @@ static LapDistanceSample g_bestLapSamples[kMaxLapSamples];
 static size_t g_bestLapSampleCount = 0;
 static double g_bestLapTimeSec = -1.0; // 未確定時-1
 
+// 5-8-1: このベストラップがどのトラックで記録されたものかを保持する。trackIdだけでなく
+// スタート/フィニッシュ座標も合わせて保持するのは、公式アプリ側でtrackIdが未割当(-1)の
+// まま手動設定されたトラックが複数ありうる想定のため(trackId単独では別トラック同士を
+// 区別できないケースへの保険)。g_trackCfgの対応フィールドと三つ組で比較する。
+static int32_t g_bestLapTrackId = -1;
+static float g_bestLapStartFinishLat = 0.0f;
+static float g_bestLapStartFinishLon = 0.0f;
+
 // ベストラップ統計のNVS永続化。電源断でg_bestLapSamplesが消えると再起動直後は
 // 毎回ベストラップ未確定の状態に戻り、予測タイム(PredTime)がしばらく機能しない
 // ため、AnalogCfg(1-7-2)/TrackCfg(5-2-2)と同じnvs_set_blob/nvs_get_blobパターン
@@ -1181,6 +1189,9 @@ static double g_bestLapTimeSec = -1.0; // 未確定時-1
 static const char *kBestLapNvsNamespace = "bestlap";
 static const char *kBestLapSamplesNvsKey = "samples";
 static const char *kBestLapTimeNvsKey = "time";
+static const char *kBestLapTrackIdNvsKey = "trackid";
+static const char *kBestLapSfLatNvsKey = "sflat";
+static const char *kBestLapSfLonNvsKey = "sflon";
 
 static void bestLapLoadFromNvs()
 {
@@ -1193,12 +1204,40 @@ static void bestLapLoadFromNvs()
     size_t required = sizeof(g_bestLapSamples);
     esp_err_t rerr = nvs_get_blob(handle, kBestLapSamplesNvsKey, g_bestLapSamples, &required);
     if (rerr == ESP_OK && required > 0 && (required % sizeof(LapDistanceSample)) == 0) {
-        g_bestLapSampleCount = required / sizeof(LapDistanceSample);
+        size_t loadedCount = required / sizeof(LapDistanceSample);
         double savedTime = -1.0;
         size_t timeSize = sizeof(savedTime);
-        if (nvs_get_blob(handle, kBestLapTimeNvsKey, &savedTime, &timeSize) == ESP_OK
-            && timeSize == sizeof(savedTime)) {
+        bool haveTime = nvs_get_blob(handle, kBestLapTimeNvsKey, &savedTime, &timeSize) == ESP_OK
+            && timeSize == sizeof(savedTime);
+
+        // 5-8-1: このタイミングでは呼び出し元(app_main)がtrackCfgLoadFromNvs()を先に
+        // 実行済みのため、g_trackCfgは既に「今回起動時に有効なトラック」を指している。
+        // 保存済みベストラップのtrackId(+sf座標)がこれと一致する場合のみ復元する。
+        // 不一致(別トラックで記録されたベストラップ)なら復元せず未確定のままにする
+        // (ARCHITECTURE.md 7章「ベストラップがトラックと紐付いていない」への対応)。
+        // trackid/sfキーが無い場合(本対応より前に保存されたデータ)はデフォルト値
+        // (-1, 0, 0)のまま扱われ、g_trackCfgもトラック未設定なら同じデフォルト値
+        // なので従来通り復元される。
+        int32_t savedTrackId = -1;
+        size_t trackIdSize = sizeof(savedTrackId);
+        nvs_get_blob(handle, kBestLapTrackIdNvsKey, &savedTrackId, &trackIdSize);
+        float savedSfLat = 0.0f;
+        size_t sfLatSize = sizeof(savedSfLat);
+        nvs_get_blob(handle, kBestLapSfLatNvsKey, &savedSfLat, &sfLatSize);
+        float savedSfLon = 0.0f;
+        size_t sfLonSize = sizeof(savedSfLon);
+        nvs_get_blob(handle, kBestLapSfLonNvsKey, &savedSfLon, &sfLonSize);
+
+        bool matchesCurrentTrack = savedTrackId == g_trackCfg.trackId
+            && savedSfLat == g_trackCfg.startFinishLat
+            && savedSfLon == g_trackCfg.startFinishLon;
+
+        if (haveTime && matchesCurrentTrack) {
+            g_bestLapSampleCount = loadedCount;
             g_bestLapTimeSec = savedTime;
+            g_bestLapTrackId = savedTrackId;
+            g_bestLapStartFinishLat = savedSfLat;
+            g_bestLapStartFinishLon = savedSfLon;
         }
     }
     nvs_close(handle);
@@ -1215,6 +1254,9 @@ static void bestLapSaveToNvs()
     nvs_set_blob(handle, kBestLapSamplesNvsKey, g_bestLapSamples,
                  g_bestLapSampleCount * sizeof(LapDistanceSample));
     nvs_set_blob(handle, kBestLapTimeNvsKey, &g_bestLapTimeSec, sizeof(g_bestLapTimeSec));
+    nvs_set_blob(handle, kBestLapTrackIdNvsKey, &g_bestLapTrackId, sizeof(g_bestLapTrackId));
+    nvs_set_blob(handle, kBestLapSfLatNvsKey, &g_bestLapStartFinishLat, sizeof(g_bestLapStartFinishLat));
+    nvs_set_blob(handle, kBestLapSfLonNvsKey, &g_bestLapStartFinishLon, sizeof(g_bestLapStartFinishLon));
     esp_err_t cerr = nvs_commit(handle);
     if (cerr != ESP_OK) {
         ESP_LOGW(kRcpTag, "nvs_commit failed: %s", esp_err_to_name(cerr));
@@ -1301,6 +1343,10 @@ static void lapRecorderUpdate(double lat, double lon, double elapsedSec,
                    sizeof(LapDistanceSample) * g_currentLapSampleCount);
             g_bestLapSampleCount = g_currentLapSampleCount;
             g_bestLapTimeSec = lapTimeSec;
+            // 5-8-1: 今回のベストラップがどのトラックのものか記録する。
+            g_bestLapTrackId = g_trackCfg.trackId;
+            g_bestLapStartFinishLat = g_trackCfg.startFinishLat;
+            g_bestLapStartFinishLon = g_trackCfg.startFinishLon;
             bestLapSaveToNvs();
             printf("[lapRecorder] new best lap: %.3f s (%u samples)\n",
                    lapTimeSec, static_cast<unsigned>(g_bestLapSampleCount));
@@ -1422,7 +1468,21 @@ static void rcpHandleSetTrackCfg(JsonObjectConst payload)
         JsonObjectConst track = fields["track"];
         if (!track.isNull()) {
             if (!track["id"].isNull()) {
-                g_trackCfg.trackId = track["id"].as<int32_t>();
+                int32_t newTrackId = track["id"].as<int32_t>();
+                // 5-8-1: 走行中に別トラックへ切り替わった場合、保持中のベストラップ
+                // (前トラック分)をRAM上で破棄する。放置すると新トラックの走行中も
+                // 前トラックの軌跡と照合し続け、PredTimeが無意味な値になってしまう
+                // (ARCHITECTURE.md 7章の指摘への対応)。NVS上のデータはあえてここでは
+                // 書き換えない。flashCfg未実行のままrebootした場合はg_trackCfgも前
+                // トラックへ戻るため、bestLapLoadFromNvs()の一致判定により結果的に
+                // 正しく復元される。新トラックでのベストラップが確定した時点で
+                // (lapRecorderUpdate内)NVSへ上書き保存される。
+                if (newTrackId != g_trackCfg.trackId && g_bestLapSampleCount > 0) {
+                    g_bestLapSampleCount = 0;
+                    g_bestLapTimeSec = -1.0;
+                    g_predDeltaValid = false;
+                }
+                g_trackCfg.trackId = newTrackId;
             }
             JsonArrayConst sf = track["sf"];
             if (!sf.isNull() && sf.size() >= 2) {
