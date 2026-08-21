@@ -461,6 +461,13 @@
   スクリプト実行は未実装（メモリアロケータ差し替え(6-4-2)・専用FreeRTOSタスク化(6-4-3)は今後）。
   `esp32-c3-proto`/`esp32-s3`両環境でビルド成功を確認。詳細は`task_phase6_breakdown.md`
   6-4-1参照。
+- ✅ **6-4-2完了：Lua用メモリアロケータをESP-IDFのヒープAPIへ差し替え**。
+  `heap_caps_realloc`/`heap_caps_free`(`MALLOC_CAP_DEFAULT`)を使う`luaEspAlloc()`を実装し、
+  既定の標準malloc/free/reallocベース実装を置換した。起動時自己診断（VM生成→標準ライブラリ
+  オープン→簡単な式の実行→検証→解放）を`app_main()`に追加し、`esp32-c3-proto`/`esp32-s3`
+  両環境でビルド成功・Flashサイズ増加（`liblua.a`が実際にリンクされたことの裏付け）を確認。
+  ハードウェア未接続のためシリアル出力での実行結果確認は次回実機接続時の課題。詳細は
+  `task_phase6_breakdown.md`6-4-2参照。
 
 ---
 

@@ -134,7 +134,26 @@ SectorTime/PredTime/ElapsedTime/CurrentLap/Distance/SessionTime)を対象に移�
 
 ## 6-4: Lua VM移植 ※6-1と並行着手可
 - [x] 6-4-1: `reference/RaceCapture-Pro_firmware/lib/lua/src`相当の標準Lua本体（プラットフォーム非依存のANSI C部分）をfirmwareへ組み込み、PlatformIOビルドが通ることを確認する → 完了（下記「6-4-1実装結果」参照）
-- [ ] 6-4-2: Lua用メモリアロケータをESP-IDFのヒープAPI（`heap_caps_malloc`等）に差し替える
+- [x] 6-4-2: Lua用メモリアロケータをESP-IDFのヒープAPI（`heap_caps_malloc`等）に差し替える → 完了（下記「6-4-2実装結果」参照）
+### 6-4-2実装結果
+
+`firmware/src/main.cpp`に`luaEspAlloc()`（`lua_Alloc`シグネチャ、`heap_caps_realloc`/
+`heap_caps_free`で標準`malloc`/`free`/`realloc`ベースの既定実装`l_alloc`(`lauxlib.c`)を置換、
+`MALLOC_CAP_DEFAULT`指定）を実装した。`nsize==0`のケースは`heap_caps_realloc`に0バイト
+reallocとして委ねず、明示的に`heap_caps_free()`へ分岐する（標準realloc実装の慣例通り）。
+
+動作確認として`luaAllocSelfTest()`を追加し、`app_main()`起動時に(1)`lua_newstate(luaEspAlloc, ...)`
+でVM生成、(2)`luaL_openlibs()`で標準ライブラリを開く（この過程で多数のアロケーションが発生）、
+(3)`return 1 + 41`を実行して結果が42であることを確認、(4)`lua_close()`で解放、という一連の
+自己診断を行う（1-1-1のhelloTask等と同じ「起動時に動かして確かめる」パターン）。専用FreeRTOS
+タスクでの周期実行は6-4-3で実装するため、現時点は起動時1回のみの自己診断。
+
+`esp32-c3-proto`/`esp32-s3`両環境でビルド成功を確認。Flashサイズが6-4-1完了時点
+（277140/406277 bytes）から390896/496313 bytesへ増加しており、リンカの`--gc-sections`で
+除去されず`liblua.a`が実際にリンクされ動作していることを裏付けている。ハードウェア未接続
+（ESP32実機がこのセッションでは接続されていない）のため、シリアル出力での`lua OK`ログ確認は
+次回実機接続時の課題。
+
 - [ ] 6-4-3: Luaスクリプトを定期実行する独立FreeRTOSタスク（公式の`luaTask.c`の`onTick`呼び出しループに相当）を、本プロジェクトの既存タスク構成（taskA/B/C）に影響しない優先度・スタックサイズで実装する
 - [ ] 6-4-4: スクリプト本体は起動時（またはスクリプト書き込み時）に一度だけ実行し、以降は`onTick`関数のみを周期呼び出しする、という公式の実行契約を再現する
 

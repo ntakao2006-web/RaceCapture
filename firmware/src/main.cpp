@@ -13,6 +13,8 @@
 #include "esp_timer.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+// 6-4-2: Lua用メモリアロケータをESP-IDFのヒープAPIへ差し替えるために使う。
+#include "esp_heap_caps.h"
 
 // 1-4-2: ESP32-S3はネイティブUSB OTGペリフェラルを持つため、TinyUSB CDC ACM
 // (JTAGを含まないCDC専用ディスクリプタ)経由でRCP通信する。C3にはこのペリフェラルが
@@ -51,12 +53,51 @@ extern "C" {
 // 6-4-1: Luaスクリプティング機構(Phase6)用の標準Lua本体。プラットフォーム非依存の
 // ANSI C部分(`reference/RaceCapture-Pro_firmware/lib/lua/src`相当)を`firmware/lib/lua/`へ
 // vendoringし、PlatformIOのLibrary Dependency Finderに拾わせるためここでincludeする
-// (lib/minmea等の既存vendoringと同じパターン)。メモリアロケータのESP-IDFヒープAPIへの
-// 差し替え(6-4-2)・専用FreeRTOSタスクでの実行(6-4-3)は未実装で、現時点はビルド確認のみ。
+// (lib/minmea等の既存vendoringと同じパターン)。専用FreeRTOSタスクでの定期実行(6-4-3)は
+// 未実装で、現時点は起動時の自己診断(下記luaAllocSelfTest)まで。
 extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
+}
+
+// 6-4-2: Lua用メモリアロケータ。lauxlib.cの既定実装(l_alloc、標準malloc/free/realloc)を
+// ESP-IDFのヒープAPI(heap_caps_*)へ差し替える。ud/osizeは未使用(公式実装のl_alloc同様、
+// 引数の型を変えずに済ませるため)。heap_caps_realloc()はptr==NULLをmalloc相当として、
+// nsize==0はfreeとして扱うわけではない(0バイトreallocは未定義動作になりうる)ため、
+// nsize==0のケースだけ明示的にheap_caps_free()へ分岐する(標準realloc実装の慣例と同じ)。
+static const char *kLuaTag = "lua";
+
+static void *luaEspAlloc(void *ud, void *ptr, size_t osize, size_t nsize)
+{
+    (void)ud;
+    (void)osize;
+    if (nsize == 0) {
+        heap_caps_free(ptr);
+        return nullptr;
+    }
+    return heap_caps_realloc(ptr, nsize, MALLOC_CAP_DEFAULT);
+}
+
+// luaEspAlloc()が実際にVM生成・標準ライブラリのオープン(この過程で多数のアロケーションが
+// 発生する)・スクリプト実行に耐えることを起動時に確認する自己診断(1-1-1のhelloTask等と同じ
+// 「まず動かして確かめる」パターン)。専用FreeRTOSタスクでの周期実行は6-4-3で実装する。
+static void luaAllocSelfTest()
+{
+    lua_State *L = lua_newstate(luaEspAlloc, nullptr);
+    if (L == nullptr) {
+        ESP_LOGE(kLuaTag, "lua_newstate failed (out of memory?)");
+        return;
+    }
+    luaL_openlibs(L);
+    if (luaL_dostring(L, "return 1 + 41") == 0 && lua_isnumber(L, -1)
+        && lua_tointeger(L, -1) == 42) {
+        printf("lua OK: custom allocator + base libs working (1+41=%d)\n",
+               static_cast<int>(lua_tointeger(L, -1)));
+    } else {
+        ESP_LOGE(kLuaTag, "self-test failed: %s", lua_tostring(L, -1));
+    }
+    lua_close(L);
 }
 
 // 1-1-1: Hello Taskレベルの疎通確認用タスク
@@ -2504,6 +2545,10 @@ extern "C" void app_main(void)
     if (minmea_parse_gga(&gga, "$GPGGA,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,*76")) {
         printf("minmea OK: satellites=%d\n", gga.satellites_tracked);
     }
+
+    // 6-4-2: Luaの自前アロケータ(luaEspAlloc、ESP-IDFヒープAPI)が実際に機能することの
+    // 起動時自己診断。専用FreeRTOSタスクでの周期実行は6-4-3で実装する。
+    luaAllocSelfTest();
 
     // 1-1-1: Hello Taskレベルの疎通確認用タスク
     xTaskCreate(helloTask, "hello_task", 2048, nullptr, tskIDLE_PRIORITY + 1, nullptr);
