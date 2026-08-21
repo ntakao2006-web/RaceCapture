@@ -1,0 +1,19 @@
+#VRML V2.0 utf8
+# Mechanical visualization made from the ROHM BP5293-33 outline dimensions.
+# VRML coordinates use KiCad's 0.1 inch units (1 unit = 2.54 mm).
+
+DEF BODY Appearance { material Material { diffuseColor 0.12 0.12 0.14 specularColor 0.25 0.25 0.25 shininess 0.25 } }
+DEF LABEL Appearance { material Material { diffuseColor 0.82 0.82 0.76 } }
+DEF PIN Appearance { material Material { diffuseColor 0.78 0.76 0.64 specularColor 0.55 0.55 0.50 shininess 0.65 } }
+
+Transform {
+  translation 0.7087 0.7283 3.5039
+  children [ Shape { appearance USE BODY geometry Box { size 6.6929 2.2441 7.0079 } } ]
+}
+Transform {
+  translation 0.7087 -0.3898 3.5039
+  children [ Shape { appearance USE LABEL geometry Box { size 5.9843 0.0157 1.1811 } } ]
+}
+Transform { translation 0 0 0.5906 children [ Shape { appearance USE PIN geometry Cylinder { radius 0.1378 height 1.1811 } } ] }
+Transform { translation 1 0 0.5906 children [ Shape { appearance USE PIN geometry Cylinder { radius 0.1378 height 1.1811 } } ] }
+Transform { translation 2 0 0.5906 children [ Shape { appearance USE PIN geometry Cylinder { radius 0.1378 height 1.1811 } } ] }

@@ -1,0 +1,2459 @@
+{
+  "board": "logger_v1.kicad_pcb",
+  "basis": "JLCPCB rigid 2-layer FR-4, 1 oz, routed outline; absolute capability limits",
+  "stats": {
+    "signal_layers": 2,
+    "route_nodes": 1377,
+    "zones": 10,
+    "footprints": 124,
+    "silk_texts": 124,
+    "silk_graphics": 760,
+    "pads": 511,
+    "tracks": 822,
+    "vias": 545
+  },
+  "route_signature_sha256": "c6d40864802e6674939655bdbad80623a81b59b801f4976ded6cbd8f3be15daf",
+  "footprint_pad_signature_sha256": "b66b24234cbbb14f61c90e625ed12c685a5be6689045c4028090c7fe7ae7bb95",
+  "distributions": {
+    "silk_line_width_mm": {
+      "0.15": 760
+    },
+    "smd_min_dimension_mm": {
+      "0.2": 12,
+      "0.28": 12,
+      "0.3": 16,
+      "0.4": 44,
+      "0.6": 69,
+      "0.7": 8,
+      "0.8": 138,
+      "0.875": 2,
+      "0.9": 93,
+      "1.0": 10,
+      "1.14": 9,
+      "1.2": 3,
+      "1.45": 4,
+      "1.6": 12,
+      "1.65": 1,
+      "1.9": 3,
+      "2.75": 4,
+      "3.9": 1,
+      "5.8": 1
+    },
+    "thru_hole_drill_mm": {
+      "(0.6, 1.4)": 4,
+      "(0.6, 1.7)": 4,
+      "(0.8,)": 4,
+      "(0.9,)": 16,
+      "(1.0,)": 13,
+      "(1.02,)": 8,
+      "(1.2,)": 3,
+      "(1.5,)": 5
+    },
+    "pth_annular_ring_mm": {
+      "0.2": 8,
+      "0.24": 8,
+      "0.35": 7,
+      "0.4": 2,
+      "0.45": 16,
+      "0.5": 16
+    },
+    "np_thru_hole_drill_mm": {
+      "(0.65,)": 4,
+      "(2.2,)": 2,
+      "(3.0,)": 2,
+      "(3.2,)": 4
+    },
+    "track_width_mm": {
+      "0.15": 517,
+      "0.2": 12,
+      "0.25": 119,
+      "0.3": 72,
+      "0.4": 82,
+      "1.0": 20
+    },
+    "via_size_drill_mm": {
+      "0.6/0.3": 545
+    }
+  },
+  "violation_count": 188,
+  "violation_rules": {
+    "silk_text_height": 115,
+    "smd_pad_size": 12,
+    "same_net_track_spacing": 61
+  },
+  "violations": [
+    {
+      "rule": "silk_text_height",
+      "description": "R30 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R30",
+      "layer": "F.SilkS",
+      "text": "R30",
+      "uuid": "b0e6e2e5-c01b-4e98-bb1e-b7758b7e145a"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R3 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R3",
+      "layer": "F.SilkS",
+      "text": "R3",
+      "uuid": "fe478ab8-51ce-4bb3-892b-f8655f655b91"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C19 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C19",
+      "layer": "F.SilkS",
+      "text": "C19",
+      "uuid": "16533f68-3227-46f9-8b56-0f5f62dde3f8"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "L1 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "L1",
+      "layer": "F.SilkS",
+      "text": "L1",
+      "uuid": "02df4f54-9349-4d62-b948-35849c45ebbe"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R1 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R1",
+      "layer": "F.SilkS",
+      "text": "R1",
+      "uuid": "33ed49d9-5dc9-4a38-876a-592c7f359b68"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D1 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D1",
+      "layer": "F.SilkS",
+      "text": "D1",
+      "uuid": "9b6827ef-7990-460a-a29d-dc13dbec8e14"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C12 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C12",
+      "layer": "F.SilkS",
+      "text": "C12",
+      "uuid": "0cc9091a-9cfc-47d2-ad8b-fd65cc2457af"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R2 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R2",
+      "layer": "F.SilkS",
+      "text": "R2",
+      "uuid": "8bef7130-3378-4498-a561-adb78185680f"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C4 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C4",
+      "layer": "F.SilkS",
+      "text": "C4",
+      "uuid": "d2410f7c-0e9c-4d74-8ed4-364ca937baa4"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R19 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R19",
+      "layer": "F.SilkS",
+      "text": "R19",
+      "uuid": "7981b1f8-83ca-476d-aa5f-f92a9ae02449"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U12 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U12",
+      "layer": "F.SilkS",
+      "text": "U12",
+      "uuid": "de550c01-c2a1-418f-8bc5-60d093cc0c03"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D11 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D11",
+      "layer": "F.SilkS",
+      "text": "D11",
+      "uuid": "4432e5af-e000-4259-92e7-1a4778272d84"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D7 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D7",
+      "layer": "F.SilkS",
+      "text": "D7",
+      "uuid": "4432e5af-e000-4259-92e7-1a4778272d84"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D5 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D5",
+      "layer": "F.SilkS",
+      "text": "D5",
+      "uuid": "4432e5af-e000-4259-92e7-1a4778272d84"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D4 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D4",
+      "layer": "F.SilkS",
+      "text": "D4",
+      "uuid": "4432e5af-e000-4259-92e7-1a4778272d84"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D6 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D6",
+      "layer": "F.SilkS",
+      "text": "D6",
+      "uuid": "4432e5af-e000-4259-92e7-1a4778272d84"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D8 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D8",
+      "layer": "F.SilkS",
+      "text": "D8",
+      "uuid": "4432e5af-e000-4259-92e7-1a4778272d84"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D9 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D9",
+      "layer": "F.SilkS",
+      "text": "D9",
+      "uuid": "4432e5af-e000-4259-92e7-1a4778272d84"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D10 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D10",
+      "layer": "F.SilkS",
+      "text": "D10",
+      "uuid": "4432e5af-e000-4259-92e7-1a4778272d84"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R36 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R36",
+      "layer": "F.SilkS",
+      "text": "R36",
+      "uuid": "e30fd402-2f67-475b-a35c-d76ca531775b"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C15 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C15",
+      "layer": "F.SilkS",
+      "text": "C15",
+      "uuid": "49050dfd-be59-4b8f-b06e-9ac58c04980e"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R50 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R50",
+      "layer": "F.SilkS",
+      "text": "R50",
+      "uuid": "40e31e61-8852-4734-9f34-2964c084bb86"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R33 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R33",
+      "layer": "F.SilkS",
+      "text": "R33",
+      "uuid": "2755998c-0228-4f36-8829-716fb42f309e"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U5 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U5",
+      "layer": "F.SilkS",
+      "text": "U5",
+      "uuid": "f539a238-4c92-47ee-82c0-6187b7e79f24"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R41 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R41",
+      "layer": "F.SilkS",
+      "text": "R41",
+      "uuid": "f9894b29-a2e5-4ed8-b7ec-1182cc278361"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C36 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C36",
+      "layer": "F.SilkS",
+      "text": "C36",
+      "uuid": "6cda6f0f-401a-43e1-8008-12af82fa2c5d"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R4 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R4",
+      "layer": "F.SilkS",
+      "text": "R4",
+      "uuid": "b37a8424-1916-4c1d-9988-025c6ecb20d2"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R8 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R8",
+      "layer": "F.SilkS",
+      "text": "R8",
+      "uuid": "d6c5f879-743d-4e2b-a262-b9002c6cc476"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C22 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C22",
+      "layer": "F.SilkS",
+      "text": "C22",
+      "uuid": "52471fbd-4213-4ad5-be68-4b5b39eae2c8"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R13 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R13",
+      "layer": "F.SilkS",
+      "text": "R13",
+      "uuid": "a6c9e731-6468-40d3-9d32-c49589f19748"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R16 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R16",
+      "layer": "F.SilkS",
+      "text": "R16",
+      "uuid": "17ea1061-3043-4ef9-b0b6-633fb44f09fc"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D2 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D2",
+      "layer": "F.SilkS",
+      "text": "D2",
+      "uuid": "246cc2b0-e189-4807-bfbe-917dd83dbb28"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R10 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R10",
+      "layer": "F.SilkS",
+      "text": "R10",
+      "uuid": "d26045be-2636-448c-9850-7014e9a3ba37"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R48 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R48",
+      "layer": "F.SilkS",
+      "text": "R48",
+      "uuid": "5bda4271-fa2d-4414-ab19-e2b9223ef36c"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R25 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R25",
+      "layer": "F.SilkS",
+      "text": "R25",
+      "uuid": "e74148e1-b991-42b8-8ad0-683ecf778cfe"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R12 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R12",
+      "layer": "F.SilkS",
+      "text": "R12",
+      "uuid": "5e238204-fb2d-4682-baeb-9a3012d2ed9b"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R17 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R17",
+      "layer": "F.SilkS",
+      "text": "R17",
+      "uuid": "aa62ce89-fde6-4188-af3a-828d1a8c7afb"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R22 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R22",
+      "layer": "F.SilkS",
+      "text": "R22",
+      "uuid": "0d131706-f98e-43f9-9693-4f5c21fa43a6"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "Y1 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "Y1",
+      "layer": "F.SilkS",
+      "text": "Y1",
+      "uuid": "46a6de5f-7d6e-436b-b8ac-62e48a67c910"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C1 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C1",
+      "layer": "F.SilkS",
+      "text": "C1",
+      "uuid": "0ba93ba7-f758-487e-a3b4-916ba472e599"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C6 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C6",
+      "layer": "F.SilkS",
+      "text": "C6",
+      "uuid": "4e4d893d-4026-40b6-a042-de579a4179eb"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C2 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C2",
+      "layer": "F.SilkS",
+      "text": "C2",
+      "uuid": "78845a2b-c8b3-46df-9da4-853dab445e26"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "J2 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "J2",
+      "layer": "F.SilkS",
+      "text": "J2",
+      "uuid": "1ad103c8-cc5e-48b0-b03b-88fa9825523e"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R32 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R32",
+      "layer": "F.SilkS",
+      "text": "R32",
+      "uuid": "e624b6fa-5813-4d1e-a96f-e2e9a761a4a5"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "D3 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "D3",
+      "layer": "F.SilkS",
+      "text": "D3",
+      "uuid": "eb356875-0078-4cd2-9683-7137a1b39178"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U6 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U6",
+      "layer": "F.SilkS",
+      "text": "U6",
+      "uuid": "33ce0433-625a-41e4-ac6e-9a800a89b33f"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U13 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U13",
+      "layer": "F.SilkS",
+      "text": "U13",
+      "uuid": "98091fed-a96d-4db2-bc61-10e6c728c27e"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R29 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R29",
+      "layer": "F.SilkS",
+      "text": "R29",
+      "uuid": "ee9a2b88-6947-4bed-a209-8147d172b938"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C8 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C8",
+      "layer": "F.SilkS",
+      "text": "C8",
+      "uuid": "b5b288cf-5531-481f-a346-9fa2cf315b66"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R39 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R39",
+      "layer": "F.SilkS",
+      "text": "R39",
+      "uuid": "0ea8936f-3601-4608-aac6-8803e1578d7d"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R20 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R20",
+      "layer": "F.SilkS",
+      "text": "R20",
+      "uuid": "2da1c7e9-b22f-47f5-851e-97d5bc81f448"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C33 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C33",
+      "layer": "F.SilkS",
+      "text": "C33",
+      "uuid": "d7c28af3-7f1f-429c-b89a-24dead012125"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R5 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R5",
+      "layer": "F.SilkS",
+      "text": "R5",
+      "uuid": "ab4721bb-7f00-4c3c-b9cd-0299d9cf1681"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C3 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C3",
+      "layer": "F.SilkS",
+      "text": "C3",
+      "uuid": "6e7df27c-d0cf-4c20-9edb-de378a9bfba5"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C20 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C20",
+      "layer": "F.SilkS",
+      "text": "C20",
+      "uuid": "8cabd357-7449-4d56-a9ec-1fb9b6501cf9"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C18 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C18",
+      "layer": "F.SilkS",
+      "text": "C18",
+      "uuid": "10a63a2f-d2ea-4741-b494-c3a9a9ce4841"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U8 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U8",
+      "layer": "F.SilkS",
+      "text": "U8",
+      "uuid": "4153aa99-df46-4e62-a04b-a7b40389f878"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C17 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C17",
+      "layer": "F.SilkS",
+      "text": "C17",
+      "uuid": "7ba0fab6-233a-4d5a-90f1-f8adedf822b2"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R46 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R46",
+      "layer": "F.SilkS",
+      "text": "R46",
+      "uuid": "d02c5673-bf9e-4820-9c04-ee13aafb6f6f"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R43 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R43",
+      "layer": "F.SilkS",
+      "text": "R43",
+      "uuid": "9ab1d65d-e656-4a9d-ad20-2cf99fc44d3e"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C7 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C7",
+      "layer": "F.SilkS",
+      "text": "C7",
+      "uuid": "f1d9fba0-dc48-4fc2-9518-40b43212dd3d"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U3 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U3",
+      "layer": "F.SilkS",
+      "text": "U3",
+      "uuid": "67e7c31e-a4b8-4623-b997-d532b79efb06"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C25 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C25",
+      "layer": "F.SilkS",
+      "text": "C25",
+      "uuid": "cb9e6288-4c1b-40a4-a4fd-0b83915b65ae"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R37 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R37",
+      "layer": "F.SilkS",
+      "text": "R37",
+      "uuid": "8885b5e1-c56b-4558-93b1-46cee9f8cf68"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R47 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R47",
+      "layer": "F.SilkS",
+      "text": "R47",
+      "uuid": "e420cbbe-9671-4ca8-846a-523bfb61fd7e"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C14 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C14",
+      "layer": "F.SilkS",
+      "text": "C14",
+      "uuid": "a1adaeb1-e32e-41dd-9fd6-83253441f0e5"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R9 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R9",
+      "layer": "F.SilkS",
+      "text": "R9",
+      "uuid": "83897363-495f-4633-a367-33885f578c16"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R28 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R28",
+      "layer": "F.SilkS",
+      "text": "R28",
+      "uuid": "dea406e2-6f09-413c-a7d7-1aecaeb612f9"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R26 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R26",
+      "layer": "F.SilkS",
+      "text": "R26",
+      "uuid": "78445279-f814-4f9a-ab10-0da016e2df34"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U11 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U11",
+      "layer": "F.SilkS",
+      "text": "U11",
+      "uuid": "cd4489af-0bac-4e82-933a-d815f0ebc35e"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U2 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U2",
+      "layer": "F.SilkS",
+      "text": "U2",
+      "uuid": "21610f74-bcfa-4338-8d61-52bb2d1b5e05"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U10 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U10",
+      "layer": "F.SilkS",
+      "text": "U10",
+      "uuid": "8d7b6c31-38e4-4d1d-b07c-63cc21c26417"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 1 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "1",
+      "x": 12.899000000000001,
+      "y": 32.884,
+      "uuid": "f5a9576b-951b-4c8a-bb7b-7f1f9bd0f3a4"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 2 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "2",
+      "x": 12.899000000000001,
+      "y": 33.284000000000006,
+      "uuid": "2a0a61c3-38b7-4b5d-9516-74ae3d8c5b25"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 3 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "3",
+      "x": 13.024000000000001,
+      "y": 33.909000000000006,
+      "uuid": "1abbcb72-6b3e-41ea-a639-e1f89a2144f2"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 4 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "4",
+      "x": 13.424000000000001,
+      "y": 33.909000000000006,
+      "uuid": "7d7f4d01-38dc-42be-b6fe-8cc3f8cbc5fa"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 5 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "5",
+      "x": 13.824,
+      "y": 33.909000000000006,
+      "uuid": "a6e8084a-470d-4c3a-81a0-a9be15efe8a4"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 6 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "6",
+      "x": 14.224,
+      "y": 33.909000000000006,
+      "uuid": "5e2c08a5-1058-4724-b763-6bee22f0134f"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 7 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "7",
+      "x": 14.349,
+      "y": 33.284000000000006,
+      "uuid": "72f913ff-089f-42f7-8c61-ae42175b6798"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 8 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "8",
+      "x": 14.349,
+      "y": 32.884,
+      "uuid": "433cfcc9-40c9-4dcc-abcd-ce9bfe7186d3"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 9 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "9",
+      "x": 14.224,
+      "y": 32.259,
+      "uuid": "01800808-30fa-4569-b8ab-e911ad8750fc"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 10 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "10",
+      "x": 13.824,
+      "y": 32.259,
+      "uuid": "c96d4fac-9884-4b71-bcb6-b0312709a153"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 11 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "11",
+      "x": 13.424000000000001,
+      "y": 32.259,
+      "uuid": "9a25a979-ddbb-4934-abec-733a31dfc596"
+    },
+    {
+      "rule": "smd_pad_size",
+      "description": "U10 pad 12 minimum dimension 0.200 mm is below 0.25 mm",
+      "ref": "U10",
+      "pad": "12",
+      "x": 13.024000000000001,
+      "y": 32.259,
+      "uuid": "08cfbea7-d949-40e1-83c4-6ab65df505ff"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R45 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R45",
+      "layer": "F.SilkS",
+      "text": "R45",
+      "uuid": "bf63003b-3abe-4492-b4e8-3f50bfb70486"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R11 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R11",
+      "layer": "F.SilkS",
+      "text": "R11",
+      "uuid": "bee3a4e8-39c9-4ddf-b778-d1157a5dd4e1"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R38 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R38",
+      "layer": "F.SilkS",
+      "text": "R38",
+      "uuid": "86178952-da94-467b-a4a9-2ca6fb9269e0"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C34 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C34",
+      "layer": "F.SilkS",
+      "text": "C34",
+      "uuid": "83df05fe-d80c-482a-b394-d9dc9f67e9fd"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C29 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C29",
+      "layer": "F.SilkS",
+      "text": "C29",
+      "uuid": "9eeb560d-27b1-4f5e-b381-e0e4f89d59c1"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R51 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R51",
+      "layer": "F.SilkS",
+      "text": "R51",
+      "uuid": "2e636da9-2228-408c-a493-9565ebf666d7"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C24 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C24",
+      "layer": "F.SilkS",
+      "text": "C24",
+      "uuid": "f85dc96e-abbc-4ccc-9efa-a4bfcc42c121"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U4 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U4",
+      "layer": "F.SilkS",
+      "text": "U4",
+      "uuid": "b0f6338f-16eb-4170-80d8-f40529f41005"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R42 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R42",
+      "layer": "F.SilkS",
+      "text": "R42",
+      "uuid": "b2b59a7c-432c-4402-961c-afa543cb9594"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C16 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C16",
+      "layer": "F.SilkS",
+      "text": "C16",
+      "uuid": "769c3650-a873-4213-b259-50d70bd9aa40"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C13 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C13",
+      "layer": "F.SilkS",
+      "text": "C13",
+      "uuid": "5b69a77c-bdad-4627-ba97-eb7962ea4ffa"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C5 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C5",
+      "layer": "F.SilkS",
+      "text": "C5",
+      "uuid": "4fd22349-aa90-45f7-9f6a-5e1cb5c0cf49"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R7 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R7",
+      "layer": "F.SilkS",
+      "text": "R7",
+      "uuid": "17e5f923-5a18-45cc-a3b4-e8f2708e2ce7"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "J7 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "J7",
+      "layer": "F.SilkS",
+      "text": "J7",
+      "uuid": "232f8604-7d23-4062-be26-3e723edd3d28"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R6 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R6",
+      "layer": "F.SilkS",
+      "text": "R6",
+      "uuid": "f960ed70-0307-4a5f-bab7-f408b440b922"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R40 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R40",
+      "layer": "F.SilkS",
+      "text": "R40",
+      "uuid": "f46ee7d7-a19f-4e8d-913f-c541ae54cb2b"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C26 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C26",
+      "layer": "F.SilkS",
+      "text": "C26",
+      "uuid": "6449f7a4-7bc8-4a13-974f-a1b1dd901520"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C28 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C28",
+      "layer": "F.SilkS",
+      "text": "C28",
+      "uuid": "da20b452-143a-41d6-9ce5-d66c34f8d24b"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R31 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R31",
+      "layer": "F.SilkS",
+      "text": "R31",
+      "uuid": "f34a614d-383e-4a0d-8127-efb4f729a2ba"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R34 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R34",
+      "layer": "F.SilkS",
+      "text": "R34",
+      "uuid": "00d599a6-51d5-40ff-ac6f-9933e160cc55"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "J6 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "J6",
+      "layer": "F.SilkS",
+      "text": "J6",
+      "uuid": "01654ed4-142e-4a1e-85da-75f26e5c8e54"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R49 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R49",
+      "layer": "F.SilkS",
+      "text": "R49",
+      "uuid": "f50b640b-ed65-4780-aa9e-3ea7c32a74f3"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C9 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C9",
+      "layer": "F.SilkS",
+      "text": "C9",
+      "uuid": "2738a457-174d-4dc8-a1be-6149ba6e5159"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C10 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C10",
+      "layer": "F.SilkS",
+      "text": "C10",
+      "uuid": "90f42d3a-5567-44cf-a9f1-e2b55baa9a7c"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "J5 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "J5",
+      "layer": "F.SilkS",
+      "text": "J5",
+      "uuid": "c7ac2969-7ab1-43f4-a3d7-f6f3ad421d29"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U7 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U7",
+      "layer": "F.SilkS",
+      "text": "U7",
+      "uuid": "e736d1a3-f087-498d-aa37-a36c8fd7f572"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C32 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C32",
+      "layer": "F.SilkS",
+      "text": "C32",
+      "uuid": "c403a1cf-0f36-4c29-8e50-382976e340e7"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "U1 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "U1",
+      "layer": "F.SilkS",
+      "text": "U1",
+      "uuid": "92ebd9da-8e13-4fb1-92c9-0f7e18af4316"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R21 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R21",
+      "layer": "F.SilkS",
+      "text": "R21",
+      "uuid": "3fa9a1f4-d2fd-4436-a83e-f2b80f89c443"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C23 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C23",
+      "layer": "F.SilkS",
+      "text": "C23",
+      "uuid": "965de6d7-858c-4739-ab7f-f925cb9c6c9d"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R44 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R44",
+      "layer": "F.SilkS",
+      "text": "R44",
+      "uuid": "e462d7a9-81e4-4485-834d-45ba6739787e"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "J3 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "J3",
+      "layer": "F.SilkS",
+      "text": "J3",
+      "uuid": "712fd838-f557-478e-9f8a-469b99932b75"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "J4 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "J4",
+      "layer": "F.SilkS",
+      "text": "J4",
+      "uuid": "5b7d9bd7-7d00-472b-8a44-bb2110a4272f"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C21 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C21",
+      "layer": "B.SilkS",
+      "text": "C21",
+      "uuid": "b4cd81b1-bb3a-44d9-9713-a1ce61923cfb"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R15 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R15",
+      "layer": "B.SilkS",
+      "text": "R15",
+      "uuid": "0cd4bff6-178d-4acd-9a04-ca3bf1716059"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C11 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C11",
+      "layer": "B.SilkS",
+      "text": "C11",
+      "uuid": "584434e4-9e96-47c9-ace6-287b0a768845"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R23 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R23",
+      "layer": "B.SilkS",
+      "text": "R23",
+      "uuid": "a771fb8c-51ce-4e83-a4d4-c87579a0c2f4"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R27 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R27",
+      "layer": "B.SilkS",
+      "text": "R27",
+      "uuid": "27aa2b4e-b675-4552-88f0-14ee34956996"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "C27 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "C27",
+      "layer": "B.SilkS",
+      "text": "C27",
+      "uuid": "4983b8aa-7e6e-4ea1-8f00-3fc359779fff"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R24 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R24",
+      "layer": "B.SilkS",
+      "text": "R24",
+      "uuid": "f684dfdf-b129-4ff2-87a5-28d21853a001"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R18 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R18",
+      "layer": "B.SilkS",
+      "text": "R18",
+      "uuid": "7758c3ff-bf05-424b-9a52-8238b7ef734a"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R35 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R35",
+      "layer": "B.SilkS",
+      "text": "R35",
+      "uuid": "1610cc23-b940-4660-add9-93a927373236"
+    },
+    {
+      "rule": "silk_text_height",
+      "description": "R14 Reference text height 0.700 mm is below 1.0 mm",
+      "ref": "R14",
+      "layer": "B.SilkS",
+      "text": "R14",
+      "uuid": "e75d428f-fdb1-4950-a8fa-40593385c52a"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.232 mm is below 0.25 mm",
+      "net": "1",
+      "net_name": "GND",
+      "layer": "F.Cu",
+      "gap_mm": 0.23213,
+      "a_points": [
+        13.424,
+        32.259,
+        13.824,
+        32.259
+      ],
+      "b_points": [
+        13.881403,
+        31.743467,
+        13.798,
+        31.82687
+      ],
+      "a_uuid": "590c1521-cfec-42b8-94a6-5cdac2d112d5",
+      "b_uuid": "9fb671e7-ec7f-4614-bd2b-0a83acd5ee46"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.003 mm is below 0.25 mm",
+      "net": "1",
+      "net_name": "GND",
+      "layer": "F.Cu",
+      "gap_mm": 0.002677,
+      "a_points": [
+        34.29,
+        76.3784,
+        34.29,
+        79.211
+      ],
+      "b_points": [
+        33.581,
+        79.92,
+        31.979,
+        79.92
+      ],
+      "a_uuid": "882503a3-f0cb-47d1-a841-4436d067a74b",
+      "b_uuid": "d314777a-4881-40a3-a8ca-08bba013033b"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.106 mm is below 0.25 mm",
+      "net": "3",
+      "net_name": "+3V3",
+      "layer": "F.Cu",
+      "gap_mm": 0.106,
+      "a_points": [
+        24.257,
+        52.194,
+        24.257,
+        57.531
+      ],
+      "b_points": [
+        26.416,
+        57.912,
+        24.257,
+        57.912
+      ],
+      "a_uuid": "8290c776-350e-420b-b9b4-68671256d35e",
+      "b_uuid": "c41a3ed8-a7f2-4973-92db-8e5cb369ee23"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.239 mm is below 0.25 mm",
+      "net": "3",
+      "net_name": "+3V3",
+      "layer": "B.Cu",
+      "gap_mm": 0.239308,
+      "a_points": [
+        28.864346,
+        50.875,
+        28.940346,
+        50.799
+      ],
+      "b_points": [
+        29.479654,
+        50.799,
+        29.555654,
+        50.875
+      ],
+      "a_uuid": "10c9794a-08e2-4515-82f8-5e381b04d45b",
+      "b_uuid": "e9ebc848-a0de-433d-9e64-ec574c20108c"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.000 mm is below 0.25 mm",
+      "net": "3",
+      "net_name": "+3V3",
+      "layer": "B.Cu",
+      "gap_mm": 0.000128,
+      "a_points": [
+        28.575,
+        50.8,
+        28.65,
+        50.875
+      ],
+      "b_points": [
+        28.940346,
+        50.799,
+        29.479654,
+        50.799
+      ],
+      "a_uuid": "11622d2c-8de8-4593-b843-039939e3f43e",
+      "b_uuid": "d9800831-4d25-4e58-8505-13e914473cb4"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.004 mm is below 0.25 mm",
+      "net": "3",
+      "net_name": "+3V3",
+      "layer": "B.Cu",
+      "gap_mm": 0.003675,
+      "a_points": [
+        17.399,
+        31.456731,
+        37.298731,
+        31.456731
+      ],
+      "b_points": [
+        13.429806,
+        31.242,
+        17.184269,
+        31.242
+      ],
+      "a_uuid": "57eb1a57-0d73-46eb-b0a7-53a57ec8a0dc",
+      "b_uuid": "68d848fe-bcc3-40df-b752-e2a50950db78"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.106 mm is below 0.25 mm",
+      "net": "7",
+      "net_name": "/A105_EN",
+      "layer": "F.Cu",
+      "gap_mm": 0.1064,
+      "a_points": [
+        59.1566,
+        42.291,
+        59.2836,
+        42.418
+      ],
+      "b_points": [
+        59.69,
+        42.418,
+        59.69,
+        44.265
+      ],
+      "a_uuid": "14003713-311b-4d53-84b0-10ac7d0cb594",
+      "b_uuid": "7f7b0d05-2358-4d01-8f02-2e055c63e52d"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.248 mm is below 0.25 mm",
+      "net": "7",
+      "net_name": "/A105_EN",
+      "layer": "F.Cu",
+      "gap_mm": 0.248311,
+      "a_points": [
+        59.69,
+        42.418,
+        59.69,
+        44.265
+      ],
+      "b_points": [
+        59.1312,
+        42.3164,
+        59.1566,
+        42.291
+      ],
+      "a_uuid": "7f7b0d05-2358-4d01-8f02-2e055c63e52d",
+      "b_uuid": "db2a92e8-d061-4d23-8783-3d97ac8ed697"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.208 mm is below 0.25 mm",
+      "net": "8",
+      "net_name": "Net-(U2-VREF)",
+      "layer": "F.Cu",
+      "gap_mm": 0.208469,
+      "a_points": [
+        21.869598,
+        11.684,
+        21.869598,
+        11.938524
+      ],
+      "b_points": [
+        22.123074,
+        12.192,
+        22.599,
+        12.192
+      ],
+      "a_uuid": "6ae1b1ee-1eb1-4aaf-a7ed-d2ab2880a09b",
+      "b_uuid": "6cade01a-80bc-42ea-ba73-aa209aa2de7b"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.160 mm is below 0.25 mm",
+      "net": "10",
+      "net_name": "+5V",
+      "layer": "F.Cu",
+      "gap_mm": 0.160029,
+      "a_points": [
+        31.75,
+        58.166,
+        31.75,
+        56.515
+      ],
+      "b_points": [
+        33.289,
+        58.562,
+        32.146,
+        58.562
+      ],
+      "a_uuid": "28780f94-6390-4f5e-bf8c-e8f7664ab22f",
+      "b_uuid": "77c8a731-9821-4244-b3f4-a6e32fa24d65"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.167 mm is below 0.25 mm",
+      "net": "13",
+      "net_name": "/OTG_VBUS",
+      "layer": "F.Cu",
+      "gap_mm": 0.167101,
+      "a_points": [
+        6.739999,
+        30.495,
+        6.09,
+        30.495
+      ],
+      "b_points": [
+        7.141,
+        29.158501,
+        7.141,
+        30.093999
+      ],
+      "a_uuid": "4ad390d8-ed34-4d65-b76c-d0805ae78cf3",
+      "b_uuid": "9033a09b-9cf7-442f-9f4d-0981e17572e5"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.100 mm is below 0.25 mm",
+      "net": "13",
+      "net_name": "/OTG_VBUS",
+      "layer": "F.Cu",
+      "gap_mm": 0.1,
+      "a_points": [
+        17.78,
+        28.702,
+        16.256,
+        28.702
+      ],
+      "b_points": [
+        18.18,
+        28.702,
+        19.704,
+        30.226
+      ],
+      "a_uuid": "b2a533fc-f3f1-4cbf-ae3c-3ad7937f3c9e",
+      "b_uuid": "d4a2ad62-8ce3-46d8-b772-9af173f64c50"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.030 mm is below 0.25 mm",
+      "net": "14",
+      "net_name": "Net-(J2-D+-PadA6)",
+      "layer": "F.Cu",
+      "gap_mm": 0.029605,
+      "a_points": [
+        10.795,
+        15.748,
+        11.43,
+        15.748
+      ],
+      "b_points": [
+        10.668,
+        14.996065,
+        10.668,
+        15.621
+      ],
+      "a_uuid": "03341d13-34c1-4afc-b382-e6cabd148340",
+      "b_uuid": "caa2d4cd-2266-4ce8-b109-c25e38f0b5ee"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.030 mm is below 0.25 mm",
+      "net": "14",
+      "net_name": "Net-(J2-D+-PadA6)",
+      "layer": "F.Cu",
+      "gap_mm": 0.029605,
+      "a_points": [
+        5.207,
+        13.843,
+        6.35,
+        13.843
+      ],
+      "b_points": [
+        5.08,
+        14.732,
+        5.08,
+        13.97
+      ],
+      "a_uuid": "4fac52c2-94da-44c3-b788-2b8e03015cf8",
+      "b_uuid": "6addf0d6-f023-4e44-a026-4846b8261d6e"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.030 mm is below 0.25 mm",
+      "net": "14",
+      "net_name": "Net-(J2-D+-PadA6)",
+      "layer": "B.Cu",
+      "gap_mm": 0.029605,
+      "a_points": [
+        10.663665,
+        14.351,
+        10.663665,
+        14.948946
+      ],
+      "b_points": [
+        10.790665,
+        14.224,
+        11.43,
+        14.224
+      ],
+      "a_uuid": "b0643eb9-3422-450d-8be5-8adaf5786361",
+      "b_uuid": "ed01c421-126e-45eb-9b39-c1829dcb0eb0"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.167 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "F.Cu",
+      "gap_mm": 0.167482,
+      "a_points": [
+        11.044665,
+        11.176,
+        11.43,
+        11.176
+      ],
+      "b_points": [
+        10.820171,
+        11.850731,
+        10.820171,
+        11.400494
+      ],
+      "a_uuid": "41ae2b13-ed6f-49bb-b91f-1e7468aac7b4",
+      "b_uuid": "f0554a83-aa41-488e-a0f0-57a40e7b959f"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.206 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.206145,
+      "a_points": [
+        10.157832,
+        12.697832,
+        10.066582,
+        12.789083
+      ],
+      "b_points": [
+        10.409665,
+        12.267462,
+        10.409665,
+        12.446
+      ],
+      "a_uuid": "2b09c1a1-72a4-4923-8df2-3955e7761f00",
+      "b_uuid": "f22cddbb-db44-4e24-b156-bc8f3a0c57bc"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.206 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.206145,
+      "a_points": [
+        10.157832,
+        12.697832,
+        10.066581,
+        12.789083
+      ],
+      "b_points": [
+        10.409665,
+        12.267462,
+        10.409665,
+        12.446
+      ],
+      "a_uuid": "63f28ed1-a420-431f-992a-a35dc5dada28",
+      "b_uuid": "f22cddbb-db44-4e24-b156-bc8f3a0c57bc"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.029 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.028538,
+      "a_points": [
+        10.67474,
+        12.002387,
+        10.409665,
+        12.267462
+      ],
+      "b_points": [
+        10.409665,
+        12.446,
+        10.157832,
+        12.697832
+      ],
+      "a_uuid": "6804a8eb-54c4-47ca-8905-7b29dcd1addd",
+      "b_uuid": "91fa7865-1bb2-4d8e-8923-f85dfe5ba534"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.225 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.224873,
+      "a_points": [
+        10.67474,
+        11.996162,
+        10.67474,
+        12.002387
+      ],
+      "b_points": [
+        10.409665,
+        12.267462,
+        10.409665,
+        12.446
+      ],
+      "a_uuid": "eed864c9-236b-4093-b924-2198cfe74433",
+      "b_uuid": "f22cddbb-db44-4e24-b156-bc8f3a0c57bc"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.104 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.104,
+      "a_points": [
+        7.366,
+        13.462,
+        7.238,
+        13.334
+      ],
+      "b_points": [
+        6.748,
+        14.334,
+        7.366,
+        13.716
+      ],
+      "a_uuid": "39004576-f951-40a1-9a49-cb632a26dfa5",
+      "b_uuid": "8d42c211-c5b7-4c85-9f01-e157d230d2fa"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.074 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.073934,
+      "a_points": [
+        10.68312,
+        13.508424,
+        10.68312,
+        14.065655
+      ],
+      "b_points": [
+        11.43,
+        14.224,
+        10.841465,
+        14.224
+      ],
+      "a_uuid": "679b658b-0ec6-4897-a88b-4eef3c78fe1e",
+      "b_uuid": "756061a5-0818-4761-8572-7ea079dff598"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.031 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.031019,
+      "a_points": [
+        7.366,
+        13.716,
+        7.366,
+        13.462
+      ],
+      "b_points": [
+        7.238,
+        13.334,
+        6.096,
+        13.334
+      ],
+      "a_uuid": "6a023714-b0cc-411d-87cf-9831cbb346cd",
+      "b_uuid": "b1140a8a-d6e2-4f14-a0aa-f1ba926110bf"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.068 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "B.Cu",
+      "gap_mm": 0.067667,
+      "a_points": [
+        10.795,
+        12.7,
+        11.43,
+        12.7
+      ],
+      "b_points": [
+        10.641086,
+        13.367792,
+        10.641086,
+        12.853914
+      ],
+      "a_uuid": "19b804b4-b4d7-438d-8ae5-6c2d8f9833c6",
+      "b_uuid": "7cef33fd-bfa4-4650-971c-a0f407b38d4f"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.170 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "B.Cu",
+      "gap_mm": 0.169615,
+      "a_points": [
+        10.664694,
+        13.489998,
+        10.640002,
+        13.489998
+      ],
+      "b_points": [
+        10.414,
+        13.716,
+        10.287,
+        13.716
+      ],
+      "a_uuid": "2d1ab998-821a-4eae-a24a-f98bdb474f22",
+      "b_uuid": "683e2be3-294a-4d4a-b14f-3c690176ba12"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.190 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "B.Cu",
+      "gap_mm": 0.189873,
+      "a_points": [
+        10.414,
+        13.716,
+        10.287,
+        13.716
+      ],
+      "b_points": [
+        10.68312,
+        13.508424,
+        10.68312,
+        13.409826
+      ],
+      "a_uuid": "683e2be3-294a-4d4a-b14f-3c690176ba12",
+      "b_uuid": "720c9f38-692a-467b-894f-60b978b77762"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.188 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "B.Cu",
+      "gap_mm": 0.187527,
+      "a_points": [
+        10.414,
+        13.716,
+        10.287,
+        13.716
+      ],
+      "b_points": [
+        10.68312,
+        13.508424,
+        10.664694,
+        13.489998
+      ],
+      "a_uuid": "683e2be3-294a-4d4a-b14f-3c690176ba12",
+      "b_uuid": "fce69631-7715-4b86-a719-71b876fdc8be"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "24",
+      "net_name": "Net-(J2-CC2)",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        10.541,
+        16.265444,
+        10.541,
+        17.018
+      ],
+      "b_points": [
+        10.795,
+        17.272,
+        11.43,
+        17.272
+      ],
+      "a_uuid": "0f2702d9-fcc6-4445-9dbd-19ce76992bdf",
+      "b_uuid": "fca48cd6-1d16-4db0-83c9-b71636a34e67"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.113 mm is below 0.25 mm",
+      "net": "27",
+      "net_name": "/SD_DAT2",
+      "layer": "F.Cu",
+      "gap_mm": 0.113044,
+      "a_points": [
+        55.245,
+        26.416,
+        55.245,
+        27.94
+      ],
+      "b_points": [
+        55.059,
+        28.126,
+        55.059,
+        28.559588
+      ],
+      "a_uuid": "6de3ea1d-f03f-4a09-8d58-8c43225f1ff5",
+      "b_uuid": "de17e1e9-0491-43e9-82e9-2991c0fcd2fd"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.219 mm is below 0.25 mm",
+      "net": "32",
+      "net_name": "/CC1",
+      "layer": "B.Cu",
+      "gap_mm": 0.218871,
+      "a_points": [
+        20.133,
+        10.922,
+        19.8455,
+        10.6345
+      ],
+      "b_points": [
+        19.584669,
+        10.373669,
+        13.940553,
+        10.373669
+      ],
+      "a_uuid": "811588b0-7b35-4efd-9245-73329b7fd0bb",
+      "b_uuid": "fe43a697-3890-4874-a426-c4e0b204b3d2"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.221 mm is below 0.25 mm",
+      "net": "34",
+      "net_name": "Net-(U2-QC_EN-)",
+      "layer": "F.Cu",
+      "gap_mm": 0.2206,
+      "a_points": [
+        19.05,
+        14.8366,
+        18.5196,
+        15.367
+      ],
+      "b_points": [
+        18.149,
+        15.367,
+        17.399,
+        15.367
+      ],
+      "a_uuid": "45ed74af-25ec-4418-bac9-c9f9536888c1",
+      "b_uuid": "dc3cdffc-d313-438a-85fb-b60a9ff903b6"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.126 mm is below 0.25 mm",
+      "net": "37",
+      "net_name": "Net-(U2-UP_D-)",
+      "layer": "B.Cu",
+      "gap_mm": 0.125772,
+      "a_points": [
+        20.489228,
+        12.26,
+        20.081412,
+        12.26
+      ],
+      "b_points": [
+        19.886412,
+        12.065,
+        13.715,
+        12.065
+      ],
+      "a_uuid": "9ee0ea01-a13b-4676-879d-f8c938350520",
+      "b_uuid": "c9f14e88-4894-4c77-8458-b37a48d3b81d"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.117 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "F.Cu",
+      "gap_mm": 0.117286,
+      "a_points": [
+        24.065,
+        16.129,
+        24.065,
+        14.286
+      ],
+      "b_points": [
+        23.876,
+        14.097,
+        22.9696,
+        14.097
+      ],
+      "a_uuid": "24b9583a-f50f-464a-8ffd-d11225b16675",
+      "b_uuid": "bfaf478b-d572-4e44-aa18-7488e187edfe"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.246 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.245642,
+      "a_points": [
+        29.236184,
+        16.129,
+        24.065,
+        16.129
+      ],
+      "b_points": [
+        29.85,
+        16.3414,
+        29.631783,
+        16.123183
+      ],
+      "a_uuid": "0d820f43-9770-42d1-b4a5-fb52cdd95d18",
+      "b_uuid": "365f5fed-2553-4c69-abc2-b37988a79bd3"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.088 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.088012,
+      "a_points": [
+        29.85,
+        16.579412,
+        29.523,
+        16.906412
+      ],
+      "b_points": [
+        29.85,
+        16.3414,
+        29.631783,
+        16.123183
+      ],
+      "a_uuid": "273a20b3-3573-4397-8ec1-99196313776a",
+      "b_uuid": "365f5fed-2553-4c69-abc2-b37988a79bd3"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.233 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.232788,
+      "a_points": [
+        29.85,
+        16.579412,
+        29.523,
+        16.906412
+      ],
+      "b_points": [
+        29.523,
+        17.2892,
+        29.2248,
+        17.5874
+      ],
+      "a_uuid": "273a20b3-3573-4397-8ec1-99196313776a",
+      "b_uuid": "aba308a8-df0b-4f1c-91c0-4dbade7e42cc"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.159 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.158605,
+      "a_points": [
+        29.85,
+        16.3414,
+        29.85,
+        16.579412
+      ],
+      "b_points": [
+        29.631783,
+        16.123183,
+        29.242001,
+        16.123183
+      ],
+      "a_uuid": "273bb79b-14fd-4e0e-8737-9f7a275f8d4e",
+      "b_uuid": "8390f746-9987-4470-9b5f-c31d9fdfd41a"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.240 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.239782,
+      "a_points": [
+        29.85,
+        16.3414,
+        29.631783,
+        16.123183
+      ],
+      "b_points": [
+        29.242001,
+        16.123183,
+        29.236184,
+        16.129
+      ],
+      "a_uuid": "365f5fed-2553-4c69-abc2-b37988a79bd3",
+      "b_uuid": "bcefb0dc-7036-4a7d-97f6-39289fe10b2e"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.030 mm is below 0.25 mm",
+      "net": "44",
+      "net_name": "Net-(U5-ILIM)",
+      "layer": "F.Cu",
+      "gap_mm": 0.029605,
+      "a_points": [
+        29.21,
+        20.79,
+        29.21,
+        19.89
+      ],
+      "b_points": [
+        29.337,
+        21.0,
+        29.337,
+        20.917
+      ],
+      "a_uuid": "14551db3-55b2-4a81-bb92-9d5e4e07433a",
+      "b_uuid": "c1e5608e-acb2-4462-857b-87663927e118"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "45",
+      "net_name": "/OTG_OC",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        11.557,
+        31.242,
+        9.144,
+        31.242
+      ],
+      "b_points": [
+        11.811,
+        35.133595,
+        11.811,
+        31.496
+      ],
+      "a_uuid": "82543a57-8b15-478e-a4a7-9b8f734e6bce",
+      "b_uuid": "b2a9a146-8590-4cbd-a2a3-aa1268193fb1"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "46",
+      "net_name": "/ESP_D-",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        46.99,
+        43.2816,
+        46.99,
+        44.265
+      ],
+      "b_points": [
+        46.736,
+        42.672,
+        46.736,
+        43.0276
+      ],
+      "a_uuid": "b5ca4833-cb5f-4b08-9b39-dde0b8e35d32",
+      "b_uuid": "b7c9a25b-c7c2-4343-9eba-d86556b72ab8"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "48",
+      "net_name": "/ESP_D+",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        10.922,
+        34.163,
+        10.922,
+        36.195
+      ],
+      "b_points": [
+        11.176,
+        36.449,
+        11.43,
+        36.449
+      ],
+      "a_uuid": "1a6ad102-fde9-41d4-804a-dc00213ebb8c",
+      "b_uuid": "cfb2e852-933f-4ddb-9eaf-63ee25936b19"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.118 mm is below 0.25 mm",
+      "net": "50",
+      "net_name": "/USB_ROLE",
+      "layer": "F.Cu",
+      "gap_mm": 0.118106,
+      "a_points": [
+        14.2,
+        31.99197,
+        14.282403,
+        31.909567
+      ],
+      "b_points": [
+        14.224,
+        32.259,
+        14.986,
+        32.259
+      ],
+      "a_uuid": "6ef634ae-8791-4258-a42b-a57ffe1fb105",
+      "b_uuid": "9981d121-800c-4cde-9ee2-a3d93ad7b669"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.093 mm is below 0.25 mm",
+      "net": "50",
+      "net_name": "/USB_ROLE",
+      "layer": "F.Cu",
+      "gap_mm": 0.09303,
+      "a_points": [
+        14.2,
+        31.99197,
+        14.282403,
+        31.909567
+      ],
+      "b_points": [
+        14.224,
+        32.259,
+        14.2,
+        32.235
+      ],
+      "a_uuid": "6ef634ae-8791-4258-a42b-a57ffe1fb105",
+      "b_uuid": "d51d37e4-f72a-42b9-9142-773f0917b4c5"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.199 mm is below 0.25 mm",
+      "net": "50",
+      "net_name": "/USB_ROLE",
+      "layer": "F.Cu",
+      "gap_mm": 0.199433,
+      "a_points": [
+        14.224,
+        32.259,
+        14.986,
+        32.259
+      ],
+      "b_points": [
+        14.282403,
+        31.909567,
+        14.282403,
+        30.432187
+      ],
+      "a_uuid": "9981d121-800c-4cde-9ee2-a3d93ad7b669",
+      "b_uuid": "aa0232e7-d055-4387-884e-d54fd80c4779"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.186 mm is below 0.25 mm",
+      "net": "50",
+      "net_name": "/USB_ROLE",
+      "layer": "F.Cu",
+      "gap_mm": 0.185704,
+      "a_points": [
+        14.282403,
+        31.909567,
+        14.282403,
+        30.432187
+      ],
+      "b_points": [
+        14.224,
+        32.259,
+        14.2,
+        32.235
+      ],
+      "a_uuid": "aa0232e7-d055-4387-884e-d54fd80c4779",
+      "b_uuid": "d51d37e4-f72a-42b9-9142-773f0917b4c5"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.020 mm is below 0.25 mm",
+      "net": "78",
+      "net_name": "Net-(U7-T_{XD})",
+      "layer": "F.Cu",
+      "gap_mm": 0.019706,
+      "a_points": [
+        34.932,
+        63.112,
+        33.289,
+        63.112
+      ],
+      "b_points": [
+        35.052,
+        60.706,
+        35.052,
+        62.992
+      ],
+      "a_uuid": "69a60ca0-02c2-4914-b312-ef7b0efe6d2e",
+      "b_uuid": "cb5bbede-6df1-493d-839a-5279a219ee6a"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.124 mm is below 0.25 mm",
+      "net": "78",
+      "net_name": "Net-(U7-T_{XD})",
+      "layer": "F.Cu",
+      "gap_mm": 0.124357,
+      "a_points": [
+        33.289,
+        60.512,
+        34.858,
+        60.512
+      ],
+      "b_points": [
+        35.052,
+        60.706,
+        35.052,
+        62.992
+      ],
+      "a_uuid": "8b1b4ea9-61d7-4e5a-808a-5e71cf610c58",
+      "b_uuid": "cb5bbede-6df1-493d-839a-5279a219ee6a"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.039 mm is below 0.25 mm",
+      "net": "88",
+      "net_name": "Net-(D2-LINE2)",
+      "layer": "B.Cu",
+      "gap_mm": 0.038782,
+      "a_points": [
+        15.1522,
+        55.1678,
+        19.05,
+        55.1678
+      ],
+      "b_points": [
+        21.971,
+        55.372,
+        19.2542,
+        55.372
+      ],
+      "a_uuid": "cd16a528-c6a1-43ff-9dc9-8b7991c967eb",
+      "b_uuid": "f941a0ee-9399-4a89-b5d8-5c22f1e43ff7"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.001 mm is below 0.25 mm",
+      "net": "89",
+      "net_name": "Net-(D2-LINE1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.001447,
+      "a_points": [
+        19.2278,
+        53.34,
+        21.971,
+        53.34
+      ],
+      "b_points": [
+        10.8022,
+        53.5178,
+        19.05,
+        53.5178
+      ],
+      "a_uuid": "0844feda-fba0-4c90-adac-f413994622bb",
+      "b_uuid": "d7a3b6ff-5b15-4740-b2ac-903a6d41b01f"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.143 mm is below 0.25 mm",
+      "net": "91",
+      "net_name": "Net-(D3-LINE2)",
+      "layer": "F.Cu",
+      "gap_mm": 0.143151,
+      "a_points": [
+        25.397,
+        49.784,
+        23.749,
+        49.784
+      ],
+      "b_points": [
+        23.471,
+        49.506,
+        23.471,
+        45.466
+      ],
+      "a_uuid": "4e62e08a-3fc3-4700-837d-fd90f20bdf2e",
+      "b_uuid": "d4d7efbd-efb8-4961-8a62-6c8e731c26e4"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.112 mm is below 0.25 mm",
+      "net": "100",
+      "net_name": "Net-(J6-D+-PadA6)",
+      "layer": "F.Cu",
+      "gap_mm": 0.112195,
+      "a_points": [
+        5.3494,
+        33.645,
+        6.09,
+        33.645
+      ],
+      "b_points": [
+        5.164,
+        32.8344,
+        5.164,
+        33.4596
+      ],
+      "a_uuid": "2fc2ec7d-6dbc-401e-948b-803e079624ae",
+      "b_uuid": "358b0d26-2735-400c-bb5f-942445d49fb0"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.118 mm is below 0.25 mm",
+      "net": "100",
+      "net_name": "Net-(J6-D+-PadA6)",
+      "layer": "F.Cu",
+      "gap_mm": 0.117852,
+      "a_points": [
+        5.164,
+        32.8344,
+        5.164,
+        33.4596
+      ],
+      "b_points": [
+        6.09,
+        32.645,
+        5.3534,
+        32.645
+      ],
+      "a_uuid": "358b0d26-2735-400c-bb5f-942445d49fb0",
+      "b_uuid": "afbb0fc2-b376-49ec-8216-8d906e611acd"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.189 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.189411,
+      "a_points": [
+        6.09,
+        32.145,
+        6.872,
+        32.145
+      ],
+      "b_points": [
+        7.366,
+        32.131,
+        7.112,
+        32.385
+      ],
+      "a_uuid": "3e469b8b-6385-4574-a467-3dbeb7c63f52",
+      "b_uuid": "d8c0c312-df94-4d12-a169-ce8da58a2d3c"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.189 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.189411,
+      "a_points": [
+        6.09,
+        32.145,
+        6.872,
+        32.145
+      ],
+      "b_points": [
+        7.112,
+        32.385,
+        7.112,
+        32.9692
+      ],
+      "a_uuid": "3e469b8b-6385-4574-a467-3dbeb7c63f52",
+      "b_uuid": "f890a6bf-7d32-4476-b82c-edbf73b3a60b"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.099 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.098619,
+      "a_points": [
+        6.9362,
+        33.145,
+        6.1446,
+        33.145
+      ],
+      "b_points": [
+        7.112,
+        32.385,
+        7.112,
+        32.9692
+      ],
+      "a_uuid": "8b97939d-0221-4d6b-8fbf-07141e2ba19b",
+      "b_uuid": "f890a6bf-7d32-4476-b82c-edbf73b3a60b"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        8.128,
+        32.131,
+        7.366,
+        32.131
+      ],
+      "b_points": [
+        6.872,
+        32.145,
+        7.112,
+        32.385
+      ],
+      "a_uuid": "a57cc95e-8120-43d9-a183-e2ccc65de96d",
+      "b_uuid": "e997d2d8-2def-407f-a3d2-294ac7fa0f1c"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        8.128,
+        32.131,
+        7.366,
+        32.131
+      ],
+      "b_points": [
+        7.112,
+        32.385,
+        7.112,
+        32.9692
+      ],
+      "a_uuid": "a57cc95e-8120-43d9-a183-e2ccc65de96d",
+      "b_uuid": "f890a6bf-7d32-4476-b82c-edbf73b3a60b"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.068 mm is below 0.25 mm",
+      "net": "111",
+      "net_name": "Net-(U11-QC)",
+      "layer": "F.Cu",
+      "gap_mm": 0.068198,
+      "a_points": [
+        22.0,
+        93.31,
+        22.0,
+        90.355
+      ],
+      "b_points": [
+        22.225,
+        90.13,
+        43.18,
+        90.13
+      ],
+      "a_uuid": "2c883fe2-05ad-4c14-809b-74376f8721d2",
+      "b_uuid": "5045061c-7288-4cd8-870d-b4a0615d1528"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.238 mm is below 0.25 mm",
+      "net": "112",
+      "net_name": "Net-(U11-QD)",
+      "layer": "F.Cu",
+      "gap_mm": 0.237904,
+      "a_points": [
+        29.845,
+        90.765,
+        44.45,
+        90.765
+      ],
+      "b_points": [
+        29.5,
+        93.31,
+        29.5,
+        91.11
+      ],
+      "a_uuid": "081a10b6-cea1-4cc3-a510-1ebbf724f392",
+      "b_uuid": "9833b99d-dcc3-428d-932c-16e926b83145"
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.242 mm is below 0.25 mm",
+      "net": "128",
+      "net_name": "/CAN2_RESET",
+      "layer": "F.Cu",
+      "gap_mm": 0.241737,
+      "a_points": [
+        35.814,
+        64.135,
+        35.179,
+        64.135
+      ],
+      "b_points": [
+        34.902,
+        64.412,
+        33.289,
+        64.412
+      ],
+      "a_uuid": "0e25fa45-7ca0-4251-91aa-c140ce49cd43",
+      "b_uuid": "84fd191b-faee-467f-94c8-e389c17d7f97"
+    }
+  ],
+  "advisory_count": 0,
+  "advisory_rules": {},
+  "advisories": []
+}

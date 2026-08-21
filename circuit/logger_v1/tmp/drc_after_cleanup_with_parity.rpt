@@ -1,0 +1,28 @@
+** Drc report for logger_v1.kicad_pcb **
+** Created on 2026-08-19T23:08:41+0900 **
+
+** Found 0 DRC violations **
+
+** Found 0 unconnected pads **
+
+** Found 6 Footprint errors **
+[footprint_filters_mismatch]: Capacitor_SMD:C_0603_1608Metric はシンボルのフットプリント フィルター ( CP_* ) と一致しません。
+    ローカル オーバーライド; error
+    @(63.0050 mm, 15.0000 mm): フットプリント C33
+[footprint_filters_mismatch]: logger_v1_custom:USB_C_5077CR-16-SMC2-BK-TR はシンボルのフットプリント フィルター ( USB*C*Receptacle* ) と一致しません。
+    ローカル オーバーライド; error
+    @(2.3510 mm, 14.0840 mm): フットプリント J2
+[footprint_filters_mismatch]: logger_v1_custom:Molex_47219-2001 はシンボルのフットプリント フィルター ( microSD* ) と一致しません。
+    ローカル オーバーライド; error
+    @(48.8750 mm, 17.3000 mm): フットプリント J3
+[footprint_filters_mismatch]: logger_v1_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal はシンボルのフットプリント フィルター ( Connector*:*_1x??_* ) と一致しません。
+    ローカル オーバーライド; error
+    @(9.3200 mm, 58.0000 mm): フットプリント J4
+[footprint_filters_mismatch]: logger_v1_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal はシンボルのフットプリント フィルター ( Connector*:*_1x??_* ) と一致しません。
+    ローカル オーバーライド; error
+    @(9.3200 mm, 46.5000 mm): フットプリント J5
+[footprint_filters_mismatch]: logger_v1_custom:USB_C_5077CR-16-SMC2-BK-TR はシンボルのフットプリント フィルター ( USB*C*Receptacle* ) と一致しません。
+    ローカル オーバーライド; error
+    @(2.3450 mm, 32.8950 mm): フットプリント J6
+
+** End of Report **

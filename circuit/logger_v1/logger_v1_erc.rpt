@@ -1,0 +1,38 @@
+ERC レポート (2026-08-19T23:06:40+0900, エンコーディング UTF8)
+
+***** シート /
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(59.69 mm, 21.59 mm): Symbol U1 ピン 1 [IN, Power input, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(88.90 mm, 34.29 mm): Symbol U2 ピン 16 [VDD, Power input, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(77.47 mm, 86.36 mm): Symbol U6 ピン 2 [VIN, Power input, Line]
+[lib_symbol_mismatch]: シンボル 'TCKE800NL' が、ライブラリ 'logger_v1_custom' のコピーと一致しません
+    ; warning
+    @(40.64 mm, 87.63 mm): シンボル U5 [TCKE800NL]
+[lib_symbol_mismatch]: シンボル 'LDR6321' が、ライブラリ 'logger_v1_custom' のコピーと一致しません
+    ; warning
+    @(88.90 mm, 46.99 mm): シンボル U2 [LDR6321]
+[lib_symbol_mismatch]: シンボル 'OKL-T-6-W12N-C' が、ライブラリ 'logger_v1_custom' のコピーと一致しません
+    ; warning
+    @(95.25 mm, 87.63 mm): シンボル U6 [OKL-T-6-W12N-C]
+[lib_symbol_mismatch]: シンボル 'BP5293-33' が、ライブラリ 'logger_v1_custom' のコピーと一致しません
+    ; warning
+    @(144.78 mm, 85.09 mm): シンボル U4 [BP5293-33]
+[lib_symbol_mismatch]: シンボル '74HC595' が、ライブラリ '74xx' のコピーと一致しません
+    ; warning
+    @(66.04 mm, 172.72 mm): シンボル U11 [74HC595]
+[lib_symbol_mismatch]: シンボル 'TUSB320' が、ライブラリ 'Interface_USB' のコピーと一致しません
+    ; warning
+    @(130.81 mm, 139.70 mm): シンボル U10 [TUSB320]
+[lib_symbol_mismatch]: シンボル 'PEC3824C2A-AU' が、ライブラリ 'logger_v1_custom' のコピーと一致しません
+    ; warning
+    @(227.33 mm, 85.09 mm): シンボル D2 [PEC3824C2A-AU]
+[lib_symbol_mismatch]: シンボル 'PEC3824C2A-AU' が、ライブラリ 'logger_v1_custom' のコピーと一致しません
+    ; warning
+    @(275.59 mm, 114.30 mm): シンボル D3 [PEC3824C2A-AU]
+
+ ** ERC メッセージ: 11  エラー 3  警告 8

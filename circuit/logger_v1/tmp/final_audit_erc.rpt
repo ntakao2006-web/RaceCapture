@@ -1,0 +1,95 @@
+ERC レポート (2026-08-13T03:52:48+0900, エンコーディング UTF8)
+
+***** シート /
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(77.47 mm, 160.02 mm): Symbol U2 ピン 1 [VSS, Power input, Line]
+[wire_dangling]: 配線がどこにも接続されてない
+    ; error
+    @(103.505 mm, 151.13 mm): 垂直ワイヤー, 長さ 7.62 mm
+[pin_not_connected]: ピンが接続されていない
+    ; error
+    @(104.14 mm, 151.13 mm): Symbol #PWR008 ピン 1 [Power input, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(104.14 mm, 151.13 mm): Symbol #PWR008 ピン 1 [Power input, Line]
+[pin_not_connected]: ピンが接続されていない
+    ; error
+    @(104.14 mm, 158.75 mm): Symbol #PWR009 ピン 1 [Power output, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(115.57 mm, 151.13 mm): Symbol U4 ピン 1 [IN, Power input, Line]
+[pin_not_connected]: ピンが接続されていない
+    ; error
+    @(196.85 mm, 74.93 mm): Symbol U1 ピン 9 [GND, Passive, Line]
+[pin_not_connected]: ピンが接続されていない
+    ; error
+    @(199.39 mm, 74.93 mm): Symbol U1 ピン 8 [GND, Passive, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(198.12 mm, 82.55 mm): Symbol #PWR002 ピン 1 [Power input, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(617.22 mm, 217.17 mm): Symbol U21 ピン 10 [GND, Power input, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(626.11 mm, 290.83 mm): Symbol U30 ピン 6 [VBATT, Power input, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(626.11 mm, 316.23 mm): Symbol U30 ピン 1 [GND, Power input, Line]
+[pin_not_connected]: ピンが接続されていない
+    ; error
+    @(586.74 mm, 402.59 mm): Symbol J31 ピン 9 [DET_B, Passive, Line]
+[power_pin_not_driven]: 電源入力ピンが電源出力ピンによって駆動されていない
+    ; error
+    @(756.92 mm, 382.27 mm): Symbol U31 ピン 2 [GND, Power input, Line]
+[unconnected_wire_endpoint]: 未接続の配線終端
+    ; warning
+    @(76.20 mm, 160.02 mm): 垂直ワイヤー, 長さ 7.62 mm
+[endpoint_off_grid]: シンボルのピンまたは配線の端が接続グリッドから外れている
+    ; warning
+    @(103.505 mm, 151.13 mm): 垂直ワイヤー, 長さ 7.62 mm
+[unconnected_wire_endpoint]: 未接続の配線終端
+    ; warning
+    @(103.505 mm, 151.13 mm): 垂直ワイヤー, 長さ 7.62 mm
+[unconnected_wire_endpoint]: 未接続の配線終端
+    ; warning
+    @(103.505 mm, 151.13 mm): 垂直ワイヤー, 長さ 7.62 mm
+[unconnected_wire_endpoint]: 未接続の配線終端
+    ; warning
+    @(198.12 mm, 74.93 mm): 垂直ワイヤー, 長さ 7.62 mm
+[pin_to_pin]: ピンのタイプ Bidirectional と Power output が接続されています
+    ; warning
+    @(400.05 mm, 130.81 mm): Symbol U10 ピン 24 [IO47, Bidirectional, Line]
+    @(146.05 mm, 151.13 mm): Symbol U4 ピン 3 [OUT, Power output, Line]
+[multiple_net_names]: +3V3 と SD_DET_N は、ともに同じ配線に接続されています; +3V3 をネットリスト用ラベルとして選択しました
+    ; warning
+    @(153.67 mm, 151.13 mm): Symbol #PWR011 ピン 1 [Power input, Line]
+    @(405.13 mm, 130.81 mm): ラベル 'SD_DET_N'
+[unconnected_wire_endpoint]: 未接続の配線終端
+    ; warning
+    @(619.76 mm, 217.17 mm): 垂直ワイヤー, 長さ 7.62 mm
+[pin_to_pin]: ピンのタイプ Bidirectional と Power output が接続されています
+    ; warning
+    @(586.74 mm, 379.73 mm): Symbol J31 ピン 1 [DAT2, Bidirectional, Line]
+    @(146.05 mm, 151.13 mm): Symbol U4 ピン 3 [OUT, Power output, Line]
+[pin_to_pin]: ピンのタイプ Bidirectional と Power output が接続されています
+    ; warning
+    @(586.74 mm, 382.27 mm): Symbol J31 ピン 2 [DAT3/CD, Bidirectional, Line]
+    @(146.05 mm, 151.13 mm): Symbol U4 ピン 3 [OUT, Power output, Line]
+[unconnected_wire_endpoint]: 未接続の配線終端
+    ; warning
+    @(586.74 mm, 402.59 mm): 水平ワイヤー, 長さ 12.70 mm
+[pin_to_pin]: ピンのタイプ Bidirectional と Power output が接続されています
+    ; warning
+    @(586.74 mm, 394.97 mm): Symbol J31 ピン 7 [DAT0, Bidirectional, Line]
+    @(146.05 mm, 151.13 mm): Symbol U4 ピン 3 [OUT, Power output, Line]
+[pin_to_pin]: ピンのタイプ Bidirectional と Power output が接続されています
+    ; warning
+    @(586.74 mm, 397.51 mm): Symbol J31 ピン 8 [DAT1, Bidirectional, Line]
+    @(146.05 mm, 151.13 mm): Symbol U4 ピン 3 [OUT, Power output, Line]
+[unconnected_wire_endpoint]: 未接続の配線終端
+    ; warning
+    @(755.65 mm, 382.27 mm): 垂直ワイヤー, 長さ 7.62 mm
+
+ ** ERC メッセージ: 28  エラー 14  警告 14

@@ -1,0 +1,254 @@
+** Drc report for logger_v1.kicad_pcb **
+** Created on 2026-08-19T21:04:08+0900 **
+
+** Found 61 DRC violations **
+[hole_clearance]: 穴のクリアランス違反 (board setup constraints hole クリアランス 0.2500 mm; 現状 0.2041 mm)
+    ルール: board setup constraints hole; error
+    @(6.0960 mm, 10.8840 mm): パッド A1 [GND] - J2 ( F.Cu 上)
+    @(4.9560 mm, 11.1940 mm): J2のNPTHパッド
+[hole_clearance]: 穴のクリアランス違反 (board setup constraints hole クリアランス 0.2500 mm; 現状 0.2041 mm)
+    ルール: board setup constraints hole; error
+    @(6.0960 mm, 17.2840 mm): パッド A12 [GND] - J2 ( F.Cu 上)
+    @(4.9560 mm, 16.9740 mm): J2のNPTHパッド
+[hole_clearance]: 穴のクリアランス違反 (board setup constraints hole クリアランス 0.2500 mm; 現状 0.2041 mm)
+    ルール: board setup constraints hole; error
+    @(6.0960 mm, 17.2840 mm): パッド B1 [GND] - J2 ( F.Cu 上)
+    @(4.9560 mm, 16.9740 mm): J2のNPTHパッド
+[hole_clearance]: 穴のクリアランス違反 (board setup constraints hole クリアランス 0.2500 mm; 現状 0.2041 mm)
+    ルール: board setup constraints hole; error
+    @(6.0960 mm, 10.8840 mm): パッド B12 [GND] - J2 ( F.Cu 上)
+    @(4.9560 mm, 11.1940 mm): J2のNPTHパッド
+[hole_clearance]: 穴のクリアランス違反 (board setup constraints hole クリアランス 0.2500 mm; 現状 0.2041 mm)
+    ルール: board setup constraints hole; error
+    @(6.0900 mm, 29.6950 mm): パッド A1 [GND] - J6 ( F.Cu 上)
+    @(4.9500 mm, 30.0050 mm): J6のNPTHパッド
+[hole_clearance]: 穴のクリアランス違反 (board setup constraints hole クリアランス 0.2500 mm; 現状 0.2041 mm)
+    ルール: board setup constraints hole; error
+    @(6.0900 mm, 36.0950 mm): パッド A12 [GND] - J6 ( F.Cu 上)
+    @(4.9500 mm, 35.7850 mm): J6のNPTHパッド
+[hole_clearance]: 穴のクリアランス違反 (board setup constraints hole クリアランス 0.2500 mm; 現状 0.2041 mm)
+    ルール: board setup constraints hole; error
+    @(6.0900 mm, 36.0950 mm): パッド B1 [GND] - J6 ( F.Cu 上)
+    @(4.9500 mm, 35.7850 mm): J6のNPTHパッド
+[hole_clearance]: 穴のクリアランス違反 (board setup constraints hole クリアランス 0.2500 mm; 現状 0.2041 mm)
+    ルール: board setup constraints hole; error
+    @(6.0900 mm, 29.6950 mm): パッド B12 [GND] - J6 ( F.Cu 上)
+    @(4.9500 mm, 30.0050 mm): J6のNPTHパッド
+[holes_co_located]: ドリル穴が近過ぎる
+    ローカル オーバーライド; warning
+    @(54.0000 mm, 49.0000 mm): ビア [GND] (F.Cu - B.Cu 上)
+    @(54.0000 mm, 49.0000 mm): ビア [GND] (F.Cu - B.Cu 上)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(57.5800 mm, 97.7900 mm): セグメント of D11 、F.Silkscreen 上
+    @(56.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D11)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(56.5000 mm, 96.2300 mm): 円弧 of D11 、F.Silkscreen 上
+    @(56.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D11)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(56.5000 mm, 96.2300 mm): 円弧 of D11 、F.Silkscreen 上
+    @(56.5000 mm, 94.9600 mm): PTHパッド 2 [Net-(D11-A)] (D11)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(56.5000 mm, 96.2300 mm): 円弧 of D11 、F.Silkscreen 上
+    @(56.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D11)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(56.5000 mm, 96.2300 mm): 円弧 of D11 、F.Silkscreen 上
+    @(56.5000 mm, 94.9600 mm): PTHパッド 2 [Net-(D11-A)] (D11)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(55.2640 mm, 97.7900 mm): セグメント of D11 、F.Silkscreen 上
+    @(56.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D11)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(50.0800 mm, 97.7900 mm): セグメント of D10 、F.Silkscreen 上
+    @(49.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D10)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(49.0000 mm, 96.2300 mm): 円弧 of D10 、F.Silkscreen 上
+    @(49.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D10)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(49.0000 mm, 96.2300 mm): 円弧 of D10 、F.Silkscreen 上
+    @(49.0000 mm, 94.9600 mm): PTHパッド 2 [Net-(D10-A)] (D10)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(49.0000 mm, 96.2300 mm): 円弧 of D10 、F.Silkscreen 上
+    @(49.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D10)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(49.0000 mm, 96.2300 mm): 円弧 of D10 、F.Silkscreen 上
+    @(49.0000 mm, 94.9600 mm): PTHパッド 2 [Net-(D10-A)] (D10)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(47.7640 mm, 97.7900 mm): セグメント of D10 、F.Silkscreen 上
+    @(49.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D10)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(42.5800 mm, 97.7900 mm): セグメント of D9 、F.Silkscreen 上
+    @(41.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D9)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(41.5000 mm, 96.2300 mm): 円弧 of D9 、F.Silkscreen 上
+    @(41.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D9)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(41.5000 mm, 96.2300 mm): 円弧 of D9 、F.Silkscreen 上
+    @(41.5000 mm, 94.9600 mm): PTHパッド 2 [Net-(D9-A)] (D9)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(40.2640 mm, 97.7900 mm): セグメント of D9 、F.Silkscreen 上
+    @(41.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D9)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(41.5000 mm, 96.2300 mm): 円弧 of D9 、F.Silkscreen 上
+    @(41.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D9)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(41.5000 mm, 96.2300 mm): 円弧 of D9 、F.Silkscreen 上
+    @(41.5000 mm, 94.9600 mm): PTHパッド 2 [Net-(D9-A)] (D9)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(25.2640 mm, 97.7900 mm): セグメント of D7 、F.Silkscreen 上
+    @(26.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D7)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(27.5800 mm, 97.7900 mm): セグメント of D7 、F.Silkscreen 上
+    @(26.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D7)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(26.5000 mm, 96.2300 mm): 円弧 of D7 、F.Silkscreen 上
+    @(26.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D7)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(26.5000 mm, 96.2300 mm): 円弧 of D7 、F.Silkscreen 上
+    @(26.5000 mm, 94.9600 mm): PTHパッド 2 [Net-(D7-A)] (D7)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(26.5000 mm, 96.2300 mm): 円弧 of D7 、F.Silkscreen 上
+    @(26.5000 mm, 97.5000 mm): PTHパッド 1 [GND] (D7)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(26.5000 mm, 96.2300 mm): 円弧 of D7 、F.Silkscreen 上
+    @(26.5000 mm, 94.9600 mm): PTHパッド 2 [Net-(D7-A)] (D7)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(32.7640 mm, 97.7900 mm): セグメント of D8 、F.Silkscreen 上
+    @(34.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D8)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(35.0800 mm, 97.7900 mm): セグメント of D8 、F.Silkscreen 上
+    @(34.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D8)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(34.0000 mm, 96.2300 mm): 円弧 of D8 、F.Silkscreen 上
+    @(34.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D8)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(34.0000 mm, 96.2300 mm): 円弧 of D8 、F.Silkscreen 上
+    @(34.0000 mm, 94.9600 mm): PTHパッド 2 [Net-(D8-A)] (D8)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(34.0000 mm, 96.2300 mm): 円弧 of D8 、F.Silkscreen 上
+    @(34.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D8)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(34.0000 mm, 96.2300 mm): 円弧 of D8 、F.Silkscreen 上
+    @(34.0000 mm, 94.9600 mm): PTHパッド 2 [Net-(D8-A)] (D8)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1350 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(12.5740 mm, 32.5140 mm): ポリゴン of U10 、F.Silkscreen 上
+    @(13.0240 mm, 32.2590 mm): パッド 12 [+3V3] - U10 ( F.Cu 上)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(20.0800 mm, 97.7900 mm): セグメント of D6 、F.Silkscreen 上
+    @(19.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D6)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(19.0000 mm, 96.2300 mm): 円弧 of D6 、F.Silkscreen 上
+    @(19.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D6)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(19.0000 mm, 96.2300 mm): 円弧 of D6 、F.Silkscreen 上
+    @(19.0000 mm, 94.9600 mm): PTHパッド 2 [Net-(D6-A)] (D6)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(17.7640 mm, 97.7900 mm): セグメント of D6 、F.Silkscreen 上
+    @(19.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D6)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(19.0000 mm, 96.2300 mm): 円弧 of D6 、F.Silkscreen 上
+    @(19.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D6)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(19.0000 mm, 96.2300 mm): 円弧 of D6 、F.Silkscreen 上
+    @(19.0000 mm, 94.9600 mm): PTHパッド 2 [Net-(D6-A)] (D6)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(10.2640 mm, 97.8300 mm): セグメント of D5 、F.Silkscreen 上
+    @(11.5000 mm, 97.5400 mm): PTHパッド 1 [GND] (D5)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(12.5800 mm, 97.8300 mm): セグメント of D5 、F.Silkscreen 上
+    @(11.5000 mm, 97.5400 mm): PTHパッド 1 [GND] (D5)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(11.5000 mm, 96.2700 mm): 円弧 of D5 、F.Silkscreen 上
+    @(11.5000 mm, 97.5400 mm): PTHパッド 1 [GND] (D5)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(11.5000 mm, 96.2700 mm): 円弧 of D5 、F.Silkscreen 上
+    @(11.5000 mm, 95.0000 mm): PTHパッド 2 [Net-(D5-A)] (D5)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(11.5000 mm, 96.2700 mm): 円弧 of D5 、F.Silkscreen 上
+    @(11.5000 mm, 97.5400 mm): PTHパッド 1 [GND] (D5)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(11.5000 mm, 96.2700 mm): 円弧 of D5 、F.Silkscreen 上
+    @(11.5000 mm, 95.0000 mm): PTHパッド 2 [Net-(D5-A)] (D5)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(2.7640 mm, 97.7900 mm): セグメント of D4 、F.Silkscreen 上
+    @(4.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D4)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(5.0800 mm, 97.7900 mm): セグメント of D4 、F.Silkscreen 上
+    @(4.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D4)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(4.0000 mm, 96.2300 mm): 円弧 of D4 、F.Silkscreen 上
+    @(4.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D4)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(4.0000 mm, 96.2300 mm): 円弧 of D4 、F.Silkscreen 上
+    @(4.0000 mm, 94.9600 mm): PTHパッド 2 [Net-(D4-A)] (D4)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1050 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(4.0000 mm, 96.2300 mm): 円弧 of D4 、F.Silkscreen 上
+    @(4.0000 mm, 97.5000 mm): PTHパッド 1 [GND] (D4)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB pad-to-silkscreen クリアランス 0.1500 mm; 現状 0.1290 mm)
+    ルール: JLCPCB pad-to-silkscreen; warning
+    @(4.0000 mm, 96.2300 mm): 円弧 of D4 、F.Silkscreen 上
+    @(4.0000 mm, 94.9600 mm): PTHパッド 2 [Net-(D4-A)] (D4)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB silkscreen-to-edge クリアランス 0.1500 mm; 現状 0.1300 mm)
+    ルール: JLCPCB silkscreen-to-edge; warning
+    @(69.7700 mm, 43.8150 mm): セグメント of U3 、F.Silkscreen 上
+    @(70.0000 mm, 3.0000 mm): セグメント (Edge.Cuts 上)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB silkscreen-to-edge クリアランス 0.1500 mm; 現状 0.1300 mm)
+    ルール: JLCPCB silkscreen-to-edge; warning
+    @(69.7700 mm, 43.8150 mm): セグメント of U3 、F.Silkscreen 上
+    @(70.0000 mm, 3.0000 mm): セグメント (Edge.Cuts 上)
+[silk_overlap]: シルクスクリーンのオーバーラップ (JLCPCB silkscreen-to-edge クリアランス 0.1500 mm; 現状 0.1300 mm)
+    ルール: JLCPCB silkscreen-to-edge; warning
+    @(69.7700 mm, 62.2150 mm): セグメント of U3 、F.Silkscreen 上
+    @(70.0000 mm, 3.0000 mm): セグメント (Edge.Cuts 上)
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** End of Report **

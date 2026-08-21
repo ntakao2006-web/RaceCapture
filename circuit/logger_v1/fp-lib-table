@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "logger_v1_custom")(type "KiCad")(uri "${KIPRJMOD}/logger_v1_custom.pretty")(options "")(descr "Logger v1 project-specific footprints"))
+)

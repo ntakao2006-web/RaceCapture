@@ -1,0 +1,5948 @@
+{
+  "board": "circuit\\logger_v1\\logger_v1.kicad_pcb",
+  "selected_footprints": {
+    "C33": {
+      "reference": "C33",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "value": "0.1u",
+      "layer": "F.Cu",
+      "at": [
+        63.005,
+        15.0,
+        0.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 62.23,
+          "y": 15.0,
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "net_id": "3",
+          "net_name": "+3V3"
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 63.78,
+          "y": 15.0,
+          "size_mm": [
+            0.9,
+            0.95
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/Capacitor_SMD.3dshapes/C_0603_1608Metric.step"
+      ]
+    },
+    "U10": {
+      "reference": "U10",
+      "footprint": "logger_v1_custom:Texas_X2QFN-12_1.6x1.6mm_P0.4mm",
+      "value": "TUSB320IRWBR",
+      "layer": "F.Cu",
+      "at": [
+        13.624,
+        33.084,
+        0.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 12.899,
+          "y": 32.884,
+          "size_mm": [
+            0.85,
+            0.2
+          ],
+          "drill_mm": [],
+          "net_id": "15",
+          "net_name": "/OTG-CC1"
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 12.899,
+          "y": 33.284,
+          "size_mm": [
+            0.85,
+            0.2
+          ],
+          "drill_mm": [],
+          "net_id": "16",
+          "net_name": "/OTG-CC2"
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 13.024,
+          "y": 33.909,
+          "size_mm": [
+            0.2,
+            0.65
+          ],
+          "drill_mm": [],
+          "net_id": "119",
+          "net_name": "unconnected-(U10-PORT-Pad3)"
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 13.424,
+          "y": 33.909,
+          "size_mm": [
+            0.2,
+            0.65
+          ],
+          "drill_mm": [],
+          "net_id": "108",
+          "net_name": "Net-(U10-VBUS_DET)"
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 13.824,
+          "y": 33.909,
+          "size_mm": [
+            0.2,
+            0.65
+          ],
+          "drill_mm": [],
+          "net_id": "120",
+          "net_name": "unconnected-(U10-ADDR-Pad5)"
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 14.224,
+          "y": 33.909,
+          "size_mm": [
+            0.2,
+            0.65
+          ],
+          "drill_mm": [],
+          "net_id": "132",
+          "net_name": "unconnected-(U10-~{INT}{slash}OUT3-Pad6)"
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 14.349,
+          "y": 33.284,
+          "size_mm": [
+            0.85,
+            0.2
+          ],
+          "drill_mm": [],
+          "net_id": "133",
+          "net_name": "unconnected-(U10-SDA{slash}OUT1-Pad7)"
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 14.349,
+          "y": 32.884,
+          "size_mm": [
+            0.85,
+            0.2
+          ],
+          "drill_mm": [],
+          "net_id": "131",
+          "net_name": "unconnected-(U10-SCL{slash}OUT2-Pad8)"
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 14.224,
+          "y": 32.259,
+          "size_mm": [
+            0.2,
+            0.65
+          ],
+          "drill_mm": [],
+          "net_id": "50",
+          "net_name": "/USB_ROLE"
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 13.824,
+          "y": 32.259,
+          "size_mm": [
+            0.2,
+            0.65
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "11",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 13.424,
+          "y": 32.259,
+          "size_mm": [
+            0.2,
+            0.65
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "12",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 13.024,
+          "y": 32.259,
+          "size_mm": [
+            0.2,
+            0.65
+          ],
+          "drill_mm": [],
+          "net_id": "3",
+          "net_name": "+3V3"
+        }
+      ],
+      "models": [
+        "${KIPRJMOD}/3dmodels/TI_TUSB320IRWBR.step"
+      ]
+    },
+    "J2": {
+      "reference": "J2",
+      "footprint": "logger_v1_custom:USB_C_5077CR-16-SMC2-BK-TR",
+      "value": "5077CR-16-SMC2-BK-TR",
+      "layer": "F.Cu",
+      "at": [
+        2.351,
+        14.084,
+        -90.0
+      ],
+      "pads": [
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "x": 4.956,
+          "y": 11.194,
+          "size_mm": [
+            0.65,
+            0.65
+          ],
+          "drill_mm": [
+            0.65
+          ],
+          "net_id": "",
+          "net_name": ""
+        },
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "x": 4.956,
+          "y": 16.974,
+          "size_mm": [
+            0.65,
+            0.65
+          ],
+          "drill_mm": [
+            0.65
+          ],
+          "net_id": "",
+          "net_name": ""
+        },
+        {
+          "number": "A1",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 10.884,
+          "size_mm": [
+            0.6,
+            1.26
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "A4",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 11.684,
+          "size_mm": [
+            0.6,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "4",
+          "net_name": "/VBUS"
+        },
+        {
+          "number": "A5",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 12.834,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "17",
+          "net_name": "Net-(J2-CC1)"
+        },
+        {
+          "number": "A6",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 13.834,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "14",
+          "net_name": "Net-(J2-D+-PadA6)"
+        },
+        {
+          "number": "A7",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 14.334,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "21",
+          "net_name": "Net-(J2-D--PadA7)"
+        },
+        {
+          "number": "A8",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 15.334,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "22",
+          "net_name": "unconnected-(J2-SBU1-PadA8)"
+        },
+        {
+          "number": "A9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 16.484,
+          "size_mm": [
+            0.6,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "4",
+          "net_name": "/VBUS"
+        },
+        {
+          "number": "A12",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 17.284,
+          "size_mm": [
+            0.6,
+            1.26
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "B1",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 17.284,
+          "size_mm": [
+            0.6,
+            1.26
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "B4",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 16.484,
+          "size_mm": [
+            0.6,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "4",
+          "net_name": "/VBUS"
+        },
+        {
+          "number": "B5",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 15.834,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "24",
+          "net_name": "Net-(J2-CC2)"
+        },
+        {
+          "number": "B6",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 14.834,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "14",
+          "net_name": "Net-(J2-D+-PadA6)"
+        },
+        {
+          "number": "B7",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 13.334,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "21",
+          "net_name": "Net-(J2-D--PadA7)"
+        },
+        {
+          "number": "B8",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 12.334,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "20",
+          "net_name": "unconnected-(J2-SBU2-PadB8)"
+        },
+        {
+          "number": "B9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 11.684,
+          "size_mm": [
+            0.6,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "4",
+          "net_name": "/VBUS"
+        },
+        {
+          "number": "B12",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.096,
+          "y": 10.884,
+          "size_mm": [
+            0.6,
+            1.26
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "S1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "x": 5.456,
+          "y": 9.764,
+          "size_mm": [
+            1.0,
+            2.1
+          ],
+          "drill_mm": [
+            0.6,
+            1.7
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "S1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "x": 1.276,
+          "y": 9.764,
+          "size_mm": [
+            1.0,
+            1.8
+          ],
+          "drill_mm": [
+            0.6,
+            1.4
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "S1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "x": 5.456,
+          "y": 18.404,
+          "size_mm": [
+            1.0,
+            2.1
+          ],
+          "drill_mm": [
+            0.6,
+            1.7
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "S1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "x": 1.276,
+          "y": 18.404,
+          "size_mm": [
+            1.0,
+            1.8
+          ],
+          "drill_mm": [
+            0.6,
+            1.4
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/Connector_USB.3dshapes/USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.step"
+      ]
+    },
+    "J3": {
+      "reference": "J3",
+      "footprint": "logger_v1_custom:Molex_47219-2001",
+      "value": "47219-2001",
+      "layer": "F.Cu",
+      "at": [
+        48.875,
+        17.3,
+        180.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "rect",
+          "x": 52.08,
+          "y": 19.4,
+          "size_mm": [
+            0.8,
+            1.5
+          ],
+          "drill_mm": [],
+          "net_id": "27",
+          "net_name": "/SD_DAT2"
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "rect",
+          "x": 50.98,
+          "y": 19.4,
+          "size_mm": [
+            0.8,
+            1.5
+          ],
+          "drill_mm": [],
+          "net_id": "28",
+          "net_name": "/SD_DAT3"
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "rect",
+          "x": 49.88,
+          "y": 19.4,
+          "size_mm": [
+            0.8,
+            1.5
+          ],
+          "drill_mm": [],
+          "net_id": "23",
+          "net_name": "/SD_CMD"
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "rect",
+          "x": 48.78,
+          "y": 19.4,
+          "size_mm": [
+            0.8,
+            1.5
+          ],
+          "drill_mm": [],
+          "net_id": "3",
+          "net_name": "+3V3"
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "rect",
+          "x": 47.68,
+          "y": 19.4,
+          "size_mm": [
+            0.8,
+            1.5
+          ],
+          "drill_mm": [],
+          "net_id": "26",
+          "net_name": "/SD_CLK"
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "rect",
+          "x": 46.58,
+          "y": 19.4,
+          "size_mm": [
+            0.8,
+            1.5
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "rect",
+          "x": 45.48,
+          "y": 19.4,
+          "size_mm": [
+            0.8,
+            1.5
+          ],
+          "drill_mm": [],
+          "net_id": "25",
+          "net_name": "/SD_DAT0"
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "rect",
+          "x": 44.38,
+          "y": 19.4,
+          "size_mm": [
+            0.8,
+            1.5
+          ],
+          "drill_mm": [],
+          "net_id": "35",
+          "net_name": "/SD_DAT1"
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 55.75,
+          "y": 22.0,
+          "size_mm": [
+            1.45,
+            2.0
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 55.75,
+          "y": 13.7,
+          "size_mm": [
+            1.45,
+            2.0
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 42.0,
+          "y": 22.0,
+          "size_mm": [
+            1.45,
+            2.0
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 42.0,
+          "y": 13.7,
+          "size_mm": [
+            1.45,
+            2.0
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        }
+      ],
+      "models": [
+        "${KIPRJMOD}/3dmodels/Molex_47219-2001.step"
+      ]
+    },
+    "J4": {
+      "reference": "J4",
+      "footprint": "logger_v1_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+      "value": "43045-0400",
+      "layer": "F.Cu",
+      "at": [
+        9.32,
+        58.0,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "x": 5.0,
+          "y": 56.5,
+          "size_mm": [
+            3.0,
+            3.0
+          ],
+          "drill_mm": [
+            3.0
+          ],
+          "net_id": "",
+          "net_name": ""
+        },
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "roundrect",
+          "x": 9.32,
+          "y": 58.0,
+          "size_mm": [
+            1.5,
+            1.5
+          ],
+          "drill_mm": [
+            1.02
+          ],
+          "net_id": "10",
+          "net_name": "+5V"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 9.32,
+          "y": 55.0,
+          "size_mm": [
+            1.5,
+            1.5
+          ],
+          "drill_mm": [
+            1.02
+          ],
+          "net_id": "89",
+          "net_name": "Net-(D2-LINE1)"
+        },
+        {
+          "number": "3",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 12.32,
+          "y": 58.0,
+          "size_mm": [
+            1.5,
+            1.5
+          ],
+          "drill_mm": [
+            1.02
+          ],
+          "net_id": "88",
+          "net_name": "Net-(D2-LINE2)"
+        },
+        {
+          "number": "4",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 12.32,
+          "y": 55.0,
+          "size_mm": [
+            1.5,
+            1.5
+          ],
+          "drill_mm": [
+            1.02
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        }
+      ],
+      "models": [
+        "${KIPRJMOD}/3dmodels/Molex_43045-0402.step"
+      ]
+    },
+    "J5": {
+      "reference": "J5",
+      "footprint": "logger_v1_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+      "value": "43045-0400",
+      "layer": "F.Cu",
+      "at": [
+        9.32,
+        46.5,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "x": 5.0,
+          "y": 45.0,
+          "size_mm": [
+            3.0,
+            3.0
+          ],
+          "drill_mm": [
+            3.0
+          ],
+          "net_id": "",
+          "net_name": ""
+        },
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "roundrect",
+          "x": 9.32,
+          "y": 46.5,
+          "size_mm": [
+            1.5,
+            1.5
+          ],
+          "drill_mm": [
+            1.02
+          ],
+          "net_id": "10",
+          "net_name": "+5V"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 9.32,
+          "y": 43.5,
+          "size_mm": [
+            1.5,
+            1.5
+          ],
+          "drill_mm": [
+            1.02
+          ],
+          "net_id": "90",
+          "net_name": "Net-(D3-LINE1)"
+        },
+        {
+          "number": "3",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 12.32,
+          "y": 46.5,
+          "size_mm": [
+            1.5,
+            1.5
+          ],
+          "drill_mm": [
+            1.02
+          ],
+          "net_id": "91",
+          "net_name": "Net-(D3-LINE2)"
+        },
+        {
+          "number": "4",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 12.32,
+          "y": 43.5,
+          "size_mm": [
+            1.5,
+            1.5
+          ],
+          "drill_mm": [
+            1.02
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        }
+      ],
+      "models": [
+        "${KIPRJMOD}/3dmodels/Molex_43045-0402.step"
+      ]
+    },
+    "J6": {
+      "reference": "J6",
+      "footprint": "logger_v1_custom:USB_C_5077CR-16-SMC2-BK-TR",
+      "value": "5077CR-16-SMC2-BK-TR",
+      "layer": "F.Cu",
+      "at": [
+        2.345,
+        32.895,
+        -90.0
+      ],
+      "pads": [
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "x": 4.95,
+          "y": 30.005,
+          "size_mm": [
+            0.65,
+            0.65
+          ],
+          "drill_mm": [
+            0.65
+          ],
+          "net_id": "",
+          "net_name": ""
+        },
+        {
+          "number": "",
+          "type": "np_thru_hole",
+          "shape": "circle",
+          "x": 4.95,
+          "y": 35.785,
+          "size_mm": [
+            0.65,
+            0.65
+          ],
+          "drill_mm": [
+            0.65
+          ],
+          "net_id": "",
+          "net_name": ""
+        },
+        {
+          "number": "A1",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 29.695,
+          "size_mm": [
+            0.6,
+            1.26
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "A4",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 30.495,
+          "size_mm": [
+            0.6,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "13",
+          "net_name": "/OTG_VBUS"
+        },
+        {
+          "number": "A5",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 31.645,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "15",
+          "net_name": "/OTG-CC1"
+        },
+        {
+          "number": "A6",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 32.645,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "100",
+          "net_name": "Net-(J6-D+-PadA6)"
+        },
+        {
+          "number": "A7",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 33.145,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "101",
+          "net_name": "Net-(J6-D--PadA7)"
+        },
+        {
+          "number": "A8",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 34.145,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "102",
+          "net_name": "unconnected-(J6-SBU1-PadA8)"
+        },
+        {
+          "number": "A9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 35.295,
+          "size_mm": [
+            0.6,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "13",
+          "net_name": "/OTG_VBUS"
+        },
+        {
+          "number": "A12",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 36.095,
+          "size_mm": [
+            0.6,
+            1.26
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "B1",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 36.095,
+          "size_mm": [
+            0.6,
+            1.26
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "B4",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 35.295,
+          "size_mm": [
+            0.6,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "13",
+          "net_name": "/OTG_VBUS"
+        },
+        {
+          "number": "B5",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 34.645,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "16",
+          "net_name": "/OTG-CC2"
+        },
+        {
+          "number": "B6",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 33.645,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "100",
+          "net_name": "Net-(J6-D+-PadA6)"
+        },
+        {
+          "number": "B7",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 32.145,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "101",
+          "net_name": "Net-(J6-D--PadA7)"
+        },
+        {
+          "number": "B8",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 31.145,
+          "size_mm": [
+            0.3,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "103",
+          "net_name": "unconnected-(J6-SBU2-PadB8)"
+        },
+        {
+          "number": "B9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 30.495,
+          "size_mm": [
+            0.6,
+            1.3
+          ],
+          "drill_mm": [],
+          "net_id": "13",
+          "net_name": "/OTG_VBUS"
+        },
+        {
+          "number": "B12",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 6.09,
+          "y": 29.695,
+          "size_mm": [
+            0.6,
+            1.26
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "S1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "x": 5.45,
+          "y": 28.575,
+          "size_mm": [
+            1.0,
+            2.1
+          ],
+          "drill_mm": [
+            0.6,
+            1.7
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "S1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "x": 1.27,
+          "y": 28.575,
+          "size_mm": [
+            1.0,
+            1.8
+          ],
+          "drill_mm": [
+            0.6,
+            1.4
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "S1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "x": 5.45,
+          "y": 37.215,
+          "size_mm": [
+            1.0,
+            2.1
+          ],
+          "drill_mm": [
+            0.6,
+            1.7
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "S1",
+          "type": "thru_hole",
+          "shape": "oval",
+          "x": 1.27,
+          "y": 37.215,
+          "size_mm": [
+            1.0,
+            1.8
+          ],
+          "drill_mm": [
+            0.6,
+            1.4
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/Connector_USB.3dshapes/USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.step"
+      ]
+    },
+    "J7": {
+      "reference": "J7",
+      "footprint": "logger_v1_custom:SMA_S-037-TGG_Horizontal",
+      "value": "S-037-TGG",
+      "layer": "F.Cu",
+      "at": [
+        4.445,
+        72.22,
+        180.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 4.445,
+          "y": 72.22,
+          "size_mm": [
+            2.5,
+            2.5
+          ],
+          "drill_mm": [
+            1.5
+          ],
+          "net_id": "29",
+          "net_name": "Net-(J7-In)"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 6.985,
+          "y": 74.76,
+          "size_mm": [
+            2.5,
+            2.5
+          ],
+          "drill_mm": [
+            1.5
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 6.985,
+          "y": 69.68,
+          "size_mm": [
+            2.5,
+            2.5
+          ],
+          "drill_mm": [
+            1.5
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 1.905,
+          "y": 74.76,
+          "size_mm": [
+            2.5,
+            2.5
+          ],
+          "drill_mm": [
+            1.5
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 1.905,
+          "y": 69.68,
+          "size_mm": [
+            2.5,
+            2.5
+          ],
+          "drill_mm": [
+            1.5
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        }
+      ],
+      "models": [
+        "${KIPRJMOD}/3dmodels/S-037-TGG_mechanical_proxy_WE60311002114501.step"
+      ]
+    },
+    "U11": {
+      "reference": "U11",
+      "footprint": "Package_SO:SOIC-16W_5.3x10.2mm_P1.27mm",
+      "value": "TC74HC595AF",
+      "layer": "F.Cu",
+      "at": [
+        46.86,
+        84.4646,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 42.415,
+          "y": 87.7146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "110",
+          "net_name": "Net-(U11-QB)"
+        },
+        {
+          "number": "2",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 43.685,
+          "y": 87.7146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "111",
+          "net_name": "Net-(U11-QC)"
+        },
+        {
+          "number": "3",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 44.955,
+          "y": 87.7146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "112",
+          "net_name": "Net-(U11-QD)"
+        },
+        {
+          "number": "4",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 46.225,
+          "y": 87.7146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "113",
+          "net_name": "Net-(U11-QE)"
+        },
+        {
+          "number": "5",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 47.495,
+          "y": 87.7146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "114",
+          "net_name": "Net-(U11-QF)"
+        },
+        {
+          "number": "6",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 48.765,
+          "y": 87.7146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "115",
+          "net_name": "Net-(U11-QG)"
+        },
+        {
+          "number": "7",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 50.035,
+          "y": 87.7146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "116",
+          "net_name": "Net-(U11-QH)"
+        },
+        {
+          "number": "8",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 51.305,
+          "y": 87.7146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "9",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 51.305,
+          "y": 81.2146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "134",
+          "net_name": "unconnected-(U11-QH'-Pad9)"
+        },
+        {
+          "number": "10",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 50.035,
+          "y": 81.2146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "3",
+          "net_name": "+3V3"
+        },
+        {
+          "number": "11",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 48.765,
+          "y": 81.2146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "64",
+          "net_name": "/CAN2_SCK"
+        },
+        {
+          "number": "12",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 47.495,
+          "y": 81.2146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "118",
+          "net_name": "/STATUS_OUT"
+        },
+        {
+          "number": "13",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 46.225,
+          "y": 81.2146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "14",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 44.955,
+          "y": 81.2146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "65",
+          "net_name": "/CAN2_MOSI"
+        },
+        {
+          "number": "15",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 43.685,
+          "y": 81.2146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "109",
+          "net_name": "Net-(U11-QA)"
+        },
+        {
+          "number": "16",
+          "type": "smd",
+          "shape": "roundrect",
+          "x": 42.415,
+          "y": 81.2146,
+          "size_mm": [
+            2.4,
+            0.6
+          ],
+          "drill_mm": [],
+          "net_id": "3",
+          "net_name": "+3V3"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/Package_SO.3dshapes/SOIC-16W_5.3x10.2mm_P1.27mm.step"
+      ]
+    },
+    "D4": {
+      "reference": "D4",
+      "footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "value": "LED_Small_Filled",
+      "layer": "F.Cu",
+      "at": [
+        4.0,
+        97.5,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "rect",
+          "x": 4.0,
+          "y": 97.5,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 4.0,
+          "y": 94.96,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "2",
+          "net_name": "Net-(D4-A)"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D3.0mm.step"
+      ]
+    },
+    "D5": {
+      "reference": "D5",
+      "footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "value": "LED_Small_Filled",
+      "layer": "F.Cu",
+      "at": [
+        11.5,
+        97.54,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "rect",
+          "x": 11.5,
+          "y": 97.54,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 11.5,
+          "y": 95.0,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "92",
+          "net_name": "Net-(D5-A)"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D3.0mm.step"
+      ]
+    },
+    "D6": {
+      "reference": "D6",
+      "footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "value": "LED_Small_Filled",
+      "layer": "F.Cu",
+      "at": [
+        19.0,
+        97.5,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "rect",
+          "x": 19.0,
+          "y": 97.5,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 19.0,
+          "y": 94.96,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "93",
+          "net_name": "Net-(D6-A)"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D3.0mm.step"
+      ]
+    },
+    "D7": {
+      "reference": "D7",
+      "footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "value": "LED_Small_Filled",
+      "layer": "F.Cu",
+      "at": [
+        26.5,
+        97.5,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "rect",
+          "x": 26.5,
+          "y": 97.5,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 26.5,
+          "y": 94.96,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "94",
+          "net_name": "Net-(D7-A)"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D3.0mm.step"
+      ]
+    },
+    "D8": {
+      "reference": "D8",
+      "footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "value": "LED_Small_Filled",
+      "layer": "F.Cu",
+      "at": [
+        34.0,
+        97.5,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "rect",
+          "x": 34.0,
+          "y": 97.5,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 34.0,
+          "y": 94.96,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "95",
+          "net_name": "Net-(D8-A)"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D3.0mm.step"
+      ]
+    },
+    "D9": {
+      "reference": "D9",
+      "footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "value": "LED_Small_Filled",
+      "layer": "F.Cu",
+      "at": [
+        41.5,
+        97.5,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "rect",
+          "x": 41.5,
+          "y": 97.5,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 41.5,
+          "y": 94.96,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "96",
+          "net_name": "Net-(D9-A)"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D3.0mm.step"
+      ]
+    },
+    "D10": {
+      "reference": "D10",
+      "footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "value": "LED_Small_Filled",
+      "layer": "F.Cu",
+      "at": [
+        49.0,
+        97.5,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "rect",
+          "x": 49.0,
+          "y": 97.5,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 49.0,
+          "y": 94.96,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "97",
+          "net_name": "Net-(D10-A)"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D3.0mm.step"
+      ]
+    },
+    "D11": {
+      "reference": "D11",
+      "footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "value": "LED_Small_Filled",
+      "layer": "F.Cu",
+      "at": [
+        56.5,
+        97.5,
+        90.0
+      ],
+      "pads": [
+        {
+          "number": "1",
+          "type": "thru_hole",
+          "shape": "rect",
+          "x": 56.5,
+          "y": 97.5,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "1",
+          "net_name": "GND"
+        },
+        {
+          "number": "2",
+          "type": "thru_hole",
+          "shape": "circle",
+          "x": 56.5,
+          "y": 94.96,
+          "size_mm": [
+            1.8,
+            1.8
+          ],
+          "drill_mm": [
+            0.9
+          ],
+          "net_id": "99",
+          "net_name": "Net-(D11-A)"
+        }
+      ],
+      "models": [
+        "${KICAD9_3DMODEL_DIR}/LED_THT.3dshapes/LED_D3.0mm.step"
+      ]
+    }
+  },
+  "backside_smd_footprints": [
+    {
+      "reference": "C11",
+      "value": "1n",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "at": [
+        25.032,
+        13.335,
+        0.0
+      ]
+    },
+    {
+      "reference": "C21",
+      "value": "1n",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "at": [
+        28.9306,
+        19.0884,
+        -90.0
+      ]
+    },
+    {
+      "reference": "C27",
+      "value": "0.1u",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "at": [
+        50.559,
+        17.145,
+        0.0
+      ]
+    },
+    {
+      "reference": "R14",
+      "value": "1k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "at": [
+        12.255,
+        12.7,
+        0.0
+      ]
+    },
+    {
+      "reference": "R15",
+      "value": "1k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "at": [
+        12.255,
+        14.224,
+        0.0
+      ]
+    },
+    {
+      "reference": "R18",
+      "value": "13k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "at": [
+        12.255,
+        15.748,
+        0.0
+      ]
+    },
+    {
+      "reference": "R23",
+      "value": "10k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "at": [
+        27.3558,
+        19.0876,
+        -90.0
+      ]
+    },
+    {
+      "reference": "R24",
+      "value": "68k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "at": [
+        29.0,
+        22.825,
+        -90.0
+      ]
+    },
+    {
+      "reference": "R27",
+      "value": "120",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "at": [
+        19.05,
+        54.3428,
+        90.0
+      ]
+    },
+    {
+      "reference": "R35",
+      "value": "120",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "at": [
+        18.669,
+        44.641,
+        90.0
+      ]
+    }
+  ],
+  "spacing_summary": {
+    "count": 60,
+    "minimum_gap_mm": 0.000128,
+    "below_0_10_mm": 18,
+    "from_0_10_to_0_20_mm": 23,
+    "from_0_20_to_0_25_mm": 19,
+    "short_local_corner_count": 57
+  },
+  "spacing_violations": [
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.232 mm is below 0.25 mm",
+      "net": "1",
+      "net_name": "GND",
+      "layer": "F.Cu",
+      "gap_mm": 0.23213,
+      "a_points": [
+        13.424,
+        32.259,
+        13.824,
+        32.259
+      ],
+      "b_points": [
+        13.881403,
+        31.743467,
+        13.798,
+        31.82687
+      ],
+      "a_uuid": "590c1521-cfec-42b8-94a6-5cdac2d112d5",
+      "b_uuid": "9fb671e7-ec7f-4614-bd2b-0a83acd5ee46",
+      "marker": [
+        13.731851,
+        32.022084
+      ],
+      "nearest_endpoint_distance_mm": 0.432911,
+      "alternate_local_path_mm": null,
+      "nearby_pads": [
+        {
+          "ref": "U10",
+          "pad": "10",
+          "net_name": "GND",
+          "distance_mm": 0.254206,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "11",
+          "net_name": "GND",
+          "distance_mm": 0.38846,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "9",
+          "net_name": "/USB_ROLE",
+          "distance_mm": 0.546205,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "12",
+          "net_name": "+3V3",
+          "distance_mm": 0.746446,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "8",
+          "net_name": "unconnected-(U10-SCL{slash}OUT2-Pad8)",
+          "distance_mm": 1.060081,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "1",
+          "net_name": "/OTG-CC1",
+          "distance_mm": 1.198557,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "7",
+          "net_name": "unconnected-(U10-SDA{slash}OUT1-Pad7)",
+          "distance_mm": 1.404744,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.003 mm is below 0.25 mm",
+      "net": "1",
+      "net_name": "GND",
+      "layer": "F.Cu",
+      "gap_mm": 0.002677,
+      "a_points": [
+        34.29,
+        76.3784,
+        34.29,
+        79.211
+      ],
+      "b_points": [
+        33.581,
+        79.92,
+        31.979,
+        79.92
+      ],
+      "a_uuid": "882503a3-f0cb-47d1-a841-4436d067a74b",
+      "b_uuid": "d314777a-4881-40a3-a8ca-08bba013033b",
+      "marker": [
+        33.535,
+        78.85735
+      ],
+      "nearest_endpoint_distance_mm": 1.002677,
+      "alternate_local_path_mm": 1.002677,
+      "nearby_pads": [
+        {
+          "ref": "U13",
+          "pad": "",
+          "net_name": "",
+          "distance_mm": 0.756922,
+          "size_mm": [
+            0.8,
+            1.4
+          ]
+        },
+        {
+          "ref": "U13",
+          "pad": "",
+          "net_name": "",
+          "distance_mm": 1.304132,
+          "size_mm": [
+            0.7,
+            1.4
+          ]
+        },
+        {
+          "ref": "U13",
+          "pad": "",
+          "net_name": "",
+          "distance_mm": 1.365687,
+          "size_mm": [
+            0.8,
+            1.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.106 mm is below 0.25 mm",
+      "net": "3",
+      "net_name": "+3V3",
+      "layer": "F.Cu",
+      "gap_mm": 0.106,
+      "a_points": [
+        24.257,
+        55.753,
+        24.257,
+        57.531
+      ],
+      "b_points": [
+        26.416,
+        57.912,
+        24.257,
+        57.912
+      ],
+      "a_uuid": "4518bcbc-2666-4b92-bd45-7fa4829ee002",
+      "b_uuid": "c41a3ed8-a7f2-4973-92db-8e5cb369ee23",
+      "marker": [
+        24.79675,
+        57.277
+      ],
+      "nearest_endpoint_distance_mm": 0.381,
+      "alternate_local_path_mm": null,
+      "nearby_pads": [
+        {
+          "ref": "C29",
+          "pad": "1",
+          "net_name": "+3V3",
+          "distance_mm": 0.596528,
+          "size_mm": [
+            0.9,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.239 mm is below 0.25 mm",
+      "net": "3",
+      "net_name": "+3V3",
+      "layer": "B.Cu",
+      "gap_mm": 0.239308,
+      "a_points": [
+        28.864346,
+        50.875,
+        28.940346,
+        50.799
+      ],
+      "b_points": [
+        29.479654,
+        50.799,
+        29.555654,
+        50.875
+      ],
+      "a_uuid": "10c9794a-08e2-4515-82f8-5e381b04d45b",
+      "b_uuid": "e9ebc848-a0de-433d-9e64-ec574c20108c",
+      "marker": [
+        29.21,
+        50.837
+      ],
+      "nearest_endpoint_distance_mm": 0.539308,
+      "alternate_local_path_mm": 0.539308,
+      "nearby_pads": []
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.000 mm is below 0.25 mm",
+      "net": "3",
+      "net_name": "+3V3",
+      "layer": "B.Cu",
+      "gap_mm": 0.000128,
+      "a_points": [
+        28.575,
+        50.8,
+        28.65,
+        50.875
+      ],
+      "b_points": [
+        28.940346,
+        50.799,
+        29.479654,
+        50.799
+      ],
+      "a_uuid": "11622d2c-8de8-4593-b843-039939e3f43e",
+      "b_uuid": "d9800831-4d25-4e58-8505-13e914473cb4",
+      "marker": [
+        28.91125,
+        50.81825
+      ],
+      "nearest_endpoint_distance_mm": 0.300128,
+      "alternate_local_path_mm": 0.321826,
+      "nearby_pads": [
+        {
+          "ref": "C28",
+          "pad": "1",
+          "net_name": "+3V3",
+          "distance_mm": 1.372646,
+          "size_mm": [
+            0.9,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.004 mm is below 0.25 mm",
+      "net": "3",
+      "net_name": "+3V3",
+      "layer": "B.Cu",
+      "gap_mm": 0.003675,
+      "a_points": [
+        17.399,
+        31.456731,
+        37.298731,
+        31.456731
+      ],
+      "b_points": [
+        13.429806,
+        31.242,
+        17.184269,
+        31.242
+      ],
+      "a_uuid": "57eb1a57-0d73-46eb-b0a7-53a57ec8a0dc",
+      "b_uuid": "68d848fe-bcc3-40df-b752-e2a50950db78",
+      "marker": [
+        21.327951,
+        31.349366
+      ],
+      "nearest_endpoint_distance_mm": 0.303675,
+      "alternate_local_path_mm": 0.303675,
+      "nearby_pads": [
+        {
+          "ref": "C22",
+          "pad": "1",
+          "net_name": "/OTG_VBUS",
+          "distance_mm": 1.229594,
+          "size_mm": [
+            0.9,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.106 mm is below 0.25 mm",
+      "net": "7",
+      "net_name": "/A105_EN",
+      "layer": "F.Cu",
+      "gap_mm": 0.1064,
+      "a_points": [
+        59.1566,
+        42.291,
+        59.2836,
+        42.418
+      ],
+      "b_points": [
+        59.69,
+        42.418,
+        59.69,
+        44.265
+      ],
+      "a_uuid": "14003713-311b-4d53-84b0-10ac7d0cb594",
+      "b_uuid": "7f7b0d05-2358-4d01-8f02-2e055c63e52d",
+      "marker": [
+        59.45505,
+        42.848
+      ],
+      "nearest_endpoint_distance_mm": 0.4064,
+      "alternate_local_path_mm": 0.4064,
+      "nearby_pads": [
+        {
+          "ref": "R1",
+          "pad": "2",
+          "net_name": "/A105_EN",
+          "distance_mm": 0.490002,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "U3",
+          "pad": "3",
+          "net_name": "/A105_EN",
+          "distance_mm": 1.436346,
+          "size_mm": [
+            1.5,
+            0.9
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.248 mm is below 0.25 mm",
+      "net": "7",
+      "net_name": "/A105_EN",
+      "layer": "F.Cu",
+      "gap_mm": 0.248311,
+      "a_points": [
+        59.69,
+        42.418,
+        59.69,
+        44.265
+      ],
+      "b_points": [
+        59.1312,
+        42.3164,
+        59.1566,
+        42.291
+      ],
+      "a_uuid": "7f7b0d05-2358-4d01-8f02-2e055c63e52d",
+      "b_uuid": "db2a92e8-d061-4d23-8783-3d97ac8ed697",
+      "marker": [
+        59.41695,
+        42.8226
+      ],
+      "nearest_endpoint_distance_mm": 0.548311,
+      "alternate_local_path_mm": 0.586005,
+      "nearby_pads": [
+        {
+          "ref": "R1",
+          "pad": "2",
+          "net_name": "/A105_EN",
+          "distance_mm": 0.488116,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "U3",
+          "pad": "3",
+          "net_name": "/A105_EN",
+          "distance_mm": 1.468017,
+          "size_mm": [
+            1.5,
+            0.9
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.208 mm is below 0.25 mm",
+      "net": "8",
+      "net_name": "Net-(U2-VREF)",
+      "layer": "F.Cu",
+      "gap_mm": 0.208469,
+      "a_points": [
+        21.869598,
+        11.684,
+        21.869598,
+        11.938524
+      ],
+      "b_points": [
+        22.123074,
+        12.192,
+        22.599,
+        12.192
+      ],
+      "a_uuid": "6ae1b1ee-1eb1-4aaf-a7ed-d2ab2880a09b",
+      "b_uuid": "6cade01a-80bc-42ea-ba73-aa209aa2de7b",
+      "marker": [
+        22.115317,
+        12.001631
+      ],
+      "nearest_endpoint_distance_mm": 0.358469,
+      "alternate_local_path_mm": 0.358469,
+      "nearby_pads": [
+        {
+          "ref": "U2",
+          "pad": "14",
+          "net_name": "Net-(U2-VREF)",
+          "distance_mm": 0.875237,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "15",
+          "net_name": "Net-(U2-PDLDO)",
+          "distance_mm": 0.963066,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "13",
+          "net_name": "/CC1",
+          "distance_mm": 1.187869,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "16",
+          "net_name": "Net-(D1-K)",
+          "distance_mm": 1.376736,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.160 mm is below 0.25 mm",
+      "net": "10",
+      "net_name": "+5V",
+      "layer": "F.Cu",
+      "gap_mm": 0.160029,
+      "a_points": [
+        31.75,
+        58.166,
+        31.75,
+        56.515
+      ],
+      "b_points": [
+        33.289,
+        58.562,
+        32.146,
+        58.562
+      ],
+      "a_uuid": "28780f94-6390-4f5e-bf8c-e8f7664ab22f",
+      "b_uuid": "77c8a731-9821-4244-b3f4-a6e32fa24d65",
+      "marker": [
+        32.23375,
+        57.95125
+      ],
+      "nearest_endpoint_distance_mm": 0.560029,
+      "alternate_local_path_mm": 0.560029,
+      "nearby_pads": [
+        {
+          "ref": "U7",
+          "pad": "28",
+          "net_name": "Net-(U7-R_{XD})",
+          "distance_mm": 1.05598,
+          "size_mm": [
+            1.9,
+            0.4
+          ]
+        },
+        {
+          "ref": "U7",
+          "pad": "27",
+          "net_name": "+5V",
+          "distance_mm": 1.219249,
+          "size_mm": [
+            1.9,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.167 mm is below 0.25 mm",
+      "net": "13",
+      "net_name": "/OTG_VBUS",
+      "layer": "F.Cu",
+      "gap_mm": 0.167101,
+      "a_points": [
+        6.739999,
+        30.495,
+        6.09,
+        30.495
+      ],
+      "b_points": [
+        7.141,
+        29.158501,
+        7.141,
+        30.093999
+      ],
+      "a_uuid": "4ad390d8-ed34-4d65-b76c-d0805ae78cf3",
+      "b_uuid": "9033a09b-9cf7-442f-9f4d-0981e17572e5",
+      "marker": [
+        6.778,
+        30.060625
+      ],
+      "nearest_endpoint_distance_mm": 0.567101,
+      "alternate_local_path_mm": 0.567101,
+      "nearby_pads": [
+        {
+          "ref": "J6",
+          "pad": "A1",
+          "net_name": "GND",
+          "distance_mm": 0.779119,
+          "size_mm": [
+            0.6,
+            1.26
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B12",
+          "net_name": "GND",
+          "distance_mm": 0.779119,
+          "size_mm": [
+            0.6,
+            1.26
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A4",
+          "net_name": "/OTG_VBUS",
+          "distance_mm": 0.81365,
+          "size_mm": [
+            0.6,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B9",
+          "net_name": "/OTG_VBUS",
+          "distance_mm": 0.81365,
+          "size_mm": [
+            0.6,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B8",
+          "net_name": "unconnected-(J6-SBU2-PadB8)",
+          "distance_mm": 1.284217,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.100 mm is below 0.25 mm",
+      "net": "13",
+      "net_name": "/OTG_VBUS",
+      "layer": "F.Cu",
+      "gap_mm": 0.1,
+      "a_points": [
+        17.78,
+        28.702,
+        16.256,
+        28.702
+      ],
+      "b_points": [
+        18.18,
+        28.702,
+        19.704,
+        30.226
+      ],
+      "a_uuid": "b2a533fc-f3f1-4cbf-ae3c-3ad7937f3c9e",
+      "b_uuid": "d4a2ad62-8ce3-46d8-b772-9af173f64c50",
+      "marker": [
+        17.98,
+        29.083
+      ],
+      "nearest_endpoint_distance_mm": 0.4,
+      "alternate_local_path_mm": 0.4,
+      "nearby_pads": [
+        {
+          "ref": "R25",
+          "pad": "1",
+          "net_name": "/OTG_VBUS",
+          "distance_mm": 0.430303,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R25",
+          "pad": "2",
+          "net_name": "/OTG_VBUS_SENSE",
+          "distance_mm": 1.49922,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.030 mm is below 0.25 mm",
+      "net": "14",
+      "net_name": "Net-(J2-D+-PadA6)",
+      "layer": "F.Cu",
+      "gap_mm": 0.029605,
+      "a_points": [
+        10.795,
+        15.748,
+        11.43,
+        15.748
+      ],
+      "b_points": [
+        10.668,
+        14.996065,
+        10.668,
+        15.621
+      ],
+      "a_uuid": "03341d13-34c1-4afc-b382-e6cabd148340",
+      "b_uuid": "caa2d4cd-2266-4ce8-b109-c25e38f0b5ee",
+      "marker": [
+        10.89025,
+        15.528266
+      ],
+      "nearest_endpoint_distance_mm": 0.179605,
+      "alternate_local_path_mm": 0.179605,
+      "nearby_pads": [
+        {
+          "ref": "R16",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 0.582763,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R18",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 0.582763,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R13",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.411538,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R15",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.411538,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.030 mm is below 0.25 mm",
+      "net": "14",
+      "net_name": "Net-(J2-D+-PadA6)",
+      "layer": "F.Cu",
+      "gap_mm": 0.029605,
+      "a_points": [
+        5.207,
+        13.843,
+        6.35,
+        13.843
+      ],
+      "b_points": [
+        5.08,
+        14.732,
+        5.08,
+        13.97
+      ],
+      "a_uuid": "4fac52c2-94da-44c3-b788-2b8e03015cf8",
+      "b_uuid": "6addf0d6-f023-4e44-a026-4846b8261d6e",
+      "marker": [
+        5.42925,
+        14.097
+      ],
+      "nearest_endpoint_distance_mm": 0.179605,
+      "alternate_local_path_mm": 0.179605,
+      "nearby_pads": [
+        {
+          "ref": "J2",
+          "pad": "A7",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 0.707619,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "A6",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 0.716746,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "B6",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 0.993843,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "B7",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.013274,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "A8",
+          "net_name": "unconnected-(J2-SBU1-PadA8)",
+          "distance_mm": 1.405249,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "A5",
+          "net_name": "Net-(J2-CC1)",
+          "distance_mm": 1.428189,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.030 mm is below 0.25 mm",
+      "net": "14",
+      "net_name": "Net-(J2-D+-PadA6)",
+      "layer": "B.Cu",
+      "gap_mm": 0.029605,
+      "a_points": [
+        10.663665,
+        14.351,
+        10.663665,
+        14.948946
+      ],
+      "b_points": [
+        10.790665,
+        14.224,
+        11.43,
+        14.224
+      ],
+      "a_uuid": "b0643eb9-3422-450d-8be5-8adaf5786361",
+      "b_uuid": "ed01c421-126e-45eb-9b39-c1829dcb0eb0",
+      "marker": [
+        10.886999,
+        14.436986
+      ],
+      "nearest_endpoint_distance_mm": 0.179605,
+      "alternate_local_path_mm": 0.179605,
+      "nearby_pads": [
+        {
+          "ref": "R13",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 0.583278,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R15",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 0.583278,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R16",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.419016,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R18",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.419016,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.167 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "F.Cu",
+      "gap_mm": 0.167482,
+      "a_points": [
+        11.044665,
+        11.176,
+        11.43,
+        11.176
+      ],
+      "b_points": [
+        10.820171,
+        11.850731,
+        10.820171,
+        11.400494
+      ],
+      "a_uuid": "41ae2b13-ed6f-49bb-b91f-1e7468aac7b4",
+      "b_uuid": "f0554a83-aa41-488e-a0f0-57a40e7b959f",
+      "marker": [
+        11.028752,
+        11.400806
+      ],
+      "nearest_endpoint_distance_mm": 0.317482,
+      "alternate_local_path_mm": 0.317482,
+      "nearby_pads": [
+        {
+          "ref": "R10",
+          "pad": "2",
+          "net_name": "Net-(J2-CC1)",
+          "distance_mm": 0.459932,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.359744,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.359744,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.206 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.206145,
+      "a_points": [
+        10.157832,
+        12.697832,
+        10.066582,
+        12.789083
+      ],
+      "b_points": [
+        10.409665,
+        12.267462,
+        10.409665,
+        12.446
+      ],
+      "a_uuid": "2b09c1a1-72a4-4923-8df2-3955e7761f00",
+      "b_uuid": "f22cddbb-db44-4e24-b156-bc8f3a0c57bc",
+      "marker": [
+        10.260936,
+        12.550094
+      ],
+      "nearest_endpoint_distance_mm": 0.356145,
+      "alternate_local_path_mm": 0.356145,
+      "nearby_pads": [
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.178636,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.178636,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.206 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.206145,
+      "a_points": [
+        10.157832,
+        12.697832,
+        10.066581,
+        12.789083
+      ],
+      "b_points": [
+        10.409665,
+        12.267462,
+        10.409665,
+        12.446
+      ],
+      "a_uuid": "63f28ed1-a420-431f-992a-a35dc5dada28",
+      "b_uuid": "f22cddbb-db44-4e24-b156-bc8f3a0c57bc",
+      "marker": [
+        10.260936,
+        12.550094
+      ],
+      "nearest_endpoint_distance_mm": 0.356145,
+      "alternate_local_path_mm": 0.356145,
+      "nearby_pads": [
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.178636,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.178636,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.029 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.028538,
+      "a_points": [
+        10.67474,
+        12.002387,
+        10.409665,
+        12.267462
+      ],
+      "b_points": [
+        10.409665,
+        12.446,
+        10.157832,
+        12.697832
+      ],
+      "a_uuid": "6804a8eb-54c4-47ca-8905-7b29dcd1addd",
+      "b_uuid": "91fa7865-1bb2-4d8e-8923-f85dfe5ba534",
+      "marker": [
+        10.412975,
+        12.35342
+      ],
+      "nearest_endpoint_distance_mm": 0.178538,
+      "alternate_local_path_mm": 0.178538,
+      "nearby_pads": [
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.074457,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.074457,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.225 mm is below 0.25 mm",
+      "net": "17",
+      "net_name": "Net-(J2-CC1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.224873,
+      "a_points": [
+        10.67474,
+        11.996162,
+        10.67474,
+        12.002387
+      ],
+      "b_points": [
+        10.409665,
+        12.267462,
+        10.409665,
+        12.446
+      ],
+      "a_uuid": "eed864c9-236b-4093-b924-2198cfe74433",
+      "b_uuid": "f22cddbb-db44-4e24-b156-bc8f3a0c57bc",
+      "marker": [
+        10.542203,
+        12.178003
+      ],
+      "nearest_endpoint_distance_mm": 0.374873,
+      "alternate_local_path_mm": 0.374873,
+      "nearby_pads": [
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.029886,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.029886,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R10",
+          "pad": "2",
+          "net_name": "Net-(J2-CC1)",
+          "distance_mm": 1.338728,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.104 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.104,
+      "a_points": [
+        7.366,
+        13.462,
+        7.238,
+        13.334
+      ],
+      "b_points": [
+        6.748,
+        14.334,
+        7.366,
+        13.716
+      ],
+      "a_uuid": "39004576-f951-40a1-9a49-cb632a26dfa5",
+      "b_uuid": "8d42c211-c5b7-4c85-9f01-e157d230d2fa",
+      "marker": [
+        7.1795,
+        13.7115
+      ],
+      "nearest_endpoint_distance_mm": 0.254,
+      "alternate_local_path_mm": 0.254,
+      "nearby_pads": [
+        {
+          "ref": "J2",
+          "pad": "A6",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.090403,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "B7",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.147379,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "A7",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.249591,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "A5",
+          "net_name": "Net-(J2-CC1)",
+          "distance_mm": 1.394266,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.074 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.073934,
+      "a_points": [
+        10.68312,
+        13.508424,
+        10.68312,
+        14.065655
+      ],
+      "b_points": [
+        11.43,
+        14.224,
+        10.841465,
+        14.224
+      ],
+      "a_uuid": "679b658b-0ec6-4897-a88b-4eef3c78fe1e",
+      "b_uuid": "756061a5-0818-4761-8572-7ea079dff598",
+      "marker": [
+        10.909426,
+        14.00552
+      ],
+      "nearest_endpoint_distance_mm": 0.223934,
+      "alternate_local_path_mm": 0.223934,
+      "nearby_pads": [
+        {
+          "ref": "R13",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 0.564562,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R15",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 0.564562,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.405482,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.405482,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.031 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.031019,
+      "a_points": [
+        7.366,
+        13.716,
+        7.366,
+        13.462
+      ],
+      "b_points": [
+        7.238,
+        13.334,
+        6.096,
+        13.334
+      ],
+      "a_uuid": "6a023714-b0cc-411d-87cf-9831cbb346cd",
+      "b_uuid": "b1140a8a-d6e2-4f14-a0aa-f1ba926110bf",
+      "marker": [
+        7.0165,
+        13.4615
+      ],
+      "nearest_endpoint_distance_mm": 0.181019,
+      "alternate_local_path_mm": 0.181019,
+      "nearby_pads": [
+        {
+          "ref": "J2",
+          "pad": "B7",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 0.929288,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "A6",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 0.993014,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "A5",
+          "net_name": "Net-(J2-CC1)",
+          "distance_mm": 1.114036,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "A7",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.268297,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J2",
+          "pad": "B8",
+          "net_name": "unconnected-(J2-SBU2-PadB8)",
+          "distance_mm": 1.455533,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.068 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "B.Cu",
+      "gap_mm": 0.067667,
+      "a_points": [
+        10.795,
+        12.7,
+        11.43,
+        12.7
+      ],
+      "b_points": [
+        10.641086,
+        13.367792,
+        10.641086,
+        12.853914
+      ],
+      "a_uuid": "19b804b4-b4d7-438d-8ae5-6c2d8f9833c6",
+      "b_uuid": "7cef33fd-bfa4-4650-971c-a0f407b38d4f",
+      "marker": [
+        10.876793,
+        12.905427
+      ],
+      "nearest_endpoint_distance_mm": 0.217667,
+      "alternate_local_path_mm": 0.217667,
+      "nearby_pads": [
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 0.590117,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 0.590117,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R13",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.429921,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R15",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.429921,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.170 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "B.Cu",
+      "gap_mm": 0.169615,
+      "a_points": [
+        10.664694,
+        13.489998,
+        10.640002,
+        13.489998
+      ],
+      "b_points": [
+        10.414,
+        13.716,
+        10.287,
+        13.716
+      ],
+      "a_uuid": "2d1ab998-821a-4eae-a24a-f98bdb474f22",
+      "b_uuid": "683e2be3-294a-4d4a-b14f-3c690176ba12",
+      "marker": [
+        10.501424,
+        13.602999
+      ],
+      "nearest_endpoint_distance_mm": 0.319615,
+      "alternate_local_path_mm": 0.319615,
+      "nearby_pads": [
+        {
+          "ref": "R13",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.117092,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R15",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.117092,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.295245,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.295245,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.190 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "B.Cu",
+      "gap_mm": 0.189873,
+      "a_points": [
+        10.414,
+        13.716,
+        10.287,
+        13.716
+      ],
+      "b_points": [
+        10.68312,
+        13.508424,
+        10.68312,
+        13.409826
+      ],
+      "a_uuid": "683e2be3-294a-4d4a-b14f-3c690176ba12",
+      "b_uuid": "720c9f38-692a-467b-894f-60b978b77762",
+      "marker": [
+        10.51681,
+        13.587563
+      ],
+      "nearest_endpoint_distance_mm": 0.339873,
+      "alternate_local_path_mm": 0.370365,
+      "nearby_pads": [
+        {
+          "ref": "R13",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.113089,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R15",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.113089,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.273454,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.273454,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.188 mm is below 0.25 mm",
+      "net": "21",
+      "net_name": "Net-(J2-D--PadA7)",
+      "layer": "B.Cu",
+      "gap_mm": 0.187527,
+      "a_points": [
+        10.414,
+        13.716,
+        10.287,
+        13.716
+      ],
+      "b_points": [
+        10.68312,
+        13.508424,
+        10.664694,
+        13.489998
+      ],
+      "a_uuid": "683e2be3-294a-4d4a-b14f-3c690176ba12",
+      "b_uuid": "fce69631-7715-4b86-a719-71b876fdc8be",
+      "marker": [
+        10.512204,
+        13.607606
+      ],
+      "nearest_endpoint_distance_mm": 0.337527,
+      "alternate_local_path_mm": 0.344307,
+      "nearby_pads": [
+        {
+          "ref": "R13",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.105573,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R15",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.105573,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R12",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.290774,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R14",
+          "pad": "1",
+          "net_name": "Net-(J2-D--PadA7)",
+          "distance_mm": 1.290774,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "24",
+      "net_name": "Net-(J2-CC2)",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        10.541,
+        16.265444,
+        10.541,
+        17.018
+      ],
+      "b_points": [
+        10.795,
+        17.272,
+        11.43,
+        17.272
+      ],
+      "a_uuid": "0f2702d9-fcc6-4445-9dbd-19ce76992bdf",
+      "b_uuid": "fca48cd6-1d16-4db0-83c9-b71636a34e67",
+      "marker": [
+        10.82675,
+        16.956861
+      ],
+      "nearest_endpoint_distance_mm": 0.35921,
+      "alternate_local_path_mm": 0.35921,
+      "nearby_pads": [
+        {
+          "ref": "R11",
+          "pad": "2",
+          "net_name": "Net-(J2-CC2)",
+          "distance_mm": 0.680605,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R16",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.35102,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R18",
+          "pad": "1",
+          "net_name": "Net-(J2-D+-PadA6)",
+          "distance_mm": 1.35102,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.113 mm is below 0.25 mm",
+      "net": "27",
+      "net_name": "/SD_DAT2",
+      "layer": "F.Cu",
+      "gap_mm": 0.113044,
+      "a_points": [
+        55.245,
+        26.416,
+        55.245,
+        27.94
+      ],
+      "b_points": [
+        55.059,
+        28.126,
+        55.059,
+        28.559588
+      ],
+      "a_uuid": "6de3ea1d-f03f-4a09-8d58-8c43225f1ff5",
+      "b_uuid": "de17e1e9-0491-43e9-82e9-2991c0fcd2fd",
+      "marker": [
+        55.152,
+        27.760397
+      ],
+      "nearest_endpoint_distance_mm": 0.263044,
+      "alternate_local_path_mm": 0.263044,
+      "nearby_pads": [
+        {
+          "ref": "R8",
+          "pad": "2",
+          "net_name": "+3V3",
+          "distance_mm": 0.774534,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "R6",
+          "pad": "2",
+          "net_name": "+3V3",
+          "distance_mm": 1.340113,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.219 mm is below 0.25 mm",
+      "net": "32",
+      "net_name": "/CC1",
+      "layer": "B.Cu",
+      "gap_mm": 0.218871,
+      "a_points": [
+        20.133,
+        10.922,
+        19.8455,
+        10.6345
+      ],
+      "b_points": [
+        19.584669,
+        10.373669,
+        13.940553,
+        10.373669
+      ],
+      "a_uuid": "811588b0-7b35-4efd-9245-73329b7fd0bb",
+      "b_uuid": "fe43a697-3890-4874-a426-c4e0b204b3d2",
+      "marker": [
+        18.37593,
+        10.575959
+      ],
+      "nearest_endpoint_distance_mm": 0.368871,
+      "alternate_local_path_mm": 0.368871,
+      "nearby_pads": [
+        {
+          "ref": "U2",
+          "pad": "1",
+          "net_name": "GND",
+          "distance_mm": 0.698126,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "2",
+          "net_name": "Net-(U2-VCON0)",
+          "distance_mm": 1.15329,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.221 mm is below 0.25 mm",
+      "net": "34",
+      "net_name": "Net-(U2-QC_EN-)",
+      "layer": "F.Cu",
+      "gap_mm": 0.2206,
+      "a_points": [
+        19.05,
+        14.8366,
+        18.5196,
+        15.367
+      ],
+      "b_points": [
+        18.149,
+        15.367,
+        17.399,
+        15.367
+      ],
+      "a_uuid": "45ed74af-25ec-4418-bac9-c9f9536888c1",
+      "b_uuid": "dc3cdffc-d313-438a-85fb-b60a9ff903b6",
+      "marker": [
+        18.2794,
+        15.2344
+      ],
+      "nearest_endpoint_distance_mm": 0.3706,
+      "alternate_local_path_mm": null,
+      "nearby_pads": [
+        {
+          "ref": "U2",
+          "pad": "8",
+          "net_name": "Net-(U2-QC_EN-)",
+          "distance_mm": 0.526763,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "7",
+          "net_name": "Net-(U2-DOWN_D+)",
+          "distance_mm": 0.715753,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "6",
+          "net_name": "Net-(U2-QC_EN+)",
+          "distance_mm": 1.246425,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.126 mm is below 0.25 mm",
+      "net": "37",
+      "net_name": "Net-(U2-UP_D-)",
+      "layer": "B.Cu",
+      "gap_mm": 0.125772,
+      "a_points": [
+        20.489228,
+        12.26,
+        20.081412,
+        12.26
+      ],
+      "b_points": [
+        19.886412,
+        12.065,
+        13.715,
+        12.065
+      ],
+      "a_uuid": "9ee0ea01-a13b-4676-879d-f8c938350520",
+      "b_uuid": "c9f14e88-4894-4c77-8458-b37a48d3b81d",
+      "marker": [
+        18.543013,
+        12.1625
+      ],
+      "nearest_endpoint_distance_mm": 0.275772,
+      "alternate_local_path_mm": 0.275772,
+      "nearby_pads": [
+        {
+          "ref": "U2",
+          "pad": "3",
+          "net_name": "unconnected-(U2-VCON1-Pad3)",
+          "distance_mm": 0.773975,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "2",
+          "net_name": "Net-(U2-VCON0)",
+          "distance_mm": 0.982241,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "4",
+          "net_name": "unconnected-(U2-VCON2-Pad4)",
+          "distance_mm": 1.01967,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "1",
+          "net_name": "GND",
+          "distance_mm": 1.461851,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.117 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "F.Cu",
+      "gap_mm": 0.117286,
+      "a_points": [
+        24.065,
+        16.129,
+        24.065,
+        14.286
+      ],
+      "b_points": [
+        23.876,
+        14.097,
+        22.9696,
+        14.097
+      ],
+      "a_uuid": "24b9583a-f50f-464a-8ffd-d11225b16675",
+      "b_uuid": "bfaf478b-d572-4e44-aa18-7488e187edfe",
+      "marker": [
+        23.7439,
+        14.65225
+      ],
+      "nearest_endpoint_distance_mm": 0.267286,
+      "alternate_local_path_mm": 0.267286,
+      "nearby_pads": [
+        {
+          "ref": "U2",
+          "pad": "10",
+          "net_name": "Net-(U2-UP_D-)",
+          "distance_mm": 0.778396,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "11",
+          "net_name": "/VBUSEN",
+          "distance_mm": 0.952808,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "9",
+          "net_name": "Net-(U2-ADC_D-)",
+          "distance_mm": 1.053759,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        },
+        {
+          "ref": "C11",
+          "pad": "1",
+          "net_name": "Net-(U2-PDLDO)",
+          "distance_mm": 1.413655,
+          "size_mm": [
+            0.9,
+            0.95
+          ]
+        },
+        {
+          "ref": "U2",
+          "pad": "12",
+          "net_name": "/CC2",
+          "distance_mm": 1.419942,
+          "size_mm": [
+            1.2,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.246 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.245642,
+      "a_points": [
+        29.236184,
+        16.129,
+        24.065,
+        16.129
+      ],
+      "b_points": [
+        29.85,
+        16.3414,
+        29.631783,
+        16.123183
+      ],
+      "a_uuid": "0d820f43-9770-42d1-b4a5-fb52cdd95d18",
+      "b_uuid": "365f5fed-2553-4c69-abc2-b37988a79bd3",
+      "marker": [
+        28.195742,
+        16.180646
+      ],
+      "nearest_endpoint_distance_mm": 0.395642,
+      "alternate_local_path_mm": 0.398008,
+      "nearby_pads": [
+        {
+          "ref": "U5",
+          "pad": "3",
+          "net_name": "/VBUS",
+          "distance_mm": 0.759488,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "4",
+          "net_name": "/VBUS",
+          "distance_mm": 0.901423,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "2",
+          "net_name": "/VBUSEN",
+          "distance_mm": 0.917104,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "5",
+          "net_name": "/VBUS",
+          "distance_mm": 1.244309,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "C20",
+          "pad": "1",
+          "net_name": "/VBUS",
+          "distance_mm": 1.255995,
+          "size_mm": [
+            1.0,
+            1.45
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "1",
+          "net_name": "Net-(U5-dV{slash}dT)",
+          "distance_mm": 1.267019,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.088 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.088012,
+      "a_points": [
+        29.85,
+        16.579412,
+        29.523,
+        16.906412
+      ],
+      "b_points": [
+        29.85,
+        16.3414,
+        29.631783,
+        16.123183
+      ],
+      "a_uuid": "273a20b3-3573-4397-8ec1-99196313776a",
+      "b_uuid": "365f5fed-2553-4c69-abc2-b37988a79bd3",
+      "marker": [
+        29.713696,
+        16.487602
+      ],
+      "nearest_endpoint_distance_mm": 0.238012,
+      "alternate_local_path_mm": 0.238012,
+      "nearby_pads": [
+        {
+          "ref": "U5",
+          "pad": "1",
+          "net_name": "Net-(U5-dV{slash}dT)",
+          "distance_mm": 0.677033,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "2",
+          "net_name": "/VBUSEN",
+          "distance_mm": 1.10094,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.233 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.232788,
+      "a_points": [
+        29.85,
+        16.579412,
+        29.523,
+        16.906412
+      ],
+      "b_points": [
+        29.523,
+        17.2892,
+        29.2248,
+        17.5874
+      ],
+      "a_uuid": "273a20b3-3573-4397-8ec1-99196313776a",
+      "b_uuid": "aba308a8-df0b-4f1c-91c0-4dbade7e42cc",
+      "marker": [
+        29.5302,
+        17.090606
+      ],
+      "nearest_endpoint_distance_mm": 0.382788,
+      "alternate_local_path_mm": 0.382788,
+      "nearby_pads": [
+        {
+          "ref": "U5",
+          "pad": "1",
+          "net_name": "Net-(U5-dV{slash}dT)",
+          "distance_mm": 0.353851,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "2",
+          "net_name": "/VBUSEN",
+          "distance_mm": 0.833913,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "3",
+          "net_name": "/VBUS",
+          "distance_mm": 1.328763,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "11",
+          "net_name": "GND",
+          "distance_mm": 1.344183,
+          "size_mm": [
+            0.28,
+            0.7
+          ]
+        },
+        {
+          "ref": "C21",
+          "pad": "1",
+          "net_name": "Net-(U5-dV{slash}dT)",
+          "distance_mm": 1.36189,
+          "size_mm": [
+            0.9,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.159 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.158605,
+      "a_points": [
+        29.85,
+        16.3414,
+        29.85,
+        16.579412
+      ],
+      "b_points": [
+        29.631783,
+        16.123183,
+        29.242001,
+        16.123183
+      ],
+      "a_uuid": "273bb79b-14fd-4e0e-8737-9f7a275f8d4e",
+      "b_uuid": "8390f746-9987-4470-9b5f-c31d9fdfd41a",
+      "marker": [
+        29.643446,
+        16.291794
+      ],
+      "nearest_endpoint_distance_mm": 0.308605,
+      "alternate_local_path_mm": 0.308605,
+      "nearby_pads": [
+        {
+          "ref": "U5",
+          "pad": "1",
+          "net_name": "Net-(U5-dV{slash}dT)",
+          "distance_mm": 0.779773,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "2",
+          "net_name": "/VBUSEN",
+          "distance_mm": 1.136438,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.240 mm is below 0.25 mm",
+      "net": "43",
+      "net_name": "/VBUSEN",
+      "layer": "B.Cu",
+      "gap_mm": 0.239782,
+      "a_points": [
+        29.85,
+        16.3414,
+        29.631783,
+        16.123183
+      ],
+      "b_points": [
+        29.242001,
+        16.123183,
+        29.236184,
+        16.129
+      ],
+      "a_uuid": "365f5fed-2553-4c69-abc2-b37988a79bd3",
+      "b_uuid": "bcefb0dc-7036-4a7d-97f6-39289fe10b2e",
+      "marker": [
+        29.489992,
+        16.179192
+      ],
+      "nearest_endpoint_distance_mm": 0.389782,
+      "alternate_local_path_mm": 0.389782,
+      "nearby_pads": [
+        {
+          "ref": "U5",
+          "pad": "1",
+          "net_name": "Net-(U5-dV{slash}dT)",
+          "distance_mm": 0.810694,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "2",
+          "net_name": "/VBUSEN",
+          "distance_mm": 1.089595,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "3",
+          "net_name": "/VBUS",
+          "distance_mm": 1.489029,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.030 mm is below 0.25 mm",
+      "net": "44",
+      "net_name": "Net-(U5-ILIM)",
+      "layer": "F.Cu",
+      "gap_mm": 0.029605,
+      "a_points": [
+        29.21,
+        20.79,
+        29.21,
+        19.89
+      ],
+      "b_points": [
+        29.337,
+        21.0,
+        29.337,
+        20.917
+      ],
+      "a_uuid": "14551db3-55b2-4a81-bb92-9d5e4e07433a",
+      "b_uuid": "c1e5608e-acb2-4462-857b-87663927e118",
+      "marker": [
+        29.2735,
+        20.64925
+      ],
+      "nearest_endpoint_distance_mm": 0.179605,
+      "alternate_local_path_mm": 0.179605,
+      "nearby_pads": [
+        {
+          "ref": "U5",
+          "pad": "10",
+          "net_name": "Net-(U5-ILIM)",
+          "distance_mm": 0.761901,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "C21",
+          "pad": "2",
+          "net_name": "GND",
+          "distance_mm": 0.857403,
+          "size_mm": [
+            0.9,
+            0.95
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "9",
+          "net_name": "unconnected-(U5-EFET-Pad9)",
+          "distance_mm": 0.945512,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "U5",
+          "pad": "8",
+          "net_name": "/DCDC_IN",
+          "distance_mm": 1.306711,
+          "size_mm": [
+            0.85,
+            0.28
+          ]
+        },
+        {
+          "ref": "R24",
+          "pad": "1",
+          "net_name": "Net-(U5-ILIM)",
+          "distance_mm": 1.378161,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "46",
+      "net_name": "/ESP_D-",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        46.99,
+        43.2816,
+        46.99,
+        44.265
+      ],
+      "b_points": [
+        46.736,
+        42.672,
+        46.736,
+        43.0276
+      ],
+      "a_uuid": "b5ca4833-cb5f-4b08-9b39-dde0b8e35d32",
+      "b_uuid": "b7c9a25b-c7c2-4343-9eba-d86556b72ab8",
+      "marker": [
+        46.863,
+        43.31155
+      ],
+      "nearest_endpoint_distance_mm": 0.35921,
+      "alternate_local_path_mm": 0.35921,
+      "nearby_pads": [
+        {
+          "ref": "U3",
+          "pad": "13",
+          "net_name": "/ESP_D-",
+          "distance_mm": 0.961871,
+          "size_mm": [
+            1.5,
+            0.9
+          ]
+        },
+        {
+          "ref": "U3",
+          "pad": "14",
+          "net_name": "/ESP_D+",
+          "distance_mm": 1.488461,
+          "size_mm": [
+            1.5,
+            0.9
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "48",
+      "net_name": "/ESP_D+",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        10.922,
+        34.163,
+        10.922,
+        36.195
+      ],
+      "b_points": [
+        11.176,
+        36.449,
+        11.43,
+        36.449
+      ],
+      "a_uuid": "1a6ad102-fde9-41d4-804a-dc00213ebb8c",
+      "b_uuid": "cfb2e852-933f-4ddb-9eaf-63ee25936b19",
+      "marker": [
+        11.1125,
+        35.814
+      ],
+      "nearest_endpoint_distance_mm": 0.35921,
+      "alternate_local_path_mm": 0.35921,
+      "nearby_pads": [
+        {
+          "ref": "C23",
+          "pad": "2",
+          "net_name": "GND",
+          "distance_mm": 1.091911,
+          "size_mm": [
+            1.0,
+            1.45
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.118 mm is below 0.25 mm",
+      "net": "50",
+      "net_name": "/USB_ROLE",
+      "layer": "F.Cu",
+      "gap_mm": 0.118106,
+      "a_points": [
+        14.2,
+        31.99197,
+        14.282403,
+        31.909567
+      ],
+      "b_points": [
+        14.224,
+        32.259,
+        14.986,
+        32.259
+      ],
+      "a_uuid": "6ef634ae-8791-4258-a42b-a57ffe1fb105",
+      "b_uuid": "9981d121-800c-4cde-9ee2-a3d93ad7b669",
+      "marker": [
+        14.423101,
+        32.104884
+      ],
+      "nearest_endpoint_distance_mm": 0.268106,
+      "alternate_local_path_mm": 0.276971,
+      "nearby_pads": [
+        {
+          "ref": "U10",
+          "pad": "9",
+          "net_name": "/USB_ROLE",
+          "distance_mm": 0.25178,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "10",
+          "net_name": "GND",
+          "distance_mm": 0.618606,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "8",
+          "net_name": "unconnected-(U10-SCL{slash}OUT2-Pad8)",
+          "distance_mm": 0.782632,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "11",
+          "net_name": "GND",
+          "distance_mm": 1.010918,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "7",
+          "net_name": "unconnected-(U10-SDA{slash}OUT1-Pad7)",
+          "distance_mm": 1.181442,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        },
+        {
+          "ref": "R33",
+          "pad": "2",
+          "net_name": "/USB_ROLE",
+          "distance_mm": 1.333717,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "12",
+          "net_name": "+3V3",
+          "distance_mm": 1.407564,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.093 mm is below 0.25 mm",
+      "net": "50",
+      "net_name": "/USB_ROLE",
+      "layer": "F.Cu",
+      "gap_mm": 0.09303,
+      "a_points": [
+        14.2,
+        31.99197,
+        14.282403,
+        31.909567
+      ],
+      "b_points": [
+        14.224,
+        32.259,
+        14.2,
+        32.235
+      ],
+      "a_uuid": "6ef634ae-8791-4258-a42b-a57ffe1fb105",
+      "b_uuid": "d51d37e4-f72a-42b9-9142-773f0917b4c5",
+      "marker": [
+        14.226601,
+        32.098884
+      ],
+      "nearest_endpoint_distance_mm": 0.24303,
+      "alternate_local_path_mm": 0.24303,
+      "nearby_pads": [
+        {
+          "ref": "U10",
+          "pad": "9",
+          "net_name": "/USB_ROLE",
+          "distance_mm": 0.160137,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "10",
+          "net_name": "GND",
+          "distance_mm": 0.433272,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "8",
+          "net_name": "unconnected-(U10-SCL{slash}OUT2-Pad8)",
+          "distance_mm": 0.7946,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "11",
+          "net_name": "GND",
+          "distance_mm": 0.818416,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "7",
+          "net_name": "unconnected-(U10-SDA{slash}OUT1-Pad7)",
+          "distance_mm": 1.19142,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "12",
+          "net_name": "+3V3",
+          "distance_mm": 1.213213,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.199 mm is below 0.25 mm",
+      "net": "50",
+      "net_name": "/USB_ROLE",
+      "layer": "F.Cu",
+      "gap_mm": 0.199433,
+      "a_points": [
+        14.224,
+        32.259,
+        14.986,
+        32.259
+      ],
+      "b_points": [
+        14.282403,
+        31.909567,
+        14.282403,
+        30.432187
+      ],
+      "a_uuid": "9981d121-800c-4cde-9ee2-a3d93ad7b669",
+      "b_uuid": "aa0232e7-d055-4387-884e-d54fd80c4779",
+      "marker": [
+        14.443702,
+        31.714938
+      ],
+      "nearest_endpoint_distance_mm": 0.35428,
+      "alternate_local_path_mm": 0.393507,
+      "nearby_pads": [
+        {
+          "ref": "U10",
+          "pad": "9",
+          "net_name": "/USB_ROLE",
+          "distance_mm": 0.586747,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "10",
+          "net_name": "GND",
+          "distance_mm": 0.824642,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "11",
+          "net_name": "GND",
+          "distance_mm": 1.155766,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "8",
+          "net_name": "unconnected-(U10-SCL{slash}OUT2-Pad8)",
+          "distance_mm": 1.172891,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        },
+        {
+          "ref": "R33",
+          "pad": "2",
+          "net_name": "/USB_ROLE",
+          "distance_mm": 1.412837,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.186 mm is below 0.25 mm",
+      "net": "50",
+      "net_name": "/USB_ROLE",
+      "layer": "F.Cu",
+      "gap_mm": 0.185704,
+      "a_points": [
+        14.282403,
+        31.909567,
+        14.282403,
+        30.432187
+      ],
+      "b_points": [
+        14.224,
+        32.259,
+        14.2,
+        32.235
+      ],
+      "a_uuid": "aa0232e7-d055-4387-884e-d54fd80c4779",
+      "b_uuid": "d51d37e4-f72a-42b9-9142-773f0917b4c5",
+      "marker": [
+        14.247201,
+        31.708938
+      ],
+      "nearest_endpoint_distance_mm": 0.335704,
+      "alternate_local_path_mm": 0.359565,
+      "nearby_pads": [
+        {
+          "ref": "U10",
+          "pad": "9",
+          "net_name": "/USB_ROLE",
+          "distance_mm": 0.550551,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "10",
+          "net_name": "GND",
+          "distance_mm": 0.694023,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "11",
+          "net_name": "GND",
+          "distance_mm": 0.990065,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "8",
+          "net_name": "unconnected-(U10-SCL{slash}OUT2-Pad8)",
+          "distance_mm": 1.179463,
+          "size_mm": [
+            0.85,
+            0.2
+          ]
+        },
+        {
+          "ref": "U10",
+          "pad": "12",
+          "net_name": "+3V3",
+          "distance_mm": 1.341189,
+          "size_mm": [
+            0.2,
+            0.65
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.020 mm is below 0.25 mm",
+      "net": "78",
+      "net_name": "Net-(U7-T_{XD})",
+      "layer": "F.Cu",
+      "gap_mm": 0.019706,
+      "a_points": [
+        34.932,
+        63.112,
+        33.289,
+        63.112
+      ],
+      "b_points": [
+        35.052,
+        60.706,
+        35.052,
+        62.992
+      ],
+      "a_uuid": "69a60ca0-02c2-4914-b312-ef7b0efe6d2e",
+      "b_uuid": "cb5bbede-6df1-493d-839a-5279a219ee6a",
+      "marker": [
+        34.58125,
+        62.4805
+      ],
+      "nearest_endpoint_distance_mm": 0.169706,
+      "alternate_local_path_mm": 0.169706,
+      "nearby_pads": [
+        {
+          "ref": "U7",
+          "pad": "21",
+          "net_name": "Net-(U7-R_{XD})",
+          "distance_mm": 1.292382,
+          "size_mm": [
+            1.9,
+            0.4
+          ]
+        },
+        {
+          "ref": "U7",
+          "pad": "20",
+          "net_name": "Net-(U7-T_{XD})",
+          "distance_mm": 1.438298,
+          "size_mm": [
+            1.9,
+            0.4
+          ]
+        },
+        {
+          "ref": "U7",
+          "pad": "22",
+          "net_name": "unconnected-(U7-CLKOUT-Pad22)",
+          "distance_mm": 1.454923,
+          "size_mm": [
+            1.9,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.124 mm is below 0.25 mm",
+      "net": "78",
+      "net_name": "Net-(U7-T_{XD})",
+      "layer": "F.Cu",
+      "gap_mm": 0.124357,
+      "a_points": [
+        33.289,
+        60.512,
+        34.858,
+        60.512
+      ],
+      "b_points": [
+        35.052,
+        60.706,
+        35.052,
+        62.992
+      ],
+      "a_uuid": "8b1b4ea9-61d7-4e5a-808a-5e71cf610c58",
+      "b_uuid": "cb5bbede-6df1-493d-839a-5279a219ee6a",
+      "marker": [
+        34.56275,
+        61.1805
+      ],
+      "nearest_endpoint_distance_mm": 0.274357,
+      "alternate_local_path_mm": 0.274357,
+      "nearby_pads": [
+        {
+          "ref": "U7",
+          "pad": "23",
+          "net_name": "unconnected-(U7-~{Tx0RTS}-Pad23)",
+          "distance_mm": 1.273884,
+          "size_mm": [
+            1.9,
+            0.4
+          ]
+        },
+        {
+          "ref": "U7",
+          "pad": "22",
+          "net_name": "unconnected-(U7-CLKOUT-Pad22)",
+          "distance_mm": 1.4217,
+          "size_mm": [
+            1.9,
+            0.4
+          ]
+        },
+        {
+          "ref": "U7",
+          "pad": "24",
+          "net_name": "Net-(U7-T_{XD})",
+          "distance_mm": 1.438517,
+          "size_mm": [
+            1.9,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.039 mm is below 0.25 mm",
+      "net": "88",
+      "net_name": "Net-(D2-LINE2)",
+      "layer": "B.Cu",
+      "gap_mm": 0.038782,
+      "a_points": [
+        15.1522,
+        55.1678,
+        19.05,
+        55.1678
+      ],
+      "b_points": [
+        21.971,
+        55.372,
+        19.2542,
+        55.372
+      ],
+      "a_uuid": "cd16a528-c6a1-43ff-9dc9-8b7991c967eb",
+      "b_uuid": "f941a0ee-9399-4a89-b5d8-5c22f1e43ff7",
+      "marker": [
+        18.85685,
+        55.2699
+      ],
+      "nearest_endpoint_distance_mm": 0.288782,
+      "alternate_local_path_mm": 0.288782,
+      "nearby_pads": [
+        {
+          "ref": "R27",
+          "pad": "1",
+          "net_name": "Net-(D2-LINE2)",
+          "distance_mm": 0.218475,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.001 mm is below 0.25 mm",
+      "net": "89",
+      "net_name": "Net-(D2-LINE1)",
+      "layer": "B.Cu",
+      "gap_mm": 0.001447,
+      "a_points": [
+        19.2278,
+        53.34,
+        21.971,
+        53.34
+      ],
+      "b_points": [
+        10.8022,
+        53.5178,
+        19.05,
+        53.5178
+      ],
+      "a_uuid": "0844feda-fba0-4c90-adac-f413994622bb",
+      "b_uuid": "d7a3b6ff-5b15-4740-b2ac-903a6d41b01f",
+      "marker": [
+        17.76275,
+        53.4289
+      ],
+      "nearest_endpoint_distance_mm": 0.251447,
+      "alternate_local_path_mm": 0.251447,
+      "nearby_pads": [
+        {
+          "ref": "R27",
+          "pad": "2",
+          "net_name": "Net-(D2-LINE1)",
+          "distance_mm": 1.290316,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.143 mm is below 0.25 mm",
+      "net": "91",
+      "net_name": "Net-(D3-LINE2)",
+      "layer": "F.Cu",
+      "gap_mm": 0.143151,
+      "a_points": [
+        25.397,
+        49.784,
+        23.749,
+        49.784
+      ],
+      "b_points": [
+        23.471,
+        49.506,
+        23.471,
+        45.466
+      ],
+      "a_uuid": "4e62e08a-3fc3-4700-837d-fd90f20bdf2e",
+      "b_uuid": "d4d7efbd-efb8-4961-8a62-6c8e731c26e4",
+      "marker": [
+        24.022,
+        48.635
+      ],
+      "nearest_endpoint_distance_mm": 0.393151,
+      "alternate_local_path_mm": 0.393151,
+      "nearby_pads": [
+        {
+          "ref": "U8",
+          "pad": "7",
+          "net_name": "Net-(D3-LINE1)",
+          "distance_mm": 1.380314,
+          "size_mm": [
+            1.95,
+            0.6
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.112 mm is below 0.25 mm",
+      "net": "100",
+      "net_name": "Net-(J6-D+-PadA6)",
+      "layer": "F.Cu",
+      "gap_mm": 0.112195,
+      "a_points": [
+        5.3494,
+        33.645,
+        6.09,
+        33.645
+      ],
+      "b_points": [
+        5.164,
+        32.8344,
+        5.164,
+        33.4596
+      ],
+      "a_uuid": "2fc2ec7d-6dbc-401e-948b-803e079624ae",
+      "b_uuid": "358b0d26-2735-400c-bb5f-942445d49fb0",
+      "marker": [
+        5.44185,
+        33.396
+      ],
+      "nearest_endpoint_distance_mm": 0.262195,
+      "alternate_local_path_mm": 0.262195,
+      "nearby_pads": [
+        {
+          "ref": "J6",
+          "pad": "B6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 0.694334,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 0.695054,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A8",
+          "net_name": "unconnected-(J6-SBU1-PadA8)",
+          "distance_mm": 0.990505,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 0.992018,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B5",
+          "net_name": "/OTG-CC2",
+          "distance_mm": 1.40716,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 1.408936,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.118 mm is below 0.25 mm",
+      "net": "100",
+      "net_name": "Net-(J6-D+-PadA6)",
+      "layer": "F.Cu",
+      "gap_mm": 0.117852,
+      "a_points": [
+        5.164,
+        32.8344,
+        5.164,
+        33.4596
+      ],
+      "b_points": [
+        6.09,
+        32.645,
+        5.3534,
+        32.645
+      ],
+      "a_uuid": "358b0d26-2735-400c-bb5f-942445d49fb0",
+      "b_uuid": "afbb0fc2-b376-49ec-8216-8d906e611acd",
+      "marker": [
+        5.44285,
+        32.896
+      ],
+      "nearest_endpoint_distance_mm": 0.267852,
+      "alternate_local_path_mm": 0.267852,
+      "nearby_pads": [
+        {
+          "ref": "J6",
+          "pad": "A7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 0.6934,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 0.694121,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 0.989851,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 0.991365,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A8",
+          "net_name": "unconnected-(J6-SBU1-PadA8)",
+          "distance_mm": 1.4067,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A5",
+          "net_name": "/OTG-CC1",
+          "distance_mm": 1.408476,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.189 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.189411,
+      "a_points": [
+        6.09,
+        32.145,
+        6.872,
+        32.145
+      ],
+      "b_points": [
+        7.366,
+        32.131,
+        7.112,
+        32.385
+      ],
+      "a_uuid": "3e469b8b-6385-4574-a467-3dbeb7c63f52",
+      "b_uuid": "d8c0c312-df94-4d12-a169-ce8da58a2d3c",
+      "marker": [
+        6.86,
+        32.2015
+      ],
+      "nearest_endpoint_distance_mm": 0.339411,
+      "alternate_local_path_mm": 0.339411,
+      "nearby_pads": [
+        {
+          "ref": "J6",
+          "pad": "B7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 0.77207,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 0.88859,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A5",
+          "net_name": "/OTG-CC1",
+          "distance_mm": 0.950049,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 1.217823,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "R37",
+          "pad": "2",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 1.269958,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B8",
+          "net_name": "unconnected-(J6-SBU2-PadB8)",
+          "distance_mm": 1.307323,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.189 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.189411,
+      "a_points": [
+        6.09,
+        32.145,
+        6.872,
+        32.145
+      ],
+      "b_points": [
+        7.112,
+        32.385,
+        7.112,
+        32.9692
+      ],
+      "a_uuid": "3e469b8b-6385-4574-a467-3dbeb7c63f52",
+      "b_uuid": "f890a6bf-7d32-4476-b82c-edbf73b3a60b",
+      "marker": [
+        6.7965,
+        32.41105
+      ],
+      "nearest_endpoint_distance_mm": 0.339411,
+      "alternate_local_path_mm": 0.339411,
+      "nearby_pads": [
+        {
+          "ref": "J6",
+          "pad": "A6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 0.744228,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 0.754934,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 1.018737,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A5",
+          "net_name": "/OTG-CC1",
+          "distance_mm": 1.042101,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "R37",
+          "pad": "2",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 1.360632,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 1.421891,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B8",
+          "net_name": "unconnected-(J6-SBU2-PadB8)",
+          "distance_mm": 1.449836,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.099 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.098619,
+      "a_points": [
+        6.9362,
+        33.145,
+        6.1446,
+        33.145
+      ],
+      "b_points": [
+        7.112,
+        32.385,
+        7.112,
+        32.9692
+      ],
+      "a_uuid": "8b97939d-0221-4d6b-8fbf-07141e2ba19b",
+      "b_uuid": "f890a6bf-7d32-4476-b82c-edbf73b3a60b",
+      "marker": [
+        6.8262,
+        32.91105
+      ],
+      "nearest_endpoint_distance_mm": 0.248619,
+      "alternate_local_path_mm": 0.248619,
+      "nearby_pads": [
+        {
+          "ref": "J6",
+          "pad": "A7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 0.772479,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 0.782798,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 1.039554,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 1.062461,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A8",
+          "net_name": "unconnected-(J6-SBU1-PadA8)",
+          "distance_mm": 1.43688,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A5",
+          "net_name": "/OTG-CC1",
+          "distance_mm": 1.464539,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "R38",
+          "pad": "2",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 1.499381,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        8.128,
+        32.131,
+        7.366,
+        32.131
+      ],
+      "b_points": [
+        6.872,
+        32.145,
+        7.112,
+        32.385
+      ],
+      "a_uuid": "a57cc95e-8120-43d9-a183-e2ccc65de96d",
+      "b_uuid": "e997d2d8-2def-407f-a3d2-294ac7fa0f1c",
+      "marker": [
+        7.3695,
+        32.198
+      ],
+      "nearest_endpoint_distance_mm": 0.35921,
+      "alternate_local_path_mm": 0.35921,
+      "nearby_pads": [
+        {
+          "ref": "R37",
+          "pad": "2",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 0.761453,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 1.280597,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 1.355334,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A5",
+          "net_name": "/OTG-CC1",
+          "distance_mm": 1.39389,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.209 mm is below 0.25 mm",
+      "net": "101",
+      "net_name": "Net-(J6-D--PadA7)",
+      "layer": "F.Cu",
+      "gap_mm": 0.20921,
+      "a_points": [
+        8.128,
+        32.131,
+        7.366,
+        32.131
+      ],
+      "b_points": [
+        7.112,
+        32.385,
+        7.112,
+        32.9692
+      ],
+      "a_uuid": "a57cc95e-8120-43d9-a183-e2ccc65de96d",
+      "b_uuid": "f890a6bf-7d32-4476-b82c-edbf73b3a60b",
+      "marker": [
+        7.4295,
+        32.40405
+      ],
+      "nearest_endpoint_distance_mm": 0.35921,
+      "alternate_local_path_mm": 0.35921,
+      "nearby_pads": [
+        {
+          "ref": "R37",
+          "pad": "2",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 0.749972,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "A6",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 1.360999,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "J6",
+          "pad": "B7",
+          "net_name": "Net-(J6-D--PadA7)",
+          "distance_mm": 1.364319,
+          "size_mm": [
+            0.3,
+            1.3
+          ]
+        },
+        {
+          "ref": "R38",
+          "pad": "2",
+          "net_name": "Net-(J6-D+-PadA6)",
+          "distance_mm": 1.432752,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.068 mm is below 0.25 mm",
+      "net": "111",
+      "net_name": "Net-(U11-QC)",
+      "layer": "F.Cu",
+      "gap_mm": 0.068198,
+      "a_points": [
+        22.0,
+        93.31,
+        22.0,
+        90.355
+      ],
+      "b_points": [
+        22.225,
+        90.13,
+        43.18,
+        90.13
+      ],
+      "a_uuid": "2c883fe2-05ad-4c14-809b-74376f8721d2",
+      "b_uuid": "5045061c-7288-4cd8-870d-b4a0615d1528",
+      "marker": [
+        27.35125,
+        90.98125
+      ],
+      "nearest_endpoint_distance_mm": 0.318198,
+      "alternate_local_path_mm": 0.318198,
+      "nearby_pads": []
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.238 mm is below 0.25 mm",
+      "net": "112",
+      "net_name": "Net-(U11-QD)",
+      "layer": "F.Cu",
+      "gap_mm": 0.237904,
+      "a_points": [
+        29.845,
+        90.765,
+        44.45,
+        90.765
+      ],
+      "b_points": [
+        29.5,
+        93.31,
+        29.5,
+        91.11
+      ],
+      "a_uuid": "081a10b6-cea1-4cc3-a510-1ebbf724f392",
+      "b_uuid": "9833b99d-dcc3-428d-932c-16e926b83145",
+      "marker": [
+        33.32375,
+        91.4875
+      ],
+      "nearest_endpoint_distance_mm": 0.487904,
+      "alternate_local_path_mm": 0.487904,
+      "nearby_pads": []
+    },
+    {
+      "rule": "same_net_track_spacing",
+      "description": "same-net track copper spacing 0.242 mm is below 0.25 mm",
+      "net": "128",
+      "net_name": "/CAN2_RESET",
+      "layer": "F.Cu",
+      "gap_mm": 0.241737,
+      "a_points": [
+        35.814,
+        64.135,
+        35.179,
+        64.135
+      ],
+      "b_points": [
+        34.902,
+        64.412,
+        33.289,
+        64.412
+      ],
+      "a_uuid": "0e25fa45-7ca0-4251-91aa-c140ce49cd43",
+      "b_uuid": "84fd191b-faee-467f-94c8-e389c17d7f97",
+      "marker": [
+        34.796,
+        64.2735
+      ],
+      "nearest_endpoint_distance_mm": 0.391737,
+      "alternate_local_path_mm": 0.391737,
+      "nearby_pads": [
+        {
+          "ref": "R36",
+          "pad": "2",
+          "net_name": "/CAN2_RESET",
+          "distance_mm": 1.027378,
+          "size_mm": [
+            0.8,
+            0.95
+          ]
+        }
+      ]
+    }
+  ]
+}
