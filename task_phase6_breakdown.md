@@ -133,10 +133,54 @@ SectorTime/PredTime/ElapsedTime/CurrentLap/Distance/SessionTime)を対象に移�
 - [ ] （保留）アクセサリー側MCUでの受信・デコード・表示実装：ハードウェア未調達のため本Phaseでは分解しない。到着後に別Phaseとして分解する
 
 ## 6-4: Lua VM移植 ※6-1と並行着手可
-- [ ] 6-4-1: `reference/RaceCapture-Pro_firmware/lib/lua/src`相当の標準Lua本体（プラットフォーム非依存のANSI C部分）をfirmwareへ組み込み、PlatformIOビルドが通ることを確認する
+- [x] 6-4-1: `reference/RaceCapture-Pro_firmware/lib/lua/src`相当の標準Lua本体（プラットフォーム非依存のANSI C部分）をfirmwareへ組み込み、PlatformIOビルドが通ることを確認する → 完了（下記「6-4-1実装結果」参照）
 - [ ] 6-4-2: Lua用メモリアロケータをESP-IDFのヒープAPI（`heap_caps_malloc`等）に差し替える
 - [ ] 6-4-3: Luaスクリプトを定期実行する独立FreeRTOSタスク（公式の`luaTask.c`の`onTick`呼び出しループに相当）を、本プロジェクトの既存タスク構成（taskA/B/C）に影響しない優先度・スタックサイズで実装する
 - [ ] 6-4-4: スクリプト本体は起動時（またはスクリプト書き込み時）に一度だけ実行し、以降は`onTick`関数のみを周期呼び出しする、という公式の実行契約を再現する
+
+### 6-4-1実装結果
+
+**vendoring方針**：`reference/RaceCapture-Pro_firmware/lib/lua/src`のうち、同ディレクトリの
+`Makefile`が定義する`CORE_O`（VM本体）＋`LIB_O`（標準ライブラリ）相当に、`luaconf.h`が実際に
+要求する`modp_numtoa.c`（数値→文字列変換、`lua_number2str`マクロが無条件で使用）を加えた
+計31ソース＋24ヘッダーを`firmware/lib/lua/`へ直接vendoringした（`firmware/lib/minmea/`と
+同じ「PlatformIOのlib/配下フラット配置」パターン）。以下は対象外とした：
+- `liolib.c`（ファイルI/Oライブラリ）：元の`Makefile`の`LIB_O`にも含まれておらず、
+  vendoring元自体がこのプロジェクト向けに除外済みだった。
+- `lua.c`/`luac.c`/`print.c`：スタンドアロンCLI(`lua`)・バイトコードコンパイラ(`luac`)用。
+  本プロジェクトは独自のFreeRTOSタスクからVMを直接呼ぶ設計（6-4-3）のため不要。
+- `mod_string.c`/`mod_string.h`：`lib/lua/src`内のどのファイルからも参照されておらず
+  （`lstrlib.c`等からincludeされていない、リンク対象にもなっていない）、vendoring元の
+  実験的コード・不要ファイルと判断し除外した。
+
+**`main.cpp`側の変更**：`extern "C" { #include "lua.h" / "lauxlib.h" / "lualib.h" }`を追加。
+これはVMを実際に使うためではなく、PlatformIOのLibrary Dependency Finder（chainモード）に
+`lib/lua/`の存在を認識させ、実際にコンパイルさせて`-Werror`込みのビルド確認を行うための
+最小限の変更（`lib/minmea`と同じ扱い）。VM初期化・スクリプト実行呼び出しは未実装。
+
+**`-Werror`起因で判明した、vendoring元の問題と対応**（いずれも動作を変えない最小修正）：
+- `bit.c`（ビット演算ライブラリ）：`BIT_OP`マクロ内の`for`文と後続文が同一行にあり
+  `-Werror=misleading-indentation`で停止 → `for`の本体を`{}`で明示。
+- `ldebug.c`/`ltable.c`：`case`文末の意図的なfallthroughが`/* go through */`
+  `/* else go through */`というコメントで書かれていたが、GCCが認識するfallthrough
+  コメント文言（`fall through`等）と一致せず`-Werror=implicit-fallthrough`で停止
+  → `ldebug.c`はコメントを`/* fall through */`に修正、`ltable.c`はcaseブロックの閉じ括弧
+  との間にコメントを挟む形だったため認識されず、`__attribute__((fallthrough));`文に置換。
+- `llex.c`：`luaX_lexerror()`（内部で`longjmp`相当のエラー投げのみ、`noreturn`指定なし）
+  呼び出し後にswitchのcaseが続き`-Werror=implicit-fallthrough`で停止 → 到達しないことを
+  明示する`break;`を追加。
+- `lstrlib.c`：`string.format`の`%x`/`%X`書式指定子が`modp_itoaX()`を呼ぶが、この関数は
+  vendoring元（`reference/RaceCapture-Pro_firmware`）にも実装が存在しない呼び出しのみの
+  状態（`-Wimplicit-function-declaration`で停止）。同ファイル内で`%c`/`%o`/`%u`が既に
+  「使うまで無効化」されている前例に倣い、`%x`/`%X`も同様にコメントアウトして対応。
+- `modp_numtoa.c`：内部の定数配列`pow10`が、riscv32ツールチェーン(picolibc)が提供する
+  非標準関数`pow10(double)`と名前衝突（`-Werror=unused-const-variable`込みで停止）
+  → `kModpPow10`へリネーム。
+
+**ビルド確認**：`esp32-c3-proto`/`esp32-s3`両環境でクリーンビルド成功を確認。リンカの
+`--gc-sections`により、現時点では`main.cpp`側がLuaのシンボルを一切呼び出していないため
+`liblua.a`は最終バイナリサイズに影響していない（6-4-3で実際にVMを初期化・呼び出す段になって
+初めて計測に現れる）。
 
 ## 6-5: Luaバインディング層の実装（CAN生フレーム読み取り＋チャンネル登録に特化） ※6-1・6-4完了後に着手
 > 方針（本チャット議論より確定）：外部アクセサリーはCANバスを読むだけの構成とするため、Luaが

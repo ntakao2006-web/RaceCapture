@@ -48,6 +48,17 @@ extern "C" {
 #include "minmea.h"
 }
 
+// 6-4-1: Luaスクリプティング機構(Phase6)用の標準Lua本体。プラットフォーム非依存の
+// ANSI C部分(`reference/RaceCapture-Pro_firmware/lib/lua/src`相当)を`firmware/lib/lua/`へ
+// vendoringし、PlatformIOのLibrary Dependency Finderに拾わせるためここでincludeする
+// (lib/minmea等の既存vendoringと同じパターン)。メモリアロケータのESP-IDFヒープAPIへの
+// 差し替え(6-4-2)・専用FreeRTOSタスクでの実行(6-4-3)は未実装で、現時点はビルド確認のみ。
+extern "C" {
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
+}
+
 // 1-1-1: Hello Taskレベルの疎通確認用タスク
 static void helloTask(void *pvParameters)
 {

@@ -441,6 +441,26 @@
   RX=GPIO5）は友人による最終基板配線が未確定のため暫定値。外部トランシーバ
   (MCP2562FD-E/P)未接続のため実機でのフレーム受信確認は次回ハードウェア接続時の課題。
   詳細は`task_phase6_breakdown.md`6-5-1参照。
+- ✅ **6-1-2完了：既存9チャンネル(LapCount〜SessionTime)を共通チャンネルテーブルへ移行**。
+  6-1-1で設計した`ChannelDef`/`g_channelTable`を実装し、`kLapChannels`(9ch)をsample関数
+  経由のテーブル登録方式へ移行した。`rcpSendMeta`/`rcpSendSample`はテーブルを走査する形に
+  変更（`kDummyChannels`/`kImuChannels`/`kAttitudeChannels`の3グループは今回は対象外、
+  新旧混在）。`esp32-c3-proto`/`esp32-s3`両環境でビルド成功を確認。詳細は
+  `task_phase6_breakdown.md`6-1-2参照。
+- ✅ **6-4-1完了：標準Lua本体（ANSI C部分）をfirmwareへ組み込み**。
+  `reference/RaceCapture-Pro_firmware/lib/lua/src`相当のプラットフォーム非依存部分
+  （コア＋base/string/table/math/os/debug/bit/loadlib等の標準ライブラリ、計31ソースファイル）
+  を`firmware/lib/lua/`へvendoringし、`main.cpp`からのinclude経由でPlatformIOのLibrary
+  Dependency Finderに拾わせる形で組み込んだ。🔴 **実装時の重要な発見**：本プロジェクトの
+  `-Werror`設定により、vendoring元(`reference/RaceCapture-Pro_firmware`)に元々あった
+  複数の問題（`bit.c`の`misleading-indentation`、`ldebug.c`/`llex.c`/`ltable.c`の
+  fallthroughコメントがGCCの認識パターンと不一致、未定義関数`modp_itoaX`の呼び出し、
+  `modp_numtoa.c`の`pow10`配列名がpicolibcの`pow10()`関数と衝突、等）がビルドを阻害する
+  ことが判明し、いずれも動作を変えない最小修正（コメント文言修正・`__attribute__((fallthrough))`
+  付与・未使用だった`%x`/`%X`書式指定子の無効化・配列リネーム等）で解消した。実際のVM初期化・
+  スクリプト実行は未実装（メモリアロケータ差し替え(6-4-2)・専用FreeRTOSタスク化(6-4-3)は今後）。
+  `esp32-c3-proto`/`esp32-s3`両環境でビルド成功を確認。詳細は`task_phase6_breakdown.md`
+  6-4-1参照。
 
 ---
 
