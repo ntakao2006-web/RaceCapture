@@ -397,8 +397,9 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
 
 - [x] 🔴 **DC-9-1: 【最優先】手元のRaspberry Pi単体で、自作ESP32ファームウェア＋`race_capture`
       アプリの接続・動作を確認する（外部モニター使用、追加購入なしで着手可能）**
-      → **全体完了（2026-08-21）**。(a)〜(d)全て完了。「配信用ダッシュ」と「走行中表示用
-      ダッシュ」の分離構想が技術的に実現可能と確定した
+      → **全体完了（2026-08-24、DC-9-1-e完了により(a)〜(e)全て完了）**。「配信用ダッシュ」と
+      「走行中表示用ダッシュ」の分離構想がEnd-to-Endの実機動作確認まで含め技術的に
+      実現可能と確定した
       ⚠️ **ROCK 5B・Raspberry Pi問わず、何か具体的な作業に着手する前に必ずこのタスクの
       (b)〜(d)を最優先で確認すること**（2026-08-15、ユーザーからの強い指示）。詳細な調査結果・
       背景は`DASHCAM_STREAMING_RESEARCH.md`8章参照。
@@ -613,25 +614,49 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
            ことを新規確認（DC-9-4はFBモード限定で検証済みだったため、Xorg配下での動作は
            今回が初検証）
         検証後はprefs.json・実ポート直結・1インスタンス構成に復元済み。
-  - [ ] 🔴 DC-9-1-e: **別々のゲージレイアウトを持つ2インスタンスを、実際に2出力(Zaphodモード
+  - [x] 🔴 DC-9-1-e: **別々のゲージレイアウトを持つ2インスタンスを、実際に2出力(Zaphodモード
         `:0.0`/`:0.1`)へ同時描画させ、fan-outブリッジ経由で正常動作することをEnd-to-Endで
-        確認する**。DC-9-1-bで確認したZaphodモード自体の動作・DC-9-1-cのfan-outブリッジ・
-        今回(2026-08-24)確認したゲージレイアウトの分離保存は個別には実証済みだが、**これらを
-        全て組み合わせた状態を1回で目視確認したことはまだ無い**（詳細はDC-9-1-b本文の
-        2026-08-24追記2件を参照）。
-        - 🔴 **最大のブロッカー**：race_captureインスタンスに仮想シリアルポート
-          （fan-outブリッジ提供）を使わせる方法が未解明。`prefs.json`の`last_known_device`
-          書き換えだけでは効果がなく、`conn_type: "USB"`時は実機バイナリが独自のUSB
-          自動検出で実ポート(`/dev/ttyACM0`)を直接掴みにいってしまう（DC-9-1-b本文の
-          2026-08-24追記参照）。CLI引数(`-p`/`--port`)による指定手段も無いことを確認済み
-          （`--help`は`--size`のみ）
-        - 対応案（次回検討）：①実機バイナリ(v2.19.0、KivyMD採用)の接続先決定ロジックを
-          `task_phase4_breakdown.md`同様の逆コンパイル調査で解明する、②`xdotool`等を導入し
-          接続設定画面をGUI操作で仮想ポートに切り替える、のいずれか。ROCK 5B上には
-          調査環境（`xdotool`・PyInstallerバンドル展開ツール等）がまだ無い
-        - 準備済みの部材：`serial_fanout_bridge.py`（リポジトリ直下）、Zaphod用
-          `xorg.conf`の記述内容（本タスクファイルDC-9-1-b本文2026-08-24追記に手順を記録、
-          実機には未保存）
+        確認する**。
+        → **完了（2026-08-24、ROCK 5B実機で実施）**。
+        🎉 **【ブロッカーの正体判明】** DC-9-1-b本文で「実機バイナリが独自のUSB自動検出で
+        `last_known_device`を無視して実ポートを直接掴みにいく」と推測されていた現象は、
+        **実機バイナリ側のロジックの問題ではなく、前回検証時のテスト用configディレクトリ
+        （`rc_cfg_zaphod_a`/`_b`）で`prefs.json`の配置場所を間違えていたことが原因**と
+        判明した。正しくは`$XDG_CONFIG_HOME/racecapture/prefs.json`（本番は
+        `~/.config/racecapture/prefs.json`）に置く必要があるが、前回はサブディレクトリ
+        `racecapture/`を挟まず`$XDG_CONFIG_HOME`直下に置いていたため、アプリ起動時に
+        `Error loading preferences, using defaults`となり`last_known_device`が空の
+        デフォルト設定で起動していた。`strace -f -e trace=openat`で実機プロセスの
+        システムコールを直接観察して特定した（配置ミスの状態では`/dev/ttyACM1`
+        （実デバイス）のみがopenされ、`prefs.json`修正後は`trying last known device
+        before each other device: /tmp/rc_vport_a`のログの通り仮想ポートが最優先で
+        試されるようになった）。実機バイナリの接続先決定ロジックは、
+        `reference/RaceCapture_App`のオープンソース版（`rcpapi.py`）と同様
+        「`last_known_device`を最優先で試し、失敗時のみ他の利用可能デバイスを順に
+        試す」という素直な設計だった。逆コンパイル調査は不要だった。
+        - 検証手順：①ダミーの`pty`ペア(`os.openpty()`)を`--device`に渡す形で
+          `serial_fanout_bridge.py`を安全にテスト起動（本番の実ポート直結には一切
+          触れない）→ `strace`で接続先決定ロジックを観察・原因特定 → ②本番プロセス
+          （race_capture本番+ffmpeg録画）を一時停止 → ③Zaphod用`xorg.conf`
+          （`ZaphodHeads`に`HDMI-1`/`HDMI-2`）でXorgを起動、DRM競合なしを確認
+          → ④fan-outブリッジを実機ESP32(`/dev/ttyACM1`)向けに2仮想ポート
+          （`/tmp/rc_vport_a`/`_b`）で起動 → ⑤2インスタンスをそれぞれ
+          `DISPLAY=:0.0`/`:0.1`・別`XDG_CONFIG_HOME`で起動
+        - 結果：両インスタンスとも仮想ポート経由でESP32実機に正常接続
+          （`TelemetryManager on_data_connected: True`）、同じラップ番号(277→278→279)を
+          両方が正しく追従、`SampleMetaException`等のエラーなし。`xwd`+`imagemagick`で
+          両スクリーンをスクリーンショット取得し目視確認：両インスタンスとも
+          エラーなく描画、ヘッダーの接続インジケータ（緑丸）表示、`startup_screen`
+          設定の違い（インスタンスA=Analysis画面、B=メイン画面）も正しく反映されて
+          いることを確認した。DRMマスター競合（`Could not queue pageflip`等）は
+          一切発生せず。
+        - 検証環境構築のため`strace`・`Xvfb`・`xdotool`・`imagemagick`をROCK 5B実機へ
+          apt-getでインストール（実機に残存、次回の検証でも再利用可能）
+        - 検証後は本番構成（`dashcam_launch_rock5b.sh`によるFBモード直結race_capture+
+          ffmpeg kmsgrab録画）に復元済み。本番`~/.config/racecapture/prefs.json`は
+          今回のテスト作業で一切変更していないことを確認済み
+        - これで「配信用ダッシュ」「走行中表示用ダッシュ」分離構想の技術的な
+          End-to-End動作が実機で確認でき、DC-9-1全体（a〜e）が完了した
 - [x] DC-9-2: ROCK 5Bを購入する（USB PD対応電源、冷却ファン付きヒートシンク、
       eMMCモジュール16GB（OS起動用）、microSD（動画保存用・振動対策の物理固定を検討）を
       同時手配すること。M.2 NVMe SSDは消費電力・発熱の懸念から今回は見送り。
