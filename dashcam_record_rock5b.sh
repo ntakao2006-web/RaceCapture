@@ -20,20 +20,31 @@
 # per-segment mp4 sub-muxer (verified: top-level flag produced a segment
 # that failed with "moov atom not found" even on a clean SIGTERM exit).
 #
-# Usage: dashcam_record_rock5b.sh <ffmpeg_binary> <output_dir>
+# Usage: dashcam_record_rock5b.sh <ffmpeg_binary> <output_dir> [plane_id]
+#
+# plane_id (optional): restricts kmsgrab to a single DRM plane instead of
+# whatever plane happens to be active. Needed once two race_capture
+# instances share the GPU (DC-9-8, Zaphod dual-screen setup): without it
+# kmsgrab can grab whichever screen currently owns the primary plane it
+# defaults to, which may not be the streaming dash. Omit to keep the old
+# single-screen auto-select behavior.
 
 set -u
 
 FFMPEG_BIN="$1"
 OUTDIR="$2"
+PLANE_ID="${3:-}"
 mkdir -p "$OUTDIR"
 
 STOP=0
 FFMPEG_PID=""
 trap 'STOP=1; [ -n "$FFMPEG_PID" ] && kill -TERM "$FFMPEG_PID" 2>/dev/null' TERM INT
 
+PLANE_ARGS=()
+[ -n "$PLANE_ID" ] && PLANE_ARGS=(-plane_id "$PLANE_ID")
+
 while [ "$STOP" -eq 0 ]; do
-  "$FFMPEG_BIN" -hide_banner -f kmsgrab -device /dev/dri/card0 -framerate 15 -i - \
+  "$FFMPEG_BIN" -hide_banner -f kmsgrab -device /dev/dri/card0 "${PLANE_ARGS[@]}" -framerate 15 -i - \
     -c:v h264_rkmpp -b:v 4M \
     -f segment -segment_time 60 -reset_timestamps 1 -strftime 0 \
     -segment_format mp4 -segment_format_options movflags=+frag_keyframe+empty_moov+default_base_moof \

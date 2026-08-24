@@ -890,12 +890,33 @@ DC-9-1（a〜e）でZaphodモード（`:0.0`/`:0.1`）＋fan-outブリッジ＋2
 現状は1インスタンス・FBモード直結が前提）には未統合。本タスクでこれを本番導入する。
 詳細は`task_dashcam_breakdown.md` DC-9-1-e・[[project-dashcam-streaming]]参照。
 
-- [ ] DC-9-8-1: Zaphod用`xorg.conf`をリポジトリに正式保存し、`dashcam_launch_rock5b.sh`を
+- [x] DC-9-8-1: Zaphod用`xorg.conf`をリポジトリに正式保存し、`dashcam_launch_rock5b.sh`を
       「Xorg(Zaphod)起動→fan-outブリッジ起動(実機ESP32へ2仮想ポート)→2インスタンス起動
       (`DISPLAY=:0.0`/`:0.1`、別`XDG_CONFIG_HOME`)→ffmpeg録画(配信用インスタンス側画面を
       kmsgrabでキャプチャ)」の一気通貫構成に書き換える。SIGTERM/SIGINT時の後始末処理も
       プロセス数の増加（Xorg・ブリッジ・インスタンス×2・録画）に合わせて拡張する。実機で
       起動・2画面描画・ESP32接続・録画開始までを一通り確認する
+      → **完了（2026-08-24、ROCK 5B実機で実施）**。
+      [xorg_zaphod_rock5b.conf](../xorg_zaphod_rock5b.conf)をリポジトリに新規保存。
+      [dashcam_launch_rock5b.sh](../dashcam_launch_rock5b.sh)を全面書き換え：
+      ①ESP32デバイスをVID(`303a`、Espressif)で動的検出（`/dev/ttyACM0`/`ttyACM1`のような
+      番号ズレに依存しない）、②Xorg(Zaphod)起動＋ソケット出現待ち、③fan-outブリッジ起動＋
+      仮想ポート(`/tmp/rc_vport_display`/`_stream`)出現待ち、④2インスタンスを
+      `DISPLAY=:0.0`(走行中表示用)/`:0.1`(配信用)・別`XDG_CONFIG_HOME`
+      (`~/.config/racecapture_display`/`_stream`)で起動、⑤録画は配信用画面のみを
+      `-plane_id`指定でキャプチャ、という一気通貫構成にした。[dashcam_record_rock5b.sh]
+      (../dashcam_record_rock5b.sh)に`plane_id`（第3引数、省略可）を追加。**plane_id対応
+      表はハードウェア固定のDRM配線として実機`modetest`で確認・確定**：HDMI-1(走行中表示用)
+      =plane57、HDMI-2(配信用)=plane93（DC-9-1-d本文の記述と一致）。実機で新スクリプトを
+      起動し、①Xorg・ブリッジ・2インスタンス・録画の全プロセスが正常起動、②両インスタンス
+      とも`on_data_connected: True`でESP32実機に接続、③両画面ともエラーなく描画（DRM競合
+      なし）、④録画ストリームの解像度が`1920x1080`（HDMI-2/配信用と一致）であることを
+      ffmpegログで確認、⑤`kill -TERM`をランチャー本体(PID)に送るだけで全プロセス
+      （race_capture×2・Xorg・ブリッジ・ffmpeg）が過不足なく終了することを確認した。
+      本番用configディレクトリ`~/.config/racecapture_display`/`_stream`は、DC-9-1-eの
+      検証用ディレクトリ(`rc_cfg_zaphod_a`/`_b`)からコピーして作成（ゲージレイアウトの
+      実際の編集はDC-9-8-2で扱う）。テスト後は全プロセスを停止した状態（`~/.bashrc`
+      経由の自動起動はDC-9-8-3で検証予定、まだ有効化していない）
 - [ ] DC-9-8-2: 走行中表示用・配信用、それぞれの本番用configディレクトリ（ゲージ
       レイアウト含む）を用意する。DC-9-1-bで確立した「ダミープラグ＋ポータブル
       ディスプレイへの差し替えでその場編集」運用に沿って、両インスタンスのレイアウトを

@@ -438,6 +438,17 @@
   追従・エラーなしで描画されることを実機スクリーンショットで目視確認した。検証後は
   本番構成（FBモード直結race_capture＋ffmpeg録画）に復元済み。詳細は
   `task_dashcam_breakdown.md` DC-9-1-e参照。
+- ✅ **DC-9-8-1（2画面分離構成の本番起動スクリプト実装）が完了（2026-08-24）**：
+  DC-9-1(a〜e)はあくまで技術検証で本番の`dashcam_launch_rock5b.sh`（1インスタンス・
+  FBモード直結が前提）には未統合だったため、DC-9-8として本番導入作業を新設・着手。
+  `dashcam_launch_rock5b.sh`を「Xorg(Zaphod)起動→fan-outブリッジ起動→2インスタンス
+  起動→配信用画面のみ録画」の一気通貫構成に全面書き換え、`xorg_zaphod_rock5b.conf`を
+  リポジトリに新規保存した。ESP32デバイスはVID(`303a`)で動的検出し`/dev/ttyACM0`/
+  `ttyACM1`のような番号ズレに対応。録画対象は`-plane_id`指定（HDMI-1=plane57、
+  HDMI-2=plane93、実機`modetest`で確定）で配信用画面のみに固定。実機で新スクリプトを
+  起動し、2画面描画・両インスタンスのESP32接続・録画解像度(1920x1080=HDMI-2と一致)・
+  `SIGTERM`一発での全プロセス後始末を確認した。詳細は`task_dashcam_breakdown.md`
+  DC-9-8参照。
 
 ### Phase 6：計算チャンネルの汎用化・CANブロードキャスト & Luaスクリプティング機構の進捗
 - ✅ **タスク分解完了**：`ARCHITECTURE.md`のPhase6粗粒度ロードマップを`task_phase6_breakdown.md`
