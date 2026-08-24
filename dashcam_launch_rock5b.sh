@@ -71,7 +71,14 @@ VPORT_STREAM=/tmp/rc_vport_stream
 CFG_DISPLAY="$HOME_DIR/.config/racecapture_display"
 CFG_STREAM="$HOME_DIR/.config/racecapture_stream"
 STREAM_PLANE_ID=93
-RC_APP_ARGS=(-c graphics:show_cursor:0 -a -m cursor -c kivy:keyboard_mode:systemandmulti)
+# --size must match each screen's actual resolution (HDMI-1=1280x800,
+# HDMI-2=1920x1080, confirmed via `xrandr` on this hardware/Zaphod config).
+# Without it, race_capture defaults to a small fixed window (observed:
+# 1024x576) instead of filling the screen - Kivy's own fullscreen config
+# keys (graphics:fullscreen auto/1) do NOT override this, only --size does.
+DISPLAY_SIZE=1280x800
+STREAM_SIZE=1920x1080
+RC_APP_ARGS_COMMON=(-c graphics:show_cursor:0 -a -m cursor -c kivy:keyboard_mode:systemandmulti)
 
 mkdir -p "$HOME_DIR/logs"
 
@@ -117,11 +124,11 @@ done
 #    Each instance's last_known_device (set via its own prefs.json) points
 #    at its own virtual port, not the real ESP32 device.
 DISPLAY=:0.0 XDG_CONFIG_HOME="$CFG_DISPLAY" /opt/racecapture/race_capture \
-    "${RC_APP_ARGS[@]}" &
+    --size "$DISPLAY_SIZE" "${RC_APP_ARGS_COMMON[@]}" &
 RC_DISPLAY_PID=$!
 
 DISPLAY=:0.1 XDG_CONFIG_HOME="$CFG_STREAM" /opt/racecapture/race_capture \
-    "${RC_APP_ARGS[@]}" &
+    --size "$STREAM_SIZE" "${RC_APP_ARGS_COMMON[@]}" &
 RC_STREAM_PID=$!
 
 # 4. Recording: streaming dash's screen only.
