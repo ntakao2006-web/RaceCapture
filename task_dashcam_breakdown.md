@@ -446,6 +446,23 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
         再発せず、両インスタンスとも正常描画・起動を確認済み。動作確認したxorg.confの
         Zaphod設定はこのセッションのやり取りに記録済み（リポジトリには未コミット、
         必要になった時点で本採用のスクリプト化を行う）。
+        🎉 **【2026-08-24追記・ゲージレイアウト自体の分離を直接検証】** DC-9-1-cで確認済み
+        だったのは`last_known_device`・`datastore.sq3`の分離までで、「ゲージレイアウト
+        （元々のDC-9-1-b確認項目2番）自体が2インスタンスで別々に保存されるか」は未検証の
+        まま残っていた。ROCK 5B実機（`rock-5b.local`）で直接検証：本番`prefs.json`を
+        `~/rc_cfg_test_a`・`~/rc_cfg_test_b`にコピーし、`dashboard`キー（ゲージレイアウト
+        本体）の`dash_name`と`general_prefs.preferences.startup_screen`をそれぞれ別の値に
+        書き換えた上で、`XDG_CONFIG_HOME`を切り替えて順番に起動。instance B起動・稼働・
+        `UserPrefs: Saving preferences`実行後もinstance A側のファイルは無傷のまま（値は
+        変更されず）、B側も自分の値を正しく保持して独立永続化することを確認した。本番の
+        `prefs.json`（`~/.config/racecapture`）も無傷であることを確認済み。
+        🔵 **副次的な気づき**：全く新規（`datastore.sq3`が空）の`XDG_CONFIG_HOME`で起動すると、
+        `general_prefs.setup.setup_enabled=False`にしていても「Welcome」オンボーディング
+        画面が表示される現象を確認した（DC-9-4-5で確認した「同一ディレクトリでの再起動時に
+        setup_enabled=Falseがウィザード再発を防ぐ」ケースとは条件が異なる）。配信用インスタンス
+        を本番投入する際は、初回のみ実際に操作してオンボーディングを通過させる一手間が
+        必要になる可能性がある（本題のゲージレイアウト分離の検証結果には影響しない）。
+
         「配信用ダッシュ」と「走行中表示用ダッシュ」を分離できるかどうかの構想全体を
         左右する生命線。確認すべき点（`DASHCAM_STREAMING_RESEARCH.md`8.3節に詳細）：
         1. Kivyアプリの複数プロセス起動自体は可能（Kivyの既知の制約、1プロセス1ウィンドウ）。
