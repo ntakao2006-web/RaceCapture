@@ -1,0 +1,10 @@
+# コンソール(printf/ESP_LOG)の出力先をネイティブUSB(USB Serial/JTAG)にする。
+# XIAO ESP32C3 の USB-C ポート1本で書き込みもログ確認も行うため。
+# これによりUART0(GPIO20/21)が解放され、そのままTWAIのTX/RXに使える。
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+
+# 手持ちの実機(Seeed Studio XIAO ESP32C3)のフラッシュ設定。
+# 既存の検証プロジェクト(usb_otg_test / ../ 直下firmware)と同じ2MB指定に合わせる。
+CONFIG_ESPTOOLPY_FLASHSIZE_2MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="2MB"
