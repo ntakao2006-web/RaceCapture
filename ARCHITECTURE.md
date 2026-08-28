@@ -272,6 +272,7 @@
 - ✅ **2-1-2完了：MCP2562FD-E/P + XIAO ESP32C3 のブレッドボード配線を、車載CAN未接続のまま卓上で検証した**。本番機ESP32-S3は未調達だがTWAIペリフェラル・ESP-IDFドライバAPIはC3と共通のため手持ちC3で実施。専用の使い捨て検証プロジェクト`firmware/can_selftest/`を新設（`usb_otg_test`同様にPhase1本開発と分離）。TWAIを`TWAI_MODE_NO_ACK`にしメッセージのselfフラグを立てて500kbitで送信すると、他ノード無しでも送信フレームがCANH/CANL（卓上終端120Ω1本）を物理的に一周して自分の受信キューに返る。5バッチ×20フレーム＝100/100一致・エラーカウンタTEC=REC=0で、GPIO割当・TXD/RXD配線・VDD(5V)/VIO(3.3V)/GND/STBY給電・トランシーバ本体・120Ω終端・500kタイミングがすべて正常と実証。
 - **確定した結線**：TWAI TX=GPIO21(XIAO D6)→MCP2562FD TXD(pin1)、TWAI RX=GPIO20(XIAO D7)→RXD(pin4)、VDD(pin3)=5V、VIO(pin5)=3.3V（※5Vにすると3.3V非トレラントのC3が破損）、VSS(pin2)/STBY(pin8)=GND、CANH(pin7)→OBD 6番、CANL(pin6)→OBD 14番、GND→OBD 4/5番。
 - ⚠️ このセルフテストはトランシーバのCANH/CANLピンより下流（OBDハーネス配線）のH/L入れ違いは検出できない。実車接続前にハーネスをテスタで導通チェックすること。実車キャプチャ時は`TWAI_MODE_LISTEN_ONLY`へ切替え、卓上終端の120Ωは外す（車両バスは両端終端済み）。
+- ✅ **OBDハーネスの検証も完了**。(1) テスタ導通モードで OBD 6番↔CANH／14番↔CANL／4・5番↔GND の導通と 6番↔14番の非導通を確認。(2) `firmware/harness_probe_nano/`（Arduino Nano、受動計測のみ）を新設し、`can_selftest`に連続送信モード（約4400 msg/s、TEC=REC=0）を追加した状態でOBDコネクタ端のCANH/CANLをNanoのanalogReadで観測。レセッシブで両線約2.5V、ドミナントでCANHが上（~4.1V）・CANLが下（~1.2V）へ振れることを確認し、6番=CANH／14番=CANLの極性とハーネス＋トランシーバを通した信号経路をライブで実証。→ テスタ・自己受信・Nano受動プローブの3方式でハーネス〜トランシーバ経路の検証が揃い、実車接続の準備が整った。
 - 補足：esptoolのチップ検出で手持ちXIAO ESP32C3の実フラッシュは**4MB**と判明（既存sdkconfigコメントの「2MB」は実態と不一致。2MB指定でも安全側で動作に影響なし）。
 - 残作業：本番機ESP32-S3調達後に同手順で再確認、およびブレッドボード→ユニバーサル基板化。補助マイコンのArduino Nanoは単体ではCANコントローラ非搭載のためCANノードにできず（使う場合はMCP2515モジュールが別途必要）、今回のセルフテストはESP32-C3単独で実施した。
 

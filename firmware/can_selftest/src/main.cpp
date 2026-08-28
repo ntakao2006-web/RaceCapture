@@ -22,6 +22,7 @@
 #include "freertos/task.h"
 #include "driver/twai.h"
 #include "esp_err.h"
+#include "esp_timer.h"
 
 #define CAN_TX_GPIO   GPIO_NUM_21
 #define CAN_RX_GPIO   GPIO_NUM_20
@@ -112,9 +113,40 @@ extern "C" void app_main(void)
     }
     printf("[OK] TWAI driver install / start 完了 (mode=NO_ACK, 500kbit)\n\n");
 
-    // 書き込み直後にログを取り逃しても次サイクルで拾えるよう、無限ループで繰り返す。
+    // まず自己受信バッチを1回流してノードの健全性を確認する。
+    run_batch();
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    // 以降は「ハーネス導通ライブ確認」用の連続送信モード。
+    // バスを撃ちっぱなしにして CANH/CANL に高頻度でドミナント遷移を出し、
+    // OBDコネクタ端に当てた Arduino Nano (analogRead) で
+    //   CANH が 2.5V中心で上へ / CANL が 2.5V中心で下へ 振れることを観測する。
+    printf("\n==== harness live-probe mode: 連続送信開始 ====\n");
+    printf("Nano側(A0=OBD6, A1=OBD14, GND=OBD4/5)で min/avg/max を観測してください。\n\n");
+
+    uint32_t sent = 0, fail = 0;
+    int64_t t_last = esp_timer_get_time();
+    uint8_t d = 0;
     for (;;) {
-        run_batch();
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        twai_message_t tx = {};
+        tx.identifier = 0x123;
+        tx.data_length_code = 8;
+        for (int i = 0; i < 8; i++) tx.data[i] = (uint8_t)(d + i);
+        d++;
+
+        if (twai_transmit(&tx, pdMS_TO_TICKS(10)) == ESP_OK) sent++;
+        else fail++;
+
+        int64_t now = esp_timer_get_time();
+        if (now - t_last >= 1000000) {
+            twai_status_info_t st = {};
+            twai_get_status_info(&st);
+            printf("[blast] sent=%lu fail=%lu  (%lu msg/s)  TEC=%d REC=%d state=%d\n",
+                   (unsigned long)sent, (unsigned long)fail,
+                   (unsigned long)sent, (int)st.tx_error_counter,
+                   (int)st.rx_error_counter, (int)st.state);
+            sent = 0; fail = 0;
+            t_last = now;
+        }
     }
 }
