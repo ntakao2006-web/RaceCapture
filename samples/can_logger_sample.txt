@@ -1,0 +1,32 @@
+# 合成サンプル: firmware/can_logger の出力を模したもの（実車データではない）
+# can_capture_logger.py --replay の動作確認用。データ部は連結16進（スペースなし）で
+# can_logger の実出力形式に合わせてある。
+#
+# ===== CAN read-only logger (LISTEN_ONLY / no bus injection) =====
+# safety: mode=LISTEN_ONLY, TWAI-TX=decoy GPIO10 (not wired), GPIO21 held HIGH(recessive)
+# bitrate=500k, RX=GPIO20
+# line format: t_us,id_hex,ext,rtr,dlc,data_hex   (lines starting with '#' are status)
+# TWAI started in LISTEN_ONLY. logging...
+1000000,201,0,0,8,0000000000000000
+1000500,215,0,0,7,00000000000000
+1001000,4B0,0,0,8,1000100010001000
+1001200,240,0,0,8,4E0000005A000000
+1002000,201,0,0,8,04B0000003E80000
+1002500,215,0,0,7,1A000000000000
+1003000,4B0,0,0,8,1200120012001200
+1003100,231,0,0,2,0000
+1004000,201,0,0,8,0960000004380000
+1004500,240,0,0,8,4E0000005A000010
+1005000,4B0,0,0,8,1400140014001400
+1005200,7E8,0,0,8,03410C1B70000000
+1006000,201,0,0,8,0E10000005DC0000
+1006500,215,0,0,7,2A000000000000
+1007000,4B0,0,0,8,1600160016001600
+1007100,231,0,0,2,0200
+# stat t=8000000 total=18 rate=18/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+1008000,201,0,0,8,0FA0000006400000
+1008500,240,0,0,8,4E0000005A000000
+1009000,4B0,0,0,8,1800180018001800
+1009500,3FF,0,0,0,
+1010000,201,0,0,8,0BB80000051E0000
+# stat t=10000000 total=23 rate=5/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
