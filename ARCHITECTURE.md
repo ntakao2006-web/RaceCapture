@@ -290,6 +290,19 @@
 - ✅ **2-4-5ツール完成（実車部分は保留）：既知値との相関検証ツール`can_correlate.py`を新規作成**（リポジトリ直下、標準ライブラリのみ・最小二乗を自前実装）。`--can`（2-4-2形式CSV）と`--ref`（時刻付き基準値の時系列CSV）を入力に、CAN ID×バイト位置×幅(1/2)×エンディアンで数値化→基準値サンプル時刻でゼロ次ホールド→`ref ≒ a*x+b`のR²で順位付け。CAN側時刻の原点ずれには`--time-offset`と粗探索`--auto-lag lo:hi:step`で対応。`--selftest`全項目PASS（合成車速から0x4B0 offset0/width2/big をR²≈1・slope≈0.01で復元、真のラグ-0.3sをauto-lagで選択）、2-4-2実CSV形式での手動スモークテストも確認。`--json`対応。
 - ⏸️ **実車必須のため保留**：実走・停車操作での実データ取得（2-4-3の操作ログ実採取、2-4-4のID特定、2-4-5の実データ相関検証）。ツール側の実装・合成データ単体テストは実車を待たず完了済み。
 
+### Phase2-2-1：OBD2ポーラー付きロガー（`firmware/can_obd_logger/`）
+- ✅ **2-2-1完了：OBD2 mode 01のPIDリクエスト送信・応答受信を`firmware/can_obd_logger/`として実装**。`can_logger`の受信ロギング中核（受信タスク→48KBリングバッファ→出力タスク）を流用し、PIDポーラータスクを追加した構成。`can_logger`が持つ「物理的に送信不能」という監査可能な保証を壊さないため、モード追加ではなく**別プロジェクトへ分離**した（`can_selftest`/`harness_probe_nano`と同じ方式）。
+- **設計の狙い**：生CANフレームもOBD2応答も、同じ基板の同じ`esp_timer_get_time()`でタイムスタンプされる。これにより生CAN候補バイトと基準値（車速・回転数等）の時間軸が原理的に一致し、2-4-5の相関検証で`can_correlate.py`の`--time-offset`/`--auto-lag`によるラグ推定が不要になる。ELM327を並列接続する構成（PC時計とESP32起動相対時刻で原点がずれる）の問題自体を消すのが目的。
+- **構成**：`TWAI_MODE_NORMAL`／TX=GPIO21（実配線）。PIDテーブル14項目を高レート群（`0C`回転数・`0D`車速・`11`スロットル・`49`アクセルペダルDを各100ms、`04`負荷200ms）と低レート群（`05`水温・`0E`点火時期・`0F`吸気温・`0B`吸気管圧・`10`MAF・`45`相対スロットル・`4A`アクセルペダルEを1s、`42`電圧2s、`33`大気圧5s）に分けて巡回。PID選定は2-0-4の対応PID実測に基づく。リクエストは`0x7E0`へ`02 01 <PID> 55×5`、応答は`0x7E8..0x7EF`を受理。自分の送信フレームもログへ記録する（TWAIは自己受信しないため送信時に自前で書く）。出力形式・ステータス行は`can_logger`と互換で、`can_capture_logger.py`は無改造で使える。
+- **1回きりの実車調査を守るための堅牢化**：①応答ゼロのまま連続30回失敗で`0x7E0`↔`0x7DF`を自動切替 ②応答しないPIDは間隔を2^n倍にバックオフ（成功で解除。ただし一度も応答が無いうちは適用しない＝アドレス自動切替の判断を遅らせないため）③否定応答`0x7F`検出で即座に次へ ④バスオフ自動復帰。
+- **卓上検証**：専用のループバックビルド`-e esp32-c3-can-obd-logger-bench`（`TWAI_MODE_NO_ACK`＋selfフラグ。**実車禁止**）で送信→自己受信→ログ出力の全経路を実証。TX記録行と自己受信行が252µs差（500kbpsで8バイトフレーム1本分の伝送時間）で並ぶことからタイムスタンプが物理的に正しいことを確認（341フレーム／drop・buserr・パースエラーすべて0）。実車用NORMALビルドも実機COM5で想定どおりの挙動を確認。
+- ⚠️ **`can_logger`との使い分け**：`can_obd_logger`は**送信する**（OBD2リクエスト＋バス上の全フレームへのACK）。完全受動の観測が必要な2-4-3の操作差分検出では`can_logger`（LISTEN_ONLY）を使う。`can_obd_logger`で採ると自分の`0x7E0`とECUの`0x7E8`が混入し`can_diff.py`がID出現／消滅として拾ってしまう。
+- ⏸️ **保留（実車必須）**：実車ECUの応答確認（`0x7E0`で応答するか、`0x7DF`フォールバックが必要か、パディング`0x55`が受け付けられるか）。
+
+### Phase2-2-1付随：OBD2応答の抽出ツール（`can_obd_extract.py`）
+- ✅ **`can_obd_extract.py`を新規作成**（リポジトリ直下、標準ライブラリのみ）。2-4-2形式のキャプチャCSVからOBD2 mode 01肯定応答だけを拾い、SAE標準式で物理値へ直してPIDごとの時系列CSV（`t_us,value`）を書き出す。出力はそのまま`can_correlate.py --ref`＋`--ref-time-unit us`へ渡せる。デコーダ26PID搭載、否定応答`0x7F`・デコーダ未定義PIDをサマリで可視化。`--list`/`--pid`/`--json`対応、`--selftest`全14項目PASS。
+- ✅ **パイプライン全体のE2E検証（実車不要の範囲）**：生CAN（`0x4B0`が車速/0.01をBE u16で50Hz搬送）とOBD2応答（`0x7E8`がPID`0D`を10Hz）を同一時計で持つ合成キャプチャを`can_obd_extract.py`→`can_correlate.py`へ通し、**`--time-offset`既定値0のまま**`0x4B0 offset0/width2/big`を`slope=0.01・intercept=0・R²=1.00000`で完全復元。「同一基板なら時刻合わせ不要」という設計の狙いが成立することを実証した。
+
 ### Phase1-5：IMU(LSM6DSV16X)ドライバ実装の進捗
 - ✅ **1-5-1完了：LSM6DSV16X用I2Cドライバを実装（配線前、ビルド確認済み）**。`firmware/src/main.cpp`に、秋月電子の動作確認用Arduinoサンプル(`other/check_AE-LSM6DSV16X_extracted/`)のレジスタマップ・初期化シーケンス(CTRL1=0b00001001/CTRL2=0b00001001/CTRL6=0b00000100/CTRL8=0b10000010)・スケール係数(ジャイロ0.07dps/LSB・加速度0.000244g/LSB)を踏襲した`imuInit()`/`imuReadSensor()`をESP-IDF新I2Cマスタードライバ(`driver/i2c_master.h`)で実装した。`imuInit()`は0x6A/0x6Bへの順次プローブ→WHO_AM_I確認(期待値0x70)→初期化レジスタ書き込みの順で行い、失敗時は`false`を返す。I2Cピン(SDA/SCL)は配線未確定のためSDMMC使用中GPIOと衝突しない値を暫定選定(S3: GPIO2/GPIO1、C3: GPIO6/GPIO7)し、1-5-3の実配線時に変更可能なようコメントで明記した。`driver/i2c_master.h`はC3/S3共通でincludeし、`CMakeLists.txt`のREQUIRES変更なしで`esp32-c3-proto`/`esp32-s3`両環境のクリーンビルド成功を確認した（既存のUSB Serial/JTAGドライバと同様、driverコンポーネントは明示REQUIRESなしで解決される）。
 - ✅ **1-5-2完了：IMUデータをtaskA/CSVログ/RCPプロトコルへ統合（配線前、ビルド確認済み）**。`SensorLogRecord`のaccelX/Y/Z・gyroX/Y/Zフィールド(1-2-2で追加済み)へのダミー値代入を、taskA内で1-5-1の`imuReadSensor()`実読み取りに置き換えた。最新IMU値はファイルスコープの`g_imuAccelX`等6変数で保持し(既存の`g_trackCfg`等と同様の非排他パターン)、taskC(RCPストリーム)からも参照する。配線が無い/通信失敗の間は`g_imuAvailable`(`app_main`起動時の`imuInit()`戻り値)がfalseのままとなり、taskAは実読み取りをスキップして直近値(未接続時の初期値はZ軸1Gの静止姿勢相当)を送り続けるフォールバックとした。`kDummyChannels`/`kLapChannels`と同様の`kImuChannels`配列(AccelX/Y/Z・GyroX/Y/Zの6ch)を追加し`rcpSendMeta()`/`rcpSendSample()`に統合(ビットマスクを15ch→21chに拡張)。AccelXのnm/ut/min/max/prec/srは`reference/RaceCapture-Pro_firmware`の実機応答例(`getMeta_response.json`)に合わせたが、同ファームウェアはジャイロ生値ではなくYaw/Pitch/Roll(要姿勢推定)を送る仕様と判明。ここではまず生の角速度をGyroX/Y/Zとして送るチャンネル(min/max=±2000dpsはCTRL2設定のフルスケールに整合)を追加した。両ビルド環境でクリーンビルド成功を確認。実機配線・動作確認は1-5-3で対応予定。
@@ -555,6 +568,7 @@
 - [x] 2-0 ELM327によるOBD2プロトコル事前調査（NCロードスター・レクサスUXの2車両。Bluetooth接続でこのPCから直接調査、2-2着手前の判断材料集め） → 完了、詳細は`task_phase2_breakdown.md`・`OBD2_SURVEY.md`参照
 - [ ] 2-1 CANトランシーバ（SN65HVD230等）調達・回路実装
 - [ ] 2-2 車両CAN/OBD2から回転数・車速・水温等のデータをデコード
+  - 2-2-1（OBD2 PIDリクエスト送信・応答受信）は`firmware/can_obd_logger/`として完了。生CANと同一タイムスタンプで基準値を取得でき、2-4-5のラグ推定が不要になった。実車ECUでの応答確認と、本開発`main.cpp`側への移植（2-3）が残り
 - [ ] 2-3 CANデータをログ（SD保存・RCPストリーム）へ統合
 - [ ] 2-4 生CAN逆解析のための計測基盤構築（ELM327のUART速度ボトルネック・タイムスタンプ欠如を自作ロガー直接キャプチャで解消し、OBD2標準PID以外の車両独自CANメッセージを本格的に解析する） → 詳細は`task_phase2_breakdown.md`参照
 

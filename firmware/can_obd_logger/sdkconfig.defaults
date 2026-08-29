@@ -1,0 +1,16 @@
+# can_logger/sdkconfig.defaults と同一内容。理由も同じ。
+
+# コンソール(printf)出力先をネイティブUSB(USB Serial/JTAG)にする。
+# XIAO ESP32C3のUSB-Cポート1本で書き込みもログ受信も行う。
+# これによりUART0(GPIO20/21)が解放され、GPIO20をTWAI RX・GPIO21をTWAI TXに使える。
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+
+# esptoolのチップ検出で手持ちXIAO ESP32C3の実フラッシュは4MBと判明しているため
+# 実容量に合わせる(can_selftest等の旧「2MB」表記は実態と不一致)。
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
+
+# ブート直後のブートローダーログがネイティブUSBに漏れて記録先ファイルに
+# 混入しないよう抑制する。('#'始まりでもフレーム行でもないためパースエラーになる)
+CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
