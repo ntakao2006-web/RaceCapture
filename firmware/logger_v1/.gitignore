@@ -1,0 +1,5 @@
+.pio/
+managed_components/
+artifacts/
+__pycache__/
+sdkconfig.logger-v1.old
