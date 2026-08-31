@@ -70,17 +70,111 @@ VPORT_DISPLAY=/tmp/rc_vport_display
 VPORT_STREAM=/tmp/rc_vport_stream
 CFG_DISPLAY="$HOME_DIR/.config/racecapture_display"
 CFG_STREAM="$HOME_DIR/.config/racecapture_stream"
-STREAM_PLANE_ID=93
-# --size must match each screen's actual resolution (HDMI-1=1280x800,
-# HDMI-2=1920x1080, confirmed via `xrandr` on this hardware/Zaphod config).
-# Without it, race_capture defaults to a small fixed window (observed:
-# 1024x576) instead of filling the screen - Kivy's own fullscreen config
-# keys (graphics:fullscreen auto/1) do NOT override this, only --size does.
-DISPLAY_SIZE=1280x800
-STREAM_SIZE=1920x1080
+# The recorder captures one DRM plane, and it must be the streaming dash's.
+# This used to be hardcoded to 93 from a one-off `modetest` reading, on the
+# assumption that the CRTC/plane wiring is fixed. It is fixed for a given set of
+# connected outputs - but not across changes to that set, and an HDMI cable is
+# something that gets unplugged. A stale id costs more than a wrong resolution:
+# kmsgrab dies with "Plane N no longer has an associated framebuffer", or worse,
+# silently records the other screen. Derive it from the connector instead, and
+# keep the old value only as a last-resort fallback.
+STREAM_CONNECTOR=HDMI-A-2
+STREAM_PLANE_ID_FALLBACK=93
+# --size must match each screen's actual resolution: without it race_capture
+# defaults to a small fixed window (observed: 1024x576) instead of filling the
+# screen, and Kivy's own fullscreen config keys (graphics:fullscreen auto/1) do
+# NOT override this - only --size does. The sizes are probed from the running
+# Xorg rather than hardcoded, because they depend on whichever monitor is
+# plugged in: a hardcoded 1280x800 against a 1920x1080 panel leaves the dash as
+# a small window surrounded by the bare X root window (and its X-shaped
+# cursor), which is exactly what a monitor swap produced in practice.
+DISPLAY_SIZE_FALLBACK=1920x1080
+STREAM_SIZE_FALLBACK=1920x1080
+# Keep this much room on the rootfs. A 4 Mbps recording eats ~1.8 GB/hour and
+# nothing used to delete anything, so the 14 GB eMMC filled up - and a full disk
+# breaks far more than recording: race_capture's datastore then fails to
+# initialise ("database or disk is full") and prefs.json can no longer be saved.
+MIN_FREE_MB=3000
+# datastore.sq3 grows without bound as sessions are recorded (1.4 GB per
+# instance observed). Rotate it rather than let it consume the disk.
+MAX_DATASTORE_MB=512
 RC_APP_ARGS_COMMON=(-c graphics:show_cursor:0 -a -m cursor -c kivy:keyboard_mode:systemandmulti)
 
 mkdir -p "$HOME_DIR/logs"
+
+free_mb() { df -Pm "$HOME_DIR" | awk 'NR==2 {print $4}'; }
+
+# DRM connector name (as modetest prints it) -> the plane currently driving it,
+# via connector -> encoder -> CRTC -> plane. Prints nothing if the connector has
+# no encoder/CRTC attached (i.e. nothing is plugged into it).
+find_plane_for_connector() {
+  local conn="$1" enc crtc
+  enc=$(sudo modetest -M rockchip -c 2>/dev/null \
+        | awk -v c="$conn" '$3 ~ /^(connected|disconnected)$/ && $4 == c {print $2; exit}')
+  [ -n "$enc" ] && [ "$enc" != "0" ] || return 1
+  crtc=$(sudo modetest -M rockchip -e 2>/dev/null | awk -v e="$enc" '$1 == e {print $2; exit}')
+  [ -n "$crtc" ] && [ "$crtc" != "0" ] || return 1
+  sudo modetest -M rockchip -p 2>/dev/null \
+    | awk -v c="$crtc" '/^Planes:/{p=1;next} p && /^[0-9]+\t/ && $2 == c {print $1; exit}'
+}
+
+probe_screen_size() {
+  # $1 = Zaphod X screen number. Prints that screen's current mode as WxH.
+  local screen="$1"
+  DISPLAY=":0.$screen" xrandr 2>/dev/null \
+    | sed -n "s/^Screen $screen: .*current \([0-9]\+\) x \([0-9]\+\),.*/\1x\2/p" \
+    | head -1
+}
+
+# race_capture writes whichever port it actually connected to back into
+# prefs.json. If an instance ever falls through to the real ESP32 port (e.g.
+# the bridge was slow to create its pty), that real port becomes its
+# last_known_device from then on, so it bypasses the fan-out bridge on every
+# subsequent boot and fights the bridge over the same port - producing
+# SerialTimeoutException and an endless reconnect loop (observed in practice on
+# the streaming instance, which had pinned itself to /dev/ttyACM0). The setting
+# poisons itself, so re-pin it on every launch.
+pin_last_known_device() {
+  local prefs="$1/racecapture/prefs.json" vport="$2"
+  mkdir -p "$(dirname "$prefs")"
+  python3 - "$prefs" "$vport" <<'PY'
+import json, os, sys
+path, vport = sys.argv[1], sys.argv[2]
+try:
+    with open(path) as f:
+        prefs = json.load(f)
+except (OSError, ValueError):
+    prefs = {}
+prefs.setdefault("general_prefs", {}).setdefault("preferences", {})["last_known_device"] = vport
+tmp = path + ".tmp"
+with open(tmp, "w") as f:
+    json.dump(prefs, f)
+os.replace(tmp, path)
+PY
+}
+
+prune_datastores() {
+  local cfg db
+  for cfg in "$CFG_DISPLAY" "$CFG_STREAM"; do
+    db="$cfg/racecapture/datastore.sq3"
+    [ -f "$db" ] || continue
+    if [ "$(du -m "$db" | cut -f1)" -gt "$MAX_DATASTORE_MB" ]; then
+      echo "$(date -Iseconds) dashcam_launch_rock5b: rotating oversized $db" >> "$LAUNCH_LOG"
+      rm -f "$db" "$db-journal"
+    fi
+  done
+}
+
+prune_old_recordings() {
+  local dir
+  while [ "$(free_mb)" -lt "$MIN_FREE_MB" ]; do
+    # Timestamped directory names sort chronologically, so the first is oldest.
+    dir=$(ls -1d "$HOME_DIR"/Videos/*/ 2>/dev/null | sort | head -1)
+    [ -n "$dir" ] || break
+    echo "$(date -Iseconds) dashcam_launch_rock5b: low disk, removing $dir" >> "$LAUNCH_LOG"
+    sudo rm -rf "$dir"
+  done
+}
 
 find_esp32_device() {
   local dev vid
@@ -102,6 +196,12 @@ if [ -z "$ESP32_DEVICE" ]; then
   exit 1
 fi
 
+# 0. Make room before anything starts. Both instances need to be able to write
+#    their datastore and prefs, and the recorder needs somewhere to put footage.
+prune_datastores
+prune_old_recordings
+echo "$(date -Iseconds) dashcam_launch_rock5b: $(free_mb) MB free before start" >> "$LAUNCH_LOG"
+
 # 1. Xorg, single process, two independent Zaphod screens.
 sudo Xorg :0 -config "$XORG_CONF" > "$XORG_LOG" 2>&1 &
 XORG_PID=$!
@@ -121,8 +221,16 @@ for _ in $(seq 1 50); do
 done
 
 # 3. Driving-display dash (HDMI-1 / :0.0) and streaming dash (HDMI-2 / :0.1).
-#    Each instance's last_known_device (set via its own prefs.json) points
-#    at its own virtual port, not the real ESP32 device.
+#    Each instance's last_known_device points at its own virtual port, not the
+#    real ESP32 device - re-pinned here so a previous run cannot have left it
+#    pointing at the real port.
+pin_last_known_device "$CFG_DISPLAY" "$VPORT_DISPLAY"
+pin_last_known_device "$CFG_STREAM" "$VPORT_STREAM"
+
+DISPLAY_SIZE=$(probe_screen_size 0); DISPLAY_SIZE=${DISPLAY_SIZE:-$DISPLAY_SIZE_FALLBACK}
+STREAM_SIZE=$(probe_screen_size 1); STREAM_SIZE=${STREAM_SIZE:-$STREAM_SIZE_FALLBACK}
+echo "$(date -Iseconds) dashcam_launch_rock5b: screens :0.0=$DISPLAY_SIZE :0.1=$STREAM_SIZE" >> "$LAUNCH_LOG"
+
 DISPLAY=:0.0 XDG_CONFIG_HOME="$CFG_DISPLAY" /opt/racecapture/race_capture \
     --size "$DISPLAY_SIZE" "${RC_APP_ARGS_COMMON[@]}" &
 RC_DISPLAY_PID=$!
@@ -132,6 +240,9 @@ DISPLAY=:0.1 XDG_CONFIG_HOME="$CFG_STREAM" /opt/racecapture/race_capture \
 RC_STREAM_PID=$!
 
 # 4. Recording: streaming dash's screen only.
+STREAM_PLANE_ID=$(find_plane_for_connector "$STREAM_CONNECTOR")
+STREAM_PLANE_ID=${STREAM_PLANE_ID:-$STREAM_PLANE_ID_FALLBACK}
+echo "$(date -Iseconds) dashcam_launch_rock5b: recording $STREAM_CONNECTOR via plane $STREAM_PLANE_ID" >> "$LAUNCH_LOG"
 sudo "$RECORD_SCRIPT" "$FFMPEG_BIN" "$OUTDIR" "$STREAM_PLANE_ID" >> "$RECORD_LOG" 2>&1 &
 RECORD_PID=$!
 

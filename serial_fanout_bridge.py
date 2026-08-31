@@ -64,7 +64,15 @@ INITIAL_REQUESTS = [
 ]
 
 INITIAL_REQUEST_INTERVAL = 0.15  # 実機への初期要求の送信間隔(秒)
-POLL_INTERVAL = 0.5  # getStatus/{"s":0}を交互に送る間隔(秒) → 各々約1Hz
+
+# サンプル要求とステータス要求は必要なレートが全く違うため、独立した間隔で送る。
+# 当初は1本のタイマーで両者を交互に0.5秒間隔で送っていたが、それだとサンプルの
+# 実効レートが1Hzに落ち、ゲージの値が1秒に1回しか変化しない(実測0.99Hz)。
+# レーシングダッシュとしては使いものにならないため分離した。10Hzは公式アプリが
+# 実機に対して行っているサンプルポーリングと同じレート(ARCHITECTURE.md 1-4-6)。
+DEFAULT_SAMPLE_HZ = 10.0  # {"s":0} の送信レート
+DEFAULT_STATUS_HZ = 1.0  # getStatus の送信レート(接続状態の表示用途なので低くてよい)
+MAX_SELECT_TIMEOUT = 0.2  # メインループのselect待ち上限(秒)
 
 
 def create_virtual_port(link_path):
@@ -99,9 +107,12 @@ class LineBuffer:
 
 
 class Bridge:
-    def __init__(self, device, baudrate, links):
+    def __init__(self, device, baudrate, links,
+                 sample_hz=DEFAULT_SAMPLE_HZ, status_hz=DEFAULT_STATUS_HZ):
         self.device = device
         self.baudrate = baudrate
+        self.sample_interval = 1.0 / sample_hz
+        self.status_interval = 1.0 / status_hz
         self.real_ser = None
         self.real_buf = LineBuffer()
         self.cache = {}  # 応答キー -> 実機から得た最新の値
@@ -113,8 +124,9 @@ class Bridge:
             print("virtual port ready: {} -> {}".format(link_path, slave_path), flush=True)
 
         self._initial_idx = 0
-        self._poll_toggle = False
         self._next_send_time = 0.0
+        self._next_sample_time = 0.0
+        self._next_status_time = 0.0
         self._open_real_port()
 
     # -- 実機との接続 ---------------------------------------------------
@@ -122,6 +134,8 @@ class Bridge:
         self.real_ser = serial.Serial(self.device, baudrate=self.baudrate, timeout=0)
         self._initial_idx = 0
         self._next_send_time = 0.0
+        self._next_sample_time = 0.0
+        self._next_status_time = 0.0
         print("real port opened: {}".format(self.device), flush=True)
 
     def _reconnect_real_port(self):
@@ -153,24 +167,33 @@ class Bridge:
 
     # -- 実機に対するRCPクライアント役 -----------------------------------
     def tick_real_device_client(self, now):
-        if now < self._next_send_time:
-            return
         try:
             if self._initial_idx < len(INITIAL_REQUESTS):
+                if now < self._next_send_time:
+                    return
                 cmd = INITIAL_REQUESTS[self._initial_idx]
                 self.send_to_real({cmd: None})
                 self._initial_idx += 1
                 self._next_send_time = now + INITIAL_REQUEST_INTERVAL
                 return
-            if self._poll_toggle:
-                self.send_to_real({"getStatus": None})
-            else:
+            if now >= self._next_sample_time:
                 self.send_to_real({"s": 0})
-            self._poll_toggle = not self._poll_toggle
-            self._next_send_time = now + POLL_INTERVAL
+                self._next_sample_time = now + self.sample_interval
+            if now >= self._next_status_time:
+                self.send_to_real({"getStatus": None})
+                self._next_status_time = now + self.status_interval
         except serial.SerialException as e:
             print("real port write error: {}".format(e), flush=True)
             self._reconnect_real_port()
+
+    def _select_timeout(self, now):
+        # 次に実機へ要求を送るべき時刻までしか待たない。固定0.2秒待ちのままだと
+        # サンプル間隔(0.1秒)より粗くなり、せっかく上げたレートが頭打ちになる。
+        if self._initial_idx < len(INITIAL_REQUESTS):
+            next_send = self._next_send_time
+        else:
+            next_send = min(self._next_sample_time, self._next_status_time)
+        return max(0.0, min(MAX_SELECT_TIMEOUT, next_send - now))
 
     def handle_real_line(self, line: bytes):
         try:
@@ -223,7 +246,7 @@ class Bridge:
 
             rlist = [self.real_ser.fileno()] + list(self.consumers.keys())
             try:
-                ready, _, _ = select.select(rlist, [], [], 0.2)
+                ready, _, _ = select.select(rlist, [], [], self._select_timeout(now))
             except (OSError, ValueError):
                 break
 
@@ -261,9 +284,23 @@ def main():
         required=True,
         help="仮想ポートのリンク先パス。複数指定可 (例: --link /tmp/rc_vport1 --link /tmp/rc_vport2)",
     )
+    parser.add_argument(
+        "--sample-hz",
+        type=float,
+        default=DEFAULT_SAMPLE_HZ,
+        help="実機へ{{\"s\":0}}を送るレート(Hz)。ゲージの更新レートがこれで決まる (既定: {})".format(DEFAULT_SAMPLE_HZ),
+    )
+    parser.add_argument(
+        "--status-hz",
+        type=float,
+        default=DEFAULT_STATUS_HZ,
+        help="実機へgetStatusを送るレート(Hz) (既定: {})".format(DEFAULT_STATUS_HZ),
+    )
     args = parser.parse_args()
 
-    bridge = Bridge(args.device, args.baudrate, args.link)
+    bridge = Bridge(args.device, args.baudrate, args.link,
+                    sample_hz=args.sample_hz, status_hz=args.status_hz)
+    print("polling rates: sample={} Hz, status={} Hz".format(args.sample_hz, args.status_hz), flush=True)
     try:
         bridge.run()
     except KeyboardInterrupt:

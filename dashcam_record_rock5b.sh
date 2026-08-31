@@ -36,19 +36,62 @@ OUTDIR="$2"
 PLANE_ID="${3:-}"
 mkdir -p "$OUTDIR"
 
+# Retention floor, in MB of free rootfs. Nothing used to delete old footage, so
+# a continuous 4 Mbps recording (~1.8 GB/hour) eventually filled the 14 GB eMMC,
+# which broke race_capture itself rather than just recording: its datastore
+# failed to initialise with "database or disk is full" and prefs.json could no
+# longer be saved. Recording is the expendable data here, so it yields first.
+MIN_FREE_MB="${MIN_FREE_MB:-2000}"
+VIDEO_ROOT=$(dirname "$OUTDIR")
+
 STOP=0
 FFMPEG_PID=""
-trap 'STOP=1; [ -n "$FFMPEG_PID" ] && kill -TERM "$FFMPEG_PID" 2>/dev/null' TERM INT
+PRUNE_PID=""
+trap 'STOP=1; [ -n "$FFMPEG_PID" ] && kill -TERM "$FFMPEG_PID" 2>/dev/null; [ -n "$PRUNE_PID" ] && kill -TERM "$PRUNE_PID" 2>/dev/null' TERM INT
+
+free_mb() { df -Pm "$OUTDIR" | awk 'NR==2 {print $4}'; }
+
+# Delete oldest-first across all session directories (timestamped names sort
+# chronologically, and segments are zero-padded, so a plain sort of the paths is
+# already oldest-first). `head -n -1` holds back the newest segment, which is
+# the one ffmpeg is currently writing.
+prune_to_free_space() {
+  local oldest
+  while [ "$(free_mb)" -lt "$MIN_FREE_MB" ]; do
+    oldest=$(ls -1 "$VIDEO_ROOT"/*/video_*.mp4 2>/dev/null | sort | head -n -1 | head -1)
+    [ -n "$oldest" ] || break
+    echo "dashcam_record_rock5b: low disk ($(free_mb) MB), removing $oldest"
+    rm -f "$oldest"
+  done
+  find "$VIDEO_ROOT" -mindepth 1 -maxdepth 1 -type d -empty -not -path "$OUTDIR" \
+    -exec rmdir {} + 2>/dev/null
+}
+
+prune_to_free_space
+( while true; do sleep 30; prune_to_free_space; done ) &
+PRUNE_PID=$!
 
 PLANE_ARGS=()
 [ -n "$PLANE_ID" ] && PLANE_ARGS=(-plane_id "$PLANE_ID")
 
+# Each ffmpeg invocation restarts -f segment's counter at 0000, so a restart
+# used to reopen video_0000.mp4 and overwrite everything recorded so far in this
+# session. kmsgrab does fail and restart in normal operation (the console->Kivy
+# framebuffer handoff alone triggers it once at every launch), so the run index
+# keeps each attempt's segments in their own, still chronologically sortable,
+# filename space.
+RUN=0
+
 while [ "$STOP" -eq 0 ]; do
-  "$FFMPEG_BIN" -hide_banner -f kmsgrab -device /dev/dri/card0 "${PLANE_ARGS[@]}" -framerate 15 -i - \
+  RUN=$((RUN + 1))
+  SEGMENT_PATTERN=$(printf '%s/video_%02d_%%04d.mp4' "$OUTDIR" "$RUN")
+  # -nostats: the per-frame progress line is what grew this log to 35 MB on a
+  # disk that was already full. Warnings and errors still come through.
+  "$FFMPEG_BIN" -hide_banner -nostats -f kmsgrab -device /dev/dri/card0 "${PLANE_ARGS[@]}" -framerate 15 -i - \
     -c:v h264_rkmpp -b:v 4M \
     -f segment -segment_time 60 -reset_timestamps 1 -strftime 0 \
     -segment_format mp4 -segment_format_options movflags=+frag_keyframe+empty_moov+default_base_moof \
-    "$OUTDIR/video_%04d.mp4" &
+    "$SEGMENT_PATTERN" &
   FFMPEG_PID=$!
   wait "$FFMPEG_PID"
   FFMPEG_PID=""
@@ -57,3 +100,5 @@ while [ "$STOP" -eq 0 ]; do
     sleep 2
   fi
 done
+
+kill -TERM "$PRUNE_PID" 2>/dev/null
