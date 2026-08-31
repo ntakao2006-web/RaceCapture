@@ -518,6 +518,23 @@
   （走行中表示用＝HDMI-1）＋配信用(HDMI-2)へのダミープラグ常時装着に確定**。実機2回の
   rebootで、電源投入→tty1自動ログイン→2インスタンス＋ブリッジ＋録画の全自動起動を
   約30秒で完了することを確認済み。詳細は`task_dashcam_breakdown.md` DC-9-9参照。
+- ✅ **USBカメラ映像をダッシュ画面へ表示し録画へ焼き込む方法を確立（2026-08-31、
+  DC-9-8-2-1）**：録画は`kmsgrab`によるダッシュ画面のキャプチャであり、カメラ映像を
+  ffmpegで合成しているのではない（公式`video-streamer`が`ximagesrc`を使うのと同じ構造）。
+  **したがってカメラをUSBに挿しただけでは録画に映像は入らず、ダッシュ画面上に描画されて
+  初めて焼き込まれる**。`race_capture`本体に`Video`ゲージが正規のゲージ種別として存在し
+  （`gaugefactory`の登録テーブルで確認。ROCK 5Bはデスクトップ扱いのため本物の実装が
+  読み込まれ、モバイル用の非対応スタブにはならない）、これを配信用ダッシュへ配置する
+  ことで実現できる。**ハマりどころは、ゲージを置いただけでは「No Video」のままになる
+  こと**：ゲージ上の「カメラ1／カメラ2」はスロットの切り替えにすぎず、カメラの割り当ては
+  `DashboardPreferences`内の「Camera Preferences」区画で行う（保存先は`prefs.json`の
+  `general_prefs.dashboard_preferences.camera_preferences`、JSONではなくシングル
+  クォートのdict風文字列）。カメラの列挙は`v4l2-ctl`(v4l-utils)必須で、RK3588のHDMI入力
+  `rk_hdmirx`は正しく除外され実カメラのみが候補になる。実機で録画mp4から切り出した
+  フレームにカメラ映像が写ることを目視確認済み。⚠️ カメラのデコードはソフトウェア処理
+  （ffpyplayer＋swscaler、RKMPPハードウェアデコードは使われない）で、配信用インスタンスの
+  CPU使用率が37.8%→91.3%へ上昇する点に注意（全体のidleは65%で余裕あり）。詳細は
+  `task_dashcam_breakdown.md` DC-9-8-2-1参照。
 
 ### Phase 6：計算チャンネルの汎用化・CANブロードキャスト & Luaスクリプティング機構の進捗
 - ✅ **タスク分解完了**：`ARCHITECTURE.md`のPhase6粗粒度ロードマップを`task_phase6_breakdown.md`

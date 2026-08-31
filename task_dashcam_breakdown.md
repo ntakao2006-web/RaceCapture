@@ -943,6 +943,43 @@ DC-9-1（a〜e）でZaphodモード（`:0.0`/`:0.1`）＋fan-outブリッジ＋2
       ディスプレイへの差し替えでその場編集」運用に沿って、両インスタンスのレイアウトを
       ユーザーの好みに実際に編集する（保留：ユーザーの美的判断が必要なため、レイアウト
       内容そのものは事前に分解しきれない）
+      → **着手中（2026-08-31）。USBカメラ映像の焼き込みまで動作確認済み**（下記
+      DC-9-8-2-1参照）。残りはゲージレイアウトの作り込みで、ユーザー作業
+
+- [x] DC-9-8-2-1: **USBカメラ映像をダッシュ画面へ表示し、録画に焼き込む方法の確立
+      （2026-08-31）**。
+      **大前提**：録画は`kmsgrab`によるダッシュ画面のキャプチャであり、カメラ映像を
+      ffmpegで合成しているのではない（公式`video-streamer`が`ximagesrc`を使うのと同じ
+      構造、DC-5参照）。したがって**カメラをUSBに挿しただけでは録画に映像は入らない**。
+      カメラ映像がダッシュ画面上に描画されて初めて、それがキャプチャされて焼き込まれる。
+      **手段**：`race_capture`本体に`Video`ゲージが存在する（`race_capture`バイナリの
+      PyInstallerアーカイブを展開して`autosportlabs.uix.gauge.gaugefactory`の登録
+      テーブルで確認。`Map View`/`Scatter Plot`等と並ぶ正規のゲージ種別）。実装は
+      2系統あり`is_mobile_platform()`で分岐するが、ROCK 5B（デスクトップLinux）では
+      本物の`_videogauge`が読み込まれる（モバイルは`_videogauge_unsupported`のスタブ）。
+      **ハマりどころ**：Videoゲージを配置しただけでは「No Video」のままになる。ゲージ上の
+      「カメラ1／カメラ2」の切り替えは**スロットの切り替え**であって、そこでカメラを
+      割り当てているのではない。割り当ては`DashboardPreferences`ダイアログ内の
+      **「Camera Preferences」**区画（`Video source (camera 1):`のドロップダウン）で行う。
+      保存先は`prefs.json`の`general_prefs.dashboard_preferences.camera_preferences`で、
+      **JSONではなくシングルクォートのdict風文字列**（例：`"{'0': '/dev/video1', '1': ''}"`）。
+      アプリ側は`json.loads(値.replace("'", '"'))`で読み戻している。
+      **カメラの列挙**：`racecapture.video.camera_utils.get_available_video_devices()`が
+      `/dev/video*`を走査し、`v4l2_utils`が`v4l2-ctl -D -d <dev>`の`Device Caps`から
+      `V4L2_CAP_VIDEO_CAPTURE`を見て絞り込む。**`v4l2-ctl`(v4l-utils)が必須依存**
+      （ROCK 5Bにはインストール済み）。実機では`/dev/video0`(RK3588のHDMI入力
+      `rk_hdmirx`、caps=0x04201000)と`/dev/video2`(メタデータ、caps=0x04a00000)は正しく
+      除外され、`/dev/video1`(BUFFALO BSWHD06M、caps=0x04200001)のみが候補になる。
+      **動作確認**：設定後に再起動すると`[CustomVideoFFPy] Requested camera resolution
+      for /dev/video1: 1280x720`が出てffpyplayer経由でV4L2デバイスを再生し、録画mp4から
+      切り出したフレームにカメラ映像が写っていることを目視確認済み。なお
+      `[ERROR] [Image] Error loading </dev/video1>`が併せて出るが、静止画ローダーが先に
+      試して失敗しているだけで実害はない。
+      ⚠️ **負荷の注意点**：カメラのデコード・色変換はソフトウェア処理（ffpyplayer＋
+      swscaler、RKMPPハードウェアデコードは使われない）。Videoゲージを持つ配信用
+      インスタンスのCPU使用率が37.8%→91.3%へ上昇した（全体のidleは65%で余裕はあるが、
+      無視できないコスト）。また解像度要求が`1280x720`の直後に`848x480`へ落ちており、
+      画質を詰めるならここは要調査
 - [ ] DC-9-8-3: reboot時の自動起動（`~/.bashrc`経由）・異常終了時の後始末・片方の
       インスタンスがクラッシュした場合の挙動を実機で確認する
       → **部分的に完了（2026-08-31、DC-9-9で実施）**。reboot時の自動起動は2回の実機
