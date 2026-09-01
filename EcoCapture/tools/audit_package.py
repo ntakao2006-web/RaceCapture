@@ -29,6 +29,7 @@ for tag, directory, binary, expected in (
         names = [n.replace("\\", "/") for n in z.namelist()]
         assert not any("/artifacts/" in n or "/map-cache/" in n or "/settings.json" in n for n in names)
         assert any(n.endswith("/README.md") for n in names)
+        assert any(n.endswith("/SYSTEM_REQUIREMENTS.md") for n in names)
         assert any(n.endswith("/licenses/Godot-third-party.txt") for n in names)
         assert any(n.endswith("/licenses/NotoSansJP-OFL.txt") for n in names)
         assert any(n.endswith("/EcoCapture.dll") for n in names)

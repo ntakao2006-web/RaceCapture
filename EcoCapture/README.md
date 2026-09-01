@@ -87,7 +87,7 @@ Settings「接続と保存」から保存先を開けます。
 
 既存のEcoLogger用RaceCapture互換JSONプロトコルを維持し、水平補正とSD読出しのコマンドを追加しています。既存チャンネル番号は変えず、補正チャンネルを末尾に追加しています。RaceCaptureへ戻す場合はEcoCaptureを終了してから起動してください。
 
-Linux ARM64の実行ファイルも生成しています。Raspberry Pi 4 / ROCK 5B向けの手順と4 GB構成の設計条件は [LINUX.md](LINUX.md)、再ビルド手順は [BUILD.md](BUILD.md)、確認できた範囲は [VERIFICATION.md](VERIFICATION.md) を参照してください。
+Linux ARM64の実行ファイルも生成しています。Windows、Web閲覧、Linux ARM64の要件は [SYSTEM_REQUIREMENTS.md](SYSTEM_REQUIREMENTS.md)、Raspberry Pi 4 / ROCK 5B向けの手順と4 GB構成の設計条件は [LINUX.md](LINUX.md)、再ビルド手順は [BUILD.md](BUILD.md)、確認できた範囲は [VERIFICATION.md](VERIFICATION.md) を参照してください。
 
 実機試験は静止した卓上環境で行っています。運転中に設定を操作せず、安全な場所で停止して操作してください。
 
