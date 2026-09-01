@@ -1,0 +1,4 @@
+import test from"node:test";import assert from"node:assert/strict";import{validChannel,validDatabase,streamPoint,dayKey}from"../public/live-core.js";
+test("random URL ID boundary",()=>{assert.equal(validChannel("a".repeat(24)),true);assert.equal(validChannel("main"),false);assert.equal(validChannel("A".repeat(32)),false)});
+test("Firebase database URL boundary",()=>{assert.equal(validDatabase("https://demo-default-rtdb.firebaseio.com"),true);assert.equal(validDatabase("https://demo.europe-west1.firebasedatabase.app"),true);assert.equal(validDatabase("https://example.com"),false);assert.equal(validDatabase("http://localhost:9000"),true)});
+test("Firebase stream payload",()=>{const p=streamPoint(JSON.stringify({path:"/",data:{t:123,deviceUs:1,d:{Lat:35}}}));assert.equal(p.d.Lat,35);assert.equal(streamPoint("{}"),null);assert.equal(dayKey(Date.UTC(2026,8,1)),"20260901")});

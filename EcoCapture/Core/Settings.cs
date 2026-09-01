@@ -90,9 +90,17 @@ public sealed class StartLine
     public double WidthMeters { get; set; } = 30;
     public double MinimumLapSeconds { get; set; } = 15;
 }
+public sealed class LiveShareSettings
+{
+    public bool Enabled { get; set; }
+    public string ServerUrl { get; set; } = "";
+    public string ViewerUrl { get; set; } = "";
+    public string Channel { get; set; } = LiveShareUrl.NewChannel();
+    public bool IncludeDemo { get; set; }
+}
 public sealed class AppSettings
 {
-    public int Version { get; set; } = 3;
+    public int Version { get; set; } = 5;
     public string Vehicle { get; set; } = "none";
     public double MapSpanKm { get; set; } = 1;
     public bool MapPale { get; set; } = true;
@@ -104,6 +112,7 @@ public sealed class AppSettings
     public string ForwardAxis { get; set; } = "+X";
     public string UpAxis { get; set; } = "+Z";
     public StartLine StartLine { get; set; } = new();
+    public LiveShareSettings LiveShare { get; set; } = new();
     public Dictionary<string, Dictionary<string, SensorPreference>> Profiles { get; set; } = new();
     public Dictionary<string, SensorPreference> CurrentSensors()
     {
@@ -143,6 +152,12 @@ public sealed class AppSettings
         StartLine.Bearing = double.IsFinite(StartLine.Bearing) ? Geo.Wrap360(StartLine.Bearing) : 0;
         StartLine.WidthMeters = double.IsFinite(StartLine.WidthMeters) ? Math.Clamp(StartLine.WidthMeters, 5, 200) : 30;
         StartLine.MinimumLapSeconds = double.IsFinite(StartLine.MinimumLapSeconds) ? Math.Clamp(StartLine.MinimumLapSeconds, 5, 3600) : 15;
+        LiveShare ??= new();
+        LiveShare.ServerUrl = (LiveShare.ServerUrl ?? "").Trim().TrimEnd('/');
+        LiveShare.ViewerUrl = (LiveShare.ViewerUrl ?? "").Trim().TrimEnd('/');
+        LiveShare.Channel = (LiveShare.Channel ?? "").Trim().ToLowerInvariant();
+        if (!LiveShareUrl.ValidChannel(LiveShare.Channel)) LiveShare.Channel = LiveShareUrl.NewChannel();
+        if (Version < 5) Version = 5;
         Profiles ??= new();
         foreach (var p in Profiles.Values.Where(p => p != null))
             foreach (var s in p.Values.Where(s => s != null))

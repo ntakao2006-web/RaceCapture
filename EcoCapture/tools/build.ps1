@@ -16,6 +16,10 @@ try {
     if ($LinuxArm64) { $exports += @{ Preset='Linux ARM64'; Folder='EcoCapture-linux-arm64'; Binary='EcoCapture.arm64'; Tag='linux-arm64' } }
     foreach ($item in $exports) {
         $directory = Join-Path dist $item.Folder
+        $distRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot 'dist')) + [IO.Path]::DirectorySeparatorChar
+        $directoryFull = [IO.Path]::GetFullPath((Join-Path $projectRoot $directory))
+        if (-not $directoryFull.StartsWith($distRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe export directory' }
+        if (Test-Path -LiteralPath $directoryFull) { Remove-Item -LiteralPath $directoryFull -Recurse -Force }
         New-Item -ItemType Directory -Force $directory | Out-Null
         $log = 'artifacts/export-' + $item.Tag + '.log'
         & $godotCommand --headless --path . --export-release $item.Preset *> $log
@@ -23,7 +27,7 @@ try {
         if (-not (Test-Path -LiteralPath (Join-Path $directory $item.Binary))) { throw 'Export did not produce executable' }
         Copy-Item -LiteralPath README.md, LINUX.md, BUILD.md, VERIFICATION.md -Destination $directory -Force
         Copy-Item -LiteralPath licenses -Destination $directory -Recurse -Force
-        $archive = Join-Path dist ('EcoCapture-0.2.3-' + $item.Tag + '.zip')
+        $archive = Join-Path dist ('EcoCapture-0.3.1-' + $item.Tag + '.zip')
         Compress-Archive -Path $directory -DestinationPath $archive -Force
         Get-FileHash -LiteralPath $archive -Algorithm SHA256
     }

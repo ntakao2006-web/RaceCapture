@@ -11,6 +11,7 @@ public partial class Main : Control
 {
     private AppSettings _settings = new();
     private ConnectionManager _connection = null!;
+    private LiveShareClient _liveShare = null!;
     private readonly PositionEstimator _position = new();
     private RaceSession _race = new();
     private string _sessionVehicle = "none";
@@ -58,6 +59,7 @@ public partial class Main : Control
         _settings = SettingsStore.Load(_settingsPath,out var warning); _notice = warning ?? "";
         if (_hardwareDirectory!=null) { _settings.Vehicle="none"; _settings.CanEnabled=false; }
         _settings.Validate();
+        _liveShare=new(); _liveShare.Configure(_settings.LiveShare);
         var font = new FontVariation { BaseFont = GD.Load<FontFile>("res://assets/NotoSansJP.ttf"),
             VariationOpentype = new Godot.Collections.Dictionary { [TextServerManager.GetPrimaryInterface().NameToTag("wght")] = 450f } };
         Theme = new Theme { DefaultFont = font, DefaultFontSize = 19 };
@@ -223,6 +225,7 @@ public partial class Main : Control
                 if (!_hadFresh) _position.Reset();
                 _position.Update(_frame!,_settings);
                 if (_settings.GnssEnabled && _race.UpdateGnss(_frame!,_settings.StartLine)) SaveRace();
+                _liveShare.Offer(_frame!,_settings.Vehicle,_demo!=null);
                 _processed=_frame; _hadFresh=true;
             }
             UpdateUi(now);
@@ -238,7 +241,7 @@ public partial class Main : Control
         _connectionLabel.AddThemeColorOverride("font_color",demo?Ui.Amber:info.State=="connected"?Ui.Accent:Ui.Amber);
         _demoButton.Text=demo?"デモを終了してUSBへ":"デモで試す";
         _vehicleLabel.Text=Catalog.Vehicle(_settings.Vehicle).Name+"  /  "+(_settings.Vehicle=="none"?"GNSS + IMU":"EcoLogger専用");
-        var footer=(demo?"DEMO：実測値ではありません。  ":"")+(_notice.Length>0?_notice:"1–5：画面切替  /  Esc：ホーム  /  F11：全画面")+"    EcoCapture 0.2.3";
+        var footer=(demo?"DEMO：実測値ではありません。  ":"")+(_notice.Length>0?_notice:"1–5：画面切替  /  Esc：ホーム  /  F11：全画面")+"    EcoCapture 0.3.1";
         _footer.Text=footer;
         if (_page=="indicate")
         {
@@ -267,6 +270,7 @@ public partial class Main : Control
         }
         if (_page=="solve"&&info.State=="connected"&&info.Connections!=_solveConnectionSeen) RefreshSolveLogs();
         RefreshConnectionSettings();
+        RefreshLiveShareSettings();
     }
     private static string DiagnosticValue(SensorDefinition s,double value) => s.Id switch
     {
@@ -330,7 +334,7 @@ public partial class Main : Control
     }
     private void SaveSettings()
     {
-        try { SettingsStore.Save(_settingsPath,_settings); _indicateDirty=true; }
+        try { SettingsStore.Save(_settingsPath,_settings); _liveShare.Configure(_settings.LiveShare); _indicateDirty=true; }
         catch(Exception e) when(e is IOException or UnauthorizedAccessException) { _notice="設定を保存できません: "+e.Message; }
     }
     public override void _UnhandledKeyInput(InputEvent e)
@@ -345,8 +349,8 @@ public partial class Main : Control
         }
     }
     public override void _Notification(int what)
-    { if(what==NotificationWMCloseRequest) { _race.Stop(ConnectionManager.Now); SaveRace(); _exiting=true; _connection?.Dispose(); GetTree().Quit(); } }
-    public override void _ExitTree() { if(!_exiting) _connection?.Dispose(); }
+    { if(what==NotificationWMCloseRequest) { _race.Stop(ConnectionManager.Now); SaveRace(); _exiting=true; _liveShare?.Dispose(); _connection?.Dispose(); GetTree().Quit(); } }
+    public override void _ExitTree() { if(!_exiting) { _liveShare?.Dispose(); _connection?.Dispose(); } }
     private async void RunSmoke()
     {
         try
@@ -368,6 +372,8 @@ public partial class Main : Control
             using(var solveImage=GetViewport().GetTexture().GetImage()) solveImage.SavePng(Path.Combine(_smokeDirectory!,"solve-route.png"));
             ShowPage("settings"); _settingsTabs.CurrentTab=2; await ToSignal(GetTree().CreateTimer(.4),SceneTreeTimer.SignalName.Timeout); await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
             using(var calibrationImage=GetViewport().GetTexture().GetImage()) calibrationImage.SavePng(Path.Combine(_smokeDirectory!,"settings-calibration.png"));
+            _settingsTabs.CurrentTab=5; await ToSignal(GetTree().CreateTimer(.4),SceneTreeTimer.SignalName.Timeout); await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+            using(var liveImage=GetViewport().GetTexture().GetImage()) liveImage.SavePng(Path.Combine(_smokeDirectory!,"settings-live-share.png"));
             _race.Stop(ConnectionManager.Now);
             _vehicleSelector.Selected=3; _vehicleSelector.EmitSignal(OptionButton.SignalName.ItemSelected,3L);
             if(_settings.Vehicle!="none"||_settings.CanEnabled) throw new Exception("No-CAN UI selection failed");
@@ -380,7 +386,7 @@ public partial class Main : Control
             }
             var saved=SettingsStore.Load(_settingsPath,out var loadWarning);
             if(saved.Vehicle!="none"||saved.CanEnabled||loadWarning!=null) throw new Exception("No-CAN persistence failed");
-            File.WriteAllText(Path.Combine(_smokeDirectory!,"ui-smoke.json"),JsonSerializer.Serialize(new{passed=true,pages=11,noCanPersisted=true,tiles=_map.TileStatus}));
+            File.WriteAllText(Path.Combine(_smokeDirectory!,"ui-smoke.json"),JsonSerializer.Serialize(new{passed=true,pages=12,noCanPersisted=true,liveShareTab=true,tiles=_map.TileStatus}));
             GetTree().Quit();
         }
         catch(Exception e) { GD.PushError(e.ToString()); GetTree().Quit(1); }

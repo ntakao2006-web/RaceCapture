@@ -14,6 +14,9 @@ public partial class Main
     private Label _levelCalibration = null!;
     private double _levelQueryAt;
     private CheckButton _canToggle = null!;
+    private CheckButton _liveShareToggle = null!;
+    private Label _liveShareStatus = null!;
+    private LineEdit _liveChannel = null!;
     private SpinBox _lineLat = null!, _lineLon = null!, _lineBearing = null!;
     private void BuildSettings()
     {
@@ -27,6 +30,7 @@ public partial class Main
         BuildMapSettings(SettingsTab(tabs,"地図とIMU"));
         BuildLapSettings(SettingsTab(tabs,"ラップ計測"));
         BuildConnectionSettings(SettingsTab(tabs,"接続と保存"));
+        BuildLiveShareSettings(SettingsTab(tabs,"ライブ共有"));
     }
     private static VBoxContainer SettingsTab(TabContainer tabs,string title)
     {
@@ -150,6 +154,61 @@ public partial class Main
         actions.AddChild(Ui.Button("デモを切り替える",ToggleDemo));
         v.AddChild(new HSeparator()); v.AddChild(Ui.Label("保存先",23)); v.AddChild(Ui.Label(_data,16,Ui.Muted));
         v.AddChild(Ui.Button("保存フォルダーを開く",()=>OS.ShellOpen(_data)));
+    }
+    private void BuildLiveShareSettings(VBoxContainer v)
+    {
+        v.AddChild(Ui.Label("スマホへのリアルタイム共有",23));
+        v.AddChild(Ui.Note("EcoCaptureが受信した値をFirebaseへ1 Hzで送ります。キーの登録や入力はありません。\n共有URLを知っている人は位置を見られるため、URLは内輪だけで共有してください。"));
+        _liveShareToggle=Toggle("ライブ共有を有効にする",_settings.LiveShare.Enabled,x=> { _settings.LiveShare.Enabled=x; SaveSettings(); });
+        v.AddChild(_liveShareToggle);
+        v.AddChild(Ui.Label("Firebase Database URL",16,Ui.Muted));
+        v.AddChild(LiveText(_settings.LiveShare.ServerUrl,"https://プロジェクト名-default-rtdb.firebaseio.com",false,x=>_settings.LiveShare.ServerUrl=x));
+        v.AddChild(Ui.Label("スマホ表示サイトURL",16,Ui.Muted));
+        v.AddChild(LiveText(_settings.LiveShare.ViewerUrl,"https://プロジェクト名.web.app",false,x=>_settings.LiveShare.ViewerUrl=x));
+        v.AddChild(Ui.Label("共有URL ID（自動作成）",16,Ui.Muted));
+        _liveChannel=new LineEdit { Text=_settings.LiveShare.Channel,Editable=false,CustomMinimumSize=new(560,42),SizeFlagsHorizontal=SizeFlags.ExpandFill };
+        v.AddChild(_liveChannel);
+        v.AddChild(Toggle("デモ中の値も送る",_settings.LiveShare.IncludeDemo,x=> { _settings.LiveShare.IncludeDemo=x; SaveSettings(); }));
+        var actions=Ui.HBox(12); actions.AddChild(Ui.Button("接続確認",CheckLiveShare,true));
+        actions.AddChild(Ui.Button("共有URLをコピー",CopyLiveShare)); actions.AddChild(Ui.Button("スマホ表示を開く",OpenLiveShare)); v.AddChild(actions);
+        v.AddChild(Ui.Button("新しい共有URLを作る",RenewLiveShare));
+        _liveShareStatus=Ui.Label("無効",17,Ui.Muted); _liveShareStatus.AutowrapMode=TextServer.AutowrapMode.WordSmart; v.AddChild(_liveShareStatus);
+        v.AddChild(Ui.Note("送信は1秒に1点です。通信が止まった間は最大約1時間分を保持し、復帰後に順次送ります。履歴は8日前の日から削除します。"));
+    }
+    private LineEdit LiveText(string initial,string placeholder,bool secret,Action<string> changed,int width=0)
+    {
+        var input=new LineEdit { Text=initial,PlaceholderText=placeholder,Secret=secret,CustomMinimumSize=new(width>0?width:560,42),SizeFlagsHorizontal=SizeFlags.ExpandFill };
+        void Commit() { changed(input.Text.Trim()); SaveSettings(); }
+        input.TextSubmitted+=_=>Commit(); input.FocusExited+=Commit; return input;
+    }
+    private async void CheckLiveShare()
+    {
+        _liveShare.Configure(_settings.LiveShare); _liveShareStatus.Text="確認中…";
+        var ok=await _liveShare.CheckAsync(); _notice=ok?"ライブ共有サーバーへ接続できました。":"ライブ共有の設定を確認してください。";
+    }
+    private void OpenLiveShare()
+    {
+        var s=_settings.LiveShare;
+        if(!LiveShareUrl.ValidDatabase(s.ServerUrl)||!LiveShareUrl.ValidViewer(s.ViewerUrl)) { _notice="Firebaseとスマホ表示サイトのURLを設定してください。"; return; }
+        OS.ShellOpen(LiveShareUrl.Viewer(s.ViewerUrl,s.ServerUrl,s.Channel));
+    }
+    private void CopyLiveShare()
+    {
+        var s=_settings.LiveShare;
+        if(!LiveShareUrl.ValidDatabase(s.ServerUrl)||!LiveShareUrl.ValidViewer(s.ViewerUrl)) { _notice="Firebaseとスマホ表示サイトのURLを設定してください。"; return; }
+        DisplayServer.ClipboardSet(LiveShareUrl.Viewer(s.ViewerUrl,s.ServerUrl,s.Channel)); _notice="共有URLをコピーしました。";
+    }
+    private void RenewLiveShare()
+    {
+        _settings.LiveShare.Channel=LiveShareUrl.NewChannel(); _liveChannel.Text=_settings.LiveShare.Channel; SaveSettings();
+        _notice="新しい共有URLを作りました。以前のURLでは新しいデータを見られません。";
+    }
+    private void RefreshLiveShareSettings()
+    {
+        if(_page!="settings"||_liveShareStatus==null) return;
+        var status=_liveShare.Status;
+        _liveShareStatus.Text=$"状態：{status.Message}\n送信待ち：{status.Queued}点"+(status.LastSent.HasValue?$"　最終送信：{status.LastSent:HH:mm:ss}":"");
+        _liveShareStatus.AddThemeColorOverride("font_color",status.State=="error"?Ui.Red:status.State=="connected"?Ui.Text:Ui.Muted);
     }
     private void RefreshConnectionSettings()
     {

@@ -1,0 +1,13 @@
+{
+  "name": "ecocapture-live",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "dev": "firebase emulators:start --only hosting,database",
+    "deploy": "firebase deploy --only hosting,database"
+  },
+  "devDependencies": {
+    "firebase-tools": "^14.16.0"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "channels": {
+      "$channel": {
+        "latest": {
+          ".read": "$channel.matches(/^[a-z0-9_-]{24,48}$/)",
+          ".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)",
+          ".validate": "!newData.exists() || (newData.hasChildren(['t','deviceUs','d']) && newData.child('t').isNumber() && newData.child('t').val() > now - 604800000 && newData.child('t').val() < now + 300000 && newData.child('deviceUs').isNumber() && newData.child('d').hasChildren())"
+        },
+        "meta": {
+          ".read": "$channel.matches(/^[a-z0-9_-]{24,48}$/)",
+          "vehicle": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "newData.isString() && newData.val().length <= 32"},
+          "demo": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "newData.isBoolean()"},
+          "updatedAt": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "newData.isNumber()"}
+        },
+        "history": {
+          ".read": "$channel.matches(/^[a-z0-9_-]{24,48}$/)",
+          "$day": {
+            ".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/) && $day.matches(/^[0-9]{8}$/)",
+            "$point": {".validate": "!newData.exists() || (newData.hasChildren(['t','deviceUs','d']) && newData.child('t').isNumber() && newData.child('deviceUs').isNumber() && newData.child('d').hasChildren())"}
+          }
+        }
+      }
+    }
+  }
+}

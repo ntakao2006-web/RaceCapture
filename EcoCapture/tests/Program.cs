@@ -20,8 +20,8 @@ static class Program
         try
         {
             if(args.Contains("--bench")) return await Bench(args);
-            ProtocolTests(); SettingsTests(); NavigationTests(); LapTests(); SolveTests(); await ConnectionTests(); LinuxTests();
-            Console.WriteLine($"PASS: {checks} checks (protocol, settings, navigation, laps, solve, calibration, reconnect lifecycle)"); return 0;
+            ProtocolTests(); SettingsTests(); NavigationTests(); LapTests(); SolveTests(); await LiveShareTests(); await ConnectionTests(); LinuxTests();
+            Console.WriteLine($"PASS: {checks} checks (protocol, settings, navigation, laps, solve, calibration, live share, reconnect lifecycle)"); return 0;
         }
         catch(Exception e) { Console.Error.WriteLine(e); return 1; }
     }
@@ -55,14 +55,20 @@ static class Program
         s.Vehicle="none"; s.Validate(); Check(!s.CanEnabled&&Catalog.Sensors.Where(x=>s.CurrentSensors()[x.Id].Visible).All(x=>x.Source!="CAN"),"no CAN mode");
         Check(s.CurrentSensors()["VertAccel"].Visible&&s.CurrentSensors()["Lat"].Visible&&s.CurrentSensors()["Lon"].Visible&&s.CurrentSensors().Count(x=>x.Value.Visible)==9,"no CAN includes coordinates and corrected vertical acceleration");
         var old=new AppSettings{Version=1,Vehicle="none",Profiles=new(){{"none",new(){{"VertAccel",new(){Visible=false}}}}}}; old.Validate();
-        Check(old.Version==3&&old.CurrentSensors()["VertAccel"].Visible&&old.CurrentSensors()["Lat"].Visible&&old.CurrentSensors()["Lon"].Visible,"0.2 settings migrate vertical acceleration and coordinates into view");
+        Check(old.Version==5&&old.CurrentSensors()["VertAccel"].Visible&&old.CurrentSensors()["Lat"].Visible&&old.CurrentSensors()["Lon"].Visible,"older settings migrate vertical acceleration and coordinates into view");
         s.ImuAid=true; s.ForwardAxis="+Z"; s.UpAxis="-Z"; s.Validate(); Check(!s.ImuAid,"invalid mount axes disable fusion");
         var directory=Path.Combine(Path.GetTempPath(),"EcoCaptureTests",Guid.NewGuid().ToString("N")); Directory.CreateDirectory(directory);
+        var shareId=LiveShareUrl.NewChannel();
+        s.LiveShare=new(){Enabled=true,ServerUrl="https://demo-default-rtdb.firebaseio.com/",ViewerUrl="https://demo.web.app/",Channel=shareId};
         var path=Path.Combine(directory,"settings.json"); SettingsStore.Save(path,s); var restored=SettingsStore.Load(path,out var warning);
         Check(restored.Vehicle=="none"&&!restored.CanEnabled&&warning==null,"atomic settings roundtrip");
+        Check(restored.LiveShare.Enabled&&restored.LiveShare.ServerUrl=="https://demo-default-rtdb.firebaseio.com"&&restored.LiveShare.ViewerUrl=="https://demo.web.app"&&restored.LiveShare.Channel==shareId,"live share settings persist");
         File.WriteAllText(path,"broken"); restored=SettingsStore.Load(path,out warning);
         Check(warning!=null&&File.ReadAllText(path)=="broken","corrupt settings retained");
         s.Vehicle="unknown"; s.CanEnabled=true; s.Validate(); Check(s.Vehicle=="none"&&!s.CanEnabled,"unknown profile falls back to no CAN");
+        s.LiveShare=new(){Enabled=true,ServerUrl="file:///tmp/data",Channel="BAD CHANNEL"}; s.Validate();
+        Check(s.LiveShare.Enabled&&LiveShareUrl.ValidChannel(s.LiveShare.Channel),"live share invalid ID is replaced without silently changing opt-in");
+        Check(!LiveShareUrl.ValidDatabase("http://example.com")&&LiveShareUrl.ValidDatabase("http://localhost:9000")&&LiveShareUrl.ValidDatabase("https://demo.europe-west1.firebasedatabase.app")&&!LiveShareUrl.ValidDatabase("https://live.example"),"live share accepts Firebase HTTPS and local emulator only");
     }
     static void NavigationTests()
     {
@@ -116,6 +122,22 @@ static class Program
         var route=RouteParser.Load(path); Check(route.Points.Count==2,"route deduplicates held GNSS values"); Near(route.Summary.AverageSpeedKmh,45,.01,"route average speed"); Check(route.Summary.DistanceKm>0,"route distance");
         var ordered=LogTransfer.OrderedPrimaryLogs(new[]{new RemoteLog("old.csv",100,999,false,2),new RemoteLog("new.csv",100,1,false,8),new RemoteLog("active.csv",100,2,true,9),new RemoteLog("new_can.csv",10,1,false,10)});
         Check(ordered.Select(x=>x.Name).SequenceEqual(new[]{"new.csv","old.csv","active.csv"}),"Solve selects newest closed log by SD directory order");
+    }
+    static async Task LiveShareTests()
+    {
+        var handler=new LiveHandler(); using var client=new LiveShareClient(handler,false);
+        var channel=LiveShareUrl.NewChannel();
+        var settings=new LiveShareSettings { Enabled=true,ServerUrl="https://demo-default-rtdb.firebaseio.com",ViewerUrl="https://demo.web.app",Channel=channel };
+        client.Configure(settings); var now=DateTimeOffset.UtcNow;
+        client.Offer(Frame(1),"none",false,now); client.Offer(Frame(1.1),"none",false,now.AddMilliseconds(100));
+        client.Offer(Frame(2),"none",false,now.AddSeconds(1)); client.Offer(Frame(3),"none",true,now.AddSeconds(2));
+        Check(client.Status.Queued==2,"live share downsamples and excludes demo by default");
+        Check(await client.FlushAsync(),"live share uploads one 1Hz point"); Check(client.Status.Queued==1,"one successful request drains one point");
+        Check(await client.FlushAsync()&&client.Status.Queued==0,"queued point uploads on the next second");
+        Check(handler.PatchBodies.All(x=>x.Contains("\"latest\"")&&x.Contains("\"history/")&&x.Contains("\"t\"")&&x.Contains("\"d\"")&&x.Contains("\"Lat\"")),"Firebase atomic PATCH contains camel-case latest and history");
+        Check(handler.Authorization==null&&handler.Urls.All(x=>x.Contains($"/channels/{channel}")),"live share needs no registered key and scopes requests to random URL ID");
+        Check(await client.CheckAsync()&&client.Status.State=="connected","live share verifies Firebase rules");
+        Check(LiveShareUrl.Viewer("https://demo.web.app/","https://demo-default-rtdb.firebaseio.com/",channel).Contains($"?id={channel}&db=https%3A%2F%2Fdemo-default-rtdb.firebaseio.com"),"viewer URL carries only database and random ID");
     }
     static void LinuxTests()
     {
@@ -217,5 +239,15 @@ static class Program
             if(text.Contains("listLogs")) Queue("{\"logs\":{\"files\":[{\"name\":\"drive.csv\",\"bytes\":10}],\"next\":null}}");
         }
         public void Dispose() { if(!disposed) { disposed=true; factory.Freeze=false; factory.Disposed++; } }
+    }
+    sealed class LiveHandler : HttpMessageHandler
+    {
+        public string? Authorization; public List<string> PatchBodies=new(); public List<string> Urls=new();
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken cancellationToken)
+        {
+            Authorization=request.Headers.Authorization?.Parameter; Urls.Add(request.RequestUri!.ToString());
+            if(request.Method==HttpMethod.Patch) PatchBodies.Add(await request.Content!.ReadAsStringAsync(cancellationToken));
+            return new HttpResponseMessage(request.Method==HttpMethod.Patch?System.Net.HttpStatusCode.NoContent:System.Net.HttpStatusCode.OK) { Content=new StringContent("null") };
+        }
     }
 }

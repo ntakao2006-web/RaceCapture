@@ -43,6 +43,7 @@ powershell -ExecutionPolicy Bypass -File tools/build.ps1 -LinuxArm64
 - `UI`：Godot C#の画面。UI試験モードを含む。
 - `tests`：Godotに依存しないコア／通信試験。
 - `tools`：ビルド、実機ベンチ、実機UI試験ドライバー。
+- `cloud`：Firebase Realtime Database / Hosting向けライブ共有。配備手順は同フォルダーのREADME。
 - `artifacts`：実測結果、画面、位置を含む試験設定。Git・配布物から除外。
 - `dist`：生成した実行ファイルと配布ZIP。Gitから除外。
 
