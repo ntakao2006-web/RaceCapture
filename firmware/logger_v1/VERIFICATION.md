@@ -4,6 +4,15 @@
 停止時CSVの全行集計、実機復旧3回、SD記録の継続、RaceCapture表示、約46秒の復帰後観測の
 結果と制限は [IMU_RECOVERY.md](IMU_RECOVERY.md) を参照してください。以下は以前の検証履歴です。
 
+## SYS LED常時点灯（2026-09-02）
+
+- SYS LEDを500 ms周期の点滅から、起動後のsampling task動作中は常時点灯へ変更。
+- ERR、LOG、GPS、TLM、CANの表示条件は変更していない。
+- ビルド表示は `logger-v1-ecocapture-20260902a`。通常ファームをA105のCOM8から書込み、bootloader・partition・applicationのFlashハッシュ照合に成功。
+- 書込み前にSDを同期・安全クローズ。再起動後は自動的に記録を再開し、32秒時点で3,233行、SD欠落・SDエラー・IMUエラー0、CANはlisten-onlyを維持。
+- 保存先は `artifacts/release_20260902_sys_solid/firmware.bin`。615,056 bytes、SHA-256 `2252311e266c0f97b74a72b3675d4a7ca9314939ae7d8f3176a09132554dea4d`。
+- C++17のASan/UBSan付きホスト試験4本とPlatformIO実機ビルドに合格。SYS LEDが点滅せず点灯を維持することの最終確認は基板の目視による。
+
 対象: `circuit/logger_v1` 実装基板、要求基準Git `cf1c711`。
 この記録は卓上試験の範囲を示します。実車・全機能の量産品質保証ではありません。
 

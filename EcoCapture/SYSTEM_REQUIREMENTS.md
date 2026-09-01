@@ -1,4 +1,4 @@
-# EcoCapture 0.3.4 システム要件
+# EcoCapture 0.3.5 システム要件
 
 この文書は現在の配布版を対象にします。Windows版は実機確認済み、Linux ARM64版はビルドと通信部の擬似端末試験までで、Raspberry Pi 4／ROCK 5B実機では未確認です。
 

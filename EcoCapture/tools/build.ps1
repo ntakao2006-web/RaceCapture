@@ -27,7 +27,7 @@ try {
         if (-not (Test-Path -LiteralPath (Join-Path $directory $item.Binary))) { throw 'Export did not produce executable' }
         Copy-Item -LiteralPath README.md, SYSTEM_REQUIREMENTS.md, LINUX.md, BUILD.md, VERIFICATION.md -Destination $directory -Force
         Copy-Item -LiteralPath licenses -Destination $directory -Recurse -Force
-        $archive = Join-Path dist ('EcoCapture-0.3.4-' + $item.Tag + '.zip')
+        $archive = Join-Path dist ('EcoCapture-0.3.5-' + $item.Tag + '.zip')
         Compress-Archive -Path $directory -DestinationPath $archive -Force
         Get-FileHash -LiteralPath $archive -Algorithm SHA256
     }

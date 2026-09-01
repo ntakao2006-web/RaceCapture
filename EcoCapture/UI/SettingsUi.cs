@@ -158,7 +158,7 @@ public partial class Main
     private void BuildLiveShareSettings(VBoxContainer v)
     {
         v.AddChild(Ui.Label("スマホへのリアルタイム共有",23));
-        v.AddChild(Ui.Note("キー登録やサーバー設定はありません。共有リンクを知っている人だけが位置を確認できます。\nリンクは内輪だけで共有してください。デモ中の値は送信しません。"));
+        v.AddChild(Ui.Note("キー登録やサーバー設定はありません。共有リンクを知っている人だけが位置を確認できます。\nリンクは内輪だけで共有してください。デモ中の値も送信し、Web側にDEMOと表示します。"));
         v.AddChild(Ui.Label("1　共有リンクを作る",18));
         v.AddChild(Ui.Button("共有リンクを作ってコピー",RenewLiveShare,true));
         _liveLink=new LineEdit { Text=LiveShareService.Link(_settings.LiveShare.Channel),Editable=false,PlaceholderText="共有リンクはここに表示されます",CustomMinimumSize=new(560,42),SizeFlagsHorizontal=SizeFlags.ExpandFill };

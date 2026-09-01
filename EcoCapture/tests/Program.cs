@@ -96,7 +96,10 @@ static class Program
     }
     static void DemoTests()
     {
-        var demo=new DemoSource(1000); var distance=0d; var expected=0d;
+        var demo=new DemoSource(1000,DateTimeOffset.FromUnixTimeSeconds(1788284160)); var distance=0d; var expected=0d;
+        var contract=DemoSource.LoggerChannels.ToHashSet(StringComparer.Ordinal); var first=demo.Frame(1000);
+        Check(contract.Count==81&&contract.SetEquals(first.Values.Keys),"demo exposes exactly the current USB-OTG schema channels");
+        Check(first.Schema==DemoSource.LoggerSchema&&first.Values.Values.All(double.IsFinite),"demo uses USB schema revision and finite values");
         for(var i=0;i<100;i++)
         {
             var a=demo.Frame(1000+i*.1); var b=demo.Frame(1000+(i+1)*.1);
@@ -144,11 +147,13 @@ static class Program
         var settings=new LiveShareSettings { Enabled=true,ServerUrl="https://demo-default-rtdb.firebaseio.com",ViewerUrl="https://demo.web.app",Channel=channel };
         client.Configure(settings); var now=DateTimeOffset.UtcNow;
         client.Offer(Frame(1),"none",false,now); client.Offer(Frame(1.1),"none",false,now.AddMilliseconds(100));
-        client.Offer(Frame(2),"none",false,now.AddSeconds(1)); client.Offer(Frame(3),"none",true,now.AddSeconds(2));
-        Check(client.Status.Queued==2,"live share downsamples and excludes demo by default");
-        Check(await client.FlushAsync(),"live share uploads one 1Hz point"); Check(client.Status.Queued==1,"one successful request drains one point");
-        Check(await client.FlushAsync()&&client.Status.Queued==0,"queued point uploads on the next second");
+        client.Offer(Frame(2),"none",false,now.AddSeconds(1)); client.Offer(new DemoSource(0,now).Frame(3),"none",true,now.AddSeconds(2));
+        Check(client.Status.Queued==3,"live share downsamples and includes explicit demo data");
+        Check(await client.FlushAsync(),"live share uploads one 1Hz point"); Check(client.Status.Queued==2,"one successful request drains one point");
+        Check(await client.FlushAsync()&&await client.FlushAsync()&&client.Status.Queued==0,"real and demo points upload in order");
         Check(handler.PatchBodies.All(x=>x.Contains("\"latest\"")&&x.Contains("\"history/")&&x.Contains("\"t\"")&&x.Contains("\"d\"")&&x.Contains("\"Lat\"")),"Firebase atomic PATCH contains camel-case latest and history");
+        Check(handler.PatchBodies.Count==3&&handler.PatchBodies[0].Contains("\"meta/demo\":false")&&handler.PatchBodies[2].Contains("\"meta/demo\":true"),"demo flag follows each queued point so Web labels demo data");
+        Check(handler.PatchBodies[2].Contains("\"demo\":true")&&handler.PatchBodies[2].Contains("\"vehicle\":\"none\""),"each latest/history point is self-describing when Web was opened before sharing");
         Check(handler.Authorization==null&&handler.Urls.All(x=>x.Contains($"/channels/{channel}")),"live share needs no registered key and scopes requests to random URL ID");
         Check(await client.CheckAsync()&&client.Status.State=="connected","live share verifies Firebase rules");
         Check(LiveShareUrl.Viewer("https://demo.web.app/",channel)==$"https://demo.web.app?id={channel}","viewer URL is a normal web link with only the random ID");
@@ -217,11 +222,17 @@ static class Program
                 if(f.Get("IMULink")==1&&f.Get("IMUErr")==0&&f.Get("SDPass")==1) required++; }
             await Task.Delay(10);
         }
+        var usbChannels=manager.SchemaChannels.ToHashSet(StringComparer.Ordinal); var demoFrame=new DemoSource(ConnectionManager.Now).Frame(ConnectionManager.Now);
+        var demoChannels=demoFrame.Values.Keys.ToHashSet(StringComparer.Ordinal);
+        var missingInDemo=usbChannels.Except(demoChannels).Order().ToArray(); var extraInDemo=demoChannels.Except(usbChannels).Order().ToArray();
+        var schemaEquivalent=prior!=null&&prior.Schema==DemoSource.LoggerSchema&&demoFrame.Schema==prior.Schema&&missingInDemo.Length==0&&extraInDemo.Length==0;
         var report=new{samples,healthySamples=required,durationSeconds=seconds,sampleWindowSeconds=lastTime-firstTime,info=manager.Info,
             minimumInterval=gaps.Count>0?gaps.Min():0,maximumInterval=gaps.Count>0?gaps.Max():0,status=manager.Status,states,
-            finalValues=prior?.Values.Where(x=>new[]{"GPSSats","GPSFix","IMULink","IMUErr","IMUHz","GNSSHz","SDPass","LogDrops"}.Contains(x.Key)).ToDictionary(x=>x.Key,x=>x.Value)};
+            usbSchema=prior?.Schema,expectedSchema=DemoSource.LoggerSchema,usbChannels=usbChannels.Order(),demoChannels=demoChannels.Order(),
+            schemaEquivalent,missingInDemo,extraInDemo,finalValues=prior?.Values};
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!); File.WriteAllText(output,JsonSerializer.Serialize(report,new JsonSerializerOptions{WriteIndented=true}));
-        Console.WriteLine($"samples={samples}, healthy={required}, connections={manager.Info.Connections}"); return samples>=seconds*5&&required==samples?0:1;
+        Console.WriteLine($"samples={samples}, healthy={required}, connections={manager.Info.Connections}, schemaEquivalent={schemaEquivalent}");
+        return samples>=seconds*5&&required==samples&&schemaEquivalent?0:1;
     }
     sealed class FakeFactory : IWireFactory
     {

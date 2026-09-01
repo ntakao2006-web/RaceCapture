@@ -40,6 +40,8 @@ public sealed record LiveShareStatus(string State,string Message,int Queued,Date
     public static LiveShareStatus Off => new("off","無効",0,null);
 }
 public sealed record LivePoint(long T, ulong DeviceUs, IReadOnlyDictionary<string,double> D);
+internal sealed record QueuedLivePoint(LivePoint Point,string Vehicle,bool Demo);
+internal sealed record SharedLivePoint(long T,ulong DeviceUs,IReadOnlyDictionary<string,double> D,string Vehicle,bool Demo);
 
 public sealed class LiveShareClient : IDisposable
 {
@@ -52,11 +54,9 @@ public sealed class LiveShareClient : IDisposable
     private readonly object _gate = new();
     private readonly HttpClient _http;
     private readonly CancellationTokenSource _stop = new();
-    private readonly List<LivePoint> _queue = new();
+    private readonly List<QueuedLivePoint> _queue = new();
     private LiveShareSettings _settings = new();
     private LiveShareStatus _status = LiveShareStatus.Off;
-    private string _vehicle = "none";
-    private bool _demo;
     private long _lastPointMs;
     private DateTimeOffset _nextAttempt = DateTimeOffset.MinValue;
     private string _lastPrunedDay = "";
@@ -66,7 +66,7 @@ public sealed class LiveShareClient : IDisposable
     {
         _http=handler==null?new HttpClient():new HttpClient(handler);
         _http.Timeout=TimeSpan.FromSeconds(10);
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("EcoCapture/0.3.4");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("EcoCapture/0.3.5");
         if(autoStart) _loop=Task.Run(RunAsync);
     }
     public LiveShareStatus Status { get { lock(_gate) return _status with { Queued=_queue.Count }; } }
@@ -75,7 +75,7 @@ public sealed class LiveShareClient : IDisposable
         lock(_gate)
         {
             _settings=new() { Enabled=value.Enabled,ServerUrl=(value.ServerUrl??"").Trim().TrimEnd('/'),
-                ViewerUrl=(value.ViewerUrl??"").Trim().TrimEnd('/'),Channel=(value.Channel??"").Trim().ToLowerInvariant(),IncludeDemo=value.IncludeDemo };
+                ViewerUrl=(value.ViewerUrl??"").Trim().TrimEnd('/'),Channel=(value.Channel??"").Trim().ToLowerInvariant() };
             if(!_settings.Enabled) _status=LiveShareStatus.Off;
             else if(!Ready(_settings)) _status=new("error","Firebase URLまたは共有URL IDを確認してください。",_queue.Count,_status.LastSent);
             else if(_status.State is "off" or "error") _status=new("waiting","1 Hz送信待ち",_queue.Count,_status.LastSent);
@@ -86,11 +86,11 @@ public sealed class LiveShareClient : IDisposable
         var at=(utc??DateTimeOffset.UtcNow).ToUnixTimeMilliseconds();
         lock(_gate)
         {
-            if(!_settings.Enabled||!Ready(_settings)||demo&&!_settings.IncludeDemo||at-_lastPointMs<1000) return;
+            if(!_settings.Enabled||!Ready(_settings)||at-_lastPointMs<1000) return;
             var values=new Dictionary<string,double>(StringComparer.Ordinal);
             foreach(var key in Channels) if(frame.Get(key) is double value&&double.IsFinite(value)) values[key]=value;
             if(values.Count==0) return;
-            _lastPointMs=at; _vehicle=vehicle; _demo=demo; _queue.Add(new(at,frame.DeviceUs,values));
+            _lastPointMs=at; _queue.Add(new(new(at,frame.DeviceUs,values),vehicle,demo));
             if(_queue.Count>3600) _queue.RemoveRange(0,_queue.Count-3600);
             _status=new("waiting","1 Hz送信待ち",_queue.Count,_status.LastSent);
         }
@@ -110,18 +110,20 @@ public sealed class LiveShareClient : IDisposable
     }
     public async Task<bool> FlushAsync(CancellationToken cancellationToken=default)
     {
-        LiveShareSettings settings; LivePoint point; string vehicle; bool demo;
+        LiveShareSettings settings; QueuedLivePoint queued;
         lock(_gate)
         {
             settings=_settings; if(!settings.Enabled||!Ready(settings)||_queue.Count==0) return false;
-            point=_queue[0]; vehicle=_vehicle; demo=_demo; _status=new("sending","送信中",_queue.Count,_status.LastSent);
+            queued=_queue[0]; _status=new("sending","送信中",_queue.Count,_status.LastSent);
         }
         try
         {
+            var point=queued.Point;
+            var shared=new SharedLivePoint(point.T,point.DeviceUs,point.D,queued.Vehicle,queued.Demo);
             var day=DateTimeOffset.FromUnixTimeMilliseconds(point.T).UtcDateTime.ToString("yyyyMMdd");
             var body=new Dictionary<string,object?> {
-                ["latest"]=point,["meta/vehicle"]=vehicle,["meta/demo"]=demo,["meta/updatedAt"]=point.T,
-                [$"history/{day}/{point.T}"]=point
+                ["latest"]=shared,["meta/vehicle"]=queued.Vehicle,["meta/demo"]=queued.Demo,["meta/updatedAt"]=point.T,
+                [$"history/{day}/{point.T}"]=shared
             };
             using var request=new HttpRequestMessage(HttpMethod.Patch,$"{settings.ServerUrl}/channels/{settings.Channel}.json?print=silent")
                 { Content=new StringContent(JsonSerializer.Serialize(body,JsonOptions),Encoding.UTF8,"application/json") };
@@ -133,7 +135,7 @@ public sealed class LiveShareClient : IDisposable
             }
             lock(_gate)
             {
-                if(_queue.Count>0&&_queue[0].T==point.T) _queue.RemoveAt(0);
+                if(_queue.Count>0&&_queue[0].Point.T==point.T) _queue.RemoveAt(0);
                 _status=new("connected","1 Hzで送信中",_queue.Count,DateTimeOffset.Now);
             }
             if(_lastPrunedDay!=day)

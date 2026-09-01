@@ -32,6 +32,8 @@ public partial class Main
                 GD.VarToStr(Engine.GetCopyrightInfo())+"\n\n"+string.Join("\n\n",licenses.Select(p=>p.Key+"\n"+p.Value)));
             await WaitUi(()=>_frame?.Fresh(ConnectionManager.Now)==true&&_frame.Get("GPSFix")>=2);
             Verify("real_usb_not_demo",_demo==null&&_connection.Info.State=="connected");
+            var usbSchema=_frame!.Schema; var usbChannels=_connection.SchemaChannels.ToHashSet(StringComparer.Ordinal);
+            Verify("usb_schema_contract",usbSchema==DemoSource.LoggerSchema&&usbChannels.Count==DemoSource.LoggerChannels.Length);
             Verify("no_can_traffic",_frame!.Get("CAN1Rx")==0&&_frame.Get("CAN2Rx")==0);
             Verify("imu_and_sd_healthy",_frame.Get("IMULink")==1&&_frame.Get("IMUErr")==0&&_frame.Get("SDPass")==1);
             var calibrationFrames=new List<TelemetryFrame>(); ulong calibrationUs=ulong.MaxValue;
@@ -90,6 +92,8 @@ public partial class Main
             var realCount=Directory.GetFiles(Path.Combine(_data,"sessions"),"*.json").Length;
             ToggleDemo(); await WaitUi(()=>_connection.Info.State=="paused");
             Verify("demo_explicit_and_usb_released",_demo!=null&&_race.StartedAt<0&&_connection.Latest==null);
+            await WaitUi(()=>_frame?.Fresh(ConnectionManager.Now)==true&&_demo!=null,3);
+            Verify("demo_usb_schema_equivalent",_frame!.Schema==usbSchema&&usbChannels.SetEquals(_frame.Values.Keys));
             ToggleRace(); await ToSignal(GetTree().CreateTimer(1.1),SceneTreeTimer.SignalName.Timeout);
             _race.Mark(ConnectionManager.Now); ToggleRace(); ToggleDemo();
             Verify("demo_results_separate",Directory.GetFiles(Path.Combine(_data,"demo-sessions"),"*.json").Length==1&&Directory.GetFiles(Path.Combine(_data,"sessions"),"*.json").Length==realCount);

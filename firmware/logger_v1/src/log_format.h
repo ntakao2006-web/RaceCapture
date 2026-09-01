@@ -4,7 +4,7 @@
 #include <ctime>
 
 namespace logger {
-inline constexpr const char *LOGGER_BUILD = "logger-v1-ecocapture-20260901k";
+inline constexpr const char *LOGGER_BUILD = "logger-v1-ecocapture-20260902a";
 // Absolute time is optional. Never invent a date before GNSS resolves UTC.
 inline void logBaseName(char *out, size_t size, uint32_t boot, uint32_t segment,
                         int64_t boot_utc_us) {

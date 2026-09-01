@@ -60,7 +60,9 @@ static void samplingTask(void *) {
             bool gps_ok = channels[LAT].available && fresh(now, channels[LAT].updated_us, 1500);
             bool error =
                 (!stats.sd_ok && !stats.sd_ready) || !imu_ok || !stats.can1_ok || !stats.can2_ok || !stats.lua_ok;
-            uint8_t bits = ((now / 500000) & 1) ? 1 : 0;
+            // SYS is a steady power/running indicator. Other LEDs retain their
+            // status-specific solid/blinking behavior below.
+            uint8_t bits = 1;
             if (error)
                 bits |= 2;
             if (stats.sd_ok && stats.logging)

@@ -18,8 +18,10 @@ public sealed class ConnectionManager : IDisposable
     private Task? _worker;
     private int _reconnect, _paused, _disposed;
     private TelemetryFrame? _latest;
+    private IReadOnlyList<string> _schemaChannels = Array.Empty<string>();
     private ConnectionInfo _info = new("waiting", "EcoLoggerのUSB接続を待っています", "", 0, 0, 0, "");
     public TelemetryFrame? Latest => Volatile.Read(ref _latest);
+    public IReadOnlyList<string> SchemaChannels => Volatile.Read(ref _schemaChannels);
     public ConnectionInfo Info => Volatile.Read(ref _info);
     public IReadOnlyDictionary<string, string> Status => Volatile.Read(ref _status);
     private IReadOnlyDictionary<string, string> _status = new Dictionary<string,string>();
@@ -46,6 +48,7 @@ public sealed class ConnectionManager : IDisposable
             Interlocked.Exchange(ref _reconnect, 0);
             if (Volatile.Read(ref _paused) != 0) { Set("paused", "USB接続を休止中"); _wake.WaitOne(500); continue; }
             Volatile.Write(ref _latest, null);
+            Volatile.Write(ref _schemaChannels, Array.Empty<string>());
             Volatile.Write(ref _status, new Dictionary<string,string>());
             try
             {
@@ -121,6 +124,7 @@ public sealed class ConnectionManager : IDisposable
                         if (root.TryGetProperty("s", out var sample))
                         {
                             var frame = decoder.Decode(sample, Now);
+                            Volatile.Write(ref _schemaChannels,decoder.Metadata.Select(x=>x.Name).ToArray());
                             // A CDC connection can survive a logger power event while returning one
                             // cached snapshot repeatedly.  Only advancing logger time proves that live
                             // acquisition has resumed; otherwise the UI must not claim to be connected.

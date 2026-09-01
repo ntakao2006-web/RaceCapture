@@ -23,7 +23,7 @@ for tag, directory, binary, expected in (
         assert data[:6] == b"\x7fELF\x02\x01", "Expected 64-bit little-endian ELF"
         machine = struct.unpack_from("<H", data, 18)[0]
     assert machine == expected
-    archive = dist/("EcoCapture-0.3.4-"+tag+".zip")
+    archive = dist/("EcoCapture-0.3.5-"+tag+".zip")
     with zipfile.ZipFile(archive) as z:
         assert z.testzip() is None
         names = [n.replace("\\", "/") for n in z.namelist()]
@@ -42,5 +42,5 @@ for tag, directory, binary, expected in (
                     "zip_bytes": archive.stat().st_size, "zip_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
                     "archive_entries": len(names), "runtime": options["includedFrameworks"], "passed": True}
 (root/"artifacts/package-audit.json").write_text(json.dumps(reports, indent=2), encoding="utf-8")
-(dist/"SHA256SUMS.txt").write_text("".join(r["zip_sha256"]+"  EcoCapture-0.3.4-"+tag+".zip\n" for tag, r in reports.items()), encoding="ascii")
+(dist/"SHA256SUMS.txt").write_text("".join(r["zip_sha256"]+"  EcoCapture-0.3.5-"+tag+".zip\n" for tag, r in reports.items()), encoding="ascii")
 print(json.dumps(reports, indent=2))

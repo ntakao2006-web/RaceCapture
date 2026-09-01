@@ -96,7 +96,6 @@ public sealed class LiveShareSettings
     public string ServerUrl { get; set; } = "";
     public string ViewerUrl { get; set; } = "";
     public string Channel { get; set; } = LiveShareUrl.NewChannel();
-    public bool IncludeDemo { get; set; }
 }
 public sealed class AppSettings
 {

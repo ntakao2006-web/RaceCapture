@@ -1,15 +1,17 @@
 # EcoCapture 検証記録
 
-## 0.3.4 ライブ共有
+## 0.3.5 ライブ共有・デモ/USB同等性
 
 - Settingsを「共有リンクを作ってコピー」「データ共有をON」「ブラウザで確認」の3操作に整理。Firebase URL、共有ID、キーの入力欄は設けない。
 - 受信フレームを1 Hzへ間引き、1リクエストで最新値と日別履歴を原子的に更新する。HTTP失敗は表示・SD記録から分離して再試行する。
 - 7日分を残し、8日前の日を削除する。送信待ちは最大約1時間に制限する。
 - スマホ画面はFirebase RESTのストリーミング接続で最新値を受信し、直近30分の走行経路を描く。
-- .NET 82チェックで設定移行、URL制約、1 Hz間引き、デモ除外、キーなしPATCH、履歴、閲覧URL、デモ運動の速度・距離整合、既存機能を確認。
+- デモを現行USB-OTGのschema revision 83・81チャンネル契約へ合わせ、デモと実機が同じ `TelemetryFrame` 以降の処理を通るようにした。
+- .NETチェックで設定移行、URL制約、1 Hz間引き、デモ共有、実測／デモ属性のキュー保持、キーなしPATCH、履歴、閲覧URL、デモ運動の速度・距離整合、デモ/USBスキーマ同等性、既存機能を確認。
 - Web 4チェックで共有URL ID、Firebase URL、ストリームイベントの解釈、経路グリッドの実距離目盛りを確認。
-- Windows配布EXEそのものを起動し、全12画面、ライブ共有タブ、車載CANなし設定の保存を確認。
-- Firebase SparkへRealtime Databaseルールと閲覧ページを実配備。公開ページ200、匿名PATCH 204、共有ID配下の読出し200、全チャンネル一覧の読出し401、検証データ削除200を確認。
+- Windows配布EXEそのものを起動し、39項目、全24画面画像、ライブ共有タブ、車載CANなし設定の保存を確認。
+- Firebase Sparkへ更新後の閲覧ページを実配備。公開ページ上でUSB-OTG相当点（DEMOなし）を表示後、同じ接続のままデモ点（`DEMO · デモ検証`）へライブ更新できた。点内の属性と逆の古い共有メタを故意に置いても、点内の車体・DEMO属性を優先することを確認。
+- 公開データベースへの匿名PATCH 204、共有ID配下の読出し、検証データの個別削除200、削除後のlatest/meta/historyがすべてnullであることを確認。
 - デモの表示速度35～61 km/hに対して従来の円弧移動が約20～31 km/hだった不整合を修正。位置、積算距離、ヨー角速度、前後・左右加速度を同じ速度積分から生成する。
 
 検証日：2026-09-02。Windows実装、UI、Linux用通信を対象とした卓上検証です。
@@ -17,7 +19,7 @@
 ## 実機条件
 
 - EcoLogger：実装済みlogger_v1基板。既存の起動済みロガーを使用。
-- ファーム表示：`2.17.0 / logger-v1-ecocapture-20260901j`。
+- ファーム表示：`2.17.0 / logger-v1-ecocapture-20260901k`。
 - GNSS / IMU / SDを動作させ、車載CANとセンサCANは接続しない。
 - アプリ接続：ネイティブUSB COM10。診断は既存書込み機のCOM8。
 - UI試験の設定は専用フォルダーへ分離。ユーザーの設定や既存SDファイルは変更しない。
@@ -27,9 +29,9 @@
 
 | 区分 | 結果・内容 |
 |---|---|
-| コアとWindows通信 | 62チェック合格。81チャンネル疎配列、欠測、設定、位置、ラップ、水平補正行列、Solve解析、再接続、コマンドとテレメトリの同時処理 |
+| コアとWindows通信 | 86チェック合格。81チャンネル疎配列、欠測、設定、位置、ラップ、水平補正行列、Solve解析、再接続、ライブ共有の点内属性、コマンドとテレメトリの同時処理 |
 | Linux通信 | 67チェック合格。共通62項目に加え実Linux PTYで作成・読み書き・切断などを確認 |
-| EXE実機UI | 37チェック合格。全5画面、Settings全5タブ、全4車種、CANなし、水平補正、SolveのSD一覧・取得・経路描画を確認 |
+| EXE実機UI | 39チェック合格。全5画面、Settings全5タブ、全4車種、CANなし、水平補正、SolveのSD一覧・取得・経路描画、実機/デモのschema revision 83・81チャンネル完全一致を確認 |
 | Race | 手動ラップ、JSON/CSV保存、USB切断中の時間継続、速度の欠測表示、復帰、CANなしでのRPM非表示 |
 | デモ | 明示切替、USB解放、実測との保存先分離、実測受信への復帰 |
 | Maps | ワイド表示、標準横1 km、0.5 / 1 / 2 / 4 / 8 km、淡色／標準、オフラインキャッシュを確認 |
@@ -51,7 +53,17 @@
 
 EXEのUI試験でもRace表示中にUSBだけを1回外し、計測が続くことを確認しました。デモ往復と手動再接続も確認しています。検証用UART操作は `testUsbReconnect` の `LOGGER_USB_ONLY` に限定しました。
 
-最終配布EXEの37項目試験では、SDが3,943行増加し、SD欠落／SDエラー／IMUエラーの増加なし、本体再起動なし、CAN送受信なしでした。試験中だけ水平補正を有効化し、終了時に無効・単位行列へ戻したことも読戻しました。
+最終配布EXE 0.3.5の39項目試験では、SDが4,911行増加し、SD欠落／SDエラー／IMUエラーの増加なし、本体再起動なし、CAN送受信なしでした。USBだけを一度切断して自動復帰し、実機→デモ→実機の切替後も受信を継続しました。試験中だけ水平補正を有効化し、終了時に元の設定へ戻したことも読戻しました。
+
+## SD未挿入起動と後挿し
+
+既存ファームを書き換えず、A105（COM8）とネイティブUSB（COM10）で実機確認しました。
+
+- SDを安全クローズして抜去後、ENによる再起動を実施。約1 / 4 / 7 / 10 / 13 / 16秒以降も約3秒周期で `ESP_ERR_TIMEOUT (will retry; NEVER format)` を確認。
+- SDなしでは `logging.status=0`、記録行0、ファイル名なし。並行してGPS、IMU、USB通信は正常で、IMU/GNSSエラー0。
+- 電源とENを触らずSDを後挿し。次の再試行で `/sdcard/logs/20260902_025208_JST_LDCE75A88_0000.csv` を作成し、`logging.status=1`、1,287行まで増加。uptimeは継続しており再起動なし。
+- その後の配布EXE試験終了時は8,474行、試験区間で4,911行増加。SDエラー・欠落・IMUエラーの追加なし。
+- LOG LEDの論理条件（記録中のみ点灯）はソースと状態値で一致。SD後挿しで `logging.status=1`・記録行増加中に、基板上のLOG LED点灯を使用者が目視確認した。
 
 これは電源を落とさないUSB detachの試験です。物理的な電源断、Windowsのスリープ復帰、ケーブルやハブ固有の障害までは確認していません。
 
@@ -86,9 +98,10 @@ Windows x64 EXEと同梱ランタイム、Linux ARM64のELFと同梱ランタイ
 ## エビデンスの場所
 
 - `artifacts/usb-reconnect/verification.json`：3回USB復帰とロガーの前後状態。
-- `artifacts/exe-ui-final2/hardware-ui.json`：配布EXEの37項目UIチェック結果。
-- `artifacts/exe-ui-final2/verification.json`：SD/CAN/再起動・配色・性能チェック。
-- `artifacts/exe-ui-final2/*.png`：実機画面。
+- `artifacts/demo-usb-equivalence/usb-bench-contract.json`：実USBのschema revision 83・81チャンネルとデモの一致、95/95正常サンプル。
+- `artifacts/hardware-ui-0.3.5/hardware-ui.json`：配布EXE 0.3.5の39項目UIチェック結果。
+- `artifacts/hardware-ui-0.3.5/verification.json`：SD/CAN/再起動・配色・性能・EXE SHA-256チェック。
+- `artifacts/hardware-ui-0.3.5/*.png`：実機画面24枚。
 - `artifacts/runtime-performance/performance.json`：通常表示の性能。
 - `artifacts/export-windows-x64.log` / `artifacts/export-linux-arm64.log`：配布ビルド。
 - `dist/SHA256SUMS.txt`：配布ZIPの照合値。
