@@ -23,8 +23,17 @@ public static class LiveShareUrl
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)) return false;
         return uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback;
     }
-    public static string Viewer(string viewerUrl,string databaseUrl,string channel) =>
-        $"{viewerUrl.TrimEnd('/')}?id={Uri.EscapeDataString(channel)}&db={Uri.EscapeDataString(databaseUrl.TrimEnd('/'))}";
+    public static string Viewer(string viewerUrl,string channel) =>
+        $"{viewerUrl.TrimEnd('/')}?id={Uri.EscapeDataString(channel)}";
+}
+
+public static class LiveShareService
+{
+    // Firebaseの配備後に、この2値だけを確定する。利用者が入力する設定ではない。
+    public const string DatabaseUrl = "";
+    public const string ViewerUrl = "";
+    public static bool Configured => LiveShareUrl.ValidDatabase(DatabaseUrl)&&LiveShareUrl.ValidViewer(ViewerUrl);
+    public static string Link(string channel) => Configured&&LiveShareUrl.ValidChannel(channel)?LiveShareUrl.Viewer(ViewerUrl,channel):"";
 }
 
 public sealed record LiveShareStatus(string State,string Message,int Queued,DateTimeOffset? LastSent)

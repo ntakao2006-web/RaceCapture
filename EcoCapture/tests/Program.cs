@@ -137,7 +137,7 @@ static class Program
         Check(handler.PatchBodies.All(x=>x.Contains("\"latest\"")&&x.Contains("\"history/")&&x.Contains("\"t\"")&&x.Contains("\"d\"")&&x.Contains("\"Lat\"")),"Firebase atomic PATCH contains camel-case latest and history");
         Check(handler.Authorization==null&&handler.Urls.All(x=>x.Contains($"/channels/{channel}")),"live share needs no registered key and scopes requests to random URL ID");
         Check(await client.CheckAsync()&&client.Status.State=="connected","live share verifies Firebase rules");
-        Check(LiveShareUrl.Viewer("https://demo.web.app/","https://demo-default-rtdb.firebaseio.com/",channel).Contains($"?id={channel}&db=https%3A%2F%2Fdemo-default-rtdb.firebaseio.com"),"viewer URL carries only database and random ID");
+        Check(LiveShareUrl.Viewer("https://demo.web.app/",channel)==$"https://demo.web.app?id={channel}","viewer URL is a normal web link with only the random ID");
     }
     static void LinuxTests()
     {

@@ -1,12 +1,11 @@
 import{validChannel,validDatabase,streamPoint,dayKey}from"./live-core.js";
+import{databaseUrl as deployedDatabase}from"./config.js";
 const $=id=>document.getElementById(id),state=$("state"),dashboard=$("dashboard"),setup=$("setup"),canvas=$("route"),ctx=canvas.getContext("2d");
 let channel="",database="",points=[],source,meta={},configured=false;
 const number=(v,d=1)=>Number.isFinite(v)?v.toFixed(d):"--";
-function config(){const q=new URLSearchParams(location.search);channel=(q.get("id")||"").toLowerCase();database=(q.get("db")||"").replace(/\/$/,"");$("channel").value=channel;$("database").value=database;return validChannel(channel)&&validDatabase(database)}
-function open(){channel=$("channel").value.trim().toLowerCase();database=$("database").value.trim().replace(/\/$/,"");if(!validChannel(channel)||!validDatabase(database)){$("error").textContent="共有URLをEcoCaptureからコピーし直してください。";return}location.href=`?id=${encodeURIComponent(channel)}&db=${encodeURIComponent(database)}`}
-$("open").onclick=open;
+function config(){const q=new URLSearchParams(location.search);channel=(q.get("id")||"").toLowerCase();database=(deployedDatabase||q.get("db")||"").replace(/\/$/,"");return validChannel(channel)&&validDatabase(database)}
 async function start(){
-  if(!config()){setup.hidden=false;state.textContent="URL確認";return} configured=true;
+  if(!config()){setup.hidden=false;state.textContent="リンク確認";return} configured=true;
   dashboard.hidden=false;state.textContent="履歴読込中";
   try{
     const from=Date.now()-30*60000,days=[...new Set([dayKey(from),dayKey(Date.now())])];

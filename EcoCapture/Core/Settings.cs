@@ -153,8 +153,8 @@ public sealed class AppSettings
         StartLine.WidthMeters = double.IsFinite(StartLine.WidthMeters) ? Math.Clamp(StartLine.WidthMeters, 5, 200) : 30;
         StartLine.MinimumLapSeconds = double.IsFinite(StartLine.MinimumLapSeconds) ? Math.Clamp(StartLine.MinimumLapSeconds, 5, 3600) : 15;
         LiveShare ??= new();
-        LiveShare.ServerUrl = (LiveShare.ServerUrl ?? "").Trim().TrimEnd('/');
-        LiveShare.ViewerUrl = (LiveShare.ViewerUrl ?? "").Trim().TrimEnd('/');
+        LiveShare.ServerUrl = LiveShareService.Configured ? LiveShareService.DatabaseUrl : (LiveShare.ServerUrl ?? "").Trim().TrimEnd('/');
+        LiveShare.ViewerUrl = LiveShareService.Configured ? LiveShareService.ViewerUrl : (LiveShare.ViewerUrl ?? "").Trim().TrimEnd('/');
         LiveShare.Channel = (LiveShare.Channel ?? "").Trim().ToLowerInvariant();
         if (!LiveShareUrl.ValidChannel(LiveShare.Channel)) LiveShare.Channel = LiveShareUrl.NewChannel();
         if (Version < 5) Version = 5;
