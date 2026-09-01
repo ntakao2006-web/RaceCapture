@@ -65,7 +65,22 @@ BRIDGE_LOG="$HOME_DIR/logs/serial_fanout_bridge.log"
 XORG_CONF=/opt/racecapture/xorg_zaphod_rock5b.conf
 XORG_LOG="$HOME_DIR/logs/xorg_zaphod.log"
 LAUNCH_LOG="$HOME_DIR/logs/dashcam_launch.log"
-OUTDIR="$HOME_DIR/Videos/$(date +%Y%m%d_%H%M%S)"
+# Recordings go to the SD card when one is mounted, and fall back to the eMMC
+# when it is not. The card is the preferred target for two reasons that have
+# nothing to do with flash wear (session recording, not video, was what actually
+# hammered the eMMC - see DC-9-8-2-3): the eMMC simply does not have the room
+# (1.54 GB/hour against ~4 GB free is under three hours before the retention
+# loop starts eating footage), and putting a write-heavy workload on the same
+# partition as the OS means a power-cut corruption takes the system with it.
+# The card is exFAT so it can be pulled and read directly on a PC.
+VIDEO_ROOT_SD=/media/recordings
+VIDEO_ROOT_EMMC="$HOME_DIR/Videos"
+if mountpoint -q "$VIDEO_ROOT_SD" 2>/dev/null; then
+  VIDEO_ROOT="$VIDEO_ROOT_SD"
+else
+  VIDEO_ROOT="$VIDEO_ROOT_EMMC"
+fi
+OUTDIR="$VIDEO_ROOT/$(date +%Y%m%d_%H%M%S)"
 VPORT_DISPLAY=/tmp/rc_vport_display
 VPORT_STREAM=/tmp/rc_vport_stream
 CFG_DISPLAY="$HOME_DIR/.config/racecapture_display"
@@ -118,7 +133,10 @@ RC_APP_ARGS_COMMON=(-c graphics:show_cursor:0 -a -m cursor -c kivy:keyboard_mode
 
 mkdir -p "$HOME_DIR/logs"
 
-free_mb() { df -Pm "$HOME_DIR" | awk 'NR==2 {print $4}'; }
+# Takes the path to measure: recordings and the datastores can now live on
+# different devices, and pruning videos to free the eMMC would delete every
+# recording on the SD card without reclaiming a single byte where it was needed.
+free_mb() { df -Pm "$1" | awk 'NR==2 {print $4}'; }
 
 # DRM connector name (as modetest prints it) -> the plane currently driving it,
 # via connector -> encoder -> CRTC -> plane. Prints nothing if the connector has
@@ -183,9 +201,9 @@ prune_datastores() {
 
 prune_old_recordings() {
   local dir
-  while [ "$(free_mb)" -lt "$MIN_FREE_MB" ]; do
+  while [ "$(free_mb "$VIDEO_ROOT")" -lt "$MIN_FREE_MB" ]; do
     # Timestamped directory names sort chronologically, so the first is oldest.
-    dir=$(ls -1d "$HOME_DIR"/Videos/*/ 2>/dev/null | sort | head -1)
+    dir=$(ls -1d "$VIDEO_ROOT"/*/ 2>/dev/null | sort | head -1)
     [ -n "$dir" ] || break
     echo "$(date -Iseconds) dashcam_launch_rock5b: low disk, removing $dir" >> "$LAUNCH_LOG"
     sudo rm -rf "$dir"
@@ -214,9 +232,10 @@ fi
 
 # 0. Make room before anything starts. Both instances need to be able to write
 #    their datastore and prefs, and the recorder needs somewhere to put footage.
+mkdir -p "$VIDEO_ROOT" 2>/dev/null || sudo mkdir -p "$VIDEO_ROOT"
 prune_datastores
 prune_old_recordings
-echo "$(date -Iseconds) dashcam_launch_rock5b: $(free_mb) MB free before start" >> "$LAUNCH_LOG"
+echo "$(date -Iseconds) dashcam_launch_rock5b: recording to $VIDEO_ROOT ($(free_mb "$VIDEO_ROOT") MB free); rootfs $(free_mb "$HOME_DIR") MB free" >> "$LAUNCH_LOG"
 
 # 1. Xorg, single process, two independent Zaphod screens.
 sudo Xorg :0 -config "$XORG_CONF" > "$XORG_LOG" 2>&1 &

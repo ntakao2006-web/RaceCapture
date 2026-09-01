@@ -10,6 +10,14 @@
 # right after race_capture starts), which kills the ffmpeg process outright.
 # Auto-restarting keeps recording going instead of silently stopping forever.
 #
+# Segments are 30 seconds rather than a minute because the recording target is
+# an exFAT SD card, chosen so the card can be pulled and read directly on a PC.
+# exFAT has no journal, and this system is powered down by cutting power - that
+# is the intended way to end a session, not a fault - so every shutdown lands
+# mid-write. A shorter segment halves how much footage is exposed to that, and
+# closing a segment is also when the directory entry for the finished file gets
+# written out.
+#
 # Uses fragmented mp4 (movflags=+frag_keyframe+empty_moov+default_base_moof)
 # instead of a plain moov-at-end mp4: a plain mp4 only writes its moov atom
 # on clean shutdown, so a hard kill (SIGKILL, power loss) leaves the current
@@ -99,7 +107,7 @@ while [ "$STOP" -eq 0 ]; do
   # Costs about 2.7 GB/hour; the retention loop above is what keeps that bounded.
   "$FFMPEG_BIN" -hide_banner -nostats -f kmsgrab -device /dev/dri/card0 "${PLANE_ARGS[@]}" -framerate 30 -i - \
     -c:v h264_rkmpp -b:v 6M \
-    -f segment -segment_time 60 -reset_timestamps 1 -strftime 0 \
+    -f segment -segment_time 30 -reset_timestamps 1 -strftime 0 \
     -segment_format mp4 -segment_format_options movflags=+frag_keyframe+empty_moov+default_base_moof \
     "$SEGMENT_PATTERN" &
   FFMPEG_PID=$!
