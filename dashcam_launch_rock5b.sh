@@ -98,7 +98,23 @@ MIN_FREE_MB=3000
 # datastore.sq3 grows without bound as sessions are recorded (1.4 GB per
 # instance observed). Rotate it rather than let it consume the disk.
 MAX_DATASTORE_MB=512
-RC_APP_ARGS_COMMON=(-c graphics:show_cursor:0 -a -m cursor -c kivy:keyboard_mode:systemandmulti)
+# maxfps/multisamples are passed here rather than left in ~/.kivy/config.ini so
+# they live with the rest of the launch configuration instead of only on the
+# eMMC, where reimaging would silently lose them.
+#
+# maxfps 30 (Kivy's default is 60): the recording is 30 fps, so rendering faster
+# buys nothing downstream. Measured on this hardware by counting DRM page flips
+# on the streaming screen's plane: 38.2 fps at maxfps=30 vs 45.0 fps at
+# maxfps=60 - both comfortably above the 30 fps the recorder samples at, so the
+# extra frames were pure waste.
+#
+# multisamples 0 (Kivy's default is 2): this is where most of the GPU saving
+# came from. With 60 fps + 2x MSAA the Mali sat pinned at its 1000 MHz ceiling
+# (load 42-80%); with 30 fps and MSAA off the governor drops it to 300-400 MHz
+# (load 15-44%). Antialiasing is a poor trade here - it costs the most GPU of
+# anything on the dash and is barely visible on gauge text at 1080p.
+RC_APP_ARGS_COMMON=(-c graphics:show_cursor:0 -a -m cursor -c kivy:keyboard_mode:systemandmulti
+                    -c graphics:maxfps:30 -c graphics:multisamples:0)
 
 mkdir -p "$HOME_DIR/logs"
 
