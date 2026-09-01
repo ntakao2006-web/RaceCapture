@@ -62,13 +62,14 @@ static class Program
         s.LiveShare=new(){Enabled=true,ServerUrl="https://demo-default-rtdb.firebaseio.com/",ViewerUrl="https://demo.web.app/",Channel=shareId};
         var path=Path.Combine(directory,"settings.json"); SettingsStore.Save(path,s); var restored=SettingsStore.Load(path,out var warning);
         Check(restored.Vehicle=="none"&&!restored.CanEnabled&&warning==null,"atomic settings roundtrip");
-        Check(restored.LiveShare.Enabled&&restored.LiveShare.ServerUrl=="https://demo-default-rtdb.firebaseio.com"&&restored.LiveShare.ViewerUrl=="https://demo.web.app"&&restored.LiveShare.Channel==shareId,"live share settings persist");
+        Check(restored.LiveShare.Enabled&&restored.LiveShare.ServerUrl==LiveShareService.DatabaseUrl&&restored.LiveShare.ViewerUrl==LiveShareService.ViewerUrl&&restored.LiveShare.Channel==shareId,"live share settings use deployed service");
         File.WriteAllText(path,"broken"); restored=SettingsStore.Load(path,out warning);
         Check(warning!=null&&File.ReadAllText(path)=="broken","corrupt settings retained");
         s.Vehicle="unknown"; s.CanEnabled=true; s.Validate(); Check(s.Vehicle=="none"&&!s.CanEnabled,"unknown profile falls back to no CAN");
         s.LiveShare=new(){Enabled=true,ServerUrl="file:///tmp/data",Channel="BAD CHANNEL"}; s.Validate();
         Check(s.LiveShare.Enabled&&LiveShareUrl.ValidChannel(s.LiveShare.Channel),"live share invalid ID is replaced without silently changing opt-in");
         Check(!LiveShareUrl.ValidDatabase("http://example.com")&&LiveShareUrl.ValidDatabase("http://localhost:9000")&&LiveShareUrl.ValidDatabase("https://demo.europe-west1.firebasedatabase.app")&&!LiveShareUrl.ValidDatabase("https://live.example"),"live share accepts Firebase HTTPS and local emulator only");
+        Check(LiveShareService.Configured&&LiveShareService.Link(shareId)==$"https://ecocapture-live.web.app?id={shareId}","deployed service creates a normal HTTPS share link");
     }
     static void NavigationTests()
     {

@@ -241,7 +241,7 @@ public partial class Main : Control
         _connectionLabel.AddThemeColorOverride("font_color",demo?Ui.Amber:info.State=="connected"?Ui.Accent:Ui.Amber);
         _demoButton.Text=demo?"デモを終了してUSBへ":"デモで試す";
         _vehicleLabel.Text=Catalog.Vehicle(_settings.Vehicle).Name+"  /  "+(_settings.Vehicle=="none"?"GNSS + IMU":"EcoLogger専用");
-        var footer=(demo?"DEMO：実測値ではありません。  ":"")+(_notice.Length>0?_notice:"1–5：画面切替  /  Esc：ホーム  /  F11：全画面")+"    EcoCapture 0.3.2";
+        var footer=(demo?"DEMO：実測値ではありません。  ":"")+(_notice.Length>0?_notice:"1–5：画面切替  /  Esc：ホーム  /  F11：全画面")+"    EcoCapture 0.3.3";
         _footer.Text=footer;
         if (_page=="indicate")
         {

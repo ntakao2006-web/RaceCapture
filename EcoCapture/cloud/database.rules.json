@@ -11,9 +11,9 @@
         },
         "meta": {
           ".read": "$channel.matches(/^[a-z0-9_-]{24,48}$/)",
-          "vehicle": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "newData.isString() && newData.val().length <= 32"},
-          "demo": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "newData.isBoolean()"},
-          "updatedAt": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "newData.isNumber()"}
+          "vehicle": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 32)"},
+          "demo": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "!newData.exists() || newData.isBoolean()"},
+          "updatedAt": {".write": "$channel.matches(/^[a-z0-9_-]{24,48}$/)", ".validate": "!newData.exists() || newData.isNumber()"}
         },
         "history": {
           ".read": "$channel.matches(/^[a-z0-9_-]{24,48}$/)",

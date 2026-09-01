@@ -2,14 +2,13 @@
 
 EcoCaptureの走行値を1 HzでFirebase Realtime Databaseへ保存し、Firebase Hostingのスマホ画面へリアルタイム表示します。送信用・閲覧用キーの登録はありません。EcoCaptureが自動生成する32文字の共有URL IDを、URLを知る人だけで共有します。
 
-## 初回セットアップ
+## 利用方法
 
-1. Firebase Consoleで無料のSparkプランのプロジェクトを作る。
-2. Realtime Databaseを作り、表示されたURLを控える。
-3. このフォルダーで `npm install`、`npx firebase login`、`npx firebase use --add` を実行する。
-4. `npx firebase deploy --only hosting,database` を実行する。
-5. EcoCaptureのSettings > ライブ共有へDatabase URLと表示されたHosting URLを貼る。
-6. 「接続確認」の後、「共有URLをコピー」でスマホへ渡す。
+1. EcoCaptureのSettings > ライブ共有で「共有リンクを作ってコピー」を押す。
+2. 「データ共有をONにする」を有効にする。
+3. コピーした `https://ecocapture-live.web.app/?id=...` をLINEなどで渡す。共有相手はブラウザで開くだけでよく、Firebaseへのログインは不要。
+
+サービスはFirebase Sparkの `ecocapture-live` へ配備済みです。配布アプリにもRealtime Database URLとHosting URLを組み込んでいるため、利用者によるFirebase設定はありません。再配備する開発者はこのフォルダーで `firebase deploy --only hosting,database --project ecocapture-live` を実行します。
 
 `database.rules.json`はデータベース全体の一覧取得を拒否し、24〜48文字の共有URL ID配下だけを読み書き可能にします。認証を使わないため、URLを知った人はその走行データを閲覧でき、同じIDへ値を書き込むこともできます。内輪利用の範囲を越える場合はFirebase Authenticationを追加してください。
 

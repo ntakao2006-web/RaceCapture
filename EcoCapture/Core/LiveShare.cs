@@ -29,9 +29,8 @@ public static class LiveShareUrl
 
 public static class LiveShareService
 {
-    // Firebaseの配備後に、この2値だけを確定する。利用者が入力する設定ではない。
-    public const string DatabaseUrl = "";
-    public const string ViewerUrl = "";
+    public const string DatabaseUrl = "https://ecocapture-live-default-rtdb.asia-southeast1.firebasedatabase.app";
+    public const string ViewerUrl = "https://ecocapture-live.web.app";
     public static bool Configured => LiveShareUrl.ValidDatabase(DatabaseUrl)&&LiveShareUrl.ValidViewer(ViewerUrl);
     public static string Link(string channel) => Configured&&LiveShareUrl.ValidChannel(channel)?LiveShareUrl.Viewer(ViewerUrl,channel):"";
 }
@@ -67,7 +66,7 @@ public sealed class LiveShareClient : IDisposable
     {
         _http=handler==null?new HttpClient():new HttpClient(handler);
         _http.Timeout=TimeSpan.FromSeconds(10);
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("EcoCapture/0.3.1");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("EcoCapture/0.3.3");
         if(autoStart) _loop=Task.Run(RunAsync);
     }
     public LiveShareStatus Status { get { lock(_gate) return _status with { Queued=_queue.Count }; } }
