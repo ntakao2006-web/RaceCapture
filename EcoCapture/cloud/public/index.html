@@ -6,11 +6,11 @@
   <section id="setup" class="panel unlock" hidden><h2>共有リンクを確認してください</h2><p>EcoCaptureの「共有リンクを作る」から、このページを開き直してください。</p><p id="error"></p></section>
   <div id="dashboard" hidden>
     <section class="hero"><div><span>速度</span><strong id="speed">--</strong><small>km/h</small></div><div><span>回転数</span><strong id="rpm">--</strong><small>rpm</small></div></section>
-    <section class="panel route"><div class="title"><h2>走行経路</h2><span>直近30分</span></div><canvas id="route"></canvas></section>
+    <section class="panel route"><div class="title"><h2>走行経路</h2><div class="route-meta"><span>直近30分</span><b id="grid-scale">1グリッド = --</b></div></div><canvas id="route"></canvas></section>
     <section class="metrics">
       <article><span>前後加速度</span><b id="ax">--</b><small>G</small></article><article><span>左右加速度</span><b id="ay">--</b><small>G</small></article><article><span>上下加速度</span><b id="az">--</b><small>G</small></article>
       <article><span>標高</span><b id="alt">--</b><small>m</small></article><article><span>衛星</span><b id="sats">--</b><small>基</small></article><article><span>位置精度</span><b id="acc">--</b><small>m</small></article>
     </section>
     <section class="panel detail"><div><span>緯度</span><b id="lat">--</b></div><div><span>経度</span><b id="lon">--</b></div><div><span>車体</span><b id="vehicle">--</b></div><div><span>最終更新</span><b id="updated">--</b></div></section>
   </div>
-</main><script type="module" src="/app.js?v=032"></script></body></html>
+</main><script type="module" src="/app.js?v=033-grid"></script></body></html>

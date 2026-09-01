@@ -10,6 +10,8 @@ EcoCaptureの走行値を1 HzでFirebase Realtime Databaseへ保存し、Firebas
 
 サービスはFirebase Sparkの `ecocapture-live` へ配備済みです。配布アプリにもRealtime Database URLとHosting URLを組み込んでいるため、利用者によるFirebase設定はありません。再配備する開発者はこのフォルダーで `firebase deploy --only hosting,database --project ecocapture-live` を実行します。
 
+走行経路のグリッドは位置データの表示範囲に合わせて実距離へ換算し、`1グリッド = 20 m` のように表示します。広い経路ではkm表記へ自動で切り替わります。
+
 `database.rules.json`はデータベース全体の一覧取得を拒否し、24〜48文字の共有URL ID配下だけを読み書き可能にします。認証を使わないため、URLを知った人はその走行データを閲覧でき、同じIDへ値を書き込むこともできます。内輪利用の範囲を越える場合はFirebase Authenticationを追加してください。
 
 履歴はUTC日ごとに分けて保存し、EcoCaptureが8日前の日を削除します。1 Hzで24時間なら1日86,400点です。無料枠に余裕を残すための7日保持であり、長期間連続運用する場合はFirebase Consoleの使用量も確認してください。
