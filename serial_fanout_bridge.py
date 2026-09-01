@@ -73,6 +73,9 @@ INITIAL_REQUEST_INTERVAL = 0.15  # 実機への初期要求の送信間隔(秒)
 DEFAULT_SAMPLE_HZ = 10.0  # {"s":0} の送信レート
 DEFAULT_STATUS_HZ = 1.0  # getStatus の送信レート(接続状態の表示用途なので低くてよい)
 MAX_SELECT_TIMEOUT = 0.2  # メインループのselect待ち上限(秒)
+# Espressif の USB VID。ESP32-C3内蔵のUSB-JTAG/serialディスクリプタがこれを名乗る。
+DEFAULT_ESP32_VID = "303a"
+REOPEN_INTERVAL = 1.0  # 実機が居ないときに再探索する間隔(秒)
 
 
 def create_virtual_port(link_path):
@@ -108,8 +111,11 @@ class LineBuffer:
 
 class Bridge:
     def __init__(self, device, baudrate, links,
-                 sample_hz=DEFAULT_SAMPLE_HZ, status_hz=DEFAULT_STATUS_HZ):
-        self.device = device
+                 sample_hz=DEFAULT_SAMPLE_HZ, status_hz=DEFAULT_STATUS_HZ,
+                 vid=DEFAULT_ESP32_VID):
+        self.device = device  # Noneならvidで自動探索する
+        self.vid = vid
+        self.real_path = None
         self.baudrate = baudrate
         self.sample_interval = 1.0 / sample_hz
         self.status_interval = 1.0 / status_hz
@@ -127,30 +133,57 @@ class Bridge:
         self._next_send_time = 0.0
         self._next_sample_time = 0.0
         self._next_status_time = 0.0
-        self._open_real_port()
+        self._next_open_attempt = 0.0
+        # 実機が無くても起動する。仮想ポートは既に作ってあるので、race_capture側は
+        # 接続だけは確立でき、実機が挿されるまで値が来ないだけの状態になる。
+        # (実機必須にすると、ロガーのUSBが抜けているだけでダッシュも録画も一切
+        #  立ち上がらない。詳細はdashcam_launch_rock5b.shの起動条件のコメント参照)
+        self._try_open_real_port()
 
     # -- 実機との接続 ---------------------------------------------------
-    def _open_real_port(self):
-        self.real_ser = serial.Serial(self.device, baudrate=self.baudrate, timeout=0)
+    def find_real_device(self):
+        """VIDが一致する/dev/ttyACM*を探す。--deviceが明示指定ならそれを優先。"""
+        if self.device:
+            return self.device if os.path.exists(self.device) else None
+        for name in sorted(os.listdir("/dev")):
+            if not name.startswith("ttyACM"):
+                continue
+            path = "/dev/" + name
+            try:
+                with open("/sys/class/tty/%s/device/../idVendor" % name) as f:
+                    if f.read().strip().lower() == self.vid.lower():
+                        return path
+            except OSError:
+                continue
+        return None
+
+    def _try_open_real_port(self):
+        """開けたらTrue。実機が無ければ黙ってFalseを返す(例外を投げない)。"""
+        path = self.find_real_device()
+        if path is None:
+            return False
+        try:
+            self.real_ser = serial.Serial(path, baudrate=self.baudrate, timeout=0)
+        except (serial.SerialException, OSError) as e:
+            print("real port open failed: {}".format(e), flush=True)
+            return False
+        self.real_path = path
         self._initial_idx = 0
         self._next_send_time = 0.0
         self._next_sample_time = 0.0
         self._next_status_time = 0.0
-        print("real port opened: {}".format(self.device), flush=True)
+        print("real port opened: {}".format(path), flush=True)
+        return True
 
-    def _reconnect_real_port(self):
+    def _drop_real_port(self, why):
         try:
             if self.real_ser is not None:
                 self.real_ser.close()
         except Exception:
             pass
+        if self.real_ser is not None:
+            print("real port lost ({}). will keep looking...".format(why), flush=True)
         self.real_ser = None
-        while self.real_ser is None:
-            try:
-                self._open_real_port()
-            except serial.SerialException as e:
-                print("real port reopen failed: {}. retrying in 1s...".format(e), flush=True)
-                time.sleep(1)
 
     def send_to_real(self, obj):
         raw = json.dumps(obj, separators=(",", ":")) + "\r"
@@ -167,6 +200,13 @@ class Bridge:
 
     # -- 実機に対するRCPクライアント役 -----------------------------------
     def tick_real_device_client(self, now):
+        if self.real_ser is None:
+            # 実機不在。一定間隔で挿し直し/後挿しを探しに行く。ここでブロックしては
+            # いけない(consumerへの応答が止まる)ので、1回試して戻る。
+            if now >= self._next_open_attempt:
+                self._next_open_attempt = now + REOPEN_INTERVAL
+                self._try_open_real_port()
+            return
         try:
             if self._initial_idx < len(INITIAL_REQUESTS):
                 if now < self._next_send_time:
@@ -183,13 +223,14 @@ class Bridge:
                 self.send_to_real({"getStatus": None})
                 self._next_status_time = now + self.status_interval
         except serial.SerialException as e:
-            print("real port write error: {}".format(e), flush=True)
-            self._reconnect_real_port()
+            self._drop_real_port("write error: {}".format(e))
 
     def _select_timeout(self, now):
         # 次に実機へ要求を送るべき時刻までしか待たない。固定0.2秒待ちのままだと
         # サンプル間隔(0.1秒)より粗くなり、せっかく上げたレートが頭打ちになる。
-        if self._initial_idx < len(INITIAL_REQUESTS):
+        if self.real_ser is None:
+            next_send = self._next_open_attempt
+        elif self._initial_idx < len(INITIAL_REQUESTS):
             next_send = self._next_send_time
         else:
             next_send = min(self._next_sample_time, self._next_status_time)
@@ -244,19 +285,21 @@ class Bridge:
             now = time.monotonic()
             self.tick_real_device_client(now)
 
-            rlist = [self.real_ser.fileno()] + list(self.consumers.keys())
+            real_fd = self.real_ser.fileno() if self.real_ser is not None else None
+            rlist = list(self.consumers.keys())
+            if real_fd is not None:
+                rlist.append(real_fd)
             try:
                 ready, _, _ = select.select(rlist, [], [], self._select_timeout(now))
             except (OSError, ValueError):
                 break
 
             for fd in ready:
-                if fd == self.real_ser.fileno():
+                if fd == real_fd:
                     try:
                         chunk = self.real_ser.read(4096)
-                    except serial.SerialException as e:
-                        print("real port read error: {}".format(e), flush=True)
-                        self._reconnect_real_port()
+                    except (serial.SerialException, OSError) as e:
+                        self._drop_real_port("read error: {}".format(e))
                         continue
                     if chunk:
                         self.real_buf.feed(chunk)
@@ -276,7 +319,12 @@ class Bridge:
 
 def main():
     parser = argparse.ArgumentParser(description="ESP32シリアルポートのfan-outブリッジ")
-    parser.add_argument("--device", required=True, help="実ポート (例: /dev/ttyACM0)")
+    parser.add_argument("--device", default=None,
+                        help="実ポートを明示指定する (例: /dev/ttyACM0)。"
+                             "省略時は--vidに一致する/dev/ttyACM*を自動探索し、"
+                             "見つからなければ挿されるまで待ち続ける")
+    parser.add_argument("--vid", default=DEFAULT_ESP32_VID,
+                        help="自動探索するUSB VID (既定: %s = Espressif)" % DEFAULT_ESP32_VID)
     parser.add_argument("--baudrate", type=int, default=115200)
     parser.add_argument(
         "--link",
@@ -299,7 +347,7 @@ def main():
     args = parser.parse_args()
 
     bridge = Bridge(args.device, args.baudrate, args.link,
-                    sample_hz=args.sample_hz, status_hz=args.status_hz)
+                    sample_hz=args.sample_hz, status_hz=args.status_hz, vid=args.vid)
     print("polling rates: sample={} Hz, status={} Hz".format(args.sample_hz, args.status_hz), flush=True)
     try:
         bridge.run()

@@ -35,10 +35,9 @@
 # Why recording targets a specific DRM plane (-plane_id, see
 # dashcam_record_rock5b.sh): with two screens active, kmsgrab's plane
 # auto-select is no longer guaranteed to pick the streaming dash's screen.
-# Plane 93 = HDMI-2 (streaming dash) on this hardware, confirmed via
-# `sudo modetest -M rockchip -p` (plane 57 = HDMI-1 = driving-display dash).
-# This mapping is a fixed DRM CRTC/plane wiring, not something the Xorg
-# config changes, so it's hardcoded here rather than probed at runtime.
+# The plane is derived at runtime from the connector name (see
+# find_plane_for_connector below), because the CRTC/plane mapping only holds
+# for a given set of connected outputs and HDMI cables get unplugged.
 #
 # Why race_capture is invoked directly instead of via the official
 # run_racecapture_rpi.sh wrapper: that wrapper assumes a single instance on
@@ -65,22 +64,26 @@ BRIDGE_LOG="$HOME_DIR/logs/serial_fanout_bridge.log"
 XORG_CONF=/opt/racecapture/xorg_zaphod_rock5b.conf
 XORG_LOG="$HOME_DIR/logs/xorg_zaphod.log"
 LAUNCH_LOG="$HOME_DIR/logs/dashcam_launch.log"
-# Recordings go to the SD card when one is mounted, and fall back to the eMMC
-# when it is not. The card is the preferred target for two reasons that have
-# nothing to do with flash wear (session recording, not video, was what actually
-# hammered the eMMC - see DC-9-8-2-3): the eMMC simply does not have the room
-# (1.54 GB/hour against ~4 GB free is under three hours before the retention
-# loop starts eating footage), and putting a write-heavy workload on the same
-# partition as the OS means a power-cut corruption takes the system with it.
-# The card is exFAT so it can be pulled and read directly on a PC.
-VIDEO_ROOT_SD=/media/recordings
-VIDEO_ROOT_EMMC="$HOME_DIR/Videos"
-if mountpoint -q "$VIDEO_ROOT_SD" 2>/dev/null; then
-  VIDEO_ROOT="$VIDEO_ROOT_SD"
+# Recording goes to the SD card, and only to the SD card. The card is exFAT so
+# it can be pulled and read straight from a PC, and keeping footage off the eMMC
+# matters for room rather than for wear (session recording, not video, was what
+# actually hammered the eMMC - see DC-9-8-2-3): 1.54 GB/hour against a couple of
+# spare GB is under three hours before the retention loop starts eating older
+# footage, and a write-heavy workload on the OS partition means a power-cut
+# corruption takes the system down with it.
+#
+# No card, no recording - deliberately, rather than falling back to the eMMC.
+# Pulling the card is how you say "just show me the dash, don't keep anything":
+# the eMMC only holds a couple of hours of footage anyway, and quietly filling
+# it is the opposite of what removing the card was meant to express.
+VIDEO_ROOT=/media/recordings
+if mountpoint -q "$VIDEO_ROOT" 2>/dev/null; then
+  RECORDING_ENABLED=1
+  OUTDIR="$VIDEO_ROOT/$(date +%Y%m%d_%H%M%S)"
 else
-  VIDEO_ROOT="$VIDEO_ROOT_EMMC"
+  RECORDING_ENABLED=0
+  OUTDIR=""
 fi
-OUTDIR="$VIDEO_ROOT/$(date +%Y%m%d_%H%M%S)"
 VPORT_DISPLAY=/tmp/rc_vport_display
 VPORT_STREAM=/tmp/rc_vport_stream
 CFG_DISPLAY="$HOME_DIR/.config/racecapture_display"
@@ -224,18 +227,36 @@ find_esp32_device() {
   return 1
 }
 
+# What runs is decided by which storage is physically present, so the state of
+# the machine can be read off the hardware rather than off a config file:
+#
+#   logger plugged in   -> gauges show live data (plug it in later and the
+#                          bridge picks it up; it scans for the VID itself)
+#   logger absent       -> dashes still come up, showing "no data"
+#   SD card mounted     -> the streaming dash is recorded
+#   SD card absent      -> nothing is recorded, and nothing accumulates
+#
+# The launcher used to abort outright when the logger was missing. That made a
+# loose USB cable indistinguishable from a dead machine - a black screen, no
+# dash, and no footage either, even though recording the screen does not need
+# the logger at all. A dash that comes up saying "no data" is both a louder
+# signal and a smaller loss. (The abort was not protecting against a boot race:
+# measured across three boots, the logger enumerates 5-7 seconds before this
+# script looks for it.)
 ESP32_DEVICE=$(find_esp32_device)
 if [ -z "$ESP32_DEVICE" ]; then
-  echo "$(date -Iseconds) dashcam_launch_rock5b: ESP32 device not found, aborting" >> "$LAUNCH_LOG"
-  exit 1
+  echo "$(date -Iseconds) dashcam_launch_rock5b: no logger found - starting anyway; the bridge will connect if one is plugged in later" >> "$LAUNCH_LOG"
 fi
 
 # 0. Make room before anything starts. Both instances need to be able to write
 #    their datastore and prefs, and the recorder needs somewhere to put footage.
-mkdir -p "$VIDEO_ROOT" 2>/dev/null || sudo mkdir -p "$VIDEO_ROOT"
 prune_datastores
-prune_old_recordings
-echo "$(date -Iseconds) dashcam_launch_rock5b: recording to $VIDEO_ROOT ($(free_mb "$VIDEO_ROOT") MB free); rootfs $(free_mb "$HOME_DIR") MB free" >> "$LAUNCH_LOG"
+if [ "$RECORDING_ENABLED" -eq 1 ]; then
+  prune_old_recordings
+  echo "$(date -Iseconds) dashcam_launch_rock5b: recording to $VIDEO_ROOT ($(free_mb "$VIDEO_ROOT") MB free); rootfs $(free_mb "$HOME_DIR") MB free" >> "$LAUNCH_LOG"
+else
+  echo "$(date -Iseconds) dashcam_launch_rock5b: no SD card mounted at $VIDEO_ROOT - dash only, recording disabled" >> "$LAUNCH_LOG"
+fi
 
 # 1. Xorg, single process, two independent Zaphod screens.
 sudo Xorg :0 -config "$XORG_CONF" > "$XORG_LOG" 2>&1 &
@@ -275,15 +296,18 @@ DISPLAY=:0.1 XDG_CONFIG_HOME="$CFG_STREAM" /opt/racecapture/race_capture \
 RC_STREAM_PID=$!
 
 # 4. Recording: streaming dash's screen only.
-STREAM_PLANE_ID=$(find_plane_for_connector "$STREAM_CONNECTOR")
-STREAM_PLANE_ID=${STREAM_PLANE_ID:-$STREAM_PLANE_ID_FALLBACK}
-echo "$(date -Iseconds) dashcam_launch_rock5b: recording $STREAM_CONNECTOR via plane $STREAM_PLANE_ID" >> "$LAUNCH_LOG"
-sudo "$RECORD_SCRIPT" "$FFMPEG_BIN" "$OUTDIR" "$STREAM_PLANE_ID" >> "$RECORD_LOG" 2>&1 &
-RECORD_PID=$!
+RECORD_PID=""
+if [ "$RECORDING_ENABLED" -eq 1 ]; then
+  STREAM_PLANE_ID=$(find_plane_for_connector "$STREAM_CONNECTOR")
+  STREAM_PLANE_ID=${STREAM_PLANE_ID:-$STREAM_PLANE_ID_FALLBACK}
+  echo "$(date -Iseconds) dashcam_launch_rock5b: recording $STREAM_CONNECTOR via plane $STREAM_PLANE_ID" >> "$LAUNCH_LOG"
+  sudo "$RECORD_SCRIPT" "$FFMPEG_BIN" "$OUTDIR" "$STREAM_PLANE_ID" >> "$RECORD_LOG" 2>&1 &
+  RECORD_PID=$!
+fi
 
 shutdown_all() {
   kill -TERM "$RC_DISPLAY_PID" "$RC_STREAM_PID" 2>/dev/null
-  sudo kill -TERM "$RECORD_PID" 2>/dev/null
+  [ -n "$RECORD_PID" ] && sudo kill -TERM "$RECORD_PID" 2>/dev/null
   kill -TERM "$BRIDGE_PID" 2>/dev/null
   sudo kill -TERM "$XORG_PID" 2>/dev/null
   sleep 2
