@@ -66,7 +66,7 @@ public sealed class LiveShareClient : IDisposable
     {
         _http=handler==null?new HttpClient():new HttpClient(handler);
         _http.Timeout=TimeSpan.FromSeconds(10);
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("EcoCapture/0.3.3");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("EcoCapture/0.3.4");
         if(autoStart) _loop=Task.Run(RunAsync);
     }
     public LiveShareStatus Status { get { lock(_gate) return _status with { Queued=_queue.Count }; } }

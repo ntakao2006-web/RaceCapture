@@ -1,4 +1,4 @@
-# EcoCapture 0.3.3
+# EcoCapture 0.3.4
 
 EcoLogger専用の日本語表示アプリです。Windows x64を主対象とし、Godot .NET / C#で実装しています。UIは白・黒を基本に、警告と経路だけ赤で表示します。
 

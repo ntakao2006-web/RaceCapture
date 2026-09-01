@@ -20,8 +20,8 @@ static class Program
         try
         {
             if(args.Contains("--bench")) return await Bench(args);
-            ProtocolTests(); SettingsTests(); NavigationTests(); LapTests(); SolveTests(); await LiveShareTests(); await ConnectionTests(); LinuxTests();
-            Console.WriteLine($"PASS: {checks} checks (protocol, settings, navigation, laps, solve, calibration, live share, reconnect lifecycle)"); return 0;
+            ProtocolTests(); SettingsTests(); NavigationTests(); DemoTests(); LapTests(); SolveTests(); await LiveShareTests(); await ConnectionTests(); LinuxTests();
+            Console.WriteLine($"PASS: {checks} checks (protocol, settings, navigation, demo motion, laps, solve, calibration, live share, reconnect lifecycle)"); return 0;
         }
         catch(Exception e) { Console.Error.WriteLine(e); return 1; }
     }
@@ -93,6 +93,19 @@ static class Program
         Near(estimator.Current!.Bearing,90,.01,"low speed course points east");
         estimator.Reset(); estimator.Update(Frame(50,speed:0),settings);
         Near(estimator.Current!.Bearing,0,.01,"reset cannot retain heading from demo or prior connection");
+    }
+    static void DemoTests()
+    {
+        var demo=new DemoSource(1000); var distance=0d; var expected=0d;
+        for(var i=0;i<100;i++)
+        {
+            var a=demo.Frame(1000+i*.1); var b=demo.Frame(1000+(i+1)*.1);
+            var move=Geo.Offset(a.Get("Lat")!.Value,a.Get("Lon")!.Value,b.Get("Lat")!.Value,b.Get("Lon")!.Value);
+            distance+=Math.Sqrt(move.East*move.East+move.North*move.North);
+            expected+=(a.Get("GPSSpeed")!.Value+b.Get("GPSSpeed")!.Value)/2/3.6*.1;
+        }
+        Near(distance,expected,.02,"demo GNSS distance matches displayed speed over ten seconds");
+        var end=demo.Frame(1010); Near(end.Get("Distance")!.Value*1000,expected,.02,"demo odometer uses the same speed integral");
     }
     static void LapTests()
     {
