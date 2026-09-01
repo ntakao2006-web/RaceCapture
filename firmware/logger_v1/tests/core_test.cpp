@@ -89,10 +89,14 @@ static void testPvt() {
     b[23] = 9;
     put32(b.data() + 24, 1391234567);
     put32(b.data() + 28, 351234567);
+    put32(b.data() + 36, 93740);
+    put32(b.data() + 40, 2090);
+    put32(b.data() + 44, 12340);
     put32(b.data() + 60, 12345);
     Pvt p;
     assert(decodePvt(b.data(), b.size(), p) && p.fix_ok && p.utc_valid);
     assert(near(p.lat, 35.1234567) && near(p.lon, 139.1234567) && near(p.speed, 12.345));
+    assert(near(p.altitude, 93.74) && near(p.hacc, 2.09) && near(p.vacc, 12.34));
     assert(p.utc_us == 1788177600000000LL);
     put32(b.data() + 16, uint32_t(-123456789));
     assert(decodePvt(b.data(), 92, p) && p.utc_us == 1788177599876544LL);
@@ -125,6 +129,42 @@ static void testImu() {
     b[0x31] = 1;
     s = decodeImu(b, sizeof(b));
     assert(!s.valid && s.error == 7);
+    // Regress the captured fault: I2C succeeds while SYS_STATUS=1, SYS_ERR=5.
+    b[0x32] = 5;
+    s = decodeImu(b, sizeof(b));
+    assert(!s.valid && s.error == 5);
+    ImuHealth health;
+    for (unsigned i = 0; i < 9; ++i)
+        assert(!health.observe(true, s.valid));
+    assert(health.observe(true, s.valid));
+    assert(!health.observe(true, true));
+    // A good sample clears intermittent failures; both error types count.
+    for (unsigned i = 0; i < 9; ++i)
+        assert(!health.observe(false, false));
+    assert(!health.observe(true, true));
+    for (unsigned i = 0; i < 9; ++i)
+        assert(!health.observe(i % 2 == 0, false));
+    assert(health.observe(true, false));
+    // Stale SYS_ERR must not trigger resets when the sensor reports running.
+    b[0x31] = 5;
+    s = decodeImu(b, sizeof(b));
+    for (unsigned i = 0; i < 100; ++i)
+        assert(!health.observe(true, s.valid));
+    LevelCalibration c;
+    c.enabled = 1;
+    c.roll_zero_deg = 12.5;
+    c.pitch_zero_deg = -3;
+    c.matrix = {0, 1, 0, -1, 0, 0, 0, 0, 1};
+    assert(validLevelCalibration(c));
+    double input[3] = {1, 2, 3};
+    auto corrected = correctedAcceleration(c, input);
+    assert(near(corrected[0], 2) && near(corrected[1], -1) && near(corrected[2], 3));
+    LevelCalibration identity;
+    corrected = correctedAcceleration(identity, input);
+    assert(near(corrected[0], 1) && near(corrected[1], 2) && near(corrected[2], 3));
+    assert(near(wrap180(181), -179) && near(wrap180(-181), 179));
+    c.matrix[0] = .5;
+    assert(!validLevelCalibration(c));
 }
 static void testAfr() {
     AfrGate g;

@@ -67,6 +67,61 @@ struct ImuSample {
     uint8_t calibration = 0, status = 0, error = 0;
     bool valid = false;
 };
+struct LevelCalibration {
+    uint32_t version = 1;
+    uint8_t enabled = 0, reserved[3]{};
+    double roll_zero_deg = 0, pitch_zero_deg = 0;
+    // Sensor G vector -> vehicle [longitudinal, lateral, vertical] G.
+    std::array<double, 9> matrix{1, 0, 0, 0, 1, 0, 0, 0, 1};
+};
+inline double wrap180(double degrees) {
+    degrees = std::fmod(degrees + 180.0, 360.0);
+    if (degrees < 0) degrees += 360.0;
+    return degrees - 180.0;
+}
+inline bool validLevelCalibration(const LevelCalibration &c) {
+    if (c.version != 1 || c.enabled > 1 || !std::isfinite(c.roll_zero_deg) ||
+        !std::isfinite(c.pitch_zero_deg) || std::abs(c.roll_zero_deg) > 180 ||
+        std::abs(c.pitch_zero_deg) > 180)
+        return false;
+    for (double v : c.matrix)
+        if (!std::isfinite(v) || std::abs(v) > 1.001) return false;
+    auto dot = [&](unsigned a, unsigned b) {
+        return c.matrix[a * 3] * c.matrix[b * 3] + c.matrix[a * 3 + 1] * c.matrix[b * 3 + 1] +
+               c.matrix[a * 3 + 2] * c.matrix[b * 3 + 2];
+    };
+    for (unsigned i = 0; i < 3; ++i)
+        if (std::abs(dot(i, i) - 1) > .02) return false;
+    if (std::abs(dot(0, 1)) > .02 || std::abs(dot(0, 2)) > .02 || std::abs(dot(1, 2)) > .02)
+        return false;
+    double det = c.matrix[0] * (c.matrix[4] * c.matrix[8] - c.matrix[5] * c.matrix[7]) -
+                 c.matrix[1] * (c.matrix[3] * c.matrix[8] - c.matrix[5] * c.matrix[6]) +
+                 c.matrix[2] * (c.matrix[3] * c.matrix[7] - c.matrix[4] * c.matrix[6]);
+    return det > .98 && det < 1.02;
+}
+inline std::array<double, 3> correctedAcceleration(const LevelCalibration &c,
+                                                    const double sensor_g[3]) {
+    std::array<double, 3> out{};
+    for (unsigned row = 0; row < 3; ++row)
+        for (unsigned col = 0; col < 3; ++col)
+            out[row] += c.matrix[row * 3 + col] * sensor_g[col];
+    return out;
+}
+// A successful I2C read is not proof that the fusion engine is running.
+// Debounce short transitions, then request an IMU-only reinitialization.
+struct ImuHealth {
+    unsigned failures = 0;
+    bool observe(bool transport_ok, bool sample_valid) {
+        if (transport_ok && sample_valid) {
+            failures = 0;
+            return false;
+        }
+        if (++failures < 10)
+            return false;
+        failures = 0;
+        return true;
+    }
+};
 // Register burst 0x08..0x3A, default UNIT_SEL=0 (m/s2, dps, degrees).
 inline ImuSample decodeImu(const uint8_t *p, size_t n) {
     ImuSample s;
@@ -107,7 +162,7 @@ inline bool validDate(int y, unsigned m, unsigned d) {
 struct Pvt {
     uint32_t tow_ms = 0, time_accuracy_ns = 0;
     int64_t utc_us = 0;
-    double lat = 0, lon = 0, altitude = 0, speed = 0, heading = 0, hacc = 0, sacc = 0;
+    double lat = 0, lon = 0, altitude = 0, speed = 0, heading = 0, hacc = 0, vacc = 0, sacc = 0;
     uint8_t fix = 0, satellites = 0;
     bool fix_ok = false, utc_valid = false;
 };
@@ -123,6 +178,7 @@ inline bool decodePvt(const uint8_t *p, size_t n, Pvt &s) {
     s.lat = i32(p + 28) * 1e-7;
     s.altitude = i32(p + 36) / 1000.0;
     s.hacc = u32(p + 40) / 1000.0;
+    s.vacc = u32(p + 44) / 1000.0;
     s.speed = i32(p + 60) / 1000.0;
     s.heading = i32(p + 64) * 1e-5;
     s.sacc = u32(p + 68) / 1000.0;

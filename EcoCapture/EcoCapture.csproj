@@ -1,0 +1,10 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <GodotProjectDirBase64>$([MSBuild]::ConvertToBase64('$(MSBuildProjectDirectory)\'))</GodotProjectDirBase64>
+  </PropertyGroup>
+  <ItemGroup><Compile Remove="tests/**/*.cs" /></ItemGroup>
+</Project>

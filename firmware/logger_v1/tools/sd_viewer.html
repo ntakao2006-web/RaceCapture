@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>走行ログを見る — logger_v1</title>
+<style>
+:root{color-scheme:light;font:15px/1.6 system-ui,sans-serif;color:#16334a;background:#eef3f6}body{margin:0}header{background:#123047;color:white;padding:24px 5vw}h1{font-size:27px;margin:0}header p{margin:6px 0;color:#c6d8e6}main{max-width:1300px;margin:24px auto;padding:0 24px}.card{background:white;border:1px solid #d7e2e9;border-radius:14px;padding:20px;margin-bottom:18px}label{font-weight:600}input,select,button{font:inherit;max-width:100%}input[type=file]{display:block;margin-top:10px}select{padding:7px;border:1px solid #aec5d5;border-radius:6px}button{border:0;background:#116b81;color:white;border-radius:6px;padding:8px 18px;cursor:pointer}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.metric{display:flex;flex-wrap:wrap;gap:24px}.metric strong{display:block;font-size:23px}.muted{color:#526879;font-size:13px}.warning{color:#895008}canvas{width:100%;height:340px;display:block}#timeChart{height:240px}h2{font-size:19px;margin:0 0 10px}#cursor{width:100%}#details{white-space:pre-wrap;font-variant-numeric:tabular-nums}#message{white-space:pre-wrap}.help{max-width:950px}.badge{color:#087447} @media(max-width:850px){.grid{grid-template-columns:1fr}}
+</style>
+<header><h1>走行ログを見る</h1><p>SDカードのCSVから、軌跡・速度・加速度を確認します。インターネット接続は不要です。</p></header>
+<main>
+<section class="card"><label for="files">SDの logs フォルダーからCSVを選択</label><input id="files" type="file" accept=".csv,.json" multiple>
+<p class="muted">対応する .meta.json と .end.json も一緒に選ぶと、単位・保存完了を確認できます。ファイルはこのPC内だけで処理し、送信・変更しません。</p>
+<select id="sessions" aria-label="表示するCSV" hidden></select><p id="message">まずPCへコピーしてから開くことをおすすめします。旧版の Lxxxxxxxx_nnnn.csv も読めます。</p></section>
+<section id="result" hidden>
+<section class="card"><h2 id="title"></h2><div class="metric" id="summary"></div><p id="quality" class="muted"></p><p id="closure" class="warning"></p></section>
+<div class="grid"><section class="card"><h2>走行軌跡 <small class="muted">東西・南北の距離 [m]</small></h2><canvas id="track"></canvas><p class="muted">北が上。色はGPS速度（青 → 赤）。背景地図は使用しません。静止中の点の動きには測位の揺れが含まれます。</p></section>
+<section class="card"><h2>時系列</h2><label>チャンネル <select id="channel"></select></label><canvas id="timeChart"></canvas><p id="unit" class="muted"></p></section></div>
+<section class="card"><label for="cursor">時刻を選択して軌跡と値を照合</label><input id="cursor" type="range" min="0" max="0" value="0"><div id="details"></div></section>
+</section>
+<section class="card help"><h2>読み取りの注意</h2><ul><li>CSVは100 Hzでも、GPSは最大25 Hzです。同じ位置を保持する行は、新しい測位点ではありません。</li><li>空欄は欠測として扱い、0には置き換えません。GPSFix・GPSHAcc・IMUCalも確認してください。</li><li>GForceは重力を除いたG値、Accelは重力を含む加速度です。IMUのX/Y/Zは車体方向への変換が未設定です。</li><li>日時はGPSから確定できた区間だけを使います。起動日時はUTCと起動後経過時間からの推定です。</li><li>大きいCSVも順次読み込みます。画面描画は最大約4万点へ間引きますが、行数・時間間隔・欠測の集計は全行を対象にします。</li></ul></section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), LIMIT=40000;
+let selectedFiles=[], headers=[], rows=[], stats={}, units={}, stride=1, generation=0;
+const known={Lat:'deg',Lon:'deg',GPSSpeed:'km/h',Speed:'km/h',Altitude:'m',GPSHAcc:'m',GPSTow:'ms',GPSUTC:'s',GPSTAcc:'ns',PPSAge:'ms',monotonic_us:'us',utc_us:'us',IMUHz:'Hz',GNSSHz:'Hz'};
+for(const a of ['X','Y','Z']){known['Accel'+a]='m/s²';known['Gyro'+a]='deg/s';known['GForce'+a]='G';known['Gravity'+a]='m/s²'}
+for(const a of ['Roll','Pitch','Yaw'])known[a]='deg';
+function num(s){if(s===undefined||s.trim()==='')return null;const n=Number(s);return Number.isFinite(n)?n:null}
+function get(r,n){return r?.[headers.indexOf(n)]??null}
+function jst(us){return new Date(us/1000+9*3600000).toISOString().replace('T',' ').replace('Z',' JST')}
+function lineParser(line){
+ if(!line.trim())return;
+ const fields=line.replace(/\r$/,'').split(',');
+ if(!headers.length){headers=fields.map(x=>x.replace(/^\uFEFF/,''));if(!headers.includes('monotonic_us')||!headers.includes('Lat')||!headers.includes('Lon'))throw Error('logger_v1の全チャンネルCSVを選んでください（_can.csvは対象外）。');return}
+ if(fields.length!==headers.length){stats.malformed++;return}
+ const row=fields.map(num), t=get(row,'monotonic_us');
+ if(t===null){stats.malformed++;return}
+ if(stats.first===null)stats.first=t;
+ if(stats.last!==null){const gap=t-stats.last;if(gap<=0)stats.nonmonotonic++;stats.maxGap=Math.max(stats.maxGap,gap);if(gap>20000)stats.largeGaps++}
+ stats.last=t;stats.count++;
+ const lat=get(row,'Lat'),lon=get(row,'Lon'),fix=get(row,'GPSFix'),valid=lat!==null&&lon!==null&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&[2,3,4].includes(fix);
+ if(valid){stats.position++;if(!stats.origin)stats.origin=[lat,lon]}
+ const tow=get(row,'GPSTow');if(tow!==null&&tow!==stats.tow){stats.gpsUpdates++;stats.tow=tow}
+ const utc=get(row,'utc_us');if(utc!==null&&utc>1577836800000000&&utc<4102444800000000){stats.utc++;if(stats.bootUtc===null)stats.bootUtc=utc-t}
+ const drops=get(row,'LogDrops');if(drops!==null){if(stats.firstDrops===null)stats.firstDrops=drops;stats.lastDrops=drops}
+ if((stats.count-1)%stride===0){rows.push(row);if(rows.length>LIMIT){rows=rows.filter((_,i)=>i%2===0);stride*=2}}
+ stats.finalRow=row;
+}
+async function readCSV(file,token){
+ headers=[];rows=[];stride=1;units={...known};
+ stats={count:0,first:null,last:null,maxGap:0,largeGaps:0,nonmonotonic:0,malformed:0,position:0,gpsUpdates:0,tow:null,utc:0,bootUtc:null,firstDrops:null,lastDrops:null,origin:null};
+ const reader=file.stream().getReader(), decoder=new TextDecoder('utf-8');let pending='',bytes=0;
+ try{while(true){const part=await reader.read();if(token!==generation){await reader.cancel();return false}if(part.done)break;bytes+=part.value.length;pending+=decoder.decode(part.value,{stream:true});let p;
+ while((p=pending.indexOf('\n'))>=0){lineParser(pending.slice(0,p));pending=pending.slice(p+1)}
+ if(pending.length>100000)throw Error('CSVの1行が長すぎます。');
+ $('message').textContent=`読み込み中… ${Math.round(bytes/file.size*100)}% / ${stats.count.toLocaleString()} 行`;}
+ pending+=decoder.decode();if(pending.trim())lineParser(pending);
+ }finally{reader.releaseLock()}
+ if(!stats.count)throw Error('有効なデータ行がありません。');
+ if(rows[rows.length-1]!==stats.finalRow)rows.push(stats.finalRow);
+ return true;
+}
+async function load(){const token=++generation; $('result').hidden=true;const file=selectedFiles.find(f=>f.name===$('sessions').value);if(!file)return;
+ try{if(!await readCSV(file,token))return;
+ const base=file.name.slice(0,-4);let meta=null,end=null;
+ for(const f of selectedFiles){if(f.name===base+'.meta.json')meta=JSON.parse(await f.text());if(f.name===base+'.end.json')end=JSON.parse(await f.text())}
+ if(token!==generation)return;
+ for(const c of meta?.columns??[])units[c.name]=c.unit;
+ if(end?.estimated_boot_utc_us&&stats.bootUtc===null)stats.bootUtc=end.estimated_boot_utc_us;
+ $('title').textContent=file.name;
+ const seconds=(stats.last-stats.first)/1e6;
+ $('summary').replaceChildren();
+ for(const [label,value] of [['記録行数',stats.count.toLocaleString()],['記録時間',seconds.toFixed(2)+' 秒'],['平均記録周期',seconds>0?((stats.count-1)/seconds).toFixed(2)+' Hz':'—'],['位置が有効',(stats.position/stats.count*100).toFixed(1)+'%']]){const d=document.createElement('div');d.textContent=label;const b=document.createElement('strong');b.textContent=value;d.append(b);$('summary').append(d)}
+ $('quality').textContent=`最大行間隔 ${(stats.maxGap/1000).toFixed(3)} ms / 20ms超 ${stats.largeGaps} 回 / 時刻逆行・重複 ${stats.nonmonotonic} 回 / 不正な行 ${stats.malformed} / LogDrops増分 ${stats.lastDrops!==null?stats.lastDrops-stats.firstDrops:'不明'}。描画 ${rows.length.toLocaleString()} 点。`;
+ const clean=end?.clean_close===true&&end.rows===stats.count&&stats.malformed===0&&(!meta||end.boot_id===meta.boot_id);
+ $('closure').textContent=clean?'終了記録あり：行数が一致し、ファイルを正常に閉じた記録があります（測定値の精度や欠落ゼロを保証するものではありません）。':end?'終了記録とCSVが一致しません。行数・不正な行・起動IDを確認してください。':'終了記録を確認できません：.end.json未選択、旧版、記録中または電源断の可能性があります。';
+ $('closure').className=clean?'badge':'warning';
+ $('message').textContent=(stats.bootUtc?`推定起動日時：${jst(stats.bootUtc)}。`:'GPSのUTCは未確定。日時は不明です。')+` UTC有効 ${stats.utc.toLocaleString()} 行。`+(meta?` ファームウェア：${meta.firmware}。`:' 単位の説明ファイル未読込。既知の列だけ単位を補います。');
+ $('channel').replaceChildren();for(const h of headers){if(h==='monotonic_us')continue;const o=document.createElement('option');o.value=h;o.textContent=h;$('channel').append(o)}$('channel').value='GPSSpeed';
+ $('cursor').max=rows.length-1;$('cursor').value=0;$('result').hidden=false;draw();
+ }catch(e){$('message').textContent='読み込みエラー：'+e.message}}
+function canvas(id){const c=$(id), d=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;c.width=w*d;c.height=h*d;const x=c.getContext('2d');x.scale(d,d);x.clearRect(0,0,w,h);x.font='12px system-ui';return {x,w,h}}
+function axes(x,w,h,xmin,xmax,ymin,ymax){const left=64,right=w-20,top=20,bottom=h-36;const px=v=>left+(v-xmin)/(xmax-xmin)*(right-left),py=v=>bottom-(v-ymin)/(ymax-ymin)*(bottom-top);x.strokeStyle='#e1e9ef';x.fillStyle='#526879';for(let i=0;i<=4;i++){const xx=left+(right-left)*i/4, yy=bottom-(bottom-top)*i/4;x.beginPath();x.moveTo(xx,top);x.lineTo(xx,bottom);x.moveTo(left,yy);x.lineTo(right,yy);x.stroke();x.fillText((xmin+(xmax-xmin)*i/4).toFixed(1),xx-12,bottom+20);x.fillText((ymin+(ymax-ymin)*i/4).toFixed(2),3,yy+4)}return {px,py}}
+function draw(){if(!rows.length)return;const selected=Number($('cursor').value),current=rows[selected],channel=$('channel').value;
+ const a=canvas('track');if(stats.origin){const [lat0,lon0]=stats.origin;const projected=rows.map(r=>{const lat=get(r,'Lat'),lon=get(r,'Lon');return lat===null||lon===null||Math.abs(lat)>90||Math.abs(lon)>180||![2,3,4].includes(get(r,'GPSFix'))?null:[(lon-lon0)*111319.490793*Math.cos(lat0*Math.PI/180),(lat-lat0)*111319.490793]});
+ let xmin=0,xmax=0,ymin=0,ymax=0,maxSpeed=1;for(let i=0;i<rows.length;i++){const p=projected[i];if(p){xmin=Math.min(xmin,p[0]);xmax=Math.max(xmax,p[0]);ymin=Math.min(ymin,p[1]);ymax=Math.max(ymax,p[1])}maxSpeed=Math.max(maxSpeed,get(rows[i],'GPSSpeed')??0)}
+ const aspect=(a.w-84)/(a.h-56),span=Math.max(10,ymax-ymin,(xmax-xmin)/aspect)*1.15,cx=(xmin+xmax)/2,cy=(ymin+ymax)/2;const t=axes(a.x,a.w,a.h,cx-span*aspect/2,cx+span*aspect/2,cy-span/2,cy+span/2);
+ for(let i=1;i<rows.length;i++){const p=projected[i-1],q=projected[i];if(!p||!q||get(rows[i],'monotonic_us')-get(rows[i-1],'monotonic_us')>Math.max(1000000,stride*20000))continue;a.x.strokeStyle=`hsl(${230-230*Math.max(0,get(rows[i],'GPSSpeed')??0)/maxSpeed} 80% 45%)`;a.x.lineWidth=1.7;a.x.beginPath();a.x.moveTo(t.px(p[0]),t.py(p[1]));a.x.lineTo(t.px(q[0]),t.py(q[1]));a.x.stroke()}
+ const p=projected[selected];if(p){a.x.fillStyle='#b32448';a.x.beginPath();a.x.arc(t.px(p[0]),t.py(p[1]),5,0,Math.PI*2);a.x.fill()}
+ }else{a.x.fillText('有効なGPS位置がありません。',30,50)}
+ const b=canvas('timeChart');let lo=Infinity,hi=-Infinity;for(const r of rows){const v=get(r,channel);if(v!==null){lo=Math.min(lo,v);hi=Math.max(hi,v)}}
+ if(Number.isFinite(lo)){const margin=Math.max((hi-lo)*.1,Math.abs(hi)*.001,.001),duration=Math.max(.01,(stats.last-stats.first)/1e6),t=axes(b.x,b.w,b.h,0,duration,lo-margin,hi+margin);b.x.strokeStyle='#127d92';b.x.lineWidth=1.5;b.x.beginPath();let pen=false;
+ for(const r of rows){const v=get(r,channel);if(v===null){pen=false;continue}const xx=t.px((get(r,'monotonic_us')-stats.first)/1e6),yy=t.py(v);if(pen)b.x.lineTo(xx,yy);else b.x.moveTo(xx,yy);pen=true}b.x.stroke();const xx=t.px((get(current,'monotonic_us')-stats.first)/1e6);b.x.strokeStyle='#b32448';b.x.beginPath();b.x.moveTo(xx,20);b.x.lineTo(xx,b.h-36);b.x.stroke();
+ }else{b.x.fillText('このチャンネルは全て欠測です。',30,60)}
+ $('unit').textContent=`横軸：このファイルの先頭からの秒 / 縦軸：${channel} [${units[channel]??'単位不明'}]`;
+ const utc=get(current,'utc_us');$('details').textContent=`起動後 ${(get(current,'monotonic_us')/1e6).toFixed(3)} 秒　${utc?jst(utc):'UTC未確定'}\n`+['Lat','Lon','GPSSpeed','GPSFix','GPSHAcc','IMUCal',channel].filter((v,i,a)=>a.indexOf(v)===i).map(k=>`${k}: ${get(current,k)??'欠測'} ${units[k]??''}`).join('　');
+}
+$('files').onchange=()=>{selectedFiles=Array.from($('files').files);const csvs=selectedFiles.filter(f=>/\.csv$/i.test(f.name)&&!/_can\.csv$/i.test(f.name));$('sessions').replaceChildren();for(const f of csvs){const o=document.createElement('option');o.value=f.name;o.textContent=f.name;$('sessions').append(o)}$('sessions').hidden=csvs.length<2;if(csvs.length)load();else $('message').textContent='全チャンネルCSVを選んでください。'};
+$('sessions').onchange=load;$('channel').onchange=draw;$('cursor').oninput=draw;window.addEventListener('resize',draw);
+</script></html>

@@ -1,0 +1,31 @@
+param(
+    [string]$Godot = 'Godot_v4.7.2-stable_mono_win64_console.exe',
+    [switch]$LinuxArm64
+)
+$ErrorActionPreference = 'Stop'
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$godotCommand = (Get-Command $Godot -ErrorAction Stop).Source
+Push-Location $projectRoot
+try {
+    New-Item -ItemType Directory -Force artifacts, dist/EcoCapture | Out-Null
+    & dotnet run --project tests/EcoCapture.Tests.csproj
+    if ($LASTEXITCODE -ne 0) { throw 'Core tests failed' }
+    & $godotCommand --headless --editor --path . --import --quit *> artifacts/import.log
+    if ($LASTEXITCODE -ne 0 -or (Select-String artifacts/import.log -Pattern 'ERROR:')) { throw 'Resource import failed; see artifacts/import.log' }
+    $exports = @(@{ Preset='Windows Desktop'; Folder='EcoCapture'; Binary='EcoCapture.exe'; Tag='windows-x64' })
+    if ($LinuxArm64) { $exports += @{ Preset='Linux ARM64'; Folder='EcoCapture-linux-arm64'; Binary='EcoCapture.arm64'; Tag='linux-arm64' } }
+    foreach ($item in $exports) {
+        $directory = Join-Path dist $item.Folder
+        New-Item -ItemType Directory -Force $directory | Out-Null
+        $log = 'artifacts/export-' + $item.Tag + '.log'
+        & $godotCommand --headless --path . --export-release $item.Preset *> $log
+        if ($LASTEXITCODE -ne 0 -or (Select-String $log -Pattern 'ERROR:|Failed to export|Build failed')) { throw "Export failed; see $log" }
+        if (-not (Test-Path -LiteralPath (Join-Path $directory $item.Binary))) { throw 'Export did not produce executable' }
+        Copy-Item -LiteralPath README.md, LINUX.md, BUILD.md, VERIFICATION.md -Destination $directory -Force
+        Copy-Item -LiteralPath licenses -Destination $directory -Recurse -Force
+        $archive = Join-Path dist ('EcoCapture-0.2.3-' + $item.Tag + '.zip')
+        Compress-Archive -Path $directory -DestinationPath $archive -Force
+        Get-FileHash -LiteralPath $archive -Algorithm SHA256
+    }
+}
+finally { Pop-Location }

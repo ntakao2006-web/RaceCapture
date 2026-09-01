@@ -1,18 +1,41 @@
 #include "state.h"
 #include "esp_err.h"
 #include "esp_heap_caps.h"
+#include "esp_system.h"
 #include "nvs.h"
 #include <cstdio>
 #include <new>
 
 namespace logger {
+const char *resetReasonName() {
+    switch (esp_reset_reason()) {
+    case ESP_RST_POWERON: return "power_on";
+    case ESP_RST_EXT: return "external_pin";
+    case ESP_RST_SW: return "software";
+    case ESP_RST_PANIC: return "panic";
+    case ESP_RST_INT_WDT: return "interrupt_watchdog";
+    case ESP_RST_TASK_WDT: return "task_watchdog";
+    case ESP_RST_WDT: return "watchdog";
+    case ESP_RST_DEEPSLEEP: return "deep_sleep";
+    case ESP_RST_BROWNOUT: return "brownout";
+    case ESP_RST_SDIO: return "sdio";
+    case ESP_RST_USB: return "usb";
+    case ESP_RST_JTAG: return "jtag";
+    case ESP_RST_EFUSE: return "efuse";
+    case ESP_RST_PWR_GLITCH: return "power_glitch";
+    case ESP_RST_CPU_LOCKUP: return "cpu_lockup";
+    default: return "unknown";
+    }
+}
 SemaphoreHandle_t state_mutex = nullptr;
 SemaphoreHandle_t sd_mutex = nullptr;
 std::array<Channel, MAX_CHANNELS> channels{};
 size_t channel_count = 0;
 uint32_t schema_revision = 1;
 Config config{};
+LevelCalibration level_calibration{};
 Statistics stats;
+GnssDiagnostics gnss_diagnostics;
 QueueHandle_t log_queue = nullptr, can_log_queue = nullptr, lua_can_queue = nullptr;
 int64_t utc_offset = 0;
 uint64_t utc_updated = 0;
@@ -158,10 +181,27 @@ void stateInit() {
                                {"CAN2Rx", "", 0, 1000000000, 0, 1},
                                {"CANDrops", "", 0, 1000000, 0, 1},
                                {"LuaOK", "", 0, 1, 0, 1},
-                               {"GPSTow", "ms", 0, 604800000, 0, 25},
-                               {"GPSUTC", "s", 0, 4102444800, 6, 25},
-                               {"GPSTAcc", "ns", 0, 1e9, 0, 25},
-                               {"PPSAge", "ms", 0, 3000, 2, 25}};
+                               {"GPSTow", "ms", 0, 604800000, 0, GNSS_RATE_HZ},
+                               {"GPSUTC", "s", 0, 4102444800, 6, GNSS_RATE_HZ},
+                               {"GPSTAcc", "ns", 0, 1e9, 0, GNSS_RATE_HZ},
+                               {"PPSAge", "ms", 0, 3000, 2, GNSS_RATE_HZ},
+                               {"GNSSAcq", "", 0, 255, 0, 1},
+                               {"GNSSTrack", "", 0, 255, 0, 1},
+                               {"GNSSCNoMax", "dBHz", 0, 255, 0, 1},
+                               {"GNSSCNoTop4", "dBHz", 0, 255, 1, 1},
+                               {"RFNoise", "", 0, 65535, 0, 1},
+                               {"RFAGC", "%", 0, 100, 2, 1},
+                               {"RFJam", "", 0, 3, 0, 1},
+                               {"RFCW", "", 0, 255, 0, 1},
+                               {"GNSSRetry", "", 0, 1000000, 0, 1},
+                               {"GNSSAge", "ms", 0, 1000000, 1, 10},
+                               {"GNSSBad", "", 0, 1000000, 0, 1},
+                               {"LevelRoll", "deg", -180, 180, 2, 100},
+                               {"LevelPitch", "deg", -180, 180, 2, 100},
+                               {"LongAccel", "G", -8, 8, 4, 100},
+                               {"LatAccel", "G", -8, 8, 4, 100},
+                               {"VertAccel", "G", -8, 8, 4, 100},
+                               {"GPSVAcc", "m", 0, 10000, 2, 10}};
     static_assert(std::size(defs) == BASE_CHANNELS, "Channel enum and metadata differ");
     for (auto &d : defs)
         addChannel(d.name, d.unit, d.lo, d.hi, d.prec, d.rate);
@@ -174,7 +214,8 @@ void stateInit() {
 bool validConfig(const Config &c) {
     if (!memchr(c.telemetry_device_id, 0, sizeof(c.telemetry_device_id)))
         return false;
-    if (c.version != 1 || (c.gnss_hz != 18 && c.gnss_hz != 25) || c.broadcast_hz < 1 ||
+    if (c.version != 1 || (c.gnss_hz != 8 && c.gnss_hz != 10 && c.gnss_hz != 15 &&
+        c.gnss_hz != 18 && c.gnss_hz != 20 && c.gnss_hz != 25) || c.broadcast_hz < 1 ||
         c.broadcast_hz > 5 || c.broadcast_base + MAX_CHANNELS - 1 > 0x7ff ||
         (c.track.id != -1 && !c.track.valid()))
         return false;
@@ -198,9 +239,17 @@ bool loadSettings() {
     loaded = loaded && validConfig(saved);
     if (loaded)
         config = saved;
+    // Preserve the other legacy NVS fields without rewriting NVS. GNSS rate is
+    // selected by the firmware profile, never inherited from the old 25 Hz build.
+    config.gnss_hz = GNSS_RATE_HZ;
     n = sizeof(script_text);
     if (nvs_get_str(h, "script", script_text, &n) != ESP_OK)
         script_text[0] = 0;
+    LevelCalibration saved_level{};
+    n = sizeof(saved_level);
+    if (nvs_get_blob(h, "level_cal", &saved_level, &n) == ESP_OK && n == sizeof(saved_level) &&
+        validLevelCalibration(saved_level))
+        level_calibration = saved_level;
     nvs_close(h);
     laps->reset(config.track);
     loadBestLap();
@@ -208,6 +257,21 @@ bool loadSettings() {
         if (m.enabled)
             channels[m.channel].stale_ms = m.stale_ms;
     return loaded;
+}
+bool saveLevelCalibration(const LevelCalibration &candidate) {
+    if (!validLevelCalibration(candidate)) return false;
+    nvs_handle_t h;
+    if (nvs_open_from_partition("loggercfg", "logger_v1", NVS_READWRITE, &h) != ESP_OK)
+        return false;
+    bool ok = nvs_set_blob(h, "level_cal", &candidate, sizeof(candidate)) == ESP_OK &&
+              nvs_commit(h) == ESP_OK;
+    nvs_close(h);
+    if (ok) {
+        Guard lock(state_mutex);
+        level_calibration = candidate;
+        stats.rotate = true; // next CSV metadata and corrected values use one formula.
+    }
+    return ok;
 }
 bool saveSettings() {
     Config copy;

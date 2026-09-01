@@ -1,5 +1,7 @@
 #pragma once
 #include "core.h"
+#include "gnss_health.h"
+#include "gnss_config.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -72,6 +74,23 @@ enum ChannelId {
     GPS_UTC,
     GPS_TACC,
     PPS_AGE,
+    GNSS_ACQUIRED,
+    GNSS_TRACKED,
+    GNSS_CNO_MAX,
+    GNSS_CNO_TOP4,
+    RF_NOISE,
+    RF_AGC,
+    RF_JAM,
+    RF_CW,
+    GNSS_RETRY,
+    GNSS_AGE,
+    GNSS_BAD,
+    LEVEL_ROLL,
+    LEVEL_PITCH,
+    LONG_ACCEL,
+    LAT_ACCEL,
+    VERT_ACCEL,
+    GPS_VACC,
     BASE_CHANNELS
 };
 struct Channel {
@@ -106,9 +125,8 @@ struct Config {
     bool hub_broadcast = false;
     uint16_t broadcast_base = 0x600;
     uint8_t broadcast_hz = 5;
-    // 25 Hz requires irreversible high-performance OTP configuration; never burn
-    // implicitly.
-    uint8_t gnss_hz = 18;
+    // Nominal runtime rate; exact millisecond period is in GNSS diagnostics.
+    uint8_t gnss_hz = GNSS_RATE_HZ;
     char telemetry_device_id[64]{};
     Track track{};
     std::array<CanMapping, 24> mappings{};
@@ -119,9 +137,16 @@ struct Statistics {
         gnss_errors{0};
     std::atomic<uint32_t> rows{0}, raw_rows{0}, syncs{0}, sd_errors{0}, hub_tx{0}, hub_tx_errors{0};
     std::atomic<uint32_t> imu_samples{0}, gps_samples{0}, lua_errors{0}, sample_late{0};
+    std::atomic<uint32_t> imu_invalid{0}, imu_recoveries{0}, imu_status{0}, imu_last_error{0};
+    std::atomic<uint32_t> imu_test_status{0};
+    std::atomic<bool> imu_test_request{false};
+    std::atomic<uint32_t> gnss_retries{0}, gnss_parse_errors{0}, gnss_duplicates{0};
+    std::atomic<unsigned> gnss_profile{GNSS_DEFAULT_PROFILE};
     std::atomic<bool> sd_ok{false}, can1_ok{false}, can2_ok{false}, lua_ok{true},
         usb_connected{false};
     std::atomic<bool> logging{true}, rotate{false}, save_imu{false}, reload_lua{false};
+    std::atomic<bool> sd_closed{false}, sd_eject{false}, sd_ready{false};
+    std::atomic<bool> usb_cycle_request{false};
     std::atomic<bool> reset_laps{false};
     std::atomic<uint32_t> led_bits{0};
     std::atomic<bool> bench_request{false};
@@ -138,11 +163,14 @@ class Guard {
 };
 extern SemaphoreHandle_t state_mutex;
 extern SemaphoreHandle_t sd_mutex;
+extern SemaphoreHandle_t capture_mutex;
 extern std::array<Channel, MAX_CHANNELS> channels;
 extern size_t channel_count;
 extern uint32_t schema_revision;
 extern Config config;
+extern LevelCalibration level_calibration;
 extern Statistics stats;
+extern GnssDiagnostics gnss_diagnostics; // protected by state_mutex
 extern QueueHandle_t log_queue, can_log_queue, lua_can_queue;
 extern int64_t utc_offset;
 extern uint64_t utc_updated;
@@ -153,6 +181,7 @@ extern char lua_error[160];
 extern LapEngine *laps;
 inline uint64_t nowUs() { return uint64_t(esp_timer_get_time()); }
 void stateInit();
+const char *resetReasonName();
 void putChannel(size_t id, double value, uint64_t now,
                 bool valid = true); // caller holds state_mutex
 int findChannel(const char *name);  // caller holds state_mutex
@@ -161,6 +190,7 @@ int addChannel(const char *name, const char *unit, double min, double max, unsig
 Snapshot takeSnapshot(Channel *metadata = nullptr);
 bool loadSettings();
 bool saveSettings();
+bool saveLevelCalibration(const LevelCalibration &candidate);
 bool saveScript(const char *text);
 bool validConfig(const Config &candidate);
 void loadBestLap();
@@ -169,6 +199,14 @@ void onCan(const CanFrame &frame);
 void startSensors();
 void startCan();
 void startStorage();
+void requestLogging(bool enabled, bool eject = false);
+struct SdContents {
+    uint32_t files = 0, directories = 0;
+    uint64_t bytes = 0;
+    char error[320]{};
+};
+bool maintainSdContents(bool erase, SdContents &report);
+void queueCanLog(const CanFrame &frame);
 void startProtocol();
 void startLua();
 void startSampling();

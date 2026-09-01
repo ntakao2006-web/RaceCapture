@@ -1,0 +1,9 @@
+.godot/
+bin/
+obj/
+tests/bin/
+tests/obj/
+artifacts/
+dist/
+*.user
+__pycache__/

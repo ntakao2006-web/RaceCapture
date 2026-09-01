@@ -5,12 +5,14 @@ import time
 import os
 from pathlib import Path
 import serial
+from serial.tools import list_ports
 
 
 class Client:
     def __init__(self, port):
         self.serial = serial.Serial(port=None, baudrate=115200, timeout=.1, write_timeout=2)
-        self.serial.dtr = port.upper() == 'COM10'  # native CDC DTR is not the programmer reset line
+        device = next((p for p in list_ports.comports() if p.device.upper() == port.upper()), None)
+        self.serial.dtr = bool(device and device.vid == 0x303A and device.pid == 0x4001)
         self.serial.rts = False
         self.serial.port = port
         self.serial.open()
@@ -23,6 +25,7 @@ class Client:
         name = next(iter(command))
         expected = {'getVer': 'ver', 'getStatus': 'status', 'getMeta': 'meta',
                     'getLoggerCfg': 'loggerCfg', 'getTrackCfg': 'trackCfg',
+                    'getLevelCalibration': 'levelCalibration',
                     'getScriptCfg': 'scriptCfg', 'getCapabilities': 'capabilities',
                     'listLogs': 'logs', 'readLog': 'logData'}.get(name, name)
         self.serial.write(json.dumps(command, separators=(',', ':')).encode() + b'\r\n')

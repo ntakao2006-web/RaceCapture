@@ -27,6 +27,18 @@ def download(client, name):
             raise RuntimeError('Readback limit exceeded')
 
 
+def rotate(client):
+    old = client.query({'getStatus': None})['status']['logging']['file']
+    client.query({'rotateLog': None})
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        time.sleep(.1)
+        new = client.query({'getStatus': None})['status']['logging']['file']
+        if new and new != old:
+            return new
+    raise TimeoutError('Storage did not confirm log rotation')
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--port', default='COM8')
@@ -51,9 +63,7 @@ def main():
             report['before'] = client.query({'getStatus': None})['status']
         assert report['before']['logging']['status'] == 1
         report['config'] = client.query({'getLoggerCfg': None})
-        client.query({'rotateLog': None})
-        time.sleep(.2)
-        session = client.query({'getStatus': None})['status']['logging']['file']
+        session = rotate(client)
         print('Capturing', session, flush=True)
         end = time.monotonic() + args.seconds
         metadata = []
@@ -68,8 +78,7 @@ def main():
             time.sleep(.4)
             report['can_bench'] = client.query({'getStatus': None})['status']['CAN']
             report['checks']['can_loop'] = report['can_bench']['benchStatus'] == 2
-        client.query({'rotateLog': None})
-        time.sleep(.3)
+        rotate(client)
         report['after'] = client.query({'getStatus': None})['status']
         name = session.rsplit('/', 1)[-1]
         csv_text = download(client, name)
@@ -94,7 +103,7 @@ def main():
         report['checks']['gps_updates'] = len({r['GPSTow'] for r in rows if r['GPSTow']}) > 20
         tow = [int(row['GPSTow']) for row in rows if row['GPSTow']]
         steps = [(b-a) % 604800000 for a, b in zip(tow, tow[1:]) if b != a]
-        expected_ms = 40 if report['config']['loggerCfg']['gnssHz'] == 25 else 56
+        expected_ms = {8:125, 10:100, 15:67, 18:56, 20:50, 25:40}[report['config']['loggerCfg']['gnssHz']]
         report['gnss'] = {'unique_updates': len(steps) + 1, 'periods_ms': sorted(set(steps)), 'expected_ms': expected_ms,
                           'hz_from_tow': 1000 / statistics.mean(steps) if steps else 0}
         # iTOW is integer milliseconds. Receiver clock alignment can yield an

@@ -88,8 +88,7 @@ void onCan(const CanFrame &f) {
         ++stats.can1_rx;
     else
         ++stats.can2_rx;
-    if (xQueueSend(can_log_queue, &f, 0) != pdTRUE)
-        ++stats.can_drop;
+    queueCanLog(f);
     if (xQueueSend(lua_can_queue, &f, 0) != pdTRUE)
         ++stats.lua_drop;
     Guard lock(state_mutex);
@@ -347,8 +346,8 @@ static void can2Task(void *) {
             memcpy(f.data, "LGRTEST", 7);
             f.data[7] = 1;
             bool sent = transmitMcp(f);
-            if (sent && xQueueSend(can_log_queue, &f, 0) != pdTRUE)
-                ++stats.can_drop;
+            if (sent)
+                queueCanLog(f);
             return sent;
         };
         if (bench_stage == 1 && now - bench_time > 10000 && !stats.vehicle_listen_only) {
@@ -416,8 +415,7 @@ static void can2Task(void *) {
                 put32(frame.data + 4, bits);
                 if (transmitMcp(frame)) {
                     tx_pending = true;
-                    if (xQueueSend(can_log_queue, &frame, 0) != pdTRUE)
-                        ++stats.can_drop;
+                    queueCanLog(frame);
                 } else
                     ++stats.hub_tx_errors;
                 ++channel;

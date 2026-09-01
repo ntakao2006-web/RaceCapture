@@ -111,7 +111,7 @@ static void imuTask(void *) {
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0));
     gpio_set_direction(GPIO_NUM_7, GPIO_MODE_OUTPUT);
     bool ready = false, saved = false;
-    uint32_t consecutive = 0;
+    ImuHealth health;
     TickType_t last = xTaskGetTickCount();
     while (true) {
         if (!ready) {
@@ -123,11 +123,24 @@ static void imuTask(void *) {
                 continue;
             }
         }
+        if (stats.imu_test_request.exchange(false)) {
+            // UART-confirmed diagnostic: stop fusion in the real sensor.
+            // The normal health check below must detect and recover it.
+            bool stopped = imuByte(0x3d, 0);
+            stats.imu_test_status = stopped ? 2 : 3;
+            ESP_LOGW(TAG, "IMU-only diagnostic CONFIG mode: %s", stopped ? "OK" : "FAIL");
+            vTaskDelay(pdMS_TO_TICKS(25));
+        }
         uint8_t bytes[0x33];
         bool ok = imuRead(0x08, bytes, sizeof(bytes));
         uint64_t t = nowUs();
+        bool valid = false;
         if (ok) {
             ImuSample s = decodeImu(bytes, sizeof(bytes));
+            valid = s.valid;
+            stats.imu_status = s.status;
+            if (s.error)
+                stats.imu_last_error = s.error;
             {
                 Guard lock(state_mutex);
                 for (unsigned i = 0; i < 3; ++i) {
@@ -139,15 +152,32 @@ static void imuTask(void *) {
                 putChannel(YAW, s.euler[0], t, s.valid);
                 putChannel(ROLL, s.euler[1], t, s.valid);
                 putChannel(PITCH, s.euler[2], t, s.valid);
+                if (s.valid) {
+                    double sensor_g[3] = {s.linear[0] / GRAVITY, s.linear[1] / GRAVITY,
+                                          s.linear[2] / GRAVITY};
+                    auto corrected = correctedAcceleration(level_calibration, sensor_g);
+                    putChannel(LEVEL_ROLL, wrap180(s.euler[1] - level_calibration.roll_zero_deg), t);
+                    putChannel(LEVEL_PITCH, wrap180(s.euler[2] - level_calibration.pitch_zero_deg), t);
+                    putChannel(LONG_ACCEL, corrected[0], t);
+                    putChannel(LAT_ACCEL, corrected[1], t);
+                    putChannel(VERT_ACCEL, corrected[2], t);
+                } else {
+                    for (unsigned id = LEVEL_ROLL; id <= VERT_ACCEL; ++id)
+                        putChannel(id, 0, t, false);
+                }
                 putChannel(IMU_TEMP, s.temperature, t);
                 putChannel(IMU_CAL, s.calibration, t);
                 putChannel(IMU_ERR, s.error, t);
                 putChannel(IMU_LINK, s.valid ? 1 : 0, t);
             }
-            ++stats.imu_samples;
-            consecutive = 0;
+            if (s.valid)
+                ++stats.imu_samples; // IMUHz counts usable data, not just bus transactions.
+            else {
+                ++stats.imu_invalid;
+                ++stats.imu_errors;
+            }
             bool requested = stats.save_imu.exchange(false);
-            if ((requested || (!saved && t > 20000000 && s.calibration == 255)) &&
+            if (s.valid && (requested || (!saved && t > 20000000 && s.calibration == 255)) &&
                 s.calibration == 255) {
                 saved = persistImu();
                 last = xTaskGetTickCount();
@@ -157,11 +187,16 @@ static void imuTask(void *) {
             {
                 Guard lock(state_mutex);
                 putChannel(IMU_LINK, 0, t);
+                for (unsigned id = ACCEL_X; id <= GRAVITY_Z; ++id)
+                    putChannel(id, 0, t, false);
             }
-            if (++consecutive >= 10) {
-                ready = false;
-                consecutive = 0;
-            }
+        }
+        if (health.observe(ok, valid)) {
+            ++stats.imu_recoveries;
+            ESP_LOGW(TAG, "BNO055 unhealthy; IMU-only reset (I2C=%d status=%lu last_error=%lu)",
+                     ok, static_cast<unsigned long>(stats.imu_status.load()),
+                     static_cast<unsigned long>(stats.imu_last_error.load()));
+            ready = false;
         }
         if (xTaskGetTickCount() - last > pdMS_TO_TICKS(10))
             last = xTaskGetTickCount();
@@ -183,14 +218,20 @@ static bool sendUbx(uint8_t cls, uint8_t id, const uint8_t *payload, size_t n) {
     frame[n + 7] = b;
     return uart_write_bytes(UART_NUM_1, frame, n + 8) == int(n + 8);
 }
-static bool waitUbx(UbxParser &parser, uint8_t cls, uint8_t id, uint32_t timeout_ms) {
+static bool waitUbx(UbxParser &parser, uint8_t cls, uint8_t id, uint32_t timeout_ms,
+                    int ack_cls = -1, int ack_id = -1) {
     uint64_t end = nowUs() + uint64_t(timeout_ms) * 1000;
     while (nowUs() < end) {
         uint8_t bytes[128];
         int n = uart_read_bytes(UART_NUM_1, bytes, sizeof(bytes), pdMS_TO_TICKS(20));
         for (int i = 0; i < n; ++i)
-            if (parser.feed(bytes[i]) && parser.cls == cls && parser.id == id)
+            if (parser.feed(bytes[i]) && parser.cls == cls && parser.id == id) {
+                // A clock VALGET may leave its own ACK queued. Ignore ACKs for
+                // other commands while still consuming the remainder of this read.
+                if (ack_cls >= 0 && (parser.length() != 2 ||
+                    parser.payload[0] != ack_cls || parser.payload[1] != ack_id)) continue;
                 return true;
+            }
     }
     return false;
 }
@@ -210,42 +251,42 @@ static bool highPerformanceClock(UbxParser &parser) {
             return false;
     return true;
 }
-static bool configureGnss(UbxParser &parser, unsigned hz) {
-    // RAM-only changes; the MAX-M10M board intentionally has no backup battery.
-    uint8_t rate[128] = {0, 1, 0, 0};
+static bool setGnssValues(UbxParser &parser, const GnssSetting *settings, size_t count) {
+    uint8_t payload[128] = {0, 1, 0, 0}; // RAM only, never BBR/flash/OTP
     size_t len = 4;
-    auto key = [&](uint32_t id, uint32_t value, unsigned size) {
-        put32(rate + len, id);
+    for (size_t i=0;i<count;++i) {
+        if (len+4+settings[i].bytes > sizeof(payload)) return false;
+        put32(payload + len, settings[i].key);
         len += 4;
-        for (unsigned i = 0; i < size; ++i)
-            rate[len++] = uint8_t(value >> (8 * i));
-    };
-    // MAX-M10M datasheet single-GNSS maximum: GPS (including QZSS/SBAS).
-    key(0x1031001f, 1, 1);
-    key(0x10310021, 0, 1);
-    key(0x10310022, 0, 1);
-    key(0x10310025, 0, 1);
-    key(0x10310024, 1, 1);
-    key(0x10310020, 1, 1);
-    sendUbx(6, 0x8a, rate, len);
-    if (!waitUbx(parser, 5, 1, 1000) || parser.length() != 2 || parser.payload[0] != 6 ||
-        parser.payload[1] != 0x8a)
-        return false;
+        for (unsigned j=0;j<settings[i].bytes;++j)
+            payload[len++] = uint8_t(settings[i].value >> (8*j));
+    }
+    return sendUbx(6, 0x8a, payload, len) && waitUbx(parser, 5, 1, 1000, 6, 0x8a);
+}
+static bool verifyGnssValues(UbxParser &parser, const GnssSetting *settings, size_t count) {
+    uint8_t query[128] = {0, 0, 0, 0}; // VALGET layer 0 = actual RAM configuration
+    if (4+4*count > sizeof(query)) return false;
+    for (size_t i=0;i<count;++i) put32(query+4+4*i,settings[i].key);
+    return sendUbx(6,0x8b,query,4+4*count) && waitUbx(parser,6,0x8b,1000) &&
+           matchesGnssSettings(parser.payload.data(),parser.length(),settings,count);
+}
+static bool configureGnss(UbxParser &parser, const GnssProfile &profile) {
+    // A safe 1 Hz intermediate also permits four_10 -> gps_25: never apply
+    // the fast target rate while the previous four-system profile is active.
+    const GnssSetting safe_rate{0x30210001,1000,2};
+    if (!setGnssValues(parser,&safe_rate,1)) return false;
+    const auto signals = gnssSignals(profile);
+    if (!setGnssValues(parser,signals.data(),signals.size())) return false;
     vTaskDelay(pdMS_TO_TICKS(600)); // constellation changes restart the GNSS engine
-    len = 4;
-    key(0x10740001, 1, 1); // UART1 UBX output
-    key(0x10740002, 0, 1); // disable NMEA output (bandwidth)
-    key(0x20910007, 1, 1); // NAV-PVT every navigation solution
-    key(0x30210001, (1000 + hz - 1) / hz, 2);
-    key(0x30210002, 1, 2); // 56 ms for 18 Hz; 40 ms for 25 Hz
-    key(0x20110021, 4, 1); // automotive dynamic platform
-    sendUbx(6, 0x8a, rate, len);
-    if (!waitUbx(parser, 5, 1, 1000) || parser.length() != 2 || parser.payload[0] != 6 ||
-        parser.payload[1] != 0x8a)
-        return false;
-    return true;
+    const auto rates = gnssRateSettings(profile);
+    if (!setGnssValues(parser,rates.data(),rates.size())) return false;
+    return verifyGnssValues(parser,signals.data(),signals.size()) &&
+           verifyGnssValues(parser,rates.data(),rates.size());
 }
 static void gnssTask(void *) {
+    // Supported by MAX-M10M-00B (UBX-22038241 R03, table 16). A maximum
+    // 1024-byte UBX diagnostic takes <23 ms, leaving room for 100 ms PVT.
+    constexpr int gnss_baud = 460800;
     uart_config_t cfg = {};
     cfg.baud_rate = 9600;
     cfg.data_bits = UART_DATA_8_BITS;
@@ -267,13 +308,28 @@ static void gnssTask(void *) {
     gpio_install_isr_service(0);
     gpio_isr_handler_add(GPIO_NUM_8, ppsInterrupt, nullptr);
     UbxParser parser;
-    uint64_t last_pvt = 0;
-    uint32_t previous_tow = UINT32_MAX;
+    GnssProgress progress;
+    uint64_t next_diagnostics = 0;
     bool configured = false;
+    unsigned requested_profile = UINT32_MAX;
     while (true) {
+        unsigned requested = stats.gnss_profile.load();
+        if (requested != requested_profile) {
+            requested_profile = requested;
+            configured = false;
+            Guard lock(state_mutex);
+            gnss_diagnostics = {};
+            for (unsigned id : {LAT,LON,GPS_SPEED,ALTITUDE,GPS_HACC,GPS_VACC,GPS_SATS,GPS_FIX,
+                                GPS_TOW,GPS_UTC,GPS_TACC,UTC_VALID,PPS_AGE})
+                putChannel(id,0,nowUs(),false);
+            putChannel(GNSS_LINK,0,nowUs());
+            utc_updated = 0;
+            laps->invalidate();
+        }
         if (!configured) {
+            { Guard lock(state_mutex); gnss_diagnostics.configuration_verified = false; }
             bool found = false;
-            for (int baud : {9600, 115200, 38400, 57600}) {
+            for (int baud : {gnss_baud, 115200, 9600, 230400, 38400, 57600}) {
                 uart_set_baudrate(UART_NUM_1, baud);
                 uart_flush_input(UART_NUM_1);
                 parser.reset();
@@ -294,48 +350,93 @@ static void gnssTask(void *) {
             }
             uint8_t baud_payload[12] = {0, 1, 0, 0};
             put32(baud_payload + 4, 0x40520001);
-            put32(baud_payload + 8, 115200);
+            put32(baud_payload + 8, gnss_baud);
             sendUbx(6, 0x8a, baud_payload, sizeof(baud_payload));
             uart_wait_tx_done(UART_NUM_1, pdMS_TO_TICKS(100));
             vTaskDelay(pdMS_TO_TICKS(100));
-            uart_set_baudrate(UART_NUM_1, 115200);
+            uart_set_baudrate(UART_NUM_1, gnss_baud);
             uart_flush_input(UART_NUM_1);
             parser.reset();
-            const unsigned hz = highPerformanceClock(parser) ? 25 : 18;
+            const bool high_performance = highPerformanceClock(parser);
+            const unsigned profile_index = gnssProfileSupported(requested_profile, high_performance)
+                ? requested_profile : GNSS_FALLBACK_PROFILE;
+            const auto &profile = GNSS_PROFILES[profile_index];
+            const unsigned hz = profile.nominal_hz;
             {
                 Guard lock(state_mutex);
+                gnss_diagnostics.high_performance_clock = high_performance;
+                gnss_diagnostics.profile_index = profile_index;
                 config.gnss_hz = hz;
-                for (unsigned id : {LAT, LON, GPS_SPEED, ALTITUDE, GPS_HACC, GPS_SATS, GPS_FIX,
+                for (unsigned id : {LAT, LON, GPS_SPEED, ALTITUDE, GPS_HACC, GPS_VACC, GPS_SATS, GPS_FIX,
                                     UTC_VALID, GPS_TOW, GPS_UTC, GPS_TACC, PPS_AGE})
                     channels[id].rate = hz;
                 ++schema_revision;
             }
-            configured = configureGnss(parser, hz);
-            last_pvt = nowUs();
+            configured = configureGnss(parser, profile);
+            { Guard lock(state_mutex); gnss_diagnostics.configuration_verified = configured; }
+            progress.reset(nowUs());
+            next_diagnostics = nowUs() + 1000000;
             if (!configured) {
                 ++stats.gnss_errors;
                 continue;
             }
-            ESP_LOGI(TAG, "GNSS continuous NAV-PVT requested %u Hz", hz);
+            ESP_LOGI(TAG, "GNSS verified %s (%u ms), %s", profile.id,
+                     unsigned(profile.period_ms), profile.systems);
+        }
+        if (nowUs() >= next_diagnostics) {
+            // Poll at 1 Hz; never wait for these optional replies or delay PVT.
+            sendUbx(1, 0x35, nullptr, 0);
+            sendUbx(0x0a, 0x38, nullptr, 0);
+            next_diagnostics = nowUs() + 1000000;
         }
         uint8_t bytes[256];
         int n = uart_read_bytes(UART_NUM_1, bytes, sizeof(bytes), pdMS_TO_TICKS(20));
         for (int i = 0; i < n; ++i)
-            if (parser.feed(bytes[i]) && parser.cls == 1 && parser.id == 7) {
+            if (parser.feed(bytes[i])) {
+                if (parser.cls == 1 && parser.id == 0x35) {
+                    SatelliteHealth satellite;
+                    if (decodeSatelliteHealth(parser.payload.data(), parser.length(), satellite)) {
+                        uint64_t t = nowUs();
+                        Guard lock(state_mutex);
+                        gnss_diagnostics.satellites = satellite;
+                        gnss_diagnostics.satellites_us = t;
+                        putChannel(GNSS_ACQUIRED, satellite.acquired, t);
+                        putChannel(GNSS_TRACKED, satellite.tracked, t);
+                        putChannel(GNSS_CNO_MAX, satellite.max_cno, t);
+                        putChannel(GNSS_CNO_TOP4, satellite.top4_cno, t);
+                    }
+                    continue;
+                }
+                if (parser.cls == 0x0a && parser.id == 0x38) {
+                    RadioHealth radio;
+                    if (decodeRadioHealth(parser.payload.data(), parser.length(), radio)) {
+                        uint64_t t = nowUs();
+                        Guard lock(state_mutex);
+                        gnss_diagnostics.radio = radio;
+                        gnss_diagnostics.radio_us = t;
+                        putChannel(RF_NOISE, radio.noise, t);
+                        putChannel(RF_AGC, radio.agc * 100.0 / 8191, t);
+                        putChannel(RF_JAM, radio.jamming, t);
+                        putChannel(RF_CW, radio.cw, t);
+                    }
+                    continue;
+                }
+                if (parser.cls != 1 || parser.id != 7) continue;
                 Pvt p;
                 if (!decodePvt(parser.payload.data(), parser.length(), p))
                     continue;
                 uint64_t t = nowUs();
-                last_pvt = t;
-                if (p.tow_ms == previous_tow)
+                if (!progress.observe(p.tow_ms, t)) {
+                    ++stats.gnss_duplicates;
                     continue;
-                previous_tow = p.tow_ms;
+                }
                 ++stats.gps_samples;
                 uint64_t pulse;
                 portENTER_CRITICAL(&pps_lock);
                 pulse = pps_us;
                 portEXIT_CRITICAL(&pps_lock);
                 Guard lock(state_mutex);
+                gnss_diagnostics.pvt_us = t;
                 putChannel(GNSS_LINK, 1, t);
                 putChannel(GPS_FIX, p.fix_ok ? p.fix : 0, t);
                 putChannel(GPS_SATS, p.satellites, t);
@@ -344,6 +445,7 @@ static void gnssTask(void *) {
                 putChannel(GPS_SPEED, p.speed * 3.6, t, p.fix_ok);
                 putChannel(ALTITUDE, p.altitude, t, p.fix_ok);
                 putChannel(GPS_HACC, p.hacc, t, p.fix_ok);
+                putChannel(GPS_VACC, p.vacc, t, p.fix_ok);
                 // CAN speed takes precedence only while it is fresh; otherwise use
                 // GNSS.
                 bool can_speed = config.nc_profile;
@@ -379,11 +481,20 @@ static void gnssTask(void *) {
                 laps->update(p.lat, p.lon, p.utc_valid ? p.utc_us / 1e6 : t / 1e6, p.speed, p.hacc,
                              p.fix_ok);
             }
-        if (nowUs() - last_pvt > 3000000) {
+        stats.gnss_parse_errors = parser.errors;
+        // Only stalled navigation epochs trigger recovery. No-fix epochs still
+        // advance: keep searching instead of repeatedly restarting acquisition.
+        if (progress.stalled(nowUs())) {
             configured = false;
             ++stats.gnss_errors;
+            ++stats.gnss_retries;
             Guard lock(state_mutex);
             putChannel(GNSS_LINK, 0, nowUs());
+            putChannel(GPS_FIX, 0, nowUs());
+            for (unsigned id : {LAT, LON, GPS_SPEED, ALTITUDE, GPS_HACC, GPS_VACC, GPS_SATS,
+                                GPS_TOW, GPS_UTC, GPS_TACC, UTC_VALID, PPS_AGE})
+                putChannel(id, 0, nowUs(), false);
+            utc_updated = 0;
             laps->invalidate();
         }
     }

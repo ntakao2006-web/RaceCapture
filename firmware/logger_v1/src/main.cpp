@@ -50,11 +50,16 @@ static void samplingTask(void *) {
             putChannel(CAN2_RX, stats.can2_rx, now);
             putChannel(CAN_DROPS, stats.can_drop, now);
             putChannel(LUA_OK, stats.lua_ok ? 1 : 0, now);
+            putChannel(GNSS_RETRY, stats.gnss_retries, now);
+            putChannel(GNSS_BAD, stats.gnss_parse_errors, now);
+            putChannel(GNSS_AGE, gnss_diagnostics.pvt_us ?
+                       (now - gnss_diagnostics.pvt_us) / 1000.0 : 0, now,
+                       gnss_diagnostics.pvt_us != 0);
             bool imu_ok =
                 channels[ACCEL_X].available && fresh(now, channels[ACCEL_X].updated_us, 200);
             bool gps_ok = channels[LAT].available && fresh(now, channels[LAT].updated_us, 1500);
             bool error =
-                !stats.sd_ok || !imu_ok || !stats.can1_ok || !stats.can2_ok || !stats.lua_ok;
+                (!stats.sd_ok && !stats.sd_ready) || !imu_ok || !stats.can1_ok || !stats.can2_ok || !stats.lua_ok;
             uint8_t bits = ((now / 500000) & 1) ? 1 : 0;
             if (error)
                 bits |= 2;
@@ -69,8 +74,11 @@ static void samplingTask(void *) {
             stats.led_bits = bits;
         }
         Snapshot s = takeSnapshot();
-        if (stats.logging && xQueueSend(log_queue, &s, 0) != pdTRUE)
-            ++stats.log_drop;
+        {
+            Guard capture(capture_mutex);
+            if (stats.logging && xQueueSend(log_queue, &s, 0) != pdTRUE)
+                ++stats.log_drop;
+        }
         if (xTaskGetTickCount() - wake > pdMS_TO_TICKS(10)) {
             ++stats.sample_late;
             wake = xTaskGetTickCount();

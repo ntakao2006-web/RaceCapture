@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "freertos/stream_buffer.h"
 #include "state.h"
+#include "log_format.h"
 #include "tinyusb.h"
 #include "tusb.h"
 #include "tusb_cdc_acm.h"
@@ -14,9 +15,11 @@
 
 namespace logger {
 static constexpr size_t LINE_BYTES = 65536;
+static constexpr size_t FILE_READ_BYTES = 24576;
 static StreamBufferHandle_t usb_rx;
 static SemaphoreHandle_t protocol_mutex;
 static SemaphoreHandle_t uart_output_mutex;
+static TaskHandle_t uart_task_handle = nullptr, usb_task_handle = nullptr;
 static vprintf_like_t original_log = vprintf;
 static int atomicLog(const char *format, va_list args) {
     Guard lock(uart_output_mutex);
@@ -26,8 +29,9 @@ struct Transport {
     bool uart = false, stream = false, discard = false;
     size_t used = 0;
     uint32_t schema = 0;
+    uint32_t stream_period_us = 100000;
     uint64_t next_sample = 0;
-    char *input = nullptr, *output = nullptr, *script = nullptr;
+    char *input = nullptr, *output = nullptr, *script = nullptr, *file_buffer = nullptr;
     Channel *metadata = nullptr;
     unsigned script_page = 0;
     size_t script_used = 0;
@@ -228,18 +232,27 @@ static void status(JsonObject s) {
     sy["model"] = "logger_v1";
     sy["uptime"] = snap.us / 1000000;
     sy["ver_major"] = 2;
-    sy["ver_minor"] = 16;
-    sy["ver_bugfix"] = 1;
+    sy["ver_minor"] = 17;
+    sy["ver_bugfix"] = 0;
     sy["heap"] = esp_get_free_heap_size();
+    if (uart_task_handle)
+        sy["rcpUartStackMinBytes"] = uxTaskGetStackHighWaterMark(uart_task_handle) * sizeof(StackType_t);
+    if (usb_task_handle)
+        sy["rcpUsbStackMinBytes"] = uxTaskGetStackHighWaterMark(usb_task_handle) * sizeof(StackType_t);
     auto gps = s["GPS"].to<JsonObject>();
     gps["init"] = snap.has(GNSS_LINK) && snap.values[GNSS_LINK] > 0 ? 3 : 0;
     gps["qual"] = snap.has(GPS_FIX) ? snap.values[GPS_FIX] : 0;
-    gps["sats"] = snap.values[GPS_SATS];
-    gps["lat"] = snap.values[LAT];
-    gps["lon"] = snap.values[LON];
-    gps["hAcc"] = snap.values[GPS_HACC];
+    gps["sats"] = snap.has(GPS_SATS) ? snap.values[GPS_SATS] : 0;
+    for (auto pair : {std::pair<const char *, unsigned>{"lat", LAT}, {"lon", LON}, {"hAcc", GPS_HACC}, {"vAcc", GPS_VACC}}) {
+        if (snap.has(pair.second)) gps[pair.first] = snap.values[pair.second];
+        else gps[pair.first] = nullptr;
+    }
     gps["hz"] = snap.values[GPS_HZ];
     gps["utcValid"] = snap.has(UTC_VALID) && snap.values[UTC_VALID] > 0;
+    gps["retries"] = stats.gnss_retries.load();
+    gps["badFrames"] = stats.gnss_parse_errors.load();
+    gps["duplicateEpochs"] = stats.gnss_duplicates.load();
+    s["system"]["resetReason"] = resetReasonName();
     auto log = s["logging"].to<JsonObject>();
     log["status"] = stats.logging && stats.sd_ok ? 1 : 0;
     log["dur"] = snap.us / 1000000;
@@ -248,6 +261,8 @@ static void status(JsonObject s) {
     log["syncs"] = stats.syncs.load();
     log["drops"] = stats.log_drop.load();
     log["errors"] = stats.sd_errors.load();
+    log["closed"] = stats.sd_closed.load();
+    log["safeToRemove"] = stats.sd_ready.load();
     {
         Guard lock(state_mutex);
         log["file"] = session_path;
@@ -275,6 +290,12 @@ static void status(JsonObject s) {
     ca["benchHubRx"] = stats.bench_hub_rx.load();
     s["imuSamples"] = stats.imu_samples.load();
     s["imuErrors"] = stats.imu_errors.load();
+    s["IMU"]["validSamples"] = stats.imu_samples.load();
+    s["IMU"]["invalidSamples"] = stats.imu_invalid.load();
+    s["IMU"]["recoveries"] = stats.imu_recoveries.load();
+    s["IMU"]["status"] = stats.imu_status.load();
+    s["IMU"]["lastError"] = stats.imu_last_error.load();
+    s["IMU"]["diagnostic"] = stats.imu_test_status.load();
     s["gnssSamples"] = stats.gps_samples.load();
     s["gnssErrors"] = stats.gnss_errors.load();
     s["luaOK"] = stats.lua_ok.load();
@@ -290,6 +311,8 @@ static void listLogs(JsonDocument &out, JsonVariant v) {
         o["error"] = "SD unavailable or invalid offset";
         return;
     }
+    std::string active;
+    { Guard state(state_mutex); active = session_path; }
     Guard lock(sd_mutex);
     DIR *dir = opendir("/sdcard/logs");
     if (!dir) {
@@ -312,8 +335,11 @@ static void listLogs(JsonDocument &out, JsonVariant v) {
         struct stat info = {};
         auto f = a.add<JsonObject>();
         f["name"] = entry->d_name;
-        if (stat(path, &info) == 0)
+        if (stat(path, &info) == 0) {
             f["bytes"] = uint64_t(info.st_size);
+            f["modified"] = int64_t(info.st_mtime);
+        }
+        f["active"] = active == path;
     }
     closedir(dir);
     if (more)
@@ -321,7 +347,7 @@ static void listLogs(JsonDocument &out, JsonVariant v) {
     else
         o["next"] = nullptr;
 }
-static void readLog(JsonDocument &out, JsonVariant v) {
+static void readLog(JsonDocument &out, JsonVariant v, char *data) {
     auto o = out["logData"].to<JsonObject>();
     const char *name = v["name"] | "";
     if (!*name || strlen(name) > 96 || !stats.sd_ok) {
@@ -362,8 +388,7 @@ static void readLog(JsonDocument &out, JsonVariant v) {
         o["error"] = "Invalid offset";
         return;
     }
-    char data[2049];
-    size_t n = fread(data, 1, sizeof(data) - 1, f);
+    size_t n = fread(data, 1, FILE_READ_BYTES - 1, f);
     bool error = ferror(f);
     fclose(f);
     data[n] = 0;
@@ -392,14 +417,15 @@ static void handle(JsonDocument &in, Transport &t) {
         o["name"] = "RCPMK3";
         o["fname"] = "logger_v1 real-sensor SD logger";
         o["major"] = 2;
-        o["minor"] = 16;
-        o["bugfix"] = 1;
+        o["minor"] = 17;
+        o["bugfix"] = 0;
         o["serial"] = "LOGGER-V1-TEST";
-        o["git_info"] = "cf1c711-logger-v1-integration";
+        o["git_info"] = LOGGER_BUILD;
         o["release_type"] = "development";
     } else if (!strcmp(cmd, "getCapabilities")) {
         auto o = out["capabilities"].to<JsonObject>();
-        o["flags"].to<JsonArray>();
+        o["flags"].to<JsonArray>().add("telemstream");
+        o["telemetryMaxHz"] = 10;
         auto c = o["channels"].to<JsonObject>();
         for (const char *n : {"analog", "gpio", "timer", "pwm", "obd2", "canChan"})
             c[n] = 0;
@@ -415,7 +441,7 @@ static void handle(JsonDocument &in, Transport &t) {
     } else if (!strcmp(cmd, "listLogs"))
         listLogs(out, v);
     else if (!strcmp(cmd, "readLog"))
-        readLog(out, v);
+        readLog(out, v, t.file_buffer);
     else if (!strcmp(cmd, "testCanLoop")) {
         bool ok;
         {
@@ -434,8 +460,26 @@ static void handle(JsonDocument &in, Transport &t) {
         status(out["status"].to<JsonObject>());
     else if (!strcmp(cmd, "s"))
         sample(out, t, v["meta"] | false);
-    else if (!strcmp(cmd, "log")) {
+    else if (!strcmp(cmd, "setTelemetry")) {
+        // RaceCapture otherwise polls at 50 Hz while reading configuration.
+        // Bound PC display traffic independently of the 100 Hz SD capture.
+        const int requested = v["rate"] | -1;
+        const char *transport = v["transport"] | "serial";
+        const bool ok = requested >= 0 && !strcmp(transport, "serial");
+        if (ok) {
+            const int applied = requested > 10 ? 10 : requested;
+            t.stream = applied > 0;
+            t.stream_period_us = applied ? 1000000 / applied : 100000;
+            t.next_sample = nowUs();
+            t.schema = 0;
+            result(out, cmd, true);
+            out[cmd]["requestedRate"] = requested;
+            out[cmd]["rate"] = applied;
+        } else
+            result(out, cmd, false, "Non-negative rate and serial transport required");
+    } else if (!strcmp(cmd, "log")) {
         t.stream = v.is<JsonObject>() ? (v["en"] | true) : v.as<bool>();
+        t.stream_period_us = 100000;
         out[t.stream ? "logStart" : "logEnd"] = 1;
         t.schema = 0;
     } else if (!strcmp(cmd, "getLoggerCfg"))
@@ -471,6 +515,88 @@ static void handle(JsonDocument &in, Transport &t) {
         }
         result(out, cmd, ok,
                ok ? nullptr : "Invalid track; sectors require an explicit course definition");
+    } else if (!strcmp(cmd, "getGnssProfiles")) {
+        bool high;
+        { Guard lock(state_mutex); high = gnss_diagnostics.high_performance_clock; }
+        auto o = out[cmd].to<JsonObject>();
+        o["highPerformanceClock"] = high;
+        o["bootProfile"] = GNSS_PROFILES[GNSS_DEFAULT_PROFILE].id;
+        auto profiles = o["profiles"].to<JsonArray>();
+        for (unsigned i=0;i<GNSS_PROFILES.size();++i) {
+            const auto &p = GNSS_PROFILES[i];
+            auto a = profiles.add<JsonObject>();
+            a["id"] = p.id; a["systems"] = p.systems;
+            a["periodMs"] = p.period_ms; a["nominalHz"] = p.nominal_hz;
+            a["actualHz"] = 1000.0 / p.period_ms;
+            a["supported"] = gnssProfileSupported(i,high);
+        }
+    } else if (!strcmp(cmd, "setGnssProfile")) {
+        unsigned index = GNSS_PROFILES.size();
+        const char *name = v["id"] | "";
+        for (unsigned i=0;i<GNSS_PROFILES.size();++i)
+            if (!strcmp(name,GNSS_PROFILES[i].id)) index=i;
+        bool ready, high;
+        { Guard lock(state_mutex);
+          ready = gnss_diagnostics.configuration_verified;
+          high = gnss_diagnostics.high_performance_clock; }
+        bool ok = t.uart && !strcmp(v["confirm"] | "", "GNSS_PROFILE_TEST") &&
+                  !stats.logging.load() && stats.sd_closed.load() && ready &&
+                  gnssProfileSupported(index,high);
+        if (ok) stats.gnss_profile = index;
+        result(out,cmd,ok,ok ? "Queued RAM-only profile; wait for verified profileId before resuming SD"
+            : "UART only; stop/close SD, require verified clock and supported id, confirm GNSS_PROFILE_TEST");
+    } else if (!strcmp(cmd, "getGnssDiagnostics")) {
+        GnssDiagnostics d;
+        { Guard lock(state_mutex); d = gnss_diagnostics; }
+        uint64_t now = nowUs();
+        auto o = out[cmd].to<JsonObject>();
+        o["satellitesFresh"] = fresh(now, d.satellites_us, 3000);
+        o["radioFresh"] = fresh(now, d.radio_us, 3000);
+        o["pvtFresh"] = fresh(now, d.pvt_us, 1500);
+        auto cfg = o["configuration"].to<JsonObject>();
+        cfg["verified"] = d.configuration_verified;
+        cfg["highPerformanceClock"] = d.high_performance_clock;
+        cfg["requestedProfileId"] = GNSS_PROFILES[stats.gnss_profile.load()].id;
+        if (d.profile_index < GNSS_PROFILES.size()) {
+            const auto &p = GNSS_PROFILES[d.profile_index];
+            cfg["profileId"] = p.id;
+            cfg["profile"] = p.systems;
+            cfg["qzssSbas"] = true;
+            cfg["navigationHz"] = 1000.0 / p.period_ms;
+            cfg["periodMs"] = p.period_ms;
+        } else cfg["profile"] = "unverified";
+        if (d.pvt_us) o["pvtAgeMs"] = (now - d.pvt_us) / 1000.0;
+        else o["pvtAgeMs"] = nullptr;
+        if (d.satellites_us) {
+            auto s = o["satellites"].to<JsonObject>();
+            s["reported"] = d.satellites.reported;
+            s["acquired"] = d.satellites.acquired;
+            s["tracked"] = d.satellites.tracked;
+            s["used"] = d.satellites.used;
+            s["maxCnoDbHz"] = d.satellites.max_cno;
+            s["top4MeanCnoDbHz"] = d.satellites.top4_cno;
+            const char *names[] = {"GPS", "SBAS", "Galileo", "BeiDou", "IMES", "QZSS", "GLONASS"};
+            auto systems = s["systems"].to<JsonArray>();
+            for (unsigned i=0;i<7;++i) {
+                if (i==4) continue; // IMES is not used by this receiver profile.
+                auto system = systems.add<JsonObject>();
+                system["name"] = names[i];
+                system["acquired"] = d.satellites.acquired_by_gnss[i];
+                system["used"] = d.satellites.used_by_gnss[i];
+            }
+        }
+        if (d.radio_us) {
+            auto r = o["radio"].to<JsonObject>();
+            r["noise"] = d.radio.noise;
+            r["agcPercent"] = d.radio.agc * 100.0 / 8191;
+            r["jammingState"] = d.radio.jamming;
+            r["cwSuppression"] = d.radio.cw;
+            r["antennaStatus"] = d.radio.antenna_status;
+            r["antennaPower"] = d.radio.antenna_power;
+        }
+        o["retries"] = stats.gnss_retries.load();
+        o["badFrames"] = stats.gnss_parse_errors.load();
+        o["duplicateEpochs"] = stats.gnss_duplicates.load();
     } else if (!strcmp(cmd, "getGpsCfg")) {
         auto o = out["gpsCfg"].to<JsonObject>();
         {
@@ -591,12 +717,70 @@ static void handle(JsonDocument &in, Transport &t) {
         result(out, cmd, ok,
                ok ? "Queued; verify boot log and next startup"
                   : "BNO055 must be fully calibrated (255)");
+    } else if (!strcmp(cmd, "getLevelCalibration")) {
+        LevelCalibration c;
+        { Guard lock(state_mutex); c = level_calibration; }
+        auto o = out["levelCalibration"].to<JsonObject>();
+        o["enabled"] = c.enabled != 0;
+        o["rollZeroDeg"] = c.roll_zero_deg;
+        o["pitchZeroDeg"] = c.pitch_zero_deg;
+        auto m = o["matrixSensorToVehicle"].to<JsonArray>();
+        for (double value : c.matrix) m.add(value);
+        o["formula"] = "[LongAccel,LatAccel,VertAccel]^T = M * [GForceX,GForceY,GForceZ]^T; LevelRoll/Pitch = wrap180(raw-zero)";
+    } else if (!strcmp(cmd, "setLevelCalibration")) {
+        LevelCalibration c;
+        c.enabled = (v["enabled"] | false) ? 1 : 0;
+        c.roll_zero_deg = v["rollZeroDeg"] | 0.0;
+        c.pitch_zero_deg = v["pitchZeroDeg"] | 0.0;
+        if (!v["matrixSensorToVehicle"].is<JsonArray>() || v["matrixSensorToVehicle"].size() != 9)
+            c.version = 0;
+        else
+            for (unsigned i = 0; i < 9; ++i) c.matrix[i] = v["matrixSensorToVehicle"][i].as<double>();
+        bool ok = validLevelCalibration(c) && saveLevelCalibration(c);
+        result(out, cmd, ok, ok ? "Saved; active CSV rotated so each segment has one formula"
+                               : "Invalid or non-orthonormal correction matrix");
     } else if (!strcmp(cmd, "resetLap")) {
         stats.reset_laps = true;
         result(out, cmd, true);
     } else if (!strcmp(cmd, "setLogging")) {
-        stats.logging = v.as<bool>();
-        result(out, cmd, true);
+        if (!v.is<bool>())
+            result(out, cmd, false, "Expected boolean");
+        else {
+            requestLogging(v.as<bool>());
+            result(out, cmd, true);
+        }
+    } else if (!strcmp(cmd, "inspectSd") || !strcmp(cmd, "clearSd")) {
+        const bool erase = !strcmp(cmd, "clearSd");
+        if (!t.uart || (erase && strcmp(v["confirm"] | "", "DELETE_ALL_SD_CONTENTS"))) {
+            result(out, cmd, false, "UART only; clearSd requires confirm DELETE_ALL_SD_CONTENTS");
+        } else {
+            SdContents report;
+            bool ok = maintainSdContents(erase, report);
+            result(out, cmd, ok, ok ? nullptr : report.error);
+            out[cmd]["files"] = report.files;
+            out[cmd]["directories"] = report.directories;
+            out[cmd]["bytes"] = report.bytes;
+            out[cmd]["root"] = "/sdcard";
+            out[cmd]["loggingRemainsStopped"] = !stats.logging.load();
+        }
+    } else if (!strcmp(cmd, "testImuRecovery")) {
+        bool ok = t.uart && !strcmp(v["confirm"] | "", "LOGGER_IMU_ONLY") &&
+                  !stats.imu_test_request.load();
+        if (ok) {
+            stats.imu_test_status = 1;
+            stats.imu_test_request = true;
+        }
+        result(out, cmd, ok, ok ? "IMU-only fusion stop queued; SD and GNSS continue"
+                               : "UART-only diagnostic; confirm LOGGER_IMU_ONLY");
+    } else if (!strcmp(cmd, "testUsbReconnect")) {
+        bool ok = t.uart && !strcmp(v["confirm"] | "", "LOGGER_USB_ONLY");
+        if (ok)
+            stats.usb_cycle_request = true;
+        result(out, cmd, ok, ok ? "USB-only detach queued; SD capture continues"
+                               : "UART-only diagnostic; confirm LOGGER_USB_ONLY");
+    } else if (!strcmp(cmd, "prepareSdRemoval")) {
+        requestLogging(false, true);
+        result(out, cmd, true, "Wait for logging.safeToRemove before removing SD");
     } else if (!strcmp(cmd, "rotateLog")) {
         stats.rotate = true;
         result(out, cmd, true);
@@ -639,10 +823,26 @@ static void task(void *arg) {
         static_cast<char *>(heap_caps_malloc(LINE_BYTES, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
     t.script = static_cast<char *>(
         heap_caps_malloc(sizeof(script_text), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+    t.file_buffer = static_cast<char *>(
+        heap_caps_malloc(FILE_READ_BYTES, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
     t.metadata = static_cast<Channel *>(
         heap_caps_malloc(sizeof(Channel) * MAX_CHANNELS, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
-    ESP_ERROR_CHECK(t.input && t.output && t.script && t.metadata ? ESP_OK : ESP_ERR_NO_MEM);
+    ESP_ERROR_CHECK(t.input && t.output && t.script && t.file_buffer && t.metadata ? ESP_OK : ESP_ERR_NO_MEM);
     while (true) {
+        if (!t.uart && stats.usb_cycle_request.exchange(false)) {
+            ESP_LOGI("rcp", "Diagnostic USB detach; acquisition and SD continue");
+            tud_disconnect();
+            stats.usb_connected = false;
+            t.stream = false;
+            t.used = 0;
+            t.discard = false;
+            t.schema = 0;
+            t.script_active = false;
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            xStreamBufferReset(usb_rx);
+            tud_connect();
+            ESP_LOGI("rcp", "Diagnostic USB attach");
+        }
         uint8_t b[256];
         int n = t.uart ? uart_read_bytes(UART_NUM_0, b, sizeof(b), pdMS_TO_TICKS(10))
                        : int(xStreamBufferReceive(usb_rx, b, sizeof(b), pdMS_TO_TICKS(10)));
@@ -653,15 +853,18 @@ static void task(void *arg) {
             if (!stats.usb_connected) {
                 t.stream = false;
                 t.used = 0;
+                t.discard = false;
+                t.script_active = false;
                 t.schema = 0;
             }
         }
         if (t.stream && nowUs() >= t.next_sample) {
-            t.next_sample = nowUs() + 100000;
+            t.next_sample = nowUs() + t.stream_period_us;
             JsonDocument out;
             sample(out, t, false);
-            if (!send(out, t))
-                t.stream = false;
+            // A transient full USB TX queue must not permanently disable a
+            // requested stream. A true disconnect is handled above.
+            send(out, t);
         }
     }
 }
@@ -706,10 +909,12 @@ void startProtocol() {
     ESP_ERROR_CHECK(uart_set_pin(UART_NUM_0, 43, 44, -1, -1));
     if (!uart_is_driver_installed(UART_NUM_0))
         ESP_ERROR_CHECK(uart_driver_install(UART_NUM_0, 8192, 0, 0, nullptr, 0));
-    ESP_ERROR_CHECK(xTaskCreate(task, "rcp_usb", 12288, nullptr, 3, nullptr) == pdPASS
+    // JSON command dispatch plus status/sample snapshots exceeded 12 KiB on
+    // the hardware comparison build. Keep measurable headroom on both paths.
+    ESP_ERROR_CHECK(xTaskCreate(task, "rcp_usb", 24576, nullptr, 3, &usb_task_handle) == pdPASS
                         ? ESP_OK
                         : ESP_ERR_NO_MEM);
-    ESP_ERROR_CHECK(xTaskCreate(task, "rcp_uart", 12288, reinterpret_cast<void *>(1), 3, nullptr) ==
+    ESP_ERROR_CHECK(xTaskCreate(task, "rcp_uart", 24576, reinterpret_cast<void *>(1), 3, &uart_task_handle) ==
                             pdPASS
                         ? ESP_OK
                         : ESP_ERR_NO_MEM);
