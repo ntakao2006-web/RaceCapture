@@ -35,7 +35,23 @@
 #define CAN_RX_GPIO       GPIO_NUM_20    // <- MCP2562FD RXD
 #define CAN_TXD_WIRE_GPIO GPIO_NUM_21    // -> MCP2562FD TXD、HIGH固定
 #define CAN_TX_DECOY_GPIO GPIO_NUM_10    // TWAI TX のダミー割当先(トランシーバ非接続)
-#define CAN_TIMING        TWAI_TIMING_CONFIG_500KBITS()  // NCロードスターOBD2=500k(2-0で確定)
+// ビットレートはビルドフラグ -D CAN_BITRATE_KBPS=<125|250|500|1000> で切替可能。
+// 既定は500k（乗用車のHS-CAN/OBD2の標準値。NCロードスターで2-0確定、MAZDA2も同一想定）。
+// 500kで1フレームも受信できない場合の切り分け用に250k等を用意している。
+#ifndef CAN_BITRATE_KBPS
+#define CAN_BITRATE_KBPS 500
+#endif
+#if   CAN_BITRATE_KBPS == 1000
+#define CAN_TIMING        TWAI_TIMING_CONFIG_1MBITS()
+#elif CAN_BITRATE_KBPS == 500
+#define CAN_TIMING        TWAI_TIMING_CONFIG_500KBITS()
+#elif CAN_BITRATE_KBPS == 250
+#define CAN_TIMING        TWAI_TIMING_CONFIG_250KBITS()
+#elif CAN_BITRATE_KBPS == 125
+#define CAN_TIMING        TWAI_TIMING_CONFIG_125KBITS()
+#else
+#error "CAN_BITRATE_KBPS must be one of 125/250/500/1000"
+#endif
 #define RX_QUEUE_LEN      256
 #define LINE_RB_BYTES     (48 * 1024)
 #define LOG_LINE_MAX      80
@@ -146,7 +162,7 @@ extern "C" void app_main(void)
     printf("# safety: mode=LISTEN_ONLY, TWAI-TX=decoy GPIO%d (not wired), "
            "GPIO%d held HIGH(recessive)\n",
            (int)CAN_TX_DECOY_GPIO, (int)CAN_TXD_WIRE_GPIO);
-    printf("# bitrate=500k, RX=GPIO%d\n", (int)CAN_RX_GPIO);
+    printf("# bitrate=%dk, RX=GPIO%d\n", (int)CAN_BITRATE_KBPS, (int)CAN_RX_GPIO);
     printf("# line format: t_us,id_hex,ext,rtr,dlc,data_hex   (lines starting with '#' are status)\n");
 
     // --- 安全策1+2: LISTEN_ONLY + TX信号はダミーGPIOへ ---

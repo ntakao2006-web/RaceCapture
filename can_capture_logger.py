@@ -83,6 +83,18 @@ class CaptureWriter:
         self.last_state = None
         self._err_samples = []
 
+    # -- 明示フラッシュ（無人キャプチャ中の取りこぼし対策） ---------------
+    def flush(self) -> None:
+        """開いている出力ファイルをすべてOSへ書き出す。
+
+        車載で放置したままキャプチャする運用では、PCのスリープ・電源断・
+        プロセス強制終了で Python 側のバッファが失われうる。定期的に呼ぶことで
+        失う範囲を直近の数秒だけに抑える。
+        """
+        for f in (self.csv_f, self.jsonl_f, self.status_f):
+            if f is not None:
+                f.flush()
+
     # -- 1行を処理 -------------------------------------------------------
     def feed_line(self, raw: str) -> None:
         line = raw.strip()
@@ -212,35 +224,75 @@ def run_replay(path: str, writer: CaptureWriter) -> None:
             writer.feed_line(line)
 
 
-def run_serial(port: str, baud: int, writer: CaptureWriter, limit_seconds: float) -> None:
+def run_serial(port: str, baud: int, writer: CaptureWriter, limit_seconds: float,
+               reconnect: bool = True, flush_interval: float = 2.0) -> None:
+    """シリアルからライブ受信する。
+
+    車載で走り出してから放置する運用を想定し、次の2点を備える。
+      - 自動再接続：段差でのコネクタ揺れやUSBの一時的な切断でキャプチャ全体を
+        落とさない。切断のたびに `# host: serial ...` 行を status ログへ残すので、
+        後から「どこで途切れたか」を追える。
+      - 定期フラッシュ：PCのスリープ・強制終了で失う範囲を直近数秒に抑える。
+    """
     import serial  # 遅延import（--replay/--selftest では pyserial 不要）
+    from serial import SerialException
 
     deadline = time.monotonic() + limit_seconds if limit_seconds > 0 else None
-    buf = b""
-    first_line_dropped = False  # 接続時に途中から拾った端数行は捨てる
+    next_flush = time.monotonic() + flush_interval
+    attempt = 0
     print(f"[*] {port} @ {baud}bps を受信中... (Ctrl+C で停止)", flush=True)
-    with serial.Serial(port, baud, timeout=0.2) as ser:
-        try:
-            while True:
-                if deadline and time.monotonic() >= deadline:
-                    print("[*] --limit-seconds に到達、停止します。", flush=True)
-                    break
-                chunk = ser.read(4096)
-                if chunk:
-                    buf += chunk
-                    while b"\n" in buf:
-                        raw, buf = buf.split(b"\n", 1)
-                        if not first_line_dropped:
-                            first_line_dropped = True
-                            continue
-                        writer.feed_line(raw.decode("utf-8", errors="backslashreplace"))
-                else:
-                    time.sleep(0.02)
-        except KeyboardInterrupt:
-            print("\n[*] Ctrl+C、停止します。", flush=True)
-        # 端数（先頭端数を捨てる前なら、これも端数なので捨てる）
-        if buf.strip() and first_line_dropped:
-            writer.feed_line(buf.decode("utf-8", errors="backslashreplace"))
+
+    try:
+        while True:
+            if deadline and time.monotonic() >= deadline:
+                print("[*] --limit-seconds に到達、停止します。", flush=True)
+                return
+
+            buf = b""
+            first_line_dropped = False  # 接続時に途中から拾った端数行は捨てる
+            try:
+                with serial.Serial(port, baud, timeout=0.2) as ser:
+                    if attempt:
+                        msg = f"# host: serial reconnected to {port} (attempt {attempt})"
+                        print(f"[*] {port} へ再接続しました (試行{attempt}回目)", flush=True)
+                        writer.feed_line(msg)
+                    attempt = 0
+                    while True:
+                        now = time.monotonic()
+                        if deadline and now >= deadline:
+                            print("[*] --limit-seconds に到達、停止します。", flush=True)
+                            return
+                        if now >= next_flush:
+                            writer.flush()
+                            next_flush = now + flush_interval
+                        chunk = ser.read(4096)
+                        if chunk:
+                            buf += chunk
+                            while b"\n" in buf:
+                                raw, buf = buf.split(b"\n", 1)
+                                if not first_line_dropped:
+                                    first_line_dropped = True
+                                    continue
+                                writer.feed_line(
+                                    raw.decode("utf-8", errors="backslashreplace"))
+                        else:
+                            time.sleep(0.02)
+            except SerialException as e:
+                # 端数は捨てる（切断で途中まで届いた行の可能性が高い）
+                writer.feed_line(f"# host: serial lost ({e.__class__.__name__}: {e})")
+                writer.flush()
+                if not reconnect:
+                    print(f"[!] シリアルが切断されました: {e}", flush=True)
+                    return
+                attempt += 1
+                if attempt == 1:
+                    print(f"[!] シリアルが切断されました: {e}", flush=True)
+                    print("[*] 再接続を試行中...（--no-reconnect で無効化）", flush=True)
+                time.sleep(1.0)
+    except KeyboardInterrupt:
+        print("\n[*] Ctrl+C、停止します。", flush=True)
+    finally:
+        writer.flush()
 
 
 # ---- 自己テスト ---------------------------------------------------------
@@ -325,6 +377,8 @@ def main() -> None:
     p.add_argument("--format", choices=["csv", "jsonl", "both"], default="csv")
     p.add_argument("--limit-seconds", type=float, default=0, help=">0 でその秒数後に自動停止")
     p.add_argument("--echo", action="store_true", help="受信行を標準出力にも表示")
+    p.add_argument("--no-reconnect", action="store_true",
+                   help="切断時に自動再接続せず終了する（既定は再接続する）")
     args = p.parse_args()
 
     if args.selftest:
@@ -338,7 +392,8 @@ def main() -> None:
         if args.replay:
             run_replay(args.replay, writer)
         else:
-            run_serial(args.port, args.baud, writer, args.limit_seconds)
+            run_serial(args.port, args.baud, writer, args.limit_seconds,
+                       reconnect=not args.no_reconnect)
     finally:
         writer.close()
     print()
