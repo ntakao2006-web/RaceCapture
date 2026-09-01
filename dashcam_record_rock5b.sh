@@ -87,8 +87,18 @@ while [ "$STOP" -eq 0 ]; do
   SEGMENT_PATTERN=$(printf '%s/video_%02d_%%04d.mp4' "$OUTDIR" "$RUN")
   # -nostats: the per-frame progress line is what grew this log to 35 MB on a
   # disk that was already full. Warnings and errors still come through.
-  "$FFMPEG_BIN" -hide_banner -nostats -f kmsgrab -device /dev/dri/card0 "${PLANE_ARGS[@]}" -framerate 15 -i - \
-    -c:v h264_rkmpp -b:v 4M \
+  #
+  # 30 fps, not the telemetry's 10 Hz: the dash carries a live camera image, and
+  # the recording is a video deliverable in its own right, so it is paced for
+  # motion rather than for the gauge update rate.
+  #
+  # 6 Mbps rather than 4: at 15 fps the encoder was already sitting on the 4 Mbps
+  # ceiling (measured 3.5-4.0 Mbps on real segments), so keeping it there while
+  # doubling the frame rate would have spent the same bits on twice the frames.
+  # 30 fps needs roughly 1.5x, not 2x, because consecutive frames are more alike.
+  # Costs about 2.7 GB/hour; the retention loop above is what keeps that bounded.
+  "$FFMPEG_BIN" -hide_banner -nostats -f kmsgrab -device /dev/dri/card0 "${PLANE_ARGS[@]}" -framerate 30 -i - \
+    -c:v h264_rkmpp -b:v 6M \
     -f segment -segment_time 60 -reset_timestamps 1 -strftime 0 \
     -segment_format mp4 -segment_format_options movflags=+frag_keyframe+empty_moov+default_base_moof \
     "$SEGMENT_PATTERN" &
