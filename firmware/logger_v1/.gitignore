@@ -3,3 +3,8 @@ managed_components/
 artifacts/
 __pycache__/
 sdkconfig.logger-v1.old
+
+# 実機の走行/散歩ログとその解析成果物。座標を含むためGitへ入れない
+# （HANDOFF_20260902.md 7章「この環境に残るローカル専用作業」）。
+analysis/
+logs.zip

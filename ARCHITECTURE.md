@@ -713,6 +713,31 @@
   アプリ本体・回路・GNSS OTP・既存NVS・SDログは維持。夜のソース変更は未コミット/未push。
   操作と残る制限は `firmware/logger_v1/SD_LOGGING.md`、実測は同フォルダーの `VERIFICATION.md` を参照。
 
+- 2026-09-02追記（回路担当の引継ぎ `HANDOFF_20260902.md` を受領し、`origin/master` の8コミットを取り込んだ）:
+  **PC／車載の表示アプリ `EcoCapture/` がこのリポジトリの構成要素として確定した。**
+  Godot 4.7.2 .NET／.NET 8製で、Windows x64とLinux ARM64（ROCK 5B / Raspberry Pi 4向け）を同一C#ソースから生成する。
+  ロガーとはネイティブUSB（VID/PID `303a/4001`）のRCP JSONで接続し、A105書込み用CH9102ポートは開かない。
+  実機テレメトリとデモは同じ `TelemetryFrame` を通り、schema revision 83・81チャンネルで一致する（自動試験で集合一致を検査）。
+  層構成・データ契約・拡張手順は `HANDOFF_20260902.md` 5章、要件は `EcoCapture/SYSTEM_REQUIREMENTS.md` を参照。
+
+- 2026-09-02追記: **走行データのライブ共有と公開Web閲覧を追加した。**
+  EcoCaptureが1 Hzへ間引いてFirebase Realtime Databaseへ送信し、<https://ecocapture-live.web.app> で閲覧する。
+  共有単位はアプリが生成する32文字（128 bit）のランダムID。Firebaseルールはデータベース全体の一覧取得を拒否し、
+  そのID配下だけを読み書き可能にする。**利用者認証は実装しておらず、リンクを知る者は閲覧も同一IDへの書込みもできる**ため、
+  内輪利用に限定する。一般公開・競技での公式利用へ広げる場合はFirebase Auth／App Checkの追加が前提となる。
+  ソースは `EcoCapture/cloud/`、運用手順は同フォルダーの `README.md` を参照。
+
+- 2026-09-02追記: `firmware/logger_v1` のSYS LEDを500 ms点滅から常時点灯へ変更し、ビルド表示を `logger-v1-ecocapture-20260902a` とした。
+  ERR/LOG/GPS/TLM/CANの表示条件は変更していない。
+  なお副作用として、**SYS LEDで「sampling taskが回っていること」を判別する手段は失われた**
+  （`stats.led_bits` はsampling task内で更新されるため、タスク停止時は最後の値のまま凍結し、SYS点灯・ERR消灯のまま見える）。
+  代替のハートビート表示を設けるかは回路担当の判断に委ねる。
+
+- 2026-09-02追記: 完了と未完了の境界。卓上ソフトウェア、実機USB、SD後挿し、IMU/GNSS状態、公開Web、Windows配布EXEまでは検証済み。
+  **実走、車両CANの実ID・換算、SD満杯／記録中抜去／電源瞬断、ROCK 5B実機でのEcoCapture ARM64受入、長時間耐久は未完了。**
+  実機の走行ログ・座標・解析成果物・配布バイナリをGitへ入れない方針は維持し、未除外だった
+  `firmware/logger_v1/analysis/` と `logs.zip` を `.gitignore` へ追加した。
+
 ## 5. 開発ロードマップ（詳細版）
 
 ### Phase 0：プロトコル・ソフトウェア基盤検証（実機非依存・シミュレーション環境）
