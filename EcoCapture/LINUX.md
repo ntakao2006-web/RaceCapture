@@ -4,7 +4,36 @@
 
 同じC#ソースからLinux ARM64版をエクスポート済みです。Linux x86_64の実環境（WSL）で、コア処理およびLinux用USB処理の擬似端末試験を実施しました。
 
-**Raspberry Pi 4 / ROCK 5Bそのものにはまだ転送・起動していません。** GPUドライバー、USB権限、モニター／タッチ操作、実機でのメモリ・CPU・温度は要確認です。ARM64版のビルド成功を実機動作確認とは扱っていません。
+**Raspberry Pi 4 Model B（4 GB、Debian 12 bookworm、`rc-dash-4B`）では実機で起動し、UIの描画まで確認しました（2026-09-02）。** 実測と手順は下記「Raspberry Pi 4Bでの実機確認」を参照してください。EcoLogger実機とのUSB接続、モニター実接続時の解像度とタッチ操作、長時間の安定性と温度は未確認です。
+
+**ROCK 5Bにはまだ転送・起動していません。** GPUドライバー、USB権限、モニター／タッチ操作、実機でのメモリ・CPU・温度は要確認です。ARM64版のビルド成功を実機動作確認とは扱っていません。
+
+## Raspberry Pi 4Bでの実機確認（2026-09-02）
+
+Raspberry Pi OS Lite相当の`multi-user.target`構成には表示サーバーがありません。Godotの起動にはX11またはWaylandが必要なので、X11を追加しました。
+
+```sh
+sudo apt install --no-install-recommends xserver-xorg-core xserver-xorg-legacy xinit x11-xserver-utils libxinerama1
+```
+
+`xserver-xorg-legacy`（setuidの`Xorg.wrap`）が無いと、コンソール以外から起動したXが`xf86OpenConsole: Cannot open virtual console 1 (Permission denied)`で落ちます。SSH経由で起動する場合は`/etc/X11/Xwrapper.config`に`allowed_users=anybody`と`needs_root_rights=yes`が必要です。
+
+```sh
+xinit /opt/ecocapture/EcoCapture.arm64 -- :0 vt1 -nolisten tcp
+```
+
+起動時に`ERROR: Condition "ctxErrorOccurred || !gl_display.context->glx_context" is true`が出ますが、これはデスクトップGLの取得に失敗してOpenGL ESへ切り替える正常な経路です。VideoCore VIでは`OpenGL ES 3.1 Mesa 24.2.8 / Broadcom V3D 4.2.14.0`のCompatibility rendererで動作します。
+
+実測（起動直後、1024x768、EcoLogger未接続）：
+
+| 項目 | 値 |
+|---|---|
+| CPU | 14.9 % |
+| RSS | 302 MB（RAM 3.5 GiBの8.1 %） |
+| SoC温度 | 50.1 ℃ |
+| スロットリング | `throttled=0x0` |
+
+同じPiでRaceCapture Appを併用する場合、RaceCaptureはtty1でDRMマスターを直接掴むため**同時には起動できません**。リポジトリ直下の`ecocapture_launch_rpi.sh`と`racecapture_switch_rpi.sh`を`/usr/local/bin/ecocapture-start`、`/usr/local/bin/racecapture-start`として設置すると、`getty@tty1`の停止・再開を伴う切り替えができます。
 
 ## 必要な構成
 

@@ -738,6 +738,24 @@
   実機の走行ログ・座標・解析成果物・配布バイナリをGitへ入れない方針は維持し、未除外だった
   `firmware/logger_v1/analysis/` と `logs.zip` を `.gitignore` へ追加した。
 
+- 2026-09-02追記: **EcoCaptureのLinux ARM64版をRaspberry Pi 4B実機（`rc-dash-4B`）で起動・描画まで確認した。RaceCapture 2.19.0は残したまま共存させている。**
+  作業PCへGodot 4.7.2の.NET用エクスポートテンプレートを導入して`dist/EcoCapture-linux-arm64/`を生成し、Piの`/opt/ecocapture/`へ設置した。
+  Piは`multi-user.target`で表示サーバーを持っていなかったため、X11一式（`xserver-xorg-core`／`xinit`／`xserver-xorg-legacy`ほか）を追加した。
+  GodotはデスクトップGLコンテキストの取得に失敗して**OpenGL ES 3.1（Mesa 24.2.8 / Broadcom V3D 4.2.14.0）へフォールバックし、その状態で日本語UIを含め正常に描画する**
+  （`rc-dash-3b`で29セッション以上追ったメインコンテンツ非描画バグに相当する現象は、EcoCaptureでは発生していない）。
+  実測（起動直後・1024x768・EcoLogger未接続）：CPU 14.9 %、RSS 302 MB（RAM 3.5 GiBの8.1 %）、SoC 50.1 ℃、`throttled=0x0`。
+  **未確認：EcoLogger実機とのUSB接続、モニタ実接続時の解像度・タッチ操作、長時間の安定性・温度。**
+
+- 2026-09-02追記: **RaceCaptureとEcoCaptureは同一Pi上で共存させるが、同時起動はできない**（RaceCaptureはtty1でDRMマスターを直接掴むフレームバッファ直描画、EcoCaptureはX11が必須のため）。
+  切替スクリプト`ecocapture_launch_rpi.sh`（Pi上は`/usr/local/bin/ecocapture-start`）と`racecapture_switch_rpi.sh`（同`/usr/local/bin/racecapture-start`）を追加し、双方向の切替を実機で確認した。
+  前者は`getty@tty1`を停止してからvt1にXを立ててEcoCaptureを唯一のクライアントとして起動し、後者はEcoCaptureとXを落として`getty@tty1`を再開する。
+  **RaceCapture 2.19.0のインストール内容・自動起動設定（`~/.bashrc`）には一切変更を加えていない。**
+
+- 2026-09-02追記（`rc-dash-4B`への接続の実情）: 有線はWindows ICSのDHCPが応答しないため、**固定IP`192.168.137.60/24`を設定した**（ROCK 5Bの`.50`と同じ流儀）。
+  mDNS`rc-dash-4b.local`はIPv6リンクローカルなら解決でき、`ssh -o HostKeyAlias=rc-dash-4b.local ntakao@fe80::...%10`（`%10`は有線のインターフェースindex）でも入れる。鍵は`~/.ssh/rc_dash_4b_ed25519`。
+  ただし**Windowsのファイアウォールがサブネット`192.168.137.0/24`からの着信を落としており、PiからインターネットへのNATは通らない**（Pi→PCのpingすら届かない）。
+  そのため今回のパッケージ導入は、PC側で`apt-get --print-uris`の結果から`.deb`を取得し`scp`＋`dpkg -i`する方式で行った。副作用として**PiのNTPが同期できず、システム時刻が約16日遅れている**。
+
 ## 5. 開発ロードマップ（詳細版）
 
 ### Phase 0：プロトコル・ソフトウェア基盤検証（実機非依存・シミュレーション環境）
