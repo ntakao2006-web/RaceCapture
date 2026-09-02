@@ -1,0 +1,2 @@
+e5d9d7b4da0a2af0387f94ab990121b55035aeb0d9c29dda6b44ae45cde5652d  EcoCapture-0.3.5-windows-x64.zip
+b2a6c11cbbdc723180b9789562a3f14e268701ccd0e60c4d68274b0e7d48fb2f  EcoCapture-0.3.5-linux-arm64.zip

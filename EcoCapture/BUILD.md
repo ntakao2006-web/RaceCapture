@@ -45,7 +45,7 @@ powershell -ExecutionPolicy Bypass -File tools/build.ps1 -LinuxArm64
 - `tools`：ビルド、実機ベンチ、実機UI試験ドライバー。
 - `cloud`：Firebase Realtime Database / Hosting向けライブ共有。配備手順は同フォルダーのREADME。
 - `artifacts`：実測結果、画面、位置を含む試験設定。Git・配布物から除外。
-- `dist`：生成した実行ファイルと配布ZIP。Gitから除外。
+- `dist`：生成した実行ファイルと配布ZIP。展開済みディレクトリと旧版はGitから除外し、完成版0.3.5のWindows x64／Linux ARM64 ZIPと`SHA256SUMS.txt`だけを共有。
 
 ## 卓上実機試験
 
