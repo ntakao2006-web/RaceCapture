@@ -13,10 +13,12 @@
 Raspberry Pi OS Lite相当の`multi-user.target`構成には表示サーバーがありません。Godotの起動にはX11またはWaylandが必要なので、X11を追加しました。
 
 ```sh
-sudo apt install --no-install-recommends xserver-xorg-core xserver-xorg-legacy xinit x11-xserver-utils libxinerama1
+sudo apt install --no-install-recommends xserver-xorg-core xserver-xorg-legacy xserver-xorg-input-libinput xinit x11-xserver-utils libxinerama1
 ```
 
 `xserver-xorg-legacy`（setuidの`Xorg.wrap`）が無いと、コンソール以外から起動したXが`xf86OpenConsole: Cannot open virtual console 1 (Permission denied)`で落ちます。SSH経由で起動する場合は`/etc/X11/Xwrapper.config`に`allowed_users=anybody`と`needs_root_rights=yes`が必要です。
+
+`xserver-xorg-input-libinput`も忘れずに入れてください。これが無いとXは入力デバイスを1つも掴まず（`/var/log/Xorg.0.log`に`No input driver specified, ignoring this device.`が並びます）、**マウスカーソルが表示されず、キーボードもマウスも一切効きません**。カーネルは認識しているので`/proc/bus/input/devices`だけ見ても気づけません。なお`xwd`で撮ったスクリーンショットにはそもそもカーソルは写りません。
 
 ```sh
 xinit /opt/ecocapture/EcoCapture.arm64 -- :0 vt1 -nolisten tcp
