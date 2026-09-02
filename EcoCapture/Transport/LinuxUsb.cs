@@ -20,11 +20,34 @@ public sealed class LinuxUsbFactory : IWireFactory
         var result=new List<string>();
         foreach(var tty in Directory.EnumerateDirectories("/sys/class/tty","ttyACM*"))
         {
-            var device=new DirectoryInfo(Path.Combine(tty,"device"));
-            var physical=device.ResolveLinkTarget(true) as DirectoryInfo;
-            if(physical!=null && MatchesEcoLogger(physical)) result.Add("/dev/"+Path.GetFileName(tty));
+            var physical=RealPath(Path.Combine(tty,"device"));
+            if(physical!=null && Directory.Exists(physical) && MatchesEcoLogger(new DirectoryInfo(physical)))
+                result.Add("/dev/"+Path.GetFileName(tty));
         }
         return result.OrderBy(x=>x,StringComparer.Ordinal).ToArray();
+    }
+    /// <summary>sysfsのリンクは相対で、しかも途中の要素自体がリンク（`/sys/class/tty/ttyACM0`）。
+    /// FileSystemInfo.ResolveLinkTargetは「..」を字句的に畳むため実体とずれた位置を返す
+    /// （実機で`/sys/1-1.3:1.0`という存在しないパスになりロガーを検出できなかった）。
+    /// カーネルと同じく1要素ずつ辿って解決する。</summary>
+    public static string? RealPath(string path)
+    {
+        var remaining=new Stack<string>();
+        foreach(var part in path.Split('/',StringSplitOptions.RemoveEmptyEntries).Reverse()) remaining.Push(part);
+        var resolved=new List<string>();
+        for(var steps=0;remaining.Count>0;steps++)
+        {
+            if(steps>256) return null; // リンクの循環
+            var part=remaining.Pop();
+            if(part==".") continue;
+            if(part==".."){ if(resolved.Count>0) resolved.RemoveAt(resolved.Count-1); continue; }
+            var candidate="/"+string.Join('/',resolved.Append(part));
+            var link=new FileInfo(candidate).LinkTarget;
+            if(link==null){ resolved.Add(part); continue; }
+            if(link.StartsWith('/')) resolved.Clear();
+            foreach(var p in link.Split('/',StringSplitOptions.RemoveEmptyEntries).Reverse()) remaining.Push(p);
+        }
+        return "/"+string.Join('/',resolved);
     }
     public static bool MatchesEcoLogger(DirectoryInfo physical)
     {

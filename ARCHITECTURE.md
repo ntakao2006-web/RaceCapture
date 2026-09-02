@@ -756,6 +756,24 @@
   ただし**Windowsのファイアウォールがサブネット`192.168.137.0/24`からの着信を落としており、PiからインターネットへのNATは通らない**（Pi→PCのpingすら届かない）。
   そのため今回のパッケージ導入は、PC側で`apt-get --print-uris`の結果から`.deb`を取得し`scp`＋`dpkg -i`する方式で行った。副作用として**PiのNTPが同期できず、システム時刻が約16日遅れている**。
 
+- 2026-09-02追記: **EcoCaptureのLinux版USB探索に実機でロガーを検出できないバグがあり、修正した（`EcoCapture/Transport/LinuxUsb.cs`）。**
+  `/sys/class/tty/ttyACM0/device`は相対シンボリックリンクで、しかも途中の`/sys/class/tty/ttyACM0`自体もリンクである。
+  .NETの`FileSystemInfo.ResolveLinkTarget`は「..」をカーネルと違って**字句的に**畳むため、実機では
+  存在しない`/sys/1-1.3:1.0`を返し、VID/PID照合が常に失敗して`FindDevices()`が空になっていた
+  （UIは「EcoLoggerのUSB接続を待っています」のまま。ロガー側は正常で、`getVer`に応答することを別途確認済み）。
+  カーネルと同じく1要素ずつリンクを辿る`LinuxUsbFactory.RealPath`を追加して差し替えた。
+  **従来のLinux試験は擬似端末(PTY)と実ディレクトリのみで、sysfsのシンボリックリンク構造を再現していなかったため素通りしていた**ので、
+  その形を再現する回帰テストを`EcoCapture/tests/Program.cs`へ追加した（リンク生成部はLinux実行時のみ）。
+  修正版を`rc-dash-4B`へ配置し、**実機EcoLogger（`303a:4001` logger_v1、ビルド`logger-v1-ecocapture-20260902a`）を
+  `/dev/ttyACM0`として認識・接続するところまで確認した**。
+  なお`EcoCapture/dist/`にコミット済みの`EcoCapture-0.3.5-linux-arm64.zip`は修正前のビルドである。
+
+- 2026-09-02追記（Pi 4BのX11で追加が必要だったパッケージ）: `xserver-xorg-core`だけでは足りず、
+  `xserver-xorg-legacy`（setuidの`Xorg.wrap`。無いとSSHから起動したXが`xf86OpenConsole`で落ちる）、
+  `xserver-xorg-input-libinput`（無いとXが入力デバイスを1つも掴まず、キーボード・マウスが全く効かない）、
+  `xfonts-base`＋`dmz-cursor-theme`（無いとカーソルの絵柄が存在せず、ポインタは動くのに見えない）が要る。
+  導入手順は`EcoCapture/LINUX.md`参照。
+
 ## 5. 開発ロードマップ（詳細版）
 
 ### Phase 0：プロトコル・ソフトウェア基盤検証（実機非依存・シミュレーション環境）
