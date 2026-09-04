@@ -91,9 +91,20 @@
   `can_obd_extract.py`のデコード表へUXで応答確認済みのPID（`5C`/`47`/`4C`/`43`/`44`/`34`/`1F`）を追加。
   現地手順書`lexus_ux_field_procedure.md`（60分のタイムスケジュール、判定表、帰宅後の解析コマンド）を作成。
   ファームは`esp32-c3-can-obd-logger`環境でビルド成功を確認済み（書き込みは実車前に行う）。
+  - **2026-09-05: 出発前準備を実機で完了**。COM5のESP32-C3へ`can_obd_logger`を書き込み、卓上リハーサルまで実施。
+    その過程で**USB Serial/JTAGのホスト→デバイス受信の不具合**（VFS経由のreadでは受け取れず、PC側writeが永久ブロック）を
+    実機で踏み、ファーム側を`usb_serial_jtag_driver_install()`＋`usb_serial_jtag_read_bytes()`へ、PC側を`write_timeout`必須＋
+    `flush()`廃止へ修正。修正後、`p`→`# obd polling PAUSED`（約210ms）・`r`→`RESUMED`、および
+    ポーリング停止中は`txerr`が固定され再開で再増加することまで確認済み。**残るは車へ持ち出すことだけ**
+    （持ち出し直前に卓上の120Ω終端を外す）。
 - [ ] 2-4-6-3: 実車で60分キャプチャを実施する（`lexus_ux_field_procedure.md`の「2. 現地タイムスケジュール」を実行。
   出発前に同手順書「1-2. 卓上リハーサル」でフェーズ切替が効くことを必ず確認する）
 - [ ] 2-4-6-4: 持ち帰ったログを解析する（`can_split_phases.py`→`can_obd_extract.py`→`can_correlate.py`）。
   車速・回転数に対応する生CANのID・バイト位置・スケールを特定できたら2-4-5の「保留（実車必須）」を閉じる
 - [ ] 2-4-6-5: 停車中の単一操作の差分（2-4-3／2-4-4の実車部分）。手順書のプランBで採った場合のみ、
   `can_split_phases.py --exclude-ids 7E0,7E8`で分割してから`can_diff.py`にかける
+
+## 2-4-7: 実車調査結果の回路担当向け整理
+- [x] 2-4-7-1: NCEC・MAZDA2・レクサスUXの3車両の実測結果を`vehicle_can_survey_summary.md`へ集約する
+  （プロトコル・対応PID・DLCの生CAN有無・自作基板での直結実績の対照表、電気面の確定事項、禁止事項、
+  回路担当に判断してほしい3点）。一次資料への参照はこの1枚から辿れるようにした

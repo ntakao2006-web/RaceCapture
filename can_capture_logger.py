@@ -307,12 +307,16 @@ def _apply_phase(ser, writer: CaptureWriter, entry, elapsed: float, resumed: boo
     key = PHASE_ACTIONS[action]
     sent = "-"
     if key is not None and ser is not None:
+        # ser.flush()（送信完了待ち）は呼ばない。Windowsの実装では write_timeout が
+        # 効かず、相手が読まないと無限に待つため、ここでキャプチャ全体が止まる。
         try:
             ser.write(key)
-            ser.flush()
             sent = key.decode()
         except Exception as e:                  # noqa: BLE001 送信失敗でキャプチャは止めない
             sent = f"ERR({e.__class__.__name__})"
+            print(f"[!] フェーズキー '{key.decode()}' の送信に失敗しました（{e}）。"
+                  f"記録は継続します（区切りマーカーは残るので後処理では区別できます）。",
+                  flush=True)
     tag = "phase-resume" if resumed else "phase"
     writer.feed_line(
         f"# host: {tag} t={elapsed:.1f}s at={sec:g}s action={action} key={sent} label={label}")
@@ -360,7 +364,9 @@ def run_serial(port: str, baud: int, writer: CaptureWriter, limit_seconds: float
             buf = b""
             first_line_dropped = False  # 接続時に途中から拾った端数行は捨てる
             try:
-                with serial.Serial(port, baud, timeout=0.2) as ser:
+                # write_timeout は必須。ESP32-C3のUSB Serial/JTAGは相手が読まないと
+                # ホスト側の書き込みが詰まるため、無指定だとフェーズ送信でハングする。
+                with serial.Serial(port, baud, timeout=0.2, write_timeout=0.5) as ser:
                     if attempt:
                         msg = f"# host: serial reconnected to {port} (attempt {attempt})"
                         print(f"[*] {port} へ再接続しました (試行{attempt}回目)", flush=True)
