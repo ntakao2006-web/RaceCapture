@@ -20,6 +20,12 @@ can_logger の出力形式（この形式を入力インターフェースの前
     # 取り込み経路の確認用に10秒だけ回す
     python can_capture_logger.py --port COM5 --out probe --limit-seconds 10
 
+    # 運転中に手を出せない無人キャプチャ（can_obd_logger のポーリングを時刻で自動切替）
+    #   passive=ポーリング停止('p') / poll=再開('r') / mark=印だけ
+    #   区切りは status ログへ残り、can_split_phases.py でフェーズ別CSVへ分割できる
+    python can_capture_logger.py --port COM5 --out run1 --limit-seconds 3660 \
+        --phase-plan "0:passive:ig_on,480:poll:idle_obd,780:poll:drive,3000:passive:drive_passive"
+
     # 既存のテキストダンプ（pio device monitor の保存等）を変換
     python can_capture_logger.py --replay samples/can_logger_sample.txt --out sample --format both
 
@@ -217,6 +223,103 @@ def _is_hex(s: str) -> bool:
         return False
 
 
+# ---- フェーズ計画（無人セッションの自動進行） -----------------------------
+# can_obd_logger のランタイムキー（firmware/can_obd_logger/src/main.cpp）:
+#   'p' … OBD2 PIDポーリング停止（完全受動の観測へ。ただしACKは返る）
+#   'r' … ポーリング再開
+PHASE_ACTIONS = {
+    "passive": b"p",   # ポーリング停止
+    "poll":    b"r",   # ポーリング再開
+    "mark":    None,   # キーは送らず、区切りマーカーだけ残す
+}
+
+
+class PhasePlan:
+    """`--phase-plan` の指定に従い、経過秒で計測フェーズを自動で切り替える。
+
+    運転中はキーボードを触れないため、「出発前は受動観測 → 走り出したらOBD
+    ポーリング → 終盤にもう一度受動」といった進行をホスト側のタイマーで行う。
+    切替のたびに status ログへ `# host: phase ...` を残すので、後から
+    can_split_phases.py でフェーズごとのCSVへ分割できる。
+
+    指定形式は "SEC:ACTION[:LABEL]" のカンマ区切り（SECはキャプチャ開始からの経過秒）。
+        例) "0:passive:ig_on,180:poll:idle,300:poll:drive,2700:passive:drive_passive"
+    """
+
+    def __init__(self, entries):
+        self.entries = entries      # [(sec, action, label), ...] secの昇順
+        self.next_idx = 0
+        self.applied = None         # 直近に適用したエントリ（再接続時の再送用）
+
+    @classmethod
+    def parse(cls, spec: str) -> "PhasePlan":
+        entries = []
+        for i, item in enumerate(spec.split(",")):
+            item = item.strip()
+            if not item:
+                continue
+            parts = item.split(":", 2)
+            if len(parts) < 2:
+                raise ValueError(f"フェーズ指定 {item!r} は SEC:ACTION[:LABEL] 形式で書く")
+            try:
+                sec = float(parts[0])
+            except ValueError:
+                raise ValueError(f"フェーズ指定 {item!r} の秒数が数値でない")
+            if sec < 0:
+                raise ValueError(f"フェーズ指定 {item!r} の秒数が負")
+            action = parts[1].strip().lower()
+            if action not in PHASE_ACTIONS:
+                raise ValueError(
+                    f"フェーズ指定 {item!r} の動作 {action!r} は "
+                    f"{'/'.join(PHASE_ACTIONS)} のいずれかにする")
+            label = parts[2].strip() if len(parts) >= 3 and parts[2].strip() else f"phase{i + 1}"
+            label = label.replace(" ", "_").replace("\t", "_")
+            entries.append((sec, action, label))
+        if not entries:
+            raise ValueError("フェーズ指定が空")
+        entries.sort(key=lambda e: e[0])
+        return cls(entries)
+
+    def total_seconds(self) -> float:
+        return self.entries[-1][0]
+
+    def due(self, elapsed: float):
+        """期限が来て未消化のエントリを古い順に返す（返した分は消化済みにする）。"""
+        out = []
+        while self.next_idx < len(self.entries) and self.entries[self.next_idx][0] <= elapsed:
+            out.append(self.entries[self.next_idx])
+            self.next_idx += 1
+        if out:
+            self.applied = out[-1]
+        return out
+
+    def resume_entry(self):
+        """再接続直後に状態を作り直すためのエントリ（直近に適用したもの）。
+
+        USBが抜き差しされてESP32がリセットされると poll=on の初期状態へ戻るため、
+        受動フェーズの途中なら 'p' を送り直す必要がある。
+        """
+        return self.applied
+
+
+def _apply_phase(ser, writer: CaptureWriter, entry, elapsed: float, resumed: bool = False) -> None:
+    sec, action, label = entry
+    key = PHASE_ACTIONS[action]
+    sent = "-"
+    if key is not None and ser is not None:
+        try:
+            ser.write(key)
+            ser.flush()
+            sent = key.decode()
+        except Exception as e:                  # noqa: BLE001 送信失敗でキャプチャは止めない
+            sent = f"ERR({e.__class__.__name__})"
+    tag = "phase-resume" if resumed else "phase"
+    writer.feed_line(
+        f"# host: {tag} t={elapsed:.1f}s at={sec:g}s action={action} key={sent} label={label}")
+    writer.flush()
+    print(f"[*] {elapsed:7.0f}s フェーズ {action:7s} key={sent:3s} {label}", flush=True)
+
+
 # ---- 入力ソース -----------------------------------------------------------
 def run_replay(path: str, writer: CaptureWriter) -> None:
     with open(path, "r", encoding="utf-8", errors="backslashreplace") as f:
@@ -225,7 +328,8 @@ def run_replay(path: str, writer: CaptureWriter) -> None:
 
 
 def run_serial(port: str, baud: int, writer: CaptureWriter, limit_seconds: float,
-               reconnect: bool = True, flush_interval: float = 2.0) -> None:
+               reconnect: bool = True, flush_interval: float = 2.0,
+               plan=None) -> None:
     """シリアルからライブ受信する。
 
     車載で走り出してから放置する運用を想定し、次の2点を備える。
@@ -233,12 +337,17 @@ def run_serial(port: str, baud: int, writer: CaptureWriter, limit_seconds: float
         落とさない。切断のたびに `# host: serial ...` 行を status ログへ残すので、
         後から「どこで途切れたか」を追える。
       - 定期フラッシュ：PCのスリープ・強制終了で失う範囲を直近数秒に抑える。
+
+    `plan`（PhasePlan）を渡すと、経過秒に応じて can_obd_logger のポーリングを
+    自動で停止／再開し（'p'/'r'）、status ログにフェーズの区切りを書き残す。
+    運転中に手を出さずに計測メニューを消化するための機能。
     """
     import serial  # 遅延import（--replay/--selftest では pyserial 不要）
     from serial import SerialException
 
-    deadline = time.monotonic() + limit_seconds if limit_seconds > 0 else None
-    next_flush = time.monotonic() + flush_interval
+    started = time.monotonic()
+    deadline = started + limit_seconds if limit_seconds > 0 else None
+    next_flush = started + flush_interval
     attempt = 0
     print(f"[*] {port} @ {baud}bps を受信中... (Ctrl+C で停止)", flush=True)
 
@@ -257,6 +366,15 @@ def run_serial(port: str, baud: int, writer: CaptureWriter, limit_seconds: float
                         print(f"[*] {port} へ再接続しました (試行{attempt}回目)", flush=True)
                         writer.feed_line(msg)
                     attempt = 0
+                    if plan is not None:
+                        # 期限が来ている分をまず消化し、その後で現在のフェーズを
+                        # 送り直す（再接続でESP32がリセットされていた場合の復旧）。
+                        elapsed = time.monotonic() - started
+                        for entry in plan.due(elapsed):
+                            _apply_phase(ser, writer, entry, elapsed)
+                        resume = plan.resume_entry()
+                        if resume is not None:
+                            _apply_phase(ser, writer, resume, elapsed, resumed=True)
                     while True:
                         now = time.monotonic()
                         if deadline and now >= deadline:
@@ -265,6 +383,10 @@ def run_serial(port: str, baud: int, writer: CaptureWriter, limit_seconds: float
                         if now >= next_flush:
                             writer.flush()
                             next_flush = now + flush_interval
+                        if plan is not None:
+                            elapsed = now - started
+                            for entry in plan.due(elapsed):
+                                _apply_phase(ser, writer, entry, elapsed)
                         chunk = ser.read(4096)
                         if chunk:
                             buf += chunk
@@ -358,6 +480,59 @@ def run_selftest() -> int:
     check(j0["can_id"] == "0x201" and j0["dlc"] == 8 and j0["data"] == "00112233445566DD",
           f"JSONL先頭のデコード (got {j0})")
 
+    # ---- フェーズ計画（--phase-plan）の検証 ----
+    print()
+    print("  -- PhasePlan --")
+    plan = PhasePlan.parse("300:poll:drive,0:passive:ig_on,180:poll, 600:mark:halfway ")
+    check([e[0] for e in plan.entries] == [0, 180, 300, 600],
+          f"秒の昇順に並べ替える (got {[e[0] for e in plan.entries]})")
+    check(plan.entries[1][2] == "phase3",
+          f"ラベル省略時は phaseN (got {plan.entries[1][2]!r})")
+    check(plan.entries[3][2] == "halfway",
+          f"前後の空白を落とす (got {plan.entries[3][2]!r})")
+    check(plan.total_seconds() == 600, f"total_seconds == 600 (got {plan.total_seconds()})")
+
+    for bad in ("", "abc:poll", "-5:poll", "100:sleep", "100"):
+        try:
+            PhasePlan.parse(bad)
+            check(False, f"不正指定 {bad!r} で ValueError")
+        except ValueError:
+            check(True, f"不正指定 {bad!r} で ValueError")
+
+    check([e[2] for e in plan.due(0)] == ["ig_on"], "t=0 で最初のフェーズだけ期限到来")
+    check(plan.due(10) == [], "t=10 では追加なし（消化済みは再送しない）")
+    check([e[2] for e in plan.due(350)] == ["phase3", "drive"],
+          "飛び越した分も古い順にまとめて消化する")
+    check(plan.resume_entry()[2] == "drive", "resume_entry は直近に適用したフェーズ")
+
+    class _FakeSerial:
+        """_apply_phase がキーを書き出すかを見るためのダミー。"""
+
+        def __init__(self):
+            self.written = b""
+
+        def write(self, b):
+            self.written += b
+
+        def flush(self):
+            pass
+
+    tmp2 = Path(tempfile.mkdtemp(prefix="cancap_phase_"))
+    w2 = CaptureWriter(str(tmp2 / "ph"), "csv")
+    ser = _FakeSerial()
+    _apply_phase(ser, w2, (0, "passive", "ig_on"), 0.0)
+    _apply_phase(ser, w2, (180, "poll", "idle"), 181.2)
+    _apply_phase(ser, w2, (600, "mark", "halfway"), 600.0)
+    _apply_phase(ser, w2, (180, "poll", "idle"), 900.0, resumed=True)
+    w2.close()
+    check(ser.written == b"prr", f"passive->p / poll->r / mark->送信なし (got {ser.written!r})")
+    ph_log = Path(f"{tmp2 / 'ph'}.status.log").read_text(encoding="utf-8")
+    check(ph_log.count("# host: phase ") == 3,
+          f"フェーズマーカーが3行 (got {ph_log.count('# host: phase ')})")
+    check("# host: phase-resume " in ph_log, "再接続時のマーカーは phase-resume")
+    check("action=passive key=p label=ig_on" in ph_log,
+          "マーカーに action / key / label が載る")
+
     print()
     print(w.summary())
     print()
@@ -377,6 +552,11 @@ def main() -> None:
     p.add_argument("--format", choices=["csv", "jsonl", "both"], default="csv")
     p.add_argument("--limit-seconds", type=float, default=0, help=">0 でその秒数後に自動停止")
     p.add_argument("--echo", action="store_true", help="受信行を標準出力にも表示")
+    p.add_argument("--phase-plan",
+                   help="経過秒で計測フェーズを自動切替する（--port 時のみ）。"
+                        "SEC:ACTION[:LABEL] のカンマ区切り。ACTIONは "
+                        "passive(=ポーリング停止p) / poll(=再開r) / mark(=印だけ)。"
+                        "例: 0:passive:ig_on,180:poll:idle,300:poll:drive")
     p.add_argument("--no-reconnect", action="store_true",
                    help="切断時に自動再接続せず終了する（既定は再接続する）")
     args = p.parse_args()
@@ -387,13 +567,28 @@ def main() -> None:
     if not args.out:
         p.error("--port / --replay 時は --out が必須です")
 
+    plan = None
+    if args.phase_plan:
+        if not args.port:
+            p.error("--phase-plan は --port（ライブ受信）でのみ使えます")
+        try:
+            plan = PhasePlan.parse(args.phase_plan)
+        except ValueError as e:
+            p.error(str(e))
+        print("[*] フェーズ計画:")
+        for sec, action, label in plan.entries:
+            print(f"      {sec:7.0f}s  {action:7s}  {label}")
+        if args.limit_seconds and plan.total_seconds() > args.limit_seconds:
+            print(f"[!] 最終フェーズ({plan.total_seconds():.0f}s)が "
+                  f"--limit-seconds({args.limit_seconds:.0f}s)より後です。到達しません。")
+
     writer = CaptureWriter(args.out, args.format, echo=args.echo)
     try:
         if args.replay:
             run_replay(args.replay, writer)
         else:
             run_serial(args.port, args.baud, writer, args.limit_seconds,
-                       reconnect=not args.no_reconnect)
+                       reconnect=not args.no_reconnect, plan=plan)
     finally:
         writer.close()
     print()

@@ -1,0 +1,64 @@
+{
+  "vehicle": "mazda2",
+  "timestamp": "2026-09-02T13:39:23.993584+00:00",
+  "port": "COM11",
+  "results": [
+    {
+      "cmd": "ATZ",
+      "resp": "\\xfc\r\rELM327 v1.5"
+    },
+    {
+      "cmd": "ATE0",
+      "resp": "ATE0\rOK"
+    },
+    {
+      "cmd": "ATH0",
+      "resp": "OK"
+    },
+    {
+      "cmd": "ATSP0",
+      "resp": "OK"
+    },
+    {
+      "cmd": "0100",
+      "desc": "supported PIDs 01-20",
+      "resp": "SEARCHING...\r41 00 98 1A 80 03 \r41 00 FE 7F B8 13"
+    },
+    {
+      "cmd": "0120",
+      "desc": "サポートPID 21-40",
+      "resp": "41 20 80 01 80 01 \r41 20 A0 1F B0 11"
+    },
+    {
+      "cmd": "0140",
+      "desc": "サポートPID 41-60",
+      "resp": "41 40 C0 80 00 00 \r41 40 FA D0 8C 81"
+    },
+    {
+      "cmd": "010C",
+      "desc": "エンジン回転数(RPM)",
+      "resp": "41 0C 0B BA \r41 0C 0B AF"
+    },
+    {
+      "cmd": "010D",
+      "desc": "車速(km/h)",
+      "resp": "41 0D 00 \r41 0D 00"
+    },
+    {
+      "cmd": "0105",
+      "desc": "冷却水温(degC)",
+      "resp": "41 05 80 \r41 05 80"
+    },
+    {
+      "cmd": "0111",
+      "desc": "スロットル開度(%)",
+      "resp": "41 11 22 \r41 11 22"
+    },
+    {
+      "cmd": "0104",
+      "desc": "エンジン負荷(%)",
+      "resp": "41 04 84 \r41 04 84"
+    }
+  ],
+  "protocol_number": "A6"
+}

@@ -782,6 +782,25 @@
   `getty@.service`は`KillMode=process`のため子プロセスが残る。`dash-switch`は`race_capture`／`xinit`／EcoCaptureを明示的に落としてから`getty@tty1`を張り直す。
   実機で、EcoCaptureへの切替→**再起動後もEcoCaptureが自動起動すること**→RaceCaptureへの切替→EcoCaptureへの復帰、を確認済み。
 
+- 2026-09-05追記: **MAZDA2実車2回目（2026-09-02）で、自作CANトランシーバ回路が実車で完動することを確認した。**
+  `can_obd_logger`を書き込んだXIAO ESP32C3 + MCP2562FDをOBD2の6/14/5番へ直結し、74秒間の連続動作で
+  `sent=resp`（要求3514件に対し欠落なし）・`buserr=0`・`tec=rec=0`、rpm/車速/水温/スロットルの実測値取得まで確認した
+  （`mazda2_b1_obd_idle.status.log`）。**実車1回目の「生CANが1フレームも取れない」は車両側の構成が原因**で、
+  同キャプチャの全5794フレームが`0x7E0`（自分の要求）と`0x7E8`（応答）のみだったことから、
+  **MAZDA2のDLCは診断要求にしか応答しないスタブ構成**と確定した（ELM327での`ATMA`も同じ結論を示していた）。
+  これによりPhase2-4の計測基盤は「回路・ファーム・PC側ツールが実車で動く」ところまで到達している。
+
+- 2026-09-05追記: **無人（運転中）で1時間の実車キャプチャを回すための仕組みを追加した。次回対象はレクサスUX（2022年式）。**
+  運転者はPCに触れないため、`can_capture_logger.py`へ`--phase-plan`を追加し、経過秒に応じて
+  `can_obd_logger`のPIDポーリングを自動で停止／再開（ランタイムキー`p`/`r`）し、statusログへ
+  `# host: phase ...`の区切りを書き残すようにした。USB切断からの再接続時は現在のフェーズを送り直して状態を復旧する。
+  対になる`can_split_phases.py`を新規作成し、その区切りで長回しキャプチャをフェーズ別CSVへ分割できるようにした
+  （`--exclude-ids 7E0,7E8`で自分のOBD往復を落とせるため、`can_diff.py`が要求する完全受動キャプチャの代用になる）。
+  両ツールとも自己テストはPASS（`can_capture_logger.py --selftest` 26項目、`can_split_phases.py --selftest` 14項目）。
+  あわせて`can_obd_logger`のPIDテーブルと`can_obd_extract.py`のデコード表へ、
+  2-0-6のUX実測で応答が確認できたPID（`5C`油温・`47`・`4C`・`43`・`44`・`34`・`1F`）を追加した。
+  現地手順（60分のタイムスケジュール・判定表・帰宅後の解析コマンド）は`lexus_ux_field_procedure.md`に集約している。
+
 ## 5. 開発ロードマップ（詳細版）
 
 ### Phase 0：プロトコル・ソフトウェア基盤検証（実機非依存・シミュレーション環境）

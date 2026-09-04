@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-09-02T13:25:05.935840+00:00",
+  "vehicle": "mazda2",
+  "commands": [
+    {
+      "cmd": "ATZ",
+      "resp": "\\xfc\r\rELM327 v1.5"
+    },
+    {
+      "cmd": "ATE0",
+      "resp": "ATE0\rOK"
+    },
+    {
+      "cmd": "ATH1",
+      "resp": "OK"
+    },
+    {
+      "cmd": "ATI",
+      "resp": "ELM327 v1.5"
+    },
+    {
+      "cmd": "ATSP0",
+      "resp": "OK"
+    },
+    {
+      "cmd": "010C",
+      "desc": "エンジン回転数",
+      "resp": "7E9 04 41 0C 0C 76 \r7E8 04 41 0C 0C 86"
+    },
+    {
+      "cmd": "010D",
+      "desc": "車速",
+      "resp": "7E9 03 41 0D 00 \r7E8 03 41 0D 00"
+    }
+  ],
+  "ati": "ELM327 v1.5",
+  "pid_0100": {
+    "resp": "SEARCHING...\r7E9 06 41 00 98 1A 80 03 \r7E8 06 41 00 FE 7F B8 13",
+    "positive": true
+  },
+  "protocol": {
+    "dpn": "A6",
+    "name": "ISO 15765-4 CAN (11bit, 500k)"
+  },
+  "monitor": {
+    "lines": 2,
+    "ids": {
+      "7FF": 1
+    },
+    "errors": {
+      "OTHER": 1
+    }
+  },
+  "monitor_raw_tail": "7FF 03 7F 01 78 \rSTOPPED\r\r>",
+  "verdict": "バス生存・ブロードキャストあり",
+  "next_action": "DLCに生CANが出ている。自作ロガーの frames=0 は車両側では説明できないので、同じIG ON状態のまま can_logger を焼き直して再度キャプチャし、ELM327と自作側で何が違うか（結線の実接触・終端抵抗の外し忘れ等）をその場で比較する。"
+}

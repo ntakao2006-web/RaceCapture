@@ -38,6 +38,11 @@ TIMEOUT_SEC = 5.0
 FIRST_PID_TIMEOUT_SEC = 15.0   # ATSP0後の初回リクエストはプロトコル自動探索で数秒かかる
 MONITOR_SECONDS = 20.0
 
+# 「ブロードキャストあり」と判定するのに必要な自発フレーム数。
+# 500kbpsの車両バスは通常 数百〜数千フレーム/秒 出るため、20秒で数件しか
+# 拾えないなら自発トラフィックとは呼べない（取りこぼしか、リクエストへの返答）。
+MIN_BROADCAST_FRAMES = 10
+
 # ELM327のプロトコル番号（ATDPNの応答）。先頭の'A'は自動探索で確定したことを表す。
 PROTOCOL_NAMES = {
     "1": "SAE J1850 PWM (41.6k)",
@@ -85,7 +90,14 @@ def send_command(ser, command, timeout=TIMEOUT_SEC):
 
 
 def monitor_all(ser, seconds):
-    """ATMA(Monitor All)で生CANを受動監視する。ELM327は何か1文字送ると監視を止める。"""
+    """ATMA(Monitor All)で生CANを受動監視する。ELM327は何か1文字送ると監視を止める。
+
+    先に ATCAF0（自動フォーマット解除）を送るのが重要。既定の ATCAF1 のままだと
+    ELM327が受信フレームをISO-TPとして解釈しようとし、ISO-TPに乗らない車両
+    ブロードキャストが表示されないことがある（＝無音に見える偽陰性）。監視後は
+    ATCAF1 に戻す。
+    """
+    send_command(ser, "ATCAF0")
     ser.reset_input_buffer()
     ser.write(b"ATMA\r")
     deadline = time.monotonic() + seconds
@@ -106,7 +118,9 @@ def monitor_all(ser, seconds):
                 break
         else:
             time.sleep(0.05)
-    return buf.decode("ascii", errors="backslashreplace")
+    text = buf.decode("ascii", errors="backslashreplace")
+    send_command(ser, "ATCAF1")   # 自動フォーマットを元に戻す
+    return text
 
 
 def parse_monitor(text):
@@ -134,14 +148,29 @@ def parse_monitor(text):
     return {"lines": lines, "ids": ids, "errors": errors}
 
 
+def is_diag_response_id(cid):
+    """自分のリクエストへの返答として返ってくるIDか（=ブロードキャストの証拠にならない）。
+
+    0x7E8〜0x7EF が診断応答、0x7F0〜0x7FF には否定応答（`7F <service> <NRC>`、
+    例: `7F 01 78` = responsePending）が乗る。実車1回目の判定ミスの原因がここで、
+    0x7FF を車両ブロードキャストと誤認していた。
+    """
+    if len(cid) != 3:
+        return False
+    try:
+        value = int(cid, 16)
+    except ValueError:
+        return False
+    return 0x7E0 <= value <= 0x7FF
+
+
 def judge(result):
     """3つの観測から現地での次アクションを決める。"""
     elm_alive = "ELM327" in result.get("ati", "").upper()
     pid_ok = result["pid_0100"].get("positive", False)
     ids = result["monitor"]["ids"] if result.get("monitor") else {}
-    # 7E8〜7EF は自分のリクエストへの応答なので、ブロードキャストの証拠にはならない。
-    broadcast_ids = {k: v for k, v in ids.items()
-                     if not (len(k) == 3 and k.startswith("7E"))}
+    broadcast_ids = {k: v for k, v in ids.items() if not is_diag_response_id(k)}
+    broadcast_frames = sum(broadcast_ids.values())
 
     if not elm_alive:
         return ("ELM327が応答しない",
@@ -153,11 +182,17 @@ def judge(result):
                 "手順書ステップ3へ。OBDコネクタ内の圧着端子を 6→3番 / 14→11番 へ移設し、"
                 "can_logger の -125k ビルドで受動キャプチャ（MS-CAN狙い）。"
                 "★3番と6番、11番と14番を絶対に導通させない★")
-    if broadcast_ids:
+    if broadcast_frames >= MIN_BROADCAST_FRAMES:
         return ("バス生存・ブロードキャストあり",
                 "DLCに生CANが出ている。自作ロガーの frames=0 は車両側では説明できないので、"
                 "同じIG ON状態のまま can_logger を焼き直して再度キャプチャし、"
                 "ELM327と自作側で何が違うか（結線の実接触・終端抵抗の外し忘れ等）をその場で比較する。")
+    if broadcast_frames > 0:
+        return ("判定保留（自発フレームが少なすぎる）",
+                f"診断応答以外のフレームが{broadcast_frames}件しか無い"
+                f"（判定には{MIN_BROADCAST_FRAMES}件必要）。500kのバスなら本来は桁違いに出る。"
+                "--monitor-seconds 60 で再実行し、それでも増えないならスタブ構成として扱う。"
+                f"拾えたID: {sorted(broadcast_ids)}")
     return ("バス生存・ブロードキャストなし",
             "DLCはリクエストが来るまで喋らないスタブ構成。受動キャプチャが0なのは正常。"
             "手順書ステップ2へ切替：can_obd_logger を焼いてOBD2ポーリングをデータ源にする"
@@ -264,7 +299,7 @@ class _FakeElm:
             return b""
         if cmd == "ATZ":
             return b"ELM327 v1.5\r\r>"
-        if cmd in ("ATE0", "ATH1", "ATSP0"):
+        if cmd in ("ATE0", "ATH1", "ATSP0", "ATCAF0", "ATCAF1"):
             return b"OK\r\r>"
         if cmd == "ATI":
             return b"ELM327 v1.5\r\r>"
@@ -277,10 +312,17 @@ class _FakeElm:
         if cmd == "ATMA":
             self._monitoring = True
             if self.scenario == "broadcast":
-                return (b"200 00 00 00 00 00 00 00 00\r"
-                        b"4B0 12 34 12 34 12 34 12 34\r"
-                        b"200 00 00 00 00 00 00 00 01\r"
-                        b"7E8 04 41 0C 0B B8 00 00 00\r")
+                # 実バス相当。診断応答(7E8)と否定応答(7FF)を混ぜて、除外されることを確かめる。
+                lines = b""
+                for i in range(6):
+                    lines += b"200 00 00 00 00 00 00 00 %02X\r" % i
+                    lines += b"4B0 12 34 12 34 12 34 12 %02X\r" % i
+                return lines + b"7E8 04 41 0C 0B B8 00 00 00\r7FF 03 7F 01 78\r"
+            if self.scenario == "nrc_only":
+                # 実車2回目で実際に返ってきた内容。自分の010Dへの responsePending のみ。
+                return b"7FF 03 7F 01 78\r"
+            if self.scenario == "sparse":
+                return b"200 00 00 00 00 00 00 00 00\r4B0 12 34 12 34 12 34 12 34\r"
             return b""
         return b"?\r\r>"
 
@@ -289,6 +331,10 @@ def selftest():
     cases = [
         ("broadcast", "バス生存・ブロードキャストあり", {"200", "4B0"}),
         ("stub", "バス生存・ブロードキャストなし", set()),
+        # 実車2回目(2026-09-02)の回帰テスト。7FF の否定応答だけを拾った状態を
+        # 「ブロードキャストあり」と誤判定していた。
+        ("nrc_only", "バス生存・ブロードキャストなし", set()),
+        ("sparse", "判定保留（自発フレームが少なすぎる）", {"200", "4B0"}),
         ("dead", "6/14番でOBD2応答なし", set()),
         ("no_elm", "ELM327が応答しない", set()),
     ]
@@ -308,7 +354,7 @@ def selftest():
         res = run_check(_FakeElm(scenario), monitor_seconds=0.3, verbose=False)
         check(f"{scenario}: 判定が '{expect_verdict}' (got '{res['verdict']}')",
               res["verdict"] == expect_verdict)
-        got_bcast = {k for k in res["monitor"]["ids"] if not k.startswith("7E")}
+        got_bcast = {k for k in res["monitor"]["ids"] if not is_diag_response_id(k)}
         check(f"{scenario}: ブロードキャストID {expect_bcast or 'なし'} (got {got_bcast or 'なし'})",
               got_bcast == expect_bcast)
         check(f"{scenario}: next_action が空でない", bool(res["next_action"]))
@@ -317,6 +363,10 @@ def selftest():
     res = run_check(_FakeElm("stub"), monitor_seconds=0.3, verbose=False)
     check("7E8応答のみでは 'ブロードキャストあり' と判定しない",
           res["verdict"] == "バス生存・ブロードキャストなし")
+    # 診断応答IDの範囲判定
+    check("is_diag_response_id: 7E8/7E9/7FF を除外し 200/4B0/7DF未満は残す",
+          all(is_diag_response_id(x) for x in ("7E8", "7E9", "7FF", "7E0"))
+          and not any(is_diag_response_id(x) for x in ("200", "4B0", "7DF", "0AA")))
     # プロトコル名の解決
     res = run_check(_FakeElm("broadcast"), monitor_seconds=0.3, verbose=False)
     check("ATDPN 'A6' を ISO 15765-4 CAN(11bit,500k) と解決",
