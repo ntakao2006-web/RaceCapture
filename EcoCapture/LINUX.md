@@ -37,7 +37,26 @@ xinit /opt/ecocapture/EcoCapture.arm64 -- :0 vt1 -nolisten tcp
 | SoC温度 | 50.1 ℃ |
 | スロットリング | `throttled=0x0` |
 
-同じPiでRaceCapture Appを併用する場合、RaceCaptureはtty1でDRMマスターを直接掴むため**同時には起動できません**。リポジトリ直下の`ecocapture_launch_rpi.sh`と`racecapture_switch_rpi.sh`を`/usr/local/bin/ecocapture-start`、`/usr/local/bin/racecapture-start`として設置すると、`getty@tty1`の停止・再開を伴う切り替えができます。
+同じPiでRaceCapture Appを併用する場合、RaceCaptureはtty1でDRMマスターを直接掴むため**同時には起動できません**。リポジトリ直下の以下4本を設置すると、電源投入時にどちらを立ち上げるかを選べる切り替え式になります。
+
+| リポジトリ | Pi上の設置先 | 役割 |
+|---|---|---|
+| `dash_autostart_rpi.sh` | `/usr/local/bin/dash-autostart` | `/etc/dash-mode`を読み、EcoCaptureかRaceCaptureを起動する |
+| `dash_switch_rpi.sh` | `/usr/local/bin/dash-switch` | `/etc/dash-mode`を書き換え、tty1を張り直す |
+| `ecocapture_launch_rpi.sh` | `/usr/local/bin/ecocapture-start` | `dash-switch ecocapture`の薄いラッパ |
+| `racecapture_switch_rpi.sh` | `/usr/local/bin/racecapture-start` | `dash-switch racecapture`の薄いラッパ |
+
+併せて、tty1へ自動ログインするユーザーの`~/.bashrc`からログインシェル時のみ`dash-autostart`を呼ぶようにします（SSHログインでは呼ばない）。
+
+```sh
+if shopt -q login_shell; then
+  if [ -z "$SSH_CLIENT" ] || [ -z "$SSH_TTY" ]; then
+    /usr/local/bin/dash-autostart
+  fi
+fi
+```
+
+`/etc/dash-mode`が無い場合の既定はEcoCaptureです。`ecocapture-start`／`racecapture-start`で切り替えると、その選択は次回の電源投入時にも維持されます。
 
 ## 必要な構成
 

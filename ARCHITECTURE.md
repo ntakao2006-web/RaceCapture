@@ -774,6 +774,14 @@
   `xfonts-base`＋`dmz-cursor-theme`（無いとカーソルの絵柄が存在せず、ポインタは動くのに見えない）が要る。
   導入手順は`EcoCapture/LINUX.md`参照。
 
+- 2026-09-04追記: **`rc-dash-4B`の電源投入時に立ち上がるのをRaceCaptureからEcoCaptureへ変更した**（RaceCapture 2.19.0は削除せず残置。ルートFSは28 GB中3.3 GB使用で容量に余裕があるため）。
+  従来の切替スクリプトは実行時に`getty@tty1`を停止／再開するだけで、**自動起動の実体は`~/.bashrc`末尾のRaceCapture直起動のままだった**ため、再起動するとRaceCaptureに戻っていた。
+  起動モードを`/etc/dash-mode`（`ecocapture`／`racecapture`、既定は`ecocapture`）へ永続化し、`~/.bashrc`はログインシェルかつ非SSHのときに`/usr/local/bin/dash-autostart`を呼ぶだけにした。
+  新規`dash_autostart_rpi.sh`（Pi上は`/usr/local/bin/dash-autostart`）がモードを読んで起動先を分岐し、新規`dash_switch_rpi.sh`（同`/usr/local/bin/dash-switch`）がモード書き換えとtty1の張り直しを行う。
+  既存の`ecocapture_launch_rpi.sh`／`racecapture_switch_rpi.sh`（`ecocapture-start`／`racecapture-start`）は`dash-switch`を呼ぶ薄いラッパへ置き換えたので、コマンド名と用途は従来どおり。
+  `getty@.service`は`KillMode=process`のため子プロセスが残る。`dash-switch`は`race_capture`／`xinit`／EcoCaptureを明示的に落としてから`getty@tty1`を張り直す。
+  実機で、EcoCaptureへの切替→**再起動後もEcoCaptureが自動起動すること**→RaceCaptureへの切替→EcoCaptureへの復帰、を確認済み。
+
 ## 5. 開発ロードマップ（詳細版）
 
 ### Phase 0：プロトコル・ソフトウェア基盤検証（実機非依存・シミュレーション環境）
