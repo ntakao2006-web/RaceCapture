@@ -1,5 +1,17 @@
 # 実機検証記録（2026-08-31）
 
+## 2026-09-04 UX250h向けソフトウェア検証（未書込み）
+
+- `logger-v1-ux250h-obd-20260904a` / ESP-IDF 6.0.1のビルド成功。
+- C++17 + ASan/UBSanのcore / log_format / gnss_config / gnss_health / vehicle_obd、計5本合格。
+- OBD模擬ECUでPID対応ビット、11-bit物理/機能アドレス、ECU固定、250 ms応答待ち、最大10要求/秒、無応答間引き、NRC、遅延応答拒否、0 rpm、Toyota舵角の符号・fraction・不正値を検証。
+- Python 17試験合格。firmwareとデモの82チャンネルの名前/順序の一致を検証。既存ログviewer回帰も合格。
+- 並列16ビルド時にESP-IDFのesp_lcdでコンパイラ内部エラーが一度発生。並列2で再構築・再リンクに成功。ソースを回避変更せず、最終ビルド成功を確認。
+- 新規NVSではOBD要求OFF。開始は明示操作、本体保存、再起動後は保存値へ従う。既存Config blobとIMU校正の形式は変更なし。
+- **基板不在のため、書込み、実機応答、バス異常時の実機停止、SD耐久は未検証。** 過去のループバック合格とは別。
+- 配布/手順：`artifacts/logger-v1-ux250h-20260904a.zip` / [UX250H_TEST.md](../../EcoCapture/UX250H_TEST.md)。以下は旧実機検証履歴。
+
+
 最新追記：21時台にIMU内部異常からの復旧を実装し、d版を書込みました。
 停止時CSVの全行集計、実機復旧3回、SD記録の継続、RaceCapture表示、約46秒の復帰後観測の
 結果と制限は [IMU_RECOVERY.md](IMU_RECOVERY.md) を参照してください。以下は以前の検証履歴です。
@@ -213,3 +225,12 @@ GNSS UART460800、測位時刻停止の検出、NAV-SAT/MON-RF診断を追加し
 読戻しCSV、`final.json`、`racecapture.png`、`racecapture_after.png`。
 受信機の通信停止を実機へ故意に発生させる復旧試験と長時間試験は未実施です。
 RF環境の問題を解消したと断定せず、制約は [GNSS_HEALTH.md](GNSS_HEALTH.md) に記録しました。
+
+## 2026-09-05 Lexus UX250h MZAH10 OBD実車
+
+- 実機版 `logger-v1-ux250h-obd-20260905a`。A105/COM8書込み成功、起動後の版読戻し成功。
+- 機能アドレス `0x7DF` を維持してECU `0x7E8` からMode 01の8対象PIDすべてを取得。
+- 最終統計は要求1935、応答1932、タイムアウト3、TXエラー0、faultなし。CAN/SD drop 0、SD error 0。
+- RPMは0 rpmから作動時976～1329 rpm、停止時258→114→0 rpmまで連続取得。水温、油温、車速、スロットル、負荷、吸気温、ECU電圧も実値取得。
+- SMA接続後は3D測位・最大24衛星。位置情報はリポジトリへ記載しない。
+- OBD側で舵角 `0x025` は未観測。USB-OTG COM10の実データ経路は確認済みだが、この環境ではネイティブ画面画像の自動取得は未実施。

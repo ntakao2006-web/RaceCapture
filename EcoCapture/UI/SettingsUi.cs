@@ -22,7 +22,7 @@ public partial class Main
     {
         var v=Ui.VBox(10); AddPage("settings",v);
         var heading=Ui.HBox(); v.AddChild(heading); heading.AddChild(Ui.Label("Settings",28)); heading.AddChild(Ui.Spacer());
-        heading.AddChild(Ui.Label("変更はこのPCに自動保存",15,Ui.Accent));
+        heading.AddChild(Ui.Label("通常設定はPC保存 / 車両取得は本体保存",15,Ui.Accent));
         var tabs=new TabContainer(); Ui.Expand(tabs); v.AddChild(tabs);
         _settingsTabs=tabs;
         BuildVehicleSettings(SettingsTab(tabs,"車体"));
@@ -31,6 +31,7 @@ public partial class Main
         BuildLapSettings(SettingsTab(tabs,"ラップ計測"));
         BuildConnectionSettings(SettingsTab(tabs,"接続と保存"));
         BuildLiveShareSettings(SettingsTab(tabs,"ライブ共有"));
+        BuildVehicleAcquisition(SettingsTab(tabs,"車両データ取得"));
     }
     private static VBoxContainer SettingsTab(TabContainer tabs,string title)
     {

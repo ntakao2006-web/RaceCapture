@@ -33,6 +33,7 @@ std::array<Channel, MAX_CHANNELS> channels{};
 size_t channel_count = 0;
 uint32_t schema_revision = 1;
 Config config{};
+VehicleAcquisition vehicle_acquisition{};
 LevelCalibration level_calibration{};
 Statistics stats;
 GnssDiagnostics gnss_diagnostics;
@@ -201,12 +202,14 @@ void stateInit() {
                                {"LongAccel", "G", -8, 8, 4, 100},
                                {"LatAccel", "G", -8, 8, 4, 100},
                                {"VertAccel", "G", -8, 8, 4, 100},
-                               {"GPSVAcc", "m", 0, 10000, 2, 10}};
+                               {"GPSVAcc", "m", 0, 10000, 2, 10},
+                               {"SteeringAngle", "deg", -500, 500, 1, 50}};
     static_assert(std::size(defs) == BASE_CHANNELS, "Channel enum and metadata differ");
     for (auto &d : defs)
         addChannel(d.name, d.unit, d.lo, d.hi, d.prec, d.rate);
     for (unsigned i = ACCEL_X; i <= GRAVITY_Z; ++i)
         channels[i].stale_ms = 200;
+    channels[STEERING_ANGLE].stale_ms = 250;
     void *memory = heap_caps_malloc(sizeof(LapEngine), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     ESP_ERROR_CHECK(memory && state_mutex ? ESP_OK : ESP_ERR_NO_MEM);
     laps = new (memory) LapEngine;
@@ -239,6 +242,11 @@ bool loadSettings() {
     loaded = loaded && validConfig(saved);
     if (loaded)
         config = saved;
+    VehicleAcquisition acquisition{};
+    n = sizeof(acquisition);
+    if (nvs_get_blob(h, "vehicle_acq", &acquisition, &n) == ESP_OK &&
+        n == sizeof(acquisition) && validAcquisition(acquisition))
+        vehicle_acquisition = acquisition;
     // Preserve the other legacy NVS fields without rewriting NVS. GNSS rate is
     // selected by the firmware profile, never inherited from the old 25 Hz build.
     config.gnss_hz = GNSS_RATE_HZ;
@@ -270,6 +278,29 @@ bool saveLevelCalibration(const LevelCalibration &candidate) {
         Guard lock(state_mutex);
         level_calibration = candidate;
         stats.rotate = true; // next CSV metadata and corrected values use one formula.
+    }
+    return ok;
+}
+bool saveVehicleAcquisition(const VehicleAcquisition &candidate) {
+    if (!validAcquisition(candidate)) return false;
+    // A stop takes effect even if NVS fails. The caller reports persistence failure.
+    if (!candidate.obd_enabled) {
+        Guard lock(state_mutex);
+        vehicle_acquisition = candidate;
+        ++stats.acquisition_revision;
+    }
+    nvs_handle_t h;
+    if (nvs_open_from_partition("loggercfg", "logger_v1", NVS_READWRITE, &h) != ESP_OK) return false;
+    const bool ok = nvs_set_blob(h, "vehicle_acq", &candidate, sizeof(candidate)) == ESP_OK &&
+                    nvs_commit(h) == ESP_OK;
+    nvs_close(h);
+    if (ok) {
+        Guard lock(state_mutex);
+        vehicle_acquisition = candidate;
+        for (auto id : {RPM, SPEED, WATER_TEMP, OIL_TEMP, THROTTLE, ENGINE_LOAD, INTAKE_TEMP,
+                        BATT_VOLT, STEERING_ANGLE}) channels[id].available = false;
+        stats.rotate = true;
+        ++stats.acquisition_revision;
     }
     return ok;
 }

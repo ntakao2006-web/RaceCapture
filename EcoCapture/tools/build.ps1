@@ -25,9 +25,12 @@ try {
         & $godotCommand --headless --path . --export-release $item.Preset *> $log
         if ($LASTEXITCODE -ne 0 -or (Select-String $log -Pattern 'ERROR:|Failed to export|Build failed')) { throw "Export failed; see $log" }
         if (-not (Test-Path -LiteralPath (Join-Path $directory $item.Binary))) { throw 'Export did not produce executable' }
-        Copy-Item -LiteralPath README.md, SYSTEM_REQUIREMENTS.md, LINUX.md, BUILD.md, VERIFICATION.md -Destination $directory -Force
+        Copy-Item -LiteralPath README.md, SYSTEM_REQUIREMENTS.md, LINUX.md, RPI4_SETUP.md, BUILD.md, VERIFICATION.md, UX250H_TEST.md -Destination $directory -Force
         Copy-Item -LiteralPath licenses -Destination $directory -Recurse -Force
-        $archive = Join-Path dist ('EcoCapture-0.3.5-' + $item.Tag + '.zip')
+        if ($item.Tag -eq 'linux-arm64') {
+            Copy-Item -Path packaging/linux-arm64/* -Destination $directory -Force
+        }
+        $archive = Join-Path dist ('EcoCapture-0.3.7-' + $item.Tag + '.zip')
         Compress-Archive -Path $directory -DestinationPath $archive -Force
         Get-FileHash -LiteralPath $archive -Algorithm SHA256
     }

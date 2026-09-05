@@ -20,7 +20,7 @@ static class Program
         try
         {
             if(args.Contains("--bench")) return await Bench(args);
-            ProtocolTests(); SettingsTests(); NavigationTests(); DemoTests(); LapTests(); SolveTests(); await LiveShareTests(); await ConnectionTests(); LinuxTests();
+            ProtocolTests(); SettingsTests(); NavigationTests(); DemoTests(); VehicleTests(); LapTests(); SolveTests(); await LiveShareTests(); await ConnectionTests(); LinuxTests();
             Console.WriteLine($"PASS: {checks} checks (protocol, settings, navigation, demo motion, laps, solve, calibration, live share, reconnect lifecycle)"); return 0;
         }
         catch(Exception e) { Console.Error.WriteLine(e); return 1; }
@@ -98,7 +98,7 @@ static class Program
     {
         var demo=new DemoSource(1000,DateTimeOffset.FromUnixTimeSeconds(1788284160)); var distance=0d; var expected=0d;
         var contract=DemoSource.LoggerChannels.ToHashSet(StringComparer.Ordinal); var first=demo.Frame(1000);
-        Check(contract.Count==81&&contract.SetEquals(first.Values.Keys),"demo exposes exactly the current USB-OTG schema channels");
+        Check(contract.Count==82&&contract.SetEquals(first.Values.Keys),"demo exposes exactly the current USB-OTG schema channels");
         Check(first.Schema==DemoSource.LoggerSchema&&first.Values.Values.All(double.IsFinite),"demo uses USB schema revision and finite values");
         for(var i=0;i<100;i++)
         {
@@ -109,6 +109,21 @@ static class Program
         }
         Near(distance,expected,.02,"demo GNSS distance matches displayed speed over ten seconds");
         var end=demo.Frame(1010); Near(end.Get("Distance")!.Value*1000,expected,.02,"demo odometer uses the same speed integral");
+    }
+    static void VehicleTests()
+    {
+        var s=new AppSettings{Vehicle="ux250h",CanEnabled=true};
+        Check(s.CurrentSensors()["SteeringAngle"].Visible&&s.CurrentSensors()["Speed"].Visible,"UX shows steering and separate vehicle speed");
+        var demo=new DemoSource(0); var zero=demo.Frame(1); var running=demo.Frame(12);
+        Check(zero.Get("RPM")==0&&running.Get("RPM")>0,"UX demo contains EV and engine running phases");
+        Check(zero.Get("SteeringAngle") is double a&&a<0&&a>-500,"demo steering matches clockwise route");
+        var st=new Dictionary<string,string>{{"CAN.obdEnabled","true"},{"CAN.vehicleOK","true"},{"CAN.obdDiscovering","false"}};
+        Check(VehicleDiagnostics.Summary(st,zero,1,false,true).Contains("0 rpm"),"valid hybrid zero is not an error");
+        Check(VehicleDiagnostics.Summary(st,zero,4,false,true).Contains("欠測"),"stale zero is missing");
+        st["CAN.obdFault"]="true";
+        Check(VehicleDiagnostics.Summary(st,running,12,false,true).Contains("送信停止"),"latched bus fault outranks fresh readings");
+        Check(VehicleDiagnostics.Summary(st,running,12,true,false).Contains("実測ではありません"),"demo clearly labeled");
+        Check(VehicleDiagnostics.Summary(new Dictionary<string,string>(),null,1,false,true).Contains("対応ファーム"),"old firmware is not represented as active OBD");
     }
     static void LapTests()
     {
@@ -196,10 +211,13 @@ static class Program
         Check(factory.Disposed>=2,"failed wire disposed before reopen");
         Check(manager.Latest?.Get("GPSSpeed")==42,"fresh metadata after reconnect");
         var logs=await manager.QueryAsync("listLogs",new{offset=0}); Check(logs.GetProperty("files").GetArrayLength()==1,"command response interleaves with telemetry");
+        Check(manager.VehicleAcquisitionSupported,"vehicle acquisition capability is negotiated");
+        var acquisition=await manager.QueryAsync("getVehicleAcquisition",null);
+        Check(!acquisition.GetProperty("obdEnabled").GetBoolean(),"vehicle acquisition response alias decoded");
         manager.Pause(true); await Until(()=>manager.Info.State=="paused",2500);
         Check(manager.Latest==null&&factory.Disposed>=3,"pause clears values and releases handle");
         manager.Pause(false); await Until(()=>manager.Info.Connections>=4,4000);
-        Check(factory.Writes.All(x=>!x.Contains("flashCfg")&&!x.Contains("setLoggerCfg")&&!x.Contains("\"log\"")),"no logger/SD/CAN mutation");
+        Check(factory.Writes.All(x=>!x.Contains("flashCfg")&&!x.Contains("setLoggerCfg")&&!x.Contains("setVehicleAcquisition")&&!x.Contains("\"log\"")),"no automatic logger/SD/CAN mutation");
         Check(factory.Writes.Any(x=>x.Contains("\"rate\":10")),"stream capped at 10Hz");
         manager.Dispose(); Check(factory.Disposed==factory.Opened,"all handles released");
     }
@@ -258,7 +276,8 @@ static class Program
         {
             var text=Encoding.UTF8.GetString(bytes); factory.Writes.Add(text);
             if(text.Contains("getVer")) Queue("{\"ver\":{\"fname\":\"logger_v1 test\",\"git_info\":\"test\"}}");
-            if(text.Contains("getCapabilities")) Queue("{\"capabilities\":{\"flags\":[\"telemstream\"]}}");
+            if(text.Contains("getCapabilities")) Queue("{\"capabilities\":{\"flags\":[\"telemstream\",\"vehicleacq1\"]}}");
+            if(text.Contains("getVehicleAcquisition")) Queue("{\"vehicleAcquisition\":{\"obdEnabled\":false,\"toyotaSteering\":false}}");
             if(text.Contains("\"s\"")) { meta=true; Sample(); }
             if(text.Contains("setTelemetry")) { stream=!text.Contains("\"rate\":0"); meta=true; }
             if(text.Contains("listLogs")) Queue("{\"logs\":{\"files\":[{\"name\":\"drive.csv\",\"bytes\":10}],\"next\":null}}");

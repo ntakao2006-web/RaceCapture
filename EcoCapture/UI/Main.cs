@@ -126,6 +126,7 @@ public partial class Main : Control
             foreach(var child in content.GetChildren().OfType<Control>()) child.MouseFilter=MouseFilterEnum.Ignore;
         }
         var bottom=Ui.HBox(16); v.AddChild(bottom); bottom.AddChild(Ui.Spacer());
+        bottom.AddChild(Ui.Button("UX250hデモ",StartUxDemo));
         _demoButton=Ui.Button("デモで試す",ToggleDemo); bottom.AddChild(_demoButton);
     }
     private void BuildIndicate()
@@ -173,7 +174,8 @@ public partial class Main : Control
     {
         var prefs=_settings.CurrentSensors();
         return Catalog.Sensors.Where(s=>prefs[s.Id].Visible&&_settings.SourceEnabled(s.Source))
-            .OrderBy(s=>s.Source switch { "GNSS"=>0,"IMU"=>1,"CAN"=>2,_=>3 }).ToArray();
+            .OrderBy(s=>_settings.Vehicle=="ux250h" ? s.Source switch { "CAN"=>0,"GNSS"=>1,"IMU"=>2,_=>3 }
+                : s.Source switch { "GNSS"=>0,"IMU"=>1,"CAN"=>2,_=>3 }).ToArray();
     }
     private void BuildRace()
     {
@@ -217,7 +219,7 @@ public partial class Main : Control
         if (now>=_updateAt)
         {
             _updateAt=now+.1;
-            _frame=_demo?.Frame(now) ?? _connection.Latest;
+            _frame=_demo?.Frame(now,_settings.Vehicle) ?? _connection.Latest;
             var fresh=_frame?.Fresh(now)==true;
             if (!fresh) { _race.BreakPositionContinuity(); _hadFresh=false; }
             if (fresh && !ReferenceEquals(_frame,_processed))
@@ -241,12 +243,15 @@ public partial class Main : Control
         _connectionLabel.AddThemeColorOverride("font_color",demo?Ui.Amber:info.State=="connected"?Ui.Accent:Ui.Amber);
         _demoButton.Text=demo?"デモを終了してUSBへ":"デモで試す";
         _vehicleLabel.Text=Catalog.Vehicle(_settings.Vehicle).Name+"  /  "+(_settings.Vehicle=="none"?"GNSS + IMU":"EcoLogger専用");
-        var footer=(demo?"DEMO：実測値ではありません。  ":"")+(_notice.Length>0?_notice:"1–5：画面切替  /  Esc：ホーム  /  F11：全画面")+"    EcoCapture 0.3.5";
+        var footer=(demo?"DEMO：実測値ではありません。  ":"")+(_notice.Length>0?_notice:"1–5：画面切替  /  Esc：ホーム  /  F11：全画面")+"    EcoCapture 0.3.6";
         _footer.Text=footer;
         if (_page=="indicate")
         {
             if (_indicateDirty) RebuildSensors();
-            _health.Text=Catalog.Vehicle(_settings.Vehicle).Name+"   /   "+(_frame?.Fresh(now)==true?"受信中":"未接続 · 欠測値は --")+$"   /   {_metrics.Count}項目";
+            _health.Text=Catalog.Vehicle(_settings.Vehicle).Name+" / "+(_settings.CanEnabled?
+                VehicleDiagnostics.Summary(_connection.Status,_frame,now,demo,info.State=="connected"):
+                _frame?.Fresh(now)==true?"受信中":"未接続 · 欠測値は --");
+            _health.AutowrapMode=TextServer.AutowrapMode.WordSmart;
             var visible=VisibleSensors();
             for(var i=0;i<_metrics.Count;i++) _metrics[i].UpdateValue(_frame,now,_settings.SourceEnabled(visible[i].Source));
             foreach(var s in Catalog.Diagnostics)
@@ -271,6 +276,7 @@ public partial class Main : Control
         if (_page=="solve"&&info.State=="connected"&&info.Connections!=_solveConnectionSeen) RefreshSolveLogs();
         RefreshConnectionSettings();
         RefreshLiveShareSettings();
+        RefreshVehicleAcquisition();
     }
     private static string DiagnosticValue(SensorDefinition s,double value) => s.Id switch
     {
@@ -356,6 +362,7 @@ public partial class Main : Control
         try
         {
             Directory.CreateDirectory(_smokeDirectory!);
+            StartUxDemo();
             foreach(var page in new[]{"home","indicate","diagnostics","race","maps","solve","settings"})
             {
                 ShowPage(page=="diagnostics"?"indicate":page);
@@ -374,6 +381,9 @@ public partial class Main : Control
             using(var calibrationImage=GetViewport().GetTexture().GetImage()) calibrationImage.SavePng(Path.Combine(_smokeDirectory!,"settings-calibration.png"));
             _settingsTabs.CurrentTab=5; await ToSignal(GetTree().CreateTimer(.4),SceneTreeTimer.SignalName.Timeout); await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
             using(var liveImage=GetViewport().GetTexture().GetImage()) liveImage.SavePng(Path.Combine(_smokeDirectory!,"settings-live-share.png"));
+            _settingsTabs.CurrentTab=6; await ToSignal(GetTree().CreateTimer(.4),SceneTreeTimer.SignalName.Timeout); await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+            using(var acquisitionImage=GetViewport().GetTexture().GetImage()) acquisitionImage.SavePng(Path.Combine(_smokeDirectory!,"settings-vehicle.png"));
+            if(!_uxAcquire.Disabled||!_obdStop.Disabled) throw new Exception("Demo must never send vehicle commands");
             _race.Stop(ConnectionManager.Now);
             _vehicleSelector.Selected=3; _vehicleSelector.EmitSignal(OptionButton.SignalName.ItemSelected,3L);
             if(_settings.Vehicle!="none"||_settings.CanEnabled) throw new Exception("No-CAN UI selection failed");
@@ -386,7 +396,7 @@ public partial class Main : Control
             }
             var saved=SettingsStore.Load(_settingsPath,out var loadWarning);
             if(saved.Vehicle!="none"||saved.CanEnabled||loadWarning!=null) throw new Exception("No-CAN persistence failed");
-            File.WriteAllText(Path.Combine(_smokeDirectory!,"ui-smoke.json"),JsonSerializer.Serialize(new{passed=true,pages=12,noCanPersisted=true,liveShareTab=true,tiles=_map.TileStatus}));
+            File.WriteAllText(Path.Combine(_smokeDirectory!,"ui-smoke.json"),JsonSerializer.Serialize(new{passed=true,pages=13,noCanPersisted=true,liveShareTab=true,vehicleCommandsDisabledInDemo=true,tiles=_map.TileStatus}));
             GetTree().Quit();
         }
         catch(Exception e) { GD.PushError(e.ToString()); GetTree().Quit(1); }

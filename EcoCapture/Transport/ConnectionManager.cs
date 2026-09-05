@@ -17,6 +17,8 @@ public sealed class ConnectionManager : IDisposable
     private readonly ConcurrentQueue<CommandRequest> _commands = new();
     private Task? _worker;
     private int _reconnect, _paused, _disposed;
+    private int _vehicleAcquisitionSupported;
+    public bool VehicleAcquisitionSupported => Volatile.Read(ref _vehicleAcquisitionSupported)!=0;
     private TelemetryFrame? _latest;
     private IReadOnlyList<string> _schemaChannels = Array.Empty<string>();
     private ConnectionInfo _info = new("waiting", "EcoLoggerのUSB接続を待っています", "", 0, 0, 0, "");
@@ -48,6 +50,7 @@ public sealed class ConnectionManager : IDisposable
             Interlocked.Exchange(ref _reconnect, 0);
             if (Volatile.Read(ref _paused) != 0) { Set("paused", "USB接続を休止中"); _wake.WaitOne(500); continue; }
             Volatile.Write(ref _latest, null);
+            Volatile.Write(ref _vehicleAcquisitionSupported,0);
             Volatile.Write(ref _schemaChannels, Array.Empty<string>());
             Volatile.Write(ref _status, new Dictionary<string,string>());
             try
@@ -119,6 +122,8 @@ public sealed class ConnectionManager : IDisposable
                         {
                             capabilitySeen = true;
                             streaming = cap.TryGetProperty("flags", out var flags) && flags.EnumerateArray().Any(x => x.GetString() == "telemstream");
+                            Volatile.Write(ref _vehicleAcquisitionSupported,
+                                cap.TryGetProperty("flags",out var vf)&&vf.EnumerateArray().Any(x=>x.GetString()=="vehicleacq1")?1:0);
                             if (streaming) Send("{\"setTelemetry\":{\"rate\":10,\"transport\":\"serial\"}}");
                         }
                         if (root.TryGetProperty("s", out var sample))
@@ -206,7 +211,8 @@ public sealed class ConnectionManager : IDisposable
         public readonly TaskCompletionSource<JsonElement> Completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public double SentAt;
         public CommandRequest(string command,string json)
-        { Expected=command switch { "listLogs"=>"logs", "readLog"=>"logData", "getLevelCalibration"=>"levelCalibration", _=>command }; Json=json; }
+        { Expected=command switch { "listLogs"=>"logs", "readLog"=>"logData", "getLevelCalibration"=>"levelCalibration",
+            "getVehicleAcquisition"=>"vehicleAcquisition", "getObd2Cfg"=>"obd2Cfg", "getCanCfg"=>"canCfg", _=>command }; Json=json; }
         public void Cancel()=>Completion.TrySetCanceled();
     }
 }

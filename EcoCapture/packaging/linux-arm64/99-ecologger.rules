@@ -1,0 +1,2 @@
+# EcoLogger native USB CDC only. This does not grant access to the A105/CH9102 programmer.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="4001", GROUP="dialout", MODE="0660", TAG+="uaccess"

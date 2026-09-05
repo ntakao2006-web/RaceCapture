@@ -1,5 +1,6 @@
 #pragma once
 #include "core.h"
+#include "vehicle_obd.h"
 #include "gnss_health.h"
 #include "gnss_config.h"
 #include "esp_timer.h"
@@ -91,6 +92,7 @@ enum ChannelId {
     LAT_ACCEL,
     VERT_ACCEL,
     GPS_VACC,
+    STEERING_ANGLE,
     BASE_CHANNELS
 };
 struct Channel {
@@ -152,6 +154,11 @@ struct Statistics {
     std::atomic<bool> bench_request{false};
     std::atomic<uint32_t> bench_status{0}, bench_vehicle_rx{0}, bench_hub_rx{0};
     std::atomic<bool> vehicle_listen_only{true};
+    std::atomic<uint32_t> obd_sent{0}, obd_responses{0}, obd_tx_errors{0};
+    std::atomic<uint32_t> obd_request_id{0x7e0};
+    std::atomic<uint32_t> obd_response_id{0}, obd_timeouts{0}, obd_negative{0}, obd_supported{0};
+    std::atomic<uint32_t> acquisition_revision{0}, steering_rx{0};
+    std::atomic<bool> obd_fault{false}, obd_discovering{true};
 };
 class Guard {
     SemaphoreHandle_t mutex_;
@@ -168,6 +175,7 @@ extern std::array<Channel, MAX_CHANNELS> channels;
 extern size_t channel_count;
 extern uint32_t schema_revision;
 extern Config config;
+extern VehicleAcquisition vehicle_acquisition; // protected by state_mutex
 extern LevelCalibration level_calibration;
 extern Statistics stats;
 extern GnssDiagnostics gnss_diagnostics; // protected by state_mutex
@@ -190,6 +198,7 @@ int addChannel(const char *name, const char *unit, double min, double max, unsig
 Snapshot takeSnapshot(Channel *metadata = nullptr);
 bool loadSettings();
 bool saveSettings();
+bool saveVehicleAcquisition(const VehicleAcquisition &candidate);
 bool saveLevelCalibration(const LevelCalibration &candidate);
 bool saveScript(const char *text);
 bool validConfig(const Config &candidate);

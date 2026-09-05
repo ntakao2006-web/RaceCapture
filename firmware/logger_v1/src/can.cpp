@@ -7,6 +7,7 @@
 namespace logger {
 static spi_device_handle_t mcp = nullptr, led = nullptr;
 static const char *TAG = "can";
+static ObdPoller obd; // CAN1 task owns the scheduler; CAN2 never accesses it.
 static bool transact(const uint8_t *tx, uint8_t *rx, size_t size) {
     spi_transaction_t t = {};
     t.length = size * 8;
@@ -104,7 +105,7 @@ void onCan(const CanFrame &f) {
         }
     if (f.bus != 1 || f.rtr || f.extended)
         return;
-    if (config.nc_profile) {
+    if (config.nc_profile && !vehicle_acquisition.obd_enabled && !vehicle_acquisition.toyota_steering) {
         auto be = [&](int i) { return unsigned(f.data[i]) * 256 + f.data[i + 1]; };
         if (f.id == 0x201 && f.dlc >= 7) {
             putChannel(RPM, be(0) / 4.0, f.us);
@@ -117,48 +118,44 @@ void onCan(const CanFrame &f) {
             putChannel(INTAKE_TEMP, int(f.data[4]) - 40, f.us);
         }
     }
-    // Passive ISO-TP single-frame Mode 01 responses. No diagnostic requests are
-    // sent.
-    if (f.id >= 0x7e8 && f.id <= 0x7ef && f.dlc >= 4 && (f.data[0] & 0xf0) == 0 && f.data[0] >= 3 &&
-        f.data[0] + 1 <= f.dlc && f.data[1] == 0x41) {
-        unsigned a = f.data[3], b = f.dlc >= 5 ? f.data[4] : 0;
-        switch (f.data[2]) {
-        case 0x0c:
-            if (f.data[0] >= 4)
-                putChannel(RPM, (a * 256 + b) / 4.0, f.us);
-            break;
-        case 0x0d:
-            putChannel(SPEED, a, f.us);
-            break;
-        case 0x05:
-            putChannel(WATER_TEMP, int(a) - 40, f.us);
-            break;
-        case 0x04:
-            putChannel(ENGINE_LOAD, a * 100.0 / 255, f.us);
-            break;
-        case 0x11:
-            putChannel(THROTTLE, a * 100.0 / 255, f.us);
-            break;
-        case 0x0f:
-            putChannel(INTAKE_TEMP, int(a) - 40, f.us);
-            break;
-        case 0x42:
-            if (f.data[0] >= 4)
-                putChannel(BATT_VOLT, (a * 256 + b) / 1000.0, f.us);
-            break;
-        case 0x5c:
-            putChannel(OIL_TEMP, int(a) - 40, f.us);
-            break;
-        default:
-            break;
-        }
+    double angle;
+    if (vehicle_acquisition.toyota_steering && decodeToyotaSteering(f, angle)) {
+        ++stats.steering_rx;
+        putChannel(STEERING_ANGLE, angle, f.us);
     }
+    ObdValue value;
+    const bool accepted = vehicle_acquisition.obd_enabled
+        ? !stats.obd_fault && obd.receive(f, value)
+        : decodeObd(f, value); // Passive monitor remains usable with an external diagnostic reader.
+    if (accepted) {
+        unsigned channel = RPM;
+        switch (value.pid) {
+        case 0x0c: channel = RPM; break;
+        case 0x0d: channel = SPEED; break;
+        case 0x05: channel = WATER_TEMP; break;
+        case 0x04: channel = ENGINE_LOAD; break;
+        case 0x11: channel = THROTTLE; break;
+        case 0x0f: channel = INTAKE_TEMP; break;
+        case 0x42: channel = BATT_VOLT; break;
+        case 0x5c: channel = OIL_TEMP; break;
+        }
+        channels[channel].stale_ms = channel == RPM || channel == SPEED ? 1500 : 6500;
+        putChannel(channel, value.value, f.us); // Zero RPM is valid in EV/idle-stop operation.
+    }
+}
+static bool sendObdRequest(const CanFrame &frame) {
+    twai_message_t request = {};
+    request.identifier = frame.id;
+    request.data_length_code = 8;
+    request.ss = 1; // Single shot: no automatic retransmit storm on an unacknowledged bus.
+    memcpy(request.data, frame.data, 8);
+    return twai_transmit(&request, 0) == ESP_OK;
 }
 static void can1Task(void *) {
     twai_general_config_t g =
         TWAI_GENERAL_CONFIG_DEFAULT(GPIO_NUM_2, GPIO_NUM_1, TWAI_MODE_LISTEN_ONLY);
     g.rx_queue_len = 256;
-    g.tx_queue_len = 0;
+    g.tx_queue_len = 1;
     g.intr_flags = ESP_INTR_FLAG_IRAM;
     twai_timing_config_t t = TWAI_TIMING_CONFIG_500KBITS();
     twai_filter_config_t f = TWAI_FILTER_CONFIG_ACCEPT_ALL();
@@ -168,25 +165,47 @@ static void can1Task(void *) {
         return;
     }
     stats.can1_ok = true;
-    ESP_LOGI(TAG, "CAN1 ATA6561 J5: listen-only 500k, no TX/ACK");
+    stats.vehicle_listen_only = true;
+    ESP_LOGI(TAG, "CAN1 ATA6561 J5: 500k; saved acquisition setting follows");
     uint64_t last = 0;
     uint64_t bench_deadline = 0;
     bool bench_mode = false;
+    uint32_t revision = UINT32_MAX;
+    uint32_t driver_errors = 0;
+    obd.reset(nowUs());
     while (true) {
+        bool enabled;
+        {
+            Guard lock(state_mutex);
+            enabled = vehicle_acquisition.obd_enabled;
+            if (revision != stats.acquisition_revision.load()) {
+                revision = stats.acquisition_revision;
+                stats.obd_fault = false;
+                obd.reset(nowUs());
+            }
+        }
         bool requested = stats.bench_status == 1;
-        if ((requested && !bench_mode && bench_deadline == 0) ||
-            (bench_mode && (!requested || nowUs() >= bench_deadline))) {
-            bool enable = requested && !bench_mode;
-            if (enable)
-                bench_deadline = nowUs() + 1000000;
-            if (twai_stop() != ESP_OK || twai_driver_uninstall() != ESP_OK) {
+        if (requested && !bench_mode && bench_deadline == 0 && !enabled) {
+            bench_mode = true; bench_deadline = nowUs() + 1000000;
+        }
+        if (bench_mode && (!requested || nowUs() >= bench_deadline)) {
+            bench_mode = false;
+            if (requested) stats.bench_status = 3;
+        }
+        const bool active = bench_mode || (enabled && !stats.obd_fault);
+        const auto desired = active ? TWAI_MODE_NORMAL : TWAI_MODE_LISTEN_ONLY;
+        if (g.mode != desired) {
+            twai_status_info_t state{};
+            const bool known = twai_get_status_info(&state) == ESP_OK;
+            const bool stopped = known && (state.state != TWAI_STATE_RUNNING || twai_stop() == ESP_OK);
+            if (!stopped || twai_driver_uninstall() != ESP_OK) {
                 stats.can1_ok = false;
                 stats.bench_status = 3;
                 gpio_set_direction(GPIO_NUM_2, GPIO_MODE_INPUT);
                 vTaskDelete(nullptr);
                 return;
             }
-            g.mode = enable ? TWAI_MODE_NORMAL : TWAI_MODE_LISTEN_ONLY;
+            g.mode = desired;
             if (twai_driver_install(&g, &t, &f) != ESP_OK || twai_start() != ESP_OK) {
                 stats.can1_ok = false;
                 stats.bench_status = 3;
@@ -194,13 +213,19 @@ static void can1Task(void *) {
                 vTaskDelete(nullptr);
                 return;
             }
-            bench_mode = enable;
-            stats.vehicle_listen_only = !enable;
-            if (!enable && requested)
-                stats.bench_status = 3;
+            stats.vehicle_listen_only = !active;
+            driver_errors = 0;
         }
         if (!requested && !bench_mode)
             bench_deadline = 0;
+        uint64_t now = nowUs();
+        if (enabled && !bench_mode && !stats.obd_fault) {
+            CanFrame request;
+            if (obd.next(now, request)) {
+                if (sendObdRequest(request)) { obd.queued(); queueCanLog(request); }
+                else obd.txFailed(now);
+            }
+        }
         twai_message_t msg = {};
         if (twai_receive(&msg, pdMS_TO_TICKS(10)) == ESP_OK) {
             CanFrame frame;
@@ -214,12 +239,24 @@ static void can1Task(void *) {
                 memcpy(frame.data, msg.data, frame.dlc);
             onCan(frame);
         }
-        if (nowUs() - last > 1000000) {
+        if (nowUs() - last > 100000) {
             twai_status_info_t s = {};
             if (twai_get_status_info(&s) == ESP_OK) {
-                stats.can1_errors = s.bus_error_count + s.rx_overrun_count + s.rx_missed_count;
+                const uint32_t errors = s.bus_error_count + s.rx_overrun_count + s.rx_missed_count;
+                stats.can1_errors += errors - driver_errors;
+                driver_errors = errors;
                 stats.can1_ok = s.state == TWAI_STATE_RUNNING;
+                if (s.state == TWAI_STATE_BUS_OFF || (enabled &&
+                    (s.tx_error_counter >= 96 || s.rx_error_counter >= 96))) {
+                    stats.obd_fault = true; // No unattended recovery/retry on a vehicle bus.
+                    ESP_LOGE(TAG, "OBD stopped: CAN error threshold; explicit re-enable required");
+                }
             }
+            stats.obd_sent = obd.sent; stats.obd_responses = obd.responses;
+            stats.obd_request_id = obd.request_id; stats.obd_response_id = obd.response_id;
+            stats.obd_timeouts = obd.timeouts; stats.obd_negative = obd.negative;
+            stats.obd_tx_errors = obd.tx_errors; stats.obd_supported = obd.supported;
+            stats.obd_discovering = obd.discovering;
             last = nowUs();
         }
     }

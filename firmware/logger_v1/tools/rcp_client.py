@@ -26,6 +26,8 @@ class Client:
         expected = {'getVer': 'ver', 'getStatus': 'status', 'getMeta': 'meta',
                     'getLoggerCfg': 'loggerCfg', 'getTrackCfg': 'trackCfg',
                     'getLevelCalibration': 'levelCalibration',
+                    'getVehicleAcquisition': 'vehicleAcquisition',
+                    'getObd2Cfg': 'obd2Cfg', 'getCanCfg': 'canCfg',
                     'getScriptCfg': 'scriptCfg', 'getCapabilities': 'capabilities',
                     'listLogs': 'logs', 'readLog': 'logData'}.get(name, name)
         self.serial.write(json.dumps(command, separators=(',', ':')).encode() + b'\r\n')

@@ -446,14 +446,8 @@ static void gnssTask(void *) {
                 putChannel(ALTITUDE, p.altitude, t, p.fix_ok);
                 putChannel(GPS_HACC, p.hacc, t, p.fix_ok);
                 putChannel(GPS_VACC, p.vacc, t, p.fix_ok);
-                // CAN speed takes precedence only while it is fresh; otherwise use
-                // GNSS.
-                bool can_speed = config.nc_profile;
-                for (const auto &mapping : config.mappings)
-                    if (mapping.enabled && mapping.channel == SPEED)
-                        can_speed = true;
-                if (!can_speed)
-                    putChannel(SPEED, p.speed * 3.6, t, p.fix_ok);
+                // Speed is vehicle-only. GPSSpeed already carries GNSS speed;
+                // never replace an absent/stale OBD response with a GNSS value.
                 putChannel(UTC_VALID, p.utc_valid ? 1 : 0, t);
                 putChannel(GPS_TOW, p.tow_ms, t);
                 putChannel(GPS_UTC, p.utc_us / 1e6, t, p.utc_valid);

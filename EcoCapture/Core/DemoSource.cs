@@ -3,7 +3,7 @@ namespace EcoCapture.Core;
 /// <summary>Explicit, synthetic demonstration data. Never enabled by connection failures.</summary>
 public sealed class DemoSource
 {
-    public const uint LoggerSchema = 83;
+    public const uint LoggerSchema = 84;
     public static readonly string[] LoggerChannels = {
         "RPM","Speed","WaterTemp","OilPress","Lat","Lon","GPSSpeed","Altitude",
         "GPSHAcc","GPSSats","GPSFix","GNSSHz","UTCValid","AccelX","AccelY","AccelZ",
@@ -15,13 +15,13 @@ public sealed class DemoSource
         "CAN1Rx","CAN2Rx","CANDrops","LuaOK","GPSTow","GPSUTC","GPSTAcc","PPSAge",
         "GNSSAcq","GNSSTrack","GNSSCNoMax","GNSSCNoTop4","RFNoise","RFAGC","RFJam","RFCW",
         "GNSSRetry","GNSSAge","GNSSBad","LevelRoll","LevelPitch","LongAccel","LatAccel","VertAccel",
-        "GPSVAcc"
+        "GPSVAcc","SteeringAngle"
     };
     private readonly double _start;
     private readonly long _utcStartMs;
     public DemoSource(double now,DateTimeOffset? utc=null)
     { _start = now; _utcStartMs=(utc??DateTimeOffset.UtcNow).ToUnixTimeMilliseconds(); }
-    public TelemetryFrame Frame(double now)
+    public TelemetryFrame Frame(double now, string vehicle="ux250h")
     {
         var t = now - _start; var phase = t * 3 / 40;
         var speed = 48 + 13 * Math.Sin(phase); // km/h
@@ -41,7 +41,9 @@ public sealed class DemoSource
         var utcMs=_utcStartMs+(long)Math.Max(0,t*1000); var gpsTow=((utcMs-315964800000L)%604800000L+604800000L)%604800000L;
         var v = new Dictionary<string,double>(StringComparer.Ordinal) {
             ["GPSSpeed"] = speed, ["Speed"] = speed,
-            ["RPM"] = 4200 + 1600 * Math.Sin(phase), ["OilTemp"] = 83.6 + Math.Sin(t / 20),
+            ["RPM"] = vehicle=="ux250h" ? (t%30<8?0:1800+700*Math.Sin(phase)) : 4200 + 1600 * Math.Sin(phase),
+            ["SteeringAngle"] = -Math.Atan(2.64/radius)*14/Geo.Rad, // Illustrative ratio, not vehicle calibration.
+            ["OilTemp"] = 83.6 + Math.Sin(t / 20),
             ["WaterTemp"] = 88.2, ["OilPress"] = 340 + 30 * Math.Sin(angle), ["CHT"] = 126.4,
             ["EGT"] = 640, ["BatteryVolt"] = 13.82, ["Throttle"] = 35 + 20 * Math.Sin(phase),
             ["EngineLoad"] = 48, ["IntakeTemp"] = 28, ["AFRRaw"] = 14.1, ["AFR"] = 14.1, ["AFRValid"] = 1,

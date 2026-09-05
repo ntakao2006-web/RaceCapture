@@ -288,6 +288,22 @@ static void status(JsonObject s) {
     ca["benchStatus"] = stats.bench_status.load();
     ca["benchVehicleRx"] = stats.bench_vehicle_rx.load();
     ca["benchHubRx"] = stats.bench_hub_rx.load();
+    ca["obdRequestId"] = stats.obd_request_id.load();
+    ca["obdSent"] = stats.obd_sent.load();
+    ca["obdResponses"] = stats.obd_responses.load();
+    ca["obdTxErrors"] = stats.obd_tx_errors.load();
+    ca["obdResponseId"] = stats.obd_response_id.load();
+    ca["obdTimeouts"] = stats.obd_timeouts.load();
+    ca["obdNegative"] = stats.obd_negative.load();
+    ca["obdFault"] = stats.obd_fault.load();
+    ca["obdDiscovering"] = stats.obd_discovering.load();
+    ca["obdSupportedMask"] = stats.obd_supported.load();
+    ca["steeringRx"] = stats.steering_rx.load();
+    {
+        Guard lock(state_mutex);
+        ca["obdEnabled"] = bool(vehicle_acquisition.obd_enabled);
+        ca["toyotaSteering"] = bool(vehicle_acquisition.toyota_steering);
+    }
     s["imuSamples"] = stats.imu_samples.load();
     s["imuErrors"] = stats.imu_errors.load();
     s["IMU"]["validSamples"] = stats.imu_samples.load();
@@ -427,8 +443,10 @@ static void handle(JsonDocument &in, Transport &t) {
         o["flags"].to<JsonArray>().add("telemstream");
         o["telemetryMaxHz"] = 10;
         auto c = o["channels"].to<JsonObject>();
-        for (const char *n : {"analog", "gpio", "timer", "pwm", "obd2", "canChan"})
+        o["flags"].as<JsonArray>().add("vehicleacq1");
+        for (const char *n : {"analog", "gpio", "timer", "pwm", "canChan"})
             c[n] = 0;
+        c["obd2"] = ObdPoller::pids.size();
         c["imu"] = 6;
         c["can"] = 2;
         {
@@ -446,7 +464,8 @@ static void handle(JsonDocument &in, Transport &t) {
         bool ok;
         {
             Guard lock(state_mutex);
-            ok = !config.hub_broadcast && stats.can2_ok && stats.bench_status != 1;
+            ok = !vehicle_acquisition.obd_enabled && stats.vehicle_listen_only && !config.hub_broadcast && stats.can2_ok &&
+                 stats.bench_status != 1;
         }
         ok = ok && !strcmp(v["confirm"] | "", "DESK_CAN1_CAN2_LOOP");
         if (ok)
@@ -629,7 +648,7 @@ static void handle(JsonDocument &in, Transport &t) {
         bool ok = (v["en"] | 1) == 1 && v["baud"].size() == 2 && v["baud"][0] == 500000 &&
                   v["baud"][1] == 500000;
         result(out, cmd, ok,
-               ok ? nullptr : "Board uses two enabled 500k buses; CAN1 remains listen-only");
+               ok ? nullptr : "Board uses two 500k buses; vehicle acquisition controls CAN1 mode");
     } else if (!strcmp(cmd, "getImuCfg")) {
         auto o = out["imuCfg"].to<JsonObject>();
         Guard lock(state_mutex);
@@ -651,8 +670,27 @@ static void handle(JsonDocument &in, Transport &t) {
         for (unsigned i = 0; i < 5; ++i)
             metadata(o[names[i]].to<JsonObject>(), channels[ids[i]]);
     } else if (!strcmp(cmd, "getObd2Cfg")) {
-        out["obd2Cfg"]["en"] = 0;
-        out["obd2Cfg"]["pids"].to<JsonArray>();
+        { Guard lock(state_mutex); out["obd2Cfg"]["en"] = vehicle_acquisition.obd_enabled; }
+        auto pids = out["obd2Cfg"]["pids"].to<JsonArray>();
+        for (const auto &pid : ObdPoller::pids) pids.add(pid.id);
+    } else if (!strcmp(cmd, "getVehicleAcquisition")) {
+        auto o = out["vehicleAcquisition"].to<JsonObject>();
+        Guard lock(state_mutex);
+        o["obdEnabled"] = bool(vehicle_acquisition.obd_enabled);
+        o["toyotaSteering"] = bool(vehicle_acquisition.toyota_steering);
+        o["baud"] = 500000; o["addressBits"] = 11;
+        o["mode"] = 1; o["maxRequestsPerSecond"] = 10;
+        o["steeringDefinition"] = "opendbc Toyota 0x025; verify on vehicle; not guaranteed via OBD port";
+    } else if (!strcmp(cmd, "setVehicleAcquisition")) {
+        const bool typed = v["obdEnabled"].is<bool>() && v["toyotaSteering"].is<bool>();
+        VehicleAcquisition candidate{};
+        candidate.obd_enabled = v["obdEnabled"] | false;
+        candidate.toyota_steering = v["toyotaSteering"] | false;
+        bool ok = typed && stats.bench_status != 1 &&
+                  (!candidate.obd_enabled || !strcmp(v["confirm"] | "", "READ_ONLY_OBD"));
+        if (ok) ok = saveVehicleAcquisition(candidate);
+        result(out, cmd, ok, ok ? "Saved; OBD is Mode 01 only, Toyota steering is receive-only"
+            : "Rejected or persistence failed; stop is applied even if saving fails; check getStatus");
     } else if (!strcmp(cmd, "getConnCfg")) {
         auto o = out["connCfg"].to<JsonObject>();
         o["btCfg"]["btEn"] = 0;

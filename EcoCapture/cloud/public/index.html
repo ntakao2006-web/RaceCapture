@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="ja"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>EcoCapture Live</title><link rel="stylesheet" href="/style.css"></head>
 <body><main>
   <header><h1>EcoCapture</h1><div id="state" class="state off">接続待ち</div></header>
   <section id="setup" class="panel unlock" hidden><h2>共有リンクを確認してください</h2><p>EcoCaptureの「共有リンクを作る」から、このページを開き直してください。</p><p id="error"></p></section>
   <div id="dashboard" hidden>
     <section class="hero"><div><span>速度</span><strong id="speed">--</strong><small>km/h</small></div><div><span>回転数</span><strong id="rpm">--</strong><small>rpm</small></div></section>
-    <section class="panel route"><div class="title"><h2>走行経路</h2><div class="route-meta"><span>直近30分</span><b id="grid-scale">1グリッド = --</b></div></div><canvas id="route"></canvas></section>
+    <section class="panel route"><div class="title"><h2>走行経路</h2><div class="route-meta"><span>直近30分</span><button id="map-out" aria-label="地図を縮小">−</button><button id="map-in" aria-label="地図を拡大">＋</button><button id="map-fit">経路全体</button></div></div><canvas id="route" aria-label="地理院地図に重ねた走行経路"></canvas><div class="map-caption"><span id="map-status">位置待ち</span><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">出典：国土地理院</a></div><p class="map-note">地理院タイル（淡色地図）に走行経路を重ねて表示。測位断・車体／DEMO切替をまたいで線をつなぎません。<br>海外小縮尺の海岸線：NIMA / USGS, Vector Map Level 0 (1997).</p></section>
     <section class="metrics">
       <article><span>前後加速度</span><b id="ax">--</b><small>G</small></article><article><span>左右加速度</span><b id="ay">--</b><small>G</small></article><article><span>上下加速度</span><b id="az">--</b><small>G</small></article>
       <article><span>標高</span><b id="alt">--</b><small>m</small></article><article><span>衛星</span><b id="sats">--</b><small>基</small></article><article><span>位置精度</span><b id="acc">--</b><small>m</small></article>
+      <article><span>舵角 · 要実車照合</span><b id="steering">--</b><small>°</small></article><article><span>車速 · OBD/CAN</span><b id="vehicleSpeed">--</b><small>km/h</small></article><article><span>冷却水温</span><b id="water">--</b><small>°C</small></article><article><span>油温</span><b id="oil">--</b><small>°C</small></article>
     </section>
     <section class="panel detail"><div><span>緯度</span><b id="lat">--</b></div><div><span>経度</span><b id="lon">--</b></div><div><span>車体</span><b id="vehicle">--</b></div><div><span>最終更新</span><b id="updated">--</b></div></section>
   </div>
-</main><script type="module" src="/app.js?v=033-grid"></script></body></html>
+</main><script type="module" src="/app.js?v=036-gsi-ux"></script></body></html>

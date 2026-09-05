@@ -207,6 +207,12 @@ static bool writeMetadata(const char *base, uint32_t boot, uint32_t segment, int
         }
     }
     doc["missing"] = "empty field; never replace with zero";
+    {
+        Guard lock(state_mutex);
+        doc["vehicle_acquisition_at_file_open"]["obdEnabled"] = bool(vehicle_acquisition.obd_enabled);
+        doc["vehicle_acquisition_at_file_open"]["toyotaSteering"] = bool(vehicle_acquisition.toyota_steering);
+    }
+    doc["vehicle_note"] = "Speed is CAN/OBD only; GPSSpeed is GNSS. SteeringAngle uses Toyota 0x025, verify on vehicle. Zero RPM can be valid hybrid engine-off data.";
     doc["time_note"] = "monotonic_us: since boot; utc_us: estimated Unix UTC microseconds; GPSUTC: GNSS fix Unix seconds; UTC may be unavailable";
     doc["sampling_note"] = "100Hz snapshots hold the last valid slower channel; use GPSTow to identify new GNSS fixes";
     auto level = doc["imu_level_correction"].to<JsonObject>();

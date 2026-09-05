@@ -16,13 +16,16 @@ public static class Catalog
         new("lx", "レクサス LX", "型式・年式未確定 · CAN変換設定はロガー側のまま", 7000,
             new[]{"GPSSpeed","Lat","Lon","RPM","WaterTemp","OilTemp","EngineLoad","Throttle","BatteryVolt","Pitch","Roll","VertAccel"}),
         new("none", "車載CAN接続なし", "GNSS / IMUのみ · 車載CAN項目を標準表示から除外", 10000,
-            new[]{"GPSSpeed","Altitude","Lat","Lon","LongAccel","LatAccel","VertAccel","LevelRoll","LevelPitch"})
+            new[]{"GPSSpeed","Altitude","Lat","Lon","LongAccel","LatAccel","VertAccel","LevelRoll","LevelPitch"}),
+        new("ux250h", "レクサス UX250h · MZAH10", "MZAH10-AWXBB · 2WDハイブリッド / OBD要求は「車両データ取得」で開始", 6500,
+            new[]{"GPSSpeed","Speed","RPM","WaterTemp","OilTemp","BatteryVolt","Throttle","EngineLoad","SteeringAngle","LongAccel","LatAccel","VertAccel"})
     };
     public static VehicleProfile Vehicle(string id) => Vehicles.FirstOrDefault(v => v.Id == id) ?? Vehicles[3];
     public static readonly SensorDefinition[] Sensors = {
         new("GPSSpeed","速度 · GNSS","km/h","GNSS",0,180,1),
         new("Speed","速度 · 車両","km/h","CAN",0,240,1),
         new("RPM","エンジン回転数","rpm","CAN",0,10000,0),
+        new("SteeringAngle","舵角 · 要実車照合","°","CAN",-500,500,1,"Toyota 0x025受信値。MZAH10で左右・直進を実車照合してください。OBD端子で見えなければ未受信のままです。"),
         new("WaterTemp","冷却水温","°C","CAN",-20,130,1),
         new("OilTemp","油温","°C","CAN",0,150,1),
         new("OilPress","油圧","kPa","CAN",0,1000,1),

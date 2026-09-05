@@ -1,5 +1,12 @@
 # logger_v1 実装基板用ファームウェア
 
+## 2026-09-04 UX250h試験版（未書込み・未実車検証）
+
+現行ビルドは `logger-v1-ux250h-obd-20260904a`。使用者提示のMZAH10はLXではなくUX250hです。
+明示開始する標準OBD要求、対応PID探索、異常時停止、Toyota 0x025舵角受信を追加しました。
+新規設定では受信専用。`setVehicleAcquisition` で開始・停止を本体保存します。手順・根拠・制約は
+[UX250H_TEST.md](../../EcoCapture/UX250H_TEST.md) を優先してください。以降の日付付き検証記録は旧版の履歴です。
+
 対象は ESP32-S3-WROOM-1-N16R8、BNO055、MAX-M10M-00B、ATA6561、MCP25625 を搭載した
 `circuit/logger_v1` の実装基板です。古いDevKit/LSM6向け `firmware/src/main.cpp` や
 診断専用 `v1_test` と混同しないでください。
@@ -19,7 +26,7 @@
 - 500 msごとに `fflush` と `fsync` を実行します。これは電源瞬断時の損失量の保証ではありません。
   電源投入・明示的な区切り・チャンネル定義変更・256 MiB到達でファイルを分けます。
   既存ログの削除、自動フォーマット、満杯時の自動上書きは行いません。
-- ATA6561/J5: CAN1、500 kbps、listen-only（送信もACKも行わない）。
+- ATA6561/J5: CAN1、500 kbps。明示有効化時だけ標準Mode 01の読取り要求を最大10回/秒で送信する。
   MCP25625/J4: CAN2、500 kbps、外部センサーハブ用。
   車載フレームを無条件に別バスへ中継しません。
 - BNO055: 100 Hz、I2C。`AccelX/Y/Z` は重力を含むm/s²、`GravityX/Y/Z` は推定重力、
@@ -94,7 +101,7 @@ WIFI/BT=消灯、CAN=受信実績あり。
 | `testUsbReconnect` | UART限定。`confirm: LOGGER_USB_ONLY` でUSBのみ1秒切断し、SDは継続 |
 
 未対応の設定変更は成功したふりをせずエラーを返します。
-RaceCapture純正のIMU軸割当/フィルタ設定、任意CANボーレート、アクティブOBDポーリングはこの版では未対応です。
+RaceCapture純正のIMU軸割当/フィルタ設定、任意CANボーレートはこの版では未対応です。車載CANは標準Mode 01のRPM、車速、スロットル、水温、負荷、ECU電圧だけをポーリングし、設定変更・DTC消去は送信しません。
 
 ### SD単体での利用・PCでの表示
 

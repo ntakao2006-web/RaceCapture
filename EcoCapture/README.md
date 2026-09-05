@@ -1,8 +1,11 @@
-# EcoCapture 0.3.5
+# EcoCapture 0.3.7
 
 EcoLogger専用の日本語表示アプリです。Windows x64を主対象とし、Godot .NET / C#で実装しています。UIは白・黒を基本に、警告と経路だけ赤で表示します。
 
 ## Windowsで使う
+
+UX250h（MZAH10）の2026-09-05試験向け更新は [UX250H_TEST.md](UX250H_TEST.md) を参照してください。
+OBD要求は **Settings → 車両データ取得** で明示開始し、本体へ保存します。舵角は受信専用・実車照合前です。車種選択だけでは送信を開始しません。
 
 1. ZIPをフォルダーごと展開します。
 2. RaceCaptureなど、EcoLoggerのUSBを使用するアプリを終了します。
@@ -87,7 +90,7 @@ Settings「接続と保存」から保存先を開けます。
 
 既存のEcoLogger用RaceCapture互換JSONプロトコルを維持し、水平補正とSD読出しのコマンドを追加しています。既存チャンネル番号は変えず、補正チャンネルを末尾に追加しています。RaceCaptureへ戻す場合はEcoCaptureを終了してから起動してください。
 
-Linux ARM64の実行ファイルも生成しています。Windows、Web閲覧、Linux ARM64の要件は [SYSTEM_REQUIREMENTS.md](SYSTEM_REQUIREMENTS.md)、Raspberry Pi 4 / ROCK 5B向けの手順と4 GB構成の設計条件は [LINUX.md](LINUX.md)、再ビルド手順は [BUILD.md](BUILD.md)、確認できた範囲は [VERIFICATION.md](VERIFICATION.md) を参照してください。
+Linux ARM64の実行ファイルも生成しています。Windows、Web閲覧、Linux ARM64の要件は [SYSTEM_REQUIREMENTS.md](SYSTEM_REQUIREMENTS.md)、Linux共通事項は [LINUX.md](LINUX.md)、Raspberry Pi 4Bへの最短導入手順は [RPI4_SETUP.md](RPI4_SETUP.md)、再ビルド手順は [BUILD.md](BUILD.md)、確認できた範囲は [VERIFICATION.md](VERIFICATION.md) を参照してください。
 
 実機試験は静止した卓上環境で行っています。運転中に設定を操作せず、安全な場所で停止して操作してください。
 

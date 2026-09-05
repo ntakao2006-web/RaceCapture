@@ -1,4 +1,4 @@
-# EcoCapture 0.3.5 システム要件
+# EcoCapture 0.3.7 システム要件
 
 この文書は現在の配布版を対象にします。Windows版は実機確認済み、Linux ARM64版はビルドと通信部の擬似端末試験までで、Raspberry Pi 4／ROCK 5B実機では未確認です。
 
@@ -58,7 +58,7 @@ Indicate、Race、Solve、USB接続、SD記録はインターネットなしで�
 | USB | CDC ACM、VID `303a` / PID `4001`への一般ユーザー権限 |
 | 保存先 | `$HOME/.config/EcoCapture`、または書込み可能な`--data-dir` |
 
-Raspberry Pi OSは64 bit版が必要で、32 bit版は対象外です。USB権限には通常`dialout`グループまたはデバイスを限定したudevルールを使います。`.NET`ランタイムは同梱しますが、MesaなどのGPUドライバーとOSのネイティブライブラリは同梱しません。
+Raspberry Pi OSは64 bit Desktop版が必要で、32 bit版とLite版単体は対象外です。Bookworm以降の標準Wayland環境を基準にします。USB権限には同梱のEcoLogger専用udevルールを利用できます。`.NET`ランタイムは同梱しますが、MesaなどのGPUドライバーとOSのネイティブライブラリは同梱しません。詳細は [RPI4_SETUP.md](RPI4_SETUP.md) を参照してください。
 
 Raspberry Pi 4とROCK 5Bへの移植を考慮して4 GBを設計基準にしていますが、両機でのGPU、USB、タッチ操作、温度、長時間安定性は未確認です。
 

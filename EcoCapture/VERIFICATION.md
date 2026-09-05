@@ -1,5 +1,24 @@
 # EcoCapture 検証記録
 
+## 2026-09-05 / 0.3.7 UX250h実車・Pi 4B移植準備版
+
+- MZAH10実車で0 rpm、作動中976～1329 rpm、停止遷移をUSBストリームで確認。OBD要求1935、応答1932、TXエラー0、faultなし。
+- Pi 4B用ARM64配布へ、aarch64・画面・実行権限・USB権限を検査するランチャーと、VID/PID限定udevルールを同梱。
+- Compatibility renderer + OpenGL ES 3.0をPi用ランチャーで指定。通常データは`$HOME/.config/EcoCapture`に分離し、アプリ本体をroot実行しない構成。
+- Windows x64とLinux ARM64を同一ソースから再生成し、ARM64 ELF、同梱.NET、ZIP CRC、Pi用ファイルを監査する。
+- 96項目のWindowsビルド前試験、Linux x86_64実環境101項目、Web 9項目、配布監査を合格。Windows ZIPは82,189,136 bytes、Linux ARM64 ZIPは69,490,929 bytes。
+- Raspberry Pi 4B実機上の起動、USB、画面、温度、長時間試験は未実施。移植準備と実機動作完了を区別する。
+
+## 2026-09-04 / 0.3.6 UX250h準備版
+
+- .NETコア/模擬USB 96チェック合格。実行時の自動CAN設定変更なし、明示取得コマンドの応答名、ハイブリッド0 rpm、欠測、デモ舵角を確認。
+- Web単体9試験、公開Hostingを使ったブラウザ回帰に合格。Firebaseは合成応答に置換し、実際の地理院タイルを読込み。実Firebaseへの試験位置書込みはなし。
+- Windows自己完結EXEのスモーク合格。13画面、UX車種・デモ・取得設定、DEMO時の車両コマンド無効化、車載CANなし設定の保存を確認。画面画像を目視確認。
+- Windows x64 / Linux ARM64 ZIPのPE/ELF、同梱.NET 8、ZIP内容とSHA256を監査。Linux ARM実機上の起動は未検証。
+- ロガーは不在。新ファームのUSB実通信、車両OBD、舵角の実測、耐久試験は明日の確認事項。
+- 詳細は [UX250H_TEST.md](UX250H_TEST.md)。以下は旧版の履歴で、旧チェック数・旧schema・旧実機検証を新ファームの実機実績と混同しない。
+
+
 ## 0.3.5 ライブ共有・デモ/USB同等性
 
 - Settingsを「共有リンクを作ってコピー」「データ共有をON」「ブラウザで確認」の3操作に整理。Firebase URL、共有ID、キーの入力欄は設けない。

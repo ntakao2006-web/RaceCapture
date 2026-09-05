@@ -18,15 +18,14 @@
 
 ## 起動
 
-`EcoCapture-linux-arm64` をフォルダーごとコピーします。中の `data_EcoCapture_linuxbsd_arm64` を移動・削除しないでください。
+`EcoCapture-linux-arm64` をフォルダーごとコピーします。中の `data_EcoCapture_linuxbsd_arm64` を移動・削除しないでください。Pi 4Bでは同梱ランチャーが64-bit OS、画面、実行権限、USB権限を確認します。
 
 ```sh
 cd EcoCapture-linux-arm64
-chmod +x EcoCapture.arm64
-./EcoCapture.arm64
+sh run-raspberry-pi-4.sh
 ```
 
-既定の描画が動かない場合、利用中のGodotビルドが対応する描画ドライバーを `./EcoCapture.arm64 --help` で確認します。Pi 4とROCK 5Bで同じGPUドライバー設定を決め打ちしないでください。
+Pi用ランチャーはCompatibility rendererとMesaのOpenGL ES 3.0を指定します。ほかのARM64 Linuxでは`chmod +x EcoCapture.arm64 && ./EcoCapture.arm64`で起動できます。既定の描画が動かない場合、利用中のGodotビルドが対応する描画ドライバーを `./EcoCapture.arm64 --help` で確認し、`ECOCAPTURE_RENDERING_DRIVER=opengl3`などを診断時だけ指定します。Pi 4とROCK 5Bで同じGPUドライバー設定を決め打ちしないでください。
 
 アプリは `/sys/class/tty/ttyACM*/device` の親デバイスをたどり、VID `303a` / PID `4001` のみを探します。`ttyACM0` を固定していないため番号変更後も再検出できます。書込み機の `ttyUSB*` は探索しません。
 
