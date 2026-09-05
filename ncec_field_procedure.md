@@ -56,6 +56,12 @@ cd firmware/can_obd_logger && python -m platformio run -e esp32-c3-can-obd-logge
 
 ### 1-2. 卓上リハーサル（CAN未接続でよい・2分）
 
+> **2026-09-06に実施済み・合格**。基板はCOM5（Espressif USB Serial/JTAG、`VID_303A`/`PID_1001`）で認識され、
+> ファームは`can_obd_logger`のまま（`# obd req=...`行が出ることで確認）。
+> 実測：`r`→`RESUMED`が約209ms、`p`→`PAUSED`が約213ms、`drop_rb`/`rx_missed`/`rx_overrun`はすべて0。
+> **ポーリング停止中は`txerr`が7712で固定され、再開で再び増加**＝キーがバス動作へ実際に反映されている。
+> **基板を触っていなければ、このステップはもう不要。**
+
 ```bash
 python can_capture_logger.py --port COM5 --out rehearsal --limit-seconds 25 --phase-plan "0:poll:t_poll,10:passive:t_passive,20:poll:t_resume"
 ```
@@ -71,7 +77,14 @@ python can_capture_logger.py --port COM5 --out rehearsal --limit-seconds 25 --ph
 通らない場合はまず `--port` を疑う（ポート番号違いでも「接続待ち」で静かに待つだけなので気づきにくい）。
 
 > 卓上では `txerr`・`buserr` が増え続けるが**これは正常**（ACKを返す相手がいないだけ）。実車では0になる。
-> 卓上の `resp=0` も正常（応答する相手がいない）。
+> 卓上の `resp=0` も正常（応答する相手がいない）。`tec=128`・`alerts=0x200`（エラーパッシブ）も
+> 相手がいない卓上では想定どおりで、`state=RUNNING` が保たれていれば問題ない。
+>
+> **卓上では `sent=6` から増えない**のも正常。ACKが返らないフレームがTXキューに居座り、以降の
+> `twai_transmit()` が失敗して `txerr` だけが増えるため。実車ではACKが返るので流れる
+> （MAZDA2実車で `sent=3514`／`resp=3514`、欠落ゼロを実証済み）。
+> なお `0x7E0`→`0x7DF` の自動フォールバックは「連続30回の応答失敗」で発動するが、卓上では
+> そもそも6回しか送信できていないため発動しない。実車では毎秒10回前後投げるので数秒で判定が付く。
 
 ### 1-3. 持ち物・設定チェックリスト
 
