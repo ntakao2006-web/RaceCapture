@@ -6,3 +6,9 @@ __pycache__/
 .claude/settings.local.json
 *_auto_survey.json
 *_auto_survey_log.txt
+
+# 実車キャプチャの生ログ（数十MB規模）。解析結果とサマリのみをリポジトリに置く方針。
+# 必要なら圧縮してコミットするか、別途共有する。
+lexus_ux_run1*.csv
+lexus_ux_run1*.jsonl
+probe_ux.*
