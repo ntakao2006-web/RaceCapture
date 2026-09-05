@@ -738,6 +738,104 @@
   実機の走行ログ・座標・解析成果物・配布バイナリをGitへ入れない方針は維持し、未除外だった
   `firmware/logger_v1/analysis/` と `logs.zip` を `.gitignore` へ追加した。
 
+- 2026-09-02追記: **EcoCaptureのLinux ARM64版をRaspberry Pi 4B実機（`rc-dash-4B`）で起動・描画まで確認した。RaceCapture 2.19.0は残したまま共存させている。**
+  作業PCへGodot 4.7.2の.NET用エクスポートテンプレートを導入して`dist/EcoCapture-linux-arm64/`を生成し、Piの`/opt/ecocapture/`へ設置した。
+  Piは`multi-user.target`で表示サーバーを持っていなかったため、X11一式（`xserver-xorg-core`／`xinit`／`xserver-xorg-legacy`ほか）を追加した。
+  GodotはデスクトップGLコンテキストの取得に失敗して**OpenGL ES 3.1（Mesa 24.2.8 / Broadcom V3D 4.2.14.0）へフォールバックし、その状態で日本語UIを含め正常に描画する**
+  （`rc-dash-3b`で29セッション以上追ったメインコンテンツ非描画バグに相当する現象は、EcoCaptureでは発生していない）。
+  実測（起動直後・1024x768・EcoLogger未接続）：CPU 14.9 %、RSS 302 MB（RAM 3.5 GiBの8.1 %）、SoC 50.1 ℃、`throttled=0x0`。
+  **未確認：EcoLogger実機とのUSB接続、モニタ実接続時の解像度・タッチ操作、長時間の安定性・温度。**
+
+- 2026-09-02追記: **RaceCaptureとEcoCaptureは同一Pi上で共存させるが、同時起動はできない**（RaceCaptureはtty1でDRMマスターを直接掴むフレームバッファ直描画、EcoCaptureはX11が必須のため）。
+  切替スクリプト`ecocapture_launch_rpi.sh`（Pi上は`/usr/local/bin/ecocapture-start`）と`racecapture_switch_rpi.sh`（同`/usr/local/bin/racecapture-start`）を追加し、双方向の切替を実機で確認した。
+  前者は`getty@tty1`を停止してからvt1にXを立ててEcoCaptureを唯一のクライアントとして起動し、後者はEcoCaptureとXを落として`getty@tty1`を再開する。
+  **RaceCapture 2.19.0のインストール内容・自動起動設定（`~/.bashrc`）には一切変更を加えていない。**
+
+- 2026-09-02追記（`rc-dash-4B`への接続の実情）: 有線はWindows ICSのDHCPが応答しないため、**固定IP`192.168.137.60/24`を設定した**（ROCK 5Bの`.50`と同じ流儀）。
+  mDNS`rc-dash-4b.local`はIPv6リンクローカルなら解決でき、`ssh -o HostKeyAlias=rc-dash-4b.local ntakao@fe80::...%10`（`%10`は有線のインターフェースindex）でも入れる。鍵は`~/.ssh/rc_dash_4b_ed25519`。
+  ただし**Windowsのファイアウォールがサブネット`192.168.137.0/24`からの着信を落としており、PiからインターネットへのNATは通らない**（Pi→PCのpingすら届かない）。
+  そのため今回のパッケージ導入は、PC側で`apt-get --print-uris`の結果から`.deb`を取得し`scp`＋`dpkg -i`する方式で行った。副作用として**PiのNTPが同期できず、システム時刻が約16日遅れている**。
+
+- 2026-09-02追記: **EcoCaptureのLinux版USB探索に実機でロガーを検出できないバグがあり、修正した（`EcoCapture/Transport/LinuxUsb.cs`）。**
+  `/sys/class/tty/ttyACM0/device`は相対シンボリックリンクで、しかも途中の`/sys/class/tty/ttyACM0`自体もリンクである。
+  .NETの`FileSystemInfo.ResolveLinkTarget`は「..」をカーネルと違って**字句的に**畳むため、実機では
+  存在しない`/sys/1-1.3:1.0`を返し、VID/PID照合が常に失敗して`FindDevices()`が空になっていた
+  （UIは「EcoLoggerのUSB接続を待っています」のまま。ロガー側は正常で、`getVer`に応答することを別途確認済み）。
+  カーネルと同じく1要素ずつリンクを辿る`LinuxUsbFactory.RealPath`を追加して差し替えた。
+  **従来のLinux試験は擬似端末(PTY)と実ディレクトリのみで、sysfsのシンボリックリンク構造を再現していなかったため素通りしていた**ので、
+  その形を再現する回帰テストを`EcoCapture/tests/Program.cs`へ追加した（リンク生成部はLinux実行時のみ）。
+  修正版を`rc-dash-4B`へ配置し、**実機EcoLogger（`303a:4001` logger_v1、ビルド`logger-v1-ecocapture-20260902a`）を
+  `/dev/ttyACM0`として認識・接続するところまで確認した**。
+  なお`EcoCapture/dist/`にコミット済みの`EcoCapture-0.3.5-linux-arm64.zip`は修正前のビルドである。
+
+- 2026-09-02追記（Pi 4BのX11で追加が必要だったパッケージ）: `xserver-xorg-core`だけでは足りず、
+  `xserver-xorg-legacy`（setuidの`Xorg.wrap`。無いとSSHから起動したXが`xf86OpenConsole`で落ちる）、
+  `xserver-xorg-input-libinput`（無いとXが入力デバイスを1つも掴まず、キーボード・マウスが全く効かない）、
+  `xfonts-base`＋`dmz-cursor-theme`（無いとカーソルの絵柄が存在せず、ポインタは動くのに見えない）が要る。
+  導入手順は`EcoCapture/LINUX.md`参照。
+
+- 2026-09-04追記: **`rc-dash-4B`の電源投入時に立ち上がるのをRaceCaptureからEcoCaptureへ変更した**（RaceCapture 2.19.0は削除せず残置。ルートFSは28 GB中3.3 GB使用で容量に余裕があるため）。
+  従来の切替スクリプトは実行時に`getty@tty1`を停止／再開するだけで、**自動起動の実体は`~/.bashrc`末尾のRaceCapture直起動のままだった**ため、再起動するとRaceCaptureに戻っていた。
+  起動モードを`/etc/dash-mode`（`ecocapture`／`racecapture`、既定は`ecocapture`）へ永続化し、`~/.bashrc`はログインシェルかつ非SSHのときに`/usr/local/bin/dash-autostart`を呼ぶだけにした。
+  新規`dash_autostart_rpi.sh`（Pi上は`/usr/local/bin/dash-autostart`）がモードを読んで起動先を分岐し、新規`dash_switch_rpi.sh`（同`/usr/local/bin/dash-switch`）がモード書き換えとtty1の張り直しを行う。
+  既存の`ecocapture_launch_rpi.sh`／`racecapture_switch_rpi.sh`（`ecocapture-start`／`racecapture-start`）は`dash-switch`を呼ぶ薄いラッパへ置き換えたので、コマンド名と用途は従来どおり。
+  `getty@.service`は`KillMode=process`のため子プロセスが残る。`dash-switch`は`race_capture`／`xinit`／EcoCaptureを明示的に落としてから`getty@tty1`を張り直す。
+  実機で、EcoCaptureへの切替→**再起動後もEcoCaptureが自動起動すること**→RaceCaptureへの切替→EcoCaptureへの復帰、を確認済み。
+
+- 2026-09-05追記: **MAZDA2実車2回目（2026-09-02）で、自作CANトランシーバ回路が実車で完動することを確認した。**
+  `can_obd_logger`を書き込んだXIAO ESP32C3 + MCP2562FDをOBD2の6/14/5番へ直結し、74秒間の連続動作で
+  `sent=resp`（要求3514件に対し欠落なし）・`buserr=0`・`tec=rec=0`、rpm/車速/水温/スロットルの実測値取得まで確認した
+  （`mazda2_b1_obd_idle.status.log`）。**実車1回目の「生CANが1フレームも取れない」は車両側の構成が原因**で、
+  同キャプチャの全5794フレームが`0x7E0`（自分の要求）と`0x7E8`（応答）のみだったことから、
+  **MAZDA2のDLCは診断要求にしか応答しないスタブ構成**と確定した（ELM327での`ATMA`も同じ結論を示していた）。
+  これによりPhase2-4の計測基盤は「回路・ファーム・PC側ツールが実車で動く」ところまで到達している。
+
+- 2026-09-05追記: **無人（運転中）で1時間の実車キャプチャを回すための仕組みを追加した。次回対象はレクサスUX（2022年式）。**
+  運転者はPCに触れないため、`can_capture_logger.py`へ`--phase-plan`を追加し、経過秒に応じて
+  `can_obd_logger`のPIDポーリングを自動で停止／再開（ランタイムキー`p`/`r`）し、statusログへ
+  `# host: phase ...`の区切りを書き残すようにした。USB切断からの再接続時は現在のフェーズを送り直して状態を復旧する。
+  対になる`can_split_phases.py`を新規作成し、その区切りで長回しキャプチャをフェーズ別CSVへ分割できるようにした
+  （`--exclude-ids 7E0,7E8`で自分のOBD往復を落とせるため、`can_diff.py`が要求する完全受動キャプチャの代用になる）。
+  両ツールとも自己テストはPASS（`can_capture_logger.py --selftest` 26項目、`can_split_phases.py --selftest` 14項目）。
+  あわせて`can_obd_logger`のPIDテーブルと`can_obd_extract.py`のデコード表へ、
+  2-0-6のUX実測で応答が確認できたPID（`5C`油温・`47`・`4C`・`43`・`44`・`34`・`1F`）を追加した。
+  現地手順（60分のタイムスケジュール・判定表・帰宅後の解析コマンド）は`lexus_ux_field_procedure.md`に集約している。
+
+- 2026-09-05追記: **ESP32-C3のUSB Serial/JTAGで、ホストからの1バイトコマンドが受け取れず、PC側の`write`が永久にブロックする不具合を実機で発見し修正した（`firmware/can_obd_logger`）。**
+  VFS経由の`read(STDIN_FILENO)`ではホストからのデータが取れず、受信FIFOが誰にも掃かれないため、
+  PC側は`write`が返らなくなる（pyserialで`write timeout`を実測）。無人キャプチャ中にホスト側が
+  止まる＝1時間の計測が丸ごと失われるため、`ctrl_task`を`usb_serial_jtag_driver_install()`＋
+  `usb_serial_jtag_read_bytes()`の直接読み取りへ変更した（`stdout`側の経路は変えていないため、
+  高レートログ出力の挙動は従来どおり）。**本開発ファーム`firmware/src/main.cpp`は1-3-7の時点で
+  既にこの方式を採っており、取り残されていたのは検証用の`can_obd_logger`だけだった。**
+  PC側（`can_capture_logger.py`）も、`write_timeout`必須・送信完了待ちの`ser.flush()`廃止とし、
+  キー送信が失敗してもキャプチャ本体は止まらない設計に改めた。
+  実機検証：`p`送出から`# obd polling PAUSED`まで約210ms、ポーリング停止中は`txerr`の増加が
+  止まり再開で再び増える（＝キーがバス動作へ実際に反映されている）ことまで確認済み。
+
+- 2026-09-05追記: **これまでの実車調査の結果を、回路担当へ渡すための1枚として`vehicle_can_survey_summary.md`にまとめた。**
+  NCロードスター(NCEC)・MAZDA2・レクサスUXの3車両について、プロトコル・対応PID・DLCに生CANが
+  流れるか・自作基板での直結実績を対照表にし、電気面で確定している事実（信号レベルの実測、終端の扱い、
+  卓上でtxerrが増えるのは正常、GNDは5番単独、3/11番との直結禁止）と、回路担当に判断してほしい3点
+  （NCECでの直結キャプチャの機会、油温・油圧の追加センサー方針、本番機ESP32-S3での再確認）を明記した。
+  一次資料（`OBD2_SURVEY.md`・各`*_field_procedure.md`・生ログ）への参照はすべてこの文書から辿れる。
+
+- 2026-09-05追記: **レクサスUX（2022年式）で自作基板による61分連続の実車キャプチャを完遂し、2つの重要な事実が確定した。**
+  (1) **キャプチャ品質**：511,256フレームを取りこぼし0（drop_rb/rx_missed/rx_overrun=0）・**buserr=0**・
+  TEC=REC=0・USB切断0回で記録した。MAZDA2の74秒に続き、**自作回路・ハーネス・USB経路が
+  1時間規模の実車運用に耐えることが実証された**。運転者はPCに一切触れず、`--phase-plan`による
+  自動進行（受動↔OBDポーリングの切替）が実車で機能することも確認できた。
+  (2) **この車両では生CANの逆解析ができない**：61分を通じて観測できた非診断IDは`45A`と`4E0`の2種のみで、
+  **両方とも61分間ずっと同じ値**（IG ON・エンジン始動・最高119km/hでの走行・停車のいずれでも不変）。
+  情報量はゼロで、2022年式トヨタ/レクサスのセキュリティゲートウェイによる隔離とみるのが自然。
+  一方**OBD2ポーリングは良好**で、`0x7DF`で3ECU（`7E8`/`7EA`/`7EE`）が応答し**1ECUあたり実効9.1Hz**で
+  rpm・車速・スロットル・アクセル開度を取得できた（油温1.0Hz）。**ECUごとに担当PIDが異なり**、
+  アクセルペダル位置Dは`7EA`のみ、油温は`7E8`のみが返す（`0x7E0`固定では油温しか取れなかった可能性がある）。
+  `rpm=0`かつ`speed>0`が走行サンプルの42.8%を占め、対象車両はハイブリッドと確定した。
+  **これにより「生CANが流れているのは3車両中NCECだけ」**となり、生CAN逆解析（2-4-3〜2-4-5）を
+  実施できる唯一の車両が本番車両のNCECであることがはっきりした。詳細は`OBD2_SURVEY.md`の
+  「レクサスUX 追補」、車両横断の対照は`vehicle_can_survey_summary.md`参照。
+
 ## 5. 開発ロードマップ（詳細版）
 
 ### Phase 0：プロトコル・ソフトウェア基盤検証（実機非依存・シミュレーション環境）

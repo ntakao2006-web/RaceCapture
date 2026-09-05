@@ -181,7 +181,22 @@ static class Program
         Check(LinuxUsbFactory.MatchesEcoLogger(intf),"Linux sysfs identity");
         File.WriteAllText(Path.Combine(root,"device","idVendor"),"1a86");
         Check(!LinuxUsbFactory.MatchesEcoLogger(intf),"Linux rejects programming UART");
+        Check(LinuxUsbFactory.RealPath("/a/b/../c/./d")=="/a/c/d","RealPath collapses . and ..");
         if(!OperatingSystem.IsLinux()) return;
+        // sysfsと同じ形（/sys/class/tty配下がリンクで、その中のdeviceも相対リンク）を再現する。
+        // ResolveLinkTargetはこの形で実体とずれた位置を返し、実機でロガーを検出できなかった。
+        var sysfs=Path.Combine(Path.GetTempPath(),"EcoCaptureSysfsLink",Guid.NewGuid().ToString("N"));
+        var usbDevice=Directory.CreateDirectory(Path.Combine(sysfs,"devices","usb1","1-1.3"));
+        var usbInterface=Directory.CreateDirectory(Path.Combine(usbDevice.FullName,"1-1.3:1.0"));
+        var ttyReal=Directory.CreateDirectory(Path.Combine(usbInterface.FullName,"tty","ttyACM0"));
+        File.WriteAllText(Path.Combine(usbDevice.FullName,"idVendor"),"303a\n");
+        File.WriteAllText(Path.Combine(usbDevice.FullName,"idProduct"),"4001\n");
+        Directory.CreateDirectory(Path.Combine(sysfs,"class","tty"));
+        Directory.CreateSymbolicLink(Path.Combine(sysfs,"class","tty","ttyACM0"),"../../devices/usb1/1-1.3/1-1.3:1.0/tty/ttyACM0");
+        Directory.CreateSymbolicLink(Path.Combine(ttyReal.FullName,"device"),"../../../1-1.3:1.0");
+        var linked=LinuxUsbFactory.RealPath(Path.Combine(sysfs,"class","tty","ttyACM0","device"));
+        Check(linked==LinuxUsbFactory.RealPath(usbInterface.FullName),"RealPath follows sysfs relative symlinks under a linked parent");
+        Check(LinuxUsbFactory.MatchesEcoLogger(new DirectoryInfo(linked!)),"Linux finds EcoLogger through sysfs symlinks");
         var path=new StringBuilder(256);
         Check(openpty(out var master,out var slave,path,IntPtr.Zero,IntPtr.Zero)==0,"Linux PTY created");
         try

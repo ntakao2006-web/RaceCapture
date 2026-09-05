@@ -4,7 +4,59 @@
 
 同じC#ソースからLinux ARM64版をエクスポート済みです。Linux x86_64の実環境（WSL）で、コア処理およびLinux用USB処理の擬似端末試験を実施しました。
 
-**Raspberry Pi 4 / ROCK 5Bそのものにはまだ転送・起動していません。** GPUドライバー、USB権限、モニター／タッチ操作、実機でのメモリ・CPU・温度は要確認です。ARM64版のビルド成功を実機動作確認とは扱っていません。
+**Raspberry Pi 4 Model B（4 GB、Debian 12 bookworm、`rc-dash-4B`）では実機で起動し、UIの描画まで確認しました（2026-09-02）。** 実測と手順は下記「Raspberry Pi 4Bでの実機確認」を参照してください。EcoLogger実機とのUSB接続、モニター実接続時の解像度とタッチ操作、長時間の安定性と温度は未確認です。
+
+**ROCK 5Bにはまだ転送・起動していません。** GPUドライバー、USB権限、モニター／タッチ操作、実機でのメモリ・CPU・温度は要確認です。ARM64版のビルド成功を実機動作確認とは扱っていません。
+
+## Raspberry Pi 4Bでの実機確認（2026-09-02）
+
+Raspberry Pi OS Lite相当の`multi-user.target`構成には表示サーバーがありません。Godotの起動にはX11またはWaylandが必要なので、X11を追加しました。
+
+```sh
+sudo apt install --no-install-recommends xserver-xorg-core xserver-xorg-legacy xserver-xorg-input-libinput xinit x11-xserver-utils libxinerama1 xfonts-base dmz-cursor-theme
+```
+
+`xserver-xorg-legacy`（setuidの`Xorg.wrap`）が無いと、コンソール以外から起動したXが`xf86OpenConsole: Cannot open virtual console 1 (Permission denied)`で落ちます。SSH経由で起動する場合は`/etc/X11/Xwrapper.config`に`allowed_users=anybody`と`needs_root_rights=yes`が必要です。
+
+`xfonts-base`とカーソルテーマ（`dmz-cursor-theme`等）が無いと、**マウスカーソルの絵柄がどこにも無いためカーソルが見えません**。ポインタは動いていてクリックも効くので、入力ドライバ欠如とは症状が違います。
+
+`xserver-xorg-input-libinput`も忘れずに入れてください。これが無いとXは入力デバイスを1つも掴まず（`/var/log/Xorg.0.log`に`No input driver specified, ignoring this device.`が並びます）、**マウスカーソルが表示されず、キーボードもマウスも一切効きません**。カーネルは認識しているので`/proc/bus/input/devices`だけ見ても気づけません。なお`xwd`で撮ったスクリーンショットにはそもそもカーソルは写りません。
+
+```sh
+xinit /opt/ecocapture/EcoCapture.arm64 -- :0 vt1 -nolisten tcp
+```
+
+起動時に`ERROR: Condition "ctxErrorOccurred || !gl_display.context->glx_context" is true`が出ますが、これはデスクトップGLの取得に失敗してOpenGL ESへ切り替える正常な経路です。VideoCore VIでは`OpenGL ES 3.1 Mesa 24.2.8 / Broadcom V3D 4.2.14.0`のCompatibility rendererで動作します。
+
+実測（起動直後、1024x768、EcoLogger未接続）：
+
+| 項目 | 値 |
+|---|---|
+| CPU | 14.9 % |
+| RSS | 302 MB（RAM 3.5 GiBの8.1 %） |
+| SoC温度 | 50.1 ℃ |
+| スロットリング | `throttled=0x0` |
+
+同じPiでRaceCapture Appを併用する場合、RaceCaptureはtty1でDRMマスターを直接掴むため**同時には起動できません**。リポジトリ直下の以下4本を設置すると、電源投入時にどちらを立ち上げるかを選べる切り替え式になります。
+
+| リポジトリ | Pi上の設置先 | 役割 |
+|---|---|---|
+| `dash_autostart_rpi.sh` | `/usr/local/bin/dash-autostart` | `/etc/dash-mode`を読み、EcoCaptureかRaceCaptureを起動する |
+| `dash_switch_rpi.sh` | `/usr/local/bin/dash-switch` | `/etc/dash-mode`を書き換え、tty1を張り直す |
+| `ecocapture_launch_rpi.sh` | `/usr/local/bin/ecocapture-start` | `dash-switch ecocapture`の薄いラッパ |
+| `racecapture_switch_rpi.sh` | `/usr/local/bin/racecapture-start` | `dash-switch racecapture`の薄いラッパ |
+
+併せて、tty1へ自動ログインするユーザーの`~/.bashrc`からログインシェル時のみ`dash-autostart`を呼ぶようにします（SSHログインでは呼ばない）。
+
+```sh
+if shopt -q login_shell; then
+  if [ -z "$SSH_CLIENT" ] || [ -z "$SSH_TTY" ]; then
+    /usr/local/bin/dash-autostart
+  fi
+fi
+```
+
+`/etc/dash-mode`が無い場合の既定はEcoCaptureです。`ecocapture-start`／`racecapture-start`で切り替えると、その選択は次回の電源投入時にも維持されます。
 
 ## 必要な構成
 

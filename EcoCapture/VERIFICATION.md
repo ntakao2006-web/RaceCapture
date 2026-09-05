@@ -6,8 +6,8 @@
 - Pi 4B用ARM64配布へ、aarch64・画面・実行権限・USB権限を検査するランチャーと、VID/PID限定udevルールを同梱。
 - Compatibility renderer + OpenGL ES 3.0をPi用ランチャーで指定。通常データは`$HOME/.config/EcoCapture`に分離し、アプリ本体をroot実行しない構成。
 - Windows x64とLinux ARM64を同一ソースから再生成し、ARM64 ELF、同梱.NET、ZIP CRC、Pi用ファイルを監査する。
-- 96項目のWindowsビルド前試験、Linux x86_64実環境101項目、Web 9項目、配布監査を合格。Windows ZIPは82,189,136 bytes、Linux ARM64 ZIPは69,490,929 bytes。
-- Raspberry Pi 4B実機上の起動、USB、画面、温度、長時間試験は未実施。移植準備と実機動作完了を区別する。
+- 97項目のWindowsビルド前試験、Linux x86_64実環境104項目、Web 9項目、配布監査を合格。Windows ZIPは82,191,622 bytes、Linux ARM64 ZIPは69,493,411 bytes。
+- 先行するLinux ARM64版はPi 4B実機のX11環境で起動・UI描画を確認済み。0.3.7配布物そのものの起動回帰、EcoLogger USB、Wayland、タッチ、長時間試験は未実施。
 
 ## 2026-09-04 / 0.3.6 UX250h準備版
 
@@ -102,7 +102,7 @@ Windowsでの通常表示時の実測は `artifacts/runtime-performance/performa
 
 設計は4 GB RAMを前提とし、受信履歴・地図取得・描画負荷を制限しています。詳細は [LINUX.md](LINUX.md)。Windowsでの性能をARM機の性能保証には使いません。
 
-Windows x64 EXEと同梱ランタイム、Linux ARM64のELFと同梱ランタイムを出力しています。Linux ARM64はビルドと形式確認までで、Pi 4 / ROCK 5B上では未検証です。
+Windows x64 EXEと同梱ランタイム、Linux ARM64のELFと同梱ランタイムを出力しています。先行するLinux ARM64版はPi 4BのX11環境で起動・UI描画を確認済みです。0.3.7配布物そのもののPi 4起動回帰とEcoLogger USB、ROCK 5B実機は未検証です。
 
 ## 残る実環境確認
 

@@ -7,7 +7,7 @@
 - HDMIまたはDSI画面、1000×680以上
 - EcoLoggerのUSB-OTGをPiへ接続。A105はアプリ接続には使用しない
 
-Pi 4Bは64-bit ARMv8とOpenGL ES 3.0に対応し、Godot 4.7の最小CPU例にも挙げられています。ただしEcoCapture 0.3.7はPi 4B実機ではまだ未検証です。
+Pi 4Bは64-bit ARMv8とOpenGL ES 3.0に対応し、Godot 4.7の最小CPU例にも挙げられています。先行するLinux ARM64版はPi 4B実機のX11環境で起動とUI描画まで確認済みです。0.3.7配布物そのものの起動回帰とEcoLogger USB接続はまだ未検証です。
 
 ## 最短手順
 
@@ -49,7 +49,7 @@ sh run-raspberry-pi-4.sh --data-dir /path/to/EcoCapture-data
 
 ## まだ必要なPi実機試験
 
-- Wayland上での起動、文字・マウス・タッチ、全画面表示
+- 0.3.7配布物の起動回帰、Wayland上での文字・マウス・タッチ、全画面表示
 - EcoLogger USBの抜き差し復帰と、その間のSD記録継続
 - Maps/Solveを含むCPU、メモリ、GPU、温度、長時間安定性
 - 電源瞬断をUSB切断と取り違えないこと

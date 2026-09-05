@@ -47,6 +47,7 @@
 #include "freertos/ringbuf.h"
 #include "driver/gpio.h"
 #include "driver/twai.h"
+#include "driver/usb_serial_jtag.h"
 #include "esp_timer.h"
 #include "esp_err.h"
 
@@ -99,6 +100,17 @@ static const obd_pid_t PID_TABLE[] = {
     {0x4A, 1000, "accel_e"},    // アクセルペダル位置E
     {0x42, 2000, "batt"},       // バッテリー(モジュール)電圧
     {0x33, 5000, "baro"},       // 大気圧
+    // --- 車種によっては未対応の追加群 ---
+    // 応答しないPIDは s_pid_fail のバックオフで自動的に間隔が最大64倍まで伸びるため、
+    // 対応していない車両で回しても上の群のポーリングレートはほぼ食わない。
+    // 下記は 2-0-6 のレクサスUX(2022年式)実測(OBD2_SURVEY.md)で応答が確認できたもの。
+    {0x5C, 1000, "oil_temp"},   // エンジン油温。UXは対応、NCロードスターは非対応
+    {0x47, 1000, "abs_thr_b"},  // 絶対スロットル位置B
+    {0x4C, 1000, "cmd_thr"},    // 指令スロットルアクチュエータ制御
+    {0x43, 1000, "abs_load"},   // 絶対負荷値
+    {0x44, 2000, "equiv_ratio"},// 燃料/空気当量比の指令値
+    {0x34, 2000, "o2_wr"},      // O2センサー1 広域AFR(当量比/電流)
+    {0x1F, 5000, "run_time"},   // 始動後経過時間。ECU側の経過秒とログの時間軸の突き合わせ用
 };
 #define PID_COUNT (sizeof(PID_TABLE) / sizeof(PID_TABLE[0]))
 
@@ -411,15 +423,33 @@ static void out_task(void *arg)
 // 動かなくてもロギング本体には一切影響しないよう独立・低優先度・エラー無視で実装する。
 static void ctrl_task(void *arg)
 {
-    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-    if (flags >= 0) {
-        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+    // ESP32-C3のUSB Serial/JTAGでは、VFS経由の read(STDIN_FILENO) ではホストからの
+    // 1バイトを受け取れない。受信FIFOが誰にも掃かれないため、**PC側の write が
+    // 永久にブロックする**（2026-09-05に実測。pyserialで write timeout）。
+    // 無人キャプチャ中にホストが止まるのは致命的なので、専用ドライバを入れて直接読む。
+    // stdout(printf)の経路は変えない(usb_serial_jtag_vfs_use_driver()は呼ばない)ため、
+    // 高レートのログ出力の挙動は従来どおり。
+    usb_serial_jtag_driver_config_t ucfg = USB_SERIAL_JTAG_DRIVER_CONFIG_DEFAULT();
+    bool drv = (usb_serial_jtag_driver_install(&ucfg) == ESP_OK);
+    if (!drv) {
+        // 入らなくてもロギング本体には影響しないので、旧経路のまま続行する。
+        int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+        if (flags >= 0) {
+            fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+        }
+        printf("# WARN usb_serial_jtag driver install failed; runtime keys may not work\n");
+        fflush(stdout);
     }
     char line[LOG_LINE_MAX];
     for (;;) {
-        vTaskDelay(pdMS_TO_TICKS(100));
         char c;
-        int r = read(STDIN_FILENO, &c, 1);
+        int r;
+        if (drv) {
+            r = usb_serial_jtag_read_bytes(&c, 1, pdMS_TO_TICKS(100));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(100));
+            r = read(STDIN_FILENO, &c, 1);
+        }
         if (r != 1) continue;
         if (c == 'p' || c == 'P') {
             s_paused.store(true, std::memory_order_relaxed);

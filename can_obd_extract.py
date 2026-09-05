@@ -74,6 +74,10 @@ PID_DECODERS = {
     0x49: ("accel_d",   "%",     1, _pct),
     0x4A: ("accel_e",   "%",     1, _pct),
     0x4C: ("thr_cmd",   "%",     1, _pct),
+    # 2-0-6 のレクサスUX(2022年式)実測で応答が確認できたPID（OBD2_SURVEY.md）
+    0x34: ("o2_wr_lam",  "-",    2, lambda d: _u16(d) / 32768.0),   # 広域O2の当量比(先頭2バイト)
+    0x44: ("equiv_ratio", "-",   2, lambda d: _u16(d) / 32768.0),   # 燃料/空気当量比の指令値
+    0x5C: ("oil_temp",  "degC",  1, _a_40),                         # エンジン油温
 }
 
 
@@ -240,6 +244,8 @@ def selftest():
         check(abs(vals.get((0x0C, "rpm"), 0) - 2000.0) < 1e-6,
               "PID 0x0C 回転数 0x1F40/4=2000 rpm (got %r)" % vals.get((0x0C, "rpm")))
         check(vals.get((0x05, "coolant")) == 52.0, "PID 0x05 水温 0x5C-40=52 degC (got %r)" % vals.get((0x05, "coolant")))
+        check(decode_response(bytes([0x03, 0x41, 0x5C, 0x7B])) == (0x5C, "oil_temp", "degC", 83.0),
+              "PID 0x5C 油温 0x7B-40=83 degC (got %r)" % (decode_response(bytes([0x03, 0x41, 0x5C, 0x7B])),))
         check(abs(vals.get((0x11, "throttle"), 0) - (0x66 * 100.0 / 255.0)) < 1e-6, "PID 0x11 スロットル")
 
         # 0x7E9 (ECU#2) も応答レンジとして受理されること

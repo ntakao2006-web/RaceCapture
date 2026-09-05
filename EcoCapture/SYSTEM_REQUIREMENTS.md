@@ -1,6 +1,6 @@
 # EcoCapture 0.3.7 システム要件
 
-この文書は現在の配布版を対象にします。Windows版は実機確認済み、Linux ARM64版はビルドと通信部の擬似端末試験までで、Raspberry Pi 4／ROCK 5B実機では未確認です。
+この文書は現在の配布版を対象にします。Windows版は実機確認済み、Linux ARM64版はRaspberry Pi 4B実機での起動・UI描画まで確認済み（2026-09-02、詳細は[LINUX.md](LINUX.md)）で、ROCK 5B実機では未確認です。
 
 ## Windows版
 
@@ -21,7 +21,7 @@ Windows配布フォルダーは約188 MiB、ZIPは約76 MiBです。地図キャ
 
 ## EcoLoggerと車両
 
-- 実測にはEcoLogger `logger_v1` と、データ通信できるUSBケーブルが必要です。現在の確認済みファームは `2.17.0 / logger-v1-ecocapture-20260901j` です。
+- 実測にはEcoLogger `logger_v1` と、データ通信できるUSBケーブルが必要です。現在の車載OBD確認済みファームは `2.17.0 / logger-v1-ux250h-obd-20260905a` です。
 - アプリはネイティブUSBのVID `303a` / PID `4001`だけを自動検出します。書込み機CH9102のCOMポートは対象外です。
 - RaceCaptureなど、同じネイティブUSBを使用するアプリとは同時に接続できません。
 - GNSS、IMU、SDはEcoLogger側に必要です。車載CANは任意で、「車載CAN接続なし」ですべての基本画面を利用できます。
@@ -60,7 +60,7 @@ Indicate、Race、Solve、USB接続、SD記録はインターネットなしで�
 
 Raspberry Pi OSは64 bit Desktop版が必要で、32 bit版とLite版単体は対象外です。Bookworm以降の標準Wayland環境を基準にします。USB権限には同梱のEcoLogger専用udevルールを利用できます。`.NET`ランタイムは同梱しますが、MesaなどのGPUドライバーとOSのネイティブライブラリは同梱しません。詳細は [RPI4_SETUP.md](RPI4_SETUP.md) を参照してください。
 
-Raspberry Pi 4とROCK 5Bへの移植を考慮して4 GBを設計基準にしていますが、両機でのGPU、USB、タッチ操作、温度、長時間安定性は未確認です。
+Raspberry Pi 4とROCK 5Bへの移植を考慮して4 GBを設計基準にしています。Raspberry Pi 4B（4 GB）ではX11上のOpenGL ES 3.1で起動し、起動直後の実測はCPU 14.9 %・RSS 302 MB・SoC 50.1 ℃でした。両機ともUSB、タッチ操作、長時間安定性は未確認です。
 
 ## 実測した負荷
 

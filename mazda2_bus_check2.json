@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-09-02T13:35:52.976924+00:00",
+  "vehicle": "mazda2",
+  "commands": [
+    {
+      "cmd": "ATZ",
+      "resp": "\\xfc\r\rELM327 v1.5"
+    },
+    {
+      "cmd": "ATE0",
+      "resp": "ATE0\rOK"
+    },
+    {
+      "cmd": "ATH1",
+      "resp": "OK"
+    },
+    {
+      "cmd": "ATI",
+      "resp": "ELM327 v1.5"
+    },
+    {
+      "cmd": "ATSP0",
+      "resp": "OK"
+    },
+    {
+      "cmd": "010C",
+      "desc": "エンジン回転数",
+      "resp": "7E8 04 41 0C 0B B0 \r7E9 04 41 0C 0B B0"
+    },
+    {
+      "cmd": "010D",
+      "desc": "車速",
+      "resp": "7E9 03 41 0D 00 \r7E8 03 41 0D 00"
+    }
+  ],
+  "ati": "ELM327 v1.5",
+  "pid_0100": {
+    "resp": "SEARCHING...\r7E9 06 41 00 98 1A 80 03 \r7E8 06 41 00 FE 7F B8 13",
+    "positive": true
+  },
+  "protocol": {
+    "dpn": "A6",
+    "name": "ISO 15765-4 CAN (11bit, 500k)"
+  },
+  "monitor": {
+    "lines": 3,
+    "ids": {
+      "3FF": 1,
+      "7FF": 1
+    },
+    "errors": {
+      "OTHER": 1
+    }
+  },
+  "monitor_raw_tail": "3FF 03 7F 01 78 00 00 00 00 \r7FF 03 7F 01 78 00 00 00 00 \rSTOPPED\r\r>",
+  "verdict": "判定保留（自発フレームが少なすぎる）",
+  "next_action": "診断応答以外のフレームが1件しか無い（判定には10件必要）。500kのバスなら本来は桁違いに出る。--monitor-seconds 60 で再実行し、それでも増えないならスタブ構成として扱う。拾えたID: ['3FF']"
+}
