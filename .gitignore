@@ -12,6 +12,6 @@ __pycache__/
 lexus_ux_run1*.csv
 lexus_ux_run1*.jsonl
 probe_ux.*
-ncec_run1*.csv
-ncec_run1*.jsonl
+ncec_*.csv
+ncec_*.jsonl
 rehearsal.*

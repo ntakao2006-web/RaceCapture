@@ -1,36 +1,38 @@
-# NCロードスター（NCEC）実車CAN/OBD解析 現地手順書（1時間）
+# NCロードスター（NCEC）実車CAN/OBD解析 現地手順書（1時間・走行のみ）
 
 > **目的**：自作CANトランシーバ回路（XIAO ESP32C3 + MCP2562FD）をNCECのOBD2ポートへ直結し、
-> **①停車中の操作差分（2-4-3／2-4-4）** と **②走行中の相関検証（2-4-5）** を
-> **1本のキャプチャ・1つの時間軸**で取り切る。
+> **①OBD2の疎通を先に確定させ、②走行中の生CANとOBD2応答を同一タイムスタンプで取り切る**。
+> 帰宅後に `can_correlate.py` へかけて「どのCAN IDのどのバイトが車速・回転数か」を特定する。
 >
 > **対象車両**：NCロードスター（NCEC、2005年式初期型、MT、DSC非搭載）＝**本プロジェクトの本番投入車両**。
+>
+> **運用方針（2026-09-06にユーザー確定）**：**停車しての操作（ウィンカー等を1つずつ入れる差分採取）は行わない。**
+> 走行のみを前提とし、運転者は運転に専念する。画面を見るのは**発進前の1回だけ**。
 >
 > **なぜこの車が本命か**：MAZDA2はDLCがスタブ構成（診断応答のみ）、レクサスUXはゲートウェイ隔離で
 > 非診断IDが固定値2種のみ。**3車両のうち生CANが実際に流れているのはNCECだけ**であることが
 > 実測で確定している（`vehicle_can_survey_summary.md`）。生CAN逆解析ができる唯一の車両。
 >
-> **記録先**：`ncec_run1` プレフィックスの新規ファイルに限定する。既存の
+> **記録先**：`ncec_` プレフィックスの新規ファイルに限定する。既存の
 > `obd2_survey_nc_roadster*`・`mazda2_*`・`lexus_ux_*` は**一切上書きしない**。
 
 ---
 
 ## 0. この1時間で何を取りに行くのか
 
-2026-08-01のELM327調査（`OBD2_SURVEY.md`）で、NCECには次の状態まで来ている。
-
-| 区分 | CAN ID | 状況 |
-|---|---|---|
-| デコード式まで判明・実測検証済み | `200` `201` `215` `231` `240` `4B0` | 今回は**フルスピード＋µsタイムスタンプで裏取り**する |
-| 警告灯関連らしいが割当不明 | `211` `212` | 今回の**操作差分で当てに行く** |
-| 完全に未解明 | `21A` `39A` `420` `4EC` `4FF` | 同上。特に`21A`/`39A`は**全27サンプル常時ゼロ**で、「低頻度イベント系フラグ（パーキングブレーキ・ドア・シートベルト等）」という仮説がある。**今回はその仮説を直接叩きに行く**（ドア／シートベルト／サイドブレーキを操作リストに入れた理由） |
-
-ELM327では **UART 38400bps が CAN 500kbps に追いつかず `BUFFER FULL` 頻発・タイムスタンプ無し**
-だったため、これ以上は進めなかった。今回はハードウェアCANコントローラで取り切る。
+| 優先度 | 目的 | 対応するタスク | 判定 |
+|---|---|---|---|
+| **1（必達）** | **OBD2の疎通**：自作基板がNCECのECUから応答を得られること、`0x7E0`で通るか`0x7DF`が要るか | 2-2-1の「保留（実車必須）」 | 発進前の**プリチェック60秒**で確定する |
+| **2（本命）** | **走行中の生CANとOBD2の同時取得**、`0x201`/`0x4B0`/`0x240`のデコード式の実測裏取り | 2-4-5 | 帰宅後の`can_correlate.py`でR²>0.95 |
+| 3（副産物） | 停車↔走行の差分で動くバイトの洗い出し（未解明ID `21A`/`39A`/`420`/`4EC`/`4FF`） | 2-4-3／2-4-4の一部 | `can_diff.py`（操作差分ではなく**状態差分**として使う） |
 
 **自作側の未検証項目はもう無い**。MAZDA2（74秒、欠落0）とレクサスUX（61分、drop=0・buserr=0）で
 回路・ハーネス・ファーム・USB経路・`--phase-plan`の自動進行はすべて実車実証済み。
 今回は**繋いで回すだけ**であり、切り分け作業は残っていない。
+
+> **今回できないこと（明示）**：`211`/`212`（警告灯系）や`21A`/`39A`（低頻度イベント系フラグの疑い）の
+> ビット割当特定は、停車中の単一操作差分が前提なので**今回は対象外**。走行ログからでも
+> 「ウィンカーの点滅周期（約0.7〜0.8秒）でトグルするビット」を探す余地はあるが、確度は落ちる（4-5参照）。
 
 ---
 
@@ -58,15 +60,18 @@ cd firmware/can_obd_logger && python -m platformio run -e esp32-c3-can-obd-logge
 python can_capture_logger.py --port COM5 --out rehearsal --limit-seconds 25 --phase-plan "0:poll:t_poll,10:passive:t_passive,20:poll:t_resume"
 ```
 
-`rehearsal.status.log` に次の3つが並んでいれば合格。
+`rehearsal.status.log` を開いて次の3つを確認する。
 
-- `# host: phase ... action=passive key=p label=t_passive`
-- その直後の `# obd polling PAUSED (passive; ACK is still sent)`
-- 20秒後の `# obd polling RESUMED`
+1. `# obd req=0x7E0 poll=on sent=... resp=0 ...` の行が毎秒出ている
+   → **現地のプリチェック（2-1）はこの行を読む**ので、出ることをここで確かめておく
+2. `# host: phase ... action=passive key=p label=t_passive` の直後に
+   `# obd polling PAUSED (passive; ACK is still sent)`
+3. 20秒後に `# obd polling RESUMED`
 
 通らない場合はまず `--port` を疑う（ポート番号違いでも「接続待ち」で静かに待つだけなので気づきにくい）。
 
 > 卓上では `txerr`・`buserr` が増え続けるが**これは正常**（ACKを返す相手がいないだけ）。実車では0になる。
+> 卓上の `resp=0` も正常（応答する相手がいない）。
 
 ### 1-3. 持ち物・設定チェックリスト
 
@@ -76,151 +81,94 @@ python can_capture_logger.py --port COM5 --out rehearsal --limit-seconds 25 --ph
 - [ ] **PCのスリープ無効化**（「電源とスリープ」を「なし」、蓋を閉じる動作も「何もしない」）
 - [ ] **空き容量2GB以上**。NCECは生CANが本当に流れるため、レクサスUX（61分で37MB）より**大きくなる**。
       300〜600 frame/s なら1時間で**100〜200MB**程度の見込み
-- [ ] **PCの画面が運転席から見える置き方**（停車中の操作ブロックでラベル表示を見ながら操作するため）
 - [ ] 基板・ケーブルを**ペダル周り／ステアリング下に垂らさない**
-- [ ] この手順書の「2-2. 停車ブロック」の表を印刷するかスマホに表示しておく
+- [ ] この手順書の2章（打つコマンド2つ）をスマホで開けるようにしておく
 
 ---
 
-## 2. 現地タイムスケジュール（60分）
+## 2. 現地手順（合計約60分）
 
-キャプチャ開始を `t=0` とする。**前半13分は停車したまま画面を見て操作、後半は完全放置**。
+### 2-1. プリチェック：OBD疎通確認（停車のまま、約2分）
 
-### 2-1. 実行コマンド（プランA：60分・推奨）
-
-**IG ONにする直前**にこの1行を実行する。
+**乗車 → OBDへ接続 → IG ON → エンジン始動**まで済ませたら、停車したまま次を実行する。
 
 ```bash
-python can_capture_logger.py --port COM5 --out ncec_run1 --limit-seconds 3660 --phase-plan "0:passive:ig_on,60:passive:engine_idle,150:passive:ops_base,240:passive:ops_blinker_l,280:passive:ops_blinker_r,320:passive:ops_hazard,360:passive:ops_headlight,400:passive:ops_wiper,440:passive:ops_brake,480:passive:ops_clutch,520:passive:ops_door,560:passive:ops_seatbelt,600:passive:ops_defog,640:passive:ops_ac,680:passive:ops_pbrake,720:passive:ops_base2,780:poll:idle_obd,900:poll:rev_obd,1020:poll:drive,3120:passive:drive_passive,3420:poll:stop_idle"
+python can_capture_logger.py --port COM5 --out ncec_precheck --limit-seconds 60
 ```
 
-### 2-2. 前半（0:00〜13:00）＝停車ブロック。画面を見ながら操作する
+60秒で自動停止する。終わったらこれを打つ。
 
-**平坦な場所に停車し、サイドブレーキを引き、ニュートラルにしてから始める。**
+```bash
+grep "# obd" ncec_precheck.status.log | tail -3
+```
 
-| 経過 | ラベル | 運転者の操作 | 狙い |
-|---|---|---|---|
-| 0:00 | `ig_on` | **IG ON（エンジンはかけない）**、何も触らず待つ | エンジン停止時の自発フレーム |
-| 1:00 | `engine_idle` | **エンジン始動**、何も触らず待つ | 始動で増えるID＝パワトレ系の絞り込み |
-| 2:30 | `ops_base` | **全OFFの基準状態**でじっと待つ（90秒） | 操作差分のベースライン |
-| 4:00 | `ops_blinker_l` | 左ウィンカーON | `211`/`212`候補 |
-| 4:40 | `ops_blinker_r` | 右ウィンカーON | 同上（左右でビットが分かれるか） |
-| 5:20 | `ops_hazard` | ハザードON | 同上 |
-| 6:00 | `ops_headlight` | ライトON（スモール→ロービーム） | 同上 |
-| 6:40 | `ops_wiper` | ワイパー作動 | 同上 |
-| 7:20 | `ops_brake` | ブレーキペダルを踏み続ける | ブレーキランプ／`212`候補 |
-| 8:00 | `ops_clutch` | **クラッチペダルを踏み続ける** | **`231`＝クラッチSWの答え合わせ（陽性対照）** |
-| 8:40 | `ops_door` | 運転席ドアを開けて保持 | **`21A`/`39A`の仮説検証** |
-| 9:20 | `ops_seatbelt` | ドアを閉め、シートベルトを外して保持 | 同上 |
-| 10:00 | `ops_defog` | ベルトを戻し、リアデフォッガON | 同上 |
-| 10:40 | `ops_ac` | デフォッガOFF、エアコン（A/C＋ブロワ）ON | 同上 |
-| 11:20 | `ops_pbrake` | **ブレーキペダルを踏んだまま**サイドブレーキを下ろす | 同上 |
-| 12:00 | `ops_base2` | **サイドを引き直し、全てOFFへ戻す**（60秒） | 基準の再現性確認 |
+**判定表**
 
-**操作のルール（これだけ守れば解析が通る）**
+| 出力 | 意味 | 次の行動 |
+|---|---|---|
+| `req=0x7E0 ... resp=` が伸びていて `rpm=` `coolant=` に**それらしい数値** | **合格。OBD疎通OK** | 2-2へ進む |
+| `req=0x7DF` になっている（自動切替が働いた） | `0x7E0`では応答せず、機能アドレスで通った。**これも合格** | 2-2へ進む（記録として覚えておく） |
+| `resp=0` のまま／`# obd no response on ...` が繰り返される | 疎通していない | **配線を確認**：6=CANH / 14=CANL / 5=GND、**120Ωを外したか**、USBが挿さっているか。直したらもう一度2-1 |
+| そもそもコマンドが「接続待ち」から進まない | COMポート番号が違う | デバイスマネージャでポート番号を確認して`--port`を直す |
 
-1. **画面に次のラベルが出た瞬間に、前の操作をOFF・次の操作をONにする**。
-2. **同時に2つ操作しない**。指定されたもの以外は全てOFFに戻してから次へ。
-3. 40秒ぶんまるまる保持する。早く戻さない。
-4. 数秒ずれても問題ない（解析側で `--skip-head` により境界を捨てる）。**操作を飛ばした・順番を間違えた場合は、
-   その場でメモを取る**（後で該当フェーズを解析から外せば済む）。
+同時に、60秒キャプチャの**終了時サマリ**（画面に出る）で**生CANが流れているかも分かる**。
 
-> **`ops_clutch` を入れてある理由**：`0x231`＝クラッチスイッチはコミュニティ資料で既知。
-> ここが差分に出れば「この手法はこの車で機能している」と言い切れ、出なければ他の所見も疑ってよい、
-> という**陽性対照**になる。最初に見るのはこれ。
+| サマリのID一覧 | 意味 |
+|---|---|
+| `0x201` `0x4B0` `0x240` 等が並んでいる | **期待どおり。生CANが流れている**（本命の解析が成立する） |
+| `0x7E0` と `0x7E8` しか無い | NCECもスタブ構成だった（MAZDA2と同じ）。この場合でも2-2はそのまま実施し、**OBDログとして完結させる** |
 
-> **`ops_pbrake` の安全条件**：必ず**平坦な場所・ニュートラル・ブレーキペダルを踏んだまま**行う。
-> 少しでも傾斜があると感じたら**このフェーズは飛ばしてよい**（画面のラベルが進むのを待つだけ）。
+### 2-2. 本番キャプチャ（55分・走行のみ・完全放置）
 
-### 2-3. 後半（13:00〜60:00）＝放置。運転に専念する
+プリチェックが通ったら、**発進する直前**にこの1行を実行して、**あとは画面を見ない**。
+
+```bash
+python can_capture_logger.py --port COM5 --out ncec_run1 --limit-seconds 3300 --phase-plan "0:poll:idle_start,60:poll:drive,2520:passive:drive_passive,2760:poll:drive2,3180:poll:stop_idle"
+```
 
 | 経過 | ラベル | ロガー | 運転者の行動 | 得るもの |
 |---|---|---|---|---|
-| 13:00 | `idle_obd` | OBDポーリング | 停車のまま待つ（120秒） | **OBD疎通確認**と静止時の基準値 |
-| 15:00 | `rev_obd` | OBDポーリング | **ニュートラルのまま空ぶかし**を数回（2,000〜4,000rpmを2〜3秒ずつ、120秒） | **走らなくても回転数の相関が取れる**保険 |
-| 17:00 | `drive` | OBDポーリング | **走行**（PCに一切触らない） | 本命。車速・回転数と生CANの相関 |
-| 52:00 | `drive_passive` | 受動 | 走行を続ける | 自分の送信を止めた**純粋な生CANレート**と取りこぼし量 |
-| 57:00 | `stop_idle` | OBDポーリング | 停車・アイドル | 終端の基準値 |
-| 60:00 | 自動停止 | — | Ctrl+Cは押さなくてよい | — |
+| 0:00 – 1:00 | `idle_start` | OBDポーリング | **停車・アイドルのまま待つ**（60秒） | 車速0の基準状態。走行との状態差分に使う |
+| 1:00 – 42:00 | `drive` | OBDポーリング | **走行**（PCに一切触らない） | **本命**。車速・回転数の変化と生CANの相関 |
+| 42:00 – 46:00 | `drive_passive` | 受動 | 走行を続ける | 自分の送信を止めた**純粋な生CANレート**と取りこぼし量の実測 |
+| 46:00 – 53:00 | `drive2` | OBDポーリング | 走行を続ける | 受動区間の前後で条件を揃えた比較用 |
+| 53:00 – 55:00 | `stop_idle` | OBDポーリング | 停車・アイドル | 終端の基準状態（`idle_start`との比較で時間変動を切り分ける） |
+| 55:00 | 自動停止 | — | **Ctrl+Cは押さなくてよい** | — |
 
 走行の中身は普段どおりでよいが、**発進・停止・高めの速度域が一度ずつ入る**と相関の精度が上がる。
-
-### 2-4. 13:00時点の1回だけのチェック（`idle_obd` へ移ったとき）
-
-停車中なので、ここで画面を1度だけ確認する。以後は見ない。
-
-| 画面の様子 | 意味 | 対応 |
-|---|---|---|
-| 行が猛烈に流れ、`# stat ... total=` が伸び続ける | **正常。生CANが取れている** | そのまま |
-| `total=` がOBD往復ぶんしか増えない | 生CANが来ていない（前半の操作差分は空振り） | そのまま最後まで回す。OBDログとして完結させる |
-| `drop_rb` / `rx_missed` が増え続ける | USB出力が受信レートに追いつかず取りこぼし中 | **対応不要**。取りこぼし量はログに残るので後で定量評価する |
-| `[!] シリアルが切断されました` の繰り返し | USBの接触不良 | **安全な場所に停車してから**挿し直す（自動再開する） |
+渋滞だけ・信号待ちだけ、という55分にならなければ十分。回転数も、低回転で流すだけでなく
+**普通に上まで回す場面が何度かある**と`0x201`の回転数バイトの当たりが良くなる。
 
 **走行中にやってはいけないこと**：キーボード操作、コネクタの抜き差し、Ctrl+Cでの停止。
 
----
+**USBが抜けた場合**：`[!] シリアルが切断されました` が繰り返し出るが、**安全な場所に停車するまで放置**でよい。
+挿し直せばキャプチャは自動再開し、受動フェーズ中なら `p` を送り直して状態も復旧する。
 
-## 3. プランB（走行時間が取れない場合・31分）
+### 2-3. 時間が足りない場合
 
-停車ブロックと空ぶかしはそのまま、走行を10分に縮めた版。**前半13分の成果は同じ**。
-
-```bash
-python can_capture_logger.py --port COM5 --out ncec_run1 --limit-seconds 1860 --phase-plan "0:passive:ig_on,60:passive:engine_idle,150:passive:ops_base,240:passive:ops_blinker_l,280:passive:ops_blinker_r,320:passive:ops_hazard,360:passive:ops_headlight,400:passive:ops_wiper,440:passive:ops_brake,480:passive:ops_clutch,520:passive:ops_door,560:passive:ops_seatbelt,600:passive:ops_defog,640:passive:ops_ac,680:passive:ops_pbrake,720:passive:ops_base2,780:poll:idle_obd,900:poll:rev_obd,1020:poll:drive,1620:passive:drive_passive,1740:poll:stop_idle"
-```
-
-フェーズ番号（`p1`〜`p21`）とラベルはプランAと完全に同じなので、**4章の解析コマンドはそのまま使える**。
+`--limit-seconds` と最後の2フェーズの秒数を縮めるより、**そのまま回して途中でCtrl+Cする方が安全で確実**
+（それまでのデータは全て保存済み。`--phase-plan`の途中までのフェーズ区切りも残る）。
+停車してから落ち着いてCtrl+Cすること。
 
 ---
 
-## 4. 帰宅後の解析手順
+## 3. 帰宅後の解析手順
 
-### 4-1. フェーズごとに切り分ける（まずこれ）
+### 3-1. フェーズごとに切り分ける（まずこれ）
 
 ```bash
 python can_split_phases.py --capture ncec_run1
 ```
 
 フェーズ別のフレーム数・ID数・レートが一覧で出る。**この一覧が今回の一次成果**。
-`p1_ig_on`〜`p16_ops_base2` に多数のIDが並んでいれば、生CANが取れている＝以降の解析が全部成立する。
+出力は `ncec_run1_p1_idle_start.csv` / `p2_drive` / `p3_drive_passive` / `p4_drive2` / `p5_stop_idle`。
 
-### 4-2. 操作差分（2-4-3／2-4-4の本体）
+| `p2_drive` のID一覧 | 意味 | 次にやること |
+|---|---|---|
+| `201`/`4B0`/`240`等の非診断IDが多数 | **生CANが取れている（期待どおり）** | 3-2以降へ |
+| `7E0`/`7E8` のみ | NCECもスタブ構成だった | 生CAN逆解析は断念し、OBDログとして評価（3-2までで完結） |
 
-自分が出したOBD往復（`7E0`/`7E8`）を落とし、フェーズ境界の前後も捨ててから分割する。
-
-```bash
-python can_split_phases.py --capture ncec_run1 --exclude-ids 7E0,7E8 --skip-head 5 --skip-tail 2 --suffix _nx
-```
-
-> `--skip-head 5` は「画面のラベルを見てから手を動かすまでの遅れ」で区間の頭に混ざる
-> 前の操作のフレームを捨てるため。これが混ざると、本来 STRONG（固定値A→固定値B）で出る所見が
-> MEDIUM（複数値化）へ落ちて見落としやすくなる。
-
-続けて、ベースライン1本と操作12本をまとめて1回で比較する。
-
-```bash
-python can_diff.py --base ncec_run1_p3_ops_base_nx.csv --test ncec_run1_p4_ops_blinker_l_nx.csv --test ncec_run1_p5_ops_blinker_r_nx.csv --test ncec_run1_p6_ops_hazard_nx.csv --test ncec_run1_p7_ops_headlight_nx.csv --test ncec_run1_p8_ops_wiper_nx.csv --test ncec_run1_p9_ops_brake_nx.csv --test ncec_run1_p10_ops_clutch_nx.csv --test ncec_run1_p11_ops_door_nx.csv --test ncec_run1_p12_ops_seatbelt_nx.csv --test ncec_run1_p13_ops_defog_nx.csv --test ncec_run1_p14_ops_ac_nx.csv --test ncec_run1_p15_ops_pbrake_nx.csv
-```
-
-**読み方**
-
-1. **まず `p10_ops_clutch` の結果に `0x231` が出ているかを見る**（陽性対照）。出ていれば手法が機能している。
-2. `STRONG` = ベースで固定値A→操作中に固定値B。**これが本命**。
-3. `MEDIUM` = 固定だったバイトが複数値化。操作タイミングのずれで STRONG から落ちたものが混じる。
-4. `counter` = 両方で値種類が多いローリングカウンタ疑い（`0x211`末尾・`0x420`byte0が該当するはず）。**無視してよい**。
-5. 全操作で同じIDのバイトが動いていたら、それは操作と無関係の時間変動。**`p16_ops_base2` をtestにした差分**
-   （＝何も操作していない区間同士）を取り、そこにも出るなら偽陽性と判定する。
-
-```bash
-python can_diff.py --base ncec_run1_p3_ops_base_nx.csv --test ncec_run1_p16_ops_base2_nx.csv
-```
-
-エンジン始動で現れるIDも見ておく。
-
-```bash
-python can_diff.py --base ncec_run1_p1_ig_on_nx.csv --test ncec_run1_p2_engine_idle_nx.csv
-```
-
-### 4-3. OBD2応答を基準値の時系列へ変換する
+### 3-2. OBD2応答を基準値の時系列へ変換する
 
 ```bash
 python can_obd_extract.py --can ncec_run1.csv --list
@@ -233,24 +181,24 @@ python can_obd_extract.py --can ncec_run1.csv --out ncec_run1_ref
 `ncec_run1_ref_0D_speed.csv` / `..._0C_rpm.csv` / `..._11_throttle.csv` / `..._05_coolant.csv` などが出る。
 NCECは油温PID `5C` 非対応なので、`5C` のファイルは出ない（想定どおり）。
 
-### 4-4. 生CANと基準値の相関（2-4-5の本体）
+### 3-3. 生CANと基準値の相関（本命・2-4-5）
 
 同一基板・同一 `esp_timer` のタイムスタンプなので **`--time-offset` / `--auto-lag` は不要**。
 
 ```bash
-python can_correlate.py --can ncec_run1_p19_drive.csv --ref ncec_run1_ref_0D_speed.csv --ref-name speed_kmh --ref-time-unit us --top 20
+python can_correlate.py --can ncec_run1_p2_drive.csv --ref ncec_run1_ref_0D_speed.csv --ref-name speed_kmh --ref-time-unit us --top 20
 ```
 
 ```bash
-python can_correlate.py --can ncec_run1_p19_drive.csv --ref ncec_run1_ref_0C_rpm.csv --ref-name rpm --ref-time-unit us --top 20
+python can_correlate.py --can ncec_run1_p2_drive.csv --ref ncec_run1_ref_0C_rpm.csv --ref-name rpm --ref-time-unit us --top 20
 ```
 
 ```bash
-python can_correlate.py --can ncec_run1_p19_drive.csv --ref ncec_run1_ref_11_throttle.csv --ref-name throttle --ref-time-unit us --top 20
+python can_correlate.py --can ncec_run1_p2_drive.csv --ref ncec_run1_ref_11_throttle.csv --ref-name throttle --ref-time-unit us --top 20
 ```
 
 ```bash
-python can_correlate.py --can ncec_run1_p18_rev_obd.csv --ref ncec_run1_ref_0C_rpm.csv --ref-name rpm --ref-time-unit us --top 20
+python can_correlate.py --can ncec_run1_p2_drive.csv --ref ncec_run1_ref_05_coolant.csv --ref-name coolant --ref-time-unit us --top 20
 ```
 
 **期待する答え**（ここまでは既知。合っていれば手法とデータの妥当性が確認できる）
@@ -267,21 +215,50 @@ R²が0.95を超えれば特定できたと見てよい。**既知の6IDが期�
 
 `0x7E8` 自身も上位に並ぶが基準値の出所なので自明な自己一致。無視するか `--candidate-id` で絞る。
 
-### 4-5. 取りこぼしと生CANレートの評価
+### 3-4. 停車↔走行の状態差分（操作差分の代わり）
+
+単一操作の差分は採れないが、**「停車・アイドル」と「走行」という2つの状態の差分**は採れる。
+`can_diff.py` はこの用途にもそのまま使える。
+
+```bash
+python can_split_phases.py --capture ncec_run1 --exclude-ids 7E0,7E8 --skip-head 5 --suffix _nx
+```
+
+```bash
+python can_diff.py --base ncec_run1_p1_idle_start_nx.csv --test ncec_run1_p2_drive_nx.csv
+```
+
+走行では多くのバイトが動くので所見は大量に出る。**読み方は「走行で動いたバイト」を見るのではなく、
+逆に「走行しても一切動かなかったID」を見る**方が有益（`21A`/`39A`が今回もゼロ固定なら、
+やはり低頻度イベント系＝走行では出ないフラグ、という消去法の裏取りになる）。
+
+時間変動の切り分けとして、停車状態同士も比較しておく。ここに出る所見は
+「走行と無関係に時間で変わるもの（水温上昇・カウンタ等）」なので、上の結果から差し引いて読む。
+
+```bash
+python can_diff.py --base ncec_run1_p1_idle_start_nx.csv --test ncec_run1_p5_stop_idle_nx.csv
+```
+
+### 3-5. 取りこぼしと生CANレートの評価
 
 ```bash
 grep "drop_rb" ncec_run1.status.log | tail -5
 ```
 
-`p20_drive_passive`（自分の送信を止めた5分間）のレートが `p19_drive` より明確に高ければ、
+`p3_drive_passive`（自分の送信を止めた4分間）のレートが `p2_drive` / `p4_drive2` より明確に高ければ、
 **OBDポーリングがUSB帯域を圧迫していた**ということ。次回は受動主体の構成に変える判断材料になる。
+
+### 3-6. 余力があれば：ウィンカー周期でのビット探索（確度低）
+
+停車中の操作差分が採れないぶんの代替案。ウィンカーは**約0.7〜0.8秒周期で点滅**するので、
+走行ログの中に「その周期で0/1をトグルしているビット」があれば`211`/`212`等の候補になる。
+専用ツールは無く、その場しのぎのスクリプトを書く必要がある。**本命の3-3が終わってからにする。**
 
 ---
 
-## 5. 安全・禁止事項
+## 4. 安全・禁止事項
 
 - **走行中にPCを操作しない。** そのために `--phase-plan` を使っている。
-- **停車中の操作は、平坦な場所・ニュートラル・サイドブレーキで行う**（`ops_pbrake` のみ足でブレーキ保持）。
 - **OBDの3番・11番ピンには触らない。** NCECはHS-CANが6/14。
   **6番と3番、14番と11番を導通させない**（MS-CANとの2系統直結はバスオフを招き、車両側の警告灯・DTC・
   フェイルセーフを引き起こす）。
@@ -291,28 +268,20 @@ grep "drop_rb" ncec_run1.status.log | tail -5
 - **VIN（mode 09 PID 02）は取得しない**（PIDテーブルにも入れていない）。
 - ログをコミットする前に、車台番号等の個人特定情報が含まれていないことを確認する。
 
-### 補足：受動フェーズでもACKは返る
-
-2-4-3では「操作差分は完全受動の `can_logger` で採ること」としていたが、その理由は
-**自分が投げた `7E0` とECUの `7E8` 応答が `can_diff.py` にID出現／消滅として拾われるため**だった。
-今回は `can_obd_logger` の `passive` フェーズ（`p`キーでポーリング停止）を使うので、
-**操作ブロックの間 `7E0`/`7E8` は1本も出ない**＝同じ目的を満たす。
-`4-2` の `--exclude-ids 7E0,7E8` は保険。
-
-こうすることで**現地でのファーム焼き直しが不要**になり、操作差分と走行相関が
-**同一ファイル・同一時間軸**に載る（別ファームで2本撮ると時間軸が分かれる）。
-ただしACKは返るので「バスに一切影響しない」ではない点は明記しておく（MAZDA2・UXで実車実証済みの構成）。
+> **補足：受動フェーズでもACKは返る。** `passive`（`p`キー）はOBD2ポーリングを止めるだけで、
+> ハードウェアとしてはACKを返し続ける（`TWAI_MODE_NORMAL`のため）。
+> 「バスに一切影響しない」わけではない点は明記しておく（MAZDA2・レクサスUXで実車実証済みの構成）。
 
 ---
 
-## 6. 記録するファイル
+## 5. 記録するファイル
 
 | ファイル | 内容 |
 |---|---|
+| `ncec_precheck.csv` / `.status.log` | 発進前の疎通確認60秒。**`# obd` 行が今回の必達成果の証跡** |
 | `ncec_run1.csv` | 生CAN＋OBD応答の全フレーム（`host_iso,t_us,can_id,ext,rtr,dlc,data_hex`） |
 | `ncec_run1.status.log` | ステータス行とフェーズ区切り（`# host: phase ...`） |
 | `ncec_run1_p*_*.csv` | フェーズ別に切り分けたもの |
-| `ncec_run1_p*_*_nx.csv` | 操作差分用（`7E0`/`7E8`除外・境界カット済み） |
 | `ncec_run1_ref_*.csv` | OBD2応答から起こした基準値の時系列 |
 
 > 生ログ本体（`.csv`／`.jsonl`）は**リポジトリに含めない**方針（`.gitignore`済み）。
