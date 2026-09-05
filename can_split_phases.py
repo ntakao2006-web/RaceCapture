@@ -18,6 +18,9 @@ can_capture_logger.py の `--phase-plan` で記録した長回しキャプチャ
     # can_diff.py へ渡す用に、自分が出したOBD要求と応答を落とす
     python can_split_phases.py --capture capture_ux --exclude-ids 7E0,7E8 --suffix _passive
 
+    # 操作差分用。フェーズ境界前後の「操作が切り替わりきっていない」区間を捨てる
+    python can_split_phases.py --capture capture_ncec --exclude-ids 7E0,7E8         --skip-head 4 --skip-tail 2 --suffix _ops
+
     # 中身を見るだけ（ファイルは書かない）
     python can_split_phases.py --capture capture_ux --list
 
@@ -36,7 +39,7 @@ import re
 import sys
 import tempfile
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
@@ -91,10 +94,18 @@ def _safe_name(s: str) -> str:
 
 
 def split_capture(csv_path: Path, phases, out_prefix: str, exclude_ids=(),
-                  write: bool = True, suffix: str = ""):
+                  write: bool = True, suffix: str = "",
+                  skip_head: float = 0.0, skip_tail: float = 0.0):
     """フレームCSVをフェーズ境界で分割する。
 
     最初のフェーズより前の行は `p0_pre` へ入れる（キャプチャ開始直後の数行）。
+
+    `skip_head` / `skip_tail`（秒）を指定すると、各フェーズの先頭・末尾を
+    その秒数ぶん捨てる。停車中の操作差分（`can_diff.py`）を採るとき、運転者が
+    画面のラベル表示を見てから手を動かすまでの遅れで、区間の頭に「前の操作の
+    まま」のフレームが混ざる。これが混ざると本来 STRONG（固定値A→固定値B）で
+    出るはずの所見が MEDIUM（複数値化）へ落ちるため、境界を削って純度を上げる。
+    捨てた行数は `trimmed` に集計する（除外IDの `excluded` とは別カウント）。
     """
     exclude = {int(x, 16) for x in exclude_ids}
 
@@ -113,9 +124,15 @@ def split_capture(csv_path: Path, phases, out_prefix: str, exclude_ids=(),
         buckets = [{"name": "p1_all", "label": "all", "start": None, "end": None,
                     "action": "-", "at": None}]
 
+    head = timedelta(seconds=skip_head) if skip_head > 0 else None
+    tail = timedelta(seconds=skip_tail) if skip_tail > 0 else None
     for b in buckets:
+        # 区間の頭・尻を削った実効範囲。start/end が None の側は削らない
+        b["cut_start"] = b["start"] + head if (head and b["start"]) else None
+        b["cut_end"] = b["end"] - tail if (tail and b["end"]) else None
         b["rows"] = 0
         b["excluded"] = 0
+        b["trimmed"] = 0
         b["ids"] = Counter()
         b["t_first"] = None
         b["t_last"] = None
@@ -139,6 +156,11 @@ def split_capture(csv_path: Path, phases, out_prefix: str, exclude_ids=(),
                        and host >= buckets[idx]["end"]):
                     idx += 1
             b = buckets[idx]
+            if host is not None and (
+                    (b["cut_start"] is not None and host < b["cut_start"])
+                    or (b["cut_end"] is not None and host >= b["cut_end"])):
+                b["trimmed"] += 1
+                continue
             try:
                 can_id = int(row[2], 16) if row[2].lower().startswith("0x") else int(row[2], 16)
                 t_us = int(row[1])
@@ -179,8 +201,13 @@ def format_summary(buckets, wrote: bool) -> str:
         top = ", ".join(f"0x{cid:03X}:{n}" for cid, n in b["ids"].most_common(8))
         if top:
             lines.append(f"      {top}")
-        if b["excluded"]:
-            lines.append(f"      (除外 {b['excluded']} 行)")
+        if b["excluded"] or b.get("trimmed"):
+            parts = []
+            if b["excluded"]:
+                parts.append(f"除外ID {b['excluded']} 行")
+            if b.get("trimmed"):
+                parts.append(f"境界カット {b['trimmed']} 行")
+            lines.append(f"      ({' / '.join(parts)})")
         if wrote and b["rows"]:
             lines.append(f"      -> {b['path']}")
     return "\n".join(lines)
@@ -248,6 +275,23 @@ def run_selftest() -> int:
     check(e2["p2_idle_obd"] == 2, f"除外カウント (got {e2['p2_idle_obd']})")
     check((tmp / "cap_x_p2_idle_obd_nx.csv").exists(), "--suffix がファイル名に付く")
 
+    # --skip-head / --skip-tail：p1_ig_on は 00.500〜03.000 の区間。
+    # 先頭1秒を捨てると 01:00:01.000 の行が境界(01.500)より前になり落ちる。
+    b4 = split_capture(tmp / "cap.csv", phases, str(tmp / "cap_h"),
+                       write=False, skip_head=1.0)
+    c4 = {x["name"]: x["rows"] for x in b4}
+    t4 = {x["name"]: x["trimmed"] for x in b4}
+    check(c4["p1_ig_on"] == 1 and t4["p1_ig_on"] == 1,
+          f"--skip-head で区間頭の行が落ちる (rows={c4['p1_ig_on']} trimmed={t4['p1_ig_on']})")
+    # p2_idle_obd(03.000〜06.000) の末尾2秒を捨てると境界は04.000となり、
+    # 04.500 の行だけが落ちて 03.200/03.300 の2行が残る
+    b5 = split_capture(tmp / "cap.csv", phases, str(tmp / "cap_t"),
+                       write=False, skip_tail=2.0)
+    c5 = {x["name"]: x["rows"] for x in b5}
+    check(c5["p2_idle_obd"] == 2,
+          f"--skip-tail で区間尻の行が落ちる (got {c5['p2_idle_obd']})")
+    check(c5["p3_drive"] == 2, f"最終フェーズは末尾を削らない (got {c5['p3_drive']})")
+
     b3 = split_capture(tmp / "cap.csv", [], str(tmp / "cap_n"))
     check(len(b3) == 1 and b3[0]["rows"] == 8,
           f"phase行が無ければ全部を1本にまとめる (got {[x['rows'] for x in b3]})")
@@ -270,6 +314,11 @@ def main() -> None:
     ap.add_argument("--exclude-ids", default="",
                     help="除外するCAN ID（16進カンマ区切り。例: 7E0,7E8）。"
                          "can_diff.py へ渡す前に自分のOBD往復を落とす用")
+    ap.add_argument("--skip-head", type=float, default=0.0, metavar="SEC",
+                    help="各フェーズの先頭をこの秒数ぶん捨てる。停車中の操作差分で、"
+                         "画面のラベルを見てから操作するまでの遅れによる混入を除くため")
+    ap.add_argument("--skip-tail", type=float, default=0.0, metavar="SEC",
+                    help="各フェーズの末尾をこの秒数ぶん捨てる（操作を早く戻した場合の混入対策）")
     ap.add_argument("--list", action="store_true", help="集計を表示するだけでファイルを書かない")
     ap.add_argument("--json", action="store_true", help="集計をJSONでも出力")
     ap.add_argument("--selftest", action="store_true", help="合成データで自己テスト")
@@ -300,12 +349,14 @@ def main() -> None:
               "--phase-plan 無しのキャプチャとして全体を1本に扱います。")
     buckets = split_capture(csv_path, phases, out_prefix,
                             exclude_ids=exclude, write=not args.list,
-                            suffix=args.suffix)
+                            suffix=args.suffix,
+                            skip_head=args.skip_head, skip_tail=args.skip_tail)
     print(format_summary(buckets, wrote=not args.list))
     if args.json:
         print(json.dumps([{
             "name": b["name"], "label": b["label"], "action": b["action"],
             "at_s": b["at"], "frames": b["rows"], "excluded": b["excluded"],
+            "trimmed": b["trimmed"],
             "unique_ids": len(b["ids"]),
             "ids": {f"0x{cid:03X}": n for cid, n in b["ids"].most_common()},
             "path": str(b["path"]) if (not args.list and b["rows"]) else None,
