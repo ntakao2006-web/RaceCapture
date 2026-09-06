@@ -1,0 +1,242 @@
+# NCEC 次回実車接続時のやることリスト
+
+> **⚠️ NCECに基板を繋ぐ前に、必ずこのファイルを開くこと。**
+> ここに載っている項目は、いずれも**実車が無いと絶対に解けない**もの。
+> 1回逃すと次にNCECへ繋げるまで丸ごと持ち越しになる（前回は5週間空いた）。
+>
+> 走行手順そのものは `ncec_field_procedure.md`、これまでの実測結果は
+> `OBD2_SURVEY.md`「NCEC 追補」を参照。
+
+**最終更新**：2026-09-06（55分キャプチャの解析結果を受けて作成）
+
+---
+
+## 優先度つき一覧
+
+| # | やること | 所要 | 場所 | これが無いと解けないもの |
+|---|---|---|---|---|
+| **A** | **4輪速の左右確定**（一定舵角で左1周・右1周） | **4分** | 駐車場 | `0x4B0` のどのバイトが左でどれが右か。**走行データからは原理的に決まらない** |
+| **B** | **アクセルペダルのゆっくり全開スイープ** | **5分** | 停車 | 「示唆どまり」5項目（`0x200`/`0x215`/`0x201`byte6/`0x240`byte0/byte2） |
+| **C** | **停車スイッチ操作12種** | **12分** | 停車 | 未解明4項目（`0x21A`/`0x39A`/`0x212`/`0x231`bit2） |
+| **D** | **電動ファン作動の瞬間** | Cと同時 | 停車 | `0x420` byte1/byte3、`0x212` のビット |
+| **E** | **高回転（〜8,000rpm）を含む走行** | 走行中 | 公道/サーキット | `0x201` の回転数が高回転でも `raw/4` のままか |
+
+**A → B → C（Dを内包）→ E** の順が効率的。A〜Dで約21分、Eは普段の走行に混ぜるだけ。
+
+---
+
+## A. 4輪速の左右確定（最優先・4分）
+
+### なぜ必要か
+
+55分の走行データから、`0x4B0` の構造は `[前-A, 前-B, 後-A, 後-B]` と確定した
+（駆動スリップで前後を、ヨーレートで左右の組み分けを判定）。
+**残っているのは「A側が左か右か」だけ**で、これは横方向の基準が無い限り原理的に決まらない。
+**一定舵角で1周すれば30秒で終わる**のに、やらないと永久に決まらない。
+
+### 手順
+
+**安全な駐車場等、周囲に人・車が無い場所で。低速（10〜20km/h程度）で構わない。**
+
+```bash
+python can_capture_logger.py --port COM5 --out ncec_lr --limit-seconds 260 --phase-plan "0:passive:lr_straight,30:passive:lr_left,110:passive:lr_right,190:passive:lr_end"
+```
+
+| 経過 | ラベル | 運転者の操作 |
+|---|---|---|
+| 0:00 | `lr_straight` | 停車または直進（30秒） |
+| 0:30 | `lr_left` | **左に一定舵角のまま周回**（80秒。舵角は変えず、速度も一定に） |
+| 1:50 | `lr_right` | **右に一定舵角のまま周回**（80秒） |
+| 3:10 | `lr_end` | 直進または停車 |
+
+**舵角を一定に保つことが重要**（大きく切る必要はない。ゆるい定常円でよい）。
+
+### 解析（帰宅後）
+
+```bash
+python can_split_phases.py --capture ncec_lr
+```
+
+左旋回では**右側2輪が外輪＝速く**なる。フェーズ別に4バイトペアの平均を比べ、
+`lr_left` で値が大きかった側が**右**、`lr_right` で大きかった側が**左**と確定する。
+
+---
+
+## B. アクセルペダルのゆっくり全開スイープ（5分）
+
+### なぜ必要か
+
+「示唆どまり」5項目（`0x240`byte0・`0x240`byte2・`0x201`byte6・`0x200`byte7・`0x215`byte6）が
+R²=0.6〜0.8で止まっている原因は、**刺激不足ではなく基準側の測定が粗いこと**。
+
+- 生CANは100Hz、OBD基準値は8.6Hz（20PIDを巡回しているため）→ 速い変化で時間ズレが誤差になる
+- 走行中はスロットル全開域をほとんど使わない → 値の範囲が狭く回帰が効きにくい
+
+**「ゆっくり」「全域」の2つを満たせば両方解決する。**
+
+### 手順（B-1：IG ONのままエンジンを止めて行う。これが本命）
+
+**エンジンを切り、IGだけONにする。** この状態ならアクセルを床まで踏んでも空吹かしにならないので、
+**回転を上げずにペダル開度0〜100%の全域を、いくらでもゆっくり掃引できる。**
+
+```bash
+python can_capture_logger.py --port COM5 --out ncec_sweep --limit-seconds 260 --phase-plan "0:poll:sweep_base,30:poll:sweep1,110:poll:sweep2,190:poll:sweep3"
+```
+
+| 経過 | ラベル | 操作 |
+|---|---|---|
+| 0:00 | `sweep_base` | ペダルに触れず待つ（30秒） |
+| 0:30 | `sweep1` | **20秒かけて全開まで踏み込み → 20秒かけて戻す**、を2往復（80秒） |
+| 1:50 | `sweep2` | 同じことをもう2往復 |
+| 3:10 | `sweep3` | 同じことをもう2往復 |
+
+> **最初の30秒で必ず確認**：この車はIG ON・エンジン停止でもCANが流れるか。
+> 給油時の観察では**IG OFFで375秒間バスが完全に無通信**になった。IG ONなら生きているはずだが未検証。
+> もし `# stat` の `total=` が増えなければB-1は成立しないので、**すぐB-2へ切り替える**。
+>
+> ```bash
+> grep "# stat" ncec_sweep.status.log | tail -3
+> ```
+
+### 手順（B-2：B-1が成立しなかった場合のフォールバック）
+
+**エンジンをかけ、ニュートラル・サイドブレーキで**、同じ`--phase-plan`で実行する。
+ただし**空吹かしになるので回転数は4,000rpmを超えないよう**にし、その範囲でできるだけゆっくり掃引する。
+ペダル全域は取れないが、「ゆっくり」の効果だけでもR²は改善する。
+
+### 家でやっておくと精度が上がること（任意）
+
+`firmware/can_obd_logger/src/main.cpp` の `PID_TABLE` を、この試験に必要な4項目
+（`0x04` 負荷・`0x0E` 点火時期・`0x11` スロットル・`0x49` アクセルD）だけに絞って書き込む。
+**1PIDあたり 8.6Hz → 約40Hz** になり、時間ズレ由来の誤差が5分の1になる。
+※この特別ビルドは B 専用。A・C・E には通常のPIDテーブルへ戻してから使うこと。
+
+### 解析（帰宅後）
+
+```bash
+python can_split_phases.py --capture ncec_sweep
+```
+
+```bash
+python can_obd_extract.py --can ncec_sweep.csv --out ncec_sweep_ref
+```
+
+```bash
+python can_correlate.py --can ncec_sweep_p2_sweep1.csv --ref ncec_sweep_ref_11_throttle.csv --ref-name throttle --ref-time-unit us --top 20
+```
+
+```bash
+python can_correlate.py --can ncec_sweep_p2_sweep1.csv --ref ncec_sweep_ref_49_accel_d.csv --ref-name accel_d --ref-time-unit us --top 20
+```
+
+**注意：この車はNOPRO MZ-TUNE+でスロットルマップが書き換えられている**（メカフィーリングスロットルマップ）。
+ペダル開度とスロットル開度が意図的にズラしてあるため、**コミュニティ資料の
+`byte × 100/255` に乗らないのは正常**。**ペダル系とスロットル系を別々の基準値
+（`0x49` と `0x11`）で照合し、どのバイトがどちらなのかを切り分けるのが目的**。
+
+---
+
+## C. 停車スイッチ操作12種（12分）＋ D. 電動ファン
+
+### なぜ必要か
+
+`0x21A`・`0x39A` は55分の走行で**全バイトずっとゼロ**、`0x212` も**ずっと固定値**だった。
+走行では原理的に動かない量（ドア・シートベルト・サイドブレーキ・警告灯）である可能性が高く、
+**停車して1操作ずつ入れる以外に解く手が無い。**
+
+`0x231` byte1 の **bit2** も未解明。走行データでは単独出現がゼロで、必ずbit1（クラッチ）と同時に立ち、
+低速の強い減速時に集中していた。ブレーキスイッチとは挙動が合わない。
+
+### 手順
+
+**平坦な場所に停車、サイドブレーキ、ニュートラル、エンジンはかけたまま。**
+
+```bash
+python can_capture_logger.py --port COM5 --out ncec_ops --limit-seconds 1000 --phase-plan "0:passive:arriving,60:passive:ops_base,150:passive:ops_clutch,190:passive:ops_brake,230:passive:ops_blinker_l,270:passive:ops_blinker_r,310:passive:ops_hazard,350:passive:ops_door,390:passive:ops_pbrake,430:passive:ops_seatbelt,470:passive:ops_headlight,510:passive:ops_wiper,550:passive:ops_ac,590:passive:ops_defog,630:passive:ops_base2,690:passive:fan_watch"
+```
+
+| 経過 | ラベル | やること |
+|---|---|---|
+| 0:00 | `arriving` | 何もしない（停める間の余裕） |
+| 1:00 | `ops_base` | **全部OFFの基準状態でじっと待つ**（90秒） |
+| 2:30 | `ops_clutch` | クラッチペダルを踏み続ける ← **陽性対照**（bit1が出れば手法が効いている） |
+| 3:10 | `ops_brake` | ブレーキペダルを踏み続ける ← **bit2の正体を叩く本命** |
+| 3:50 | `ops_blinker_l` | 左ウィンカー |
+| 4:30 | `ops_blinker_r` | 右ウィンカー |
+| 5:10 | `ops_hazard` | ハザード |
+| 5:50 | `ops_door` | 運転席ドアを開けて保持 |
+| 6:30 | `ops_pbrake` | **ブレーキを踏んだまま**サイドを下ろす（平坦な場所でのみ。傾斜を感じたら飛ばす） |
+| 7:10 | `ops_seatbelt` | サイドを戻し、シートベルトを外す |
+| 7:50 | `ops_headlight` | ベルトを戻し、ライトON（スモール→ロービーム） |
+| 8:30 | `ops_wiper` | ワイパー作動 |
+| 9:10 | `ops_ac` | エアコン（A/C＋ブロワ）ON |
+| 9:50 | `ops_defog` | A/C OFF、リアデフォッガON |
+| 10:30 | `ops_base2` | **全部OFFに戻す**（60秒） |
+| 11:30 | `fan_watch` | **何もせずアイドリングのまま待つ**（D。電動ファンが回り出す音を聞く） |
+
+**ルール**
+1. **画面に次のラベルが出た瞬間**に、前の操作をOFF・次の操作をONにする
+2. **同時に2つ操作しない**。指定以外は全部OFFに戻してから次へ
+3. 数秒ずれてよい（解析時に `--skip-head` で境界を捨てる）
+4. **飛ばした操作・順番を間違えた操作はその場でメモする**（該当フェーズを解析から外せる）
+
+### D. 電動ファン（`fan_watch` フェーズ）について
+
+**この車は電動ファンの作動温度が変更されている**（NOPRO MZ-TUNE+）ため、
+ノーマルより早く回り始める可能性がある。**ファンが回り出した瞬間を耳で捉えて、その時刻をメモする。**
+
+水温は生CANの `0x240` byte1 と `0x420` byte0 で読めるので、**OBDポーリング無しでも
+水温の推移とファン作動を突き合わせられる**。ファン作動で `0x420` byte1/byte3 や `0x212` の
+どこかのビットが変わるはず。
+
+もし `fan_watch` の間にファンが回らなければ、**そのまま `Ctrl+C` せずに放置**して構わない
+（`--limit-seconds 1000` で16分40秒後に自動停止する）。回らなかったこと自体も情報になる。
+
+### 解析（帰宅後）
+
+```bash
+python can_split_phases.py --capture ncec_ops --exclude-ids 7E0,7E8 --skip-head 5 --skip-tail 2 --suffix _nx
+```
+
+```bash
+python can_diff.py --base ncec_ops_p2_ops_base_nx.csv --test ncec_ops_p3_ops_clutch_nx.csv --test ncec_ops_p4_ops_brake_nx.csv --test ncec_ops_p5_ops_blinker_l_nx.csv --test ncec_ops_p6_ops_blinker_r_nx.csv --test ncec_ops_p7_ops_hazard_nx.csv --test ncec_ops_p8_ops_door_nx.csv --test ncec_ops_p9_ops_pbrake_nx.csv --test ncec_ops_p10_ops_seatbelt_nx.csv --test ncec_ops_p11_ops_headlight_nx.csv --test ncec_ops_p12_ops_wiper_nx.csv --test ncec_ops_p13_ops_ac_nx.csv --test ncec_ops_p14_ops_defog_nx.csv
+```
+
+**読み方**
+1. まず `ops_clutch` の結果に `0x231` byte1 が出ているかを見る（**陽性対照**）。出ていれば手法が効いている
+2. `STRONG`（固定値A→固定値B）が本命。`counter` は無視してよい（`0x211` byte7・`0x420` byte0 が該当）
+3. 偽陽性の切り分けは `ops_base` vs `ops_base2`（＝何も操作していない区間同士）で行う
+
+```bash
+python can_diff.py --base ncec_ops_p2_ops_base_nx.csv --test ncec_ops_p15_ops_base2_nx.csv
+```
+
+---
+
+## E. 高回転（〜8,000rpm）を含む走行
+
+この車は **NOPRO MZ-TUNE+ でレブリミットが8,000rpm** になっている。
+前回55分のキャプチャは**最高3,439rpmまでしか使っていない**。
+
+`0x201` byte0-1 の回転数は `raw/4` で理論上16,383rpmまで表現できるが、
+**高回転域でも本当に線形のままか、リミッター付近で挙動が変わらないかは未検証**。
+安全な場所で上まで回す区間が一度あれば確認できる。**専用の手順は不要**で、
+`ncec_field_procedure.md` の通常の走行キャプチャに混ぜればよい。
+
+---
+
+## 家を出る前の共通チェック
+
+- [ ] **卓上検証用の120Ω終端を外した**（車両バスは両端終端済み。付けたままだと三重終端）
+- [ ] ファームは `can_obd_logger`（`-bench` ビルドは実車禁止）。※Bで絞り込み版を焼いた場合は戻す
+- [ ] COMポート番号（前回は **COM5**、`VID_303A`/`PID_1001`）
+- [ ] PCのスリープ無効化、USBケーブルを養生テープで固定
+- [ ] 空き容量2GB以上（NCECは**791 frame/s** 流れる。55分で181MB）
+- [ ] このファイルと `ncec_field_procedure.md` をスマホで開けるようにしておく
+
+---
+
+## 済んだら
+
+各項目が終わったら、このファイルの一覧に取り消し線を引き、結果を `OBD2_SURVEY.md`
+「NCEC 追補」へ追記して、`task_phase2_breakdown.md` の 2-4-8 のチェックボックスを更新する。
