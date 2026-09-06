@@ -257,5 +257,6 @@ IG ON・エンジン始動・走行（最高119km/h）・停車のどのフェ�
 | `mazda2_field_procedure.md` | MAZDA2実車の現地手順と切り分け記録 |
 | `lexus_ux_field_procedure.md` | レクサスUXの現地手順（60分・無人運用） |
 | `ncec_field_procedure.md` | NCEC（本番車両）の現地手順（60分。OBD疎通確認＋走行中の相関検証） |
+| **`ncec_can_spec.md`** | **NCECのCAN通信仕様だけを抜き出したもの**（ID一覧・バイトマップ・デコード式・OBD2仕様・未解明項目）。実装者はこの1枚でデコーダが書ける |
 | `ARCHITECTURE.md` | プロジェクト全体のマスタードキュメント |
 | `mazda2_b1_obd_idle.csv` / `.status.log` | MAZDA2実車の生ログ（自作基板が完動した74秒） |
