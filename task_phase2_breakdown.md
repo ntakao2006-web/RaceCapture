@@ -58,6 +58,15 @@
 
 ## 2-3: CANデータのログ統合 ※2-2完了後に着手
 - [ ] 2-3-1: デコードした回転数・車速・水温等をSensorLogRecord（CSV保存）・RCPストリーム（getMeta/sコマンド）へ統合する
+  - ✅ **実装は完了済み（2026-09-10確認）**：本番ファームウェア`firmware/logger_v1`に、汎用CANマッピング
+    （`Config::mappings`＝`CanMapping`×24スロット、バス/ID/ビット位置/幅/エンディアン/符号/scale/offset/stale_ms、
+    `setLoggerCfg`で設定）と、NCEC専用の`ncProfile`（`0x201`のRPM=`be(0)/4`・車速=`be(4)/100-100`、
+    `0x240`の水温=byte1-40・負荷=byte0・スロットル=byte3・吸気温=byte4-40）が実装されている。
+    値は`putChannel()`経由でSDの100 Hz CSVとRCPストリームの両方へ流れる。**新規実装は不要。**
+    ※旧DevKit実装`firmware/src/main.cpp`側には無いが、本番機は`logger_v1`なので追従は不要。
+  - **残り（実車が必要）**：①`ncProfile`を有効にした状態で実車の値がOBD基準値と一致するかの照合、
+    ②`0x240` byte0（負荷）・byte3（スロットル）の換算式`×100/255`の確定（＝`ncec_next_session_checklist.md`のB）、
+    ③`ncProfile`が`!obd_enabled && !toyota_steering`でしか動かない排他条件の是非の判断。
 
 ## 2-4: 生CAN逆解析のための計測基盤構築 ※2-1のCANトランシーバハードウェアが前提。2-0-8で判明したELM327の限界（UART速度ボトルネック・タイムスタンプ欠如）を自作ロガーでの直接キャプチャにより解消する
 - [x] 2-4-1: ESP32ファームウェアに、TWAI受信フレーム全てをマイクロ秒精度のタイムスタンプ(`esp_timer_get_time()`)付きでログ出力する「生CANロガーモード」を実装する（Phase2本開発とは別の検証用ファームウェア、または既存`main.cpp`へのモード追加として実装。ELM327の`BUFFER FULL`/`DATA ERROR`問題とタイムスタンプ欠如を、ハードウェアCANコントローラでの直接受信により解消する狙い） ※別プロジェクト`firmware/can_logger/`として実装。**実車OBD2直結を前提に、バスへ一切フレームを注入しない設計**（3重の安全策：①`TWAI_MODE_LISTEN_ONLY`で起動＝ハードがドミナント/ACK/エラーフレーム/再送を出さない ②TWAIのTX信号は未配線のダミーGPIO10へ割当てトランシーバTXDに繋がるGPIO21には出さない ③そのGPIO21を単純GPIO出力HIGH＝レセッシブで保持）。起動シーケンスは「①GPIO21をHIGH固定→②`TWAI_MODE_LISTEN_ONLY`でドライバ導入→③`twai_start()`→④受信タスク開始」で、送信キュー長は0。出力形式は1フレーム1行 `t_us,id_hex,ext,rtr,dlc,data_hex`、`#`始まりはステータス行（受信レート/取りこぼし数/バスエラー/state）。内部は「受信タスク→48KBリングバッファ→出力タスク」の2段でUSB詰まり時の取りこぼしを`drop_rb`で可視化。実機（COM5、CAN未接続）で LISTEN_ONLY / state=RUNNING / total=0 / エラーなしで安定動作を確認（起動直後に`alerts=0x1000`(ERR_PASS)が1回だけ出るが、TEC=REC=0・以後0x0で継続する卓上（無トラフィック）由来の初期トランジェント）。**実車では卓上終端の120Ωを外すこと。** PC側記録ツールは2-4-2。
