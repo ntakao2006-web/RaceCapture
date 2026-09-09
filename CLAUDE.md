@@ -41,6 +41,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `HANDOFF.md`：RCP JSONプロトコルの実測仕様の詳細
 - `ncec_can_spec.md`：NCEC（本番車両）のCAN通信仕様（ID・バイトマップ・デコード式・OBD2）。実装・共有用の独立ファイル
 - `ncec_next_session_checklist.md`：**NCECに実車接続する前に必ず開く**。実車が無いと解けない宿題の一覧
+- `podium_live_telemetry.md`：Podiumライブテレメトリ（podium.live）のプロトコル実体と流用ルート3案のまとめ
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
 - `firmware/`：ESP32（Seeed Studio XIAO ESP32C3）向けPlatformIO（ESP-IDF）プロジェクト
 - `rcp_mock_device.py`：PC上で動くRCPプロトコルのモックデバイス実装
