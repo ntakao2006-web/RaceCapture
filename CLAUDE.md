@@ -42,6 +42,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `ncec_can_spec.md`：NCEC（本番車両）のCAN通信仕様（ID・バイトマップ・デコード式・OBD2）。実装・共有用の独立ファイル
 - `ncec_next_session_checklist.md`：**NCECに実車接続する前に必ず開く**。実車が無いと解けない宿題の一覧
 - `podium_live_telemetry.md`：Podiumライブテレメトリ（podium.live）のプロトコル実体と流用ルート3案のまとめ
+- `external_can_spec.md`：**外部CANバス（自作バス）の共通規約**。CAN ID採番・フレームフォーマット・チャンネル別レート・設定フレーム。**ハブ／表示モジュールの製作着手前に未決事項を確定させること**
 - `logger_v2_policy.md`：Ver.2の構成方針（RaceCaptureアプリを本番から外す判断、CAN接続の専用表示モジュール、EcoCaptureのUNO Q内蔵、LTEテレメトリ必須化、ROCK 5Bの去就）
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
 - `firmware/`：ESP32（Seeed Studio XIAO ESP32C3）向けPlatformIO（ESP-IDF）プロジェクト
