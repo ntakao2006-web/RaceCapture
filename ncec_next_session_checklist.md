@@ -329,8 +329,15 @@ cd firmware/logger_v1/tools && python provision_ncec.py --port COM8 --output ../
 
 **ecologger_v1を持ち込む場合（F参照）**
 
-- [ ] `provision_ncec.py` が `PASS` を出した（`ncProfile=true`・OBD受動・SD記録中）
-- [ ] 実機に焼かれている版と現行ソースの版が一致している（`getVer`の`git_info`で確認）
+- [x] `provision_ncec.py` が `PASS` を出した（`ncProfile=true`・OBD受動・SD記録中）
+      → 2026-09-10実施済み。ハードリセット後もNVSに保持されることまで確認
+- [x] 実機に焼かれている版と現行ソースの版が一致している
+      → 2026-09-10、クリーンツリー（git `0d95e7c`）からのビルドを書込み済み。
+      **`getVer`の`git_info`は版の判別に使えない**（同じタグで中身が違うビルドが存在する）ため、
+      SHA-256 `cdcb4dba…` とブートローダーのコンパイル時刻で確認した
+- [ ] **屋外でGNSSの測位を確認する**（卓上検証は屋内のため`gnss_fix`と`gps_utc_fraction_preserved`の
+      2項目がNGのまま。`init=3`でモジュール自体は正常、`sats=0`）。出発前に屋外で数分通電して
+      `sats`と`utcValid`を見る
 - [ ] microSDを挿し、空き容量を確認した（100 Hz記録＋生CAN）
 - [ ] モバイルバッテリーを充電した（PC不要・電源投入＝記録開始）
 - [ ] **Micro-Fit 3.0（43045-0400）↔OBD2**のハーネスの有無を確認した（無ければCANは諦めて電源だけ入れる）

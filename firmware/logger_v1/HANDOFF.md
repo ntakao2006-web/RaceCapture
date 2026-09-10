@@ -2,6 +2,45 @@
 
 更新日: 2026-09-10（JST）
 
+## 2026-09-10: NCEC実車回に向けた書込み・設定投入・卓上検証（実施済み）
+
+**実機イメージの出所が確定した。** クリーンな作業ツリーからビルドしたイメージを書き込み、
+以後この個体はリポジトリの版と対応が取れている。
+
+- **書込み済みイメージ**：`firmware.bin` SHA-256 `cdcb4dba5b38410927180c67484906768c27f1f20e5589a7bc7081a029795ce8`
+  （623,216バイト）。アプリ記述子は git `0d95e7c`／ビルド `Sep 10 2026 04:59:45`。
+  ブートローダーのコンパイル時刻 `Sep 10 2026 05:02:29` を再起動ログで確認済み。
+  `0d95e7c`以降のコミットは文書のみで、`src/`・`components/`・`platformio.ini`・`partitions.csv`・
+  `sdkconfig.defaults`は無変更（`git diff 0d95e7c..HEAD`で確認）。
+- **経路**：`ecologger_v1`にはUSB-シリアル変換が載っていないため、書込みも診断も外付けの書込み機を使う。
+  J1（5ピン、`pin1=RxD／pin2=TxD／pin3=EN／pin4=IO0／pin5=GND`）がESP32の**UART0**に繋がっており、
+  **RCPはこのUART経由でも喋れる**（今回はCH9102＝COM15で全作業を実施）。ネイティブUSB（J6）は不要だった。
+  なお基板の電源はJ2のUSB-Cからのみ入る（J6側のVBUSは`TPS2041B`による出力）。
+
+### 実施順と結果
+
+1. `sd_control.py stop` でSDセッションを安全にクローズ（6,301行／drops 0／errors 0）。
+2. `platformio run -t upload --upload-port COM15` で書込み（`Hash of data verified.`、45.75秒）。
+3. `provision_ncec.py --port COM15` → **PASS**。
+   ⚠️ **書込み前の設定はレクサスUX試験のまま残っていた**（`obdEnabled=true`／`toyotaSteering=true`／
+   `ncProfile=false`）。この状態でNCECへ繋いでも`ncProfile`の排他条件によりデコードは1つも動かない。
+   投入後は `ncProfile=true`／`obdEnabled=false`／`toyotaSteering=false`。
+4. RTSによるハードリセット（`rst:0x1 (POWERON)`をログで確認）後に再読出しし、**設定がNVSへ永続化されて
+   いることを確認**（`ncProfile=true`のまま）。
+5. `verify_board.py --seconds 20` → **12項目中10項目PASS**。
+   PASS：`sd_100hz`／`no_drops`／`imu_100hz`／`imu_data_valid`／`sd_imu_no_false_missing`／`gps_updates`／
+   `gnss_max_normal_cadence`／`no_sd_errors`／`vehicle_listen_only`／`no_dummy_rpm`。
+   IMU 4,989サンプル・エラー0・recoveries 0。SDの閉じたログの読戻しも成功。
+   **NG 2件は`gnss_fix`と`gps_utc_fraction_preserved`で、いずれも屋内で測位できないことが原因**
+   （`init=3`＝モジュールは正常初期化、`sats=0`／`qual=0`／`utcValid=false`）。**屋外で再確認すること。**
+
+### この時点で分かっている制限
+
+- **GNSSは`four_10`（GPS+Galileo+BeiDou B1C+GLONASS、10 Hz）で起動する**。実測`hz≒9.9`。
+  25 Hzではない（9月1日のi版以降、4系統10 Hzが既定）。ラップ・予測タイムを使わない用途では影響しない。
+- `mappings`は0件。NCECは`ncProfile`のハードコード経路で読むため、汎用マッピングは未使用。
+- 屋外でのGNSS測位確認、実車CANの受信、実走でのSD記録は未実施。
+
 ## 2026-09-10: 実装基板`ecologger_v1`が完成し、現物がユーザーの手元にある
 
 PCB第1版がそのまま動作確認まで到達し、版の切り直しは発生していません。本書の対象基板はこれです。
@@ -257,8 +296,10 @@ Wi-Fi/Bluetooth/携帯回線は現行版では未使用です。必要性が確�
       作業ツリーはクリーンで`origin/master`との差分もない。ソース上の現行版は`src/log_format.h`の
       `logger-v1-ux250h-obd-20260905a`で、b版よりはるかに先へ進んでいる。本チェックボックスは更新漏れだった。
       ただし**「実機に書き込まれているイメージ」と現行ソースの対応付けは未確認**であり、これは下の残課題として残す。
-- [ ] 実機の書込み済みイメージが現行ソース（`logger-v1-ux250h-obd-20260905a`）と一致しているかを確認し、
+- [x] 実機の書込み済みイメージが現行ソース（`logger-v1-ux250h-obd-20260905a`）と一致しているかを確認し、
       一致しない場合は再ビルド・再書込みして版を揃える。本書冒頭の「現在の実機」表記は9月1日のi版のままである。
+      → **2026-09-10に解消**。クリーンツリー（git `0d95e7c`）からのビルドを書き込み、SHA-256とブートローダーの
+      コンパイル時刻で同一性を確認した。詳細は冒頭の「2026-09-10」節を参照。
 - [x] 別PC・クリーンな取得先でも再ビルド手順を確認する。ビルド環境を含むバイナリ完全再現は未検証。
       → **2026-09-10、作業PC（Windows）で`python -m platformio run`が成功**（274秒、RAM 16.7%、Flash 7.4%、
       `.pio/build/logger-v1/firmware.bin` 623,216バイト）。リポジトリのソースだけから再ビルドできる。
