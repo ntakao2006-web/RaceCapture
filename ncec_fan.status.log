@@ -1,0 +1,414 @@
+2026-09-11T17:16:09.228716+00:00	# host: phase t=0.0s at=0s action=passive key=p label=fan_on1
+2026-09-11T17:16:09.229854+00:00	# host: phase-resume t=0.0s at=0s action=passive key=p label=fan_on1
+2026-09-11T17:16:09.378095+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T17:16:09.378168+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T17:16:09.522965+00:00	# stat t=140354070 total=104149 rate=724/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:09.678681+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:10.608733+00:00	# stat t=141354056 total=104841 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:10.608803+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:11.530198+00:00	# stat t=142353976 total=105533 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:11.530245+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:12.618567+00:00	# stat t=143353728 total=106225 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:12.618618+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:13.540221+00:00	# stat t=144353910 total=106917 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:13.540265+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:14.619727+00:00	# stat t=145353618 total=107609 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:14.619772+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:15.550795+00:00	# stat t=146352767 total=108301 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:15.550848+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:16.629201+00:00	# stat t=147353126 total=108993 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:16.629273+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:17.551181+00:00	# stat t=148354075 total=109685 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:17.551225+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:18.638875+00:00	# stat t=149353340 total=110377 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:18.638942+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:19.552682+00:00	# stat t=150353722 total=111069 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:19.552725+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:20.648292+00:00	# stat t=151353497 total=111761 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:20.648338+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:21.569099+00:00	# stat t=152353444 total=112453 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:21.569142+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:22.648664+00:00	# stat t=153352405 total=113145 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:22.648715+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:23.571010+00:00	# stat t=154352962 total=113837 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:23.571062+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:24.650257+00:00	# stat t=155354371 total=114532 rate=695/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:24.650411+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:25.579307+00:00	# stat t=156353815 total=115224 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:25.579359+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:26.658966+00:00	# stat t=157352678 total=115914 rate=690/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:26.659011+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:27.589273+00:00	# stat t=158353384 total=116608 rate=694/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:27.589316+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:28.668754+00:00	# stat t=159354123 total=117300 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:28.668799+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:29.590130+00:00	# stat t=160353637 total=117992 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:29.590196+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:30.669571+00:00	# stat t=161354134 total=118684 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:30.669646+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:31.599317+00:00	# stat t=162353881 total=119376 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:31.599364+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:32.529706+00:00	# stat t=163353272 total=120068 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:32.529752+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:33.608829+00:00	# stat t=164353555 total=120760 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:33.608873+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:34.531663+00:00	# stat t=165354277 total=121452 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:34.531772+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:35.619574+00:00	# stat t=166352975 total=122144 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:35.619628+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:36.540831+00:00	# stat t=167353696 total=122836 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:36.540879+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:37.619897+00:00	# stat t=168353522 total=123528 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:37.619950+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:38.540803+00:00	# stat t=169354149 total=124220 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:38.540851+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:39.330606+00:00	# host: phase t=30.1s at=30s action=passive key=p label=fan_off1
+2026-09-11T17:16:39.479031+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T17:16:39.629520+00:00	# stat t=170354285 total=124912 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:39.629564+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:40.550196+00:00	# stat t=171353427 total=125604 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:40.550240+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:41.638910+00:00	# stat t=172353574 total=126296 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:41.638964+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:42.559973+00:00	# stat t=173352897 total=126988 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:42.560017+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:43.639824+00:00	# stat t=174354158 total=127680 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:43.639874+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:44.569847+00:00	# stat t=175353395 total=128372 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:44.569891+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:45.649050+00:00	# stat t=176354070 total=129064 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:45.649117+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:46.579876+00:00	# stat t=177353213 total=129756 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:46.579927+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:47.657880+00:00	# stat t=178352841 total=130448 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:47.657947+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:48.588758+00:00	# stat t=179353533 total=131140 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:48.588802+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:49.659644+00:00	# stat t=180353182 total=131832 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:49.659688+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:50.590214+00:00	# stat t=181353428 total=132524 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:50.590257+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:51.668668+00:00	# stat t=182353385 total=133216 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:51.668764+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:52.599411+00:00	# stat t=183352875 total=133908 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:52.599460+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:53.521506+00:00	# stat t=184353372 total=134600 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:53.521552+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:54.608796+00:00	# stat t=185353134 total=135292 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:54.608840+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:55.530963+00:00	# stat t=186352645 total=135984 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:55.531005+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:56.610024+00:00	# stat t=187353557 total=136676 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:56.610091+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:57.539568+00:00	# stat t=188352747 total=137368 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:57.539615+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:58.619842+00:00	# stat t=189352732 total=138060 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:58.619916+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:16:59.541708+00:00	# stat t=190352775 total=138752 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:16:59.541765+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:00.628862+00:00	# stat t=191352990 total=139444 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:00.628924+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:01.549561+00:00	# stat t=192353416 total=140136 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:01.549604+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:02.638497+00:00	# stat t=193345366 total=140826 rate=690/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:02.638570+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:03.559749+00:00	# stat t=194345666 total=141518 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:03.559797+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:04.639532+00:00	# stat t=195345344 total=142210 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:04.639601+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:05.569388+00:00	# stat t=196353332 total=142904 rate=694/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:05.569432+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:06.648417+00:00	# stat t=197354427 total=143599 rate=695/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:06.648476+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:07.570519+00:00	# stat t=198352838 total=144288 rate=689/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:07.570563+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:08.649589+00:00	# stat t=199353997 total=144983 rate=695/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:08.649633+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:09.279647+00:00	# host: phase t=60.1s at=60s action=passive key=p label=fan_on2
+2026-09-11T17:17:09.430185+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T17:17:09.579077+00:00	# stat t=200345454 total=145670 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:09.579125+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:10.658411+00:00	# stat t=201352066 total=146364 rate=694/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:10.658471+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:11.589189+00:00	# stat t=202352045 total=147056 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:11.589232+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:12.659299+00:00	# stat t=203345343 total=147746 rate=690/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:12.659382+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:13.589352+00:00	# stat t=204353345 total=148443 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:13.589397+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:14.669288+00:00	# stat t=205352957 total=149135 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:14.669365+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:15.599060+00:00	# stat t=206352837 total=149827 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:15.599104+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:16.529372+00:00	# stat t=207352827 total=150519 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:16.529418+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:17.609138+00:00	# stat t=208352878 total=151211 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:17.609194+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:18.530166+00:00	# stat t=209353462 total=151903 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:18.530209+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:19.609660+00:00	# stat t=210353222 total=152595 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:19.609739+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:20.531695+00:00	# stat t=211353212 total=153287 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:20.531739+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:21.618506+00:00	# stat t=212353359 total=153979 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:21.618559+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:22.539701+00:00	# stat t=213353226 total=154671 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:22.539746+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:23.629204+00:00	# stat t=214353482 total=155363 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:23.629295+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:24.549336+00:00	# stat t=215352610 total=156055 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:24.549375+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:25.630623+00:00	# stat t=216353098 total=156747 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:25.630690+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:26.559352+00:00	# stat t=217352807 total=157439 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:26.559397+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:27.638366+00:00	# stat t=218352830 total=158131 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:27.638414+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:28.569459+00:00	# stat t=219353475 total=158823 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:28.569503+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:29.648210+00:00	# stat t=220352649 total=159515 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:29.648255+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:30.578747+00:00	# stat t=221353222 total=160207 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:30.578790+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:31.649564+00:00	# stat t=222353465 total=160899 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:31.649606+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:32.580261+00:00	# stat t=223353485 total=161591 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:32.580320+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:33.658581+00:00	# stat t=224353380 total=162283 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:33.658628+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:34.589872+00:00	# stat t=225353435 total=162975 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:34.589916+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:35.668837+00:00	# stat t=226352823 total=163667 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:35.668914+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:36.599217+00:00	# stat t=227352593 total=164359 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:36.599259+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:37.529298+00:00	# stat t=228352827 total=165051 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:37.529353+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:38.599947+00:00	# stat t=229352740 total=165743 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:38.599991+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:39.230218+00:00	# host: phase t=90.0s at=90s action=passive key=p label=fan_off2
+2026-09-11T17:17:39.378478+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T17:17:39.529772+00:00	# stat t=230353199 total=166435 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:39.529841+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:40.609603+00:00	# stat t=231353417 total=167127 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:40.609646+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:41.531733+00:00	# stat t=232353393 total=167819 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:41.531781+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:42.618949+00:00	# stat t=233353178 total=168511 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:42.618995+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:43.540352+00:00	# stat t=234353278 total=169203 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:43.540403+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:44.628945+00:00	# stat t=235352834 total=169895 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:44.628989+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:45.550225+00:00	# stat t=236353048 total=170587 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:45.550269+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:46.630203+00:00	# stat t=237353118 total=171279 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:46.630250+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:47.550971+00:00	# stat t=238353600 total=171971 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:47.551016+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:48.631132+00:00	# stat t=239352533 total=172663 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:48.631178+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:49.559639+00:00	# stat t=240353279 total=173355 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:49.559683+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:50.638589+00:00	# stat t=241352812 total=174047 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:50.638631+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:51.569431+00:00	# stat t=242352833 total=174739 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:51.569473+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:52.649000+00:00	# stat t=243352811 total=175431 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:52.649044+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:53.571545+00:00	# stat t=244352766 total=176123 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:53.571589+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:54.650282+00:00	# stat t=245354177 total=176821 rate=698/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:54.650350+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:55.588930+00:00	# stat t=246352045 total=177507 rate=686/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:55.589000+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:56.668341+00:00	# stat t=247354306 total=178207 rate=700/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:56.668389+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:57.590381+00:00	# stat t=248352045 total=178891 rate=684/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:57.590430+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:58.668959+00:00	# stat t=249354638 total=179591 rate=700/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:58.669059+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:17:59.599793+00:00	# stat t=250354285 total=180283 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:17:59.599842+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:00.677978+00:00	# stat t=251355033 total=180975 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:00.678082+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:01.608931+00:00	# stat t=252353588 total=181667 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:01.608976+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:02.529798+00:00	# stat t=253354760 total=182359 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:02.529843+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:03.608809+00:00	# stat t=254354436 total=183051 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:03.608856+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:04.529792+00:00	# stat t=255353432 total=183743 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:04.529859+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:05.618950+00:00	# stat t=256354880 total=184435 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:05.618996+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:06.539927+00:00	# stat t=257354225 total=185127 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:06.539968+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:07.620818+00:00	# stat t=258354756 total=185819 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:07.620873+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:08.550388+00:00	# stat t=259354567 total=186511 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:08.550433+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:09.330183+00:00	# host: phase t=120.1s at=120s action=passive key=p label=fan_on3
+2026-09-11T17:18:09.488317+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T17:18:09.628944+00:00	# stat t=260354571 total=187203 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:09.628986+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:10.550016+00:00	# stat t=261353297 total=187895 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:10.550057+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:11.638558+00:00	# stat t=262353744 total=188587 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:11.638602+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:12.560237+00:00	# stat t=263354567 total=189279 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:12.560282+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:13.648482+00:00	# stat t=264353054 total=189971 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:13.648527+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:14.570289+00:00	# stat t=265353650 total=190663 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:14.570343+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:15.649340+00:00	# stat t=266354524 total=191355 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:15.649389+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:16.579434+00:00	# stat t=267353452 total=192047 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:16.579474+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:17.658935+00:00	# stat t=268354829 total=192739 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:17.658981+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:18.589235+00:00	# stat t=269353662 total=193431 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:18.589279+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:19.668084+00:00	# stat t=270354167 total=194123 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:19.668138+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:20.590891+00:00	# stat t=271353340 total=194815 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:20.590934+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:21.668984+00:00	# stat t=272352970 total=195507 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:21.669061+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:22.600140+00:00	# stat t=273354611 total=196199 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:22.600192+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:23.521350+00:00	# stat t=274353325 total=196891 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:23.678270+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:24.608791+00:00	# stat t=275354795 total=197583 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:24.608840+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:25.530207+00:00	# stat t=276353958 total=198275 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:25.530251+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:26.618707+00:00	# stat t=277354085 total=198967 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:26.618752+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:27.539914+00:00	# stat t=278354047 total=199659 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:27.539957+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:28.619552+00:00	# stat t=279353700 total=200351 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:28.619594+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:29.549116+00:00	# stat t=280354295 total=201043 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:29.549161+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:30.628380+00:00	# stat t=281353146 total=201735 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:30.628424+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:31.550392+00:00	# stat t=282355308 total=202430 rate=695/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:31.550440+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:32.629276+00:00	# stat t=283355335 total=203122 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:32.629320+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:33.559736+00:00	# stat t=284354015 total=203811 rate=689/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:33.559781+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:34.638826+00:00	# stat t=285353229 total=204503 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:34.638875+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:35.569834+00:00	# stat t=286346076 total=205193 rate=690/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:35.569883+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:36.648802+00:00	# stat t=287345012 total=205884 rate=691/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:36.648873+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:37.578950+00:00	# stat t=288345242 total=206577 rate=693/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:37.579004+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:38.658782+00:00	# stat t=289354186 total=207274 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:38.658821+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:39.280470+00:00	# host: phase t=150.1s at=150s action=passive key=p label=fan_off3
+2026-09-11T17:18:39.429206+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T17:18:39.580255+00:00	# stat t=290345991 total=207961 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:39.580304+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:40.667893+00:00	# stat t=291345492 total=208653 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:40.667944+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:41.590055+00:00	# stat t=292345821 total=209345 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:41.590107+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:42.667990+00:00	# stat t=293352882 total=210042 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:42.668086+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:43.589252+00:00	# stat t=294344985 total=210729 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:43.589298+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:44.512846+00:00	# stat t=295344823 total=211421 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:44.678144+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:45.599823+00:00	# stat t=296352665 total=212118 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:45.599869+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:46.519754+00:00	# stat t=297345144 total=212805 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:46.519796+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:47.609804+00:00	# stat t=298344958 total=213497 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:47.609845+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:48.530024+00:00	# stat t=299352866 total=214194 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:48.530068+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:49.611049+00:00	# stat t=300345317 total=214881 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:49.611094+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:50.539873+00:00	# stat t=301352515 total=215578 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:50.539916+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:51.618596+00:00	# stat t=302345079 total=216265 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:51.618640+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:52.548933+00:00	# stat t=303353127 total=216962 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:52.548979+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:53.629094+00:00	# stat t=304345118 total=217649 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:53.629165+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:54.559283+00:00	# stat t=305345149 total=218341 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:54.559327+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:55.638512+00:00	# stat t=306352425 total=219038 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:55.638559+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:56.559269+00:00	# stat t=307345312 total=219725 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:56.559310+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:57.638580+00:00	# stat t=308345388 total=220417 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:57.638658+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:58.569665+00:00	# stat t=309345346 total=221109 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:58.569719+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:18:59.649106+00:00	# stat t=310352522 total=221806 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:18:59.649151+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:00.579580+00:00	# stat t=311352886 total=222498 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:00.579624+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:01.658564+00:00	# stat t=312344995 total=223185 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:01.658625+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:02.589109+00:00	# stat t=313352632 total=223882 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:02.589152+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:03.667858+00:00	# stat t=314353103 total=224574 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:03.667903+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:04.589807+00:00	# stat t=315345161 total=225261 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:04.589851+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:05.668104+00:00	# stat t=316352951 total=225958 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:05.668203+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:06.599914+00:00	# stat t=317352905 total=226650 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:06.599956+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:07.520164+00:00	# stat t=318345127 total=227337 rate=687/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:07.520214+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:08.609893+00:00	# stat t=319345036 total=228029 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:08.609960+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:09.530619+00:00	# stat t=320352454 total=228726 rate=697/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:09.530662+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:10.609729+00:00	# stat t=321352808 total=229418 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:10.609775+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:11.539074+00:00	# stat t=322352661 total=230110 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:11.539158+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:12.618024+00:00	# stat t=323352737 total=230802 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:12.618064+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:13.549106+00:00	# stat t=324352634 total=231494 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:13.549158+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:14.629149+00:00	# stat t=325345785 total=232184 rate=690/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:14.629195+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:15.550595+00:00	# stat t=326345789 total=232876 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:15.550640+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:16.629817+00:00	# stat t=327346006 total=233568 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:16.629858+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:17.559697+00:00	# stat t=328353029 total=234262 rate=694/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:17.559740+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:18.638667+00:00	# stat t=329352789 total=234954 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:18.638711+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:19.569555+00:00	# stat t=330352780 total=235646 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:19.569599+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:20.648786+00:00	# stat t=331345751 total=236336 rate=690/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:20.648864+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:21.580247+00:00	# stat t=332345425 total=237028 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:21.580293+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:22.649834+00:00	# stat t=333352919 total=237722 rate=694/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:22.649903+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:23.580116+00:00	# stat t=334353815 total=238417 rate=695/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:23.580159+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:24.667928+00:00	# stat t=335352038 total=239106 rate=689/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:24.668012+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:25.589219+00:00	# stat t=336353696 total=239801 rate=695/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:25.589271+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:26.668885+00:00	# stat t=337352040 total=240490 rate=689/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:26.668964+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:27.598646+00:00	# stat t=338353360 total=241185 rate=695/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:27.598696+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
+2026-09-11T17:19:28.677853+00:00	# stat t=339353314 total=241877 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=0 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T17:19:28.677937+00:00	# obd req=0x7E0 poll=PAUSED sent=7340 resp=7333 timeout=7 txerr=0 rpm=879 speed=0 coolant=85 throttle=11
