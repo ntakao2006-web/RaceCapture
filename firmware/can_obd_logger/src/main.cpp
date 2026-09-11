@@ -460,6 +460,124 @@ static void ctrl_task(void *arg)
             s_paused.store(false, std::memory_order_relaxed);
             int n = snprintf(line, sizeof(line), "# obd polling RESUMED\n");
             emit_line(line, n);
+        } else if (c == 'd' || c == 'D') {
+            // mode 22 (ReadDataByIdentifier) のプローブ。
+            // 0xF4xx は ISO 15031-5 で mode 01 PID のミラーとされる領域なので、
+            // 返ってきた値を mode 01 の既知値と突き合わせて正しさを検証できる。
+            // 読み出し専用サービスであり、書き込みは一切行わない。
+            static const uint16_t kProbeDids[] = {
+                0xF40C,   // = PID 0C 回転数
+                0xF411,   // = PID 11 スロットル
+                0xF405,   // = PID 05 水温
+                0xF449,   // = PID 49 アクセルペダルD
+            };
+            const size_t kProbeCount = sizeof(kProbeDids) / sizeof(kProbeDids[0]);
+            int n = snprintf(line, sizeof(line),
+                             "# did probe START (mode 22, %u ids)\n", (unsigned)kProbeCount);
+            emit_line(line, n);
+            for (size_t i = 0; i < kProbeCount; i++) {
+                twai_message_t req = {};
+                req.identifier = s_req_id.load(std::memory_order_relaxed);
+                req.extd = 0;
+                req.rtr  = 0;
+                req.data_length_code = 8;
+                req.data[0] = 0x03;                      // PCI: 以降3バイト有効
+                req.data[1] = 0x22;                      // mode 22
+                req.data[2] = (uint8_t)(kProbeDids[i] >> 8);
+                req.data[3] = (uint8_t)(kProbeDids[i] & 0xFF);
+                for (int j = 4; j < 8; j++) req.data[j] = OBD_PAD_BYTE;
+#ifdef BENCH_LOOPBACK
+                req.self = 1;
+#endif
+                esp_err_t e = twai_transmit(&req, pdMS_TO_TICKS(20));
+                n = snprintf(line, sizeof(line), "# did probe sent=0x%04X %s\n",
+                             (unsigned)kProbeDids[i], (e == ESP_OK) ? "ok" : "TXFAIL");
+                emit_line(line, n);
+                vTaskDelay(pdMS_TO_TICKS(300));          // 応答を取りこぼさないよう間を空ける
+            }
+            n = snprintf(line, sizeof(line),
+                         "# did probe END (responses arrive as 0x7E8: 62 xx xx ..)\n");
+            emit_line(line, n);
+        } else if (c == 's' || c == 'S') {
+            // mode 22 のDIDスキャン。0x0000-0x0FFF を順に叩き、
+            // 「否定応答 0x31 (requestOutOfRange) 以外」が返ったDIDだけを拾う。
+            // 読み出し専用サービスのみを使い、書き込みは一切行わない。
+            // 応答そのものは通常どおり 0x7E8 フレームとしてCSVに残るので、
+            // 詳細な判定はPC側で行う。ここでは進捗だけを出す。
+            int n = snprintf(line, sizeof(line),
+                             "# did scan START range=0x0000-0x0FFF step=40ms\n");
+            emit_line(line, n);
+            for (uint32_t did = 0x0000; did <= 0x0FFF; did++) {
+                twai_message_t req = {};
+                req.identifier = s_req_id.load(std::memory_order_relaxed);
+                req.extd = 0;
+                req.rtr  = 0;
+                req.data_length_code = 8;
+                req.data[0] = 0x03;
+                req.data[1] = 0x22;
+                req.data[2] = (uint8_t)(did >> 8);
+                req.data[3] = (uint8_t)(did & 0xFF);
+                for (int j = 4; j < 8; j++) req.data[j] = OBD_PAD_BYTE;
+#ifdef BENCH_LOOPBACK
+                req.self = 1;
+#endif
+                twai_transmit(&req, pdMS_TO_TICKS(20));
+                if ((did & 0xFF) == 0xFF) {
+                    n = snprintf(line, sizeof(line), "# did scan progress=0x%04X\n",
+                                 (unsigned)did);
+                    emit_line(line, n);
+                }
+                vTaskDelay(pdMS_TO_TICKS(40));
+            }
+            n = snprintf(line, sizeof(line), "# did scan END\n");
+            emit_line(line, n);
+        } else if (c == 'w' || c == 'W') {
+            // mode 22 のDIDウォッチ。スキャンで肯定応答したDIDのうち
+            // 標準PIDのミラーでないもの（0x09xx系）を繰り返し読み、
+            // A/C操作や水温変化との連動を見るためのモード。
+            // 照合用に水温(0x0005)と回転数(0x000C)も混ぜて叩く。
+            // 読み出し専用サービスのみを使い、書き込みは一切行わない。
+            static const uint16_t kWatchDids[] = {
+                0x0900, 0x0914, 0x0915, 0x0917, 0x0918, 0x091A,
+                0x093C, 0x0967, 0x0968, 0x096E, 0x097C, 0x098E,
+                0x0200, 0x0202,
+                0x0005,   // 水温（照合用）
+                0x000C,   // 回転数（照合用）
+            };
+            const size_t kWatchCount = sizeof(kWatchDids) / sizeof(kWatchDids[0]);
+            const int64_t kWatchUs = 180LL * 1000 * 1000;   // 3分
+            int n = snprintf(line, sizeof(line),
+                             "# did watch START %u ids, 180s\n", (unsigned)kWatchCount);
+            emit_line(line, n);
+            int64_t end_us = esp_timer_get_time() + kWatchUs;
+            uint32_t round = 0;
+            while (esp_timer_get_time() < end_us) {
+                for (size_t i = 0; i < kWatchCount; i++) {
+                    twai_message_t req = {};
+                    req.identifier = s_req_id.load(std::memory_order_relaxed);
+                    req.extd = 0;
+                    req.rtr  = 0;
+                    req.data_length_code = 8;
+                    req.data[0] = 0x03;
+                    req.data[1] = 0x22;
+                    req.data[2] = (uint8_t)(kWatchDids[i] >> 8);
+                    req.data[3] = (uint8_t)(kWatchDids[i] & 0xFF);
+                    for (int j = 4; j < 8; j++) req.data[j] = OBD_PAD_BYTE;
+#ifdef BENCH_LOOPBACK
+                    req.self = 1;
+#endif
+                    twai_transmit(&req, pdMS_TO_TICKS(20));
+                    vTaskDelay(pdMS_TO_TICKS(50));
+                }
+                if ((++round % 25) == 0) {
+                    n = snprintf(line, sizeof(line), "# did watch round=%u\n",
+                                 (unsigned)round);
+                    emit_line(line, n);
+                }
+            }
+            n = snprintf(line, sizeof(line), "# did watch END rounds=%u\n",
+                         (unsigned)round);
+            emit_line(line, n);
         }
     }
 }
