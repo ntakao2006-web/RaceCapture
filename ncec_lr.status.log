@@ -1,0 +1,33 @@
+2026-09-11T18:31:54.719751+00:00	# host: phase t=0.0s at=0s action=passive key=p label=lr_straight
+2026-09-11T18:31:54.720827+00:00	# host: phase-resume t=0.0s at=0s action=passive key=p label=lr_straight
+2026-09-11T18:31:54.865208+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T18:31:54.865261+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T18:31:54.866445+00:00	# stat t=4345353548 total=2095280 rate=741/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:31:54.866490+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:31:55.913874+00:00	# stat t=4346352711 total=2095972 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:31:55.913915+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:31:56.965574+00:00	# stat t=4347353936 total=2096664 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:31:56.965649+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:31:57.874885+00:00	# stat t=4348354065 total=2097356 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:31:57.874932+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:31:58.924241+00:00	# stat t=4349353320 total=2098048 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:31:58.924287+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:31:59.825321+00:00	# stat t=4350354071 total=2098740 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:31:59.825365+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:32:00.876475+00:00	# stat t=4351353468 total=2099432 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:32:00.876521+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:32:01.934048+00:00	# stat t=4352353488 total=2100124 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:32:01.934094+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:32:05.668804+00:00	# host: serial lost (SerialException: ClearCommError failed (PermissionError(13, 'デバイスがコマンドを認識できません。', None, 22)))
+2026-09-11T18:32:06.672817+00:00	# host: serial reconnected to COM5 (attempt 1)
+2026-09-11T18:32:06.673732+00:00	# host: phase-resume t=12.0s at=0s action=passive key=p label=lr_straight
+2026-09-11T18:32:06.814012+00:00	# obd polling PAUSED (passive; ACK is still sent)
+2026-09-11T18:32:06.963636+00:00	# stat t=4357352889 total=2103584 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:32:06.963692+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:32:07.865917+00:00	# stat t=4358352766 total=2104276 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:32:07.865990+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:32:08.914802+00:00	# stat t=4359352861 total=2104968 rate=692/s drop_rb=0 rx_missed=0 rx_overrun=0 buserr=5923653 tec=0 rec=0 state=RUNNING alerts=0x0
+2026-09-11T18:32:08.914848+00:00	# obd req=0x7E0 poll=PAUSED sent=148822 resp=148723 timeout=99 txerr=7282 rpm=870 speed=0 coolant=86 throttle=11
+2026-09-11T18:32:24.737912+00:00	# host: phase t=30.0s at=30s action=passive key=p label=lr_left
+2026-09-11T18:33:44.931644+00:00	# host: phase t=110.2s at=110s action=passive key=ERR(SerialTimeoutException) label=lr_right
+2026-09-11T18:35:05.439641+00:00	# host: phase t=190.2s at=190s action=passive key=ERR(SerialTimeoutException) label=lr_end
