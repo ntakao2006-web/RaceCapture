@@ -93,6 +93,19 @@ enum ChannelId {
     VERT_ACCEL,
     GPS_VACC,
     STEERING_ANGLE,
+    WHEEL_FL,
+    WHEEL_FR,
+    WHEEL_RL,
+    WHEEL_RR,
+    ACCEL_PEDAL,
+    ACCEL_PEDAL_BACKUP,
+    BRAKE_PEDAL,
+    AC_REQUEST,
+    CLUTCH_DISENGAGED,
+    WATER_TEMP_BACKUP,
+    FUEL_LEVEL_RAW,
+    PARKING_BRAKE,
+    FUEL_LEVEL,
     BASE_CHANNELS
 };
 struct Channel {
@@ -154,6 +167,8 @@ struct Statistics {
     std::atomic<bool> bench_request{false};
     std::atomic<uint32_t> bench_status{0}, bench_vehicle_rx{0}, bench_hub_rx{0};
     std::atomic<bool> vehicle_listen_only{true};
+    std::atomic<uint32_t> fan_raw[2]{}, fan_updated_ms[2]{};
+    std::atomic<uint32_t> fan_responses{0}, fan_timeouts{0}, fan_negative{0};
     std::atomic<uint32_t> obd_sent{0}, obd_responses{0}, obd_tx_errors{0};
     std::atomic<uint32_t> obd_request_id{0x7e0};
     std::atomic<uint32_t> obd_response_id{0}, obd_timeouts{0}, obd_negative{0}, obd_supported{0};

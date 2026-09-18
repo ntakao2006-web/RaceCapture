@@ -1,3 +1,4 @@
+#include "ncec.h"
 #include "state.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
@@ -7,6 +8,7 @@
 namespace logger {
 static spi_device_handle_t mcp = nullptr, led = nullptr;
 static const char *TAG = "can";
+static FanProbe fan;
 static ObdPoller obd; // CAN1 task owns the scheduler; CAN2 never accesses it.
 static bool transact(const uint8_t *tx, uint8_t *rx, size_t size) {
     spi_transaction_t t = {};
@@ -105,28 +107,25 @@ void onCan(const CanFrame &f) {
         }
     if (f.bus != 1 || f.rtr || f.extended)
         return;
-    if (config.nc_profile && !vehicle_acquisition.obd_enabled && !vehicle_acquisition.toyota_steering) {
-        auto be = [&](int i) { return unsigned(f.data[i]) * 256 + f.data[i + 1]; };
-        if (f.id == 0x201 && f.dlc >= 7) {
-            putChannel(RPM, be(0) / 4.0, f.us);
-            putChannel(SPEED, be(4) / 100.0 - 100, f.us);
-        }
-        if (f.id == 0x240 && f.dlc >= 5) {
-            putChannel(ENGINE_LOAD, f.data[0] * 100.0 / 255, f.us);
-            putChannel(WATER_TEMP, int(f.data[1]) - 40, f.us);
-            putChannel(THROTTLE, f.data[3] * 100.0 / 255, f.us);
-            putChannel(INTAKE_TEMP, int(f.data[4]) - 40, f.us);
-        }
-    }
+    static NcDecoder nc;
+    if (config.nc_profile && !vehicle_acquisition.toyota_steering) {
+        static constexpr unsigned target[] = {RPM, SPEED, WATER_TEMP, THROTTLE, INTAKE_TEMP,
+            WHEEL_FL, WHEEL_FR, WHEEL_RL, WHEEL_RR, ACCEL_PEDAL, ACCEL_PEDAL_BACKUP,
+            BRAKE_PEDAL, AC_REQUEST, CLUTCH_DISENGAGED, WATER_TEMP_BACKUP, FUEL_LEVEL_RAW,
+            PARKING_BRAKE, FUEL_LEVEL};
+        nc.decode(f.id, f.data, f.dlc, f.us, [&](NcSignal signal, double value) {
+            putChannel(target[signal], value, f.us);
+        });
+    } else nc.reset();
     double angle;
     if (vehicle_acquisition.toyota_steering && decodeToyotaSteering(f, angle)) {
         ++stats.steering_rx;
         putChannel(STEERING_ANGLE, angle, f.us);
     }
+    fan.receive(f);
     ObdValue value;
     const bool accepted = vehicle_acquisition.obd_enabled
-        ? !stats.obd_fault && obd.receive(f, value)
-        : decodeObd(f, value); // Passive monitor remains usable with an external diagnostic reader.
+        ? !stats.obd_fault && obd.receive(f, value) : decodeObd(f, value);
     if (accepted) {
         unsigned channel = RPM;
         switch (value.pid) {
@@ -139,11 +138,15 @@ void onCan(const CanFrame &f) {
         case 0x42: channel = BATT_VOLT; break;
         case 0x5c: channel = OIL_TEMP; break;
         }
+        // Native NCEC values keep their full precision and rate while OBD fills extra channels.
+        if (config.nc_profile && !vehicle_acquisition.toyota_steering &&
+            (channel == RPM || channel == SPEED || channel == WATER_TEMP || channel == THROTTLE || channel == INTAKE_TEMP)) return;
         channels[channel].stale_ms = channel == RPM || channel == SPEED ? 1500 : 6500;
         putChannel(channel, value.value, f.us); // Zero RPM is valid in EV/idle-stop operation.
     }
 }
 static bool sendObdRequest(const CanFrame &frame) {
+    if (!allowedObdRequest(frame)) return false;
     twai_message_t request = {};
     request.identifier = frame.id;
     request.data_length_code = 8;
@@ -167,12 +170,10 @@ static void can1Task(void *) {
     stats.can1_ok = true;
     stats.vehicle_listen_only = true;
     ESP_LOGI(TAG, "CAN1 ATA6561 J5: 500k; saved acquisition setting follows");
-    uint64_t last = 0;
-    uint64_t bench_deadline = 0;
-    bool bench_mode = false;
+    uint64_t last = 0, last_request = 0;
     uint32_t revision = UINT32_MAX;
     uint32_t driver_errors = 0;
-    obd.reset(nowUs());
+    obd.reset(nowUs()); fan.reset(nowUs());
     while (true) {
         bool enabled;
         {
@@ -181,18 +182,10 @@ static void can1Task(void *) {
             if (revision != stats.acquisition_revision.load()) {
                 revision = stats.acquisition_revision;
                 stats.obd_fault = false;
-                obd.reset(nowUs());
+                obd.reset(nowUs()); fan.reset(nowUs());
             }
         }
-        bool requested = stats.bench_status == 1;
-        if (requested && !bench_mode && bench_deadline == 0 && !enabled) {
-            bench_mode = true; bench_deadline = nowUs() + 1000000;
-        }
-        if (bench_mode && (!requested || nowUs() >= bench_deadline)) {
-            bench_mode = false;
-            if (requested) stats.bench_status = 3;
-        }
-        const bool active = bench_mode || (enabled && !stats.obd_fault);
+        const bool active = enabled && !stats.obd_fault;
         const auto desired = active ? TWAI_MODE_NORMAL : TWAI_MODE_LISTEN_ONLY;
         if (g.mode != desired) {
             twai_status_info_t state{};
@@ -216,14 +209,16 @@ static void can1Task(void *) {
             stats.vehicle_listen_only = !active;
             driver_errors = 0;
         }
-        if (!requested && !bench_mode)
-            bench_deadline = 0;
         uint64_t now = nowUs();
-        if (enabled && !bench_mode && !stats.obd_fault) {
+        if (enabled && !stats.obd_fault) {
             CanFrame request;
-            if (obd.next(now, request)) {
-                if (sendObdRequest(request)) { obd.queued(); queueCanLog(request); }
-                else obd.txFailed(now);
+            if (now-last_request>=100000 && !fan.busy(now)) {
+                const bool probe=config.nc_profile && !vehicle_acquisition.toyota_steering && obd.idle() && fan.next(now,request);
+                if (probe || obd.next(now, request)) {
+                    last_request=now;
+                    if (sendObdRequest(request)) { if(probe)++fan.sent;else obd.queued(); queueCanLog(request); }
+                    else { if(probe)fan.failed(now);else obd.txFailed(now); }
+                }
             }
         }
         twai_message_t msg = {};
@@ -252,7 +247,9 @@ static void can1Task(void *) {
                     ESP_LOGE(TAG, "OBD stopped: CAN error threshold; explicit re-enable required");
                 }
             }
-            stats.obd_sent = obd.sent; stats.obd_responses = obd.responses;
+            stats.obd_sent = obd.sent+fan.sent; stats.obd_responses = obd.responses+fan.responses;
+            for(unsigned i=0;i<2;++i) { stats.fan_raw[i]=fan.raw[i]; stats.fan_updated_ms[i]=fan.updated[i]/1000; }
+            stats.fan_responses=fan.responses; stats.fan_timeouts=fan.timeouts; stats.fan_negative=fan.negative;
             stats.obd_request_id = obd.request_id; stats.obd_response_id = obd.response_id;
             stats.obd_timeouts = obd.timeouts; stats.obd_negative = obd.negative;
             stats.obd_tx_errors = obd.tx_errors; stats.obd_supported = obd.supported;

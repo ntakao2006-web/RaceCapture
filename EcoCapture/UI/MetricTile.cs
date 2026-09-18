@@ -36,6 +36,8 @@ public partial class MetricTile : PanelContainer
         if (_sensor.Id == "AFR" && frame?.Get("AFRValid") != 1) value = null;
         var warn = value.HasValue && _preference.WarningAbove.HasValue && value > _preference.WarningAbove;
         _value.Text = value.HasValue ? value.Value.ToString("F" + (_preference.Precision >= 0 ? _preference.Precision : _sensor.Precision), CultureInfo.InvariantCulture) : "--";
+        if (value.HasValue && _sensor.Id is "BrakePedal" or "ACRequest" or "ClutchDisengaged" or "ParkingBrake")
+            _value.Text = value.Value >= .5 ? "ON" : "OFF";
         _value.AddThemeColorOverride("font_color", value.HasValue ? warn ? Ui.Amber : Ui.Text : Ui.Muted);
         _state.Text = !sourceEnabled ? "無効" : warn ? "上限超過" : value.HasValue ? _sensor.Source : "未受信";
         _bar.Value = value ?? _sensor.Min;

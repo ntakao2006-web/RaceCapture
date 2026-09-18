@@ -1,6 +1,6 @@
 # ビルドと検証
 
-0.3.7の現行仕様・試験範囲は [UX250H_TEST.md](UX250H_TEST.md) と [VERIFICATION.md](VERIFICATION.md) の2026-09-05節を優先します。
+0.3.8の現行仕様・試験範囲は [UX250H_TEST.md](UX250H_TEST.md) と [VERIFICATION.md](VERIFICATION.md) の2026-09-05節を優先します。
 デモは82チャンネル・通常schema 84。旧版83/81の記述は履歴です。新しいZIPはローカル生成物で、まだGitへ追加・pushしていません。
 
 ## 環境
@@ -48,7 +48,7 @@ powershell -ExecutionPolicy Bypass -File tools/build.ps1 -LinuxArm64
 - `tools`：ビルド、実機ベンチ、実機UI試験ドライバー。
 - `cloud`：Firebase Realtime Database / Hosting向けライブ共有。配備手順は同フォルダーのREADME。
 - `artifacts`：実測結果、画面、位置を含む試験設定。Git・配布物から除外。
-- `dist`：生成した実行ファイルと配布ZIP。展開済みディレクトリと旧版はGitから除外し、完成版0.3.7のWindows x64／Linux ARM64 ZIPと`SHA256SUMS.txt`だけを共有。ARM64 ZIPにはPi 4B用ランチャーとudevルールも含める。
+- `dist`：生成した実行ファイルと配布ZIP。展開済みディレクトリと旧版はGitから除外し、完成版0.3.8のWindows x64／Linux ARM64 ZIPと`SHA256SUMS.txt`だけを共有。ARM64 ZIPにはPi 4B用ランチャーとudevルールも含める。
 
 ## 卓上実機試験
 

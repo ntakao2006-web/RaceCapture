@@ -212,7 +212,7 @@ static bool writeMetadata(const char *base, uint32_t boot, uint32_t segment, int
         doc["vehicle_acquisition_at_file_open"]["obdEnabled"] = bool(vehicle_acquisition.obd_enabled);
         doc["vehicle_acquisition_at_file_open"]["toyotaSteering"] = bool(vehicle_acquisition.toyota_steering);
     }
-    doc["vehicle_note"] = "Speed is CAN/OBD only; GPSSpeed is GNSS. SteeringAngle uses Toyota 0x025, verify on vehicle. Zero RPM can be valid hybrid engine-off data.";
+    doc["vehicle_note"] = "NCEC definitions: supplied 2026-09-12 measurements, LF/RF/LR/RR wheel order. AccelPedal is ECU absolute percent (released approx 30.68), not normalized travel. FuelLevel is a 2s sample mean; full tank is not rescaled to 100%. EngineLoad has no NC broadcast conversion. Speed is CAN/OBD only; GPSSpeed is GNSS. SteeringAngle uses Toyota 0x025, verify on vehicle. Zero RPM can be valid hybrid engine-off data.";
     doc["time_note"] = "monotonic_us: since boot; utc_us: estimated Unix UTC microseconds; GPSUTC: GNSS fix Unix seconds; UTC may be unavailable";
     doc["sampling_note"] = "100Hz snapshots hold the last valid slower channel; use GPSTow to identify new GNSS fixes";
     auto level = doc["imu_level_correction"].to<JsonObject>();

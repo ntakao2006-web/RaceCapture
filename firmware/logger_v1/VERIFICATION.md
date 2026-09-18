@@ -234,3 +234,26 @@ RF環境の問題を解消したと断定せず、制約は [GNSS_HEALTH.md](GNS
 - RPMは0 rpmから作動時976～1329 rpm、停止時258→114→0 rpmまで連続取得。水温、油温、車速、スロットル、負荷、吸気温、ECU電圧も実値取得。
 - SMA接続後は3D測位・最大24衛星。位置情報はリポジトリへ記載しない。
 - OBD側で舵角 `0x025` は未観測。USB-OTG COM10の実データ経路は確認済みだが、この環境ではネイティブ画面画像の自動取得は未実施。
+
+## 2026-09-15 NCEC 17項目対応（書き込み前検証）
+
+- 9月12日の提供実測定義を受信専用デコーダへ反映。既存82chを維持し13ch追加、全95ch。
+- `tests/test_ncec.cpp`：ASan/UBSanで換算、左右順、スイッチbit、短いDLC、燃料平均、時刻巻戻り・受信復帰を検証。今回のSD抜粋1,641フレームの再生も合格。
+- 既存C++ core / log_format / gnss_config / gnss_health / vehicle_obdの5試験、Python 17試験に合格。
+- EcoCapture 0.3.8：102チェック、Windows/ARM64配布、Windows配布版16画面の目視検査に合格。
+- 旧実機版では約71秒のCAN受信約694fps、SD約100Hz、GPS約10Hz、IMU約100Hzを確認。エラー・dropは0、sampleLateは4増加。これは新ファームの実機検証ではない。
+- 証拠：`artifacts/roadster_20260915/`、`EcoCapture/artifacts/smoke-038-final/`、`EcoCapture/artifacts/package-audit.json`。
+- 新版の書き込み、再接続後の追加17項目・SD内容照合、ペダルの操作照合、長時間耐久は未確認。
+
+
+### 2026-09-15 実機書き込み後
+
+- 車載CAN切り離し・SD安全停止後に書き込み、フラッシュハッシュ照合と版読戻し成功。
+- 保存設定（NC/OBD/外部CAN/水平補正）一致、schema97 / 95ch確認。
+- CAN再接続後61秒：692.02fps、SD99.97Hz。SD欠落・CANエラー・USB欠落の増加0。
+- 起動時SD欠落213、再接続前後CANエラー30は累計に残る。原因未確定であり、起動から完全無欠落と扱わない。
+- Windows配布版COM10：17項目＋燃料平均を受信、試験中56追加サンプル、不正フレーム0。画面を目視確認。
+- SD読戻し：97列、末尾55行の全18項目値を確認。水温/ペダル冗長値一致、未確定EngineLoad空欄、正常クローズ。
+- ブレーキ・クラッチはユーザーの踏み込み/解放と対応する0→1→0を確認。サイドブレーキ1を保持。
+- 通常のEcoCaptureを0.3.8へ切替済み。スタートメニュー起動先も更新。
+- 証拠：roadster_20260915/{upload.log,after_flash.json,settings_readback.json,live_new_firmware.json,new_sd_verification.json,switch_check.json}、EcoCapture/artifacts/ncec-live-20260915/。

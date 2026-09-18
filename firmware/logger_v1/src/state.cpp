@@ -122,8 +122,8 @@ void stateInit() {
         double lo, hi;
         unsigned prec, rate;
     };
-    static const Def defs[] = {{"RPM", "rpm", 0, 16000, 0, 50},
-                               {"Speed", "km/h", 0, 400, 2, 50},
+    static const Def defs[] = {{"RPM", "rpm", 0, 16000, 0, 100},
+                               {"Speed", "km/h", 0, 400, 2, 100},
                                {"WaterTemp", "C", -40, 200, 1, 10},
                                {"OilPress", "kPa", 0, 2000, 1, 50},
                                {"Lat", "deg", -90, 90, 7, 10},
@@ -163,7 +163,7 @@ void stateInit() {
                                {"CurrentLap", "", 0, 10000, 0, 10},
                                {"Distance", "km", 0, 100, 4, 10},
                                {"SessionTime", "Min", 0, 100000, 4, 10},
-                               {"Throttle", "%", 0, 100, 2, 50},
+                               {"Throttle", "%", 0, 100, 2, 10},
                                {"EngineLoad", "%", 0, 100, 2, 20},
                                {"IntakeTemp", "C", -40, 200, 1, 10},
                                {"BatteryVolt", "V", 0, 30, 3, 5},
@@ -203,13 +203,27 @@ void stateInit() {
                                {"LatAccel", "G", -8, 8, 4, 100},
                                {"VertAccel", "G", -8, 8, 4, 100},
                                {"GPSVAcc", "m", 0, 10000, 2, 10},
-                               {"SteeringAngle", "deg", -500, 500, 1, 50}};
+                               {"SteeringAngle", "deg", -500, 500, 1, 50},
+                               {"WheelSpeedFL", "km/h", -100, 555.35, 2, 100},
+                               {"WheelSpeedFR", "km/h", -100, 555.35, 2, 100},
+                               {"WheelSpeedRL", "km/h", -100, 555.35, 2, 100},
+                               {"WheelSpeedRR", "km/h", -100, 555.35, 2, 100},
+                               {"AccelPedal", "%", 0, 100, 2, 100},
+                               {"AccelPedalBackup", "%", 0, 100, 2, 100},
+                               {"BrakePedal", "", 0, 1, 0, 100},
+                               {"ACRequest", "", 0, 1, 0, 100},
+                               {"ClutchDisengaged", "", 0, 1, 0, 40},
+                               {"WaterTempBackup", "C", -40, 215, 1, 10},
+                               {"FuelLevelRaw", "%", 0, 100, 2, 10},
+                               {"ParkingBrake", "", 0, 1, 0, 10},
+                               {"FuelLevel", "%", 0, 100, 2, 10}};
     static_assert(std::size(defs) == BASE_CHANNELS, "Channel enum and metadata differ");
     for (auto &d : defs)
         addChannel(d.name, d.unit, d.lo, d.hi, d.prec, d.rate);
     for (unsigned i = ACCEL_X; i <= GRAVITY_Z; ++i)
         channels[i].stale_ms = 200;
     channels[STEERING_ANGLE].stale_ms = 250;
+    for (unsigned i=WHEEL_FL; i<=FUEL_LEVEL; ++i) channels[i].stale_ms = 500;
     void *memory = heap_caps_malloc(sizeof(LapEngine), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     ESP_ERROR_CHECK(memory && state_mutex ? ESP_OK : ESP_ERR_NO_MEM);
     laps = new (memory) LapEngine;

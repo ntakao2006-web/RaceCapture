@@ -51,7 +51,7 @@ public partial class Main : Control
         DisplayServer.WindowSetMinSize(new Vector2I(1000,680));
         var args = OS.GetCmdlineUserArgs();
         _smokeDirectory = Argument(args,"--smoke-dir");
-        _hardwareDirectory = Argument(args,"--hardware-test-dir");
+        _hardwareDirectory = Argument(args,"--hardware-test-dir") ?? Argument(args,"--ncec-live-check-dir");
         _hardwareReconnectOnly = args.Contains("--reconnect-test-only");
         _data = Argument(args,"--data-dir") ?? (_hardwareDirectory != null ? Path.Combine(_hardwareDirectory,"profile") : _smokeDirectory != null ? Path.Combine(_smokeDirectory,"profile") :
             Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),"EcoCapture"));
@@ -74,13 +74,14 @@ public partial class Main : Control
         _connectionLabel.SizeFlagsHorizontal=SizeFlags.ExpandFill; _connectionLabel.CustomMinimumSize=new(220,0);
         var retry = Ui.Button("再接続",() => { _connection.Retry(); _notice="USB接続を開き直します。SD記録は継続します。"; }); header.AddChild(retry);
         var nav = Ui.HBox(8); root.AddChild(nav);
-        foreach (var item in new[]{("indicate","Indicate"),("race","Race"),("maps","Maps"),("solve","Solve"),("settings","Settings")})
+        foreach (var item in new[]{("indicate","Indicate"),("race","Race"),("maps","Maps"),("status","Status"),("solve","Solve"),("settings","Settings")})
         {
             var key = item.Item1; var b = Ui.Button(item.Item2,() => ShowPage(key));
             b.SizeFlagsHorizontal = SizeFlags.ExpandFill; nav.AddChild(b); _nav[key] = b;
         }
+        _drivingBanner=Ui.Button("",()=>ShowPage("status")); _drivingBanner.Visible=false; root.AddChild(_drivingBanner);
         _content = new Control(); Ui.Expand(_content); root.AddChild(_content);
-        BuildHome(); BuildIndicate(); BuildRace(); BuildMap(); BuildSolve(); BuildSettings();
+        BuildHome(); BuildIndicate(); BuildRace(); BuildMap(); BuildStatus(); BuildSolve(); BuildSettings();
         _footer = Ui.Label("",13,Ui.Muted); _footer.TextOverrunBehavior=TextServer.OverrunBehavior.TrimEllipsis; root.AddChild(_footer);
         _connection = new(PlatformWireFactory.Create());
         if (args.Contains("--demo") || _smokeDirectory != null) { _demo = new(ConnectionManager.Now); _connection.Pause(true); }
@@ -89,6 +90,7 @@ public partial class Main : Control
         ShowPage(Argument(args,"--screen") ?? "home");
         GetTree().AutoAcceptQuit = false;
         if (_smokeDirectory != null) CallDeferred(MethodName.RunSmoke);
+        else if (args.Contains("--ncec-live-check-dir")) CallDeferred(MethodName.RunNcecLiveCheck);
         else if (_hardwareDirectory != null) CallDeferred(MethodName.RunHardwareTest);
     }
     private static string? Argument(string[] args, string key)
@@ -114,6 +116,7 @@ public partial class Main : Control
         foreach(var card in new[]{("indicate","Indicate","センサ値の一覧","センサの状態は別タブに表示"),
             ("race","Race","ラップ計測","タイム・速度・エンジン回転数"),
             ("maps","Maps","現在位置","中心固定の地図表示"),
+            ("status","Status","車両の状態","滑り傾向・冷却系・CAN送信禁止"),
             ("solve","Solve","走行データ解析","経路・速度・加速度"),
             ("settings","Settings","設定","車体・センサ・地図・接続")})
         {
@@ -174,7 +177,7 @@ public partial class Main : Control
     {
         var prefs=_settings.CurrentSensors();
         return Catalog.Sensors.Where(s=>prefs[s.Id].Visible&&_settings.SourceEnabled(s.Source))
-            .OrderBy(s=>_settings.Vehicle=="ux250h" ? s.Source switch { "CAN"=>0,"GNSS"=>1,"IMU"=>2,_=>3 }
+            .OrderBy(s=>_settings.Vehicle is "ux250h" or "roadster" ? s.Source switch { "CAN"=>0,"GNSS"=>1,"IMU"=>2,_=>3 }
                 : s.Source switch { "GNSS"=>0,"IMU"=>1,"CAN"=>2,_=>3 }).ToArray();
     }
     private void BuildRace()
@@ -237,13 +240,14 @@ public partial class Main : Control
     }
     private void UpdateUi(double now)
     {
+        UpdateStatus(now);
         var info=_connection.Info;
         var demo=_demo!=null;
         _connectionLabel.Text=demo?"DEMO · 模擬データ":info.Message+(info.Port.Length>0?" · "+info.Port:"");
         _connectionLabel.AddThemeColorOverride("font_color",demo?Ui.Amber:info.State=="connected"?Ui.Accent:Ui.Amber);
         _demoButton.Text=demo?"デモを終了してUSBへ":"デモで試す";
         _vehicleLabel.Text=Catalog.Vehicle(_settings.Vehicle).Name+"  /  "+(_settings.Vehicle=="none"?"GNSS + IMU":"EcoLogger専用");
-        var footer=(demo?"DEMO：実測値ではありません。  ":"")+(_notice.Length>0?_notice:"1–5：画面切替  /  Esc：ホーム  /  F11：全画面")+"    EcoCapture 0.3.6";
+        var footer=(demo?"DEMO：実測値ではありません。  ":"")+(_notice.Length>0?_notice:"1–5：画面切替 / 6：Status  /  Esc：ホーム  /  F11：全画面")+"    EcoCapture 0.3.11";
         _footer.Text=footer;
         if (_page=="indicate")
         {
@@ -350,7 +354,7 @@ public partial class Main : Control
         switch(key.Keycode)
         {
             case Key.Key1:ShowPage("indicate");break; case Key.Key2:ShowPage("race");break;
-            case Key.Key3:ShowPage("maps");break; case Key.Key4:ShowPage("solve");break; case Key.Key5:ShowPage("settings");break; case Key.Escape:ShowPage("home");break;
+            case Key.Key6:ShowPage("status");break; case Key.Key3:ShowPage("maps");break; case Key.Key4:ShowPage("solve");break; case Key.Key5:ShowPage("settings");break; case Key.Escape:ShowPage("home");break;
             case Key.F11: DisplayServer.WindowSetMode(DisplayServer.WindowGetMode()==DisplayServer.WindowMode.Fullscreen?DisplayServer.WindowMode.Windowed:DisplayServer.WindowMode.Fullscreen);break;
         }
     }
@@ -363,7 +367,7 @@ public partial class Main : Control
         {
             Directory.CreateDirectory(_smokeDirectory!);
             StartUxDemo();
-            foreach(var page in new[]{"home","indicate","diagnostics","race","maps","solve","settings"})
+            foreach(var page in new[]{"home","indicate","diagnostics","race","maps","status","solve","settings"})
             {
                 ShowPage(page=="diagnostics"?"indicate":page);
                 if(page=="diagnostics") _indicateTabs.CurrentTab=1;
@@ -385,6 +389,39 @@ public partial class Main : Control
             using(var acquisitionImage=GetViewport().GetTexture().GetImage()) acquisitionImage.SavePng(Path.Combine(_smokeDirectory!,"settings-vehicle.png"));
             if(!_uxAcquire.Disabled||!_obdStop.Disabled) throw new Exception("Demo must never send vehicle commands");
             _race.Stop(ConnectionManager.Now);
+            _vehicleSelector.Selected=1; _vehicleSelector.EmitSignal(OptionButton.SignalName.ItemSelected,1L);
+            ShowPage("indicate"); _indicateTabs.CurrentTab=0;
+            await ToSignal(GetTree().CreateTimer(.5),SceneTreeTimer.SignalName.Timeout);
+            await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+            using(var ncImage=GetViewport().GetTexture().GetImage()) ncImage.SavePng(Path.Combine(_smokeDirectory!,"roadster.png"));
+            var ncScroll=(ScrollContainer)_indicateTabs.GetChild(0);
+            foreach(var position in new[]{("middle",.5),("bottom",1.0)}) {
+                ncScroll.ScrollVertical=(int)(ncScroll.GetVScrollBar().MaxValue*position.Item2);
+                await ToSignal(GetTree().CreateTimer(.25),SceneTreeTimer.SignalName.Timeout);
+                await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+                using var ncImage=GetViewport().GetTexture().GetImage(); ncImage.SavePng(Path.Combine(_smokeDirectory!,"roadster-"+position.Item1+".png"));
+            }
+            ncScroll.ScrollVertical=0;
+            ShowPage("status");
+            await ToSignal(GetTree().CreateTimer(.3),SceneTreeTimer.SignalName.Timeout);
+            await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+            using(var statusImage=GetViewport().GetTexture().GetImage()) statusImage.SavePng(Path.Combine(_smokeDirectory!,"roadster-status.png"));
+            _updateAt=ConnectionManager.Now+10; _drivingStatus.Reset();
+            var warningNow=ConnectionManager.Now;
+            for(int i=0;i<8;i++) {
+                var at=warningNow-.7+i*.1;
+                _frame=new TelemetryFrame(at,(ulong)(at*1e6),97,new Dictionary<string,double> {
+                    ["WheelSpeedFL"]=60,["WheelSpeedFR"]=60,["WheelSpeedRL"]=70,["WheelSpeedRR"]=70,
+                    ["BrakePedal"]=0,["ClutchDisengaged"]=0,["ParkingBrake"]=0,["WaterTemp"]=95,["ACRequest"]=1 });
+                UpdateStatus(at);
+            }
+            await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+            using(var warningImage=GetViewport().GetTexture().GetImage()) warningImage.SavePng(Path.Combine(_smokeDirectory!,"status-warning.png"));
+            if(!_drivingBanner.Visible) throw new Exception("Driving warning banner absent");
+            ShowPage("race");
+            await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+            using(var bannerImage=GetViewport().GetTexture().GetImage()) bannerImage.SavePng(Path.Combine(_smokeDirectory!,"race-warning.png"));
+            _updateAt=0; _drivingStatus.Reset();
             _vehicleSelector.Selected=3; _vehicleSelector.EmitSignal(OptionButton.SignalName.ItemSelected,3L);
             if(_settings.Vehicle!="none"||_settings.CanEnabled) throw new Exception("No-CAN UI selection failed");
             foreach(var page in new[]{"indicate","race"})
@@ -396,7 +433,7 @@ public partial class Main : Control
             }
             var saved=SettingsStore.Load(_settingsPath,out var loadWarning);
             if(saved.Vehicle!="none"||saved.CanEnabled||loadWarning!=null) throw new Exception("No-CAN persistence failed");
-            File.WriteAllText(Path.Combine(_smokeDirectory!,"ui-smoke.json"),JsonSerializer.Serialize(new{passed=true,pages=13,noCanPersisted=true,liveShareTab=true,vehicleCommandsDisabledInDemo=true,tiles=_map.TileStatus}));
+            File.WriteAllText(Path.Combine(_smokeDirectory!,"ui-smoke.json"),JsonSerializer.Serialize(new{passed=true,pages=20,noCanPersisted=true,liveShareTab=true,vehicleCommandsDisabledInDemo=true,tiles=_map.TileStatus}));
             GetTree().Quit();
         }
         catch(Exception e) { GD.PushError(e.ToString()); GetTree().Quit(1); }

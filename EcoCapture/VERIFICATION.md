@@ -126,3 +126,24 @@ Windows x64 EXEと同梱ランタイム、Linux ARM64のELFと同梱ランタイ
 - `dist/SHA256SUMS.txt`：配布ZIPの照合値。
 
 実測画像、地図キャッシュ、設定には位置情報が含まれるため、エビデンスはローカルに置き、ZIPやGitへ含めません。
+
+## 2026-09-15 / 0.3.8 NCEC
+
+- 全95チャンネルのUSB疎配列、欠測時の値消去、デモ、保存設定、既存機能の102チェック合格。
+- Windows x64 / Linux ARM64の配布アーカイブCRC・構成・アーキテクチャ・自己完結.NETを検証。
+- Windows配布版の16画面を生成して目視検査。ロードスターのCAN優先表示、4輪左右、ペダル、ON/OFF、燃料平均を確認。
+- 新ファームを接続したライブUSB・SD取得は書き込み後に実施する。ARM64実機起動は未検証。
+- 仕様と制限は `NCEC_V1.md`、画面証拠は `artifacts/smoke-038-final/`。
+
+
+### 2026-09-15 実機書き込み後
+
+- 車載CAN切り離し・SD安全停止後に書き込み、フラッシュハッシュ照合と版読戻し成功。
+- 保存設定（NC/OBD/外部CAN/水平補正）一致、schema97 / 95ch確認。
+- CAN再接続後61秒：692.02fps、SD99.97Hz。SD欠落・CANエラー・USB欠落の増加0。
+- 起動時SD欠落213、再接続前後CANエラー30は累計に残る。原因未確定であり、起動から完全無欠落と扱わない。
+- Windows配布版COM10：17項目＋燃料平均を受信、試験中56追加サンプル、不正フレーム0。画面を目視確認。
+- SD読戻し：97列、末尾55行の全18項目値を確認。水温/ペダル冗長値一致、未確定EngineLoad空欄、正常クローズ。
+- ブレーキ・クラッチはユーザーの踏み込み/解放と対応する0→1→0を確認。サイドブレーキ1を保持。
+- 通常のEcoCaptureを0.3.8へ切替済み。スタートメニュー起動先も更新。
+- 証拠：roadster_20260915/{upload.log,after_flash.json,settings_readback.json,live_new_firmware.json,new_sd_verification.json,switch_check.json}、EcoCapture/artifacts/ncec-live-20260915/。

@@ -3,7 +3,7 @@ namespace EcoCapture.Core;
 /// <summary>Explicit, synthetic demonstration data. Never enabled by connection failures.</summary>
 public sealed class DemoSource
 {
-    public const uint LoggerSchema = 84;
+    public const uint LoggerSchema = 97;
     public static readonly string[] LoggerChannels = {
         "RPM","Speed","WaterTemp","OilPress","Lat","Lon","GPSSpeed","Altitude",
         "GPSHAcc","GPSSats","GPSFix","GNSSHz","UTCValid","AccelX","AccelY","AccelZ",
@@ -15,7 +15,8 @@ public sealed class DemoSource
         "CAN1Rx","CAN2Rx","CANDrops","LuaOK","GPSTow","GPSUTC","GPSTAcc","PPSAge",
         "GNSSAcq","GNSSTrack","GNSSCNoMax","GNSSCNoTop4","RFNoise","RFAGC","RFJam","RFCW",
         "GNSSRetry","GNSSAge","GNSSBad","LevelRoll","LevelPitch","LongAccel","LatAccel","VertAccel",
-        "GPSVAcc","SteeringAngle"
+        "GPSVAcc","SteeringAngle",
+        "WheelSpeedFL","WheelSpeedFR","WheelSpeedRL","WheelSpeedRR","AccelPedal","AccelPedalBackup","BrakePedal","ACRequest","ClutchDisengaged","WaterTempBackup","FuelLevelRaw","ParkingBrake","FuelLevel"
     };
     private readonly double _start;
     private readonly long _utcStartMs;
@@ -68,6 +69,11 @@ public sealed class DemoSource
             ["ElapsedTime"] = t/60, ["PredTime"] = .04*Math.Sin(phase), ["SessionTime"] = t/60,
             ["Distance"] = lapDistance / 1000
         };
+        foreach (var name in new[]{"WheelSpeedFL","WheelSpeedRL"}) v[name]=speed-speedMps/radius*1.5/2*3.6;
+        foreach (var name in new[]{"WheelSpeedFR","WheelSpeedRR"}) v[name]=speed+speedMps/radius*1.5/2*3.6;
+        v["AccelPedal"]=v["AccelPedalBackup"]=45+10*Math.Sin(phase);
+        v["BrakePedal"]=0; v["ACRequest"]=1; v["ClutchDisengaged"]=0; v["ParkingBrake"]=0;
+        v["WaterTempBackup"]=v["WaterTemp"]; v["FuelLevelRaw"]=42+2*Math.Sin(t); v["FuelLevel"]=42;
         return new(now, (ulong)Math.Max(0,t * 1e6), LoggerSchema, v);
     }
 }

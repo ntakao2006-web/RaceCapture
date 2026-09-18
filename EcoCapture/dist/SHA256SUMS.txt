@@ -2,3 +2,11 @@ e5d9d7b4da0a2af0387f94ab990121b55035aeb0d9c29dda6b44ae45cde5652d  EcoCapture-0.3
 b2a6c11cbbdc723180b9789562a3f14e268701ccd0e60c4d68274b0e7d48fb2f  EcoCapture-0.3.5-linux-arm64.zip
 fe9e6723aef66f8a77ab6f2d8247795e0f1af380413ecf6119e94b827337a6c6  EcoCapture-0.3.7-windows-x64.zip
 c08c348a36aa6c2fa6daecbc92fe6534c8a062b5a27ca83b5236017cead267eb  EcoCapture-0.3.7-linux-arm64.zip
+77b7bebe7cf7c1e173bfab437153c5acc6c8e8267d1f3b1f9f1f1ecfc8fbcaed  EcoCapture-0.3.8-windows-x64.zip
+d9742d6fab7c4fe90abd2a23b3dc780cd5c0da1e3a9685c283d1532f78b38e69  EcoCapture-0.3.8-linux-arm64.zip
+f06220f66cf9bef373cf68e6a059d24c5ea0acf705a89541d12d51a010e830a5  EcoCapture-0.3.9-windows-x64.zip
+1047bd9e6f081976916bb0bd22afb7922e1875d89b66d7fd9dec05cc120cc91d  EcoCapture-0.3.9-linux-arm64.zip
+29bf07f3b96c4fb2711d330de5b7909da96918310dbd0eb94fd2ff43b8e926a8  EcoCapture-0.3.10-windows-x64.zip
+91473908f5911486dcb59f16953985c0f86d34a13e0034afc17530c9128e109c  EcoCapture-0.3.10-linux-arm64.zip
+e56d707e4bb8e3eca5ae7e6a590b3f766a6656e9bbc356dd9d02959aaaf6b879  EcoCapture-0.3.11-windows-x64.zip
+aadb1505d631b8e65743e526b0e992a72c956c92c617156765250b518e7b48be  EcoCapture-0.3.11-linux-arm64.zip

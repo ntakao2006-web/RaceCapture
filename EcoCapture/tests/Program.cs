@@ -20,10 +20,43 @@ static class Program
         try
         {
             if(args.Contains("--bench")) return await Bench(args);
-            ProtocolTests(); SettingsTests(); NavigationTests(); DemoTests(); VehicleTests(); LapTests(); SolveTests(); await LiveShareTests(); await ConnectionTests(); LinuxTests();
+            TxPolicyTests(); DrivingTests(); ProtocolTests(); SettingsTests(); NavigationTests(); DemoTests(); VehicleTests(); LapTests(); SolveTests(); await LiveShareTests(); await ConnectionTests(); LinuxTests();
             Console.WriteLine($"PASS: {checks} checks (protocol, settings, navigation, demo motion, laps, solve, calibration, live share, reconnect lifecycle)"); return 0;
         }
         catch(Exception e) { Console.Error.WriteLine(e); return 1; }
+    }
+    static void TxPolicyTests() {
+        var status=new Dictionary<string,string>{{"CAN.vehicleObdOnly","True"},{"CAN.arbitraryTxBlocked","True"},{"CAN.obdEnabled","True"}};
+        Check(VehicleDiagnostics.TxPolicy(status,true,false)=="CAN受信 ＋ OBD読取のみ送信","OBD-only status");
+        status["CAN.obdEnabled"]="False";Check(VehicleDiagnostics.TxPolicy(status,true,false).Contains("停止中"),"OBD stopped status");
+        status["CAN.vehicleTxLocked"]="True";Check(VehicleDiagnostics.TxPolicy(status,true,false).StartsWith("送信禁止"),"old locked firmware stays identified");
+        Check(VehicleDiagnostics.TxPolicy(status,false,false).Contains("確認待ち"),"disconnected policy unknown");
+    }
+    static void DrivingTests()
+    {
+        var settings=new AppSettings {Vehicle="roadster",CanEnabled=true,VehicleAxesConfirmed=true};
+        var detector=new DrivingStatus();
+        TelemetryFrame Sample(double t,double rear=60,double yaw=10,double brake=0)=>new(t,(ulong)(t*1e6),97,new Dictionary<string,double> {
+            ["WheelSpeedFL"]=60,["WheelSpeedFR"]=60,["WheelSpeedRL"]=rear,["WheelSpeedRR"]=rear,
+            ["BrakePedal"]=brake,["ClutchDisengaged"]=0,["ParkingBrake"]=0,["IMUCal"]=255,["IMULink"]=1,["IMUErr"]=0,
+            ["GravityX"]=0,["GravityY"]=0,["GravityZ"]=9.80665,["GyroX"]=0,["GyroY"]=0,["GyroZ"]=yaw,
+            ["GForceX"]=0,["GForceY"]=10*Math.PI/180*(60/3.6)/9.80665,["GForceZ"]=0 });
+        DrivingAssessment a=new("","");
+        for(int i=10;i<25;i++) a=detector.Update(Sample(i*.1),i*.1,settings);
+        Check(!a.Warning,"steady circle does not warn");
+        for(int i=25;i<32;i++) a=detector.Update(Sample(i*.1,70,25),i*.1,settings);
+        Check(a.Warning && a.State=="オーバーステア疑い","sustained slip and yaw warn");
+        a=detector.Update(Sample(3.2,70,25,1),3.2,settings);Check(!a.Warning,"braking clears warning");
+        detector.Reset();for(int i=40;i<46;i++) a=detector.Update(Sample(i*.1,70),i*.1,settings);
+        Check(a.Warning && a.State=="後輪スリップ傾向","wheel slip alone warns");
+        for(int i=46;i<58;i++) a=detector.Update(Sample(i*.1),i*.1,settings);
+        Check(!a.Warning,"warning clears with hysteresis");
+        detector.Reset();a=detector.Update(Sample(6,70,25),6,settings);a=detector.Update(Sample(6,70,25),6.8,settings);
+        Check(!a.Warning,"duplicate samples do not build persistence");
+        a=detector.Update(Sample(6,70,25),8,settings);Check(!a.Warning&&a.State=="データ待ち","stale sample disables warning");
+        settings.VehicleAxesConfirmed=false;detector.Reset();for(int i=90;i<100;i++)a=detector.Update(Sample(i*.1,60,25),i*.1,settings);
+        Check(!a.Warning && a.YawResidualDps==null,"unconfirmed mounting disables yaw");
+        settings.DrivingWarnings=false;a=detector.Update(Sample(10,70,25),10,settings);Check(!a.Warning,"user can disable warnings");
     }
     static void ProtocolTests()
     {
@@ -98,7 +131,14 @@ static class Program
     {
         var demo=new DemoSource(1000,DateTimeOffset.FromUnixTimeSeconds(1788284160)); var distance=0d; var expected=0d;
         var contract=DemoSource.LoggerChannels.ToHashSet(StringComparer.Ordinal); var first=demo.Frame(1000);
-        Check(contract.Count==82&&contract.SetEquals(first.Values.Keys),"demo exposes exactly the current USB-OTG schema channels");
+        Check(contract.Count==95&&contract.SetEquals(first.Values.Keys),"demo exposes exactly the current USB-OTG schema channels");
+        var wire=new RcpDecoder();
+        wire.SetMetadata(Json(JsonSerializer.Serialize(DemoSource.LoggerChannels.Select(n=>new{nm=n,ut="",sr=10}))));
+        var wireData=DemoSource.LoggerChannels.Select(n=>first.Values[n]).Concat(new double[]{uint.MaxValue,uint.MaxValue,0x7fffffff}).ToArray();
+        var decoded=wire.Decode(Json(JsonSerializer.Serialize(new{schema=DemoSource.LoggerSchema,monotonic_us=100,d=wireData})),1000);
+        Check(decoded.Values.Count==95 && decoded.Get("FuelLevel")==first.Get("FuelLevel"),"95 channels survive three bitmap USB contract");
+        var absent=wire.Decode(Json(JsonSerializer.Serialize(new{schema=DemoSource.LoggerSchema,monotonic_us=200,d=new[]{0,0,0}})),1001);
+        Check(absent.Get("BrakePedal")==null && absent.Get("FuelLevel")==null,"NC missing fields cannot retain last state");
         Check(first.Schema==DemoSource.LoggerSchema&&first.Values.Values.All(double.IsFinite),"demo uses USB schema revision and finite values");
         for(var i=0;i<100;i++)
         {
@@ -117,6 +157,11 @@ static class Program
         var demo=new DemoSource(0); var zero=demo.Frame(1); var running=demo.Frame(12);
         Check(zero.Get("RPM")==0&&running.Get("RPM")>0,"UX demo contains EV and engine running phases");
         Check(zero.Get("SteeringAngle") is double a&&a<0&&a>-500,"demo steering matches clockwise route");
+        var nc=new AppSettings { Vehicle="roadster", CanEnabled=true };
+        Check(nc.CurrentSensors()["WheelSpeedFL"].Visible && nc.CurrentSensors()["BrakePedal"].Visible,"NC defaults include wheel speed and brake");
+        var ncDemo=demo.Frame(12,"roadster");
+        Check(ncDemo.Get("AccelPedal")==ncDemo.Get("AccelPedalBackup"),"NC redundant pedal contract");
+        Check(ncDemo.Get("WheelSpeedFL")<ncDemo.Get("WheelSpeedFR"),"NC demo clockwise inside wheel is slower");
         var st=new Dictionary<string,string>{{"CAN.obdEnabled","true"},{"CAN.vehicleOK","true"},{"CAN.obdDiscovering","false"}};
         Check(VehicleDiagnostics.Summary(st,zero,1,false,true).Contains("0 rpm"),"valid hybrid zero is not an error");
         Check(VehicleDiagnostics.Summary(st,zero,4,false,true).Contains("欠測"),"stale zero is missing");

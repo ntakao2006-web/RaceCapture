@@ -276,6 +276,14 @@ static void status(JsonObject s) {
     }
     auto ca = s["CAN"].to<JsonObject>();
     ca["vehicleListenOnly"] = stats.vehicle_listen_only.load();
+    ca["vehicleTxLocked"] = false;
+    ca["vehicleObdOnly"] = true;
+    ca["arbitraryTxBlocked"] = true;
+    ca["fan1103Raw"] = stats.fan_raw[0].load();
+    ca["fan0967Raw"] = stats.fan_raw[1].load();
+    ca["fan1103AgeMs"] = stats.fan_updated_ms[0] ? uint32_t(nowUs()/1000)-stats.fan_updated_ms[0].load() : UINT32_MAX;
+    ca["fan0967AgeMs"] = stats.fan_updated_ms[1] ? uint32_t(nowUs()/1000)-stats.fan_updated_ms[1].load() : UINT32_MAX;
+    ca["fanResponses"] = stats.fan_responses.load(); ca["fanTimeouts"] = stats.fan_timeouts.load(); ca["fanNegative"] = stats.fan_negative.load();
     ca["vehicleRx"] = stats.can1_rx.load();
     ca["hubRx"] = stats.can2_rx.load();
     ca["vehicleOK"] = stats.can1_ok.load();
@@ -461,18 +469,7 @@ static void handle(JsonDocument &in, Transport &t) {
     else if (!strcmp(cmd, "readLog"))
         readLog(out, v, t.file_buffer);
     else if (!strcmp(cmd, "testCanLoop")) {
-        bool ok;
-        {
-            Guard lock(state_mutex);
-            ok = !vehicle_acquisition.obd_enabled && stats.vehicle_listen_only && !config.hub_broadcast && stats.can2_ok &&
-                 stats.bench_status != 1;
-        }
-        ok = ok && !strcmp(v["confirm"] | "", "DESK_CAN1_CAN2_LOOP");
-        if (ok)
-            stats.bench_request = true;
-        result(out, cmd, ok,
-               ok ? "Queued: desk only; two test frames, CAN1 ACK enabled for at most one second"
-                  : "Requires desk loop confirmation and broadcast disabled");
+        result(out, cmd, false, "Arbitrary vehicle CAN TX is prohibited; only OBD requests are allowed");
     } else if (!strcmp(cmd, "getMeta"))
         metadataArray(out["meta"].to<JsonArray>());
     else if (!strcmp(cmd, "getStatus"))
@@ -678,6 +675,9 @@ static void handle(JsonDocument &in, Transport &t) {
         Guard lock(state_mutex);
         o["obdEnabled"] = bool(vehicle_acquisition.obd_enabled);
         o["toyotaSteering"] = bool(vehicle_acquisition.toyota_steering);
+        o["vehicleTxLocked"] = false;
+        o["vehicleObdOnly"] = true;
+        o["arbitraryTxBlocked"] = true;
         o["baud"] = 500000; o["addressBits"] = 11;
         o["mode"] = 1; o["maxRequestsPerSecond"] = 10;
         o["steeringDefinition"] = "opendbc Toyota 0x025; verify on vehicle; not guaranteed via OBD port";
@@ -689,8 +689,8 @@ static void handle(JsonDocument &in, Transport &t) {
         bool ok = typed && stats.bench_status != 1 &&
                   (!candidate.obd_enabled || !strcmp(v["confirm"] | "", "READ_ONLY_OBD"));
         if (ok) ok = saveVehicleAcquisition(candidate);
-        result(out, cmd, ok, ok ? "Saved; OBD is Mode 01 only, Toyota steering is receive-only"
-            : "Rejected or persistence failed; stop is applied even if saving fails; check getStatus");
+        result(out, cmd, ok, ok ? "Saved; vehicle TX allows only bounded Mode 01 and two Mazda Mode 22 read requests"
+            : "Rejected or persistence failed; only confirmed Mode 01 polling is permitted");
     } else if (!strcmp(cmd, "getConnCfg")) {
         auto o = out["connCfg"].to<JsonObject>();
         o["btCfg"]["btEn"] = 0;

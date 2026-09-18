@@ -28,6 +28,7 @@ public partial class Main
     }
     private async void SetVehicleAcquisition(bool enabled,bool steering)
     {
+        if(enabled && _connection.Status.TryGetValue("CAN.vehicleTxLocked",out var locked) && locked.Equals("true",StringComparison.OrdinalIgnoreCase)) { _vehicleResult.Text="このロガーは車載CAN送信禁止です。"; return; }
         if(_vehicleCommandBusy||_demo!=null||(enabled&&_race.Running)) return;
         _vehicleCommandBusy=true;
         try
@@ -59,7 +60,7 @@ public partial class Main
             $"\n要求受付 {Get("obdSent")} / 応答 {Get("obdResponses")} / タイムアウト {Get("obdTimeouts")} / 受付エラー {Get("obdTxErrors")}"+
             $"\nCAN受信 {Get("vehicleRx")} / 舵角フレーム {Get("steeringRx")} / 通信エラー {Get("vehicleErrors")}";
         var disabled=!connected||!_connection.VehicleAcquisitionSupported||_demo!=null||_vehicleCommandBusy;
-        _uxAcquire.Disabled=_obdAcquire.Disabled=disabled||_race.Running;
+        _uxAcquire.Disabled=_obdAcquire.Disabled=disabled||_race.Running||(status.TryGetValue("CAN.vehicleTxLocked",out var locked)&&locked.Equals("true",StringComparison.OrdinalIgnoreCase));
         _obdStop.Disabled=disabled;
     }
 }

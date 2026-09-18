@@ -49,7 +49,7 @@ public sealed class LiveShareClient : IDisposable
     private static readonly string[] Channels = {
         "Lat","Lon","GPSSpeed","Speed","RPM","LongAccel","LatAccel","VertAccel",
         "LevelRoll","LevelPitch","Roll","Pitch","GPSFix","GPSHAcc","GPSSats",
-        "Altitude","BatteryVolt","WaterTemp","OilTemp","OilPress","Throttle","EngineLoad","SteeringAngle"
+        "Altitude","BatteryVolt","WaterTemp","OilTemp","OilPress","Throttle","EngineLoad","SteeringAngle","WheelSpeedFL","WheelSpeedFR","WheelSpeedRL","WheelSpeedRR","AccelPedal","AccelPedalBackup","BrakePedal","ACRequest","ClutchDisengaged","WaterTempBackup","FuelLevelRaw","ParkingBrake","FuelLevel"
     };
     private readonly object _gate = new();
     private readonly HttpClient _http;
@@ -66,7 +66,7 @@ public sealed class LiveShareClient : IDisposable
     {
         _http=handler==null?new HttpClient():new HttpClient(handler);
         _http.Timeout=TimeSpan.FromSeconds(10);
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("EcoCapture/0.3.6");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("EcoCapture/0.3.11");
         if(autoStart) _loop=Task.Run(RunAsync);
     }
     public LiveShareStatus Status { get { lock(_gate) return _status with { Queued=_queue.Count }; } }

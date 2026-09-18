@@ -1,4 +1,4 @@
-# EcoCapture 0.3.7 システム要件
+# EcoCapture 0.3.8 システム要件
 
 この文書は現在の配布版を対象にします。Windows版は実機確認済み、Linux ARM64版はRaspberry Pi 4B実機での起動・UI描画まで確認済み（2026-09-02、詳細は[LINUX.md](LINUX.md)）で、ROCK 5B実機では未確認です。
 

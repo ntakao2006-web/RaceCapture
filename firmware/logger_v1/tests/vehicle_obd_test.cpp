@@ -69,5 +69,17 @@ int main() {
     f.data[4]=0x80; assert(!decodeToyotaSteering(f,angle));
     f.data[0]=f.data[1]=f.data[4]=0; assert(decodeToyotaSteering(f,angle)&&angle==0);
     f.dlc=7; assert(!decodeToyotaSteering(f,angle)); f.dlc=8; f.id=0x260; assert(!decodeToyotaSteering(f,angle));
+    CanFrame allowed{}; allowed.bus=1;allowed.tx=true;allowed.id=0x7e0;allowed.dlc=8;allowed.data[0]=2;allowed.data[1]=1;allowed.data[2]=0x0c;
+    assert(allowedObdRequest(allowed));
+    for(unsigned mode=0;mode<256;++mode) { auto bad=allowed;bad.data[1]=mode;assert(allowedObdRequest(bad)==(mode==1)); }
+    for(unsigned id=0;id<2048;++id) {auto bad=allowed;bad.id=id;assert(allowedObdRequest(bad)==(id==0x7df||(id>=0x7e0&&id<=0x7e7)));}
+    for(unsigned pid=0;pid<256;++pid) { auto bad=allowed;bad.data[2]=pid;bool ok=pid==0||pid==0x20||pid==0x40||pid==0x0c||pid==0x0d||pid==0x11||pid==4||pid==5||pid==0x0f||pid==0x42||pid==0x5c;assert(allowedObdRequest(bad)==ok); }
+    auto bad=allowed;bad.extended=true;assert(!allowedObdRequest(bad));bad=allowed;bad.rtr=true;assert(!allowedObdRequest(bad));bad=allowed;bad.data[7]=1;assert(!allowedObdRequest(bad));bad=allowed;bad.dlc=7;assert(!allowedObdRequest(bad));
+    FanProbe probe;probe.reset(0);assert(!probe.next(1999999,q));assert(probe.next(2000000,q)&&allowedObdRequest(q)&&q.data[2]==0x11&&q.data[3]==3);
+    f=CanFrame{};f.bus=1;f.id=0x7e8;f.dlc=8;f.us=2010000;f.data[0]=4;f.data[1]=0x62;f.data[2]=0x11;f.data[3]=3;f.data[4]=12;
+    probe.receive(f);assert(probe.responses==1&&probe.raw[0]==12&&!probe.busy(f.us));
+    assert(probe.next(4010000,q)&&allowedObdRequest(q)&&q.data[2]==9&&q.data[3]==0x67);
+    auto unsafe=q;unsafe.data[3]=0x68;assert(!allowedObdRequest(unsafe));unsafe=q;unsafe.data[1]=0x2e;assert(!allowedObdRequest(unsafe));unsafe=q;unsafe.id=0x7df;assert(!allowedObdRequest(unsafe));
+    assert(!probe.busy(4260000)&&probe.timeouts==1);assert(!probe.next(4260010,q));
     std::cout<<"PASS vehicle OBD scheduling, discovery, response lock, functional routing, zero RPM, timeouts, steering\n";
 }

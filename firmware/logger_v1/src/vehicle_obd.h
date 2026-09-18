@@ -43,6 +43,48 @@ inline bool decodeToyotaSteering(const CanFrame &f, double &angle) {
     return std::abs(angle) <= 500; // Published signal range; reject sentinel/outliers.
 }
 
+// Final TX allowlist. No generic frame sender may bypass this gate.
+inline bool allowedObdRequest(const CanFrame &f) {
+    if (f.bus != 1 || !f.tx || f.rtr || f.extended || f.dlc != 8 ||
+        (f.id != 0x7df && (f.id < 0x7e0 || f.id > 0x7e7))) return false;
+    if (f.data[0]==3 && f.data[1]==0x22 && f.id==0x7e0) {
+        for(unsigned i=4;i<8;++i) if(f.data[i]) return false;
+        return (f.data[2]==0x11 && f.data[3]==0x03) || (f.data[2]==0x09 && f.data[3]==0x67);
+    }
+    if(f.data[0]!=2 || f.data[1]!=1) return false;
+    for (unsigned i=3;i<8;++i) if (f.data[i] != 0) return false;
+    switch (f.data[2]) {
+    case 0x00: case 0x20: case 0x40: // supported PID discovery
+    case 0x0c: case 0x0d: case 0x11: case 0x04: case 0x05: case 0x0f: case 0x42: case 0x5c: return true;
+    default: return false;
+    }
+}
+
+// Two read-only Mazda candidates. Values remain raw until vehicle correlation.
+class FanProbe {
+ public:
+    uint32_t sent=0,responses=0,timeouts=0,negative=0;
+    uint8_t raw[2]{}; uint64_t updated[2]{};
+    void reset(uint64_t now) { *this=FanProbe{}; due_=now+2000000; }
+    bool busy(uint64_t now) { if(waiting_&&now>=deadline_) {++timeouts;finish(now,5000000);} return waiting_; }
+    bool next(uint64_t now,CanFrame &f) {
+        if(busy(now)||now<due_)return false;
+        slot_=1-slot_; f=CanFrame{};f.bus=1;f.tx=true;f.id=0x7e0;f.dlc=8;f.us=now;
+        f.data[0]=3;f.data[1]=0x22;f.data[2]=slot_?0x09:0x11;f.data[3]=slot_?0x67:0x03;
+        waiting_=true;deadline_=now+250000;return true;
+    }
+    void failed(uint64_t now){finish(now,5000000);}
+    void receive(const CanFrame &f) {
+        if(!waiting_||f.us>=deadline_||!obdSingleFrame(f)||f.id!=0x7e8)return;
+        if(f.data[1]==0x7f&&f.data[2]==0x22){++negative;finish(f.us,10000000);return;}
+        if(f.data[0]<4||f.data[1]!=0x62||f.data[2]!=(slot_?0x09:0x11)||f.data[3]!=(slot_?0x67:0x03))return;
+        raw[slot_]=f.data[4];updated[slot_]=f.us;++responses;finish(f.us,2000000);
+    }
+ private:
+    bool waiting_=false;unsigned slot_=1;uint64_t due_=0,deadline_=0;
+    void finish(uint64_t now,uint64_t delay){waiting_=false;due_=now+delay;}
+};
+
 // Hardware-independent bounded scheduler. All times in monotonic microseconds.
 // Only Mode 01, 11-bit Classical CAN. No DTC clear, UDS, actuation or session changes.
 class ObdPoller {
@@ -79,6 +121,7 @@ class ObdPoller {
         waiting_ = true; deadline_ = now + 250000; next_ = now + 100000;
         return true;
     }
+    bool idle() const { return !waiting_; }
     void queued() { ++sent; } // Accepted by driver, NOT proof of CAN ACK/ECU reply.
     void txFailed(uint64_t now) { ++tx_errors; fail(now); next_ = std::max(next_, now + 1000000); }
     bool receive(const CanFrame &f, ObdValue &value) {

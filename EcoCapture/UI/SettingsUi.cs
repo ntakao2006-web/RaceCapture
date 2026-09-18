@@ -120,8 +120,8 @@ public partial class Main
             if(_settings.ForwardAxis[1]==_settings.UpAxis[1]) { _notice="前方と上方に同じ軸は指定できません。"; return; }
             _settings.ImuAid=x; _position.Reset(); SaveSettings();
         });
-        forward.ItemSelected+=i=> { _settings.ForwardAxis=axes[i]; _settings.ImuAid=false; aid.SetPressedNoSignal(false); _position.Reset(); SaveSettings(); };
-        up.ItemSelected+=i=> { _settings.UpAxis=axes[i]; _settings.ImuAid=false; aid.SetPressedNoSignal(false); _position.Reset(); SaveSettings(); };
+        forward.ItemSelected+=i=> { _settings.VehicleAxesConfirmed=false; _settings.ForwardAxis=axes[i]; _settings.ImuAid=false; aid.SetPressedNoSignal(false); _position.Reset(); SaveSettings(); };
+        up.ItemSelected+=i=> { _settings.VehicleAxesConfirmed=false; _settings.UpAxis=axes[i]; _settings.ImuAid=false; aid.SetPressedNoSignal(false); _position.Reset(); SaveSettings(); };
         aid.Toggled+=x=> { if(x&&_settings.ForwardAxis[1]==_settings.UpAxis[1]) aid.SetPressedNoSignal(false); }; v.AddChild(aid);
     }
     private void BuildLapSettings(VBoxContainer v)

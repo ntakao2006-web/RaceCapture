@@ -11,8 +11,8 @@ public static class Catalog
     public static readonly VehicleProfile[] Vehicles = {
         new("cub", "スーパーカブ / リトルカブ", "空冷単気筒 · 外付けセンサの受信値を表示", 10000,
             new[]{"GPSSpeed","Lat","Lon","RPM","OilTemp","CHT","BatteryVolt","GForceX","VertAccel","Roll","Altitude","Distance"}),
-        new("roadster", "マツダ ロードスター", "型式未確定 · CAN変換設定はロガー側のまま", 9000,
-            new[]{"GPSSpeed","Lat","Lon","RPM","WaterTemp","OilTemp","OilPress","Throttle","BatteryVolt","GForceX","GForceY","VertAccel"}),
+        new("roadster", "マツダ ロードスター", "NCEC 2005 MT · 後期エンジン / NOPRO MZ-TUNE+", 8000,
+            new[]{"Speed","RPM","WaterTemp","IntakeTemp","Throttle","WheelSpeedFL","WheelSpeedFR","WheelSpeedRL","WheelSpeedRR","AccelPedal","BrakePedal","ACRequest","ClutchDisengaged","ParkingBrake","FuelLevel","GPSSpeed"}),
         new("lx", "レクサス LX", "型式・年式未確定 · CAN変換設定はロガー側のまま", 7000,
             new[]{"GPSSpeed","Lat","Lon","RPM","WaterTemp","OilTemp","EngineLoad","Throttle","BatteryVolt","Pitch","Roll","VertAccel"}),
         new("none", "車載CAN接続なし", "GNSS / IMUのみ · 車載CAN項目を標準表示から除外", 10000,
@@ -25,6 +25,19 @@ public static class Catalog
         new("GPSSpeed","速度 · GNSS","km/h","GNSS",0,180,1),
         new("Speed","速度 · 車両","km/h","CAN",0,240,1),
         new("RPM","エンジン回転数","rpm","CAN",0,10000,0),
+        new("WheelSpeedFL","車輪速 · 左前","km/h","CAN",-100,555.35,2,"NCEC 2026-09-12実測定義。"),
+        new("WheelSpeedFR","車輪速 · 右前","km/h","CAN",-100,555.35,2,"NCEC 2026-09-12実測定義。"),
+        new("WheelSpeedRL","車輪速 · 左後","km/h","CAN",-100,555.35,2,"NCEC 2026-09-12実測定義。"),
+        new("WheelSpeedRR","車輪速 · 右後","km/h","CAN",-100,555.35,2,"NCEC 2026-09-12実測定義。"),
+        new("AccelPedal","アクセルペダル","%","CAN",0,100,2,"NCEC 2026-09-12実測定義。ペダルは解放時約30.68%のECU絶対値。"),
+        new("AccelPedalBackup","アクセルペダル · 冗長","%","CAN",0,100,2,"NCEC 2026-09-12実測定義。ペダルは解放時約30.68%のECU絶対値。"),
+        new("BrakePedal","ブレーキペダル","","CAN",0,1,0,"NCEC 2026-09-12実測定義。"),
+        new("ACRequest","A/C要求","","CAN",0,1,0,"NCEC 2026-09-12実測定義。"),
+        new("ClutchDisengaged","クラッチ断","","CAN",0,1,0,"NCEC 2026-09-12実測定義。"),
+        new("WaterTempBackup","冷却水温 · 冗長","C","CAN",-40,215,1,"NCEC 2026-09-12実測定義。"),
+        new("FuelLevelRaw","燃料レベル · 生値","%","CAN",0,100,2,"NCEC実測定義。燃料は満タンを100%へ再補正しません。"),
+        new("ParkingBrake","パーキングブレーキ","","CAN",0,1,0,"NCEC 2026-09-12実測定義。"),
+        new("FuelLevel","燃料レベル · 2秒平均","%","CAN",0,100,2,"NCEC実測定義。燃料は満タンを100%へ再補正しません。"),
         new("SteeringAngle","舵角 · 要実車照合","°","CAN",-500,500,1,"Toyota 0x025受信値。MZAH10で左右・直進を実車照合してください。OBD端子で見えなければ未受信のままです。"),
         new("WaterTemp","冷却水温","°C","CAN",-20,130,1),
         new("OilTemp","油温","°C","CAN",0,150,1),
@@ -111,6 +124,8 @@ public sealed class AppSettings
     public bool ImuEnabled { get; set; } = true;
     public bool CanEnabled { get; set; }
     public bool ImuAid { get; set; }
+    public bool DrivingWarnings { get; set; } = true;
+    public bool VehicleAxesConfirmed { get; set; }
     public string ForwardAxis { get; set; } = "+X";
     public string UpAxis { get; set; } = "+Z";
     public StartLine StartLine { get; set; } = new();

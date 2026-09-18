@@ -9,7 +9,7 @@ root = Path(__file__).resolve().parents[1]
 dist = root/"dist"
 reports = {}
 for tag, directory, binary, expected in (
-    ("windows-x64", "EcoCapture", "EcoCapture.exe", 0x8664),
+    ("windows-x64", "EcoCapture-0.3.11", "EcoCapture.exe", 0x8664),
     ("linux-arm64", "EcoCapture-linux-arm64", "EcoCapture.arm64", 183),
 ):
     path = dist/directory/binary
@@ -23,7 +23,7 @@ for tag, directory, binary, expected in (
         assert data[:6] == b"\x7fELF\x02\x01", "Expected 64-bit little-endian ELF"
         machine = struct.unpack_from("<H", data, 18)[0]
     assert machine == expected
-    archive = dist/("EcoCapture-0.3.7-"+tag+".zip")
+    archive = dist/("EcoCapture-0.3.11-"+tag+".zip")
     with zipfile.ZipFile(archive) as z:
         assert z.testzip() is None
         names = [n.replace("\\", "/") for n in z.namelist()]
@@ -50,6 +50,6 @@ checksums = dist/"SHA256SUMS.txt"
 prior = checksums.read_text(encoding="ascii").splitlines() if checksums.exists() else []
 # 0.3.6 was a local-only candidate and must not leave checksums for artifacts
 # that are intentionally absent from the published repository.
-retained = [line for line in prior if "EcoCapture-0.3.7-" not in line and "EcoCapture-0.3.6-" not in line and line.strip()]
-checksums.write_text("".join(line+"\n" for line in retained)+"".join(r["zip_sha256"]+"  EcoCapture-0.3.7-"+tag+".zip\n" for tag, r in reports.items()), encoding="ascii")
+retained = [line for line in prior if "EcoCapture-0.3.11-" not in line and "EcoCapture-0.3.6-" not in line and line.strip()]
+checksums.write_text("".join(line+"\n" for line in retained)+"".join(r["zip_sha256"]+"  EcoCapture-0.3.11-"+tag+".zip\n" for tag, r in reports.items()), encoding="ascii")
 print(json.dumps(reports, indent=2))

@@ -7,6 +7,38 @@ namespace EcoCapture.UI;
 
 public partial class Main
 {
+    // Read-only vehicle check: no calibration, CAN configuration, log rotation or USB reset.
+    private async void RunNcecLiveCheck()
+    {
+        try {
+            Directory.CreateDirectory(_hardwareDirectory!);
+            _vehicleSelector.Selected=1; _vehicleSelector.EmitSignal(OptionButton.SignalName.ItemSelected,1L);
+            var expected=new[]{"RPM","Speed","WaterTemp","Throttle","IntakeTemp","WheelSpeedFL","WheelSpeedFR",
+                "WheelSpeedRL","WheelSpeedRR","AccelPedal","AccelPedalBackup","BrakePedal","ACRequest",
+                "ClutchDisengaged","WaterTempBackup","FuelLevelRaw","ParkingBrake","FuelLevel"};
+            await WaitUi(()=>_demo==null && _frame?.Fresh(ConnectionManager.Now)==true && expected.All(n=>_frame.Get(n).HasValue),30);
+            var before=_frame!.DeviceUs; var count=_connection.Info.Samples; var bad=_connection.Info.BadFrames;
+            ShowPage("indicate"); _indicateTabs.CurrentTab=0; await CaptureUi("ncec-live-top");
+            var scroll=(ScrollContainer)_indicateTabs.GetChild(0);
+            scroll.ScrollVertical=(int)(scroll.GetVScrollBar().MaxValue*.5); await CaptureUi("ncec-live-middle");
+            scroll.ScrollVertical=(int)scroll.GetVScrollBar().MaxValue; await CaptureUi("ncec-live-bottom");
+            ShowPage("status"); await CaptureUi("status-live");
+            var statusScroll=(ScrollContainer)_pages["status"];
+            statusScroll.ScrollVertical=(int)statusScroll.GetVScrollBar().MaxValue; await CaptureUi("status-live-bottom");
+            await WaitUi(()=>VehicleDiagnostics.Flag(_connection.Status,"vehicleObdOnly"),15);
+            if(!VehicleDiagnostics.Flag(_connection.Status,"arbitraryTxBlocked")) throw new IOException("Arbitrary CAN TX must remain blocked");
+            await ToSignal(GetTree().CreateTimer(5),SceneTreeTimer.SignalName.Timeout);
+            if (_frame?.Fresh(ConnectionManager.Now)!=true || _frame.DeviceUs<=before || _connection.Info.Samples-count<20 || _connection.Info.BadFrames!=bad)
+                throw new IOException("Live USB telemetry did not advance cleanly");
+            File.WriteAllText(Path.Combine(_hardwareDirectory!,"ncec-live.json"),JsonSerializer.Serialize(new {
+                passed=true,usb=_connection.Info,schema=_frame.Schema,channels=_connection.SchemaChannels,
+                status=_connection.Status,canLockText=_canLockStatus.Text,values=_frame.Values,receivedDuringCheck=_connection.Info.Samples-count},new JsonSerializerOptions{WriteIndented=true}));
+            GetTree().Quit();
+        } catch(Exception e) {
+            File.WriteAllText(Path.Combine(_hardwareDirectory!,"ncec-live.json"),JsonSerializer.Serialize(new{passed=false,error=e.ToString()}));
+            GD.PushError(e.ToString()); GetTree().Quit(1);
+        }
+    }
     private async Task WaitUi(Func<bool> condition,double seconds=15)
     {
         var end=ConnectionManager.Now+seconds;
