@@ -230,6 +230,9 @@ def _is_hex(s: str) -> bool:
 PHASE_ACTIONS = {
     "passive": b"p",   # ポーリング停止
     "poll":    b"r",   # ポーリング再開
+    "probe":   b"d",   # mode 22 のDIDプローブを1回実行（読み出しのみ）
+    "scan":    b"s",   # mode 22 のDIDスキャン 0x0000-0x0FFF（読み出しのみ、約3分）
+    "watch":   b"w",   # mode 22 の未知DIDを3分間くり返し読む（読み出しのみ）
     "mark":    None,   # キーは送らず、区切りマーカーだけ残す
 }
 
