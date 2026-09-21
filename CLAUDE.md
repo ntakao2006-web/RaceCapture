@@ -38,7 +38,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `ARCHITECTURE.md`：プロジェクト全体のマスターファイル
 - `hardware_interface_spec.md`：電気・回路系担当の友人と認識合わせをするための入出力インターフェース仕様書
 - `hardware_meeting_agenda.md`：友人とのミーティングをどの順番で進めるかの道しるべ（`hardware_interface_spec.md`各章への案内役）
-- `hardware_share_YYYYMMDD.md`：回路担当へ「前回共有以降に確定したこと」を渡すための日付つき差分メモ（最新は`hardware_share_20260915.md`。バス負荷・CAN周期・4輪特定・基板まわりの訂正と、資料の所在を1枚にまとめたもの）
+- `hardware_share_YYYYMMDD.md`：回路担当へ渡すための日付つきメモ。**最新は`hardware_share_20260921.md`**で、これは差分メモではなく「いま未回答の依頼・質問を全部1枚に集約したもの」（それ以前の資料はどれも未送だったため）。`hardware_share_20260915.md`はバス負荷・CAN周期・4輪特定・基板まわりの訂正をまとめたもので、20260921版の5-2章から判断材料として参照している
 - `HANDOFF.md`：RCP JSONプロトコルの実測仕様の詳細
 - `ncec_can_spec.md`：NCEC（本番車両）のCAN通信仕様（ID・バイトマップ・デコード式・OBD2）。実装・共有用の独立ファイル
 - `ncec_next_session_checklist.md`：**NCECに実車接続する前に必ず開く**。実車が無いと解けない宿題の一覧
