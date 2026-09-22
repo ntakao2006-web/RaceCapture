@@ -1,0 +1,17 @@
+# KiCad local state and automatic backups
+*-backups/
+*.kicad_prl
+*.lck
+fp-info-cache
+_autosave-*
+\#auto_saved_files\#
+*.3dmbak
+
+# Downloaded routing runtimes and local scratch work
+tools/freerouting/
+__pycache__/
+*.pyc
+en/
+*.log
+output/**/route*/
+output/**/test_routing/

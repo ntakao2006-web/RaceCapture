@@ -1,0 +1,24 @@
+{
+  "counts": {
+    "logger_v2.kicad_sch": 59,
+    "logger_v2_lte_sd.kicad_sch": 13
+  },
+  "wires_labels_positions_flags_unchanged": true,
+  "pcb_unchanged": true,
+  "before_sha256": {
+    "logger_v2.kicad_sch": "a58ce60e511dc465c63f722c8f07ce65e86eef50f1d5cf483abeb16f09d2cc3c",
+    "logger_v2_lte_sd.kicad_sch": "f9d75c3f6209bf093211923ed6b8477a1a113231a83f89918b02913cb6f791ac",
+    "logger_v2_custom.kicad_sym": "4470745d5597a7020d3b4f32b87c9a8ef1faf4f6eafe6be99979fcfbe76c4595",
+    "logger_v2_expansion.kicad_sym": "f906a970209b7201aa210f8efb3192ff35c869b15bb676c950e047413a2ea746",
+    "logger_v2.kicad_pcb": "6f92053e676fcba729fcee2e828be40d5f4c481b5bcd450a6f16a8d5846a149b",
+    "\u5b9f\u88c5\u65b9\u91dd.md": "ad6e04a211d7cc67d13eb1bc557e5167a2f220f33d61cb0896007dcc6b37ad20"
+  },
+  "after_sha256": {
+    "logger_v2.kicad_sch": "e7a58276bb366797f475a937fbf265572cc7d248a5715d88964f100ea299d8a3",
+    "logger_v2_lte_sd.kicad_sch": "75fb7c44021cbdc492fda923096cd8452165a9d56274cca56e453d8623cb4151",
+    "logger_v2_custom.kicad_sym": "0e88024a7088af519cbcf4550d3f0be9df4c0a96029ab4c0927a04aa7d195f71",
+    "logger_v2_expansion.kicad_sym": "fb23e6475de07ce707560041d7263b5db5c3e29011c1f87c877ee64f6ad20eb8",
+    "logger_v2.kicad_pcb": "6f92053e676fcba729fcee2e828be40d5f4c481b5bcd450a6f16a8d5846a149b",
+    "\u5b9f\u88c5\u65b9\u91dd.md": "ad6e04a211d7cc67d13eb1bc557e5167a2f220f33d61cb0896007dcc6b37ad20"
+  }
+}

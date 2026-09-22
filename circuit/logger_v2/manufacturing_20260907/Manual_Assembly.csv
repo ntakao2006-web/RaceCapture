@@ -1,0 +1,9 @@
+﻿Designator,Value,Comment,Footprint,Assembly
+J1,S-037-TGG,S-037-TGG,SMA_S-037-TGG_Horizontal,
+J2,Digital/PWM,Digital/PWM,PinSocket_1x10_P2.54mm_Vertical,
+J3,Power,Power,PinSocket_1x08_P2.54mm_Vertical,
+J4,Analog,Analog,PinSocket_1x06_P2.54mm_Vertical,
+J5,Digital/PWM,Digital/PWM,PinSocket_1x08_P2.54mm_Vertical_ShieldSilk,
+J6,43045-0400,43045-0400,Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal,
+J7,43045-0400,43045-0400,Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal,
+U3,BNO055_module,BNO055_module,AE_BNO055_BO_ShieldSilk,

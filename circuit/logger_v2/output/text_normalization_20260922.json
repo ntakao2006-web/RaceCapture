@@ -1,0 +1,250 @@
+{
+  "text_size_mm": [
+    1.27,
+    1.27
+  ],
+  "font_changes": 542,
+  "values": [
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C10",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C18",
+      "old": "10uF",
+      "new": "10u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "L1",
+      "old": "27nH",
+      "new": "0.027u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C31",
+      "old": "1uF",
+      "new": "1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C28",
+      "old": "10uF",
+      "new": "10u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C17",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C4",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C12",
+      "old": "10nF",
+      "new": "0.01u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C23",
+      "old": "1pF",
+      "new": "1p",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C16",
+      "old": "15pF",
+      "new": "15p",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C7",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C6",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C8",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C29",
+      "old": "10uF",
+      "new": "10u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C25",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C19",
+      "old": "10uF",
+      "new": "10u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C14",
+      "old": "10uF",
+      "new": "10u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C9",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C2",
+      "old": "10uF",
+      "new": "10u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C22",
+      "old": "1pF",
+      "new": "1p",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C24",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C13",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C27",
+      "old": "10uF",
+      "new": "10u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C21",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "R10",
+      "old": "27R 1W",
+      "new": "27",
+      "power_rating": "1W"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C26",
+      "old": "330uF",
+      "new": "330u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C3",
+      "old": "1uF",
+      "new": "1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C20",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "L2",
+      "old": "2.2uH",
+      "new": "2.2u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C30",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C5",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C15",
+      "old": "15pF",
+      "new": "15p",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C1",
+      "old": "10uF",
+      "new": "10u",
+      "power_rating": null
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C11",
+      "old": "100nF",
+      "new": "0.1u",
+      "power_rating": null
+    }
+  ],
+  "only_format_changes_verified": true,
+  "pcb_unchanged": true,
+  "backup": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\logger_v2-backups\\before_text_normalization_20260922_180110"
+}

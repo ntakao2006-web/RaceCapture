@@ -1,0 +1,1824 @@
+{
+  "protected_geometry_sha256": "959d96fe3c942ced1ba8e1f9387e7151703d6e1788b924102292af9d9b8b14e7",
+  "geometry_unchanged": true,
+  "changes": [
+    {
+      "reference": "C1",
+      "before": {
+        "position": [
+          111.0,
+          87.03
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          113.2,
+          85.6
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C10",
+      "before": {
+        "position": [
+          131.57,
+          77.0
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          133.0,
+          75.0
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C11",
+      "before": {
+        "position": [
+          134.57,
+          77.0
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          136.0,
+          75.0
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C12",
+      "before": {
+        "position": [
+          133.0,
+          78.57
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          133.0,
+          81.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C13",
+      "before": {
+        "position": [
+          132.5,
+          92.82
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          132.5,
+          93.1
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C14",
+      "before": {
+        "position": [
+          136.5,
+          92.82
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          139.3,
+          94.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C2",
+      "before": {
+        "position": [
+          121.0,
+          62.97
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          121.0,
+          62.9
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C3",
+      "before": {
+        "position": [
+          121.0,
+          68.87
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          121.0,
+          71.8
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C4",
+      "before": {
+        "position": [
+          140.0,
+          75.33
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          140.0,
+          72.3
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C5",
+      "before": {
+        "position": [
+          132.0,
+          56.435
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          132.0,
+          56.365
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C6",
+      "before": {
+        "position": [
+          120.57,
+          54.8
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          122.0,
+          52.9
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C7",
+      "before": {
+        "position": [
+          126.5,
+          61.57
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          124.0,
+          63.0
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C8",
+      "before": {
+        "position": [
+          136.4,
+          70.37
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          136.4,
+          73.3
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "C9",
+      "before": {
+        "position": [
+          135.8,
+          63.169999
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          135.8,
+          63.099999
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D1",
+      "before": {
+        "position": [
+          137.0,
+          93.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          137.0,
+          93.15
+        ],
+        "size": [
+          0.8,
+          0.8
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D10",
+      "before": {
+        "position": [
+          114.6,
+          58.5
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          117.0,
+          56.0
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D11",
+      "before": {
+        "position": [
+          108.65,
+          91.4
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          112.5,
+          92.4
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D2",
+      "before": {
+        "position": [
+          140.0,
+          93.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          140.0,
+          93.15
+        ],
+        "size": [
+          0.8,
+          0.8
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D3",
+      "before": {
+        "position": [
+          143.0,
+          93.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          143.0,
+          93.15
+        ],
+        "size": [
+          0.8,
+          0.8
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D4",
+      "before": {
+        "position": [
+          146.0,
+          93.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          146.0,
+          93.15
+        ],
+        "size": [
+          0.8,
+          0.8
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D5",
+      "before": {
+        "position": [
+          149.0,
+          93.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          149.0,
+          93.15
+        ],
+        "size": [
+          0.8,
+          0.8
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D6",
+      "before": {
+        "position": [
+          152.0,
+          93.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          152.0,
+          93.15
+        ],
+        "size": [
+          0.8,
+          0.8
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D7",
+      "before": {
+        "position": [
+          155.0,
+          93.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          155.0,
+          93.15
+        ],
+        "size": [
+          0.8,
+          0.8
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D8",
+      "before": {
+        "position": [
+          158.0,
+          93.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          158.0,
+          93.15
+        ],
+        "size": [
+          0.8,
+          0.8
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D9",
+      "before": {
+        "position": [
+          114.6,
+          71.0
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          117.0,
+          73.6
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "J1",
+      "before": {
+        "position": [
+          105.0,
+          95.6
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": false,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          105.0,
+          94.7
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "J2",
+      "before": {
+        "position": [
+          116.026,
+          49.2
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": false,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          118.796,
+          51.6
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "J3",
+      "before": {
+        "position": [
+          125.17,
+          97.46
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": false,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          125.539999,
+          97.46
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "J4",
+      "before": {
+        "position": [
+          148.03,
+          97.46
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": false,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          148.4,
+          97.46
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "J5",
+      "before": {
+        "position": [
+          142.95,
+          49.2
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": false,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          145.72,
+          51.6
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "J6",
+      "before": {
+        "position": [
+          99.88,
+          71.5
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": false,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          112.7,
+          64.599999
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "J7",
+      "before": {
+        "position": [
+          99.88,
+          59.0
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": false,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          112.7,
+          52.1
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "L1",
+      "before": {
+        "position": [
+          109.83,
+          88.5
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          111.0,
+          87.05
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R1",
+      "before": {
+        "position": [
+          137.0,
+          85.65
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          137.0,
+          85.65
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R10",
+      "before": {
+        "position": [
+          130.57,
+          91.0
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          134.4,
+          91.0
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R11",
+      "before": {
+        "position": [
+          158.0,
+          85.65
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          158.0,
+          85.65
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R12",
+      "before": {
+        "position": [
+          134.77,
+          68.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          138.6,
+          68.1
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R13",
+      "before": {
+        "position": [
+          115.5,
+          64.87
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          115.5,
+          64.8
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R14",
+      "before": {
+        "position": [
+          119.07,
+          57.5
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          120.5,
+          59.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R15",
+      "before": {
+        "position": [
+          143.0,
+          58.57
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          143.0,
+          58.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R16",
+      "before": {
+        "position": [
+          143.0,
+          61.07
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          143.0,
+          64.0
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R17",
+      "before": {
+        "position": [
+          159.5,
+          68.17
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          162.5,
+          69.6
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R18",
+      "before": {
+        "position": [
+          143.07,
+          70.5
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          144.5,
+          68.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R19",
+      "before": {
+        "position": [
+          145.57,
+          70.5
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          147.0,
+          68.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R2",
+      "before": {
+        "position": [
+          140.0,
+          85.65
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          140.0,
+          85.65
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R20",
+      "before": {
+        "position": [
+          148.07,
+          70.5
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          149.5,
+          68.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R3",
+      "before": {
+        "position": [
+          143.0,
+          85.65
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          143.0,
+          85.65
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R4",
+      "before": {
+        "position": [
+          146.0,
+          85.65
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          146.0,
+          85.65
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R5",
+      "before": {
+        "position": [
+          113.5,
+          76.57
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          113.5,
+          76.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R6",
+      "before": {
+        "position": [
+          149.0,
+          85.65
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          149.0,
+          85.65
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R7",
+      "before": {
+        "position": [
+          112.0,
+          84.63
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          112.0,
+          79.4
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R8",
+      "before": {
+        "position": [
+          152.0,
+          85.65
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          152.0,
+          85.65
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "R9",
+      "before": {
+        "position": [
+          155.0,
+          85.65
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          155.0,
+          85.65
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "U1",
+      "before": {
+        "position": [
+          141.3,
+          76.8
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          147.2,
+          81.399999
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "U2",
+      "before": {
+        "position": [
+          123.5,
+          75.1
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          114.6,
+          74.899999
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "U3",
+      "before": {
+        "position": [
+          160.2,
+          60.81
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          162.1,
+          60.8
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "U4",
+      "before": {
+        "position": [
+          126.5,
+          61.9
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          126.5,
+          55.0
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "U5",
+      "before": {
+        "position": [
+          128.5,
+          63.45
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          128.5,
+          63.5
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "Y1",
+      "before": {
+        "position": [
+          120.8,
+          64.85
+        ],
+        "size": [
+          0.85,
+          0.85
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      },
+      "after": {
+        "position": [
+          117.7,
+          67.3
+        ],
+        "size": [
+          0.82,
+          0.82
+        ],
+        "angle": 0.0,
+        "visible": true,
+        "layer": "F.Silkscreen"
+      }
+    },
+    {
+      "reference": "D1",
+      "silk": "Shortened cathode end-cap below LED",
+      "uuid": "8e087240-b043-4c55-9230-696ec46d79f5"
+    },
+    {
+      "reference": "D2",
+      "silk": "Shortened cathode end-cap below LED",
+      "uuid": "a1e47a88-3103-4048-83a4-d15c6085c4e2"
+    },
+    {
+      "reference": "D3",
+      "silk": "Shortened cathode end-cap below LED",
+      "uuid": "97eb6980-b5f0-471e-a83a-4aebc7d2686c"
+    },
+    {
+      "reference": "D4",
+      "silk": "Shortened cathode end-cap below LED",
+      "uuid": "ca792b8f-2c54-4412-9cf9-e0378a5cb07d"
+    },
+    {
+      "reference": "D5",
+      "silk": "Shortened cathode end-cap below LED",
+      "uuid": "061ed95e-7e0b-4c6f-a6fa-5731394ceb3b"
+    },
+    {
+      "reference": "D6",
+      "silk": "Shortened cathode end-cap below LED",
+      "uuid": "27c60abf-5b2f-419e-9a11-dfd7a9b56966"
+    },
+    {
+      "reference": "D7",
+      "silk": "Shortened cathode end-cap below LED",
+      "uuid": "d8a06df4-6b96-41af-b97d-5b54e59b5ab5"
+    },
+    {
+      "reference": "D8",
+      "silk": "Shortened cathode end-cap below LED",
+      "uuid": "df7837bd-b637-49d5-9b2a-05d71f20b1f0"
+    },
+    {
+      "reference": "J5",
+      "silk": "Chamfered only front outline; board edge and pads unchanged"
+    },
+    {
+      "reference": "U3",
+      "silk": "Opened lower-left outline around R20 annotation"
+    },
+    {
+      "reference": "U3",
+      "silk": "Shortened right outline before R17"
+    },
+    {
+      "reference": "U3",
+      "silk": "Opened lower outline around R17 and R20"
+    },
+    {
+      "board_text": "IMU",
+      "position": [
+        162.1,
+        54.4
+      ],
+      "size": 0.9
+    },
+    {
+      "board_text": "ECOLOGGER V2",
+      "position": [
+        147.5,
+        83.05
+      ],
+      "size": 1.1
+    },
+    {
+      "board_text": "UNO Q SENSOR SHIELD",
+      "position": [
+        147.5,
+        84.6
+      ],
+      "size": 0.8
+    },
+    {
+      "board_text": "CAN1 / RX",
+      "position": [
+        106.5,
+        52.7
+      ],
+      "size": 0.9
+    },
+    {
+      "board_text": "GNSS",
+      "position": [
+        105.0,
+        96.25
+      ],
+      "size": 0.9
+    },
+    {
+      "board_text": "CAN2",
+      "position": [
+        106.5,
+        65.2
+      ],
+      "size": 0.9
+    }
+  ],
+  "input": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\output\\design_review_20260907\\silkscreen_work\\snapshot.kicad_pcb",
+  "output": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\output\\design_review_20260907\\silkscreen_work\\finished.kicad_pcb",
+  "input_sha256": "5abba015fd7b44f6daddaa7ba7f968cb641c3e69bc1b253ccbf63341a0e68d0a"
+}

@@ -1,0 +1,1722 @@
+[
+  {
+    "ref": "Y1",
+    "value": "20MHz 12pF",
+    "footprint": "logger_v2_custom:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+    "xy": [
+      120.8,
+      67.3
+    ],
+    "angle": 0.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "Net-(U5-OSC2)",
+        "xy": [
+          119.7,
+          68.15
+        ],
+        "shape": 4,
+        "size": [
+          1.4,
+          1.2
+        ]
+      },
+      {
+        "number": "2",
+        "net": "GND",
+        "xy": [
+          121.9,
+          68.15
+        ],
+        "shape": 4,
+        "size": [
+          1.4,
+          1.2
+        ]
+      },
+      {
+        "number": "3",
+        "net": "Net-(U5-OSC1)",
+        "xy": [
+          121.9,
+          66.45
+        ],
+        "shape": 4,
+        "size": [
+          1.4,
+          1.2
+        ]
+      },
+      {
+        "number": "4",
+        "net": "GND",
+        "xy": [
+          119.7,
+          66.45
+        ],
+        "shape": 4,
+        "size": [
+          1.4,
+          1.2
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D4",
+    "value": "GREEN 0805",
+    "footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "xy": [
+      145.4,
+      91.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          145.4,
+          91.9375
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D4-A)",
+        "xy": [
+          145.4,
+          90.0625
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D11",
+    "value": "RF ESD",
+    "footprint": "logger_v2_custom:D_SOD-882",
+    "xy": [
+      110.0,
+      91.4
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "",
+        "net": "",
+        "xy": [
+          110.0,
+          91.75
+        ],
+        "shape": 4,
+        "size": [
+          0.3,
+          0.6
+        ]
+      },
+      {
+        "number": "",
+        "net": "",
+        "xy": [
+          110.0,
+          91.05
+        ],
+        "shape": 4,
+        "size": [
+          0.3,
+          0.6
+        ]
+      },
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          110.0,
+          91.75
+        ],
+        "shape": 4,
+        "size": [
+          0.4,
+          0.7
+        ]
+      },
+      {
+        "number": "2",
+        "net": "/GNSS_RF",
+        "xy": [
+          110.0,
+          91.05
+        ],
+        "shape": 4,
+        "size": [
+          0.4,
+          0.7
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "U1",
+    "value": "74HC595D,118",
+    "footprint": "logger_v2_custom:SOIC-16_3.9x9.9mm_P1.27mm",
+    "xy": [
+      147.2,
+      76.8
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "Net-(U1-QB)",
+        "xy": [
+          142.755,
+          79.275
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(U1-QC)",
+        "xy": [
+          144.025,
+          79.275
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "3",
+        "net": "Net-(U1-QD)",
+        "xy": [
+          145.295,
+          79.275
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "4",
+        "net": "Net-(U1-QE)",
+        "xy": [
+          146.565,
+          79.275
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "5",
+        "net": "Net-(U1-QF)",
+        "xy": [
+          147.835,
+          79.275
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "6",
+        "net": "Net-(U1-QG)",
+        "xy": [
+          149.105,
+          79.275
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "7",
+        "net": "Net-(U1-QH)",
+        "xy": [
+          150.375,
+          79.275
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "8",
+        "net": "GND",
+        "xy": [
+          151.645,
+          79.275
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "9",
+        "net": "unconnected-(U1-QH'-Pad9)",
+        "xy": [
+          151.645,
+          74.325
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "10",
+        "net": "+3V3",
+        "xy": [
+          150.375,
+          74.325
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "11",
+        "net": "/SPI2_SCK",
+        "xy": [
+          149.105,
+          74.325
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "12",
+        "net": "/STATUS_LATCH",
+        "xy": [
+          147.835,
+          74.325
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "13",
+        "net": "GND",
+        "xy": [
+          146.565,
+          74.325
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "14",
+        "net": "/SPI2_MOSI",
+        "xy": [
+          145.295,
+          74.325
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "15",
+        "net": "Net-(U1-QA)",
+        "xy": [
+          144.025,
+          74.325
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "16",
+        "net": "+3V3",
+        "xy": [
+          142.755,
+          74.325
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "U2",
+    "value": "NEO-M9N-00B",
+    "footprint": "logger_v2_custom:ublox_NEO",
+    "xy": [
+      123.5,
+      84.1
+    ],
+    "angle": 0.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "unconnected-(U2-SAFEBOOT_N-Pad1)",
+        "xy": [
+          117.5,
+          77.1
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "2",
+        "net": "unconnected-(U2-D_SEL-Pad2)",
+        "xy": [
+          117.5,
+          78.2
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "3",
+        "net": "/GNSS_PPS",
+        "xy": [
+          117.5,
+          79.3
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "4",
+        "net": "unconnected-(U2-EXTINT-Pad4)",
+        "xy": [
+          117.5,
+          80.4
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "5",
+        "net": "unconnected-(U2-USB_DM-Pad5)",
+        "xy": [
+          117.5,
+          81.5
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "6",
+        "net": "unconnected-(U2-USB_DP-Pad6)",
+        "xy": [
+          117.5,
+          82.6
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "7",
+        "net": "GND",
+        "xy": [
+          117.5,
+          83.7
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "8",
+        "net": "/GNSS_RESET_N",
+        "xy": [
+          117.5,
+          86.7
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "9",
+        "net": "Net-(U2-VCC_RF)",
+        "xy": [
+          117.5,
+          87.8
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "10",
+        "net": "GND",
+        "xy": [
+          117.5,
+          88.9
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "11",
+        "net": "/GNSS_RF",
+        "xy": [
+          117.5,
+          90.0
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "12",
+        "net": "GND",
+        "xy": [
+          117.5,
+          91.1
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "13",
+        "net": "GND",
+        "xy": [
+          129.5,
+          91.1
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "14",
+        "net": "Net-(U2-LNA_EN)",
+        "xy": [
+          129.5,
+          90.0
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "15",
+        "net": "unconnected-(U2-Reserved-Pad15)",
+        "xy": [
+          129.5,
+          88.9
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "16",
+        "net": "unconnected-(U2-Reserved-Pad16)",
+        "xy": [
+          129.5,
+          87.8
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "17",
+        "net": "unconnected-(U2-Reserved-Pad17)",
+        "xy": [
+          129.5,
+          86.7
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "18",
+        "net": "unconnected-(U2-SDA_{slash}_SPI_CS_N-Pad18)",
+        "xy": [
+          129.5,
+          83.7
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "19",
+        "net": "unconnected-(U2-SCL_{slash}_SPI_CLK-Pad19)",
+        "xy": [
+          129.5,
+          82.6
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "20",
+        "net": "/GNSS_TXD",
+        "xy": [
+          129.5,
+          81.5
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "21",
+        "net": "/GNSS_RXD",
+        "xy": [
+          129.5,
+          80.4
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "22",
+        "net": "+3V3",
+        "xy": [
+          129.5,
+          79.3
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "23",
+        "net": "+3V3",
+        "xy": [
+          129.5,
+          78.2
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      },
+      {
+        "number": "24",
+        "net": "GND",
+        "xy": [
+          129.5,
+          77.1
+        ],
+        "shape": 4,
+        "size": [
+          1.8,
+          0.8
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "U5",
+    "value": "MCP25625-E/SS",
+    "footprint": "logger_v2_custom:SSOP-28_5.3x10.2mm_P0.65mm",
+    "xy": [
+      128.5,
+      69.5
+    ],
+    "angle": 0.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "+3V3",
+        "xy": [
+          125.0,
+          65.275
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "unconnected-(U5-NC-Pad2)",
+        "xy": [
+          125.0,
+          65.925
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "3",
+        "net": "Net-(D9-LINE2)",
+        "xy": [
+          125.0,
+          66.575
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "4",
+        "net": "Net-(D9-LINE1)",
+        "xy": [
+          125.0,
+          67.225
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "5",
+        "net": "GND",
+        "xy": [
+          125.0,
+          67.875
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "6",
+        "net": "unconnected-(U5-~{Tx1RTS}-Pad6)",
+        "xy": [
+          125.0,
+          68.525
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "7",
+        "net": "unconnected-(U5-~{Tx2RTS}-Pad7)",
+        "xy": [
+          125.0,
+          69.175
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "8",
+        "net": "Net-(U5-OSC2)",
+        "xy": [
+          125.0,
+          69.825
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "9",
+        "net": "Net-(U5-OSC1)",
+        "xy": [
+          125.0,
+          70.475
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "10",
+        "net": "GND",
+        "xy": [
+          125.0,
+          71.125
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "11",
+        "net": "unconnected-(U5-~{Rx1BF}-Pad11)",
+        "xy": [
+          125.0,
+          71.775
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "12",
+        "net": "unconnected-(U5-~{Rx0BF}-Pad12)",
+        "xy": [
+          125.0,
+          72.425
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "13",
+        "net": "/CAN2_INT_N",
+        "xy": [
+          125.0,
+          73.075
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "14",
+        "net": "/SPI2_SCK",
+        "xy": [
+          125.0,
+          73.725
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "15",
+        "net": "/SPI2_MOSI",
+        "xy": [
+          132.0,
+          73.725
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "16",
+        "net": "/SPI2_MISO",
+        "xy": [
+          132.0,
+          73.075
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "17",
+        "net": "/CAN2_CS_N",
+        "xy": [
+          132.0,
+          72.425
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "18",
+        "net": "/CAN2_RESET_N",
+        "xy": [
+          132.0,
+          71.775
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "19",
+        "net": "+3V3",
+        "xy": [
+          132.0,
+          71.125
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "20",
+        "net": "Net-(U5-T_{XD})",
+        "xy": [
+          132.0,
+          70.475
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "21",
+        "net": "Net-(U5-R_{XD})",
+        "xy": [
+          132.0,
+          69.825
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "22",
+        "net": "unconnected-(U5-CLKOUT-Pad22)",
+        "xy": [
+          132.0,
+          69.175
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "23",
+        "net": "unconnected-(U5-~{Tx0RTS}-Pad23)",
+        "xy": [
+          132.0,
+          68.525
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "24",
+        "net": "Net-(U5-T_{XD})",
+        "xy": [
+          132.0,
+          67.875
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "25",
+        "net": "unconnected-(U5-NC-Pad25)",
+        "xy": [
+          132.0,
+          67.225
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "26",
+        "net": "GND",
+        "xy": [
+          132.0,
+          66.575
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "27",
+        "net": "+5V",
+        "xy": [
+          132.0,
+          65.925
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      },
+      {
+        "number": "28",
+        "net": "Net-(U5-R_{XD})",
+        "xy": [
+          132.0,
+          65.275
+        ],
+        "shape": 4,
+        "size": [
+          1.9,
+          0.4
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D6",
+    "value": "GREEN 0805",
+    "footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "xy": [
+      151.0,
+      91.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          151.0,
+          91.9375
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D6-A)",
+        "xy": [
+          151.0,
+          90.0625
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D7",
+    "value": "GREEN 0805",
+    "footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "xy": [
+      153.8,
+      91.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          153.8,
+          91.9375
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D7-A)",
+        "xy": [
+          153.8,
+          90.0625
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D2",
+    "value": "GREEN 0805",
+    "footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "xy": [
+      139.8,
+      91.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          139.8,
+          91.9375
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D2-A)",
+        "xy": [
+          139.8,
+          90.0625
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D1",
+    "value": "GREEN 0805",
+    "footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "xy": [
+      137.0,
+      91.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          137.0,
+          91.9375
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D1-A)",
+        "xy": [
+          137.0,
+          90.0625
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D3",
+    "value": "GREEN 0805",
+    "footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "xy": [
+      142.6,
+      91.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          142.6,
+          91.9375
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D3-A)",
+        "xy": [
+          142.6,
+          90.0625
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D10",
+    "value": "NUP2105LT1G",
+    "footprint": "logger_v2_custom:SOT-23",
+    "xy": [
+      117.0,
+      58.5
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "Net-(D10-LINE1)",
+        "xy": [
+          116.05,
+          59.4375
+        ],
+        "shape": 4,
+        "size": [
+          1.475,
+          0.6
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D10-LINE2)",
+        "xy": [
+          117.95,
+          59.4375
+        ],
+        "shape": 4,
+        "size": [
+          1.475,
+          0.6
+        ]
+      },
+      {
+        "number": "3",
+        "net": "GND",
+        "xy": [
+          117.0,
+          57.5625
+        ],
+        "shape": 4,
+        "size": [
+          1.475,
+          0.6
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D8",
+    "value": "GREEN 0805",
+    "footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "xy": [
+      156.6,
+      91.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          156.6,
+          91.9375
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D8-A)",
+        "xy": [
+          156.6,
+          90.0625
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "U4",
+    "value": "ATA6561-GAQW",
+    "footprint": "logger_v2_custom:SOIC-8_3.9x4.9mm_P1.27mm",
+    "xy": [
+      126.5,
+      58.5
+    ],
+    "angle": 180.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "+3V3",
+        "xy": [
+          128.975,
+          60.405
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "2",
+        "net": "GND",
+        "xy": [
+          128.975,
+          59.135
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "3",
+        "net": "+5V",
+        "xy": [
+          128.975,
+          57.865
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "4",
+        "net": "/CAN1_RXD",
+        "xy": [
+          128.975,
+          56.595
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "5",
+        "net": "+3V3",
+        "xy": [
+          124.025,
+          56.595
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "6",
+        "net": "Net-(D10-LINE2)",
+        "xy": [
+          124.025,
+          57.865
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "7",
+        "net": "Net-(D10-LINE1)",
+        "xy": [
+          124.025,
+          59.135
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      },
+      {
+        "number": "8",
+        "net": "GND",
+        "xy": [
+          124.025,
+          60.405
+        ],
+        "shape": 4,
+        "size": [
+          1.95,
+          0.6
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "U3",
+    "value": "BNO055_module",
+    "footprint": "logger_v2_custom:AE_BNO055_BO_ShieldSilk",
+    "xy": [
+      158.0,
+      57.0
+    ],
+    "angle": 270.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "+3V3",
+        "xy": [
+          150.38,
+          57.0
+        ],
+        "shape": 1,
+        "size": [
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "number": "2",
+        "net": "GND",
+        "xy": [
+          150.38,
+          59.54
+        ],
+        "shape": 0,
+        "size": [
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "number": "3",
+        "net": "/IMU_SDA",
+        "xy": [
+          150.38,
+          62.08
+        ],
+        "shape": 0,
+        "size": [
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "number": "4",
+        "net": "/IMU_SCL",
+        "xy": [
+          150.38,
+          64.62
+        ],
+        "shape": 0,
+        "size": [
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "number": "5",
+        "net": "/IMU_RESET_N",
+        "xy": [
+          158.0,
+          64.62
+        ],
+        "shape": 0,
+        "size": [
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "number": "6",
+        "net": "unconnected-(U3-INT-Pad6)",
+        "xy": [
+          158.0,
+          62.08
+        ],
+        "shape": 0,
+        "size": [
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "number": "7",
+        "net": "GND",
+        "xy": [
+          158.0,
+          59.54
+        ],
+        "shape": 0,
+        "size": [
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "number": "8",
+        "net": "unconnected-(U3-V_{OUT}-Pad8)",
+        "xy": [
+          158.0,
+          57.0
+        ],
+        "shape": 0,
+        "size": [
+          2.0,
+          2.0
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D9",
+    "value": "NUP2105LT1G",
+    "footprint": "logger_v2_custom:SOT-23",
+    "xy": [
+      117.0,
+      71.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "Net-(D9-LINE1)",
+        "xy": [
+          116.05,
+          71.9375
+        ],
+        "shape": 4,
+        "size": [
+          1.475,
+          0.6
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D9-LINE2)",
+        "xy": [
+          117.95,
+          71.9375
+        ],
+        "shape": 4,
+        "size": [
+          1.475,
+          0.6
+        ]
+      },
+      {
+        "number": "3",
+        "net": "GND",
+        "xy": [
+          117.0,
+          70.0625
+        ],
+        "shape": 4,
+        "size": [
+          1.475,
+          0.6
+        ]
+      }
+    ],
+    "dnp": false
+  },
+  {
+    "ref": "D5",
+    "value": "GREEN 0805",
+    "footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "xy": [
+      148.2,
+      91.0
+    ],
+    "angle": 90.0,
+    "layer": "F.Cu",
+    "pads": [
+      {
+        "number": "1",
+        "net": "GND",
+        "xy": [
+          148.2,
+          91.9375
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      },
+      {
+        "number": "2",
+        "net": "Net-(D5-A)",
+        "xy": [
+          148.2,
+          90.0625
+        ],
+        "shape": 4,
+        "size": [
+          0.975,
+          1.4
+        ]
+      }
+    ],
+    "dnp": false
+  }
+]

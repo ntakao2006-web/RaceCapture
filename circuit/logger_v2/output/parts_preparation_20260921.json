@@ -1,0 +1,380 @@
+{
+  "deleted": [
+    {
+      "uuid": "4742a84a-08ca-45e8-884b-04598b36c983",
+      "value": "SC16IS750IPW",
+      "reason": "SPI2 to LTE UART; 8 auxiliary GPIO"
+    },
+    {
+      "uuid": "a7db9ccd-1307-457f-947c-d433adeaf376",
+      "value": "14.7456MHz CL12pF",
+      "reason": "UART bridge oscillator; 921600 baud at divisor 1"
+    },
+    {
+      "uuid": "c3164fbf-8087-4442-b420-f22b387513b3",
+      "value": "TXU0204PWR",
+      "reason": "Auxiliary DTR, RI, STATUS; one spare output"
+    }
+  ],
+  "added": [
+    {
+      "Reference": "L2",
+      "Value": "2.2uH",
+      "MPN": "SRN6045TA-2R2Y",
+      "Footprint": "logger_v2_expansion:L_Bourns_SRN6045TA",
+      "Role": "TPS62130 SW -> LTE_VBAT; power inductor",
+      "SupplierCode": "",
+      "URL": "https://www.bourns.com/docs/product-datasheets/srn6045ta.pdf",
+      "Notes": "秋月で適合する裸SMD品を確認できず。Irms 6A, Isat 9.5A typ; loop stability needs validation",
+      "UUID": "4981c769-e549-4966-b572-6c43b788b63e"
+    },
+    {
+      "Reference": "C15",
+      "Value": "330uF 6.3V",
+      "MPN": "T520D337M006ATE015",
+      "Footprint": "logger_v2_expansion:CP_EIA-7343-31_Kemet-D",
+      "Role": "LTE_VBAT bulk near module",
+      "SupplierCode": "",
+      "URL": "https://docs.rs-online.com/d8c4/0900766b81710abb.pdf",
+      "Notes": "低ESRポリマー15mΩ。秋月の82uF SMD OS-CONは販売終了のため除外。汎用Dケース3D",
+      "UUID": "c3c404a0-1284-447b-a05c-692b3edb07e8"
+    },
+    {
+      "Reference": "D12",
+      "Value": "4.5V TVS",
+      "MPN": "PESDHC2FD4V5B",
+      "Footprint": "logger_v2_expansion:Prisemi_DFN1006_2L",
+      "Role": "LTE_VBAT to GND; SIMCom recommended transient protection",
+      "SupplierCode": "",
+      "URL": "https://cdn.semikey.com/upload/pdfs/59/58/5958b6a05c58e8fad55bac421952aaf3.pdf",
+      "Notes": "SIMCom Hardware Design Table8推奨。秋月未確認。DC過電圧遮断器ではない",
+      "UUID": "d21da094-ac7c-4aa7-89cb-896b71d12946"
+    },
+    {
+      "Reference": "C16",
+      "Value": "10uF",
+      "MPN": "GRM21BR71A106KE51",
+      "Footprint": "logger_v2_expansion:C_0805_2012Metric",
+      "Role": "TPS62130 VIN to GND, input capacitor A",
+      "SupplierCode": "117593",
+      "URL": "https://akizukidenshi.com/catalog/g/g117593/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "e1d187e9-9671-4b1c-8f02-29a51779bb7f"
+    },
+    {
+      "Reference": "C17",
+      "Value": "10uF",
+      "MPN": "GRM21BR71A106KE51",
+      "Footprint": "logger_v2_expansion:C_0805_2012Metric",
+      "Role": "TPS62130 VIN to GND, input capacitor B; parallel C16",
+      "SupplierCode": "117593",
+      "URL": "https://akizukidenshi.com/catalog/g/g117593/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "827baaee-c4bf-45eb-b1d3-8ac792a0896e"
+    },
+    {
+      "Reference": "C18",
+      "Value": "10uF",
+      "MPN": "GRM21BR71A106KE51",
+      "Footprint": "logger_v2_expansion:C_0805_2012Metric",
+      "Role": "Buck output ceramic A; parallel C19/C20",
+      "SupplierCode": "117593",
+      "URL": "https://akizukidenshi.com/catalog/g/g117593/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "d227c742-5e8a-4b16-89bb-8e133c6ad17c"
+    },
+    {
+      "Reference": "C19",
+      "Value": "10uF",
+      "MPN": "GRM21BR71A106KE51",
+      "Footprint": "logger_v2_expansion:C_0805_2012Metric",
+      "Role": "Buck output ceramic B; parallel C18/C20",
+      "SupplierCode": "117593",
+      "URL": "https://akizukidenshi.com/catalog/g/g117593/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "6792ce00-43f3-4034-89bb-a6dcba8031f5"
+    },
+    {
+      "Reference": "C20",
+      "Value": "10uF",
+      "MPN": "GRM21BR71A106KE51",
+      "Footprint": "logger_v2_expansion:C_0805_2012Metric",
+      "Role": "Buck output ceramic C; 30uF nominal total",
+      "SupplierCode": "117593",
+      "URL": "https://akizukidenshi.com/catalog/g/g117593/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "75d02f6f-131c-4f2d-a9a0-d38246900ddc"
+    },
+    {
+      "Reference": "C21",
+      "Value": "100nF",
+      "MPN": "GRM188R72A104KA35D",
+      "Footprint": "logger_v2_expansion:C_0603_1608Metric",
+      "Role": "TPS62130 AVIN local bypass",
+      "SupplierCode": "114559",
+      "URL": "https://akizukidenshi.com/catalog/g/g114559/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "5dd8bff5-d465-4a84-b112-f60c54abf6d3"
+    },
+    {
+      "Reference": "C22",
+      "Value": "100nF",
+      "MPN": "GRM188R72A104KA35D",
+      "Footprint": "logger_v2_expansion:C_0603_1608Metric",
+      "Role": "SIM7070G VBAT local bypass",
+      "SupplierCode": "114559",
+      "URL": "https://akizukidenshi.com/catalog/g/g114559/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "c7111b0a-eaa9-4d33-b9e0-d023d34bdd20"
+    },
+    {
+      "Reference": "C23",
+      "Value": "1uF",
+      "MPN": "GRM188B31H105KAAL",
+      "Footprint": "logger_v2_expansion:C_0603_1608Metric",
+      "Role": "SIM7070G VBAT local bypass, parallel C15/C22",
+      "SupplierCode": "116994",
+      "URL": "https://akizukidenshi.com/catalog/g/g116994/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "583c4d23-a77c-4ef7-ae7d-0f9d139d269e"
+    },
+    {
+      "Reference": "C24",
+      "Value": "100nF",
+      "MPN": "GRM188R72A104KA35D",
+      "Footprint": "logger_v2_expansion:C_0603_1608Metric",
+      "Role": "SIM_VDD bypass at nanoSIM socket",
+      "SupplierCode": "114559",
+      "URL": "https://akizukidenshi.com/catalog/g/g114559/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "eeedd625-644b-48da-8eca-769e265b0b11"
+    },
+    {
+      "Reference": "C25",
+      "Value": "10uF",
+      "MPN": "GRM21BR71A106KE51",
+      "Footprint": "logger_v2_expansion:C_0805_2012Metric",
+      "Role": "microSD 3.3V supply bulk",
+      "SupplierCode": "117593",
+      "URL": "https://akizukidenshi.com/catalog/g/g117593/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "459275d7-1950-4d69-85a0-14898f8d5f77"
+    },
+    {
+      "Reference": "C26",
+      "Value": "100nF",
+      "MPN": "GRM188R72A104KA35D",
+      "Footprint": "logger_v2_expansion:C_0603_1608Metric",
+      "Role": "microSD 3.3V local bypass",
+      "SupplierCode": "114559",
+      "URL": "https://akizukidenshi.com/catalog/g/g114559/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "a30f4be4-e405-428e-bafc-751a03236a3e"
+    },
+    {
+      "Reference": "C27",
+      "Value": "100nF",
+      "MPN": "GRM188R72A104KA35D",
+      "Footprint": "logger_v2_expansion:C_0603_1608Metric",
+      "Role": "TXU0204 VCCA 3.3V local bypass",
+      "SupplierCode": "114559",
+      "URL": "https://akizukidenshi.com/catalog/g/g114559/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "78339d9f-2298-470f-91a2-fef7e54a03fb"
+    },
+    {
+      "Reference": "C28",
+      "Value": "100nF",
+      "MPN": "GRM188R72A104KA35D",
+      "Footprint": "logger_v2_expansion:C_0603_1608Metric",
+      "Role": "TXU0204 VCCB VDD_EXT 1.8V local bypass",
+      "SupplierCode": "114559",
+      "URL": "https://akizukidenshi.com/catalog/g/g114559/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "ae93de18-c2b7-45b4-adbf-220863f63855"
+    },
+    {
+      "Reference": "C29",
+      "Value": "10nF",
+      "MPN": "GRM188B11H103KA01",
+      "Footprint": "logger_v2_expansion:C_0603_1608Metric",
+      "Role": "TPS62130 SS/TR soft-start to GND",
+      "SupplierCode": "113387",
+      "URL": "https://akizukidenshi.com/catalog/g/g113387/",
+      "Notes": "B特性品は-25～85℃。MLCC実効容量・電源応答は実装時に検証",
+      "UUID": "d32f553e-ff95-4a53-89bb-618eb75ed837"
+    },
+    {
+      "Reference": "R21",
+      "Value": "374k 1%",
+      "MPN": "RC0603FR-07374KL",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "FB upper: LTE_VBAT to FB; nominal Vout=3.792V",
+      "SupplierCode": "",
+      "URL": "https://www.yageo.com/upload/media/product/productsearch/datasheet/rchip/pyu-rc-group_51_rohs_l.pdf",
+      "Notes": "電圧設定精度のため1%品を他社調達",
+      "UUID": "f139de83-f677-4cd5-8674-2ba2ce2d8644"
+    },
+    {
+      "Reference": "R22",
+      "Value": "100k 0.1%",
+      "MPN": "RG2012N-104-B-T5",
+      "Footprint": "logger_v2_expansion:R_0805_2012Metric",
+      "Role": "FB lower: FB to AGND; paired with R21",
+      "SupplierCode": "111798",
+      "URL": "https://akizukidenshi.com/catalog/g/g111798/",
+      "Notes": "秋月の0.1%精密抵抗、2012サイズ",
+      "UUID": "0ca3c960-1e7d-407f-873f-df4b6f97ce07"
+    },
+    {
+      "Reference": "R23",
+      "Value": "100k",
+      "MPN": "RK73B1JTTD104J",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "TPS62130 EN pulldown to GND",
+      "SupplierCode": "130357",
+      "URL": "https://akizukidenshi.com/catalog/g/g130357/",
+      "Notes": "",
+      "UUID": "09a6eb8b-34b7-4c15-8134-3d6ef9766fb6"
+    },
+    {
+      "Reference": "R24",
+      "Value": "100k",
+      "MPN": "RK73B1JTTD104J",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "2N7002 gate pulldown; PWRKEY released at MCU reset",
+      "SupplierCode": "130357",
+      "URL": "https://akizukidenshi.com/catalog/g/g130357/",
+      "Notes": "",
+      "UUID": "66305233-5936-4780-9cc9-285353a2c35a"
+    },
+    {
+      "Reference": "R25",
+      "Value": "1k",
+      "MPN": "RK73B1JTTD102J",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "MCU LTE_PWRKEY to 2N7002 gate, series",
+      "SupplierCode": "130351",
+      "URL": "https://akizukidenshi.com/catalog/g/g130351/",
+      "Notes": "",
+      "UUID": "88f51a82-f648-4861-98f3-096d962bbc1d"
+    },
+    {
+      "Reference": "R26",
+      "Value": "47k",
+      "MPN": "RC0603J47K",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "microSD CS pullup to 3.3V",
+      "SupplierCode": "129458",
+      "URL": "https://akizukidenshi.com/catalog/g/g129458/",
+      "Notes": "",
+      "UUID": "20f5829b-160a-4f0a-83fc-073398bbdcf1"
+    },
+    {
+      "Reference": "R27",
+      "Value": "47k",
+      "MPN": "RC0603J47K",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "microSD MISO/DAT0 pullup to 3.3V",
+      "SupplierCode": "129458",
+      "URL": "https://akizukidenshi.com/catalog/g/g129458/",
+      "Notes": "",
+      "UUID": "43470f87-92d5-4246-b7e5-106f69bed167"
+    },
+    {
+      "Reference": "R28",
+      "Value": "22R",
+      "MPN": "RK73B1JTTD220J",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "SIM_CLK series between module and socket",
+      "SupplierCode": "130343",
+      "URL": "https://akizukidenshi.com/catalog/g/g130343/",
+      "Notes": "",
+      "UUID": "cb2a40b9-28d2-41b7-998b-d4e491b6e29f"
+    },
+    {
+      "Reference": "R29",
+      "Value": "22R",
+      "MPN": "RK73B1JTTD220J",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "SIM_RST series between module and socket",
+      "SupplierCode": "130343",
+      "URL": "https://akizukidenshi.com/catalog/g/g130343/",
+      "Notes": "",
+      "UUID": "1cbffea7-5d92-4f68-9019-b9c0c9ab915e"
+    },
+    {
+      "Reference": "R30",
+      "Value": "22R",
+      "MPN": "RK73B1JTTD220J",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "SIM_DATA series; no external pullup",
+      "SupplierCode": "130343",
+      "URL": "https://akizukidenshi.com/catalog/g/g130343/",
+      "Notes": "",
+      "UUID": "7f66b29d-ad42-4e3e-bf5f-40e1d157cd79"
+    },
+    {
+      "Reference": "R31",
+      "Value": "0R",
+      "MPN": "RK73Z1JTTD",
+      "Footprint": "logger_v2_expansion:R_0603_1608Metric",
+      "Role": "LTE RF series matching placeholder; 50-ohm trace",
+      "SupplierCode": "111619",
+      "URL": "https://akizukidenshi.com/catalog/g/g111619/",
+      "Notes": "",
+      "UUID": "bb3ea7b8-d46a-44da-858b-1393340b78b0"
+    }
+  ],
+  "retained_parts_unchanged": true,
+  "root_pcb_project_unchanged": true,
+  "wiring_unchanged": true,
+  "before_sha256": {
+    "logger_v2.kicad_sch": "e7a58276bb366797f475a937fbf265572cc7d248a5715d88964f100ea299d8a3",
+    "logger_v2_lte_sd.kicad_sch": "75fb7c44021cbdc492fda923096cd8452165a9d56274cca56e453d8623cb4151",
+    "logger_v2_expansion.kicad_sym": "fb23e6475de07ce707560041d7263b5db5c3e29011c1f87c877ee64f6ad20eb8",
+    "logger_v2.kicad_pcb": "6f92053e676fcba729fcee2e828be40d5f4c481b5bcd450a6f16a8d5846a149b",
+    "logger_v2.kicad_pro": "c783a2c74681bfb2d132e5b32cb4e378b6cc279ca47423418acc8e4df250329f",
+    "実装方針.md": "b564f8bcda6e03264d2b9829a0d879765f8687e53b647b39f2f6efb1f570ba2a"
+  },
+  "new_child_count": 38,
+  "counts": {
+    "logger_v2.kicad_sch": 59,
+    "logger_v2_lte_sd.kicad_sch": 38
+  },
+  "all_pins_match_pads": true,
+  "model_files": [
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\Akizuki_AE-BNO055-BO_mechanical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\COSMTEC_S-037-TGG_mechanical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\CP_EIA-7343-31_Kemet-D.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\C_0603_1608Metric.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\C_0805_2012Metric.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\Crystal_SMD_3225-4Pin_3.2x2.5mm.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\D_SOD-882.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\LED_0805_2012Metric.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\L_0402_1005Metric.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\L_Bourns_SRN6045TA.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\Molex_43045-0402_same_geometry_as_0400.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\Molex_47219-2001.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\PinHeader_1x06_P2.54mm_Vertical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\PinSocket_1x06_P2.54mm_Vertical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\PinSocket_1x08_P2.54mm_Vertical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\PinSocket_1x10_P2.54mm_Vertical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\R_0603_1608Metric.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\R_0805_2012Metric.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\R_2512_6332Metric.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\SIMCom_SIM7070G_mechanical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\SOIC-8_3.9x4.9mm_P1.27mm.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\SOT-23-6.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\SOT-23.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\SSOP-28_5.3x10.2mm_P0.65mm.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\TC74HC595AF_nominal.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\TE_2452796-1.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\TI_TPS62130_RGT16_mechanical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\TSSOP-14_4.4x5mm_P0.65mm.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\U.FL_Hirose_U.FL-R-SMT-1_Vertical.step",
+    "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\3dmodels\\u-blox_MAX-M10M-00B.step"
+  ],
+  "all_step_files_present": true,
+  "existing_symbols_byte_structurally_preserved": true
+}

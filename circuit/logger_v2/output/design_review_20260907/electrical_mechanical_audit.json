@@ -1,0 +1,23 @@
+{
+  "footprints": 63,
+  "schematic_components": 59,
+  "expected_physical_pin_entries": 224,
+  "mismatch_count": 0,
+  "mismatches": [],
+  "all_components_on_top": true,
+  "tracks": 420,
+  "vias": 171,
+  "board_sha256": "30ca8371a71b22a3fb1c98f0d95ea5627f4f6028b7b93308668d068b1eef85a7",
+  "schematic_sha256": "0d30c36a3051426f8e3f44066d25a1b0942beeb9ab918904210d392fc24e6720",
+  "pcba_components": 48,
+  "manual_components": [
+    "J1",
+    "J2",
+    "J3",
+    "J4",
+    "J5",
+    "J6",
+    "J7",
+    "U3"
+  ]
+}

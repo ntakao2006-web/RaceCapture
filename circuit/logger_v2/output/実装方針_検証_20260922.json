@@ -1,0 +1,32 @@
+{
+  "cad_hashes": {
+    "logger_v2.kicad_sch": "2372d32bd58cb13ae0a471081fa15d02d2f3a8b7d09d49f83dc41e9667fc966d",
+    "logger_v2_lte_sd.kicad_sch": "f21f02826966e5624627504d2ebb9d5887487f454ac8e2476333bc6e2a827d38",
+    "logger_v2.kicad_pcb": "6f92053e676fcba729fcee2e828be40d5f4c481b5bcd450a6f16a8d5846a149b",
+    "logger_v2_expansion.kicad_sym": "2a6647747d71f1925dc8ed6b0e436e71f8fad9717ff249ae165a83c0c5557c1d"
+  },
+  "target_parts": 97,
+  "target_pins": 404,
+  "dnp": [
+    "R10",
+    "R13",
+    "R14"
+  ],
+  "current_main_parts": 69,
+  "duplicate_child_parts": 10,
+  "parts_to_add": 28,
+  "every_pin_assigned_once": true,
+  "all_pin_sets_match_footprints": true,
+  "all_models_exist": true,
+  "cad_unchanged": false,
+  "cad_final_hashes": {
+    "logger_v2.kicad_sch": "bf14c6881ab62fa1de4e7345986353b2f1d182c6c2fa091db06917aad7beae85",
+    "logger_v2_lte_sd.kicad_sch": "f21f02826966e5624627504d2ebb9d5887487f454ac8e2476333bc6e2a827d38",
+    "logger_v2.kicad_pcb": "6f92053e676fcba729fcee2e828be40d5f4c481b5bcd450a6f16a8d5846a149b",
+    "logger_v2_expansion.kicad_sym": "2a6647747d71f1925dc8ed6b0e436e71f8fad9717ff249ae165a83c0c5557c1d"
+  },
+  "agent_wrote_cad": false,
+  "external_edit_observed": "Main schematic saved externally during documentation; added all SIM7070G GND pins to GND. Reflected in section 16.",
+  "markdown_net_table_matches_404_pin_csv": true,
+  "sim_voltage_conflict_resolved_with_specific_section_3_6": true
+}

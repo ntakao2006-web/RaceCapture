@@ -1,0 +1,161 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-07T07:23:55+0900",
+    "kicad_version": "9.0.6",
+    "schematic_parity": [],
+    "source": "latest_finished.kicad_pcb",
+    "unconnected_items": [],
+    "violations": [
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D4",
+                    "pos": {
+                        "x": 145.4,
+                        "y": 91.0
+                    },
+                    "uuid": "281f30d9-546c-4bed-b547-e76cfb5baed1"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'PinSocket_1x08_P2.54mm_Vertical' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント J5",
+                    "pos": {
+                        "x": 145.72,
+                        "y": 49.2
+                    },
+                    "uuid": "369ef0e1-a828-4dc8-b7b6-727f248903d5"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D6",
+                    "pos": {
+                        "x": 151.0,
+                        "y": 91.0
+                    },
+                    "uuid": "5738d366-6d8b-4016-b16a-647f7a256ed3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D7",
+                    "pos": {
+                        "x": 153.8,
+                        "y": 91.0
+                    },
+                    "uuid": "6faec3c6-3a16-449f-9786-99f0fd349877"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D2",
+                    "pos": {
+                        "x": 139.8,
+                        "y": 91.0
+                    },
+                    "uuid": "78a74f82-3e1b-447d-a375-e00291bc07e4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D1",
+                    "pos": {
+                        "x": 137.0,
+                        "y": 91.0
+                    },
+                    "uuid": "98325977-f4ee-4e29-bdc4-63f5cba0d19f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D3",
+                    "pos": {
+                        "x": 142.6,
+                        "y": 91.0
+                    },
+                    "uuid": "a2fcdbd4-0821-4bda-8b22-d2e4028e9c4f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D8",
+                    "pos": {
+                        "x": 156.6,
+                        "y": 91.0
+                    },
+                    "uuid": "b8da4ed2-6b3c-4cca-aefd-eae1f1632071"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'AE_BNO055_BO' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント U3",
+                    "pos": {
+                        "x": 158.0,
+                        "y": 57.0
+                    },
+                    "uuid": "c7f5b764-b46e-4f77-8d92-20fcb25d60bf"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D5",
+                    "pos": {
+                        "x": 148.2,
+                        "y": 91.0
+                    },
+                    "uuid": "fb2dd670-e606-4fe5-a7a7-453a91c14618"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        }
+    ]
+}

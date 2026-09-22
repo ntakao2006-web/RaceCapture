@@ -1,0 +1,266 @@
+[
+  {
+    "ref": "U6",
+    "value": "SIM7070G",
+    "footprint": "logger_v2_expansion:SIMCom_SIM7070G_LCC68_24x24mm_P1mm",
+    "role": "LTE Cat-M/NB; VBAT 3.8V, UART/SIM 1.8V"
+  },
+  {
+    "ref": "U7",
+    "value": "SC16IS750IPW",
+    "footprint": "logger_v2_expansion:TSSOP-24_4.4x7.8mm_P0.65mm",
+    "role": "SPI2 to LTE UART; 8 auxiliary GPIO"
+  },
+  {
+    "ref": "U8",
+    "value": "TXU0204PWR",
+    "footprint": "logger_v2_expansion:TSSOP-14_4.4x5mm_P0.65mm",
+    "role": "TX/RX/RTS/CTS 3.3V to 1.8V"
+  },
+  {
+    "ref": "U10",
+    "value": "TXU0204PWR",
+    "footprint": "logger_v2_expansion:TSSOP-14_4.4x5mm_P0.65mm",
+    "role": "Auxiliary DTR, RI, STATUS; one spare output"
+  },
+  {
+    "ref": "J8",
+    "value": "NSIM-2-C",
+    "footprint": "logger_v2_expansion:nanoSIM_Hinged_CUI_NSIM-2-C",
+    "role": "1.8V nanoSIM; hinged socket with detect"
+  },
+  {
+    "ref": "J9",
+    "value": "DM3AT-SF-PEJM5",
+    "footprint": "logger_v2_expansion:microSD_HC_Hirose_DM3AT-SF-PEJM5",
+    "role": "3.3V microSD SPI; card detect"
+  },
+  {
+    "ref": "J10",
+    "value": "U.FL-R-SMT-1(10)",
+    "footprint": "logger_v2_expansion:U.FL_Hirose_U.FL-R-SMT-1_Vertical",
+    "role": "LTE antenna, 50 ohm RF path"
+  },
+  {
+    "ref": "U9",
+    "value": "TPS62130RGTR",
+    "footprint": "logger_v2_expansion:VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm",
+    "role": "5V to 3.8V LTE buck; MCU-controlled EN"
+  },
+  {
+    "ref": "Y2",
+    "value": "14.7456MHz CL12pF",
+    "footprint": "logger_v2_expansion:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+    "role": "UART bridge oscillator; 921600 baud at divisor 1"
+  },
+  {
+    "ref": "Q1",
+    "value": "2N7002",
+    "footprint": "logger_v2_expansion:SOT-23",
+    "role": "Open-drain PWRKEY; do not drive PWRKEY high"
+  },
+  {
+    "ref": "U11",
+    "value": "USBLC6-4SC6",
+    "footprint": "logger_v2_expansion:SOT-23-6",
+    "role": "SIM ESD: VDD/CLK/RST/DATA"
+  },
+  {
+    "ref": "U12",
+    "value": "USBLC6-4SC6",
+    "footprint": "logger_v2_expansion:SOT-23-6",
+    "role": "microSD ESD: CLK/CS/MOSI/MISO"
+  },
+  {
+    "ref": "J11",
+    "value": "LTE service 1x06",
+    "footprint": "logger_v2_expansion:PinHeader_1x06_P2.54mm_Vertical",
+    "role": "USB VBUS/DP/DM/GND + BOOT_CFG/VDD_EXT service header"
+  },
+  {
+    "ref": "L2",
+    "value": "2.2uH / SRN6045TA-2R2Y",
+    "footprint": "logger_v2_expansion:L_Bourns_SRN6045TA",
+    "role": "LTE buck power inductor; Irms 6A, Isat 9.5A typical"
+  },
+  {
+    "ref": "C15",
+    "value": "330uF 6.3V polymer",
+    "footprint": "logger_v2_expansion:CP_EIA-7343-31_Kemet-D",
+    "role": "LTE VBAT bulk; low ESR <= 0.1 ohm"
+  },
+  {
+    "ref": "C16",
+    "value": "22uF 10V",
+    "footprint": "logger_v2_expansion:C_0805_2012Metric",
+    "role": "Buck VIN"
+  },
+  {
+    "ref": "C17",
+    "value": "22uF 10V",
+    "footprint": "logger_v2_expansion:C_0805_2012Metric",
+    "role": "Buck VOUT"
+  },
+  {
+    "ref": "C18",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "LTE VBAT"
+  },
+  {
+    "ref": "C19",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "SIM_VDD"
+  },
+  {
+    "ref": "C20",
+    "value": "10uF 6.3V",
+    "footprint": "logger_v2_expansion:C_0805_2012Metric",
+    "role": "microSD supply"
+  },
+  {
+    "ref": "C21",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "microSD supply"
+  },
+  {
+    "ref": "C22",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "SC16 VDD"
+  },
+  {
+    "ref": "C23",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "U8 VCCA"
+  },
+  {
+    "ref": "C24",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "U8 VCCB"
+  },
+  {
+    "ref": "C25",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "U10 VCCA"
+  },
+  {
+    "ref": "C26",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "U10 VCCB"
+  },
+  {
+    "ref": "C27",
+    "value": "18pF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "Y2 load; tune to actual crystal"
+  },
+  {
+    "ref": "C28",
+    "value": "18pF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "Y2 load; tune to actual crystal"
+  },
+  {
+    "ref": "C29",
+    "value": "3.3nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "Buck soft start"
+  },
+  {
+    "ref": "C30",
+    "value": "100nF",
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "role": "Bridge reset RC"
+  },
+  {
+    "ref": "R21",
+    "value": "374k 1%",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "Buck feedback upper: 0.8*(1+374/100)=3.792V"
+  },
+  {
+    "ref": "R22",
+    "value": "100k 1%",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "Buck feedback lower"
+  },
+  {
+    "ref": "R23",
+    "value": "100k",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "Buck EN pulldown"
+  },
+  {
+    "ref": "R24",
+    "value": "100k",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "PWRKEY gate pulldown"
+  },
+  {
+    "ref": "R25",
+    "value": "10k",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "Bridge reset pullup"
+  },
+  {
+    "ref": "R26",
+    "value": "10k",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "Bridge CS pullup"
+  },
+  {
+    "ref": "R27",
+    "value": "10k",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "Bridge IRQ pullup"
+  },
+  {
+    "ref": "R28",
+    "value": "47k",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "SD CS pullup"
+  },
+  {
+    "ref": "R29",
+    "value": "47k",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "SD MISO pullup"
+  },
+  {
+    "ref": "R30",
+    "value": "10k",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "SD detect pullup"
+  },
+  {
+    "ref": "R31",
+    "value": "22R",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "SIM CLK series"
+  },
+  {
+    "ref": "R32",
+    "value": "22R",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "SIM RST series"
+  },
+  {
+    "ref": "R33",
+    "value": "22R",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "SIM DATA series"
+  },
+  {
+    "ref": "R34",
+    "value": "0R",
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "role": "LTE RF matching series"
+  }
+]

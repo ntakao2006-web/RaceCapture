@@ -1,0 +1,106 @@
+{
+  "changes": [
+    {
+      "file": "logger_v2.kicad_sch",
+      "value": "AP63301WU-7",
+      "role": "5V to 3.8V LTE buck; MCU-controlled EN",
+      "old": "U10",
+      "new": "U8"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "value": "SIM7070G",
+      "role": "LTE Cat-M/NB; VBAT 3.8V, UART/SIM 1.8V",
+      "old": "U7",
+      "new": "U6"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "value": "TXU0204PWR",
+      "role": "TX/RX/RTS/CTS 3.3V to 1.8V",
+      "old": "U6",
+      "new": "U7"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "value": "USBLC6-4SC6",
+      "role": "microSD ESD: CLK/CS/MOSI/MISO",
+      "old": "U8",
+      "new": "U10"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "47219-2001",
+      "role": "3.3V microSD SPI; card detect",
+      "old": "J?",
+      "new": "J9"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "2452796-1",
+      "role": "1.8V nanoSIM; hinged socket with detect",
+      "old": "J?",
+      "new": "J8"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "LTE service 1x06",
+      "role": "USB VBUS/DP/DM/GND + BOOT_CFG/VDD_EXT service header",
+      "old": "J?",
+      "new": "J10"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "U.FL-R-SMT-1(10)",
+      "role": "LTE antenna, 50 ohm RF path",
+      "old": "J?",
+      "new": "J11"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "AP63301WU-7",
+      "role": "5V to 3.8V LTE buck; MCU-controlled EN",
+      "old": "U?",
+      "new": "U8"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "SIM7070G",
+      "role": "LTE Cat-M/NB; VBAT 3.8V, UART/SIM 1.8V",
+      "old": "U?",
+      "new": "U6"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "2N7002",
+      "role": "Open-drain PWRKEY; do not drive PWRKEY high",
+      "old": "Q?",
+      "new": "Q1"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "TXU0204PWR",
+      "role": "TX/RX/RTS/CTS 3.3V to 1.8V",
+      "old": "U?",
+      "new": "U7"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "USBLC6-4SC6",
+      "role": "SIM ESD: VDD/CLK/RST/DATA",
+      "old": "U?",
+      "new": "U9"
+    },
+    {
+      "file": "logger_v2_lte_sd.kicad_sch",
+      "value": "USBLC6-4SC6",
+      "role": "microSD ESD: CLK/CS/MOSI/MISO",
+      "old": "U?",
+      "new": "U10"
+    }
+  ],
+  "reference_only_verified": true,
+  "no_duplicates_or_unannotated_parts": true,
+  "pcb_unchanged": true,
+  "backup": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\logger_v2-backups\\before_policy_annotation_20260922_031953"
+}

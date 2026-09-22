@@ -1,0 +1,73 @@
+﻿Sheet,Reference,UUID,Value,MPN,Footprint,DNP,Supplier,Code,URL,Notes
+logger_v2.kicad_sch,J3,00000000-0000-0000-0000-000056d71773,Power,FH105-1x8SG/RH,logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical,no,秋月電子通商,104046,https://akizukidenshi.com/catalog/g/g104046/,10mm長ピン。既存3Dは汎用モデル、スタック高さは実物確認
+logger_v2.kicad_sch,J2,00000000-0000-0000-0000-000056d72368,Digital/PWM,FH105-1x10SG,logger_v2_custom:PinSocket_1x10_P2.54mm_Vertical,no,秋月電子通商,107199,https://akizukidenshi.com/catalog/g/g107199/,10mm長ピン。既存3Dは汎用モデル、スタック高さは実物確認
+logger_v2.kicad_sch,J4,00000000-0000-0000-0000-000056d72f1c,Analog,FH105-1x6SG/RH,logger_v2_custom:PinSocket_1x06_P2.54mm_Vertical,no,秋月電子通商,104045,https://akizukidenshi.com/catalog/g/g104045/,10mm長ピン。既存3Dは汎用モデル、スタック高さは実物確認
+logger_v2.kicad_sch,J5,00000000-0000-0000-0000-000056d734d0,Digital/PWM,FH105-1x8SG/RH,logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical_ShieldSilk,no,秋月電子通商,104046,https://akizukidenshi.com/catalog/g/g104046/,10mm長ピン。既存3Dは汎用モデル、スタック高さは実物確認
+logger_v2.kicad_sch,C5,08946aef-bfd4-4942-9913-12158968a225,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,R1,0a0c1fc8-031a-4ce1-b767-9bb91542d41d,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,LED電流 約1.3mA @3.3V、VF=2V
+logger_v2.kicad_sch,R20,0cdedeb4-35a5-4b0c-a354-90530e6da296,47k,RC0603J47K,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,129458,https://akizukidenshi.com/catalog/g/g129458/,リール販売
+logger_v2.kicad_sch,D3,1422c59e-5c24-4877-8a70-361c29ed9010,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,no,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,黄緑570nm、2012、VF typ 2V
+logger_v2.kicad_sch,U5,142b6551-1f8d-42ac-af89-2b8e3e594b4d,MCP25625-E/SS,MCP25625T-E/SS,logger_v2_custom:SSOP-28_5.3x10.2mm_P0.65mm,no,秋月電子通商,112663,https://akizukidenshi.com/catalog/g/g112663/,
+logger_v2.kicad_sch,J7,1dfdcb4f-36c3-41f6-abed-6b0b360da062,43045-0400,43045-0400,logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal,no,他社調達,,https://www.molex.com/en-us/products/part-detail/430450400,既存ケーブルとの嵌合を維持する例外
+logger_v2.kicad_sch,R10,1fdb5414-cb36-4969-8c4a-df3e2c60f952,10k,RK73B1JTTD103J,logger_v2_custom:R_0603_1608Metric,yes,秋月電子通商,130355,https://akizukidenshi.com/catalog/g/g130355/,
+logger_v2.kicad_sch,R9,204544c5-fe3c-4357-9b7a-ee44c5c4a852,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,LED電流 約1.3mA @3.3V、VF=2V
+logger_v2.kicad_sch,L1,2354b397-0633-437e-976d-984f50a20650,27nH,LQG15HS27NJ02D,logger_v2_custom:L_0402_1005Metric,no,他社調達,,https://www.murata.com/en-global/products/productdetail?partno=LQG15HS27NJ02%23,27nH 5%、300mA、DCRmax0.46Ω、SRFmin1.7GHz。メーカー推奨LQG15H系
+logger_v2.kicad_sch,U3,23a3722c-f554-4e89-8e95-ac824bf55857,BNO055_module,AE-BNO055-BO,logger_v2_custom:AE_BNO055_BO_ShieldSilk,no,秋月電子通商,116996,https://akizukidenshi.com/catalog/g/g116996/,IMUのみモジュール実装の例外
+logger_v2.kicad_sch,D1,276f0ae8-89dc-4c97-a155-3c8ecc7d7a2c,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,no,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,黄緑570nm、2012、VF typ 2V
+logger_v2.kicad_sch,D2,2c7ee370-6a8f-4b0c-bca0-d3eb89e1bc00,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,no,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,黄緑570nm、2012、VF typ 2V
+logger_v2.kicad_sch,R11,2cc477df-8d60-435a-8edf-c7b006f94738,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,LED電流 約1.3mA @3.3V、VF=2V
+logger_v2.kicad_sch,J1,305a4727-c3a1-44f0-bd1b-20b98ee32d69,S-037-TGG,S-037-TGG,logger_v2_custom:SMA_S-037-TGG_Horizontal,no,秋月電子通商,102569,https://akizukidenshi.com/catalog/g/g102569/,
+logger_v2.kicad_sch,U2,333ae50b-b2b7-43c8-8956-5a75da24889b,MAX-M10M-00B,MAX-M10M-00B,logger_v2_custom:MAX_M10M_00B_LCC18,no,秋月電子通商,131778,https://akizukidenshi.com/catalog/g/g131778/,
+logger_v2.kicad_sch,R15,38757604-ee6e-46d5-bd0b-b728adc12193,4.7k,RK73B1JTTD472J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130353,https://akizukidenshi.com/catalog/g/g130353/,IMUプルアップ、必須実装。DNPではない
+logger_v2.kicad_sch,R4,3d279c33-b418-4bad-b918-11a2ee50e341,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,LED電流 約1.3mA @3.3V、VF=2V
+logger_v2.kicad_sch,R13,449e135b-091e-44dc-aa55-12bdfde2627e,120,RC0603J120R,logger_v2_custom:R_0603_1608Metric,yes,秋月電子通商,130332,https://akizukidenshi.com/catalog/g/g130332/,リール販売。CAN終端定格は別途確認、現在の1608を維持
+logger_v2.kicad_sch,C10,4c065d2f-08cd-4d2c-af27-e94316ae7e1c,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,C1,51bfd9ef-e6d9-43c5-8ede-e837fdffe4d4,10nF,GRM188B11H103KA01,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,113387,https://akizukidenshi.com/catalog/g/g113387/,RF給電バイパス。B特性、-25～85℃
+logger_v2.kicad_sch,R19,54a5a2ed-9c62-40da-be58-759969a157df,47k,RC0603J47K,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,129458,https://akizukidenshi.com/catalog/g/g129458/,リール販売
+logger_v2.kicad_sch,C3,584ea5f2-94a3-4b97-8628-17d78fe44b0e,15pF,CC0603N150J500,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,113312,https://akizukidenshi.com/catalog/g/g113312/,
+logger_v2.kicad_sch,D10,58acdff6-26d6-4e86-93c0-7e12b4fa5c1e,PEC3824C2A-AU,PEC3824C2A-AU_R1_000A1,logger_v2_custom:SOT-23,no,秋月電子通商,129497,https://akizukidenshi.com/catalog/g/g129497/,CAN用24V双方向TVS、1/2=bus、3=GND
+logger_v2.kicad_sch,C6,5d2a2b23-759a-414a-88d6-1352d0b159ad,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,C4,5eccbcdd-84d5-4d66-bfb6-edf378279e68,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,R8,5efdfe69-eb3a-41d0-83e9-dd30400d6d31,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,LED電流 約1.3mA @3.3V、VF=2V
+logger_v2.kicad_sch,R2,5f83f3bc-c8e1-43db-b0e7-536babd1ccfe,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,LED電流 約1.3mA @3.3V、VF=2V
+logger_v2.kicad_sch,D7,61ebf469-a57a-4f38-ad23-24cf38c27fd4,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,no,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,黄緑570nm、2012、VF typ 2V
+logger_v2.kicad_sch,R3,65f0588c-aa5a-439c-8d55-b7f40a077b9c,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,LED電流 約1.3mA @3.3V、VF=2V
+logger_v2.kicad_sch,D11,693600f1-f862-4998-9295-519d3ce2aaf7,RF ESD,PESD5V0F1BL-Q,logger_v2_custom:D_SOD-882,no,他社調達,,https://www.nexperia.com/product/PESD5V0F1BL-Q,RF用双方向TVS、VRWM5.5V、Ctyp0.4pF / max0.55pF
+logger_v2.kicad_sch,C7,737782f2-0fd9-40d4-96e5-0355ecd0d0b6,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,C8,799d96a3-ecd6-4153-9212-461bc5ab235a,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,C14,7a9000e9-1cbd-4839-9b80-75f6755eee83,10uF,GRM21BR71A106KE51,logger_v2_custom:C_0805_2012Metric,no,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,
+logger_v2.kicad_sch,R14,83001f46-e32d-4861-94a6-80b2c5fb9444,120,RC0603J120R,logger_v2_custom:R_0603_1608Metric,yes,秋月電子通商,130332,https://akizukidenshi.com/catalog/g/g130332/,リール販売。CAN終端定格は別途確認、現在の1608を維持
+logger_v2.kicad_sch,D6,8627d3e0-d679-4945-b54e-b67515034f49,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,no,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,黄緑570nm、2012、VF typ 2V
+logger_v2.kicad_sch,R17,8882d73f-8202-4ed4-9946-93a3e7592d87,10k,RK73B1JTTD103J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130355,https://akizukidenshi.com/catalog/g/g130355/,
+logger_v2.kicad_sch,D9,a23d8d99-318f-47bb-9c9f-000153403f12,PEC3824C2A-AU,PEC3824C2A-AU_R1_000A1,logger_v2_custom:SOT-23,no,秋月電子通商,129497,https://akizukidenshi.com/catalog/g/g129497/,CAN用24V双方向TVS、1/2=bus、3=GND
+logger_v2.kicad_sch,R7,b2bfea56-95c6-43d8-8b4d-57d791679477,27R 1W,CRCW251227R0JNEG,logger_v2_custom:R_2512_6332Metric,no,他社調達,,https://www.vishay.com/docs/20035/dcrcwe3.pdf,27Ω 5% 1W、短絡時最悪約0.468W。基板温度・放熱を確認
+logger_v2.kicad_sch,D5,b5e1ee5b-3745-444b-bd1e-6cc83a9139d1,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,no,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,黄緑570nm、2012、VF typ 2V
+logger_v2.kicad_sch,C11,b6d3cc63-6b11-4a02-8011-6470fe9704fd,1uF,GRM188B31H105KAAL,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,116994,https://akizukidenshi.com/catalog/g/g116994/,B特性、-25～85℃。車載温度保証ではない
+logger_v2.kicad_sch,R12,b974b52c-6557-4de6-b39c-1f79aefa2281,10k,RK73B1JTTD103J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130355,https://akizukidenshi.com/catalog/g/g130355/,
+logger_v2.kicad_sch,J6,bae6e84c-0fed-4e01-8a43-8fc2737d6419,43045-0400,43045-0400,logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal,no,他社調達,,https://www.molex.com/en-us/products/part-detail/430450400,既存ケーブルとの嵌合を維持する例外
+logger_v2.kicad_sch,R18,bbc91624-84cd-481e-ae52-ba534f14a77b,47k,RC0603J47K,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,129458,https://akizukidenshi.com/catalog/g/g129458/,リール販売
+logger_v2.kicad_sch,D4,c1612cbb-0a36-4bae-8370-c7bc3f89bead,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,no,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,黄緑570nm、2012、VF typ 2V
+logger_v2.kicad_sch,Y1,d9775459-3648-4c57-a12d-486c736c0d54,20MHz CL10pF,20M10PB/XT324-10/80,logger_v2_custom:Crystal_SMD_3225-4Pin_3.2x2.5mm,no,秋月電子通商,130244,https://akizukidenshi.com/catalog/g/g130244/,C2/C3=15pF; stray 2.5pF仮定、発振余裕と周波数を実機確認
+logger_v2.kicad_sch,R16,dd4671a6-1763-4bbc-81de-df4c5e43a79b,4.7k,RK73B1JTTD472J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130353,https://akizukidenshi.com/catalog/g/g130353/,IMUプルアップ、必須実装。DNPではない
+logger_v2.kicad_sch,D8,e00fb177-df1c-47fa-9d05-9ef1e1f4e1c5,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,no,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,黄緑570nm、2012、VF typ 2V
+logger_v2.kicad_sch,R6,e456ad16-920d-4b3c-9b27-03a8b1243184,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,LED電流 約1.3mA @3.3V、VF=2V
+logger_v2.kicad_sch,R5,e4946c70-7159-4f51-a03c-94c953cfccb9,10k,RK73B1JTTD103J,logger_v2_custom:R_0603_1608Metric,no,秋月電子通商,130355,https://akizukidenshi.com/catalog/g/g130355/,
+logger_v2.kicad_sch,C12,e6c14abf-da85-4744-ab35-cd0bd77a1e7f,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,U4,e77bbb44-feb9-49fa-bf38-266179850a5c,ATA6561-GAQW,ATA6561-GAQW-N,logger_v2_custom:SOIC-8_3.9x4.9mm_P1.27mm,no,秋月電子通商,130008,https://akizukidenshi.com/catalog/g/g130008/,
+logger_v2.kicad_sch,C2,e8327ba7-5f28-4d57-af66-e067436f68a3,15pF,CC0603N150J500,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,113312,https://akizukidenshi.com/catalog/g/g113312/,
+logger_v2.kicad_sch,U1,f06c868e-188b-4fd7-832e-3da3de07950c,TC74HC595AF,TC74HC595AF,logger_v2_custom:Toshiba_SOP16_P300_1.27A,no,秋月電子通商,110077,https://akizukidenshi.com/catalog/g/g110077/,
+logger_v2.kicad_sch,C13,f3afdbb8-6581-4874-be6e-77af6da6f756,10uF,GRM21BR71A106KE51,logger_v2_custom:C_0805_2012Metric,no,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,
+logger_v2.kicad_sch,C9,f76b56bc-d5f0-4e5e-9358-2b7b207f3ebc,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,no,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2_lte_sd.kicad_sch,J?,0e35c2d6-d10f-434f-92cd-72474bfda1cd,47219-2001,47219-2001,logger_v2_expansion:Molex_47219-2001,no,他社調達,,https://www.molex.com/en-us/products/part-detail/472192001,ユーザー指定：V1と同一。独立した挿入検出接点なし
+logger_v2_lte_sd.kicad_sch,J?,2fc22c57-8968-4772-879d-3f5c1a758ce8,2452796-1,2452796-1,logger_v2_expansion:nanoSIM_TE_2452796-1_Hinge,no,他社調達,,https://jp.rs-online.com/web/p/memory-card-connectors/2868822,ユーザー指定RS 286-8822、維持
+logger_v2_lte_sd.kicad_sch,J?,3fd075d4-3a45-48fe-a58f-76f2e2a3a0dd,LTE service 1x06,PH-1x6SG/RH,logger_v2_expansion:PinHeader_1x06_P2.54mm_Vertical,no,秋月電子通商,101669,https://akizukidenshi.com/catalog/g/g101669/,
+logger_v2_lte_sd.kicad_sch,U?,4742a84a-08ca-45e8-884b-04598b36c983,SC16IS750IPW,SC16IS750IPW,logger_v2_expansion:TSSOP-24_4.4x7.8mm_P0.65mm,no,他社調達,,,旧SPI-UART案。現在の実装方針では不使用、購入不要
+logger_v2_lte_sd.kicad_sch,J?,525e23fb-25ed-4df9-b946-1a68aa56f007,U.FL-R-SMT-1(10),U.FL-R-SMT-1(10),logger_v2_expansion:U.FL_Hirose_U.FL-R-SMT-1_Vertical,no,秋月電子通商,115417,https://akizukidenshi.com/catalog/g/g115417/,
+logger_v2_lte_sd.kicad_sch,U?,60947d0b-8f2b-426b-abcb-976d6c3b6b9c,TPS62130RGTR,TPS62130RGTR,logger_v2_expansion:VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm,no,他社調達,,https://www.ti.com/product/TPS62130,5V→3.8V、3A級。秋月の適合裸IC未確認、維持
+logger_v2_lte_sd.kicad_sch,U?,7bb0d9e1-0077-47fd-b2c0-8724033dbbb1,SIM7070G,SIM7070G,logger_v2_expansion:SIMCom_SIM7070G_LCC68_24x24mm_P1mm,no,他社調達,,https://en.simcom.com/product/SIM7070G.html,指定部品、秋月制約の対象外
+logger_v2_lte_sd.kicad_sch,Q?,9e7a35ca-3c06-4e3f-8b41-4190369bb614,2N7002,2N7002,logger_v2_expansion:SOT-23,no,秋月電子通商,103919,https://akizukidenshi.com/catalog/g/g103919/,
+logger_v2_lte_sd.kicad_sch,Y?,a7db9ccd-1307-457f-947c-d433adeaf376,14.7456MHz CL12pF,14.7456MHz CL12pF,logger_v2_expansion:Crystal_SMD_3225-4Pin_3.2x2.5mm,no,他社調達,,,旧SPI-UART案の水晶。現在の方針では不使用、購入不要
+logger_v2_lte_sd.kicad_sch,U?,c3164fbf-8087-4442-b420-f22b387513b3,TXU0204PWR,TXU0204PWR,logger_v2_expansion:TSSOP-14_4.4x5mm_P0.65mm,no,他社調達,,https://www.ti.com/product/TXU0204,2Mbps UART 1.8/3.3V変換用。旧案の2個目は購入数量から除く
+logger_v2_lte_sd.kicad_sch,U?,c726da66-9276-46d7-9ead-4a35f1f5c53c,TXU0204PWR,TXU0204PWR,logger_v2_expansion:TSSOP-14_4.4x5mm_P0.65mm,no,他社調達,,https://www.ti.com/product/TXU0204,2Mbps UART 1.8/3.3V変換用。旧案の2個目は購入数量から除く
+logger_v2_lte_sd.kicad_sch,U?,e5e0e810-868d-4a54-8284-4d45649aff0b,USBLC6-4SC6,USBLC6-4SC6,logger_v2_expansion:SOT-23-6,no,他社調達,,https://www.st.com/en/protection-devices/usblc6-4.html,SIM/SD用低容量ESD。秋月適合品未確認、維持
+logger_v2_lte_sd.kicad_sch,U?,f8b41319-4526-4d88-9d0f-eb4ed101c4ca,USBLC6-4SC6,USBLC6-4SC6,logger_v2_expansion:SOT-23-6,no,他社調達,,https://www.st.com/en/protection-devices/usblc6-4.html,SIM/SD用低容量ESD。秋月適合品未確認、維持

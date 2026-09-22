@@ -1,0 +1,20 @@
+{
+  "backup": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\logger_v2-backups\\before_L1_2520_20260922_224152",
+  "changes": [
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "L1",
+      "value": "2.2u",
+      "old": "logger_v2_expansion:L_Bourns_SRN6045TA",
+      "new": "logger_v2_expansion:L_Murata_DFE252012P"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "L1",
+      "value": "2.2u",
+      "old": "logger_v2_expansion:L_Bourns_SRN6045TA",
+      "new": "logger_v2_expansion:L_Murata_DFE252012P"
+    }
+  ],
+  "invariants": "All other components, placements, values, wiring, tracks/vias/zones, pad nets and IDs unchanged"
+}

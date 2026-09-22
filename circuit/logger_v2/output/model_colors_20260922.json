@@ -1,0 +1,56 @@
+{
+  "backup": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\logger_v2-backups\\before_model_colors_20260922_180806",
+  "models": [
+    {
+      "file": "Akizuki_AE-BNO055-BO_mechanical.step",
+      "faces": 72,
+      "original_entities_unchanged": true,
+      "geometry_unchanged_verified": true,
+      "valid": true
+    },
+    {
+      "file": "COSMTEC_S-037-TGG_mechanical.step",
+      "faces": 42,
+      "original_entities_unchanged": true,
+      "geometry_unchanged_verified": true,
+      "valid": true
+    },
+    {
+      "file": "Molex_43045-0402_same_geometry_as_0400.step",
+      "faces": 263,
+      "original_entities_unchanged": true,
+      "geometry_unchanged_verified": true,
+      "valid": true
+    },
+    {
+      "file": "Molex_47219-2001.step",
+      "faces": 1257,
+      "original_entities_unchanged": true,
+      "geometry_unchanged_verified": true,
+      "valid": true
+    },
+    {
+      "file": "SIMCom_SIM7070G_mechanical.step",
+      "faces": 420,
+      "original_entities_unchanged": true,
+      "geometry_unchanged_verified": true,
+      "valid": true
+    },
+    {
+      "file": "TC74HC595AF_nominal.step",
+      "faces": 232,
+      "original_entities_unchanged": true,
+      "geometry_unchanged_verified": true,
+      "valid": true
+    },
+    {
+      "file": "TE_2452796-1.step",
+      "faces": 650,
+      "original_entities_unchanged": true,
+      "geometry_unchanged_verified": true,
+      "valid": true
+    }
+  ],
+  "colors": "Material visualization approximation, not measured manufacturer colors",
+  "kicad_render_verified": true
+}

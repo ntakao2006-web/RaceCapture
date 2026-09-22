@@ -1,0 +1,2363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="E">
+  <design>
+    <source>C:\Users\lintaroh\Documents\RaceCapture\circuit\logger_v2\logger_v2.kicad_sch</source>
+    <date>2026-09-20T13:55:55+0900</date>
+    <tool>Eeschema 9.0.6</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title>Logger v2 - UNO Q Sensor / CAN Shield</title>
+        <company/>
+        <rev>PCB review A</rev>
+        <date>2026-09-07</date>
+        <source>logger_v2.kicad_sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+        <comment number="5" value=""/>
+        <comment number="6" value=""/>
+        <comment number="7" value=""/>
+        <comment number="8" value=""/>
+        <comment number="9" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="C1">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>51bfd9ef-e6d9-43c5-8ede-e837fdffe4d4</tstamps>
+    </comp>
+    <comp ref="C2">
+      <value>18pF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="Specification">18pF C0G 50V 5%; 20MHz CL12pF crystal</field>
+        <field name="MPN">CL10C180JB8NNNC</field>
+        <field name="Manufacturer">Samsung</field>
+        <field name="LCSC">C1647</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Specification" value="18pF C0G 50V 5%; 20MHz CL12pF crystal"/>
+      <property name="MPN" value="CL10C180JB8NNNC"/>
+      <property name="Manufacturer" value="Samsung"/>
+      <property name="LCSC" value="C1647"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e8327ba7-5f28-4d57-af66-e067436f68a3</tstamps>
+    </comp>
+    <comp ref="C3">
+      <value>18pF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="Specification">18pF C0G 50V 5%; 20MHz CL12pF crystal</field>
+        <field name="MPN">CL10C180JB8NNNC</field>
+        <field name="Manufacturer">Samsung</field>
+        <field name="LCSC">C1647</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Specification" value="18pF C0G 50V 5%; 20MHz CL12pF crystal"/>
+      <property name="MPN" value="CL10C180JB8NNNC"/>
+      <property name="Manufacturer" value="Samsung"/>
+      <property name="LCSC" value="C1647"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>584ea5f2-94a3-4b97-8628-17d78fe44b0e</tstamps>
+    </comp>
+    <comp ref="C4">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U1.16 VCC</field>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U1.16 VCC"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5eccbcdd-84d5-4d66-bfb6-edf378279e68</tstamps>
+    </comp>
+    <comp ref="C5">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U4.3 VCC</field>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U4.3 VCC"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>08946aef-bfd4-4942-9913-12158968a225</tstamps>
+    </comp>
+    <comp ref="C6">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U4.5 VIO</field>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U4.5 VIO"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5d2a2b23-759a-414a-88d6-1352d0b159ad</tstamps>
+    </comp>
+    <comp ref="C7">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U5.1 VIO</field>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U5.1 VIO"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>737782f2-0fd9-40d4-96e5-0355ecd0d0b6</tstamps>
+    </comp>
+    <comp ref="C8">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U5.19 VDD</field>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U5.19 VDD"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>799d96a3-ecd6-4153-9212-461bc5ab235a</tstamps>
+    </comp>
+    <comp ref="C9">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U5.27 VDDA</field>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U5.27 VDDA"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f76b56bc-d5f0-4e5e-9358-2b7b207f3ebc</tstamps>
+    </comp>
+    <comp ref="C10">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U2.23 VCC</field>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U2.23 VCC"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4c065d2f-08cd-4d2c-af27-e94316ae7e1c</tstamps>
+    </comp>
+    <comp ref="C11">
+      <value>1uF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U2.23 VCC bulk</field>
+        <field name="Specification">1uF X5R 50V 0603</field>
+        <field name="MPN">CL10A105KB8NNNC</field>
+        <field name="Manufacturer">Samsung</field>
+        <field name="LCSC">C15849</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U2.23 VCC bulk"/>
+      <property name="Specification" value="1uF X5R 50V 0603"/>
+      <property name="MPN" value="CL10A105KB8NNNC"/>
+      <property name="Manufacturer" value="Samsung"/>
+      <property name="LCSC" value="C15849"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b6d3cc63-6b11-4a02-8011-6470fe9704fd</tstamps>
+    </comp>
+    <comp ref="C12">
+      <value>100nF</value>
+      <footprint>logger_v2_custom:C_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">U2.22 V_BCKP</field>
+        <field name="Specification">100nF X7R 50V 0603</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">Yageo</field>
+        <field name="LCSC">C14663</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="U2.22 V_BCKP"/>
+      <property name="Specification" value="100nF X7R 50V 0603"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="Yageo"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e6c14abf-da85-4744-ab35-cd0bd77a1e7f</tstamps>
+    </comp>
+    <comp ref="C13">
+      <value>10uF</value>
+      <footprint>logger_v2_custom:C_0805_2012Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">J3.4 3V3 bulk</field>
+        <field name="Specification">10uF X5R 25V 0805</field>
+        <field name="MPN">CL21A106KAYNNNE</field>
+        <field name="Manufacturer">Samsung</field>
+        <field name="LCSC">C15850</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0805_2012Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="J3.4 3V3 bulk"/>
+      <property name="Specification" value="10uF X5R 25V 0805"/>
+      <property name="MPN" value="CL21A106KAYNNNE"/>
+      <property name="Manufacturer" value="Samsung"/>
+      <property name="LCSC" value="C15850"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f3afdbb8-6581-4874-be6e-77af6da6f756</tstamps>
+    </comp>
+    <comp ref="C14">
+      <value>10uF</value>
+      <footprint>logger_v2_custom:C_0805_2012Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">CAN 5V bulk</field>
+        <field name="Specification">10uF X5R 25V 0805</field>
+        <field name="MPN">CL21A106KAYNNNE</field>
+        <field name="Manufacturer">Samsung</field>
+        <field name="LCSC">C15850</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:C_0805_2012Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Function" value="CAN 5V bulk"/>
+      <property name="Specification" value="10uF X5R 25V 0805"/>
+      <property name="MPN" value="CL21A106KAYNNNE"/>
+      <property name="Manufacturer" value="Samsung"/>
+      <property name="LCSC" value="C15850"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7a9000e9-1cbd-4839-9b80-75f6755eee83</tstamps>
+    </comp>
+    <comp ref="D1">
+      <value>GREEN 0805</value>
+      <footprint>logger_v2_custom:LED_0805_2012Metric_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <fields>
+        <field name="Sim.Pins">1=K 2=A</field>
+        <field name="MPN">KT-0805G</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2297</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:LED_0805_2012Metric_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small_Filled" description="Light emitting diode, small symbol, filled shape"/>
+      <property name="Sim.Pins" value="1=K 2=A"/>
+      <property name="MPN" value="KT-0805G"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2297"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>276f0ae8-89dc-4c97-a155-3c8ecc7d7a2c</tstamps>
+    </comp>
+    <comp ref="D2">
+      <value>GREEN 0805</value>
+      <footprint>logger_v2_custom:LED_0805_2012Metric_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <fields>
+        <field name="Sim.Pins">1=K 2=A</field>
+        <field name="MPN">KT-0805G</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2297</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:LED_0805_2012Metric_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small_Filled" description="Light emitting diode, small symbol, filled shape"/>
+      <property name="Sim.Pins" value="1=K 2=A"/>
+      <property name="MPN" value="KT-0805G"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2297"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2c7ee370-6a8f-4b0c-bca0-d3eb89e1bc00</tstamps>
+    </comp>
+    <comp ref="D3">
+      <value>GREEN 0805</value>
+      <footprint>logger_v2_custom:LED_0805_2012Metric_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <fields>
+        <field name="Sim.Pins">1=K 2=A</field>
+        <field name="MPN">KT-0805G</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2297</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:LED_0805_2012Metric_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small_Filled" description="Light emitting diode, small symbol, filled shape"/>
+      <property name="Sim.Pins" value="1=K 2=A"/>
+      <property name="MPN" value="KT-0805G"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2297"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1422c59e-5c24-4877-8a70-361c29ed9010</tstamps>
+    </comp>
+    <comp ref="D4">
+      <value>GREEN 0805</value>
+      <footprint>logger_v2_custom:LED_0805_2012Metric_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <fields>
+        <field name="Sim.Pins">1=K 2=A</field>
+        <field name="MPN">KT-0805G</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2297</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:LED_0805_2012Metric_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small_Filled" description="Light emitting diode, small symbol, filled shape"/>
+      <property name="Sim.Pins" value="1=K 2=A"/>
+      <property name="MPN" value="KT-0805G"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2297"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c1612cbb-0a36-4bae-8370-c7bc3f89bead</tstamps>
+    </comp>
+    <comp ref="D5">
+      <value>GREEN 0805</value>
+      <footprint>logger_v2_custom:LED_0805_2012Metric_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <fields>
+        <field name="Sim.Pins">1=K 2=A</field>
+        <field name="MPN">KT-0805G</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2297</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:LED_0805_2012Metric_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small_Filled" description="Light emitting diode, small symbol, filled shape"/>
+      <property name="Sim.Pins" value="1=K 2=A"/>
+      <property name="MPN" value="KT-0805G"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2297"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b5e1ee5b-3745-444b-bd1e-6cc83a9139d1</tstamps>
+    </comp>
+    <comp ref="D6">
+      <value>GREEN 0805</value>
+      <footprint>logger_v2_custom:LED_0805_2012Metric_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <fields>
+        <field name="Sim.Pins">1=K 2=A</field>
+        <field name="MPN">KT-0805G</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2297</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:LED_0805_2012Metric_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small_Filled" description="Light emitting diode, small symbol, filled shape"/>
+      <property name="Sim.Pins" value="1=K 2=A"/>
+      <property name="MPN" value="KT-0805G"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2297"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8627d3e0-d679-4945-b54e-b67515034f49</tstamps>
+    </comp>
+    <comp ref="D7">
+      <value>GREEN 0805</value>
+      <footprint>logger_v2_custom:LED_0805_2012Metric_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <fields>
+        <field name="Sim.Pins">1=K 2=A</field>
+        <field name="MPN">KT-0805G</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2297</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:LED_0805_2012Metric_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small_Filled" description="Light emitting diode, small symbol, filled shape"/>
+      <property name="Sim.Pins" value="1=K 2=A"/>
+      <property name="MPN" value="KT-0805G"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2297"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>61ebf469-a57a-4f38-ad23-24cf38c27fd4</tstamps>
+    </comp>
+    <comp ref="D8">
+      <value>GREEN 0805</value>
+      <footprint>logger_v2_custom:LED_0805_2012Metric_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <fields>
+        <field name="Sim.Pins">1=K 2=A</field>
+        <field name="MPN">KT-0805G</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2297</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:LED_0805_2012Metric_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small_Filled" description="Light emitting diode, small symbol, filled shape"/>
+      <property name="Sim.Pins" value="1=K 2=A"/>
+      <property name="MPN" value="KT-0805G"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2297"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e00fb177-df1c-47fa-9d05-9ef1e1f4e1c5</tstamps>
+    </comp>
+    <comp ref="D9">
+      <value>NUP2105LT1G</value>
+      <footprint>logger_v2_custom:SOT-23</footprint>
+      <datasheet>https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf</datasheet>
+      <description>Dual bidirectional 24 V TVS for CAN bus</description>
+      <fields>
+        <field name="MPN">NUP2105LT1G</field>
+        <field name="Manufacturer">onsemi</field>
+        <field name="LCSC">C14486</field>
+        <field name="JLCPCB_Class">Extended</field>
+        <field name="Footprint">logger_v2_custom:SOT-23</field>
+        <field name="Datasheet">https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf</field>
+        <field name="Description">Dual bidirectional 24 V TVS for CAN bus</field>
+      </fields>
+      <libsource lib="logger_v1_custom" part="PEC3824C2A-AU" description="Dual bidirectional 24 V TVS for CAN bus"/>
+      <property name="MPN" value="NUP2105LT1G"/>
+      <property name="Manufacturer" value="onsemi"/>
+      <property name="LCSC" value="C14486"/>
+      <property name="JLCPCB_Class" value="Extended"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a23d8d99-318f-47bb-9c9f-000153403f12</tstamps>
+    </comp>
+    <comp ref="D10">
+      <value>NUP2105LT1G</value>
+      <footprint>logger_v2_custom:SOT-23</footprint>
+      <datasheet>https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf</datasheet>
+      <description>Dual bidirectional 24 V TVS for CAN bus</description>
+      <fields>
+        <field name="MPN">NUP2105LT1G</field>
+        <field name="Manufacturer">onsemi</field>
+        <field name="LCSC">C14486</field>
+        <field name="JLCPCB_Class">Extended</field>
+        <field name="Footprint">logger_v2_custom:SOT-23</field>
+        <field name="Datasheet">https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf</field>
+        <field name="Description">Dual bidirectional 24 V TVS for CAN bus</field>
+      </fields>
+      <libsource lib="logger_v1_custom" part="PEC3824C2A-AU" description="Dual bidirectional 24 V TVS for CAN bus"/>
+      <property name="MPN" value="NUP2105LT1G"/>
+      <property name="Manufacturer" value="onsemi"/>
+      <property name="LCSC" value="C14486"/>
+      <property name="JLCPCB_Class" value="Extended"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>58acdff6-26d6-4e86-93c0-7e12b4fa5c1e</tstamps>
+    </comp>
+    <comp ref="D11">
+      <value>RF ESD</value>
+      <footprint>logger_v2_custom:D_SOD-882</footprint>
+      <datasheet>https://assets.nexperia.com/documents/data-sheet/PESD5V0F1BL.pdf</datasheet>
+      <fields>
+        <field name="MPN">PESD5V0F1BL,315</field>
+        <field name="Manufacturer">Nexperia</field>
+        <field name="LCSC">C45961</field>
+        <field name="JLCPCB_Class">Extended</field>
+        <field name="Function">SMA RF ESD protection</field>
+        <field name="Footprint">logger_v2_custom:D_SOD-882</field>
+        <field name="Datasheet">https://assets.nexperia.com/documents/data-sheet/PESD5V0F1BL.pdf</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="D_TVS_Small" description="Bidirectional transient-voltage-suppression diode, small symbol"/>
+      <property name="MPN" value="PESD5V0F1BL,315"/>
+      <property name="Manufacturer" value="Nexperia"/>
+      <property name="LCSC" value="C45961"/>
+      <property name="JLCPCB_Class" value="Extended"/>
+      <property name="Function" value="SMA RF ESD protection"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="diode TVS thyrector"/>
+      <property name="ki_fp_filters" value="TO-???* *_Diode_* *SingleDiode* D_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>693600f1-f862-4998-9295-519d3ce2aaf7</tstamps>
+    </comp>
+    <comp ref="J1">
+      <value>S-037-TGG</value>
+      <footprint>logger_v2_custom:SMA_S-037-TGG_Horizontal</footprint>
+      <datasheet>https://akizukidenshi.com/goodsaffix/S-037-TGG_20220729.pdf</datasheet>
+      <fields>
+        <field name="Footprint">logger_v2_custom:SMA_S-037-TGG_Horizontal</field>
+        <field name="Datasheet">https://akizukidenshi.com/goodsaffix/S-037-TGG_20220729.pdf</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Connector" part="Conn_Coaxial" description="coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="BNC SMA SMB SMC LEMO coaxial connector CINCH RCA MCX MMCX U.FL UMRF"/>
+      <property name="ki_fp_filters" value="*BNC* *SMA* *SMB* *SMC* *Cinch* *LEMO* *UMRF* *MCX* *U.FL*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>305a4727-c3a1-44f0-bd1b-20b98ee32d69</tstamps>
+    </comp>
+    <comp ref="J2">
+      <value>Digital/PWM</value>
+      <footprint>logger_v2_custom:PinSocket_1x10_P2.54mm_Vertical</footprint>
+      <datasheet>~</datasheet>
+      <description>Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="Footprint">logger_v2_custom:PinSocket_1x10_P2.54mm_Vertical</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x10" description="Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00000000-0000-0000-0000-000056d72368</tstamps>
+    </comp>
+    <comp ref="J3">
+      <value>Power</value>
+      <footprint>logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical</footprint>
+      <datasheet>~</datasheet>
+      <description>Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="Footprint">logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x08" description="Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00000000-0000-0000-0000-000056d71773</tstamps>
+    </comp>
+    <comp ref="J4">
+      <value>Analog</value>
+      <footprint>logger_v2_custom:PinSocket_1x06_P2.54mm_Vertical</footprint>
+      <datasheet>~</datasheet>
+      <description>Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="Footprint">logger_v2_custom:PinSocket_1x06_P2.54mm_Vertical</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x06" description="Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00000000-0000-0000-0000-000056d72f1c</tstamps>
+    </comp>
+    <comp ref="J5">
+      <value>Digital/PWM</value>
+      <footprint>logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical_ShieldSilk</footprint>
+      <datasheet>~</datasheet>
+      <description>Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="Footprint">logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical_ShieldSilk</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x08" description="Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00000000-0000-0000-0000-000056d734d0</tstamps>
+    </comp>
+    <comp ref="J6">
+      <value>43045-0400</value>
+      <footprint>logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal</footprint>
+      <datasheet>https://www.molex.com/en-us/products/part-detail/0430450400</datasheet>
+      <description>Molex Micro-Fit 3.0 right-angle header, 4 circuits, dual row</description>
+      <fields>
+        <field name="Footprint">logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal</field>
+        <field name="Datasheet">https://www.molex.com/en-us/products/part-detail/0430450400</field>
+        <field name="Description">Molex Micro-Fit 3.0 right-angle header, 4 circuits, dual row</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x04" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>bae6e84c-0fed-4e01-8a43-8fc2737d6419</tstamps>
+    </comp>
+    <comp ref="J7">
+      <value>43045-0400</value>
+      <footprint>logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal</footprint>
+      <datasheet>https://www.molex.com/en-us/products/part-detail/0430450400</datasheet>
+      <description>Molex Micro-Fit 3.0 right-angle header, 4 circuits, dual row</description>
+      <fields>
+        <field name="Footprint">logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal</field>
+        <field name="Datasheet">https://www.molex.com/en-us/products/part-detail/0430450400</field>
+        <field name="Description">Molex Micro-Fit 3.0 right-angle header, 4 circuits, dual row</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x04" description="Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1dfdcb4f-36c3-41f6-abed-6b0b360da062</tstamps>
+    </comp>
+    <comp ref="L1">
+      <value>27nH</value>
+      <footprint>logger_v2_custom:L_0402_1005Metric</footprint>
+      <datasheet>https://www.digikey.jp/ja/products/detail/murata-electronics/LQW18AN27NJ00D/584382</datasheet>
+      <description>27 nH RF inductor, 0603 (1608 metric), Q=40 at 250 MHz, SRF=3.7 GHz</description>
+      <fields>
+        <field name="MPN">LQG15HS27NJ02D</field>
+        <field name="Manufacturer">Murata</field>
+        <field name="LCSC">C12669</field>
+        <field name="JLCPCB_Class">Extended</field>
+        <field name="Footprint">logger_v2_custom:L_0402_1005Metric</field>
+        <field name="Datasheet">https://www.digikey.jp/ja/products/detail/murata-electronics/LQW18AN27NJ00D/584382</field>
+        <field name="Description">27 nH RF inductor, 0603 (1608 metric), Q=40 at 250 MHz, SRF=3.7 GHz</field>
+      </fields>
+      <libsource lib="Device" part="L_Small" description="Inductor, small symbol"/>
+      <property name="MPN" value="LQG15HS27NJ02D"/>
+      <property name="Manufacturer" value="Murata"/>
+      <property name="LCSC" value="C12669"/>
+      <property name="JLCPCB_Class" value="Extended"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="inductor choke coil reactor magnetic"/>
+      <property name="ki_fp_filters" value="Choke_* *Coil* Inductor_* L_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2354b397-0633-437e-976d-984f50a20650</tstamps>
+    </comp>
+    <comp ref="R1">
+      <value>680R</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF6800T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23228</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF6800T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23228"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0a0c1fc8-031a-4ce1-b767-9bb91542d41d</tstamps>
+    </comp>
+    <comp ref="R2">
+      <value>680R</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF6800T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23228</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF6800T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23228"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5f83f3bc-c8e1-43db-b0e7-536babd1ccfe</tstamps>
+    </comp>
+    <comp ref="R3">
+      <value>680R</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF6800T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23228</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF6800T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23228"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>65f0588c-aa5a-439c-8d55-b7f40a077b9c</tstamps>
+    </comp>
+    <comp ref="R4">
+      <value>680R</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF6800T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23228</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF6800T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23228"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>3d279c33-b418-4bad-b918-11a2ee50e341</tstamps>
+    </comp>
+    <comp ref="R5">
+      <value>10k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF1002T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C25804</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF1002T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C25804"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e4946c70-7159-4f51-a03c-94c953cfccb9</tstamps>
+    </comp>
+    <comp ref="R6">
+      <value>680R</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF6800T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23228</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF6800T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23228"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e456ad16-920d-4b3c-9b27-03a8b1243184</tstamps>
+    </comp>
+    <comp ref="R7">
+      <value>27R 1W</value>
+      <footprint>logger_v2_custom:R_2512_6332Metric</footprint>
+      <datasheet>https://www.vishay.com/docs/20035/dcrcwe3.pdf</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">25121WJ0270T4E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C25478</field>
+        <field name="JLCPCB_Class">Extended</field>
+        <field name="Specification">27ohm 5% 1W; verify antenna supply under load</field>
+        <field name="Footprint">logger_v2_custom:R_2512_6332Metric</field>
+        <field name="Datasheet">https://www.vishay.com/docs/20035/dcrcwe3.pdf</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="25121WJ0270T4E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C25478"/>
+      <property name="JLCPCB_Class" value="Extended"/>
+      <property name="Specification" value="27ohm 5% 1W; verify antenna supply under load"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b2bfea56-95c6-43d8-8b4d-57d791679477</tstamps>
+    </comp>
+    <comp ref="R8">
+      <value>680R</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF6800T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23228</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF6800T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23228"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5efdfe69-eb3a-41d0-83e9-dd30400d6d31</tstamps>
+    </comp>
+    <comp ref="R9">
+      <value>680R</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF6800T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23228</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF6800T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23228"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>204544c5-fe3c-4357-9b7a-ee44c5c4a852</tstamps>
+    </comp>
+    <comp ref="R10">
+      <value>10k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="Assembly">DNP: optional only</field>
+        <field name="MPN">0603WAF1002T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C25804</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="Assembly" value="DNP: optional only"/>
+      <property name="MPN" value="0603WAF1002T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C25804"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="dnp"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1fdb5414-cb36-4969-8c4a-df3e2c60f952</tstamps>
+    </comp>
+    <comp ref="R11">
+      <value>680R</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF6800T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23228</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF6800T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23228"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2cc477df-8d60-435a-8edf-c7b006f94738</tstamps>
+    </comp>
+    <comp ref="R12">
+      <value>10k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF1002T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C25804</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF1002T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C25804"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b974b52c-6557-4de6-b39c-1f79aefa2281</tstamps>
+    </comp>
+    <comp ref="R13">
+      <value>120</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="Assembly">DNP default; fit 120R only at CAN2 bus end</field>
+        <field name="MPN">0603WAF1200T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C22787</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="Assembly" value="DNP default; fit 120R only at CAN2 bus end"/>
+      <property name="MPN" value="0603WAF1200T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C22787"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="dnp"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>449e135b-091e-44dc-aa55-12bdfde2627e</tstamps>
+    </comp>
+    <comp ref="R14">
+      <value>120</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="Assembly">DNP: existing vehicle bus termination</field>
+        <field name="MPN">0603WAF1200T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C22787</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="Assembly" value="DNP: existing vehicle bus termination"/>
+      <property name="MPN" value="0603WAF1200T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C22787"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="dnp"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>83001f46-e32d-4861-94a6-80b2c5fb9444</tstamps>
+    </comp>
+    <comp ref="R15">
+      <value>4.7k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="Assembly">Populate: required IMU I2C pull-up to +3V3</field>
+        <field name="MPN">0603WAF4701T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23162</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="Assembly" value="Populate: required IMU I2C pull-up to +3V3"/>
+      <property name="MPN" value="0603WAF4701T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23162"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>38757604-ee6e-46d5-bd0b-b728adc12193</tstamps>
+    </comp>
+    <comp ref="R16">
+      <value>4.7k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="Assembly">Populate: required IMU I2C pull-up to +3V3</field>
+        <field name="MPN">0603WAF4701T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C23162</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="Assembly" value="Populate: required IMU I2C pull-up to +3V3"/>
+      <property name="MPN" value="0603WAF4701T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C23162"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>dd4671a6-1763-4bbc-81de-df4c5e43a79b</tstamps>
+    </comp>
+    <comp ref="R17">
+      <value>10k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">0603WAF1002T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C25804</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="0603WAF1002T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C25804"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8882d73f-8202-4ed4-9946-93a3e7592d87</tstamps>
+    </comp>
+    <comp ref="R18">
+      <value>47k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">MCU startup pulldown</field>
+        <field name="MPN">0603WAF4702T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C25819</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="Function" value="MCU startup pulldown"/>
+      <property name="MPN" value="0603WAF4702T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C25819"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>bbc91624-84cd-481e-ae52-ba534f14a77b</tstamps>
+    </comp>
+    <comp ref="R19">
+      <value>47k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">MCU startup pulldown</field>
+        <field name="MPN">0603WAF4702T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C25819</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="Function" value="MCU startup pulldown"/>
+      <property name="MPN" value="0603WAF4702T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C25819"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>54a5a2ed-9c62-40da-be58-759969a157df</tstamps>
+    </comp>
+    <comp ref="R20">
+      <value>47k</value>
+      <footprint>logger_v2_custom:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Function">MCU startup pulldown</field>
+        <field name="MPN">0603WAF4702T5E</field>
+        <field name="Manufacturer">UNI-ROYAL</field>
+        <field name="LCSC">C25819</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:R_0603_1608Metric</field>
+        <field name="Datasheet">~</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="Function" value="MCU startup pulldown"/>
+      <property name="MPN" value="0603WAF4702T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL"/>
+      <property name="LCSC" value="C25819"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0cdedeb4-35a5-4b0c-a354-90530e6da296</tstamps>
+    </comp>
+    <comp ref="U1">
+      <value>74HC595D,118</value>
+      <footprint>logger_v2_custom:SOIC-16_3.9x9.9mm_P1.27mm</footprint>
+      <datasheet>https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf</datasheet>
+      <description>8-bit serial in/out Shift Register 3-State Outputs</description>
+      <fields>
+        <field name="MPN">74HC595D,118</field>
+        <field name="Manufacturer">Nexperia</field>
+        <field name="LCSC">C5947</field>
+        <field name="JLCPCB_Class">Basic</field>
+        <field name="Footprint">logger_v2_custom:SOIC-16_3.9x9.9mm_P1.27mm</field>
+        <field name="Datasheet">https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf</field>
+        <field name="Description">8-bit serial in/out Shift Register 3-State Outputs</field>
+      </fields>
+      <libsource lib="74xx" part="74HC595" description="8-bit serial in/out Shift Register 3-State Outputs"/>
+      <property name="MPN" value="74HC595D,118"/>
+      <property name="Manufacturer" value="Nexperia"/>
+      <property name="LCSC" value="C5947"/>
+      <property name="JLCPCB_Class" value="Basic"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="HCMOS SR 3State"/>
+      <property name="ki_fp_filters" value="DIP*W7.62mm* SOIC*3.9x9.9mm*P1.27mm* TSSOP*4.4x5mm*P0.65mm* SOIC*5.3x10.2mm*P1.27mm* SOIC*7.5x10.3mm*P1.27mm*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f06c868e-188b-4fd7-832e-3da3de07950c</tstamps>
+    </comp>
+    <comp ref="U2">
+      <value>MAX-M10M-00B</value>
+      <footprint>logger_v2_custom:MAX_M10M_00B_LCC18</footprint>
+      <datasheet>https://content.u-blox.com/sites/default/files/documents/MAX-M10M-00B_DataSheet_UBX-22028884.pdf</datasheet>
+      <fields>
+        <field name="MPN">MAX-M10M-00B</field>
+        <field name="Manufacturer">u-blox</field>
+        <field name="LCSC">C5119087</field>
+        <field name="JLCPCB_Class">Extended; Standard PCBA only</field>
+        <field name="Footprint">logger_v2_custom:MAX_M10M_00B_LCC18</field>
+        <field name="Datasheet">https://content.u-blox.com/sites/default/files/documents/MAX-M10M-00B_DataSheet_UBX-22028884.pdf</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="logger_v2_custom" part="MAX-M10M-00B" description="u-blox M10 GNSS receiver module, ROM/XTAL, LCC-18"/>
+      <property name="MPN" value="MAX-M10M-00B"/>
+      <property name="Manufacturer" value="u-blox"/>
+      <property name="LCSC" value="C5119087"/>
+      <property name="JLCPCB_Class" value="Extended; Standard PCBA only"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>333ae50b-b2b7-43c8-8956-5a75da24889b</tstamps>
+    </comp>
+    <comp ref="U3">
+      <value>BNO055_module</value>
+      <footprint>logger_v2_custom:AE_BNO055_BO_ShieldSilk</footprint>
+      <datasheet>https://akizukidenshi.com/goodsaffix/AE-BNO055-BO_20220413.pdf</datasheet>
+      <fields>
+        <field name="Footprint">logger_v2_custom:AE_BNO055_BO_ShieldSilk</field>
+        <field name="Datasheet">https://akizukidenshi.com/goodsaffix/AE-BNO055-BO_20220413.pdf</field>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="mimi88_symbols" part="BNO055_module" description=""/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>23a3722c-f554-4e89-8e95-ac824bf55857</tstamps>
+    </comp>
+    <comp ref="U4">
+      <value>ATA6561-GAQW</value>
+      <footprint>logger_v2_custom:SOIC-8_3.9x4.9mm_P1.27mm</footprint>
+      <datasheet>https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf</datasheet>
+      <description>High-speed CAN FD transceiver with VIO, SOIC-8</description>
+      <fields>
+        <field name="MPN">ATA6561-GAQW</field>
+        <field name="Manufacturer">Microchip</field>
+        <field name="LCSC">C2929602</field>
+        <field name="JLCPCB_Class">Extended</field>
+        <field name="Footprint">logger_v2_custom:SOIC-8_3.9x4.9mm_P1.27mm</field>
+        <field name="Datasheet">https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf</field>
+        <field name="Description">High-speed CAN FD transceiver with VIO, SOIC-8</field>
+      </fields>
+      <libsource lib="logger_v1_custom" part="ATA6561-GAQW-N" description="High-speed CAN FD transceiver with VIO, SOIC-8"/>
+      <property name="MPN" value="ATA6561-GAQW"/>
+      <property name="Manufacturer" value="Microchip"/>
+      <property name="LCSC" value="C2929602"/>
+      <property name="JLCPCB_Class" value="Extended"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e77bbb44-feb9-49fa-bf38-266179850a5c</tstamps>
+    </comp>
+    <comp ref="U5">
+      <value>MCP25625-E/SS</value>
+      <footprint>logger_v2_custom:SSOP-28_5.3x10.2mm_P0.65mm</footprint>
+      <fields>
+        <field name="MPN">MCP25625-E/SS</field>
+        <field name="Manufacturer">Microchip</field>
+        <field name="LCSC">C184944</field>
+        <field name="JLCPCB_Class">Extended</field>
+        <field name="Footprint">logger_v2_custom:SSOP-28_5.3x10.2mm_P0.65mm</field>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
+      <libsource lib="Interface_CAN_LIN" part="MCP25625x-x-SS" description="Stand-Alone CAN Controller with SPI Interface and integated Transceiver, SSOP-28"/>
+      <property name="MPN" value="MCP25625-E/SS"/>
+      <property name="Manufacturer" value="Microchip"/>
+      <property name="LCSC" value="C184944"/>
+      <property name="JLCPCB_Class" value="Extended"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="Microchip CAN-2.0B MCP25625-E/SS MCP25625T-E/SS"/>
+      <property name="ki_fp_filters" value="SSOP*5.3x10.2mm*P0.65mm*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>142b6551-1f8d-42ac-af89-2b8e3e594b4d</tstamps>
+    </comp>
+    <comp ref="Y1">
+      <value>20MHz 12pF</value>
+      <footprint>logger_v2_custom:Crystal_SMD_3225-4Pin_3.2x2.5mm</footprint>
+      <datasheet>https://www.lcsc.com/product-detail/C18213008.html</datasheet>
+      <description>Two pin crystal</description>
+      <fields>
+        <field name="MPN">XC2EL89COO-114YLC-20M</field>
+        <field name="Manufacturer">YXC</field>
+        <field name="LCSC">C18213008</field>
+        <field name="JLCPCB_Class">Extended</field>
+        <field name="Load_Capacitance">12pF</field>
+        <field name="Footprint">logger_v2_custom:Crystal_SMD_3225-4Pin_3.2x2.5mm</field>
+        <field name="Datasheet">https://www.lcsc.com/product-detail/C18213008.html</field>
+        <field name="Description">Two pin crystal</field>
+      </fields>
+      <libsource lib="Device" part="Crystal_GND24" description="Four pin crystal, GND on pins 2 and 4"/>
+      <property name="MPN" value="XC2EL89COO-114YLC-20M"/>
+      <property name="Manufacturer" value="YXC"/>
+      <property name="LCSC" value="C18213008"/>
+      <property name="JLCPCB_Class" value="Extended"/>
+      <property name="Load_Capacitance" value="12pF"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2.kicad_sch"/>
+      <property name="ki_keywords" value="quartz ceramic resonator oscillator"/>
+      <property name="ki_fp_filters" value="Crystal*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d9775459-3648-4c57-a12d-486c736c0d54</tstamps>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="74xx" part="74HC595">
+      <description>8-bit serial in/out Shift Register 3-State Outputs</description>
+      <docs>http://www.ti.com/lit/ds/symlink/sn74hc595.pdf</docs>
+      <footprints>
+        <fp>DIP*W7.62mm*</fp>
+        <fp>SOIC*3.9x9.9mm*P1.27mm*</fp>
+        <fp>TSSOP*4.4x5mm*P0.65mm*</fp>
+        <fp>SOIC*5.3x10.2mm*P1.27mm*</fp>
+        <fp>SOIC*7.5x10.3mm*P1.27mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">74HC595</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">http://www.ti.com/lit/ds/symlink/sn74hc595.pdf</field>
+        <field name="Description">8-bit serial in/out Shift Register 3-State Outputs</field>
+      </fields>
+      <pins>
+        <pin num="1" name="QB" type="tri_state"/>
+        <pin num="2" name="QC" type="tri_state"/>
+        <pin num="3" name="QD" type="tri_state"/>
+        <pin num="4" name="QE" type="tri_state"/>
+        <pin num="5" name="QF" type="tri_state"/>
+        <pin num="6" name="QG" type="tri_state"/>
+        <pin num="7" name="QH" type="tri_state"/>
+        <pin num="8" name="GND" type="power_in"/>
+        <pin num="9" name="QH'" type="output"/>
+        <pin num="10" name="~{SRCLR}" type="input"/>
+        <pin num="11" name="SRCLK" type="input"/>
+        <pin num="12" name="RCLK" type="input"/>
+        <pin num="13" name="~{OE}" type="input"/>
+        <pin num="14" name="SER" type="input"/>
+        <pin num="15" name="QA" type="tri_state"/>
+        <pin num="16" name="VCC" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="Conn_Coaxial">
+      <description>coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>*BNC*</fp>
+        <fp>*SMA*</fp>
+        <fp>*SMB*</fp>
+        <fp>*SMC*</fp>
+        <fp>*Cinch*</fp>
+        <fp>*LEMO*</fp>
+        <fp>*UMRF*</fp>
+        <fp>*MCX*</fp>
+        <fp>*U.FL*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_Coaxial</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="In" type="passive"/>
+        <pin num="2" name="Ext" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x04">
+      <description>Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x04</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x06">
+      <description>Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x06</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x08">
+      <description>Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x08</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x10">
+      <description>Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x10</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C_Small">
+      <description>Unpolarized capacitor, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="Crystal_GND24">
+      <description>Four pin crystal, GND on pins 2 and 4</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Crystal*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">Y</field>
+        <field name="Value">Crystal_GND24</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Four pin crystal, GND on pins 2 and 4</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+        <pin num="3" name="3" type="passive"/>
+        <pin num="4" name="4" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="D_TVS_Small">
+      <description>Bidirectional transient-voltage-suppression diode, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>TO-???*</fp>
+        <fp>*_Diode_*</fp>
+        <fp>*SingleDiode*</fp>
+        <fp>D_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">D_TVS_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Bidirectional transient-voltage-suppression diode, small symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A1" type="passive"/>
+        <pin num="2" name="A2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="LED_Small_Filled">
+      <description>Light emitting diode, small symbol, filled shape</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>LED*</fp>
+        <fp>LED_SMD:*</fp>
+        <fp>LED_THT:*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">LED_Small_Filled</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Light emitting diode, small symbol, filled shape</field>
+        <field name="Sim.Pins">1=K 2=A</field>
+      </fields>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="L_Small">
+      <description>Inductor, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Choke_*</fp>
+        <fp>*Coil*</fp>
+        <fp>Inductor_*</fp>
+        <fp>L_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">L</field>
+        <field name="Value">L_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Inductor, small symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R_Small_US">
+      <description>Resistor, small US symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R_Small_US</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Interface_CAN_LIN" part="MCP25625x-x-SS">
+      <description>Stand-Alone CAN Controller with SPI Interface and integated Transceiver, SSOP-28</description>
+      <docs>https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/DataSheets/MCP25625-CAN-Controller-Data-Sheet-20005282C.pdf</docs>
+      <footprints>
+        <fp>SSOP*5.3x10.2mm*P0.65mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">MCP25625x-x-SS</field>
+        <field name="Footprint">Package_SO:SSOP-28_5.3x10.2mm_P0.65mm</field>
+        <field name="Datasheet">https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/DataSheets/MCP25625-CAN-Controller-Data-Sheet-20005282C.pdf</field>
+        <field name="Description">Stand-Alone CAN Controller with SPI Interface and integated Transceiver, SSOP-28</field>
+      </fields>
+      <pins>
+        <pin num="1" name="V_{IO}" type="power_in"/>
+        <pin num="2" name="NC" type="no_connect"/>
+        <pin num="3" name="CANL" type="bidirectional"/>
+        <pin num="4" name="CANH" type="bidirectional"/>
+        <pin num="5" name="STBY" type="input"/>
+        <pin num="6" name="~{Tx1RTS}" type="input"/>
+        <pin num="7" name="~{Tx2RTS}" type="input"/>
+        <pin num="8" name="OSC2" type="output"/>
+        <pin num="9" name="OSC1" type="input"/>
+        <pin num="10" name="GND" type="power_in"/>
+        <pin num="11" name="~{Rx1BF}" type="output"/>
+        <pin num="12" name="~{Rx0BF}" type="output"/>
+        <pin num="13" name="~{INT}" type="output"/>
+        <pin num="14" name="SCK" type="input"/>
+        <pin num="15" name="SI" type="input"/>
+        <pin num="16" name="SO" type="output"/>
+        <pin num="17" name="~{CS}" type="input"/>
+        <pin num="18" name="~{RESET}" type="input"/>
+        <pin num="19" name="V_{DD}" type="power_in"/>
+        <pin num="20" name="TxCAN" type="output"/>
+        <pin num="21" name="RxCAN" type="input"/>
+        <pin num="22" name="CLKOUT" type="output"/>
+        <pin num="23" name="~{Tx0RTS}" type="input"/>
+        <pin num="24" name="T_{XD}" type="input"/>
+        <pin num="25" name="NC" type="no_connect"/>
+        <pin num="26" name="V_{SS}" type="power_in"/>
+        <pin num="27" name="V_{DDA}" type="power_in"/>
+        <pin num="28" name="R_{XD}" type="output"/>
+      </pins>
+    </libpart>
+    <libpart lib="logger_v1_custom" part="ATA6561-GAQW-N">
+      <description>High-speed CAN FD transceiver with VIO, SOIC-8</description>
+      <docs>https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">ATA6561-GAQW-N</field>
+        <field name="Footprint">Package_SO:SOIC-8_3.9x4.9mm_P1.27mm</field>
+        <field name="Datasheet">https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf</field>
+        <field name="Description">High-speed CAN FD transceiver with VIO, SOIC-8</field>
+      </fields>
+      <pins>
+        <pin num="1" name="TXD" type="input"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="VCC" type="power_in"/>
+        <pin num="4" name="RXD" type="output"/>
+        <pin num="5" name="VIO" type="power_in"/>
+        <pin num="6" name="CANL" type="bidirectional"/>
+        <pin num="7" name="CANH" type="bidirectional"/>
+        <pin num="8" name="STBY" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="logger_v1_custom" part="PEC3824C2A-AU">
+      <description>Dual bidirectional 24 V TVS for CAN bus</description>
+      <docs>https://akizukidenshi.com/goodsaffix/PEC3808C2A-AU_SERIES.pdf</docs>
+      <fields>
+        <field name="Reference">D?</field>
+        <field name="Value">PEC3824C2A-AU</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23</field>
+        <field name="Datasheet">https://akizukidenshi.com/goodsaffix/PEC3808C2A-AU_SERIES.pdf</field>
+        <field name="Description">Dual bidirectional 24 V TVS for CAN bus</field>
+      </fields>
+      <pins>
+        <pin num="1" name="LINE1" type="passive"/>
+        <pin num="2" name="LINE2" type="passive"/>
+        <pin num="3" name="GND" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="logger_v2_custom" part="MAX-M10M-00B">
+      <description>u-blox M10 GNSS receiver module, ROM/XTAL, LCC-18</description>
+      <docs>https://content.u-blox.com/sites/default/files/documents/MAX-M10M-00B_DataSheet_UBX-22028884.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">MAX-M10M-00B</field>
+        <field name="Footprint">logger_v2_custom:MAX_M10M_00B_LCC18</field>
+        <field name="Datasheet">https://content.u-blox.com/sites/default/files/documents/MAX-M10M-00B_DataSheet_UBX-22028884.pdf</field>
+        <field name="Description">u-blox M10 GNSS receiver module, ROM/XTAL, LCC-18</field>
+      </fields>
+      <pins>
+        <pin num="1" name="GND" type="power_in"/>
+        <pin num="2" name="TXD" type="output"/>
+        <pin num="3" name="RXD" type="input"/>
+        <pin num="4" name="TIMEPULSE" type="output"/>
+        <pin num="5" name="EXTINT" type="input"/>
+        <pin num="6" name="V_BCKP" type="power_in"/>
+        <pin num="7" name="V_IO" type="power_in"/>
+        <pin num="8" name="VCC" type="power_in"/>
+        <pin num="9" name="RESET_N" type="input"/>
+        <pin num="10" name="GND" type="power_in"/>
+        <pin num="11" name="RF_IN" type="input"/>
+        <pin num="12" name="GND" type="power_in"/>
+        <pin num="13" name="LNA_EN" type="output"/>
+        <pin num="14" name="VCC_RF" type="power_out"/>
+        <pin num="15" name="VIO_SEL" type="input"/>
+        <pin num="16" name="SDA" type="bidirectional"/>
+        <pin num="17" name="SCL" type="input"/>
+        <pin num="18" name="SAFEBOOT_N" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="mimi88_symbols" part="BNO055_module">
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">BNO055_module</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description"/>
+      </fields>
+      <pins>
+        <pin num="1" name="V_{IN}" type="power_in"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="SDA/T" type="bidirectional"/>
+        <pin num="4" name="SCL/R" type="bidirectional"/>
+        <pin num="5" name="~{RESET}" type="input"/>
+        <pin num="6" name="INT" type="output"/>
+        <pin num="7" name="GND" type="power_in"/>
+        <pin num="8" name="V_{OUT}" type="output"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="74xx">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/74xx.kicad_sym</uri>
+    </library>
+    <library logical="Connector">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Connector.kicad_sym</uri>
+    </library>
+    <library logical="Connector_Generic">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Connector_Generic.kicad_sym</uri>
+    </library>
+    <library logical="Device">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Device.kicad_sym</uri>
+    </library>
+    <library logical="Interface_CAN_LIN">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Interface_CAN_LIN.kicad_sym</uri>
+    </library>
+    <library logical="logger_v1_custom">
+      <uri>C:\Users\lintaroh\Documents\RaceCapture\circuit\logger_v2/logger_v1_custom.kicad_sym</uri>
+    </library>
+    <library logical="logger_v2_custom">
+      <uri>C:\Users\lintaroh\Documents\RaceCapture\circuit\logger_v2/logger_v2_custom.kicad_sym</uri>
+    </library>
+    <library logical="mimi88_symbols">
+      <uri>C:\Users\lintaroh\Documents\RaceCapture\circuit\logger_v2/mimi88_symbols.kicad_sym</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="+3V3" class="Power">
+      <node ref="C10" pin="1" pintype="passive"/>
+      <node ref="C11" pin="1" pintype="passive"/>
+      <node ref="C12" pin="1" pintype="passive"/>
+      <node ref="C13" pin="1" pintype="passive"/>
+      <node ref="C14" pin="1" pintype="passive"/>
+      <node ref="C4" pin="1" pintype="passive"/>
+      <node ref="C6" pin="1" pintype="passive"/>
+      <node ref="C7" pin="1" pintype="passive"/>
+      <node ref="C8" pin="1" pintype="passive"/>
+      <node ref="J3" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="R12" pin="1" pintype="passive"/>
+      <node ref="R15" pin="2" pintype="passive"/>
+      <node ref="R16" pin="2" pintype="passive"/>
+      <node ref="R17" pin="1" pintype="passive"/>
+      <node ref="R5" pin="1" pintype="passive"/>
+      <node ref="R7" pin="1" pintype="passive"/>
+      <node ref="U1" pin="10" pinfunction="~{SRCLR}" pintype="input"/>
+      <node ref="U1" pin="16" pinfunction="VCC" pintype="power_in"/>
+      <node ref="U2" pin="6" pinfunction="V_BCKP" pintype="power_in"/>
+      <node ref="U2" pin="7" pinfunction="V_IO" pintype="power_in"/>
+      <node ref="U2" pin="8" pinfunction="VCC" pintype="power_in"/>
+      <node ref="U3" pin="1" pinfunction="V_{IN}" pintype="power_in"/>
+      <node ref="U4" pin="1" pinfunction="TXD" pintype="input"/>
+      <node ref="U4" pin="5" pinfunction="VIO" pintype="power_in"/>
+      <node ref="U5" pin="1" pinfunction="V_{IO}" pintype="power_in"/>
+      <node ref="U5" pin="19" pinfunction="V_{DD}" pintype="power_in"/>
+    </net>
+    <net code="2" name="+5V" class="Power">
+      <node ref="C5" pin="1" pintype="passive"/>
+      <node ref="C9" pin="1" pintype="passive"/>
+      <node ref="J3" pin="5" pinfunction="Pin_5" pintype="passive"/>
+      <node ref="J6" pin="1" pinfunction="Pin_1" pintype="passive"/>
+      <node ref="U4" pin="3" pinfunction="VCC" pintype="power_in"/>
+      <node ref="U5" pin="27" pinfunction="V_{DDA}" pintype="power_in"/>
+    </net>
+    <net code="3" name="/CAN1_RXD" class="Default">
+      <node ref="J5" pin="3" pinfunction="Pin_3" pintype="passive"/>
+      <node ref="U4" pin="4" pinfunction="RXD" pintype="output"/>
+    </net>
+    <net code="4" name="/CAN2_CS_N" class="Default">
+      <node ref="J2" pin="8" pinfunction="Pin_8" pintype="passive"/>
+      <node ref="R12" pin="2" pintype="passive"/>
+      <node ref="U5" pin="17" pinfunction="~{CS}" pintype="input"/>
+    </net>
+    <net code="5" name="/CAN2_INT_N" class="Default">
+      <node ref="J2" pin="9" pinfunction="Pin_9" pintype="passive"/>
+      <node ref="U5" pin="13" pinfunction="~{INT}" pintype="output"/>
+    </net>
+    <net code="6" name="/CAN2_RESET_N" class="Default">
+      <node ref="J2" pin="10" pinfunction="Pin_10" pintype="passive"/>
+      <node ref="R17" pin="2" pintype="passive"/>
+      <node ref="U5" pin="18" pinfunction="~{RESET}" pintype="input"/>
+    </net>
+    <net code="7" name="/GNSS_PPS" class="Default">
+      <node ref="J5" pin="2" pinfunction="Pin_2" pintype="passive"/>
+      <node ref="U2" pin="4" pinfunction="TIMEPULSE" pintype="output"/>
+    </net>
+    <net code="8" name="/GNSS_RESET_N" class="Default">
+      <node ref="J5" pin="5" pinfunction="Pin_5" pintype="passive"/>
+      <node ref="R5" pin="2" pintype="passive"/>
+      <node ref="U2" pin="9" pinfunction="RESET_N" pintype="input"/>
+    </net>
+    <net code="9" name="/GNSS_RXD" class="Default">
+      <node ref="J5" pin="7" pinfunction="Pin_7" pintype="passive"/>
+      <node ref="U2" pin="3" pinfunction="RXD" pintype="input"/>
+    </net>
+    <net code="10" name="/GNSS_TXD" class="Default">
+      <node ref="J5" pin="8" pinfunction="Pin_8" pintype="passive"/>
+      <node ref="U2" pin="2" pinfunction="TXD" pintype="output"/>
+    </net>
+    <net code="11" name="/IMU_RESET_N" class="Default">
+      <node ref="J5" pin="6" pinfunction="Pin_6" pintype="passive"/>
+      <node ref="U3" pin="5" pinfunction="~{RESET}" pintype="input"/>
+    </net>
+    <net code="12" name="/IMU_SCL" class="Default">
+      <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive"/>
+      <node ref="R15" pin="1" pintype="passive"/>
+      <node ref="U3" pin="4" pinfunction="SCL/R" pintype="bidirectional"/>
+    </net>
+    <net code="13" name="/IMU_SDA" class="Default">
+      <node ref="J2" pin="2" pinfunction="Pin_2" pintype="passive"/>
+      <node ref="R16" pin="1" pintype="passive"/>
+      <node ref="U3" pin="3" pinfunction="SDA/T" pintype="bidirectional"/>
+    </net>
+    <net code="14" name="/SPI2_MISO" class="Default">
+      <node ref="J2" pin="6" pinfunction="Pin_6" pintype="passive"/>
+      <node ref="U5" pin="16" pinfunction="SO" pintype="output"/>
+    </net>
+    <net code="15" name="/SPI2_MOSI" class="Default">
+      <node ref="J2" pin="7" pinfunction="Pin_7" pintype="passive"/>
+      <node ref="R18" pin="1" pintype="passive"/>
+      <node ref="U1" pin="14" pinfunction="SER" pintype="input"/>
+      <node ref="U5" pin="15" pinfunction="SI" pintype="input"/>
+    </net>
+    <net code="16" name="/SPI2_SCK" class="Default">
+      <node ref="J2" pin="5" pinfunction="Pin_5" pintype="passive"/>
+      <node ref="R19" pin="1" pintype="passive"/>
+      <node ref="U1" pin="11" pinfunction="SRCLK" pintype="input"/>
+      <node ref="U5" pin="14" pinfunction="SCK" pintype="input"/>
+    </net>
+    <net code="17" name="/STATUS_LATCH" class="Default">
+      <node ref="J5" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    </net>
+    <net code="18" name="GND" class="Default">
+      <node ref="C1" pin="2" pintype="passive"/>
+      <node ref="C10" pin="2" pintype="passive"/>
+      <node ref="C11" pin="2" pintype="passive"/>
+      <node ref="C12" pin="2" pintype="passive"/>
+      <node ref="C13" pin="2" pintype="passive"/>
+      <node ref="C14" pin="2" pintype="passive"/>
+      <node ref="C2" pin="2" pintype="passive"/>
+      <node ref="C3" pin="2" pintype="passive"/>
+      <node ref="C4" pin="2" pintype="passive"/>
+      <node ref="C5" pin="2" pintype="passive"/>
+      <node ref="C6" pin="2" pintype="passive"/>
+      <node ref="C7" pin="2" pintype="passive"/>
+      <node ref="C8" pin="2" pintype="passive"/>
+      <node ref="C9" pin="2" pintype="passive"/>
+      <node ref="D1" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="D10" pin="3" pinfunction="GND" pintype="passive"/>
+      <node ref="D11" pin="1" pinfunction="A1" pintype="passive"/>
+      <node ref="D2" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="D3" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="D4" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="D5" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="D6" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="D7" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="D8" pin="1" pinfunction="K" pintype="passive"/>
+      <node ref="D9" pin="3" pinfunction="GND" pintype="passive"/>
+      <node ref="J1" pin="2" pinfunction="Ext" pintype="passive"/>
+      <node ref="J2" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="J3" pin="6" pinfunction="Pin_6" pintype="passive"/>
+      <node ref="J3" pin="7" pinfunction="Pin_7" pintype="passive"/>
+      <node ref="J6" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="J7" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="R10" pin="2" pintype="passive"/>
+      <node ref="R18" pin="2" pintype="passive"/>
+      <node ref="R19" pin="2" pintype="passive"/>
+      <node ref="R20" pin="2" pintype="passive"/>
+      <node ref="U1" pin="13" pinfunction="~{OE}" pintype="input"/>
+      <node ref="U1" pin="8" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="1" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="10" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="12" pinfunction="GND" pintype="power_in"/>
+      <node ref="U3" pin="2" pinfunction="GND" pintype="power_in"/>
+      <node ref="U3" pin="7" pinfunction="GND" pintype="power_in"/>
+      <node ref="U4" pin="2" pinfunction="GND" pintype="power_in"/>
+      <node ref="U4" pin="8" pinfunction="STBY" pintype="input"/>
+      <node ref="U5" pin="10" pinfunction="GND" pintype="power_in"/>
+      <node ref="U5" pin="26" pinfunction="V_{SS}" pintype="power_in"/>
+      <node ref="U5" pin="5" pinfunction="STBY" pintype="input"/>
+      <node ref="Y1" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="Y1" pin="4" pinfunction="4" pintype="passive"/>
+    </net>
+    <net code="19" name="Net-(C1-Pad1)" class="Default">
+      <node ref="C1" pin="1" pintype="passive"/>
+      <node ref="L1" pin="2" pintype="passive"/>
+      <node ref="R7" pin="2" pintype="passive"/>
+    </net>
+    <net code="20" name="Net-(D1-A)" class="Default">
+      <node ref="D1" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="R1" pin="2" pintype="passive"/>
+    </net>
+    <net code="21" name="Net-(D2-A)" class="Default">
+      <node ref="D2" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="R2" pin="2" pintype="passive"/>
+    </net>
+    <net code="22" name="Net-(D3-A)" class="Default">
+      <node ref="D3" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="R3" pin="2" pintype="passive"/>
+    </net>
+    <net code="23" name="Net-(D4-A)" class="Default">
+      <node ref="D4" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="R4" pin="2" pintype="passive"/>
+    </net>
+    <net code="24" name="Net-(D5-A)" class="Default">
+      <node ref="D5" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="R6" pin="2" pintype="passive"/>
+    </net>
+    <net code="25" name="Net-(D6-A)" class="Default">
+      <node ref="D6" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="R8" pin="2" pintype="passive"/>
+    </net>
+    <net code="26" name="Net-(D7-A)" class="Default">
+      <node ref="D7" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="R9" pin="2" pintype="passive"/>
+    </net>
+    <net code="27" name="Net-(D8-A)" class="Default">
+      <node ref="D8" pin="2" pinfunction="A" pintype="passive"/>
+      <node ref="R11" pin="2" pintype="passive"/>
+    </net>
+    <net code="28" name="Net-(D9-LINE1)" class="Default">
+      <node ref="D9" pin="1" pinfunction="LINE1" pintype="passive"/>
+      <node ref="J6" pin="2" pinfunction="Pin_2" pintype="passive"/>
+      <node ref="R13" pin="2" pintype="passive"/>
+      <node ref="U5" pin="4" pinfunction="CANH" pintype="bidirectional"/>
+    </net>
+    <net code="29" name="Net-(D9-LINE2)" class="Default">
+      <node ref="D9" pin="2" pinfunction="LINE2" pintype="passive"/>
+      <node ref="J6" pin="3" pinfunction="Pin_3" pintype="passive"/>
+      <node ref="R13" pin="1" pintype="passive"/>
+      <node ref="U5" pin="3" pinfunction="CANL" pintype="bidirectional"/>
+    </net>
+    <net code="30" name="Net-(D10-LINE1)" class="Default">
+      <node ref="D10" pin="1" pinfunction="LINE1" pintype="passive"/>
+      <node ref="J7" pin="2" pinfunction="Pin_2" pintype="passive"/>
+      <node ref="R14" pin="2" pintype="passive"/>
+      <node ref="U4" pin="7" pinfunction="CANH" pintype="bidirectional"/>
+    </net>
+    <net code="31" name="Net-(D10-LINE2)" class="Default">
+      <node ref="D10" pin="2" pinfunction="LINE2" pintype="passive"/>
+      <node ref="J7" pin="3" pinfunction="Pin_3" pintype="passive"/>
+      <node ref="R14" pin="1" pintype="passive"/>
+      <node ref="U4" pin="6" pinfunction="CANL" pintype="bidirectional"/>
+    </net>
+    <net code="32" name="Net-(D11-A2)" class="Default">
+      <node ref="D11" pin="2" pinfunction="A2" pintype="passive"/>
+      <node ref="J1" pin="1" pinfunction="In" pintype="passive"/>
+      <node ref="L1" pin="1" pintype="passive"/>
+      <node ref="U2" pin="11" pinfunction="RF_IN" pintype="input"/>
+    </net>
+    <net code="33" name="Net-(U1-QA)" class="Default">
+      <node ref="R1" pin="1" pintype="passive"/>
+      <node ref="U1" pin="15" pinfunction="QA" pintype="tri_state"/>
+    </net>
+    <net code="34" name="Net-(U1-QB)" class="Default">
+      <node ref="R2" pin="1" pintype="passive"/>
+      <node ref="U1" pin="1" pinfunction="QB" pintype="tri_state"/>
+    </net>
+    <net code="35" name="Net-(U1-QC)" class="Default">
+      <node ref="R3" pin="1" pintype="passive"/>
+      <node ref="U1" pin="2" pinfunction="QC" pintype="tri_state"/>
+    </net>
+    <net code="36" name="Net-(U1-QD)" class="Default">
+      <node ref="R4" pin="1" pintype="passive"/>
+      <node ref="U1" pin="3" pinfunction="QD" pintype="tri_state"/>
+    </net>
+    <net code="37" name="Net-(U1-QE)" class="Default">
+      <node ref="R6" pin="1" pintype="passive"/>
+      <node ref="U1" pin="4" pinfunction="QE" pintype="tri_state"/>
+    </net>
+    <net code="38" name="Net-(U1-QF)" class="Default">
+      <node ref="R8" pin="1" pintype="passive"/>
+      <node ref="U1" pin="5" pinfunction="QF" pintype="tri_state"/>
+    </net>
+    <net code="39" name="Net-(U1-QG)" class="Default">
+      <node ref="R9" pin="1" pintype="passive"/>
+      <node ref="U1" pin="6" pinfunction="QG" pintype="tri_state"/>
+    </net>
+    <net code="40" name="Net-(U1-QH)" class="Default">
+      <node ref="R11" pin="1" pintype="passive"/>
+      <node ref="U1" pin="7" pinfunction="QH" pintype="tri_state"/>
+    </net>
+    <net code="41" name="Net-(U1-RCLK)" class="Default">
+      <node ref="R20" pin="1" pintype="passive"/>
+      <node ref="U1" pin="12" pinfunction="RCLK" pintype="input"/>
+    </net>
+    <net code="42" name="Net-(U2-LNA_EN)" class="Default">
+      <node ref="R10" pin="1" pintype="passive"/>
+      <node ref="U2" pin="13" pinfunction="LNA_EN" pintype="output"/>
+    </net>
+    <net code="43" name="Net-(U5-OSC1)" class="Default">
+      <node ref="C2" pin="1" pintype="passive"/>
+      <node ref="U5" pin="9" pinfunction="OSC1" pintype="input"/>
+      <node ref="Y1" pin="3" pinfunction="3" pintype="passive"/>
+    </net>
+    <net code="44" name="Net-(U5-OSC2)" class="Default">
+      <node ref="C3" pin="1" pintype="passive"/>
+      <node ref="U5" pin="8" pinfunction="OSC2" pintype="output"/>
+      <node ref="Y1" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="45" name="Net-(U5-R_{XD})" class="Default">
+      <node ref="U5" pin="21" pinfunction="RxCAN" pintype="input"/>
+      <node ref="U5" pin="28" pinfunction="R_{XD}" pintype="output"/>
+    </net>
+    <net code="46" name="Net-(U5-T_{XD})" class="Default">
+      <node ref="U5" pin="20" pinfunction="TxCAN" pintype="output"/>
+      <node ref="U5" pin="24" pinfunction="T_{XD}" pintype="input"/>
+    </net>
+    <net code="47" name="unconnected-(J2-Pin_3-Pad3)" class="Default">
+      <node ref="J2" pin="3" pinfunction="Pin_3" pintype="passive+no_connect"/>
+    </net>
+    <net code="48" name="unconnected-(J3-Pin_1-Pad1)" class="Default">
+      <node ref="J3" pin="1" pinfunction="Pin_1" pintype="passive+no_connect"/>
+    </net>
+    <net code="49" name="unconnected-(J3-Pin_2-Pad2)" class="Default">
+      <node ref="J3" pin="2" pinfunction="Pin_2" pintype="passive+no_connect"/>
+    </net>
+    <net code="50" name="unconnected-(J3-Pin_3-Pad3)" class="Default">
+      <node ref="J3" pin="3" pinfunction="Pin_3" pintype="passive+no_connect"/>
+    </net>
+    <net code="51" name="unconnected-(J3-Pin_8-Pad8)" class="Default">
+      <node ref="J3" pin="8" pinfunction="Pin_8" pintype="passive+no_connect"/>
+    </net>
+    <net code="52" name="unconnected-(J4-Pin_1-Pad1)" class="Default">
+      <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive+no_connect"/>
+    </net>
+    <net code="53" name="unconnected-(J4-Pin_2-Pad2)" class="Default">
+      <node ref="J4" pin="2" pinfunction="Pin_2" pintype="passive+no_connect"/>
+    </net>
+    <net code="54" name="unconnected-(J4-Pin_3-Pad3)" class="Default">
+      <node ref="J4" pin="3" pinfunction="Pin_3" pintype="passive+no_connect"/>
+    </net>
+    <net code="55" name="unconnected-(J4-Pin_4-Pad4)" class="Default">
+      <node ref="J4" pin="4" pinfunction="Pin_4" pintype="passive+no_connect"/>
+    </net>
+    <net code="56" name="unconnected-(J4-Pin_5-Pad5)" class="Default">
+      <node ref="J4" pin="5" pinfunction="Pin_5" pintype="passive+no_connect"/>
+    </net>
+    <net code="57" name="unconnected-(J4-Pin_6-Pad6)" class="Default">
+      <node ref="J4" pin="6" pinfunction="Pin_6" pintype="passive+no_connect"/>
+    </net>
+    <net code="58" name="unconnected-(J5-Pin_4-Pad4)" class="Default">
+      <node ref="J5" pin="4" pinfunction="Pin_4" pintype="passive+no_connect"/>
+    </net>
+    <net code="59" name="unconnected-(J7-Pin_1-Pad1)" class="Default">
+      <node ref="J7" pin="1" pinfunction="Pin_1" pintype="passive+no_connect"/>
+    </net>
+    <net code="60" name="unconnected-(U1-QH'-Pad9)" class="Default">
+      <node ref="U1" pin="9" pinfunction="QH'" pintype="output+no_connect"/>
+    </net>
+    <net code="61" name="unconnected-(U2-EXTINT-Pad5)" class="Default">
+      <node ref="U2" pin="5" pinfunction="EXTINT" pintype="input+no_connect"/>
+    </net>
+    <net code="62" name="unconnected-(U2-SAFEBOOT_N-Pad18)" class="Default">
+      <node ref="U2" pin="18" pinfunction="SAFEBOOT_N" pintype="input+no_connect"/>
+    </net>
+    <net code="63" name="unconnected-(U2-SCL-Pad17)" class="Default">
+      <node ref="U2" pin="17" pinfunction="SCL" pintype="input+no_connect"/>
+    </net>
+    <net code="64" name="unconnected-(U2-SDA-Pad16)" class="Default">
+      <node ref="U2" pin="16" pinfunction="SDA" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="65" name="unconnected-(U2-VCC_RF-Pad14)" class="Default">
+      <node ref="U2" pin="14" pinfunction="VCC_RF" pintype="power_out+no_connect"/>
+    </net>
+    <net code="66" name="unconnected-(U2-VIO_SEL-Pad15)" class="Default">
+      <node ref="U2" pin="15" pinfunction="VIO_SEL" pintype="input+no_connect"/>
+    </net>
+    <net code="67" name="unconnected-(U3-INT-Pad6)" class="Default">
+      <node ref="U3" pin="6" pinfunction="INT" pintype="output+no_connect"/>
+    </net>
+    <net code="68" name="unconnected-(U3-V_{OUT}-Pad8)" class="Default">
+      <node ref="U3" pin="8" pinfunction="V_{OUT}" pintype="output+no_connect"/>
+    </net>
+    <net code="69" name="unconnected-(U5-CLKOUT-Pad22)" class="Default">
+      <node ref="U5" pin="22" pinfunction="CLKOUT" pintype="output+no_connect"/>
+    </net>
+    <net code="70" name="unconnected-(U5-NC-Pad2)" class="Default">
+      <node ref="U5" pin="2" pinfunction="NC" pintype="no_connect"/>
+    </net>
+    <net code="71" name="unconnected-(U5-NC-Pad25)" class="Default">
+      <node ref="U5" pin="25" pinfunction="NC" pintype="no_connect"/>
+    </net>
+    <net code="72" name="unconnected-(U5-~{Rx0BF}-Pad12)" class="Default">
+      <node ref="U5" pin="12" pinfunction="~{Rx0BF}" pintype="output+no_connect"/>
+    </net>
+    <net code="73" name="unconnected-(U5-~{Rx1BF}-Pad11)" class="Default">
+      <node ref="U5" pin="11" pinfunction="~{Rx1BF}" pintype="output+no_connect"/>
+    </net>
+    <net code="74" name="unconnected-(U5-~{Tx0RTS}-Pad23)" class="Default">
+      <node ref="U5" pin="23" pinfunction="~{Tx0RTS}" pintype="input+no_connect"/>
+    </net>
+    <net code="75" name="unconnected-(U5-~{Tx1RTS}-Pad6)" class="Default">
+      <node ref="U5" pin="6" pinfunction="~{Tx1RTS}" pintype="input+no_connect"/>
+    </net>
+    <net code="76" name="unconnected-(U5-~{Tx2RTS}-Pad7)" class="Default">
+      <node ref="U5" pin="7" pinfunction="~{Tx2RTS}" pintype="input+no_connect"/>
+    </net>
+  </nets>
+</export>

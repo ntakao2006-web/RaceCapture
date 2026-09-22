@@ -1,0 +1,98 @@
+﻿Sheet,Reference,Value,MPN,Footprint,Supplier,SupplierCode,SupplierURL,Role
+logger_v2.kicad_sch,J3,Power,FH105-1x8SG/RH,logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical,秋月電子通商,104046,https://akizukidenshi.com/catalog/g/g104046/,
+logger_v2.kicad_sch,J2,Digital/PWM,FH105-1x10SG,logger_v2_custom:PinSocket_1x10_P2.54mm_Vertical,秋月電子通商,107199,https://akizukidenshi.com/catalog/g/g107199/,
+logger_v2.kicad_sch,J4,Analog,FH105-1x6SG/RH,logger_v2_custom:PinSocket_1x06_P2.54mm_Vertical,秋月電子通商,104045,https://akizukidenshi.com/catalog/g/g104045/,
+logger_v2.kicad_sch,J5,Digital/PWM,FH105-1x8SG/RH,logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical_ShieldSilk,秋月電子通商,104046,https://akizukidenshi.com/catalog/g/g104046/,
+logger_v2.kicad_sch,C5,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,R1,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,
+logger_v2.kicad_sch,R20,47k,RC0603J47K,logger_v2_custom:R_0603_1608Metric,秋月電子通商,129458,https://akizukidenshi.com/catalog/g/g129458/,
+logger_v2.kicad_sch,D3,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,
+logger_v2.kicad_sch,U5,MCP25625-E/SS,MCP25625T-E/SS,logger_v2_custom:SSOP-28_5.3x10.2mm_P0.65mm,秋月電子通商,112663,https://akizukidenshi.com/catalog/g/g112663/,
+logger_v2.kicad_sch,J7,43045-0400,43045-0400,logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal,他社調達,,https://www.molex.com/en-us/products/part-detail/430450400,
+logger_v2.kicad_sch,R10,10k,RK73B1JTTD103J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130355,https://akizukidenshi.com/catalog/g/g130355/,
+logger_v2.kicad_sch,R9,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,
+logger_v2.kicad_sch,L1,27nH,LQG15HS27NJ02D,logger_v2_custom:L_0402_1005Metric,他社調達,,https://www.murata.com/en-global/products/productdetail?partno=LQG15HS27NJ02%23,
+logger_v2.kicad_sch,U3,BNO055_module,AE-BNO055-BO,logger_v2_custom:AE_BNO055_BO_ShieldSilk,秋月電子通商,116996,https://akizukidenshi.com/catalog/g/g116996/,
+logger_v2.kicad_sch,D1,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,
+logger_v2.kicad_sch,D2,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,
+logger_v2.kicad_sch,R11,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,
+logger_v2.kicad_sch,J1,S-037-TGG,S-037-TGG,logger_v2_custom:SMA_S-037-TGG_Horizontal,秋月電子通商,102569,https://akizukidenshi.com/catalog/g/g102569/,
+logger_v2.kicad_sch,U2,MAX-M10M-00B,MAX-M10M-00B,logger_v2_custom:MAX_M10M_00B_LCC18,秋月電子通商,131778,https://akizukidenshi.com/catalog/g/g131778/,
+logger_v2.kicad_sch,R15,4.7k,RK73B1JTTD472J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130353,https://akizukidenshi.com/catalog/g/g130353/,
+logger_v2.kicad_sch,R4,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,
+logger_v2.kicad_sch,R13,120,RC0603J120R,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130332,https://akizukidenshi.com/catalog/g/g130332/,
+logger_v2.kicad_sch,C10,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,C1,10nF,GRM188B11H103KA01,logger_v2_custom:C_0603_1608Metric,秋月電子通商,113387,https://akizukidenshi.com/catalog/g/g113387/,
+logger_v2.kicad_sch,R19,47k,RC0603J47K,logger_v2_custom:R_0603_1608Metric,秋月電子通商,129458,https://akizukidenshi.com/catalog/g/g129458/,
+logger_v2.kicad_sch,C3,15pF,CC0603N150J500,logger_v2_custom:C_0603_1608Metric,秋月電子通商,113312,https://akizukidenshi.com/catalog/g/g113312/,
+logger_v2.kicad_sch,D10,PEC3824C2A-AU,PEC3824C2A-AU_R1_000A1,logger_v2_custom:SOT-23,秋月電子通商,129497,https://akizukidenshi.com/catalog/g/g129497/,
+logger_v2.kicad_sch,C6,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,C4,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,R8,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,
+logger_v2.kicad_sch,R2,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,
+logger_v2.kicad_sch,D7,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,
+logger_v2.kicad_sch,R3,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,
+logger_v2.kicad_sch,D11,RF ESD,PESD5V0F1BL-Q,logger_v2_custom:D_SOD-882,他社調達,,https://www.nexperia.com/product/PESD5V0F1BL-Q,
+logger_v2.kicad_sch,C7,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,C8,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,C14,10uF,GRM21BR71A106KE51,logger_v2_custom:C_0805_2012Metric,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,
+logger_v2.kicad_sch,R14,120,RC0603J120R,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130332,https://akizukidenshi.com/catalog/g/g130332/,
+logger_v2.kicad_sch,D6,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,
+logger_v2.kicad_sch,R17,10k,RK73B1JTTD103J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130355,https://akizukidenshi.com/catalog/g/g130355/,
+logger_v2.kicad_sch,D9,PEC3824C2A-AU,PEC3824C2A-AU_R1_000A1,logger_v2_custom:SOT-23,秋月電子通商,129497,https://akizukidenshi.com/catalog/g/g129497/,
+logger_v2.kicad_sch,R7,27R 1W,CRCW251227R0JNEG,logger_v2_custom:R_2512_6332Metric,他社調達,,https://www.vishay.com/docs/20035/dcrcwe3.pdf,
+logger_v2.kicad_sch,D5,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,
+logger_v2.kicad_sch,C11,1uF,GRM188B31H105KAAL,logger_v2_custom:C_0603_1608Metric,秋月電子通商,116994,https://akizukidenshi.com/catalog/g/g116994/,
+logger_v2.kicad_sch,R12,10k,RK73B1JTTD103J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130355,https://akizukidenshi.com/catalog/g/g130355/,
+logger_v2.kicad_sch,J6,43045-0400,43045-0400,logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal,他社調達,,https://www.molex.com/en-us/products/part-detail/430450400,
+logger_v2.kicad_sch,R18,47k,RC0603J47K,logger_v2_custom:R_0603_1608Metric,秋月電子通商,129458,https://akizukidenshi.com/catalog/g/g129458/,
+logger_v2.kicad_sch,D4,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,
+logger_v2.kicad_sch,Y1,20MHz CL10pF,20M10PB/XT324-10/80,logger_v2_custom:Crystal_SMD_3225-4Pin_3.2x2.5mm,秋月電子通商,130244,https://akizukidenshi.com/catalog/g/g130244/,
+logger_v2.kicad_sch,R16,4.7k,RK73B1JTTD472J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130353,https://akizukidenshi.com/catalog/g/g130353/,
+logger_v2.kicad_sch,D8,GREEN 0805,OSG80805C1C,logger_v2_custom:LED_0805_2012Metric_ShieldSilk,秋月電子通商,106421,https://akizukidenshi.com/catalog/g/g106421/,
+logger_v2.kicad_sch,R6,1k,RK73B1JTTD102J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,
+logger_v2.kicad_sch,R5,10k,RK73B1JTTD103J,logger_v2_custom:R_0603_1608Metric,秋月電子通商,130355,https://akizukidenshi.com/catalog/g/g130355/,
+logger_v2.kicad_sch,C12,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2.kicad_sch,U4,ATA6561-GAQW,ATA6561-GAQW-N,logger_v2_custom:SOIC-8_3.9x4.9mm_P1.27mm,秋月電子通商,130008,https://akizukidenshi.com/catalog/g/g130008/,
+logger_v2.kicad_sch,C2,15pF,CC0603N150J500,logger_v2_custom:C_0603_1608Metric,秋月電子通商,113312,https://akizukidenshi.com/catalog/g/g113312/,
+logger_v2.kicad_sch,U1,TC74HC595AF,TC74HC595AF,logger_v2_custom:Toshiba_SOP16_P300_1.27A,秋月電子通商,110077,https://akizukidenshi.com/catalog/g/g110077/,
+logger_v2.kicad_sch,C13,10uF,GRM21BR71A106KE51,logger_v2_custom:C_0805_2012Metric,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,
+logger_v2.kicad_sch,C9,100nF,GRM188R72A104KA35D,logger_v2_custom:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,
+logger_v2_lte_sd.kicad_sch,J?,47219-2001,47219-2001,logger_v2_expansion:Molex_47219-2001,他社調達,,https://www.molex.com/en-us/products/part-detail/472192001,3.3V microSD SPI; card detect
+logger_v2_lte_sd.kicad_sch,J?,2452796-1,2452796-1,logger_v2_expansion:nanoSIM_TE_2452796-1_Hinge,他社調達,,https://jp.rs-online.com/web/p/memory-card-connectors/2868822,1.8V nanoSIM; hinged socket with detect
+logger_v2_lte_sd.kicad_sch,J?,LTE service 1x06,PH-1x6SG/RH,logger_v2_expansion:PinHeader_1x06_P2.54mm_Vertical,秋月電子通商,101669,https://akizukidenshi.com/catalog/g/g101669/,USB VBUS/DP/DM/GND + BOOT_CFG/VDD_EXT service header
+logger_v2_lte_sd.kicad_sch,J?,U.FL-R-SMT-1(10),U.FL-R-SMT-1(10),logger_v2_expansion:U.FL_Hirose_U.FL-R-SMT-1_Vertical,秋月電子通商,115417,https://akizukidenshi.com/catalog/g/g115417/,"LTE antenna, 50 ohm RF path"
+logger_v2_lte_sd.kicad_sch,U?,AP63301WU-7,AP63301WU-7,logger_v2_expansion:Diodes_TSOT26,DigiKey,31-AP63301WU-7CT-ND,https://www.digikey.jp/ja/products/detail/diodes-incorporated/AP63301WU-7/10491607,5V to 3.8V LTE buck; MCU-controlled EN
+logger_v2_lte_sd.kicad_sch,U?,SIM7070G,SIM7070G,logger_v2_expansion:SIMCom_SIM7070G_LCC68_24x24mm_P1mm,他社調達,,https://en.simcom.com/product/SIM7070G.html,"LTE Cat-M/NB; VBAT 3.8V, UART/SIM 1.8V"
+logger_v2_lte_sd.kicad_sch,Q?,2N7002,2N7002,logger_v2_expansion:SOT-23,秋月電子通商,103919,https://akizukidenshi.com/catalog/g/g103919/,Open-drain PWRKEY; do not drive PWRKEY high
+logger_v2_lte_sd.kicad_sch,U?,TXU0204PWR,TXU0204PWR,logger_v2_expansion:TSSOP-14_4.4x5mm_P0.65mm,他社調達,,https://www.ti.com/product/TXU0204,TX/RX/RTS/CTS 3.3V to 1.8V
+logger_v2_lte_sd.kicad_sch,U?,USBLC6-4SC6,USBLC6-4SC6,logger_v2_expansion:SOT-23-6,他社調達,,https://www.st.com/en/protection-devices/usblc6-4.html,SIM ESD: VDD/CLK/RST/DATA
+logger_v2_lte_sd.kicad_sch,U?,USBLC6-4SC6,USBLC6-4SC6,logger_v2_expansion:SOT-23-6,他社調達,,https://www.st.com/en/protection-devices/usblc6-4.html,microSD ESD: CLK/CS/MOSI/MISO
+logger_v2_lte_sd.kicad_sch,L2,2.2uH,SRN6045TA-2R2Y,logger_v2_expansion:L_Bourns_SRN6045TA,他社調達,,https://www.bourns.com/docs/product-datasheets/srn6045ta.pdf,AP63301 SW -> LTE_VBAT; power inductor
+logger_v2_lte_sd.kicad_sch,C15,330uF 6.3V,T520D337M006ATE015,logger_v2_expansion:CP_EIA-7343-31_Kemet-D,他社調達,,https://docs.rs-online.com/d8c4/0900766b81710abb.pdf,LTE_VBAT bulk near module
+logger_v2_lte_sd.kicad_sch,D12,4.5V TVS,PESDHC2FD4V5B,logger_v2_expansion:Prisemi_DFN1006_2L,他社調達,,https://cdn.semikey.com/upload/pdfs/59/58/5958b6a05c58e8fad55bac421952aaf3.pdf,LTE_VBAT to GND; SIMCom recommended transient protection
+logger_v2_lte_sd.kicad_sch,C16,10uF,GRM21BR71A106KE51,logger_v2_expansion:C_0805_2012Metric,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,"AP63301 VIN to GND, input capacitor A"
+logger_v2_lte_sd.kicad_sch,C17,10uF,GRM21BR71A106KE51,logger_v2_expansion:C_0805_2012Metric,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,"AP63301 VIN to GND, input capacitor B; parallel C16"
+logger_v2_lte_sd.kicad_sch,C18,10uF,GRM21BR71A106KE51,logger_v2_expansion:C_0805_2012Metric,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,Buck output ceramic A; parallel C19/C20
+logger_v2_lte_sd.kicad_sch,C19,10uF,GRM21BR71A106KE51,logger_v2_expansion:C_0805_2012Metric,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,Buck output ceramic B; parallel C18/C20
+logger_v2_lte_sd.kicad_sch,C20,10uF,GRM21BR71A106KE51,logger_v2_expansion:C_0805_2012Metric,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,Buck output ceramic C; 30uF nominal total
+logger_v2_lte_sd.kicad_sch,C21,100nF,GRM188R72A104KA35D,logger_v2_expansion:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,AP63301 VIN pin 3 to GND pin 4; local bypass
+logger_v2_lte_sd.kicad_sch,C22,100nF,GRM188R72A104KA35D,logger_v2_expansion:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,SIM7070G VBAT local bypass
+logger_v2_lte_sd.kicad_sch,C23,1uF,GRM188B31H105KAAL,logger_v2_expansion:C_0603_1608Metric,秋月電子通商,116994,https://akizukidenshi.com/catalog/g/g116994/,"SIM7070G VBAT local bypass, parallel C15/C22"
+logger_v2_lte_sd.kicad_sch,C24,100nF,GRM188R72A104KA35D,logger_v2_expansion:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,SIM_VDD bypass at nanoSIM socket
+logger_v2_lte_sd.kicad_sch,C25,10uF,GRM21BR71A106KE51,logger_v2_expansion:C_0805_2012Metric,秋月電子通商,117593,https://akizukidenshi.com/catalog/g/g117593/,microSD 3.3V supply bulk
+logger_v2_lte_sd.kicad_sch,C26,100nF,GRM188R72A104KA35D,logger_v2_expansion:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,microSD 3.3V local bypass
+logger_v2_lte_sd.kicad_sch,C27,100nF,GRM188R72A104KA35D,logger_v2_expansion:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,TXU0204 VCCA 3.3V local bypass
+logger_v2_lte_sd.kicad_sch,C28,100nF,GRM188R72A104KA35D,logger_v2_expansion:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,TXU0204 VCCB VDD_EXT 1.8V local bypass
+logger_v2_lte_sd.kicad_sch,C29,100nF,GRM188R72A104KA35D,logger_v2_expansion:C_0603_1608Metric,秋月電子通商,114559,https://akizukidenshi.com/catalog/g/g114559/,AP63301 BST pin 6 to SW pin 5; bootstrap capacitor
+logger_v2_lte_sd.kicad_sch,R21,374k 1%,RC0603FR-07374KL,logger_v2_expansion:R_0603_1608Metric,他社調達,,https://www.yageo.com/upload/media/product/productsearch/datasheet/rchip/pyu-rc-group_51_rohs_l.pdf,FB upper: LTE_VBAT to FB; nominal Vout=3.792V
+logger_v2_lte_sd.kicad_sch,R22,100k 0.1%,RG2012N-104-B-T5,logger_v2_expansion:R_0805_2012Metric,秋月電子通商,111798,https://akizukidenshi.com/catalog/g/g111798/,FB lower: FB pin 1 to GND pin 4; paired with R21
+logger_v2_lte_sd.kicad_sch,R23,100k,RK73B1JTTD104J,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,130357,https://akizukidenshi.com/catalog/g/g130357/,AP63301 EN pulldown to GND
+logger_v2_lte_sd.kicad_sch,R24,100k,RK73B1JTTD104J,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,130357,https://akizukidenshi.com/catalog/g/g130357/,2N7002 gate pulldown; PWRKEY released at MCU reset
+logger_v2_lte_sd.kicad_sch,R25,1k,RK73B1JTTD102J,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,130351,https://akizukidenshi.com/catalog/g/g130351/,"MCU LTE_PWRKEY to 2N7002 gate, series"
+logger_v2_lte_sd.kicad_sch,R26,47k,RC0603J47K,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,129458,https://akizukidenshi.com/catalog/g/g129458/,microSD CS pullup to 3.3V
+logger_v2_lte_sd.kicad_sch,R27,47k,RC0603J47K,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,129458,https://akizukidenshi.com/catalog/g/g129458/,microSD MISO/DAT0 pullup to 3.3V
+logger_v2_lte_sd.kicad_sch,R28,22R,RK73B1JTTD220J,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,130343,https://akizukidenshi.com/catalog/g/g130343/,SIM_CLK series between module and socket
+logger_v2_lte_sd.kicad_sch,R29,22R,RK73B1JTTD220J,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,130343,https://akizukidenshi.com/catalog/g/g130343/,SIM_RST series between module and socket
+logger_v2_lte_sd.kicad_sch,R30,22R,RK73B1JTTD220J,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,130343,https://akizukidenshi.com/catalog/g/g130343/,SIM_DATA series; no external pullup
+logger_v2_lte_sd.kicad_sch,R31,0R,RK73Z1JTTD,logger_v2_expansion:R_0603_1608Metric,秋月電子通商,111619,https://akizukidenshi.com/catalog/g/g111619/,LTE RF series matching placeholder; 50-ohm trace

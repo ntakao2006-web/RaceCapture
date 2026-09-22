@@ -1,0 +1,22 @@
+(
+  fp_lib_table
+  (version 7)
+  (
+    lib
+    (name "logger_v2_custom")
+    (type "KiCad")
+    (uri "C:/Users/lintaroh/Documents/RaceCapture/circuit/logger_v2/output/design_review_20260907/silkscreen_work/synced_library.pretty")
+    (options "")
+    (descr "EcoLogger v2 portable footprints and models")
+  )
+  (
+    lib
+    (name "Arduino_MountingHole")
+    (type "KiCad")
+    (uri "C:/Users/lintaroh/Documents/RaceCapture/circuit/logger_v2/Arduino_MountingHole.pretty")
+    (options "")
+    (descr "Existing shield mechanics")
+  )
+)
+
+

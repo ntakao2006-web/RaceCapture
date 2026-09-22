@@ -1,0 +1,206 @@
+[
+  {
+    "file": "Akizuki_AE-BNO055-BO_mechanical.step",
+    "solids": 12,
+    "bounds": [
+      -5.19,
+      -9.31,
+      -3.0,
+      12.81,
+      1.69,
+      5.8
+    ]
+  },
+  {
+    "file": "C_0603_1608Metric.step",
+    "solids": 1,
+    "bounds": [
+      -0.8,
+      -0.4,
+      0.0,
+      0.8,
+      0.4,
+      0.8
+    ]
+  },
+  {
+    "file": "COSMTEC_S-037-TGG_mechanical.step",
+    "solids": 8,
+    "bounds": [
+      -3.5,
+      -3.5,
+      -3.9,
+      11.5,
+      3.5,
+      9.9
+    ]
+  },
+  {
+    "file": "Crystal_HC49-4H_Vertical.step",
+    "solids": 1,
+    "bounds": [
+      -3.085,
+      -2.325,
+      -2.9,
+      7.965,
+      2.325,
+      4.1
+    ]
+  },
+  {
+    "file": "L_0603_1608Metric.step",
+    "solids": 1,
+    "bounds": [
+      -0.8,
+      -0.4,
+      0.0,
+      0.8,
+      0.4,
+      0.8
+    ]
+  },
+  {
+    "file": "LED_D3.0mm.step",
+    "solids": 1,
+    "bounds": [
+      -0.23,
+      -1.9,
+      -2.5,
+      3.17,
+      1.9,
+      8.3
+    ]
+  },
+  {
+    "file": "Molex_43045-0402_same_geometry_as_0400.step",
+    "solids": 1,
+    "bounds": [
+      -5.075,
+      -7.12,
+      -7.475,
+      5.075,
+      4.83,
+      4.955
+    ]
+  },
+  {
+    "file": "PinSocket_1x06_P2.54mm_Vertical.step",
+    "solids": 1,
+    "bounds": [
+      -1.27,
+      -13.97,
+      -3.1,
+      1.27,
+      1.27,
+      8.5
+    ]
+  },
+  {
+    "file": "PinSocket_1x08_P2.54mm_Vertical.step",
+    "solids": 1,
+    "bounds": [
+      -1.27,
+      -19.05,
+      -3.1,
+      1.27,
+      1.27,
+      8.5
+    ]
+  },
+  {
+    "file": "PinSocket_1x10_P2.54mm_Vertical.step",
+    "solids": 1,
+    "bounds": [
+      -1.27,
+      -24.13,
+      -3.1,
+      1.27,
+      1.27,
+      8.5
+    ]
+  },
+  {
+    "file": "R_0603_1608Metric.step",
+    "solids": 1,
+    "bounds": [
+      -0.8,
+      -0.4,
+      -0.0,
+      0.8,
+      0.4,
+      0.45
+    ]
+  },
+  {
+    "file": "R_2512_6332Metric.step",
+    "solids": 1,
+    "bounds": [
+      -3.15,
+      -1.6,
+      0.0,
+      3.15,
+      1.6,
+      0.6
+    ]
+  },
+  {
+    "file": "SOIC-16W_5.3x10.2mm_P1.27mm.step",
+    "solids": 1,
+    "bounds": [
+      -3.55,
+      -5.1,
+      0.0,
+      3.55,
+      5.1,
+      1.6
+    ]
+  },
+  {
+    "file": "SOIC-8_3.9x4.9mm_P1.27mm.step",
+    "solids": 1,
+    "bounds": [
+      -3.0,
+      -2.45,
+      -0.0,
+      3.0,
+      2.45,
+      1.75
+    ]
+  },
+  {
+    "file": "SOT-23.step",
+    "solids": 1,
+    "bounds": [
+      -1.25,
+      -1.5,
+      0.0,
+      1.25,
+      1.5,
+      1.2
+    ]
+  },
+  {
+    "file": "SSOP-28_5.3x10.2mm_P0.65mm.step",
+    "solids": 1,
+    "bounds": [
+      -3.9,
+      -5.1,
+      0.0,
+      3.9,
+      5.1,
+      2.1
+    ]
+  },
+  {
+    "file": "u-blox_NEO-M9N-00B_mechanical.step",
+    "solids": 26,
+    "bounds": [
+      -6.1,
+      -8.0,
+      0.0,
+      6.1,
+      8.0,
+      2.4
+    ]
+  }
+]

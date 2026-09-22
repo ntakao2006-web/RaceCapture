@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-07T04:58:05+0900",
+    "kicad_version": "9.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55",
+            "violations": [
+                {
+                    "description": "シンボル '74HC595' が、ライブラリ '74xx' のコピーと一致しません",
+                    "items": [
+                        {
+                            "description": "シンボル U1 [74HC595]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 0.381
+                            },
+                            "uuid": "f06c868e-188b-4fd7-832e-3da3de07950c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_mismatch"
+                }
+            ]
+        }
+    ],
+    "source": "logger_v2.kicad_sch"
+}

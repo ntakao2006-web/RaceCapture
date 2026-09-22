@@ -1,0 +1,20 @@
+{
+  "backup": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\logger_v2-backups\\before_aluminum_polymer_20260922_221801",
+  "changes": [
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C7",
+      "value": "330u",
+      "old": "logger_v2_expansion:CP_EIA-7343-31_Kemet-D",
+      "new": "logger_v2_expansion:CP_Elec_6.3x5.9"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "C7",
+      "value": "330u",
+      "old": "logger_v2_expansion:CP_EIA-7343-31_Kemet-D",
+      "new": "logger_v2_expansion:CP_Elec_6.3x5.9"
+    }
+  ],
+  "invariants": "All other components, placements, values, wiring, tracks/vias/zones, pad nets and IDs unchanged"
+}

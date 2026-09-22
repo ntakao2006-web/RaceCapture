@@ -1,0 +1,19 @@
+{
+  "existing_physical_symbols_preserved": 58,
+  "existing_non_GNSS_net_partition_unchanged": true,
+  "pcb_and_project_byte_identical": true,
+  "new_unwired_parts": 44,
+  "all_new_pins_match_footprint_pads": true,
+  "all_model_paths_exist": true,
+  "gnss_functional_pin_mapping_verified": true,
+  "erc": {
+    "/": {
+      "label_dangling": 1
+    },
+    "/LTE + microSD (unwired)/": {
+      "pin_not_connected": 221,
+      "pin_not_driven": 40,
+      "power_pin_not_driven": 30
+    }
+  }
+}

@@ -1,0 +1,87 @@
+[
+  {
+    "footprint": "logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical",
+    "model": "PinSocket_1x08_P2.54mm_Vertical.step",
+    "source": "KiCad 9 package model: PinSocket_1x08_P2.54mm_Vertical.step"
+  },
+  {
+    "footprint": "logger_v2_custom:PinSocket_1x06_P2.54mm_Vertical",
+    "model": "PinSocket_1x06_P2.54mm_Vertical.step",
+    "source": "KiCad 9 package model: PinSocket_1x06_P2.54mm_Vertical.step"
+  },
+  {
+    "footprint": "logger_v2_custom:PinSocket_1x10_P2.54mm_Vertical",
+    "model": "PinSocket_1x10_P2.54mm_Vertical.step",
+    "source": "KiCad 9 package model: PinSocket_1x10_P2.54mm_Vertical.step"
+  },
+  {
+    "footprint": "logger_v2_custom:ublox_NEO",
+    "model": "u-blox_NEO-M9N-00B_mechanical.step",
+    "source": "u-blox UBX-19014285 R08 mechanical dimensions; generated STEP"
+  },
+  {
+    "footprint": "logger_v2_custom:SOIC-16W_5.3x10.2mm_P1.27mm",
+    "model": "SOIC-16W_5.3x10.2mm_P1.27mm.step",
+    "source": "KiCad 9 package model: SOIC-16W_5.3x10.2mm_P1.27mm.step"
+  },
+  {
+    "footprint": "logger_v2_custom:SOIC-8_3.9x4.9mm_P1.27mm",
+    "model": "SOIC-8_3.9x4.9mm_P1.27mm.step",
+    "source": "KiCad 9 package model: SOIC-8_3.9x4.9mm_P1.27mm.step"
+  },
+  {
+    "footprint": "logger_v2_custom:SSOP-28_5.3x10.2mm_P0.65mm",
+    "model": "SSOP-28_5.3x10.2mm_P0.65mm.step",
+    "source": "KiCad 9 package model: SSOP-28_5.3x10.2mm_P0.65mm.step"
+  },
+  {
+    "footprint": "logger_v2_custom:AE_BNO055_BO",
+    "model": "Akizuki_AE-BNO055-BO_mechanical.step",
+    "source": "Akizuki module drawing: 18x11 mm, DIP8 2.54/7.62 mm; generated mechanical STEP, nominal assembly height"
+  },
+  {
+    "footprint": "logger_v2_custom:SMA_S-037-TGG_Horizontal",
+    "model": "COSMTEC_S-037-TGG_mechanical.step",
+    "source": "COSMTEC S-037-TGG dimensioned drawing, 2008-09-16; generated mechanical STEP"
+  },
+  {
+    "footprint": "logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+    "model": "Molex_43045-0402_same_geometry_as_0400.step",
+    "source": "Molex 43045-0402 STEP. 43045-0400 / 0402 share the same drawing and geometry; finish A (tin) vs C (gold)."
+  },
+  {
+    "footprint": "logger_v2_custom:SOT-23",
+    "model": "SOT-23.step",
+    "source": "KiCad 9 package model: SOT-23.step"
+  },
+  {
+    "footprint": "logger_v2_custom:R_0603_1608Metric",
+    "model": "R_0603_1608Metric.step",
+    "source": "KiCad 9 package model: R_0603_1608Metric.step"
+  },
+  {
+    "footprint": "logger_v2_custom:R_2512_6332Metric",
+    "model": "R_2512_6332Metric.step",
+    "source": "KiCad 9 package model: R_2512_6332Metric.step"
+  },
+  {
+    "footprint": "logger_v2_custom:L_0603_1608Metric",
+    "model": "L_0603_1608Metric.step",
+    "source": "KiCad 9 package model: L_0603_1608Metric.step"
+  },
+  {
+    "footprint": "logger_v2_custom:C_0603_1608Metric",
+    "model": "C_0603_1608Metric.step",
+    "source": "KiCad 9 package model: C_0603_1608Metric.step"
+  },
+  {
+    "footprint": "logger_v2_custom:Crystal_HC49-4H_Vertical",
+    "model": "Crystal_HC49-4H_Vertical.step",
+    "source": "KiCad 9 package model: Crystal_HC49-4H_Vertical.step"
+  },
+  {
+    "footprint": "logger_v2_custom:LED_D3.0mm_JLCPCB",
+    "model": "LED_D3.0mm.step",
+    "source": "KiCad 9 package model: LED_D3.0mm.step"
+  }
+]

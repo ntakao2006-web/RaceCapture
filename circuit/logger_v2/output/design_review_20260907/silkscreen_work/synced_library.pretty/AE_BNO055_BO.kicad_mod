@@ -1,0 +1,171 @@
+(footprint "AE_BNO055_BO"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "Akizuki AE-BNO055-BO 18 x 11 mm DIP8 module")
+	(property "Reference" "REF**"
+		(at 3.8 -4.1 90)
+		(layer "F.SilkS")
+		(uuid "67082b9b-445f-4902-a0ff-87793c86f2d6")
+		(effects
+			(font
+				(size 0.82 0.82)
+				(thickness 0.12)
+			)
+		)
+	)
+	(property "Value" "AE_BNO055_BO"
+		(at 3.81 10.5 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "67436934-c62e-4301-9a77-3817842ee18a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "https://akizukidenshi.com/goodsaffix/AE-BNO055-BO_20220413.pdf"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "08a1dfad-c195-4778-9f08-f7d4e47e791b")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "01e5281c-77b5-4b49-b71e-64ca3a6e83a8")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole exclude_from_pos_files)
+	(fp_line
+		(start -5.19 -1.69)
+		(end 10.9 -1.69)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "22f4edc1-f726-4927-9a4e-a5438209550f")
+	)
+	(fp_line
+		(start -5.19 9.31)
+		(end -5.19 -1.69)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "4a44ab5e-88df-4267-99a0-892553f3c8d5")
+	)
+	(fp_line
+		(start 12.81 1.6)
+		(end 12.81 7)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "680248b0-a0e5-407a-9bbd-090e73fc692d")
+	)
+	(fp_line
+		(start 12.81 9.31)
+		(end -5.19 9.31)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "69b393b8-303e-4f54-8ab8-5c41fc22201b")
+	)
+	(pad "1" thru_hole rect
+		(at 0 7.62)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "62602a1c-afaa-43c2-bb5d-14449158a7c9")
+	)
+	(pad "2" thru_hole circle
+		(at 2.54 7.62)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "346c3aca-1e2a-4fed-b240-ae3baf32b7be")
+	)
+	(pad "3" thru_hole circle
+		(at 5.08 7.62)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "9c3ce64e-677f-48df-b77e-ff8c02440f5e")
+	)
+	(pad "4" thru_hole circle
+		(at 7.62 7.62)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "874790fc-80ed-4ad7-8641-d67565895748")
+	)
+	(pad "5" thru_hole circle
+		(at 7.62 0)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "0a1e242f-7f41-4792-94d2-7a4641583b3c")
+	)
+	(pad "6" thru_hole circle
+		(at 5.08 0)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "42bd33e8-d59f-45d3-9c65-a25a5ea80be4")
+	)
+	(pad "7" thru_hole circle
+		(at 2.54 0)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "127eac03-e44c-45ae-af62-8ee0fa3ea347")
+	)
+	(pad "8" thru_hole circle
+		(at 0 0)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "f505c373-6db4-4be9-bffa-737e14203e63")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/3dmodels/Akizuki_AE-BNO055-BO_mechanical.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

@@ -1,0 +1,17 @@
+{
+  "issues": [],
+  "original_edge_cuts_unchanged": true,
+  "outline_mm": [
+    68.58,
+    53.34
+  ],
+  "drill_holes": {
+    "PTH": 224,
+    "NPTH": 6
+  },
+  "max_drill_export_rounding_mm": 0.0005,
+  "bom_cpl_components": 48,
+  "rf_back_ground_sample_count": 1590,
+  "rf_back_ground_misses": 0,
+  "board_sha256": "30ca8371a71b22a3fb1c98f0d95ea5627f4f6028b7b93308668d068b1eef85a7"
+}

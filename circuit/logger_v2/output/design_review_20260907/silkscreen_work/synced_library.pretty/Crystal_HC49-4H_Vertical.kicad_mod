@@ -1,0 +1,232 @@
+(
+  footprint
+  "Crystal_HC49-4H_Vertical"
+  (version 20241229)
+  (generator "kicad-footprint-generator")
+  (layer "F.Cu")
+  (descr "HC-49-4H, Crystal, http://5hertz.com/pdfs/04404_D.pdf")
+  (tags "")
+  (
+    property
+    "Reference"
+    "REF**"
+    (at 2.44 -3.52 0)
+    (layer "F.SilkS")
+    (
+      effects
+      (
+        font
+        (size 1 1)
+        (thickness 0.15)
+      )
+    )
+  )
+  (
+    property
+    "Value"
+    "Crystal_HC49-4H_Vertical"
+    (at 2.44 3.52 0)
+    (layer "F.Fab")
+    (
+      effects
+      (
+        font
+        (size 1 1)
+        (thickness 0.15)
+      )
+    )
+  )
+  (attr through_hole)
+  (
+    fp_line
+    (start -0.76 -2.435)
+    (end 5.64 -2.435)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start 5.64 2.435)
+    (end -0.76 2.435)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_arc
+    (start -0.76 2.435)
+    (mid -3.195 0)
+    (end -0.76 -2.435)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_arc
+    (start 5.64 -2.435)
+    (mid 8.075 0)
+    (end 5.64 2.435)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start -0.76 -2.83)
+    (end 5.64 -2.83)
+    (
+      stroke
+      (width 0.05)
+      (type solid)
+    )
+    (layer "F.CrtYd")
+  )
+  (
+    fp_line
+    (start 5.64 2.83)
+    (end -0.76 2.83)
+    (
+      stroke
+      (width 0.05)
+      (type solid)
+    )
+    (layer "F.CrtYd")
+  )
+  (
+    fp_arc
+    (start -0.76 2.83)
+    (mid -3.59 0)
+    (end -0.76 -2.83)
+    (
+      stroke
+      (width 0.05)
+      (type solid)
+    )
+    (layer "F.CrtYd")
+  )
+  (
+    fp_arc
+    (start 5.64 -2.83)
+    (mid 8.47 0)
+    (end 5.64 2.83)
+    (
+      stroke
+      (width 0.05)
+      (type solid)
+    )
+    (layer "F.CrtYd")
+  )
+  (
+    fp_line
+    (start -0.76 -2.325)
+    (end 5.64 -2.325)
+    (
+      stroke
+      (width 0.1)
+      (type solid)
+    )
+    (layer "F.Fab")
+  )
+  (
+    fp_line
+    (start 5.64 2.325)
+    (end -0.76 2.325)
+    (
+      stroke
+      (width 0.1)
+      (type solid)
+    )
+    (layer "F.Fab")
+  )
+  (
+    fp_arc
+    (start -0.76 2.325)
+    (mid -3.085 0)
+    (end -0.76 -2.325)
+    (
+      stroke
+      (width 0.1)
+      (type solid)
+    )
+    (layer "F.Fab")
+  )
+  (
+    fp_arc
+    (start 5.64 -2.325)
+    (mid 7.965 0)
+    (end 5.64 2.325)
+    (
+      stroke
+      (width 0.1)
+      (type solid)
+    )
+    (layer "F.Fab")
+  )
+  (
+    fp_text
+    user
+    "${REFERENCE}"
+    (at 2.44 0 0)
+    (layer "F.Fab")
+    (
+      effects
+      (
+        font
+        (size 1 1)
+        (thickness 0.15)
+      )
+    )
+  )
+  (
+    pad
+    "1"
+    thru_hole
+    circle
+    (at 0 0)
+    (size 1.5 1.5)
+    (drill 0.8)
+    (layers "*.Cu" "*.Mask")
+    (remove_unused_layers no)
+  )
+  (
+    pad
+    "2"
+    thru_hole
+    circle
+    (at 4.88 0)
+    (size 1.5 1.5)
+    (drill 0.8)
+    (layers "*.Cu" "*.Mask")
+    (remove_unused_layers no)
+  )
+  (embedded_fonts no)
+  (
+    model
+    "${KIPRJMOD}/3dmodels/Crystal_HC49-4H_Vertical.step"
+    (
+      offset
+      (xyz 0 0 0)
+    )
+    (
+      scale
+      (xyz 1 1 1)
+    )
+    (
+      rotate
+      (xyz 0 0 0)
+    )
+  )
+)

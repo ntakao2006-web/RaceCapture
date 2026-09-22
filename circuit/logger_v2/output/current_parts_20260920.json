@@ -1,0 +1,1647 @@
+{
+  "logger_v1/logger_v1.kicad_sch": [
+    {
+      "Reference": "C15",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "C26",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R39",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C22",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "C16",
+      "Value": "47u",
+      "Footprint": "Capacitor_SMD:CP_Elec_6.3x5.8",
+      "Datasheet": "https://industrial.panasonic.com/jp/products/pt/aluminum-cap-smd/models/EEEFK1E470P",
+      "Description": "47 uF 25 V aluminum electrolytic, SMD 6.3x5.8 mm, Panasonic EEE-FK1E470P"
+    },
+    {
+      "Reference": "R17",
+      "Value": "49.9k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "D6",
+      "Value": "LED_Small_Filled",
+      "Footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "U7",
+      "Value": "MCP25625T-E/SS",
+      "Footprint": "Package_SO:SSOP-28_5.3x10.2mm_P0.65mm",
+      "Datasheet": "",
+      "Description": ""
+    },
+    {
+      "Reference": "R8",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "U13",
+      "Value": "MAX-M10M-00B",
+      "Footprint": "logger_v1_custom:MAX_M10M_00B_LCC18",
+      "Datasheet": "https://content.u-blox.com/sites/default/files/documents/MAX-M10M-00B_DataSheet_UBX-22028884.pdf",
+      "Description": "u-blox M10 GNSS receiver module, ROM/XTAL, LCC-18"
+    },
+    {
+      "Reference": "C28",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R23",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "J5",
+      "Value": "43045-0400",
+      "Footprint": "logger_v1_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+      "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400",
+      "Description": "Molex Micro-Fit 3.0 right-angle header, 4 circuits, dual row"
+    },
+    {
+      "Reference": "R30",
+      "Value": "10",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R46",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "U12",
+      "Value": "BNO055_module",
+      "Footprint": "logger_v1_custom:AE_BNO055_BO",
+      "Datasheet": "https://akizukidenshi.com/goodsaffix/AE-BNO055-BO_20220413.pdf",
+      "Description": ""
+    },
+    {
+      "Reference": "R24",
+      "Value": "68k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "D4",
+      "Value": "LED_Small_Filled",
+      "Footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "C32",
+      "Value": "100u",
+      "Footprint": "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm",
+      "Datasheet": "https://industrial.panasonic.com/jp/products/pt/aluminum-cap-smd/models/EEEFK1E470P",
+      "Description": "47 uF 25 V aluminum electrolytic, SMD 6.3x5.8 mm, Panasonic EEE-FK1E470P"
+    },
+    {
+      "Reference": "J4",
+      "Value": "43045-0400",
+      "Footprint": "logger_v1_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+      "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400",
+      "Description": "Molex Micro-Fit 3.0 right-angle header, 4 circuits, dual row"
+    },
+    {
+      "Reference": "U1",
+      "Value": "NJM2845DL1-05",
+      "Footprint": "Package_TO_SOT_SMD:TO-252-3_TabPin2",
+      "Datasheet": "https://akizukidenshi.com/catalog/g/g111298/",
+      "Description": ""
+    },
+    {
+      "Reference": "U2",
+      "Value": "LDR6321",
+      "Footprint": "Package_SO:SSOP-16_3.9x4.9mm_P0.635mm",
+      "Datasheet": "https://akizukidenshi.com/goodsaffix/ldr6321.pdf",
+      "Description": "USB PD/QC/AFC sink controller, maximum request configured for 12 V"
+    },
+    {
+      "Reference": "D5",
+      "Value": "LED_Small_Filled",
+      "Footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "R48",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R18",
+      "Value": "13k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C13",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R3",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C4",
+      "Value": "4.7u",
+      "Footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "U5",
+      "Value": "TCKE800NL",
+      "Footprint": "logger_v1_custom:TCKE800NL_WSON10B",
+      "Datasheet": "",
+      "Description": ""
+    },
+    {
+      "Reference": "R16",
+      "Value": "2k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "J1",
+      "Value": "Conn_01x05_Pin",
+      "Footprint": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical",
+      "Datasheet": "~",
+      "Description": "Generic connector, single row, 01x05, script generated"
+    },
+    {
+      "Reference": "C3",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R50",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C18",
+      "Value": "47u",
+      "Footprint": "Capacitor_SMD:CP_Elec_6.3x5.8",
+      "Datasheet": "https://industrial.panasonic.com/jp/products/pt/aluminum-cap-smd/models/EEEFK1E470P",
+      "Description": "47 uF 25 V aluminum electrolytic, SMD 6.3x5.8 mm, Panasonic EEE-FK1E470P"
+    },
+    {
+      "Reference": "D2",
+      "Value": "PEC3824C2A-AU",
+      "Footprint": "Package_TO_SOT_SMD:SOT-23",
+      "Datasheet": "https://akizukidenshi.com/goodsaffix/PEC3808C2A-AU_SERIES.pdf",
+      "Description": "Dual bidirectional 24 V TVS for CAN bus"
+    },
+    {
+      "Reference": "C20",
+      "Value": "1u",
+      "Footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "U10",
+      "Value": "TUSB320IRWBR",
+      "Footprint": "logger_v1_custom:Texas_X2QFN-12_1.6x1.6mm_P0.4mm",
+      "Datasheet": "http://www.ti.com/lit/ds/symlink/tusb320.pdf",
+      "Description": "USB Type-C Configuration Channel Logic and Port Control, X2QFN-12"
+    },
+    {
+      "Reference": "R42",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R2",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C10",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "H3",
+      "Value": "MountingHole",
+      "Footprint": "MountingHole:MountingHole_3.2mm_M3",
+      "Datasheet": "~",
+      "Description": "Mounting Hole without connection"
+    },
+    {
+      "Reference": "R27",
+      "Value": "120",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "J6",
+      "Value": "5077CR-16-SMC2-BK-TR",
+      "Footprint": "logger_v1_custom:USB_C_5077CR-16-SMC2-BK-TR",
+      "Datasheet": "",
+      "Description": ""
+    },
+    {
+      "Reference": "H2",
+      "Value": "MountingHole",
+      "Footprint": "MountingHole:MountingHole_2.2mm_M2",
+      "Datasheet": "~",
+      "Description": "Mounting Hole without connection"
+    },
+    {
+      "Reference": "U6",
+      "Value": "OKL-T/6-W12N-C",
+      "Footprint": "logger_v1_custom:OKL_T_6_W12N_C",
+      "Datasheet": "",
+      "Description": ""
+    },
+    {
+      "Reference": "C29",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "C7",
+      "Value": "1u",
+      "Footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R6",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C25",
+      "Value": "33p",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "D3",
+      "Value": "PEC3824C2A-AU",
+      "Footprint": "Package_TO_SOT_SMD:SOT-23",
+      "Datasheet": "https://akizukidenshi.com/goodsaffix/PEC3808C2A-AU_SERIES.pdf",
+      "Description": "Dual bidirectional 24 V TVS for CAN bus"
+    },
+    {
+      "Reference": "C8",
+      "Value": "47u",
+      "Footprint": "Capacitor_SMD:CP_Elec_6.3x5.8",
+      "Datasheet": "https://industrial.panasonic.com/jp/products/pt/aluminum-cap-smd/models/EEEFK1E470P",
+      "Description": "47 uF 25 V aluminum electrolytic, SMD 6.3x5.8 mm, Panasonic EEE-FK1E470P"
+    },
+    {
+      "Reference": "R11",
+      "Value": "100",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R44",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R40",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "D10",
+      "Value": "LED_Small_Filled",
+      "Footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "D1",
+      "Value": "PMEG4010CEGWJ",
+      "Footprint": "Diode_SMD:D_SOD-123",
+      "Datasheet": "https://assets.nexperia.com/documents/data-sheet/PMEG4010CEGW.pdf",
+      "Description": "40 V, 1 A Schottky rectifier, Nexperia PMEG4010CEGWJ, DigiKey 1727-7338-1-ND",
+      "Manufacturer": "Nexperia",
+      "MPN": "PMEG4010CEGWJ",
+      "DigiKey": "1727-7338-1-ND",
+      "Sim.Device": "D",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "R32",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R41",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C6",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "H1",
+      "Value": "MountingHole",
+      "Footprint": "MountingHole:MountingHole_2.2mm_M2",
+      "Datasheet": "~",
+      "Description": "Mounting Hole without connection"
+    },
+    {
+      "Reference": "R19",
+      "Value": "4.99k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "L1",
+      "Value": "LQW18AN27NJ00D",
+      "Footprint": "Inductor_SMD:L_0603_1608Metric",
+      "Datasheet": "https://www.digikey.jp/ja/products/detail/murata-electronics/LQW18AN27NJ00D/584382",
+      "Description": "27 nH RF inductor, 0603 (1608 metric), Q=40 at 250 MHz, SRF=3.7 GHz"
+    },
+    {
+      "Reference": "C23",
+      "Value": "1u",
+      "Footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "J7",
+      "Value": "S-037-TGG",
+      "Footprint": "logger_v1_custom:SMA_S-037-TGG_Horizontal",
+      "Datasheet": "https://akizukidenshi.com/goodsaffix/S-037-TGG_20220729.pdf",
+      "Description": ""
+    },
+    {
+      "Reference": "R29",
+      "Value": "330",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C17",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "C21",
+      "Value": "1n",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R31",
+      "Value": "390k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "H6",
+      "Value": "MountingHole",
+      "Footprint": "MountingHole:MountingHole_3.2mm_M3",
+      "Datasheet": "~",
+      "Description": "Mounting Hole without connection"
+    },
+    {
+      "Reference": "C19",
+      "Value": "1u",
+      "Footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R10",
+      "Value": "100",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R35",
+      "Value": "120",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R9",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R33",
+      "Value": "200k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R25",
+      "Value": "68k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "D9",
+      "Value": "LED_Small_Filled",
+      "Footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "R36",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "J2",
+      "Value": "5077CR-16-SMC2-BK-TR",
+      "Footprint": "logger_v1_custom:USB_C_5077CR-16-SMC2-BK-TR",
+      "Datasheet": "",
+      "Description": ""
+    },
+    {
+      "Reference": "C34",
+      "Value": "10nF",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "H4",
+      "Value": "MountingHole",
+      "Footprint": "MountingHole:MountingHole_3.2mm_M3",
+      "Datasheet": "~",
+      "Description": "Mounting Hole without connection"
+    },
+    {
+      "Reference": "R28",
+      "Value": "100k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C5",
+      "Value": "22u",
+      "Footprint": "Capacitor_SMD:CP_Elec_5x5.4",
+      "Datasheet": "~",
+      "Description": "Polarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R34",
+      "Value": "510k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "J3",
+      "Value": "47219-2001",
+      "Footprint": "logger_v1_custom:Molex_47219-2001",
+      "Datasheet": "https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/productspecificationpdf/472/47219/PS-47219-001-001.pdf",
+      "Description": ""
+    },
+    {
+      "Reference": "U3",
+      "Value": "ESP32-S3-WROOM-1-N16R8",
+      "Footprint": "RF_Module:ESP32-S3-WROOM-1",
+      "Datasheet": "",
+      "Description": ""
+    },
+    {
+      "Reference": "R21",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C33",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Polarized capacitor, small symbol"
+    },
+    {
+      "Reference": "C12",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "U9",
+      "Value": "TPS2041BDBVR",
+      "Footprint": "Package_TO_SOT_SMD:SOT-23-5",
+      "Datasheet": "http://www.ti.com/lit/ds/symlink/tps2041.pdf",
+      "Description": "Single power-distribution switcher"
+    },
+    {
+      "Reference": "R7",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "D8",
+      "Value": "LED_Small_Filled",
+      "Footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "R22",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R4",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C14",
+      "Value": "47u",
+      "Footprint": "Capacitor_SMD:CP_Elec_6.3x5.8",
+      "Datasheet": "https://industrial.panasonic.com/jp/products/pt/aluminum-cap-smd/models/EEEFK1E470P",
+      "Description": "47 uF 25 V aluminum electrolytic, SMD 6.3x5.8 mm, Panasonic EEE-FK1E470P"
+    },
+    {
+      "Reference": "C1",
+      "Value": "47u",
+      "Footprint": "Capacitor_SMD:CP_Elec_6.3x5.8",
+      "Datasheet": "https://industrial.panasonic.com/jp/products/pt/aluminum-cap-smd/models/EEEFK1E470P",
+      "Description": "47 uF 25 V aluminum electrolytic, SMD 6.3x5.8 mm, Panasonic EEE-FK1E470P"
+    },
+    {
+      "Reference": "C2",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R5",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "D7",
+      "Value": "LED_Small_Filled",
+      "Footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "C11",
+      "Value": "1n",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R20",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "C27",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R26",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R38",
+      "Value": "22",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "U4",
+      "Value": "BP5293-33",
+      "Footprint": "logger_v1_custom:BP5293_33_SIP3",
+      "Datasheet": "https://www.mouser.com/datasheet/2/348/bp5293-xx-1874446.pdf",
+      "Description": "ROHM 3.3 V, 1 A buck regulator module, 3-pin SIP"
+    },
+    {
+      "Reference": "C9",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R13",
+      "Value": "13k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "H5",
+      "Value": "MountingHole",
+      "Footprint": "MountingHole:MountingHole_3.2mm_M3",
+      "Datasheet": "~",
+      "Description": "Mounting Hole without connection"
+    },
+    {
+      "Reference": "R12",
+      "Value": "2k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "Y1",
+      "Value": "HUSG-20.000-20",
+      "Footprint": "Crystal:Crystal_HC49-4H_Vertical",
+      "Datasheet": "https://akizukidenshi.com/catalog/g/g108673/",
+      "Description": "Two pin crystal"
+    },
+    {
+      "Reference": "C36",
+      "Value": "0.1u",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R51",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R1",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "D11",
+      "Value": "LED_Small_Filled",
+      "Footprint": "logger_v1_custom:LED_D3.0mm_JLCPCB",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A"
+    },
+    {
+      "Reference": "R43",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "U8",
+      "Value": "ATA6561-GAQW-N",
+      "Footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+      "Datasheet": "https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf",
+      "Description": "High-speed CAN FD transceiver with VIO, SOIC-8"
+    },
+    {
+      "Reference": "C24",
+      "Value": "33p",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol"
+    },
+    {
+      "Reference": "R37",
+      "Value": "22",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "U11",
+      "Value": "TC74HC595AF",
+      "Footprint": "Package_SO:SOIC-16W_5.3x10.2mm_P1.27mm",
+      "Datasheet": "https://toshiba.semicon-storage.com/info/docget.jsp?did=16512&prodName=TC74HC595AF",
+      "Description": "8-bit serial in/out Shift Register 3-State Outputs"
+    },
+    {
+      "Reference": "R49",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R15",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R14",
+      "Value": "1k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R47",
+      "Value": "10",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    },
+    {
+      "Reference": "R45",
+      "Value": "10k",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol"
+    }
+  ],
+  "logger_v2/logger_v2.kicad_sch": [
+    {
+      "Reference": "J3",
+      "Value": "Power",
+      "Footprint": "logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical",
+      "Datasheet": "~",
+      "Description": "Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"
+    },
+    {
+      "Reference": "J2",
+      "Value": "Digital/PWM",
+      "Footprint": "logger_v2_custom:PinSocket_1x10_P2.54mm_Vertical",
+      "Datasheet": "~",
+      "Description": "Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)"
+    },
+    {
+      "Reference": "J4",
+      "Value": "Analog",
+      "Footprint": "logger_v2_custom:PinSocket_1x06_P2.54mm_Vertical",
+      "Datasheet": "~",
+      "Description": "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
+    },
+    {
+      "Reference": "J5",
+      "Value": "Digital/PWM",
+      "Footprint": "logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"
+    },
+    {
+      "Reference": "C5",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U4.3 VCC",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R1",
+      "Value": "680R",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF6800T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23228",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R20",
+      "Value": "47k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "MCU startup pulldown",
+      "MPN": "0603WAF4702T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C25819",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D3",
+      "Value": "GREEN 0805",
+      "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A",
+      "MPN": "KT-0805G",
+      "Manufacturer": "Hubei KENTO Elec",
+      "LCSC": "C2297",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "U5",
+      "Value": "MCP25625-E/SS",
+      "Footprint": "logger_v2_custom:SSOP-28_5.3x10.2mm_P0.65mm",
+      "Datasheet": "",
+      "Description": "",
+      "MPN": "MCP25625-E/SS",
+      "Manufacturer": "Microchip",
+      "LCSC": "C184944",
+      "JLCPCB_Class": "Extended"
+    },
+    {
+      "Reference": "J7",
+      "Value": "43045-0400",
+      "Footprint": "logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+      "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400",
+      "Description": "Molex Micro-Fit 3.0 right-angle header, 4 circuits, dual row"
+    },
+    {
+      "Reference": "R10",
+      "Value": "10k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "Assembly": "DNP: optional only",
+      "MPN": "0603WAF1002T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C25804",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R9",
+      "Value": "680R",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF6800T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23228",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "L1",
+      "Value": "27nH",
+      "Footprint": "logger_v2_custom:L_0402_1005Metric",
+      "Datasheet": "https://www.digikey.jp/ja/products/detail/murata-electronics/LQW18AN27NJ00D/584382",
+      "Description": "27 nH RF inductor, 0603 (1608 metric), Q=40 at 250 MHz, SRF=3.7 GHz",
+      "MPN": "LQG15HS27NJ02D",
+      "Manufacturer": "Murata",
+      "LCSC": "C12669",
+      "JLCPCB_Class": "Extended"
+    },
+    {
+      "Reference": "U3",
+      "Value": "BNO055_module",
+      "Footprint": "logger_v2_custom:AE_BNO055_BO_ShieldSilk",
+      "Datasheet": "https://akizukidenshi.com/goodsaffix/AE-BNO055-BO_20220413.pdf",
+      "Description": ""
+    },
+    {
+      "Reference": "D1",
+      "Value": "GREEN 0805",
+      "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A",
+      "MPN": "KT-0805G",
+      "Manufacturer": "Hubei KENTO Elec",
+      "LCSC": "C2297",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D2",
+      "Value": "GREEN 0805",
+      "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A",
+      "MPN": "KT-0805G",
+      "Manufacturer": "Hubei KENTO Elec",
+      "LCSC": "C2297",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R11",
+      "Value": "680R",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF6800T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23228",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "J1",
+      "Value": "S-037-TGG",
+      "Footprint": "logger_v2_custom:SMA_S-037-TGG_Horizontal",
+      "Datasheet": "https://akizukidenshi.com/goodsaffix/S-037-TGG_20220729.pdf",
+      "Description": ""
+    },
+    {
+      "Reference": "U2",
+      "Value": "MAX-M10M-00B",
+      "Footprint": "logger_v2_custom:MAX_M10M_00B_LCC18",
+      "Datasheet": "https://content.u-blox.com/sites/default/files/documents/MAX-M10M-00B_DataSheet_UBX-22028884.pdf",
+      "Description": "",
+      "MPN": "MAX-M10M-00B",
+      "Manufacturer": "u-blox",
+      "LCSC": "C5119087",
+      "JLCPCB_Class": "Extended; Standard PCBA only"
+    },
+    {
+      "Reference": "R15",
+      "Value": "4.7k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "Assembly": "Populate: required IMU I2C pull-up to +3V3",
+      "MPN": "0603WAF4701T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23162",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R4",
+      "Value": "680R",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF6800T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23228",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R13",
+      "Value": "120",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "Assembly": "DNP default; fit 120R only at CAN2 bus end",
+      "MPN": "0603WAF1200T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C22787",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C10",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U2.23 VCC",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C1",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R19",
+      "Value": "47k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "MCU startup pulldown",
+      "MPN": "0603WAF4702T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C25819",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C3",
+      "Value": "18pF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol",
+      "Specification": "18pF C0G 50V 5%; 20MHz CL12pF crystal",
+      "MPN": "CL10C180JB8NNNC",
+      "Manufacturer": "Samsung",
+      "LCSC": "C1647",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D10",
+      "Value": "NUP2105LT1G",
+      "Footprint": "logger_v2_custom:SOT-23",
+      "Datasheet": "https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf",
+      "Description": "Dual bidirectional 24 V TVS for CAN bus",
+      "MPN": "NUP2105LT1G",
+      "Manufacturer": "onsemi",
+      "LCSC": "C14486",
+      "JLCPCB_Class": "Extended"
+    },
+    {
+      "Reference": "C6",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U4.5 VIO",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C4",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U1.16 VCC",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R8",
+      "Value": "680R",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF6800T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23228",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R2",
+      "Value": "680R",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF6800T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23228",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D7",
+      "Value": "GREEN 0805",
+      "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A",
+      "MPN": "KT-0805G",
+      "Manufacturer": "Hubei KENTO Elec",
+      "LCSC": "C2297",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R3",
+      "Value": "680R",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF6800T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23228",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D11",
+      "Value": "RF ESD",
+      "Footprint": "logger_v2_custom:D_SOD-882",
+      "Datasheet": "https://assets.nexperia.com/documents/data-sheet/PESD5V0F1BL.pdf",
+      "Description": "",
+      "MPN": "PESD5V0F1BL,315",
+      "Manufacturer": "Nexperia",
+      "LCSC": "C45961",
+      "JLCPCB_Class": "Extended",
+      "Function": "SMA RF ESD protection"
+    },
+    {
+      "Reference": "C7",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U5.1 VIO",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C8",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U5.19 VDD",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C14",
+      "Value": "10uF",
+      "Footprint": "logger_v2_custom:C_0805_2012Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "CAN 5V bulk",
+      "Specification": "10uF X5R 25V 0805",
+      "MPN": "CL21A106KAYNNNE",
+      "Manufacturer": "Samsung",
+      "LCSC": "C15850",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R14",
+      "Value": "120",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "Assembly": "DNP: existing vehicle bus termination",
+      "MPN": "0603WAF1200T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C22787",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D6",
+      "Value": "GREEN 0805",
+      "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A",
+      "MPN": "KT-0805G",
+      "Manufacturer": "Hubei KENTO Elec",
+      "LCSC": "C2297",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R17",
+      "Value": "10k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF1002T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C25804",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D9",
+      "Value": "NUP2105LT1G",
+      "Footprint": "logger_v2_custom:SOT-23",
+      "Datasheet": "https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf",
+      "Description": "Dual bidirectional 24 V TVS for CAN bus",
+      "MPN": "NUP2105LT1G",
+      "Manufacturer": "onsemi",
+      "LCSC": "C14486",
+      "JLCPCB_Class": "Extended"
+    },
+    {
+      "Reference": "R7",
+      "Value": "27R 1W",
+      "Footprint": "logger_v2_custom:R_2512_6332Metric",
+      "Datasheet": "https://www.vishay.com/docs/20035/dcrcwe3.pdf",
+      "Description": "Resistor, small US symbol",
+      "MPN": "25121WJ0270T4E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C25478",
+      "JLCPCB_Class": "Extended",
+      "Specification": "27ohm 5% 1W; verify antenna supply under load"
+    },
+    {
+      "Reference": "D5",
+      "Value": "GREEN 0805",
+      "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A",
+      "MPN": "KT-0805G",
+      "Manufacturer": "Hubei KENTO Elec",
+      "LCSC": "C2297",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C11",
+      "Value": "1uF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U2.23 VCC bulk",
+      "Specification": "1uF X5R 50V 0603",
+      "MPN": "CL10A105KB8NNNC",
+      "Manufacturer": "Samsung",
+      "LCSC": "C15849",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R12",
+      "Value": "10k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF1002T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C25804",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "J6",
+      "Value": "43045-0400",
+      "Footprint": "logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+      "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400",
+      "Description": "Molex Micro-Fit 3.0 right-angle header, 4 circuits, dual row"
+    },
+    {
+      "Reference": "R18",
+      "Value": "47k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "MCU startup pulldown",
+      "MPN": "0603WAF4702T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C25819",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D4",
+      "Value": "GREEN 0805",
+      "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A",
+      "MPN": "KT-0805G",
+      "Manufacturer": "Hubei KENTO Elec",
+      "LCSC": "C2297",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "Y1",
+      "Value": "20MHz 12pF",
+      "Footprint": "logger_v2_custom:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+      "Datasheet": "https://www.lcsc.com/product-detail/C18213008.html",
+      "Description": "Two pin crystal",
+      "MPN": "XC2EL89COO-114YLC-20M",
+      "Manufacturer": "YXC",
+      "LCSC": "C18213008",
+      "JLCPCB_Class": "Extended",
+      "Load_Capacitance": "12pF"
+    },
+    {
+      "Reference": "R16",
+      "Value": "4.7k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "Assembly": "Populate: required IMU I2C pull-up to +3V3",
+      "MPN": "0603WAF4701T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23162",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "D8",
+      "Value": "GREEN 0805",
+      "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+      "Datasheet": "~",
+      "Description": "Light emitting diode, small symbol, filled shape",
+      "Sim.Pins": "1=K 2=A",
+      "MPN": "KT-0805G",
+      "Manufacturer": "Hubei KENTO Elec",
+      "LCSC": "C2297",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R6",
+      "Value": "680R",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF6800T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C23228",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "R5",
+      "Value": "10k",
+      "Footprint": "logger_v2_custom:R_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Resistor, small US symbol",
+      "MPN": "0603WAF1002T5E",
+      "Manufacturer": "UNI-ROYAL",
+      "LCSC": "C25804",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C12",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U2.22 V_BCKP",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "U4",
+      "Value": "ATA6561-GAQW",
+      "Footprint": "logger_v2_custom:SOIC-8_3.9x4.9mm_P1.27mm",
+      "Datasheet": "https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf",
+      "Description": "High-speed CAN FD transceiver with VIO, SOIC-8",
+      "MPN": "ATA6561-GAQW",
+      "Manufacturer": "Microchip",
+      "LCSC": "C2929602",
+      "JLCPCB_Class": "Extended"
+    },
+    {
+      "Reference": "C2",
+      "Value": "18pF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "Unpolarized capacitor, small symbol",
+      "Specification": "18pF C0G 50V 5%; 20MHz CL12pF crystal",
+      "MPN": "CL10C180JB8NNNC",
+      "Manufacturer": "Samsung",
+      "LCSC": "C1647",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "U1",
+      "Value": "74HC595D,118",
+      "Footprint": "logger_v2_custom:SOIC-16_3.9x9.9mm_P1.27mm",
+      "Datasheet": "https://assets.nexperia.com/documents/data-sheet/74HC_HCT595.pdf",
+      "Description": "8-bit serial in/out Shift Register 3-State Outputs",
+      "MPN": "74HC595D,118",
+      "Manufacturer": "Nexperia",
+      "LCSC": "C5947",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C13",
+      "Value": "10uF",
+      "Footprint": "logger_v2_custom:C_0805_2012Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "J3.4 3V3 bulk",
+      "Specification": "10uF X5R 25V 0805",
+      "MPN": "CL21A106KAYNNNE",
+      "Manufacturer": "Samsung",
+      "LCSC": "C15850",
+      "JLCPCB_Class": "Basic"
+    },
+    {
+      "Reference": "C9",
+      "Value": "100nF",
+      "Footprint": "logger_v2_custom:C_0603_1608Metric",
+      "Datasheet": "~",
+      "Description": "",
+      "Function": "U5.27 VDDA",
+      "Specification": "100nF X7R 50V 0603",
+      "MPN": "CC0603KRX7R9BB104",
+      "Manufacturer": "Yageo",
+      "LCSC": "C14663",
+      "JLCPCB_Class": "Basic"
+    }
+  ],
+  "logger_v2/logger_v2_lte_sd.kicad_sch": [
+    {
+      "Reference": "J?",
+      "Value": "DM3AT-SF-PEJM5",
+      "Footprint": "logger_v2_expansion:microSD_HC_Hirose_DM3AT-SF-PEJM5",
+      "Datasheet": "https://www.hirose.com/product/en/download_file/key_name/DM3/category/Catalog/doc_file_id/49662/?file_category_id=4&item_id=195&is_series=1",
+      "Description": "Micro SD Card Socket with card detection pins",
+      "Role": "3.3V microSD SPI; card detect"
+    },
+    {
+      "Reference": "J?",
+      "Value": "2452796-1",
+      "Footprint": "logger_v2_expansion:nanoSIM_TE_2452796-1_Hinge",
+      "Datasheet": "https://www.te.com/en/product-2452796-1.html",
+      "Description": "",
+      "Role": "1.8V nanoSIM; hinged socket with detect"
+    },
+    {
+      "Reference": "J?",
+      "Value": "LTE service 1x06",
+      "Footprint": "logger_v2_expansion:PinHeader_1x06_P2.54mm_Vertical",
+      "Datasheet": "~",
+      "Description": "Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)",
+      "Role": "USB VBUS/DP/DM/GND + BOOT_CFG/VDD_EXT service header"
+    },
+    {
+      "Reference": "U?",
+      "Value": "SC16IS750IPW",
+      "Footprint": "logger_v2_expansion:TSSOP-24_4.4x7.8mm_P0.65mm",
+      "Datasheet": "https://www.nxp.com/docs/en/data-sheet/SC16IS740_750_760.pdf",
+      "Description": "Single UART with I2C/SPI interface, 64 bytes of transmit and receive FIFOs, IrDA SIR built-in support, TSSOP-24",
+      "Role": "SPI2 to LTE UART; 8 auxiliary GPIO"
+    },
+    {
+      "Reference": "J?",
+      "Value": "U.FL-R-SMT-1(10)",
+      "Footprint": "logger_v2_expansion:U.FL_Hirose_U.FL-R-SMT-1_Vertical",
+      "Datasheet": "~",
+      "Description": "coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)",
+      "Role": "LTE antenna, 50 ohm RF path"
+    },
+    {
+      "Reference": "U?",
+      "Value": "TPS62130RGTR",
+      "Footprint": "logger_v2_expansion:VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm",
+      "Datasheet": "http://www.ti.com/lit/ds/symlink/tps62130.pdf",
+      "Description": "3A Step-Down Converter with DCS-Control, Adjustable Output Voltage, 3-17V Input Voltage, QFN-16",
+      "Role": "5V to 3.8V LTE buck; MCU-controlled EN"
+    },
+    {
+      "Reference": "U?",
+      "Value": "SIM7070G",
+      "Footprint": "logger_v2_expansion:SIMCom_SIM7070G_LCC68_24x24mm_P1mm",
+      "Datasheet": "https://en.simcom.com/product/SIM7070G.html",
+      "Description": "",
+      "Role": "LTE Cat-M/NB; VBAT 3.8V, UART/SIM 1.8V"
+    },
+    {
+      "Reference": "Q?",
+      "Value": "2N7002",
+      "Footprint": "logger_v2_expansion:SOT-23",
+      "Datasheet": "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF",
+      "Description": "0.115A Id, 60V Vds, N-Channel MOSFET, SOT-23",
+      "Role": "Open-drain PWRKEY; do not drive PWRKEY high"
+    },
+    {
+      "Reference": "Y?",
+      "Value": "14.7456MHz CL12pF",
+      "Footprint": "logger_v2_expansion:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+      "Datasheet": "~",
+      "Description": "Four pin crystal, GND on pins 2 and 4",
+      "Role": "UART bridge oscillator; 921600 baud at divisor 1"
+    },
+    {
+      "Reference": "U?",
+      "Value": "TXU0204PWR",
+      "Footprint": "logger_v2_expansion:TSSOP-14_4.4x5mm_P0.65mm",
+      "Datasheet": "https://www.ti.com/lit/ds/symlink/txu0204.pdf",
+      "Description": "",
+      "Role": "Auxiliary DTR, RI, STATUS; one spare output"
+    },
+    {
+      "Reference": "U?",
+      "Value": "TXU0204PWR",
+      "Footprint": "logger_v2_expansion:TSSOP-14_4.4x5mm_P0.65mm",
+      "Datasheet": "https://www.ti.com/lit/ds/symlink/txu0204.pdf",
+      "Description": "",
+      "Role": "TX/RX/RTS/CTS 3.3V to 1.8V"
+    },
+    {
+      "Reference": "U?",
+      "Value": "USBLC6-4SC6",
+      "Footprint": "logger_v2_expansion:SOT-23-6",
+      "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4.pdf",
+      "Description": "Very low capacitance ESD protection diode, 4 data-line, SOT-23-6",
+      "Role": "SIM ESD: VDD/CLK/RST/DATA"
+    },
+    {
+      "Reference": "U?",
+      "Value": "USBLC6-4SC6",
+      "Footprint": "logger_v2_expansion:SOT-23-6",
+      "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4.pdf",
+      "Description": "Very low capacitance ESD protection diode, 4 data-line, SOT-23-6",
+      "Role": "microSD ESD: CLK/CS/MOSI/MISO"
+    }
+  ]
+}

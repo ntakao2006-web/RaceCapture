@@ -1,0 +1,152 @@
+[
+  {
+    "file": "Akizuki_AE-BNO055-BO_mechanical.step",
+    "valid": true,
+    "faces": 72
+  },
+  {
+    "file": "COSMTEC_S-037-TGG_mechanical.step",
+    "valid": true,
+    "faces": 42
+  },
+  {
+    "file": "CP_EIA-7343-31_Kemet-D.step",
+    "valid": true,
+    "faces": 46
+  },
+  {
+    "file": "C_0603_1608Metric.step",
+    "valid": true,
+    "faces": 28
+  },
+  {
+    "file": "C_0805_2012Metric.step",
+    "valid": true,
+    "faces": 28
+  },
+  {
+    "file": "Crystal_SMD_3225-4Pin_3.2x2.5mm.step",
+    "valid": true,
+    "faces": 28
+  },
+  {
+    "file": "D_SOD-882.step",
+    "valid": true,
+    "faces": 21
+  },
+  {
+    "file": "LED_0805_2012Metric.step",
+    "valid": true,
+    "faces": 50
+  },
+  {
+    "file": "L_0402_1005Metric.step",
+    "valid": true,
+    "faces": 28
+  },
+  {
+    "file": "L_Bourns_SRN6045TA.step",
+    "valid": true,
+    "faces": 60
+  },
+  {
+    "file": "Molex_43045-0402_same_geometry_as_0400.step",
+    "valid": true,
+    "faces": 263
+  },
+  {
+    "file": "Molex_47219-2001.step",
+    "valid": true,
+    "faces": 1257
+  },
+  {
+    "file": "PinHeader_1x06_P2.54mm_Vertical.step",
+    "valid": true,
+    "faces": 148
+  },
+  {
+    "file": "PinSocket_1x06_P2.54mm_Vertical.step",
+    "valid": true,
+    "faces": 166
+  },
+  {
+    "file": "PinSocket_1x08_P2.54mm_Vertical.step",
+    "valid": true,
+    "faces": 218
+  },
+  {
+    "file": "PinSocket_1x10_P2.54mm_Vertical.step",
+    "valid": true,
+    "faces": 270
+  },
+  {
+    "file": "R_0603_1608Metric.step",
+    "valid": true,
+    "faces": 26
+  },
+  {
+    "file": "R_0805_2012Metric.step",
+    "valid": true,
+    "faces": 26
+  },
+  {
+    "file": "R_2512_6332Metric.step",
+    "valid": true,
+    "faces": 26
+  },
+  {
+    "file": "SIMCom_SIM7070G_mechanical.step",
+    "valid": true,
+    "faces": 420
+  },
+  {
+    "file": "SOIC-8_3.9x4.9mm_P1.27mm.step",
+    "valid": true,
+    "faces": 147
+  },
+  {
+    "file": "SOT-23-6.step",
+    "valid": true,
+    "faces": 117
+  },
+  {
+    "file": "SOT-23.step",
+    "valid": true,
+    "faces": 69
+  },
+  {
+    "file": "SSOP-28_5.3x10.2mm_P0.65mm.step",
+    "valid": true,
+    "faces": 447
+  },
+  {
+    "file": "TC74HC595AF_nominal.step",
+    "valid": true,
+    "faces": 232
+  },
+  {
+    "file": "TE_2452796-1.step",
+    "valid": true,
+    "faces": 650
+  },
+  {
+    "file": "TI_TPS62130_RGT16_mechanical.step",
+    "valid": true,
+    "faces": 108
+  },
+  {
+    "file": "TSSOP-14_4.4x5mm_P0.65mm.step",
+    "valid": true,
+    "faces": 237
+  },
+  {
+    "file": "U.FL_Hirose_U.FL-R-SMT-1_Vertical.step",
+    "valid": true,
+    "faces": 46
+  },
+  {
+    "file": "u-blox_MAX-M10M-00B.step",
+    "valid": true,
+    "faces": 475
+  }
+]

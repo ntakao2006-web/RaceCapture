@@ -1,0 +1,3720 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-22T01:48:51+0900",
+    "kicad_version": "9.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/eb334fe9-e117-4029-b447-233973952c8d",
+            "violations": [
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 1 [PWRKEY, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.4953
+                            },
+                            "uuid": "6db600ad-a4cb-4f7c-8637-4cf03e2adbce"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 3 [UART1_DTR, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5207
+                            },
+                            "uuid": "cd3146b1-b450-4a1f-af87-d77180c3850c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 4 [UART1_RI, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5461
+                            },
+                            "uuid": "8593a379-70f1-4acf-8956-5b547501b67d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 5 [UART1_DCD, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5715
+                            },
+                            "uuid": "0a771e43-0e2a-4250-8bb3-0b81f4fbcfff"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 7 [UART1_CTS, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5969
+                            },
+                            "uuid": "4b7c384d-66df-4689-9aa5-873914ff59f4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 8 [UART1_RTS, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6223
+                            },
+                            "uuid": "c6b53e98-18fc-499c-9963-3a6718d5942d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 9 [UART1_TXD, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6477
+                            },
+                            "uuid": "ae63e8ae-84ec-4509-a3fe-205b361fdb4f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 10 [UART1_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6731
+                            },
+                            "uuid": "3b79d506-9963-4688-93e4-08ddaf488610"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 56 [VBAT, Power input, Line]",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 0.3937
+                            },
+                            "uuid": "f68db655-ab50-4499-b43b-75d845838a22"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 6 [BOOT_CFG, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6985
+                            },
+                            "uuid": "3941ff9c-a1a8-4f95-820d-4bc17dd5aa8d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 57 [VBAT, Power input, Line]",
+                            "pos": {
+                                "x": 0.6477,
+                                "y": 0.3937
+                            },
+                            "uuid": "0552d078-ec48-4d4f-932b-fe4a894ac59e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 66 [STATUS, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.7239
+                            },
+                            "uuid": "8ec4a7f6-82c3-4bda-81ff-ab7d1d40a310"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 52 [NETLIGHT, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.7493
+                            },
+                            "uuid": "53923ec3-b940-45b0-a26d-d66bddd49a88"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 15 [VDD_EXT, Power output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.7747
+                            },
+                            "uuid": "3c20caf0-3d3f-4cb2-9135-32610d4232f6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 24 [USB_VBUS, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8001
+                            },
+                            "uuid": "b99a2718-af90-46f8-a4b3-2c454846c355"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 27 [USB_DP, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8255
+                            },
+                            "uuid": "bceb4073-e056-4d0d-ad37-d2330e4a8e42"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 28 [USB_DM, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8509
+                            },
+                            "uuid": "fdb67d2e-fc51-4a68-8fed-f2f004f3fe95"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 22 [DEBUG_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8763
+                            },
+                            "uuid": "511345ec-2f8d-4882-8bc1-a691280161c5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 23 [DEBUG_TXD, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9017
+                            },
+                            "uuid": "68a78451-c1d3-4380-9143-f9cf801d2122"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 49 [UART3_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9271
+                            },
+                            "uuid": "df729395-1410-4ea7-a3a8-d77efa652602"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 50 [UART3_TXD, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9525
+                            },
+                            "uuid": "fd091116-a3a1-4115-b31c-325182e0b9e2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 11 [PCM_CLK, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9779
+                            },
+                            "uuid": "89a763f8-37ab-4c3a-8ddb-847d720da0a1"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 12 [PCM_SYNC, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0033
+                            },
+                            "uuid": "006b3784-1787-4fe3-93b7-90d57e501618"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 13 [PCM_DIN, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0287
+                            },
+                            "uuid": "7d39e114-6e6b-439a-acb8-f01f5588db26"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 14 [PCM_DOUT, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0541
+                            },
+                            "uuid": "5eaa77db-70b8-4cb6-8357-c16a844c57ea"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 25 [ADC, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0795
+                            },
+                            "uuid": "e7701bf5-0adf-4aa1-b930-f34afb974d5e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 30 [SIM_VDD, Power output, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.4953
+                            },
+                            "uuid": "6e480a9d-5595-402f-ba96-0b894151ff10"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 31 [SIM_DATA, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.5207
+                            },
+                            "uuid": "38c164ed-de4a-4468-847b-8eee14ee22a4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 32 [SIM_CLK, Output, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.5461
+                            },
+                            "uuid": "3d562e29-fdeb-464b-9e8e-09294ba4ef97"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 33 [SIM_RST, Output, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.5715
+                            },
+                            "uuid": "c9f3d7b3-0ae6-413c-9686-c3c9fd83e0d5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 60 [RF_ANT, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.5969
+                            },
+                            "uuid": "91de45f4-f516-4636-82bc-bbaffcef6e84"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 53 [GNSS_ANT, Input, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6223
+                            },
+                            "uuid": "cd1ed8d4-59b7-4199-82c2-a89f9db85e6a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 19 [GPIO1, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6477
+                            },
+                            "uuid": "767b0704-8e8f-4d78-99ca-c000a556ca38"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 20 [GPIO2, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6731
+                            },
+                            "uuid": "57889951-c39e-4325-a950-5f0b13a4ae34"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 21 [GPIO3, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6985
+                            },
+                            "uuid": "a52d608c-c399-4fb4-b832-b1001efd1b8f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 34 [GPIO4, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.7239
+                            },
+                            "uuid": "616d8c97-7b4f-433b-a500-cf6308081014"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 48 [GPIO5, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.7493
+                            },
+                            "uuid": "ca3f44a9-ff9d-4a24-ab4e-fee5af16c2c4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 67 [GPIO6, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.7747
+                            },
+                            "uuid": "24430332-0ebc-4a68-a634-c05f7928d1a8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 68 [GPIO7, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.8001
+                            },
+                            "uuid": "6089d17d-a3d1-4bb5-938c-7185426ca9a6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 2 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4445,
+                                "y": 1.2065
+                            },
+                            "uuid": "ac654971-0c12-451c-945d-40d574cdc1e5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 17 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4699,
+                                "y": 1.2065
+                            },
+                            "uuid": "d4444a08-0634-4c34-910e-103696ff3d6c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 37 [I2C_SDA, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.8255
+                            },
+                            "uuid": "7be75b61-6210-4b62-be4e-75dcfec8445f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 18 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4953,
+                                "y": 1.2065
+                            },
+                            "uuid": "7ac005a7-86c0-4d49-adac-48633d1aeea0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 29 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5207,
+                                "y": 1.2065
+                            },
+                            "uuid": "038e758a-0d62-46c5-9ef6-93990904e7b9"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 38 [I2C_SCL, Output, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.8509
+                            },
+                            "uuid": "3dda8164-618f-40ad-9f3c-5e9be03965a6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 39 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5461,
+                                "y": 1.2065
+                            },
+                            "uuid": "38b2142c-3e93-426c-b5f7-f5fe4fadc2b5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 45 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5715,
+                                "y": 1.2065
+                            },
+                            "uuid": "244cddda-e5f2-473c-aef0-14058c7347ab"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 46 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5969,
+                                "y": 1.2065
+                            },
+                            "uuid": "50297ca0-055e-4fe3-bd55-b528c4bad17d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 54 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 1.2065
+                            },
+                            "uuid": "67d06b74-824c-4567-abc9-e46962f8944c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 58 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6477,
+                                "y": 1.2065
+                            },
+                            "uuid": "76079124-2827-4f56-8155-384345f0c0f0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 59 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6731,
+                                "y": 1.2065
+                            },
+                            "uuid": "b44bcb7b-e588-4bf0-add6-b637042f3b4b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 61 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6985,
+                                "y": 1.2065
+                            },
+                            "uuid": "df7338be-257e-442f-9020-7a22ce324e5e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 62 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7239,
+                                "y": 1.2065
+                            },
+                            "uuid": "1bf895d4-41ca-455d-90ce-afd8f881c1a4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 63 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7493,
+                                "y": 1.2065
+                            },
+                            "uuid": "c72dfe6f-949e-4bd0-b641-627a9034e296"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 64 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7747,
+                                "y": 1.2065
+                            },
+                            "uuid": "b2d2b3ab-8eb7-4232-8b36-dc3b2a8ea56c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 65 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.8001,
+                                "y": 1.2065
+                            },
+                            "uuid": "7f78430a-d39d-413d-8297-89c9ee0f485f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 1 [In, Passive, Line]",
+                            "pos": {
+                                "x": 0.4064,
+                                "y": 1.524
+                            },
+                            "uuid": "16b6c70a-ffe4-4aef-9311-d9a5b7e39d76"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 2 [Ext, Passive, Line]",
+                            "pos": {
+                                "x": 0.4572,
+                                "y": 1.5748
+                            },
+                            "uuid": "891eda51-f46a-461b-af9c-486852319dfa"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 1 [Pin_1, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.4859
+                            },
+                            "uuid": "4dffe4ff-a913-4639-8131-338bc1730c0f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 2 [Pin_2, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.5113
+                            },
+                            "uuid": "8330d1cb-9472-4028-89c0-84be9680dfa8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 3 [Pin_3, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.5367
+                            },
+                            "uuid": "0aad926a-24bf-4cb1-9ab0-7314d662494d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 4 [Pin_4, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.5621
+                            },
+                            "uuid": "b76217e5-2e26-419c-9834-28bddfa4d76d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 5 [Pin_5, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.5875
+                            },
+                            "uuid": "0ec22a39-3a48-485f-9b99-2e392039d783"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 6 [Pin_6, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.6129
+                            },
+                            "uuid": "30d46ae2-7e6c-4a8d-807b-1846205fb5c6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 3 [VIN, Power input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.2827
+                            },
+                            "uuid": "b600349b-706f-4e9f-b685-dd83a8c01e97"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 2 [EN, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.3335
+                            },
+                            "uuid": "71bc3554-febd-4be4-bc99-a2a69abd2570"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 2 [A1, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.6096
+                            },
+                            "uuid": "79c163c8-511f-43e4-9c95-79298a948f42"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 4 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 1.3843
+                            },
+                            "uuid": "ce2a9835-d6f4-4b2a-9b09-6fbc5ee85e0d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 3 [A2, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.635
+                            },
+                            "uuid": "2499bbd0-92ee-49f5-a473-b3f4673c7236"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C16 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.0701
+                            },
+                            "uuid": "ff2aa6a9-1655-414b-92ad-d17d41297afa"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 4 [A3Y, Output, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.6604
+                            },
+                            "uuid": "356f4edc-5286-470b-8520-99b79ae45315"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 6 [BST, Passive, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.2827
+                            },
+                            "uuid": "275f8f1e-f11b-49ea-9725-68e2a427c456"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 5 [A4Y, Output, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.6858
+                            },
+                            "uuid": "a62d2785-87d6-487d-9c04-e2e35fa1036c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 8 [OE, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.7112
+                            },
+                            "uuid": "ea7449c6-fbdf-437e-a196-9c99dabb0a09"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 5 [SW, Output, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.3081
+                            },
+                            "uuid": "b33b23fb-8d43-4e1f-8806-e7312b7483cd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 1 [FB, Input, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.3335
+                            },
+                            "uuid": "b0e0b042-de6f-4d12-be52-a16a26bbf78f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C16 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.1463
+                            },
+                            "uuid": "2b4f8d40-c3f6-45a2-b4a4-99cb7f4cca12"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol L2 ピン 1 [1, Passive, Line]",
+                            "pos": {
+                                "x": 1.2446,
+                                "y": 1.7907
+                            },
+                            "uuid": "cef742b8-e05c-411b-846a-555277489a59"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 1 [VCCA, Power input, Line]",
+                            "pos": {
+                                "x": 2.1463,
+                                "y": 0.4826
+                            },
+                            "uuid": "feef1836-1139-4760-a879-b94553675bf6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C17 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 2.0701
+                            },
+                            "uuid": "f21abc2a-19a5-42fa-8072-1224ed04de06"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 14 [VCCB, Power input, Line]",
+                            "pos": {
+                                "x": 2.1717,
+                                "y": 0.4826
+                            },
+                            "uuid": "68245f95-395b-4063-8e65-7f3b57284778"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol L2 ピン 2 [2, Passive, Line]",
+                            "pos": {
+                                "x": 1.2446,
+                                "y": 1.8669
+                            },
+                            "uuid": "70677bb7-e138-4fb9-a65b-b9754b0dc14f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C17 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 2.1463
+                            },
+                            "uuid": "716bd5c5-cb32-4cb6-b430-bba681e1c0fd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 7 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 0.8382
+                            },
+                            "uuid": "8f37d306-75b8-489c-86c2-288b3ab2692f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C23 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.3241
+                            },
+                            "uuid": "0ef6b40c-d39b-4ddb-bb20-34baa2ceae0c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C23 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.4003
+                            },
+                            "uuid": "2231cb25-709b-4ac7-9cdd-f87b1b99a777"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 13 [B1Y, Output, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.5969
+                            },
+                            "uuid": "e731a744-b93d-4e86-8fcf-54bae6d8c0d2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 12 [B2Y, Output, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.6223
+                            },
+                            "uuid": "600f673f-839a-4634-b7c0-dc51e3d8472b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 11 [B3, Input, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.6477
+                            },
+                            "uuid": "181365a6-6ec3-4d7b-bd3e-5bc2b98c4b46"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 10 [B4, Input, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.6731
+                            },
+                            "uuid": "f13409ae-0fae-4280-aae0-a65d78748e34"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C18 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.2954,
+                                "y": 2.0701
+                            },
+                            "uuid": "a3e3402b-69eb-42e8-8b08-583f991b1230"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C24 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 2.3241
+                            },
+                            "uuid": "998f3fd9-8df9-4858-b57a-cea245ba16fc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C18 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.2954,
+                                "y": 2.1463
+                            },
+                            "uuid": "0a38c445-728d-4ecc-8f68-5ac5f63000a8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C24 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 2.4003
+                            },
+                            "uuid": "ebcb473e-cd51-4808-b14c-fa3c91eb782e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C15 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.8034,
+                                "y": 1.7907
+                            },
+                            "uuid": "bf9df70a-b564-4422-afca-a1aec4efcf20"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R21 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.5654
+                            },
+                            "uuid": "302b78e4-c619-4051-be96-9d0f41bf9380"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C15 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.8034,
+                                "y": 1.8669
+                            },
+                            "uuid": "7f2f1985-1f2a-458c-bfbb-bd0822022339"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R22 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.5654
+                            },
+                            "uuid": "efcff051-8f56-42d2-80bf-bfc62a579cb0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R21 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.6416
+                            },
+                            "uuid": "0727a697-c3e1-40b8-8fa6-6f2ee4b61800"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C25 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.2954,
+                                "y": 2.3241
+                            },
+                            "uuid": "8f5ec54b-b6c6-45a2-99e8-203a33ad8e5f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R22 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.6416
+                            },
+                            "uuid": "dcc6a4f3-7563-499c-9a70-3fe41bf67323"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C25 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.2954,
+                                "y": 2.4003
+                            },
+                            "uuid": "de8d1535-c6a6-4317-be36-08ad54d4e3de"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R23 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.5654
+                            },
+                            "uuid": "5b9a4316-4c1c-4c13-96bc-c4ed3dd660dc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C19 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 2.0701
+                            },
+                            "uuid": "36556835-45dc-4fcf-8753-a918aa95055f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R28 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.7686
+                            },
+                            "uuid": "5a766e21-808b-42af-94be-f9d7609de37b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C19 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 2.1463
+                            },
+                            "uuid": "ad568c41-b6b3-402c-8443-1310bdf1b757"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R23 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.6416
+                            },
+                            "uuid": "423525d2-8de7-4450-b625-64b37c594152"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R29 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.7686
+                            },
+                            "uuid": "21774d81-c44d-4b94-a5a3-4ce53aaadbb5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R28 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.8448
+                            },
+                            "uuid": "6471ff3e-8a22-4204-bb88-615adacd57c4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R24 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.5654
+                            },
+                            "uuid": "15dc69d4-a3d7-4121-ab8d-0e97d744d5bd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R29 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.8448
+                            },
+                            "uuid": "56bbc8fb-2042-4dc5-b073-856f1f78a061"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R30 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.7686
+                            },
+                            "uuid": "a3957754-8e68-40f1-b8bb-82cde5bba79f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C26 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 2.3241
+                            },
+                            "uuid": "e6f677a8-4c41-44d6-87c2-f8e43def83fe"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Q? ピン 1 [G, Input, Line]",
+                            "pos": {
+                                "x": 2.6924,
+                                "y": 1.2573
+                            },
+                            "uuid": "b2dc8d91-6055-4003-b0d4-295b1541ed7f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R24 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.6416
+                            },
+                            "uuid": "dc117106-9396-471c-b7ae-bddbd3197300"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R30 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.8448
+                            },
+                            "uuid": "e7989cf6-12a2-49f4-8f01-a8d5c697b876"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Q? ピン 3 [D, Passive, Line]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 1.2065
+                            },
+                            "uuid": "95a937f1-679e-4ffc-84af-f867c33553dd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol D12 ピン 1 [A1, Passive, Line]",
+                            "pos": {
+                                "x": 2.413,
+                                "y": 1.8288
+                            },
+                            "uuid": "1ff5a767-8c9f-465a-84c2-b26e53d1efec"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Q? ピン 2 [S, Passive, Line]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 1.3081
+                            },
+                            "uuid": "81e85239-4e11-435c-85d5-9903eb11f604"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol D12 ピン 2 [A2, Passive, Line]",
+                            "pos": {
+                                "x": 2.4638,
+                                "y": 1.8288
+                            },
+                            "uuid": "d006b4e6-2ef2-4f07-a0cf-005f409e4e36"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R31 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.7686
+                            },
+                            "uuid": "8d75d934-f8d0-4864-8f9d-ea79ee50d727"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R25 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 2.5654
+                            },
+                            "uuid": "32d55ba0-7d55-4176-9908-1172a15808f8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C20 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 2.0701
+                            },
+                            "uuid": "7b40dbcb-ad66-49d8-9b80-bf14f34a037c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R31 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.8448
+                            },
+                            "uuid": "05e0e4b3-8bd0-4515-a95e-e84d2b0906b6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R25 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 2.6416
+                            },
+                            "uuid": "07c7598e-fbe1-47d6-b467-38f6c550b874"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C20 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 2.1463
+                            },
+                            "uuid": "178c7432-4aa7-4b91-86cf-1c3f609dab58"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C27 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 2.3241
+                            },
+                            "uuid": "d939de90-b277-423e-b797-0e1c91419c28"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R26 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 2.5654
+                            },
+                            "uuid": "1bc3f6fa-384b-42b4-9122-fa2a28bb34d2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C27 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 2.4003
+                            },
+                            "uuid": "bff2fee5-f79c-4993-8025-6981492c54b4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 1 [VCC, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.5588
+                            },
+                            "uuid": "d07709b3-ec02-4003-8df4-53e9827c5f75"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 2 [RST, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.5842
+                            },
+                            "uuid": "c8b4a425-edf7-42f3-8000-93d9cf386389"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 3 [CLK, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.6096
+                            },
+                            "uuid": "8a9f50a4-1abb-47ae-b906-dd069f854673"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 6 [I/O, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.635
+                            },
+                            "uuid": "53b59138-9277-42b4-a7c7-95125ced79cf"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 5 [VPP/NC, Passive, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.6604
+                            },
+                            "uuid": "e651f0e6-22d1-4826-a3b5-cedfdf07b0c8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R26 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 2.6416
+                            },
+                            "uuid": "dc3ec9e8-c8e2-42e9-bed9-e76e2535faf4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 1 [DAT2, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2065
+                            },
+                            "uuid": "7655b939-d77d-4f6b-88d6-b8c85d57b926"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 2 [DAT3/CD, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2319
+                            },
+                            "uuid": "bcd4f5b0-a674-4fab-8406-d87a66df737f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 3 [CMD, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2573
+                            },
+                            "uuid": "a613a687-0199-4e00-aeef-82df098912dc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C21 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 2.0701
+                            },
+                            "uuid": "3dd05532-0182-47ed-a482-549fe30ab9f5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 4 [VDD, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2827
+                            },
+                            "uuid": "45042d34-0b09-4058-b8dc-850d09bf7eac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 5 [CLK, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3081
+                            },
+                            "uuid": "a220d8f0-cdc8-4024-9a3e-a60a8be0ddcc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 4 [GND/C5, Passive, Line]",
+                            "pos": {
+                                "x": 3.4925,
+                                "y": 0.7874
+                            },
+                            "uuid": "c2217248-241e-47a3-ad40-ff5c66036a1c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 6 [VSS, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3335
+                            },
+                            "uuid": "15821445-b5f8-40fb-9b7b-758ab7681b79"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R27 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.5146,
+                                "y": 2.5654
+                            },
+                            "uuid": "cd0274d8-e967-4322-a7d6-2659b2c23971"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 7 [DAT0, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3589
+                            },
+                            "uuid": "3019be6b-7b11-43f3-a3c2-0bcdf82bcee8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 8 [DAT1, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3843
+                            },
+                            "uuid": "f4098401-bece-46ce-86d6-74d7d6f4937d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C21 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 2.1463
+                            },
+                            "uuid": "716a11f1-55d2-41c7-86cc-686f3fa4bc66"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 8 [SHIELD, Passive, Line]",
+                            "pos": {
+                                "x": 3.5179,
+                                "y": 0.7874
+                            },
+                            "uuid": "821d7f5f-b58f-4f12-ac06-bcfb35c6673c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 9 [SHIELD, Passive, Line]",
+                            "pos": {
+                                "x": 3.5433,
+                                "y": 0.7874
+                            },
+                            "uuid": "ae8411e3-d416-4b05-8f42-cb9fd6c0c96a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R27 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.5146,
+                                "y": 2.6416
+                            },
+                            "uuid": "f22fd644-0871-44a2-bfe5-a0c1e1cab9aa"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 10 [SHIELD, Passive, Line]",
+                            "pos": {
+                                "x": 3.5687,
+                                "y": 0.7874
+                            },
+                            "uuid": "e1bd1319-aa05-4f61-9a4a-ea40fc6db03b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C28 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 2.3241
+                            },
+                            "uuid": "ac1b4b5e-750d-459b-a512-87b6337ee353"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C28 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 2.4003
+                            },
+                            "uuid": "41c56884-8bba-445f-a585-796680d5faac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 7 [SW, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 0.6096
+                            },
+                            "uuid": "c7ba71a9-bec7-4f17-a7e4-1e678b74ce64"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 1 [I/O1, Passive, Line]",
+                            "pos": {
+                                "x": 3.4925,
+                                "y": 1.7272
+                            },
+                            "uuid": "892f3973-3275-4dc6-906c-c2345e4a3e56"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 3 [I/O2, Passive, Line]",
+                            "pos": {
+                                "x": 3.4925,
+                                "y": 1.7526
+                            },
+                            "uuid": "ef9dd64b-99ce-46d2-89c8-8a84cec8d20a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 4 [I/O3, Passive, Line]",
+                            "pos": {
+                                "x": 3.4925,
+                                "y": 1.778
+                            },
+                            "uuid": "f10dc9f7-9d38-4a4c-9ba1-73bf7f1ddb27"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 6 [I/O4, Passive, Line]",
+                            "pos": {
+                                "x": 3.4925,
+                                "y": 1.8034
+                            },
+                            "uuid": "eeacd07f-d6f3-421b-8d00-4c4b16b3ac50"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 5 [VBUS, Passive, Line]",
+                            "pos": {
+                                "x": 3.5687,
+                                "y": 1.6764
+                            },
+                            "uuid": "b4486339-695f-43e2-8b41-80a6f60500f1"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C22 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 2.0701
+                            },
+                            "uuid": "462a6be0-ce8f-4b20-8f2f-10819b36094d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 2 [GND, Passive, Line]",
+                            "pos": {
+                                "x": 3.5687,
+                                "y": 1.8542
+                            },
+                            "uuid": "84c12c33-c9b9-4cc0-9e38-ef05afa07a7a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J? ピン 9 [SHIELD, Passive, Line]",
+                            "pos": {
+                                "x": 3.7592,
+                                "y": 1.4351
+                            },
+                            "uuid": "072836b3-284a-413f-bd81-3936c5f66f1c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C22 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 2.1463
+                            },
+                            "uuid": "7532fb4f-5ca0-4f60-93ca-955bd92f2040"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 1 [I/O1, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 1.7272
+                            },
+                            "uuid": "f0284801-32d9-45ca-a06e-9cec77e40b78"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 3 [I/O2, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 1.7526
+                            },
+                            "uuid": "97e2b83c-f1d4-4657-a20a-17943b4d62ac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 4 [I/O3, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 1.778
+                            },
+                            "uuid": "d109bc58-45f9-44bd-a2bc-c90b6ebb6b8f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C29 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 2.3241
+                            },
+                            "uuid": "e176303a-b284-42e4-81c4-a3fe18d5039d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 6 [I/O4, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 1.8034
+                            },
+                            "uuid": "43cd266a-b1d1-420e-86f6-a48c75045861"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 5 [VBUS, Passive, Line]",
+                            "pos": {
+                                "x": 3.81,
+                                "y": 1.6764
+                            },
+                            "uuid": "c56ae2b3-ae92-4eec-b731-1328963bae8f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C29 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 2.4003
+                            },
+                            "uuid": "d0bb6fb1-94b4-4a7f-ab5e-c5c1a2e6bf33"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U? ピン 2 [GND, Passive, Line]",
+                            "pos": {
+                                "x": 3.81,
+                                "y": 1.8542
+                            },
+                            "uuid": "79c7e5b2-1d3f-4e2d-8796-df1631ca2f66"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル U? [SIM7070G]",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 0.8001
+                            },
+                            "uuid": "7bb0d9e1-0077-47fd-b2c0-8724033dbbb1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル U? [SIM7070G]",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 0.8001
+                            },
+                            "uuid": "7bb0d9e1-0077-47fd-b2c0-8724033dbbb1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル J? [Conn_Coaxial]",
+                            "pos": {
+                                "x": 0.4572,
+                                "y": 1.524
+                            },
+                            "uuid": "525e23fb-25ed-4df9-b946-1a68aa56f007"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル J? [Conn_Coaxial]",
+                            "pos": {
+                                "x": 0.4572,
+                                "y": 1.524
+                            },
+                            "uuid": "525e23fb-25ed-4df9-b946-1a68aa56f007"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル J? [Conn_01x06]",
+                            "pos": {
+                                "x": 0.7874,
+                                "y": 1.5367
+                            },
+                            "uuid": "3fd075d4-3a45-48fe-a58f-76f2e2a3a0dd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル J? [Conn_01x06]",
+                            "pos": {
+                                "x": 0.7874,
+                                "y": 1.5367
+                            },
+                            "uuid": "3fd075d4-3a45-48fe-a58f-76f2e2a3a0dd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル U? [AP63301WU-7]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 1.3081
+                            },
+                            "uuid": "60947d0b-8f2b-426b-abcb-976d6c3b6b9c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル U? [AP63301WU-7]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 1.3081
+                            },
+                            "uuid": "60947d0b-8f2b-426b-abcb-976d6c3b6b9c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C16 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.1082
+                            },
+                            "uuid": "e1d187e9-9671-4b1c-8f02-29a51779bb7f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C16 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.1082
+                            },
+                            "uuid": "e1d187e9-9671-4b1c-8f02-29a51779bb7f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル L2 [SRN6045TA-2R2Y]",
+                            "pos": {
+                                "x": 1.2446,
+                                "y": 1.8288
+                            },
+                            "uuid": "4981c769-e549-4966-b572-6c43b788b63e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル L2 [SRN6045TA-2R2Y]",
+                            "pos": {
+                                "x": 1.2446,
+                                "y": 1.8288
+                            },
+                            "uuid": "4981c769-e549-4966-b572-6c43b788b63e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C17 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 2.1082
+                            },
+                            "uuid": "827baaee-c4bf-45eb-b1d3-8ac792a0896e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C17 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 2.1082
+                            },
+                            "uuid": "827baaee-c4bf-45eb-b1d3-8ac792a0896e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル U? [TXU0204PWR]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 0.6604
+                            },
+                            "uuid": "c726da66-9276-46d7-9ead-4a35f1f5c53c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル U? [TXU0204PWR]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 0.6604
+                            },
+                            "uuid": "c726da66-9276-46d7-9ead-4a35f1f5c53c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C23 [GRM188B31H105KAAL]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.3622
+                            },
+                            "uuid": "583c4d23-a77c-4ef7-ae7d-0f9d139d269e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C23 [GRM188B31H105KAAL]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.3622
+                            },
+                            "uuid": "583c4d23-a77c-4ef7-ae7d-0f9d139d269e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C18 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 1.2954,
+                                "y": 2.1082
+                            },
+                            "uuid": "d227c742-5e8a-4b16-89bb-8e133c6ad17c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C18 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 1.2954,
+                                "y": 2.1082
+                            },
+                            "uuid": "d227c742-5e8a-4b16-89bb-8e133c6ad17c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C24 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 2.3622
+                            },
+                            "uuid": "eeedd625-644b-48da-8eca-769e265b0b11"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C24 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 2.3622
+                            },
+                            "uuid": "eeedd625-644b-48da-8eca-769e265b0b11"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C15 [T520D337M006ATE015]",
+                            "pos": {
+                                "x": 1.8034,
+                                "y": 1.8288
+                            },
+                            "uuid": "c3c404a0-1284-447b-a05c-692b3edb07e8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C15 [T520D337M006ATE015]",
+                            "pos": {
+                                "x": 1.8034,
+                                "y": 1.8288
+                            },
+                            "uuid": "c3c404a0-1284-447b-a05c-692b3edb07e8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R21 [RC0603FR-07374KL]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.6035
+                            },
+                            "uuid": "f139de83-f677-4cd5-8674-2ba2ce2d8644"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R21 [RC0603FR-07374KL]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.6035
+                            },
+                            "uuid": "f139de83-f677-4cd5-8674-2ba2ce2d8644"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R22 [RG2012N-104-B-T5]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.6035
+                            },
+                            "uuid": "0ca3c960-1e7d-407f-873f-df4b6f97ce07"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R22 [RG2012N-104-B-T5]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.6035
+                            },
+                            "uuid": "0ca3c960-1e7d-407f-873f-df4b6f97ce07"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C25 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 1.2954,
+                                "y": 2.3622
+                            },
+                            "uuid": "459275d7-1950-4d69-85a0-14898f8d5f77"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C25 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 1.2954,
+                                "y": 2.3622
+                            },
+                            "uuid": "459275d7-1950-4d69-85a0-14898f8d5f77"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R23 [RK73B1JTTD104J]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.6035
+                            },
+                            "uuid": "09a6eb8b-34b7-4c15-8134-3d6ef9766fb6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R23 [RK73B1JTTD104J]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.6035
+                            },
+                            "uuid": "09a6eb8b-34b7-4c15-8134-3d6ef9766fb6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C19 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 2.1082
+                            },
+                            "uuid": "6792ce00-43f3-4034-89bb-a6dcba8031f5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C19 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 2.1082
+                            },
+                            "uuid": "6792ce00-43f3-4034-89bb-a6dcba8031f5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R28 [RK73B1JTTD220J]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.8067
+                            },
+                            "uuid": "cb2a40b9-28d2-41b7-998b-d4e491b6e29f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R28 [RK73B1JTTD220J]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.8067
+                            },
+                            "uuid": "cb2a40b9-28d2-41b7-998b-d4e491b6e29f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R29 [RK73B1JTTD220J]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.8067
+                            },
+                            "uuid": "1cbffea7-5d92-4f68-9019-b9c0c9ab915e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R29 [RK73B1JTTD220J]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.8067
+                            },
+                            "uuid": "1cbffea7-5d92-4f68-9019-b9c0c9ab915e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R24 [RK73B1JTTD104J]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.6035
+                            },
+                            "uuid": "66305233-5936-4780-9cc9-285353a2c35a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R24 [RK73B1JTTD104J]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.6035
+                            },
+                            "uuid": "66305233-5936-4780-9cc9-285353a2c35a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R30 [RK73B1JTTD220J]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.8067
+                            },
+                            "uuid": "7f66b29d-ad42-4e3e-bf5f-40e1d157cd79"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R30 [RK73B1JTTD220J]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.8067
+                            },
+                            "uuid": "7f66b29d-ad42-4e3e-bf5f-40e1d157cd79"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C26 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 2.3622
+                            },
+                            "uuid": "a30f4be4-e405-428e-bafc-751a03236a3e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C26 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 2.3622
+                            },
+                            "uuid": "a30f4be4-e405-428e-bafc-751a03236a3e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル Q? [2N7002]",
+                            "pos": {
+                                "x": 2.7432,
+                                "y": 1.2573
+                            },
+                            "uuid": "9e7a35ca-3c06-4e3f-8b41-4190369bb614"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル Q? [2N7002]",
+                            "pos": {
+                                "x": 2.7432,
+                                "y": 1.2573
+                            },
+                            "uuid": "9e7a35ca-3c06-4e3f-8b41-4190369bb614"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル D12 [PESDHC2FD4V5B]",
+                            "pos": {
+                                "x": 2.4384,
+                                "y": 1.8288
+                            },
+                            "uuid": "d21da094-ac7c-4aa7-89cb-896b71d12946"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル D12 [PESDHC2FD4V5B]",
+                            "pos": {
+                                "x": 2.4384,
+                                "y": 1.8288
+                            },
+                            "uuid": "d21da094-ac7c-4aa7-89cb-896b71d12946"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R31 [RK73Z1JTTD]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.8067
+                            },
+                            "uuid": "bb3ea7b8-d46a-44da-858b-1393340b78b0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R31 [RK73Z1JTTD]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.8067
+                            },
+                            "uuid": "bb3ea7b8-d46a-44da-858b-1393340b78b0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R25 [RK73B1JTTD102J]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 2.6035
+                            },
+                            "uuid": "88f51a82-f648-4861-98f3-096d962bbc1d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R25 [RK73B1JTTD102J]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 2.6035
+                            },
+                            "uuid": "88f51a82-f648-4861-98f3-096d962bbc1d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C20 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 2.1082
+                            },
+                            "uuid": "75d02f6f-131c-4f2d-a9a0-d38246900ddc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C20 [GRM21BR71A106KE51]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 2.1082
+                            },
+                            "uuid": "75d02f6f-131c-4f2d-a9a0-d38246900ddc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C27 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 2.3622
+                            },
+                            "uuid": "78339d9f-2298-470f-91a2-fef7e54a03fb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C27 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 2.3622,
+                                "y": 2.3622
+                            },
+                            "uuid": "78339d9f-2298-470f-91a2-fef7e54a03fb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R26 [RC0603J47K]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 2.6035
+                            },
+                            "uuid": "20f5829b-160a-4f0a-83fc-073398bbdcf1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R26 [RC0603J47K]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 2.6035
+                            },
+                            "uuid": "20f5829b-160a-4f0a-83fc-073398bbdcf1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C21 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 2.1082
+                            },
+                            "uuid": "5dd8bff5-d465-4a84-b112-f60c54abf6d3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C21 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 2.1082
+                            },
+                            "uuid": "5dd8bff5-d465-4a84-b112-f60c54abf6d3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル J? [TE_2452796-1]",
+                            "pos": {
+                                "x": 3.5306,
+                                "y": 0.6096
+                            },
+                            "uuid": "2fc22c57-8968-4772-879d-3f5c1a758ce8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル J? [TE_2452796-1]",
+                            "pos": {
+                                "x": 3.5306,
+                                "y": 0.6096
+                            },
+                            "uuid": "2fc22c57-8968-4772-879d-3f5c1a758ce8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル R27 [RC0603J47K]",
+                            "pos": {
+                                "x": 2.5146,
+                                "y": 2.6035
+                            },
+                            "uuid": "43470f87-92d5-4246-b7e5-106f69bed167"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル R27 [RC0603J47K]",
+                            "pos": {
+                                "x": 2.5146,
+                                "y": 2.6035
+                            },
+                            "uuid": "43470f87-92d5-4246-b7e5-106f69bed167"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C28 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 2.3622
+                            },
+                            "uuid": "ae93de18-c2b7-45b4-adbf-220863f63855"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C28 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 2.3622
+                            },
+                            "uuid": "ae93de18-c2b7-45b4-adbf-220863f63855"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル J? [Micro_SD_Card_Molex_47219-2001]",
+                            "pos": {
+                                "x": 3.556,
+                                "y": 1.3081
+                            },
+                            "uuid": "0e35c2d6-d10f-434f-92cd-72474bfda1cd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル J? [Micro_SD_Card_Molex_47219-2001]",
+                            "pos": {
+                                "x": 3.556,
+                                "y": 1.3081
+                            },
+                            "uuid": "0e35c2d6-d10f-434f-92cd-72474bfda1cd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル U? [USBLC6-4SC6]",
+                            "pos": {
+                                "x": 3.5687,
+                                "y": 1.7526
+                            },
+                            "uuid": "e5e0e810-868d-4a54-8284-4d45649aff0b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル U? [USBLC6-4SC6]",
+                            "pos": {
+                                "x": 3.5687,
+                                "y": 1.7526
+                            },
+                            "uuid": "e5e0e810-868d-4a54-8284-4d45649aff0b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C22 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 2.1082
+                            },
+                            "uuid": "c7111b0a-eaa9-4d33-b9e0-d023d34bdd20"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C22 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 2.1082
+                            },
+                            "uuid": "c7111b0a-eaa9-4d33-b9e0-d023d34bdd20"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル C29 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 2.3622
+                            },
+                            "uuid": "d32f553e-ff95-4a53-89bb-618eb75ed837"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル C29 [GRM188R72A104KA35D]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 2.3622
+                            },
+                            "uuid": "d32f553e-ff95-4a53-89bb-618eb75ed837"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_expansion' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル U? [USBLC6-4SC6]",
+                            "pos": {
+                                "x": 3.81,
+                                "y": 1.7526
+                            },
+                            "uuid": "f8b41319-4526-4d88-9d0f-eb4ed101c4ca"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "現在の構成にはシンボル ライブラリ 'logger_v2_expansion' が含まれていません",
+                    "items": [
+                        {
+                            "description": "シンボル U? [USBLC6-4SC6]",
+                            "pos": {
+                                "x": 3.81,
+                                "y": 1.7526
+                            },
+                            "uuid": "f8b41319-4526-4d88-9d0f-eb4ed101c4ca"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                }
+            ]
+        }
+    ],
+    "source": "logger_v2_lte_sd.kicad_sch"
+}

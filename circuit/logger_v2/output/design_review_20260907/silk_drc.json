@@ -1,0 +1,506 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-07T07:11:10+0900",
+    "kicad_version": "9.0.6",
+    "schematic_parity": [],
+    "source": "logger_v2.kicad_pcb",
+    "unconnected_items": [],
+    "violations": [
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.1148 mm)",
+            "items": [
+                {
+                    "description": "R2のリファレンスフィールド",
+                    "pos": {
+                        "x": 139.8,
+                        "y": 85.65
+                    },
+                    "uuid": "65a494d3-6ae6-48bf-8be0-773f8592570c"
+                },
+                {
+                    "description": "基板上のテキスト 'UNO Q SENSOR SHIELD' ( F.Silkscreen 上)",
+                    "pos": {
+                        "x": 146.799999,
+                        "y": 84.6
+                    },
+                    "uuid": "fd2fe494-8296-4e15-a24f-200353e497eb"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.1203 mm)",
+            "items": [
+                {
+                    "description": "R3のリファレンスフィールド",
+                    "pos": {
+                        "x": 142.6,
+                        "y": 85.65
+                    },
+                    "uuid": "64a5d086-74b4-4421-b277-ccbdf8ab2b84"
+                },
+                {
+                    "description": "基板上のテキスト 'UNO Q SENSOR SHIELD' ( F.Silkscreen 上)",
+                    "pos": {
+                        "x": 146.799999,
+                        "y": 84.6
+                    },
+                    "uuid": "fd2fe494-8296-4e15-a24f-200353e497eb"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.1311 mm)",
+            "items": [
+                {
+                    "description": "D1のリファレンスフィールド",
+                    "pos": {
+                        "x": 137.0,
+                        "y": 93.15
+                    },
+                    "uuid": "4fe8b96e-0a8d-4688-85ed-c4b3c088f9ca"
+                },
+                {
+                    "description": "セグメント of C14 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 136.238748,
+                        "y": 93.765
+                    },
+                    "uuid": "8c9c4e32-a1b8-4357-8402-d7a7a6b83997"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.0520 mm)",
+            "items": [
+                {
+                    "description": "セグメント of D4 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 144.44,
+                        "y": 92.685
+                    },
+                    "uuid": "1440cfdd-8b5b-475f-bd2a-6dee66762513"
+                },
+                {
+                    "description": "D4のリファレンスフィールド",
+                    "pos": {
+                        "x": 145.4,
+                        "y": 93.15
+                    },
+                    "uuid": "8d7bc116-b359-4566-998b-fd13e41305aa"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.0520 mm)",
+            "items": [
+                {
+                    "description": "D1のリファレンスフィールド",
+                    "pos": {
+                        "x": 137.0,
+                        "y": 93.15
+                    },
+                    "uuid": "4fe8b96e-0a8d-4688-85ed-c4b3c088f9ca"
+                },
+                {
+                    "description": "セグメント of D1 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 136.04,
+                        "y": 92.685
+                    },
+                    "uuid": "fa31219e-8941-4044-920d-f271e216f2f6"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.0520 mm)",
+            "items": [
+                {
+                    "description": "D2のリファレンスフィールド",
+                    "pos": {
+                        "x": 139.8,
+                        "y": 93.15
+                    },
+                    "uuid": "bdd5acd7-4ab4-49b5-b96b-401c50c6fe92"
+                },
+                {
+                    "description": "セグメント of D2 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 138.84,
+                        "y": 92.685
+                    },
+                    "uuid": "e872a05e-f5a4-46ec-9df2-c8fa78fcd9fa"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.1148 mm)",
+            "items": [
+                {
+                    "description": "R4のリファレンスフィールド",
+                    "pos": {
+                        "x": 145.4,
+                        "y": 85.65
+                    },
+                    "uuid": "f3ddcf85-bce9-433b-8c48-37b68756eef6"
+                },
+                {
+                    "description": "基板上のテキスト 'UNO Q SENSOR SHIELD' ( F.Silkscreen 上)",
+                    "pos": {
+                        "x": 146.799999,
+                        "y": 84.6
+                    },
+                    "uuid": "fd2fe494-8296-4e15-a24f-200353e497eb"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.0520 mm)",
+            "items": [
+                {
+                    "description": "セグメント of D3 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 141.64,
+                        "y": 92.685
+                    },
+                    "uuid": "97897aea-9673-4a1d-b25b-47d704ba2418"
+                },
+                {
+                    "description": "D3のリファレンスフィールド",
+                    "pos": {
+                        "x": 142.6,
+                        "y": 93.15
+                    },
+                    "uuid": "abb9dec7-d2eb-4e7e-a02e-5c2ad6b7e2a0"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.1154 mm)",
+            "items": [
+                {
+                    "description": "R6のリファレンスフィールド",
+                    "pos": {
+                        "x": 148.2,
+                        "y": 85.65
+                    },
+                    "uuid": "a244e7d5-7cfd-4577-aca5-67e4a298f318"
+                },
+                {
+                    "description": "基板上のテキスト 'UNO Q SENSOR SHIELD' ( F.Silkscreen 上)",
+                    "pos": {
+                        "x": 146.799999,
+                        "y": 84.6
+                    },
+                    "uuid": "fd2fe494-8296-4e15-a24f-200353e497eb"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.0520 mm)",
+            "items": [
+                {
+                    "description": "セグメント of D5 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 147.24,
+                        "y": 92.685
+                    },
+                    "uuid": "0fd4ca92-b53c-4f5a-9be6-090c30ac4410"
+                },
+                {
+                    "description": "D5のリファレンスフィールド",
+                    "pos": {
+                        "x": 148.2,
+                        "y": 93.15
+                    },
+                    "uuid": "a3f29284-7fef-4dca-af0a-6e45284ce5e7"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.1160 mm)",
+            "items": [
+                {
+                    "description": "R9のリファレンスフィールド",
+                    "pos": {
+                        "x": 153.8,
+                        "y": 85.65
+                    },
+                    "uuid": "27212c67-00b8-4a19-a4e7-ccbe2850d3eb"
+                },
+                {
+                    "description": "基板上のテキスト 'UNO Q SENSOR SHIELD' ( F.Silkscreen 上)",
+                    "pos": {
+                        "x": 146.799999,
+                        "y": 84.6
+                    },
+                    "uuid": "fd2fe494-8296-4e15-a24f-200353e497eb"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.1148 mm)",
+            "items": [
+                {
+                    "description": "R8のリファレンスフィールド",
+                    "pos": {
+                        "x": 151.0,
+                        "y": 85.65
+                    },
+                    "uuid": "3a7899ff-5ee4-47a8-a3ff-607c20e1878f"
+                },
+                {
+                    "description": "基板上のテキスト 'UNO Q SENSOR SHIELD' ( F.Silkscreen 上)",
+                    "pos": {
+                        "x": 146.799999,
+                        "y": 84.6
+                    },
+                    "uuid": "fd2fe494-8296-4e15-a24f-200353e497eb"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.0520 mm)",
+            "items": [
+                {
+                    "description": "セグメント of D6 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 150.04,
+                        "y": 92.685
+                    },
+                    "uuid": "468f8442-01f0-4122-a751-c79edf5b810d"
+                },
+                {
+                    "description": "D6のリファレンスフィールド",
+                    "pos": {
+                        "x": 151.0,
+                        "y": 93.15
+                    },
+                    "uuid": "56c26298-df99-476e-9c01-7be3817481ae"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.0520 mm)",
+            "items": [
+                {
+                    "description": "D7のリファレンスフィールド",
+                    "pos": {
+                        "x": 153.8,
+                        "y": 93.15
+                    },
+                    "uuid": "1a7557ef-0df3-49f8-8466-7c210fa7a1e4"
+                },
+                {
+                    "description": "セグメント of D7 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 152.84,
+                        "y": 92.685
+                    },
+                    "uuid": "44083b91-fd17-4c0d-8d29-b0b9ef6efeb0"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "シルクスクリーンのオーバーラップ (board setup constraints silk クリアランス 0.1500 mm; 現状 0.0520 mm)",
+            "items": [
+                {
+                    "description": "セグメント of D8 、F.Silkscreen 上",
+                    "pos": {
+                        "x": 155.64,
+                        "y": 92.685
+                    },
+                    "uuid": "75e06f1c-948f-4708-8f2d-99800e17dbd5"
+                },
+                {
+                    "description": "D8のリファレンスフィールド",
+                    "pos": {
+                        "x": 156.6,
+                        "y": 93.15
+                    },
+                    "uuid": "fe967155-b1cb-4a57-809b-15c325ba9905"
+                }
+            ],
+            "severity": "error",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D4",
+                    "pos": {
+                        "x": 145.4,
+                        "y": 91.0
+                    },
+                    "uuid": "281f30d9-546c-4bed-b547-e76cfb5baed1"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'PinSocket_1x08_P2.54mm_Vertical' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント J5",
+                    "pos": {
+                        "x": 145.72,
+                        "y": 49.2
+                    },
+                    "uuid": "369ef0e1-a828-4dc8-b7b6-727f248903d5"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D6",
+                    "pos": {
+                        "x": 151.0,
+                        "y": 91.0
+                    },
+                    "uuid": "5738d366-6d8b-4016-b16a-647f7a256ed3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D7",
+                    "pos": {
+                        "x": 153.8,
+                        "y": 91.0
+                    },
+                    "uuid": "6faec3c6-3a16-449f-9786-99f0fd349877"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D2",
+                    "pos": {
+                        "x": 139.8,
+                        "y": 91.0
+                    },
+                    "uuid": "78a74f82-3e1b-447d-a375-e00291bc07e4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D1",
+                    "pos": {
+                        "x": 137.0,
+                        "y": 91.0
+                    },
+                    "uuid": "98325977-f4ee-4e29-bdc4-63f5cba0d19f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D3",
+                    "pos": {
+                        "x": 142.6,
+                        "y": 91.0
+                    },
+                    "uuid": "a2fcdbd4-0821-4bda-8b22-d2e4028e9c4f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D8",
+                    "pos": {
+                        "x": 156.6,
+                        "y": 91.0
+                    },
+                    "uuid": "b8da4ed2-6b3c-4cca-aefd-eae1f1632071"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'AE_BNO055_BO' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント U3",
+                    "pos": {
+                        "x": 158.0,
+                        "y": 57.0
+                    },
+                    "uuid": "c7f5b764-b46e-4f77-8d92-20fcb25d60bf"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "フットプリント 'LED_0805_2012Metric' が、ライブラリ 'logger_v2_custom' のコピーと一致しません。",
+            "items": [
+                {
+                    "description": "フットプリント D5",
+                    "pos": {
+                        "x": 148.2,
+                        "y": 91.0
+                    },
+                    "uuid": "fb2dd670-e606-4fe5-a7a7-453a91c14618"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        }
+    ]
+}

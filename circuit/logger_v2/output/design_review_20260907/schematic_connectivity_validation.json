@@ -1,0 +1,57 @@
+{
+  "schematic_sha256": "0d30c36a3051426f8e3f44066d25a1b0942beeb9ab918904210d392fc24e6720",
+  "old_component_count": 44,
+  "new_component_count": 59,
+  "new_components": [
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "C14",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8",
+    "C9",
+    "D11",
+    "R18",
+    "R19",
+    "R20"
+  ],
+  "old_net_groups_preserved": true,
+  "Y1_pin_mapping": "old pin2 -> new pin3; case pins2/4 grounded",
+  "Y1_ground_case_pins_verified": true,
+  "new_caps_and_pulldowns_verified": true,
+  "RF_ESD_verified": true,
+  "all_symbol_pin_sets_match_footprint_pad_sets": true,
+  "portable_models_verified": 19,
+  "erc_violations": 0,
+  "DNP": [
+    "R10",
+    "R13",
+    "R14"
+  ],
+  "PCB_footprint_names_match_schematic": true,
+  "PCB_footprint_names_compared": 59,
+  "ShieldSilk_footprint_refs": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7",
+    "D8",
+    "J5",
+    "U3"
+  ],
+  "PCB_extra_footprints": [
+    "MH1",
+    "MH2",
+    "MH3",
+    "MH4"
+  ],
+  "PCB_pad_nets_match_schematic": true,
+  "PCB_pad_nets_compared": 224
+}

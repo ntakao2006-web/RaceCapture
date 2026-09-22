@@ -1,0 +1,4056 @@
+SIM7070 Series Hardware Design V1.03
+SIM7070 Series
+Hardware Design
+SIMCom Wireless Solutions Limited.
+Building B, SIM Technology Building, No.633, Jinzhong Road
+Changning District, Shanghai P.R.China
+Tel: 86-21-31575100
+support@simcom.com
+www.simcom.com
+LPWA Module
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+2 / 72
+Document Title:
+SIM7070 Series Hardware Design
+Version:
+1.03
+Date:
+2020-10-20
+Status:
+Released
+GENERAL NOTES
+SIMCOM OFFERS THIS INFORMATION AS A SERVICE TO ITS CUSTOMERS, TO SUPPORT
+APPLICATION AND ENGINEERING EFFORTS THAT USE THE PRODUCTS DESIGNED BY SIMCOM.
+THE INFORMATION PROVIDED IS BASED UPON REQUIREMENTS SPECIFICALLY PROVIDED TO
+SIMCOM BY THE CUSTOMERS. SIMCOM HAS NOT UNDERTAKEN ANY INDEPENDENT SEARCH
+FOR ADDITIONAL RELEVANT INFORMATION, INCLUDING ANY INFORMATION THAT MAY BE IN THE
+CUSTOMER’S
+POSSESSION.
+FURTHERMORE,
+SYSTEM
+VALIDATION
+OF
+THIS
+PRODUCT
+DESIGNED BY SIMCOM WITHIN A LARGER ELECTRONIC SYSTEM REMAINS THE RESPONSIBILITY
+OF
+THE CUSTOMER
+OR THE CUSTOMER’S
+SYSTEM INTEGRATOR.
+ALL SPECIFICATIONS
+SUPPLIED HEREIN ARE SUBJECT TO CHANGE.
+COPYRIGHT
+THIS DOCUMENT CONTAINS PROPRIETARY TECHNICAL INFORMATION WHICH IS THE PROPERTY
+OF SIMCOM WIRELESS SOLUTIONS LIMITED COPYING, TO OTHERS AND USING THIS DOCUMENT,
+ARE FORBIDDEN WITHOUT EXPRESS AUTHORITY BY SIMCOM. OFFENDERS ARE LIABLE TO THE
+PAYMENT OF INDEMNIFICATIONS. ALL RIGHTS RESERVED
+BY SIMCOM IN THE PROPRIETARY
+TECHNICAL INFORMATION ，INCLUDING BUT NOT LIMITED TO REGISTRATION GRANTING OF A
+PATENT , A UTILITY MODEL OR DESIGN. ALL SPECIFICATION SUPPLIED HEREIN ARE SUBJECT TO
+CHANGE WITHOUT NOTICE AT ANY TIME.
+SIMCom Wireless Solutions Limited
+Building B, SIM Technology Building, No.633 Jinzhong Road, Changning District, Shanghai P.R.China
+Tel: +86 21 31575100
+Email: simcom@simcom.com
+For more information, please visit:
+https://www.simcom.com/download/list-863-en.html
+For technical support, or to report documentation errors, please visit:
+https://www.simcom.com/ask/ or email to: support@simcom.com
+Copyright © 2020 SIMCom Wireless Solutions Limited All Rights Reserved.
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+3 / 72
+Version History
+Date
+Version
+Description of change
+Author
+2019-07-31
+1.00
+Original
+XianjingZhao
+Sen Zhao
+2020-01-05
+V1.01
+Recommended package for update module
+update module low power related current consumption
+Update 2G network data transmission flow
+Update CAT-M1, CAT-NB1 / NB2 part BAND data
+transmission current consumption
+Update GNSS current consumption
+Update CAT-M,CAT-NB,GSM conducted sensitivity
+XianjingZhao
+Sen Zhao
+2020-01-20
+V1.02
+Added SIM7070G-NG function description
+Modify CAT-M, CAT-NB2 high power transmission
+current consumption
+Update SIM7070G-NG CAT-NB,GSM sensitivity
+Update SIM7070G-NG band information
+Xianjing Zhao
+Sen Zhao
+2020-08-14
+V1.03
+Update document template
+Update data such as GNSS sensitivity
+Update module current consumption
+Update the default level status of UART port
+Update timing parameters
+Update the sensitivity of B31/B72
+Zhiqiang Liu
+Hongjun Tu
+Xianjing Zhao
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+4 / 72
+Contents
+1.
+Introduction...............................................................................................................................................................8
+1.1 Product Outline.................................................................................................................................................. 8
+1.2 Hardware Interface Overview..........................................................................................................................9
+1.3 Hardware Block Diagram...............................................................................................................................10
+1.4Functional Overview.........................................................................................................................................10
+2.
+Package Information.............................................................................................................................................12
+2.1 Pin Assignment Overview..............................................................................................................................12
+2.2 Pin Description.................................................................................................................................................14
+2.3 Mechanical Information.................................................................................................................................. 18
+2.4 Footprint Recommendation........................................................................................................................... 19
+3.
+Interface Application.............................................................................................................................................20
+3.1 Power Supply...................................................................................................................................................20
+3.1.1 Power Supply Design Guide............................................................................................................... 21
+3.1.2 Recommended Power Supply Circuit................................................................................................22
+3.1.3Voltage Monitor.......................................................................................................................................22
+3.2 Power on/Power off Function........................................................................................................................ 23
+3.2.1 Power on.................................................................................................................................................23
+3.2.2 Power off.................................................................................................................................................24
+3.3 UART Interface................................................................................................................................................ 25
+3.3.1 UART Design Guide.............................................................................................................................26
+3.3.2 RI and DTR Behavior........................................................................................................................... 28
+3.4 USB Interface...................................................................................................................................................29
+3.5 Force USB Download Interface.................................................................................................................... 30
+3.6 SIM Interface....................................................................................................................................................31
+3.6.1 SIM Application Guide..........................................................................................................................31
+3.7 PCM Interface.................................................................................................................................................. 32
+3.7.1 PCM timing.............................................................................................................................................32
+3.7.2 PCM Application Guide........................................................................................................................34
+3.8 I2C Interface.....................................................................................................................................................34
+3.9 SPI Interface.....................................................................................................................................................35
+3.10 Network status...............................................................................................................................................36
+3.11 ADC interface.................................................................................................................................................37
+3.12 LDO output.....................................................................................................................................................37
+4.
+RF Specifications.................................................................................................................................................. 39
+4.1 LTE RF Specifications....................................................................................................................................39
+4.2 LTE Antenna Design Guide...........................................................................................................................44
+4.3 GNSS.................................................................................................................................................................45
+4.3.1 GNSS Technical specification............................................................................................................ 46
+4.3.2 GNSS Application Guide..................................................................................................................... 46
+4.4 RF traces note................................................................................................................................................. 47
+4.4.1 RF traces layout.................................................................................................................................... 47
+4.4.2 LTE ANT and other system ANT decoupling................................................................................... 49
+5.
+Electrical Specifications....................................................................................................................................... 50
+5.1 Absolute maximum ratings............................................................................................................................ 50
+5.2 Operating conditions.......................................................................................................................................50
+5.3 Operating Mode...............................................................................................................................................51
+5.3.1 Operating Mode Definition...................................................................................................................51
+5.3.2 Sleep mode............................................................................................................................................ 52
+5.3.3 Minimum functionality mode and Flight mode..................................................................................53
+5.3.4 Power Saving Mode (PSM).................................................................................................................53
+5.3.5 Extended Mode DRX (e-DRX)............................................................................................................54
+5.4 Current Consumption......................................................................................................................................54
+5.5 ESD Notes........................................................................................................................................................58
+6.
+SMT Production Guide.........................................................................................................................................59
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+5 / 72
+6.1 Top and Bottom View of SIM7070 Series...................................................................................................59
+6.2 Label Information.............................................................................................................................................59
+6.3 Typical SMT Reflow Profile............................................................................................................................60
+6.4 Moisture Sensitivity Level (MSL).................................................................................................................. 60
+6.5 Baking................................................................................................................................................................61
+6.6 Stencil Foil Design Recommendation..........................................................................................................61
+7.
+Packaging...............................................................................................................................................................63
+7.1 Tray packaging................................................................................................................................................ 63
+8.
+Appendix.................................................................................................................................................................66
+A. Reference Design............................................................................................................................................. 66
+B. Design check list............................................................................................................................................... 66
+C. Coding Schemes and Maximum Net Data Rates over Air Interface........................................................68
+D. Related Documents..........................................................................................................................................69
+E. Terms and Abbreviations.................................................................................................................................70
+F. Safety Caution....................................................................................................................................................72
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+6 / 72
+Table Index
+Table 1: SIM7070 Series frequency bands and air interface............................................................................8
+Table 2: General features..................................................................................................................................... 10
+Table 3: Pin definition............................................................................................................................................ 12
+Table 4: IO parameters definition........................................................................................................................ 14
+Table 5: Pin description.........................................................................................................................................14
+Table 6: VBAT pins electronic characteristic..................................................................................................... 20
+Table 7: Minimum input voltage...........................................................................................................................21
+Table 8: Recommended TVS diode list..............................................................................................................21
+Table 9: Alarm and Shutdown Voltage Range...................................................................................................22
+Table 10: Power on timing and electronic characteristic.................................................................................23
+Table 11: Power off timing and electronic characteristic................................................................................. 25
+Table 12: UART electronic characteristic...........................................................................................................27
+Table 13: Recommended TVS models...............................................................................................................30
+Table 14: SIM electronic characteristic in 1.8V mode (SIM_VDD=1.8V)..................................................... 31
+Table 15: PCM format............................................................................................................................................32
+Table 16: PCM timing parameters.......................................................................................................................33
+Table 17: Multiplex function of the SPI............................................................................................................... 35
+Table 18: NETLIGHT pin status...........................................................................................................................37
+Table 19: ADC electronic characteristics............................................................................................................37
+Table 20: Electronic characteristic.......................................................................................................................38
+Table 21: Conducted transmission power..........................................................................................................39
+Table 22: Maximum Power Reduction (MPR) for UE category NB&M1 Power Class 5............................41
+Table 23: Operating frequencies......................................................................................................................... 42
+Table 24: E-UTRA operating bands.................................................................................................................... 42
+Table 25: Conducted receive sensitivity.............................................................................................................43
+Table 26: CAT-M1 Reference sensitivity (QPSK)............................................................................................. 43
+Table 27: CAT-NB2Reference sensitivity (QPSK)............................................................................................ 44
+Table 28: Trace loss...............................................................................................................................................45
+Table 29: Recommended TVS.............................................................................................................................45
+Table 30: Absolute maximum ratings..................................................................................................................50
+Table 31: 1.8V Digital I/O characteristics*..........................................................................................................50
+Table 32: Recommended operating ratings.......................................................................................................51
+Table 33: Operating temperature.........................................................................................................................51
+Table 34: Operating mode Definition.................................................................................................................. 52
+Table 35: Current consumption on VBAT Pins (VBAT=3.8V)......................................................................... 54
+Table 36: The ESD performance measurement table (Temperature: 25℃, Humidity: 45%.)...................58
+Table 37: The description of label information.................................................................................................. 60
+Table 38: Moisture Sensitivity Level and Floor Life..........................................................................................61
+Table 39: Baking conditions..................................................................................................................................61
+Table 40: Tray size.................................................................................................................................................64
+Table 41: Small Carton size..................................................................................................................................64
+Table 42: Big Carton size......................................................................................................................................65
+Table 43: Schematic Check List.......................................................................................................................... 66
+Table 44: PCB Layout Check List........................................................................................................................67
+Table 45: Coding Schemes and Maximum Net Data Rates over Air Interface............................................68
+Table 46: Related Documents..............................................................................................................................69
+Table 47: Terms and Abbreviations.....................................................................................................................70
+Table 48: Safety Caution.......................................................................................................................................72
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+7 / 72
+Figure Index
+Figure 1: SIM7070 Series block diagram...........................................................................................................10
+Figure 2: Pin assignment overview.....................................................................................................................12
+Figure 3: Dimensions (Unit: mm).........................................................................................................................18
+Figure 4: Footprint recommendation (Unit: mm)...............................................................................................19
+Figure 5: Voltage drop in EDGE or GPRS mode..............................................................................................20
+Figure 6: Power supply application circuit......................................................................................................... 21
+Figure 7:Power supply reference circuit.............................................................................................................22
+Figure 8: Reference power on/off circuit............................................................................................................23
+Figure 9: Power on timing sequence..................................................................................................................23
+Figure 10: Power off timing sequence................................................................................................................25
+Figure 11: UART full modem................................................................................................................................26
+Figure 12: UART null modem...............................................................................................................................27
+Figure 13: Reference circuit with level shifter IC..............................................................................................27
+Figure 14: Reference circuit with Transistor......................................................................................................28
+Figure 15: RI behaviour（SMS and URC report）.......................................................................................... 28
+Figure 16: USB reference circuit......................................................................................................................... 29
+Figure 17: Reference circuit of BOOT_CFG interface.....................................................................................30
+Figure 18: SIM interface reference circuit..........................................................................................................31
+Figure 19: PCM_SYNC timing.............................................................................................................................32
+Figure 20: External codec to module timing......................................................................................................33
+Figure 21: Module to external codec timing...................................................................................................... 33
+Figure 22: Audio codec reference circuit............................................................................................................34
+Figure 23: I2C reference circuit........................................................................................................................... 34
+Figure 24: SPI master mode circuit.....................................................................................................................35
+Figure 25: SPI slave mode circuit....................................................................................................................... 36
+Figure 26: NETLIGHT reference circuit..............................................................................................................36
+Figure 27: Power on sequence of the VDD_EXT.............................................................................................38
+Figure 28: Antenna matching circuit (MAIN_ANT)........................................................................................... 45
+Figure 29: Active antenna circuit......................................................................................................................... 46
+Figure 30: Passive antenna circuit (Default)..................................................................................................... 47
+Figure 31: RF trace should be far away from other high speed signal lines............................................... 48
+Figure 32: The distance between GND to the inner conductor of SMA....................................................... 48
+Figure 33: e-DRX diagrammatic sketch............................................................................................................. 54
+Figure 34: Top and bottom view of SIM7070 Seri............................................................................................ 59
+Figure 35: Label information................................................................................................................................ 59
+Figure 36: The ramp-soak-spike reflow profile of SIM7070 Series............................................................... 60
+Figure 37: stencil recommendation (Unit: mm).................................................................................................62
+Figure 38: packaging diagram............................................................................................................................. 63
+Figure 39: Tray drawing........................................................................................................................................ 63
+Figure 40: Small carton drawing..........................................................................................................................64
+Figure 41: Big carton drawing..............................................................................................................................65
+Figure 42: Reference design................................................................................................................................66
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+8 / 72
+1.Introduction
+This
+document
+describes
+the
+electronic
+specifications,
+RF
+specifications,
+interfaces,
+mechanical
+characteristics and testing results of the SIMCom SIM7070 Series module. With the help of this document
+and other SIM7070 Series software application notes/user guides, users can understand and use SIM7070
+Series module to design and develop applications quickly.
+1.1 Product Outline
+The SIM7070 Series modules support LTE CAT-M1, LTE CAT-NB1/CAT-NB2, GSM, GPRS and EDGE. The
+physical dimension of SIM7070 Series is 24mm×24mm×2.3 mm. And the physical dimension is compatible
+with the packaging of SIM7000, SIM800F and SIM900. It is designed for applications that need low latency,
+Low throughput data communication in a variety of radio propagation conditions. Due to the unique
+combination of performance, security and flexibility, this module is ideally suited for M2M applications, such
+as metering, asset tracking. Remote monitoring, E-health etc.
+Table 1: SIM7070 Series frequency bands and air interface
+Network
+Type
+Band
+SIM7070 Series
+SIM7070G
+SIM7070E
+SIM7070G-NG
+LTE-HD-FDD
+Category
+M1
+NB2
+M1
+NB2
+NB2
+LTE-FDD B1
+
+
+
+
+
+LTE-FDD B2
+
+
+
+
+
+LTE-FDD B3
+
+
+
+
+
+LTE-FDD B4
+
+
+
+
+
+LTE-FDD B5
+
+
+
+
+
+LTE-FDD B8
+
+
+
+
+
+LTE-FDD B12
+
+
+
+
+
+LTE-FDD B13
+
+
+
+
+
+LTE-FDD B14
+
+
+LTE-FDD B18
+
+
+
+
+
+LTE-FDD B19
+
+
+
+
+
+LTE-FDD B20
+
+
+
+
+
+LTE-FDD B25
+
+
+
+
+
+LTE-FDD B26
+
+
+
+
+
+LTE-FDD B27
+
+
+LTE-FDD B28
+
+
+
+
+
+LTE-FDD B31
+
+
+LTE-FDD B66
+
+
+
+
+
+LTE-FDD B71
+
+
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+9 / 72
+LTE-FDD B72
+
+LTE-FDD B85
+
+
+
+
+
+GSM/GPRS/
+EDGE
+GSM850MHz
+
+
+
+EGSM900MHz
+
+
+
+DCS1800MHz
+
+
+
+PCS1900MHz
+
+
+
+GNSS
+GPS
+
+
+GLONASS
+
+
+BeiDou
+
+
+Galileo
+
+
+Galileo is default closed in software. But users can open it via AT command “AT+CGNSMOD”. For more
+information about these AT commands, please refer to Document [1]
+1.2 Hardware Interface Overview
+The interfaces are described in detail in the next chapters include:
+●
+Power Supply
+●
+USB Interface
+●
+UART Interface
+●
+SIM Interface
+●
+ADC
+●
+LDO Power Output
+●
+PCM Interface
+●
+I2C Interface
+●
+SPI Interface
+●
+GPIOs
+●
+Antenna Interface
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+10 / 72
+1.3 Hardware Block Diagram
+The block diagram of the SIM7070 Series module is shown in the figure below.
+Figure 1: SIM7070 Series block diagram
+1.4Functional Overview
+Table 2 describes the features of the SIM7070 series modules.
+Table 2: General features
+Feature
+Implementation
+Power supply
+SIM 7070G Power supply voltage 3.0V～4.6V. Default :3.8V
+SIM 7070E Power supply voltage 3.2V～4.2V. Default :3.8V
+SIM 7070G-NG Power supply voltage 3.0V～4.6V. Default :3.8V
+Power saving
+Current in PSM mode: 3.5uA
+Radio frequency bands
+Please refer to the table 1
+Transmitting power
+GSM/GPRS power class:
+-- GSM850: 4 (2W)
+-- EGSM900: 4 (2W)
+-- DCS1800: 1 (1W)
+--PCS1900: 4 (1W)
+EDGE power class:
+-- GSM850: E2 (0.5W)
+-- EGSM900: E2 (0.5W)
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+11 / 72
+-- DCS1800: E1 (0.4W)
+--PCS1900: E1 (0.4W)
+LTE power class: 5 (0.125W).Band31/Band72 power class: 2(0.4W)
+Data Transmission
+Throughput
+GPRS: Uplink up to 85.6Kbps, Downlink up to 85.6Kbps.
+EDGE: Uplink up to 236.8Kbps, Downlink up to 236.8Kbps
+LTE CAT M1:589Kbps (DL).
+LTE CAT M1: 1119Kbps (UL).
+LTE CAT NB1/NB2: 136Kbps (DL).
+LTE CAT NB1/NB2: 150Kbps (UL).
+Antenna
+LTE main antenna.
+GNSS antenna.
+GNSS
+GNSS engine (GPS, GLONASS, BDS and Galileo).
+Protocol: NMEA.
+SIM interface
+Support identity card: 1.8V only.
+Digital audio feature
+Support PCM interface.
+Only support PCM master mode and short frame sync
+SPI interface
+Support for serial data bus SPI, only used during DAM application
+secondary development.
+UART interface
+One channel full-function UART1 by default can be used for AT
+communication.
+Baud rate: 300bps to 3686400bps. Default rate is 0bps (auto baud rate).
+Support auto baud rate, but only limited to 9600, 19200, 38400, 57600 and
+115200 bps.
+Support RTS/CTS hardware handshake.
+Two channel 2-wire UART2 and UART3 only used as UART in DAM
+application when secondary development.
+USB
+USB 2.0 high speed interface.
+Firmware upgrade
+Firmware upgrade over USB interface
+Physical characteristics
+Size: 24×24×2.3mm
+Weight:2.9±0.2g
+Temperature range
+operation temperature: -40℃~ +85℃
+Storage temperature -45°C to +90°C
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+12 / 72
+2.Package Information
+2.1 Pin Assignment Overview
+All functions of the SIM7070 series will be provided through 68 pads that will be connected to the
+customers’ platform. The Figure 2 is the pin assignment of the SIM7070 series.
+Figure 2: Pin assignment overview
+Table 3 lists the SIM7070 series module pin numbers and pin definitions.
+Table 3: Pin definition
+Pin No.
+Pin Name
+Pin No.
+Pin Name
+1
+PWRKEY
+2
+GND
+3
+UART1_DTR
+4
+UART1_RI
+5
+UART1_DCD
+6
+BOOT_CFG*
+7
+UART1_CTS
+8
+UART1_RTS
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+13 / 72
+9
+UART1_TXD
+10
+UART1_RXD
+11
+PCM_CLK
+12
+PCM_SYNC
+13
+PCM_DIN
+14
+PCM_DOUT
+15
+VDD_EXT
+16
+NC
+17
+GND
+18
+GND
+19
+GPIO1
+20
+GPIO2
+21
+GPIO3
+22
+DEBUG_RXD
+23
+DEBUG_TXD
+24
+USB_VBUS
+25
+ADC
+26
+NC
+27
+USB_DP
+28
+USB_DM
+29
+GND
+30
+SIM_VDD
+31
+SIM_DATA
+32
+SIM_CLK
+33
+SIM_RST
+34
+GPIO4
+35
+NC
+36
+NC
+37
+I2C_SDA
+38
+I2C_SCL
+39
+GND
+40
+NC
+41
+NC
+42
+NC
+43
+NC
+44
+NC
+45
+GND
+46
+GND
+47
+NC
+48
+GPIO5
+49
+UART3_RXD
+50
+UART3_TXD
+51
+NC
+52
+NETLIGHT
+53
+GNSS_ANT
+54
+GND
+55
+VBAT
+56
+VBAT
+57
+VBAT
+58
+GND
+59
+GND
+60
+RF_ANT
+61
+GND
+62
+GND
+63
+GND
+64
+GND
+65
+GND
+66
+STATUS
+67
+GPIO6
+68
+GPIO7
+Before the normal power up, BOOT_CFG and GPIO1 cannot be pulled up.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+14 / 72
+2.2 Pin Description
+This section describes the SIM7070 series of pins and pin function definitions
+Table 4: IO parameters definition
+Pintype
+Description
+PI
+Power input
+PO
+Power output
+AI
+Analog input
+AIO
+Analog input/output
+I/O
+Bidirectional input /output
+DI
+Digital input
+DO
+Digital output
+DOH
+Digital output with high level
+DOL
+Digital output with low level
+PU
+Pull up
+PD
+Pull down
+Table 5: Pin description
+Pin name
+Pin
+No.
+Default
+status
+Description
+Comment
+Power supply
+VBAT
+55,56
+57
+PI
+Power supply,
+SIM7070G voltage range: 3.0～4.6V.
+SIM7070E voltage range: 3.2～4.2V.
+SIM7070G-NG voltage range: 3.0～4.6V.
+VDD_EXT
+15
+PO
+LDO power output 1.8V for other
+external circuits with Max 50mA
+current output.
+This power supple only
+use for external GPIO
+pulling up or level shift
+circuit.
+If unused, keep it open.
+GND
+2,17
+18,29
+39,45
+46,54
+58,59
+61,62
+63,64
+65
+Ground
+System Control
+PWRKEY
+1
+DI,PU
+System power on/off control input,
+active low.
+The efficient input low level must be
+below 0.4V.
+The level is 1.5V when
+this PIN is floating;
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+15 / 72
+The efficient input high level must be
+higher than 1.0V.
+After the PWRKEY continues to pull
+down more than 12.6S, the system will
+automatically reset. Therefore,
+long-term grounding is not
+recommended
+SIM interface
+SIM_VDD
+30
+PO
+Power output for SIM card, its output
+Voltage depends on SIM card type
+automatically. Its output current is up
+to 50mA.
+All lines of SIM interface
+should be protected
+against ESD.
+SIM_DATA
+31
+I/O,PU
+SIM Card data I/O, which has been
+pulled up via a 20KR resistor to
+SIM_VDD internally. Do not pull it up
+or down externally.
+SIM_CLK
+32
+DO
+SIM clock
+SIM_RST
+33
+DO
+SIM Reset
+USB*
+USB_VBUS
+24
+DI,PD
+Valid USB detection input with
+3.5~5.25V detection voltage
+Software download
+interface. It is
+recommended to
+reserve interfaces or
+test points.
+USB_DP
+27
+I/O
+Positive line of the differential,
+bi-directional USB signal.
+USB_DM
+28
+I/O
+Negative line of the differential,
+bi-directional USB signal.
+UART interface
+UART1_DTR
+3
+DI,PH
+DTE get ready
+If unused, keep them
+open.
+UART1_RI
+4
+DOH
+Ring Indicator
+UART1_DCD
+5
+DOH
+Carrier detects
+UART1_CTS
+7
+DOL
+Clear to Send
+UART1_RTS
+8
+DI,PL
+Request to send
+UART1_TXD
+9
+DOH
+Transmit Data
+UART1_RXD
+10
+DI,PL
+Receive Data
+UART3_RXD
+49
+DI,PL
+The default function is GPIO. It can’t
+be used as AT communication port.
+But it can be used for software
+secondary development. It can also be
+configured as NMEA data output for
+GNSS.
+If unused, keep them
+open.
+UART3_TXD
+50
+DOL
+DEBUG_RXD
+22
+DI,PL
+The default function is GPIO, and
+UART is only used for software
+secondary development. Cannot be
+used as AT communication port.
+Debug UART, the boot
+log will be output during
+boot up. If unused, keep
+them open.
+DEBUG_TXD
+23
+DOH
+I2C interface
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+16 / 72
+I2C_SDA
+37
+I/O
+I2C data input/output
+If unused, keep open,
+or else pull them up
+via1KΩ resistors to the
+VDD_EXT.
+I2C_SCL
+38
+DO
+I2C clock output
+PCM interface
+PCM_CLK
+11
+DO
+PCM data bit clock.
+If unused, please keep
+them open.
+PCM_SYNC
+12
+DO
+PCM data frame sync signal.
+PCM_DIN
+13
+DI
+PCM data input.
+PCM_DOUT
+14
+DO
+PCM data output.
+SPI interface
+SPI_MOSI
+19
+DO
+Main Controller DATA output.
+Multiplexed by GPIO1
+If unused, please keep
+them open.
+SPI_MISO
+20
+DO
+Main Controller DATA input.
+Multiplexed by GPIO2
+SPI_CLK
+21
+DI
+Bus clock output,
+Multiplexed by GPIO3
+SPI_CS
+48
+DO
+Chip Select,
+Multiplexed by GPIO5
+GPIO
+NETLIGHT
+52
+DO
+LED control output as network status
+indication.
+If unused, keep them
+open.
+STATUS
+66
+DO
+Operating status output.
+High level: Power on and firmware
+ready
+Low level: Power off
+GPIO1
+19
+IO
+General purpose input/output, With
+interrupt function
+Configurable as SPI_MOSI
+Note: This chip pin has fast boot
+function. It cannot be pulled up before
+booting. Otherwise it will affect the
+normal boot.
+GPIO2
+20
+IO
+General purpose input/output, Without
+interrupt function.
+Configurable as SPI_MISO
+GPIO3
+21
+IO
+General purpose input/output, Without
+interrupt function.
+Configurable as SPI_CLK
+GPIO4
+34
+IO
+General purpose input/output, With
+interrupt function
+GPIO5
+48
+IO
+General purpose input/output, With
+interrupt function
+Configurable as SPI_CS
+GPIO6
+67
+IO
+General purpose input/output, With
+interrupt function
+GPIO7
+68
+IO
+General purpose input/output, With
+interrupt function
+RF interface
+GNSS_ANT
+53
+AI
+GNSS antenna soldering pad
+RF_ANT
+60
+AIO
+MAIN antenna soldering pad
+Other interface
+BOOT_CFG
+6
+DI,PD
+If it needs to enter into forced USB
+Reserve a test points
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+17 / 72
+download mode, it must be pulling up
+this pin to VDD_EXT before press the
+PWRKEY. If it needs to boot up
+normally, please keep this pin open
+for it. Keep it open.DO
+NOT PULL UP DURING
+NORMAL POWER UP!
+ADC
+25
+AI
+Analog-digital converter input.
+voltage range:0V～1.875V.
+If unused, keep them
+open.
+NC
+16,26
+35,36
+40,41
+42,43
+44,47
+51
+No connection.
+Keep it open
+Please reserve a test point for BOOT_CFG and VDD_EXT. If there is no USB connector, please also
+reserve a test point for USB_VBUS, USB_DP, and USB_DM for Firmware upgrade.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+18 / 72
+2.3 Mechanical Information
+Figure 3 depicts the mechanical dimensions of the SIM7070 series and describes the length, width, height
+and tolerance of the SIM7070 series of modules.
+Figure 3: Dimensions (Unit: mm)
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+19 / 72
+2.4 Footprint Recommendation
+Figure 4 depicts the Foot printer commended of The SIM7070 series modules.
+Figure 4: Footprint recommendation (Unit: mm)
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+20 / 72
+3.Interface Application
+3.1 Power Supply
+Pin 55, pin 56 and pin 57 are VBAT power input.
+On VBAT pads, when module works on CAT-M1 or NB-IoT mode, the ripple current is up to 0.6A typically.
+For steady voltage, the power supply capability must be up to 0.5A.
+On VBAT pads, when module works on EDGE or GPRS mode, The ripple current is up to 2A typically. For
+steady voltage, the power supply capability must be up to 2A. in order to avoid the voltage dropped down
+more than 300mV, the load capacitor on VBAT pads must be up to 300uF.
+The figure 5shows the VBAT voltage ripple wave at the maximum power transmit phase in EDGE/GPRS
+emission mode.
+Figure 5: Voltage drop in EDGE or GPRS mode
+Table 6 describes the electrical characteristics of the VBAT pin and the current consumption of the module
+in different modes.
+Table 6: VBAT pins electronic characteristic
+Symbol
+Description
+Min
+Typ
+Max
+Unit
+VBAT
+Module power voltage
+SIM7070G
+3
+3.8
+4.6
+V
+SIM7070E
+3.2
+3.8
+4.2
+V
+SIM7070G-NG
+3
+3.8
+4.6
+V
+IVBAT(peak)
+Module power peak current in CAT-M1 and NB-IoT
+emission mode.
+-
+0.5
+-
+A
+IVBAT(avera
+ge)
+Module power average current in normal mode
+Please refer to the chapter 5.4
+IVBAT(sleep
+)
+Power supply current in sleep mode
+IVBAT(powe
+r-off)
+Module power current in power off mode.
+-
+-
+15
+uA
+IVBAT(PSM)
+Module power current in PSM mode.
+-
+3.5
+-
+uA
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+21 / 72
+3.1.1 Power Supply Design Guide
+In the user's design, special attention must be paid to the design of the power supply section to ensure that
+the VBAT drop cannot be lower than the minimum voltage shown in Table 7 even when the module current
+consumption reaches the instantaneous maximum. If the VBAT voltage drops below the minimum input
+voltage, the module may shut down due to low voltage
+Table 7: Minimum input voltage
+Module
+Minimum input voltage(V)
+SIM7070G
+3.0
+SIM7070E
+3.2
+SIM7070G-NG
+3.0
+The figure 6 shows the recommended circuit.
+Figure 6: Power supply application circuit
+In addition, for ESD protection, it is suggested to add a TVS diode near the VBAT PINs. These capacitors
+should be put as close as possible to VBAT pads. Also, users should keep VBAT trace on circuit board
+wider than 2 mm to minimize PCB trace impedance.
+Table 8: Recommended TVS diode list
+No.
+Manufacturer
+Part Number
+Package
+1
+Prisemi
+PESDHC2FD4V5B
+DFN1006
+2
+Prisemi
+PESDHC3D3V3U
+SOD323
+3
+WILLsemi
+ESD5651N-2/TR
+DFN1006
+1. The customer's circuit design must have the function that the master can control the power off of the
+module. The module can be shut down or restarted normally. Only when the module is abnormal and
+cannot be shut down or restarted normally can the power be turned off.
+2. When the module is working normally, do not cut off the power supply of the module VBAT directly to
+avoid damage to the internal flash of the module. It is strongly recommended to turn off the module
+through PWRKEY or AT command before disconnecting the module VBAT power.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+22 / 72
+3.1.2 Recommended Power Supply Circuit
+If the supply voltage exceeds the supply range of VBAT, the buck circuit should be used to meet the
+demand of power supply. When choosing buck chip, besides considering the maximum current output
+capability of IC to meet the demand of SIM7070 Series, it is also necessary to consider the low static power
+consumption of IC in PSM mode.
+Figure 7: Power supply reference circuit
+3.1.3Voltage Monitor
+To monitor the VBAT voltage, the AT command “AT+CBC” can be used.
+AT command "AT+CBATCHK=1" can be used to enable the VBAT voltage monitoring function. When the
+VBAT voltage exceeds the preset alarm voltage range, a warning message will be reported through the AT
+port. When the VBAT voltage exceeds the preset shutdown voltage range, the module will automatically
+shut down. The default alarm voltage and shutdown voltage of the SIM7070 series are shown in Table 9.
+Table 9: Alarm and Shutdown Voltage Range
+Module
+Low voltage
+shutdown(V)
+Low voltage
+alarm(V)
+High voltage
+shutdown(V)
+High voltage
+alarm(V)
+SIM7070G
+2.9
+3.1
+4.65
+4.7
+SIM7070E
+3.1
+3.3
+4.25
+4.3
+SIM7070G-NG
+2.9
+3.1
+4.65
+4.7
+Under-voltage warning function and under-voltage power-off function are disabled by default. For more
+information about these AT commands, please refer to Document [1].
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+23 / 72
+3.2 Power on/Power off Function
+3.2.1 Power on
+The PWTRKEY pin has a default voltage of 1.5V. SIM7070 Series can be powered on by briefly pulling the
+PWRKEY pin to ground. It is strongly recommended to put an ESD protection diode close to the PWRKEY
+pin, as it would strongly enhance the ESD performance of PWRKEY pin.
+The PWRKEY pin has its own reset function. The reset time is determined by the internal timer (default is
+12.6 seconds). After the PWRKEY is pulled low, the module will be reset after 12.6 seconds. Therefore, it is
+not recommended to connect PWRKEY to GND all the time in external circuit design.
+Please refer to the following figure for the recommended reference circuit.
+Figure 8: Reference power on/off circuit
+The power-on scenarios are illustrated in the following figure.
+Figure 9: Power on timing sequence
+Table 10: Power on timing and electronic characteristic
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+24 / 72
+Symbol
+Parameter
+Min.
+Typ.
+Max.
+Unit
+Ton
+The time of active low level impulse of PWRKEY pin
+to power on module
+1
+-
+12.6
+s
+Ton(Vdd)
+The time from power-on issue to VDD_EXT pin
+output high level.
+-
+64
+-
+ms
+Ton(status)
+The time from power-on issue to STATUS pin output
+high level(indicating power up ready )
+1.8
+-
+-
+s
+Ton(uart)
+The time from power-on issue to UART port ready
+1.8
+-
+-
+s
+Ton(usb)
+The time from power-on issue to USB port ready
+1.8
+-
+-
+s
+VIH
+Input high level voltage on PWRKEY pin
+1.0
+1.5
+1.8
+V
+VIL
+Input low level voltage on PWRKEY pin
+-0.3
+0
+0.4
+V
+1.
+PWRKEY cannot be shorted all the way to GND.
+2.
+It is recommended to ensure that the VBAT voltage rises and stabilizes before pulling down the
+PWRKEY pin to start up.
+3.
+Before turning on the module, be sure to pay attention to the maximum conditions (such as voltage
+and temperature range) allowed by the module, otherwise exceeding the absolute maximum value
+of the module may cause permanent damage to the module.
+3.2.2 Power off
+The following methods can be used to power offSIM7070 Series.
+●
+Method 1: Power off SIM7070 Series by pulling the PWRKEY pin to ground.
+●
+Method 2: Power off SIM7070 Series by AT command “AT+CPOWD=1”.
+●
+Method 3: over-voltage or under-voltage automatic power off. The function can be enabled by AT
+command “AT+CBATCHK=1”. Default is disabled.
+For details about “AT+CPOWD” and “AT+CBATCHK”, please refer to Document [1].
+It is not recommended to turn off the module by disconnecting VBAT power. Otherwise, there is a risk of
+damage to the module file system.
+These procedures will make modules disconnect from the network and allow the software to enter a safe
+state, and save data before module be powered off completely.
+The power off scenario by pulling down the PWRKEY pin is illustrated in the figure 10.
+NOTE
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+25 / 72
+Figure 10: Power off timing sequence
+Table 11: Power off timing and electronic characteristic
+Symbol
+Parameter
+Time value
+Unit
+Min.
+Typ.
+Max.
+Toff
+The active low level time pulse on PWRKEY pin to
+power off module
+1.2
+-
+-
+s
+Toff(vdd)
+The time from power-off issue to VDD_EXT pin output
+low level
+1.8
+-
+-
+s
+Toff(status
+)
+The time from power-off issue to STATUS pin output
+low level(indicating power off )*
+1.8
+-
+-
+s
+Toff(uart)
+The time from power-off issue to UART port off
+1.8
+-
+-
+s
+Toff(usb)
+The time from power-off issue to USB port off
+1.8
+-
+-
+s
+Toff-on
+The buffer time from power-off issue to power-on issue
+2
+-
+-
+s
+The STATUS pin can be used to detect whether module is powered on or not. When module has been
+powered on and firmware goes ready, STATUS will be high level, or else STATUS will still low level.
+3.3 UART Interface
+SIM7070 Series can provide 3channels serial ports:
+One channel full-function serial port UART1, it can be used for AT command communication between the
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+26 / 72
+module and the peripheral MCU.
+One channel 2-wire serial port UART3, the default function after booting is GPIO. It can be configured as a
+UART function, but it cannot be used for AT command communication. It is only used as UART in DAM
+(Downloadable Application Module) application when secondary development. It can also be configured as
+a GNSS NMEA data output port.
+One channel serial port DEBUG_UART, the boot log will be output from hear during the system boot-up.
+The default function after booting is GPIO. It can be configured as a UART function, but it cannot be used
+for AT command communication. It is only used as UART in DAM (Downloadable Application Module)
+application when secondary development.
+When the UART port is used as the AT communication port, it supports high speed mode, the baud rate is
+up to 4Mbps.
+The communication baud rates include:
+0,300,600,1200,2400,4800,9600,19200,38400,57600,115200,230400,921600,2000000,3000000,3200000
+and 3686400 bps.
+The rate 0bps marks auto baud rate. And it supports auto baud rate, but the rate only supported on 9600,
+19200, 38400, 57600, 115200. If users need to change to other baud rate, it needs to switch via manual
+operation.
+3.3.1 UART Design Guide
+The following figures show the reference design.
+Figure 11: UART full modem
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+27 / 72
+Figure 12: UART null modem
+Table 12: UART electronic characteristic
+Symbol
+Description
+Min.
+Typ.
+Max.
+Unit
+VIH
+UART input high level voltage
+1.17
+1.8
+2.1
+V
+VIL
+UART input low level voltage
+-0.3
+0
+0.63
+V
+VOH
+UART output high level voltage
+1.35
+1.8
+1.8
+V
+VOL
+UART output low level voltage
+0
+0
+0.45
+V
+The SIM7070 Series UART is 1.8V voltage interface. If user’s UART application circuit is 3.3V voltage
+interface, the level shifter circuits should be used for voltage matching. The following figure shows the
+voltage matching reference design.
+Figure 13: Reference circuit with level shifter IC
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+28 / 72
+Figure 14: Reference circuit with Transistor
+When it uses the level shifter IC, the pull up resistance on TXD_3.3V, RTS_3.3V, DCD_3.3V and
+RI_3.3V should not be less than 47KΩ.
+When it uses the transistor, the selection of the transistor must be a high-speed transistor, and the
+model MMBT3904 is recommended.
+3.3.2 RI and DTR Behavior
+The RI pin description:
+The RI pin can be used to interrupt output signal to inform the host controller such as application CPU.
+Before that, users must use AT command “AT+CFGRI=1” to enable this function.
+Normally RI will keep high level until certain conditions such as receiving SMS, or a URC report coming,
+then it will output a low level pulse 120ms, in the end, it will become high level.
+Figure 15: RI behaviour（SMS and URC report）
+The DTR pin description:
+After setting the AT command “AT+CSCLK=1”, and then pulling up the DTR pin, Module will enter sleep
+mode when module is in idle mode. In sleep mode, the UART is unavailable. When SIM7070 enters sleep
+mode, pulling down DTR can wake up module.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+29 / 72
+After setting the AT command “AT+CSCLK=0”, SIM7070 Series will do nothing when the DTR pin is pulling
+up.
+For more details of AT commands about UART, please refer to document [1] and [20].
+3.4 USB Interface
+SIM7070 Series has a USB2.0 interface. It can be used for software upgrade and software debugging.
+The USB of the SIM7070 series only supports slave mode and does not support USB charging. USB does
+not support Suspend mode, the module will not be able to enter the minimum power mode when USB is
+connected.
+USB_VBUS is the detecting signal for USB inserting. The input voltage range on the USB_VBUS pin is from
+3.5V to 5.25V. If there is out of this range, it may be due to USB function unidentifiable, even damaging the
+module.
+The reference circuit refers to the following figure.
+Figure 16: USB reference circuit
+Because of the high speed on USB bus, more attention should be paid to the influence of the junction
+capacitance of the ESD component on USB data lines. Typically, the capacitance of the D1 and D2 should
+be less than 3pF.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+30 / 72
+D3 is suggested to select the diode with anti-ESD and voltage surge function, or customer could add a
+ZENER diode for surge clamping.
+Table 13: Recommended TVS models
+No.
+Manufacturer
+Part Number
+Package
+1
+NXP
+PESD5V0X1BCAL
+0402
+2
+Willsemi
+ESD5301N
+0402
+3
+NXP
+PESD5V0H1BSF
+0201
+4
+Willsemi
+ESD5311Z-2/TR
+0201
+The USB interface is strongly recommended to reserve test points.
+The USB_DM and USB_DP nets must be traced by 90Ohm+/-10% differential impedance.
+3.5 Force USB Download Interface
+The module can enter the USB forced download mode with pulling up the BOOT_CFG pin. The reference
+circuit refers to the following figure.
+Figure 17: Reference circuit of BOOT_CFG interface
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+31 / 72
+3.6 SIM Interface
+SIM7070 Series only supports 1.8V SIM Cards. SIM_VDD is provided by LDO inside the module, the
+default value is 1.8V.
+Table 14: SIM electronic characteristic in 1.8V mode (SIM_VDD=1.8V)
+Symbol
+Parameter
+Min.
+Typ.
+Max.
+Unit
+SIM_VDD
+LDO power output voltage
+1.75
+1.8
+1.95
+V
+VIH
+High-level input voltage
+0.65*SIM_VDD
+-
+SIM_VDD +0.3
+V
+VIL
+Low-level input voltage
+-0.3
+0
+0.35*SIM_VDD
+V
+VOH
+High-level output voltage
+SIM_VDD -0.45
+-
+SIM_VDD
+V
+VOL
+Low-level output voltage
+0
+0
+0.45
+V
+1.
+The module does not support 3V SIM card.
+2.
+The software does not support the SIM card hot swap function.
+3.6.1 SIM Application Guide
+Note that the SIM peripheral circuit should be close to the SIM card socket. The following figure shows the
+6-pin SIM card holder reference circuit.
+Figure 18: SIM interface reference circuit
+SIM_DATA has been pulled up with a 20KR resistor to SIM_VDD in module, so it no need pulled up resistor
+anymore. SIM_VDD needs a 100nF capacitor close to SIM socket.
+SIM_CLK is very important signal, the rise time and fall time of SIM_CLK should be less than 40ns. So the
+junction capacity of the TVS need to less 50pF.
+In order to enhance the reliability and availability of the (U)SIM card in applications. Please follow the
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+32 / 72
+guidelines below when designing.
+
+It is recommended to place a 100nF capacitor on the SIM_VDD signal line close to the SIM card
+holder.
+
+Place TVS near the SIM card holder. The junction capacity of the TVS should not exceed 50pF. The
+22Ω resistor in series between the SIM card holder and the module can enhance the ESD protection
+performance.
+
+Keep SIM card signals away from RF and VBAT traces.
+
+SIM card signal line traces to avoid branch.
+
+To avoid cross-talk between SIM_DATA and SIM_CLK, keep them away from each other and shield
+them with surrounded ground. USIM_RST should also be ground shielded.
+3.7 PCM Interface
+SIM7070 Series provides a PCM interface for external codec, which can be used in master mode with short
+sync and 16 bits linear format.
+Table 15: PCM format
+Characteristics
+Specification
+Line Interface Format
+Linear(Fixed)
+Data length
+16bits(Fixed)
+PCM Clock/Sync Source
+Master Mode(Fixed)
+PCM Clock Rate
+2048 KHz (Fixed)
+PCM Sync Format
+Short sync(Fixed)
+Data Ordering
+MSB
+For more details about PCM AT commands, please refer to document [1].
+3.7.1 PCM timing
+SIM7070 Series supports 2.048 MHz PCM data and sync timing for 16 bits linear format codec.
+Figure 19: PCM_SYNC timing
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+33 / 72
+Figure 20: External codec to module timing
+Figure 21: Module to external codec timing
+Table 16: PCM timing parameters
+Parameter
+Description
+Min.
+Typ.
+Max.
+Unit
+T(sync)
+PCM_SYNC cycle time
+–
+125
+–
+μs
+T(synch)
+PCM_SYNC high level time
+–
+488
+–
+ns
+T(syncl)
+PCM_SYNC low level time
+–
+124.5
+–
+μs
+T(clk)
+PCM_CLK cycle time
+–
+488
+–
+ns
+T(clkh)
+PCM_CLK high level time
+–
+244
+–
+ns
+T(clkl)
+PCM_CLK low level time
+–
+244
+–
+ns
+T(susync)
+PCM_SYNC setup time high before falling edge of
+PCM_CLK
+–
+122
+–
+ns
+T(hsync)
+PCM_SYNC hold time after falling edge of
+PCM_CLK
+–
+366
+–
+ns
+T(sudin)
+PCM_IN setup time before falling edge of
+PCM_CLK
+60
+–
+–
+ns
+T(hdin)
+PCM_IN hold time after falling edge of PCM_CLK
+60
+–
+–
+ns
+T(pdout)
+Delay from PCM_CLK rising to PCM_OUT valid
+–
+–
+60
+ns
+T(zdout)
+Delay from PCM_CLK falling to PCM_OUT
+HIGH-Z
+–
+–
+60
+ns
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+34 / 72
+3.7.2 PCM Application Guide
+The following figure shows the external codec reference design.
+Figure 22: Audio codec reference circuit
+3.8 I2C Interface
+SIM7070 Series provides anI2C interface with clock rate up to 400 kbps. Its operation voltage is 1.8V.
+The following figure shows the I2C bus reference design.
+Figure 23: I2C reference circuit
+The I2C signal has no pull-up resistors in module. So the pulling up resistors 1KΩ to VDD_EXT is
+necessary in application circuit.
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+35 / 72
+3.9 SPI Interface
+SIM7070 Series supports a set of 4-wire (MISO, MOSI, CS and CLK) SPI interface. The default function of
+the SPI interface is GPIO. The SPI function is only available in software secondary development.
+The SPI supports both master mode and slave mode. The maximum clock frequency is up to 50MHz when
+operating in SPI master mode and up to 25MHz when operating in SPI Slave mode.
+The SPI function of SIM7070 series is multiplexed by GPIO1, GPIO2, GPIO3 and GPIO5.
+Table 17 describes the multiplex function of the SPI.
+Table 17: Multiplex function of the SPI
+Pin No.
+Pin Name
+multiplex function
+19
+GPIO1
+SPI_MOSI
+20
+GPIO2
+SPI_MISO
+21
+GPIO3
+SPI_CLK
+48
+GPIO5
+SPI_CS
+The GPIO1(19 pin) function is FAST BOOT function before system boot-up, so the level on this pin
+cannot be high before the system boot-up, otherwise the module will not start normally.
+The following figure shows the SPI bus reference design.
+Figure 24: SPI master mode circuit
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+36 / 72
+Figure 25: SPI slave mode circuit
+3.10 Network status
+The NETLIGHT pin is used to control Network Status LED, its reference circuit is shown in the following
+figure.
+Figure 26: NETLIGHT reference circuit
+The value of the resistor named “R” depends on the LED characteristic.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+37 / 72
+Table 18: NETLIGHT pin status
+NETLIGHT pin status
+Module status
+64ms ON, 800ms OFF
+No registered network
+64ms ON, 3000ms OFF
+Registered network (PS domain registration success)
+64ms ON, 300ms OFF
+Data transmit (PPP dial-up state and use of data services such as
+internal TCP/FTP/HTTP)
+OFF
+Power off or PSM mode
+NETLIGHT output low level as “OFF” and high level as “ON”.
+3.11 ADC interface
+SIM7070 Series module provides a 10-bit high sample rate (ADC) interfaces. It is available fordigitizing
+analog signals such as battery voltage and so on. Its input voltage range is from 0V to 1.8v. That is the
+maximum measurement range of ADC cannot exceed 1.8V. If the input voltage of ADC PIN exceeds its
+range, it is necessary to implement the resistance partial pressure on the hardware.
+The electronic specifications are shown in the following table.
+Table 19: ADC electronic characteristics
+Characteristics
+Min.
+Typ.
+Max.
+Unit
+Input Range
+0
+1.875
+V
+Internal pull-up resistor
+400
+KΩ
+Input serial resistance
+1
+–
+–
+MΩ
+“AT+CADC” can be used to read the voltage of the ADC pin, for more details, please refer to document
+[1].
+3.12 LDO output
+SIM7070 Series has a LDO power output namedVDD_EXT. The output voltage is 1.8V. This voltage can
+only be pulled up for the external GPIO or power supply for the level conversion circuit.
+NOTE
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+38 / 72
+Figure 27: Power on sequence of the VDD_EXT
+Table 20: Electronic characteristic
+Symbol
+Description
+Min.
+Typ.
+Max.
+Unit
+VVDD_EXT
+Output voltage
+1.75
+1.8
+1.85
+V
+IO
+Output current
+-
+-
+50
+mA
+The VDD_EXT is used to the IO power in the module. The Output voltage is not supported to adjust.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+39 / 72
+4.RF Specifications
+4.1 LTE RF Specifications
+Table 21: Conducted transmission power
+GSM
+GSM850, EGSM900
+PCL
+Nominal output power (dBm)
+Tolerance (dB) for conditions
+Normal
+Extreme
+5
+33
+±2
+±2.5
+6
+31
+±3
+±4
+7
+29
+±3
+±4
+8
+27
+±3
+±4
+9
+25
+±3
+±4
+10
+23
+±3
+±4
+11
+21
+±3
+±4
+12
+19
+±3
+±4
+13
+17
+±3
+±4
+14
+15
+±3
+±4
+15
+13
+±3
+±4
+16
+11
+±5
+±6
+17
+9
+±5
+±6
+18
+7
+±5
+±6
+19-31
+5
+±5
+±6
+DCS1800/PCS1900
+PCL
+Nominal output power (dBm)
+Tolerance (dB) for conditions
+Normal
+Extreme
+0
+33
+±2
+±2.5
+1
+31
+±3
+±4
+2
+29
+±3
+±4
+3
+27
+±3
+±4
+4
+25
+±3
+±4
+5
+23
+±3
+±4
+6
+21
+±3
+±4
+7
+19
+±3
+±4
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+40 / 72
+8
+17
+±3
+±4
+9
+15
+±3
+±4
+10
+13
+±3
+±4
+11
+11
+±5
+±6
+12
+9
+±5
+±6
+13
+7
+±5
+±6
+14
+5
+±5
+±6
+CAT-NB2
+Frequency
+Power
+Min.
+LTE-FDD B1
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B2
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B3
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B4
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B5
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B8
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B12
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B13
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B18
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B19
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B20
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B25
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B26
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B28
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B31
+26dBm +/-2.7dB
+<-40dBm
+LTE-FDD B66
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B71
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B85
+20dBm +/-2.7dB
+<-40dBm
+CAT-M1
+Frequency
+Power
+Min.
+LTE-FDD B1
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B2
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B3
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B4
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B5
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B8
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B12
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B13
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B14
+20dBm +/-2.7dB
+<-40dBm
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+41 / 72
+LTE-FDD B18
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B19
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B20
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B25
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B26
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B27
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B28
+20dBm +2.7/-3.2dB
+<-40dBm
+LTE-FDD B31
+26dBm +/-2.7dB
+<-40dBm
+LTE-FDD B66
+20dBm +/-2.7dB
+<-40dBm
+LTE-FDD B72
+26dBm +/-2.7dB
+<-40dBm
+LTE-FDD B85
+20dBm +/-2.7dB
+<-40dBm
+The max power is tested result for 1RB in CAT-M1 and single-tone in CAT-NB2. MPR for CAT-M1
+please refer to 6.2.3EA.5 part for 3GPP. Multi-tone test results please refer to part 6.2.3F.3 for
+CAT-NB2.
+Table 22: Maximum Power Reduction (MPR) for UE category NB&M1 Power Class 5
+CAT-NB1/CAT-NB2
+Modulation
+QPSK
+Tone positions for 3 Tones
+allocation
+0-2
+3-5 and 6-8
+9-11
+MPR
+≤0.5 dB
+0 dB
+≤0.5 dB
+Tone positions for 3 Tones
+allocation
+0-5 and 6-11
+MPR
+≤1 dB
+≤1 dB
+Tone positions for 3 Tones
+allocation
+0-11
+MPR
+≤2 dB
+CAT-M1
+Modulation
+Channel bandwidth / Transmission bandwidth (NRB)
+MPR (dB)
+1.4
+MHz
+3.0
+MHz
+5
+MHz
+10
+MHz
+15
+MHz
+20
+MHz
+QPSK
+>2
+>2
+>3
+>5
+-
+-
+≤1
+QPSK
+>5
+>5
+-
+-
+-
+-
+≤2
+16 QAM
+≤2
+≤2
+>3
+>5
+-
+-
+≤1
+16QAM
+>2
+>2
+>5
+-
+-
+-
+≤2
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+42 / 72
+For each sub-frame, the MPR is calculated per slot and is given by the maximum value transmitted
+within the slot; then the maximum MPR on both slots is applied to the entire sub-frame.
+Table 23: Operating frequencies
+Frequency
+Receiving
+Transmission
+EGSM900
+925～960MHz
+880～915 MHz
+GSM800
+869~894MHz
+824~849MHz
+DCS1800
+1805～1880 MHz
+1710～1785 MHz
+PCS1900
+1930~1990MHz
+1850~1910MHz
+LTE BAND Information【Refers to Table 1】
+GPS L1 BAND
+1574.4~1576.44 MHz
+-
+GLONASS
+1598.0625 ~1605.375MHz
+-
+BDS
+1559.052~1591.788MHz
+-
+Galileo
+1574.4~1576.44 MHz
+-
+Table 24: E-UTRA operating bands
+E-UTRA
+UL Freq.
+DL Freq.
+Duplex Mode
+1
+1920 ~1980 MHz
+2110 ~2170 MHz
+HD-FDD
+2
+1850~1910MHz
+1930~1990MHz
+HD-FDD
+3
+1710 ~1785 MHz
+1805 ~1880 MHz
+HD-FDD
+4
+1710~1755MHz
+2110~2155
+HD-FDD
+5
+824 ~849 MHz
+869 ~894 MHz
+HD-FDD
+8
+880 ~915 MHz
+925 ~960 MHz
+HD-FDD
+12
+699~716MHz
+729~746MHz
+HD-FDD
+13
+777~787MHz
+746~756MHz
+HD-FDD
+14
+788~798MHz
+758~768MHz
+HD-FDD
+18
+815 ~830 MHz
+860 ~875 MHz
+HD-FDD
+19
+830 ~845 MHz
+875 ~890 MHz
+HD-FDD
+20
+832~862MHz
+791~821MHz
+HD-FDD
+25
+1850~1915MHz
+1930~1995MHz
+HD-FDD
+26
+814 ~849 MHz
+859 ~894 MHz
+HD-FDD
+27
+807~824MHz
+852~869MHz
+HD-FDD
+28
+703~748MHz
+758~803MHz
+HD-FDD
+31
+452.5~457.5MHz
+462.5~467.5MHz
+HD-FDD
+66
+1710~1780MHz
+2110~2180MHz
+HD-FDD
+71
+663~698MHz
+617~652MHz
+HD-FDD
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+43 / 72
+72
+451~456MHz
+461~466MHz
+HD-FDD
+85
+698~716MHzHz
+728~746MHz
+HD-FDD
+Table 25: Conducted receive sensitivity
+Frequency
+Receive
+sensitivity(Typical)voice
+Receive sensitivity(MAX)
+EGSM900
+107.9dBm
+3GPP
+GSM850
+108.2dBm
+3GPP
+DCS1800
+107.5dBm
+3GPP
+PCS1900
+107.2dBm
+3GPP
+LTE HD-FDD
+Reference【Table26】【Table27】
+3GPP
+Table 26: CAT-M1 Reference sensitivity (QPSK)
+E-UTRA
+Band
+REFSENS
+MAX(dBm)
+3GPP Request
+SIM7070G
+SIM7070E
+SIM7070G-NG
+Duplex
+Mode
+REFSENS
+Typical
+(dBm)
+REFSENS
+Typical
+(dBm)
+REFSENS
+Typical (dBm)
+1
+-103
+-108.1
+-108.4
+NA
+HD-FDD
+2
+-101
+-106.2
+-106.6
+NA
+HD-FDD
+3
+-100
+-107.5
+-107.3
+NA
+HD-FDD
+4
+-103
+-106.5
+-106.2
+NA
+HD-FDD
+5
+-101.5
+-108.2
+-108.8
+NA
+HD-FDD
+8
+-100.5
+-106.1
+-106.5
+NA
+HD-FDD
+12
+-100
+-107.4
+-107.3
+NA
+HD-FDD
+13
+-100
+-105.5
+-106.1
+NA
+HD-FDD
+14
+-100
+-106.5
+-107.3
+NA
+HD-FDD
+18
+-103
+-108.5
+-109.5
+NA
+HD-FDD
+19
+-103
+-108.1
+-108.8
+NA
+HD-FDD
+20
+-100.5
+-108.3
+-107.8
+NA
+HD-FDD
+25
+-99.5
+-103.2
+-103.8
+NA
+HD-FDD
+26
+-101
+-108.1
+-108.3
+NA
+HD-FDD
+27
+-101.5
+-106.2
+-106.8
+NA
+HD-FDD
+28
+-101.5
+-108.2
+-108.8
+NA
+HD-FDD
+31
+-97.3
+-102.4
+-105.7
+NA
+HD-FDD
+66
+NA
+-108.5
+-108.4
+NA
+HD-FDD
+72
+NA
+-102.4
+-105.7
+NA
+HD-FDD
+85
+-100
+-109.1
+-109.4
+NA
+HD-FDD
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+44 / 72
+Table 27: CAT-NB2Reference sensitivity (QPSK)
+Operating
+bands
+REFSENS
+MAX(dBm)
+3GPP
+Request
+SIM7070G
+SIM7070E
+SIM7070G-NG
+REFS
+ENS
+Typica
+l(dBm)
+REFSENS
+Typical
+Repetition
+12/ 7/1/128
+[EPRE
+dbm/15KH
+z]
+①
+REFS
+ENS
+Typica
+l(dBm)
+REFSENS
+Typical
+Repetition
+12/ 7/1/128
+[EPRE
+dbm/15KH
+z]
+①
+REFS
+ENS
+Typica
+l(dBm)
+REFSENS
+Typical
+Repetition
+12/ 7/1/128
+[EPRE
+dbm/15KH
+z]
+①
+1
+-108.2
+-115.1
+-131
+-115.1
+-131
+-115.1
+-131
+2
+-108.2
+-114.8
+-130
+-114.8
+-130
+-114.8
+-130
+3
+-108.2
+-115.4
+-131
+-115.4
+-131
+-115.4
+-131
+4
+-108.2
+-115.1
+-130
+-115.1
+-130
+-115.1
+-130
+5
+-108.2
+-114.3
+-129
+-114.3
+-129
+-114.3
+-129
+8
+-108.2
+-113.9
+-130
+-113.9
+-130
+-113.9
+-130
+12
+-108.2
+-116
+-130
+-116
+-130
+-116
+-130
+13
+-108.2
+-115.7
+-130
+-115.7
+-130
+-115.7
+-130
+18
+-108.2
+-114.9
+-129
+-114.9
+-129
+-114.9
+-129
+19
+-108.2
+-115.1
+-128
+-115.1
+-128
+-115.1
+-128
+20
+-108.2
+-114.1
+-128
+-114.1
+-128
+-114.1
+-128
+25
+-108.2
+-114.6
+-130
+-114.6
+-130
+-114.6
+-130
+26
+-108.2
+-114.6
+-129
+-114.6
+-129
+-114.6
+-129
+28
+-108.2
+-115.9
+-130
+-115.9
+-130
+-115.9
+-130
+31
+-108.2
+-114.7
+-129
+66
+-108.2
+-114.8
+-129
+-114.8
+-129
+-114.8
+-129
+71
+-108.2
+-114.4
+-129
+-114.4
+-129
+85
+-108.2
+-115.7
+-130
+-115.7
+-130
+-115.7
+-130
+The 12/7/1/128 of the REFSENS Typical Repeated 12/ 7/1/128 means Subcarriers=12, MCS.TBS=7,
+#SF/#RU=1, #Repetition=128.
+4.2 LTE Antenna Design Guide
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+45 / 72
+Users should connect antennas to SIM7070 Series antenna pads through micro-strip line or other types of
+RF trace and the trace impedance must be controlled in 50Ω. SIMCom recommends that the total insertion
+loss between the antenna pads and antennas should meet the following requirements:
+Table 28: Trace loss
+Frequency
+Loss
+700MHz-960MHz
+<0.5dB
+1710MHz-2170MHz
+<0.9dB
+2300MHz-2650MHz
+<1.2dB
+To facilitate the antenna tuning and certification test, a RF connector and an antenna matching circuit
+should be added. The following figure is the recommended circuit.
+Figure 28: Antenna matching circuit (MAIN_ANT)
+In above figure, the components R1, C1, C2 and R2 are used for antenna matching, the values of
+components can only be achieved after the antenna tuning and usually provided by antenna vendor. By
+default, the R1, R2 are 0Ω resistors, and the C1, C2 are reserved for tuning. The component D1 is a TVS
+for ESD protection, and it is optional for users according to application environment.
+The RF test connector is used for the conducted RF performance test, and should be placed as close as to
+the module’s MAIN_ANT pin. The traces impedance between SIM7070 Series and antenna must be
+controlled in 50Ω.
+Two TVS are recommended in the table below.
+Table 29: Recommended TVS
+Package
+Part Number
+Vender
+0201
+LXES03AAA1-154
+Murata
+0402
+LXES15AAA1-153
+Murata
+4.3 GNSS
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+46 / 72
+SIM7070 Series merges GNSS (GPS/GLONASS/BD/Galileo) satellite and network information to provide a
+high-availability solution that offers industry-leading accuracy and performance. This solution performs well,
+even in very challenging environmental conditions where conventional GNSS receivers fail, and provides a
+platform to enable wireless operators to address both location-based services and emergency mandates.
+4.3.1 GNSS Technical specification
+
+Tracking sensitivity: -159 dBm (GPS+GLONASS)/-159 dBm (GPS+BD)
+
+Cold-start sensitivity: -147.5 dBm
+Accuracy (Open Sky): 0.4 m(GPS+BD)
+
+TTFF (Open Sky) : Hot start < 1 s, Cold start< 31 s
+
+Receiver Type: 16-channel, C/A Code
+
+GPS L1 Frequency: 1575.42±1.023MHz
+
+GLONASS L1: 1598.0625 ~1605.375MHz
+
+BDS B1: 1559.052~1591.788MHz
+
+Galileo L1:1575.42±1.023MHz
+
+Update rate: Default 1 Hz
+
+GNSS data format: NMEA-0183
+
+GNSS Current consumption :54mA (AT+CFUN=0,without USB)
+
+GNSS antenna: Passive/Active antenna
+If the antenna is active type, the power should be given by main board because there is no power
+supply on the GNSS antenna pad. If the antenna is passive, it is suggested that the external LNA
+should be used.
+4.3.2 GNSS Application Guide
+Users can adopt an active antenna or a passive antenna to SIM7070 Series. If using a passive antenna, an
+external LNA is a must to get better performance. The following figures are the reference circuits.
+Figure 29: Active antenna circuit
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+47 / 72
+Figure 30: Passive antenna circuit (Default)
+In above figures, the components C1, L1 and L2 are used for antenna matching. Usually, the values of the
+components can only be achieved after antenna tuning and usually provided by antenna vendor.C2 is used
+for DC blocking. L3 is the matching component of the external LNA, and the value of L3 is determined by
+the LNA characteristic and PCB layout. Both VDD of active antenna and V_LNA need external power
+supplies which should be considered according to active antenna and LNA characteristic. LDO/DCDC is
+recommended to get lower current consuming by shutting down active antennas and LNA when GNSS is
+not working.
+GNSS can be tested by NMEA port. NMEA sentences can be obtained through UART or USB automatically.
+NMEA sentences include GSV, GGA, RMC, GSA, and VTG. Before using GNSS, user should configure
+SIM7070 Series in proper operating mode by AT command. Please refer to related documents for details.
+SIM7070 Series can also get position location information through AT directly.
+1. GNSS is closed by default and can be started by “AT+CGNSPWR=1”. The AT command has two
+parameters, the first is on/off, and the second is GNSS mode. Default mode is standalone mode.
+AGPS mode needs more support from the mobile telecommunication network. Please refer to
+document [21] for more details.
+2. If the passive antenna is used, put the LNA close to the antenna.
+3. Make sure there are no noise signals around GNSS antenna.
+4.4 RF traces note
+4.4.1 RF traces layout
+
+Keep the RF trace from module ant pin to antenna as short as possible
+
+RF trace should be 50 Ωeither on the top layer or in the inner layer
+
+RF trace should be avoided right angle and sharp angle.
+
+Put enough GND vias around RF traces.
+
+RF trace should be far away from other high speed signal lines.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+48 / 72
+Figure 31: RF trace should be far away from other high speed signal lines
+
+Avoiding the paroling rout of other system antennas nearly.
+
+There should be some distance from The GND to the inner conductor of the SMA connector. It is better
+to keep out all the layers from inner to the outer conductor.
+Figure 32: The distance between GND to the inner conductor of SMA
+
+GND pads around the ANT pad should not be hot pad to keep the GND complete.
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+49 / 72
+4.4.2 LTE ANT and other system ANT decoupling
+
+Make sure the efficiency of LTE main ANT more than 40%
+
+Keep the decoupling of LTE main ANT to WLAN ANT more than 15dB
+
+Keep the decoupling of LTE main ANT to GNSS ANT more than 30dB
+The decoupling value can be provided by ANT adventure. More details can refer to the document [22].
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+50 / 72
+5.Electrical Specifications
+5.1 Absolute maximum ratings
+Absolute maximum rating for digital and analog pins of SIM7070 Series are listed in the following table:
+Table 30: Absolute maximum ratings
+Parameter
+Min.
+Typ.
+Max.
+Unit
+Voltage on VBAT
+-0.3
+-
+6.0
+V
+Voltage on USB_VBUS
+-0.3
+-
+6.0
+V
+Voltage at digital pins
+(RESET,GPIO,I2C,UART,PCM)
+-0.3
+-
+2.1
+V
+Voltage at PWRKEY
+-0.3
+-
+2.1
+V
+ADC
+-0.3
+-
+1.875
+V
+The absolute parameter is tested when VBAT has the power but the PWRKEY has no pulled down. If it
+is over the range, the module will be damage. If the power supply on VBAT pin had been shut down,
+and the other pin should not have the voltage. Otherwise, it may lead to abnormally boot up or damage
+the module.
+5.2 Operating conditions
+Table 31: 1.8V Digital I/O characteristics*
+Parameter
+Description
+Min.
+Typ.
+Max.
+Unit
+VIH
+High-level input voltage
+1.17
+1.8
+2.1
+V
+VIL
+Low-level input voltage
+-0.3
+0
+0.63
+V
+VOH
+High-level output voltage
+1.35
+-
+1.8
+V
+VOL
+Low-level output voltage
+0
+-
+0.45
+V
+IOH
+High-level output current(no pull
+down resistor)
+-
+2
+-
+mA
+IOL
+Low-level output current(no pull
+up resistor)
+-
+-2
+-
+mA
+IIH
+Input high leakage current (no
+-
+-
+1
+uA
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+51 / 72
+pull down resistor)
+IIL
+Input low leakage current(no pull
+up resistor)
+-1
+-
+-
+uA
+These parameters are for digital interface pins, such as GPIOs (including NETLIGHT and STATUS),
+I2C, UART, PCM, SPI and BOOT_CFG.
+Table 32: Recommended operating ratings
+Parameter
+Min.
+Typ.
+Max.
+Unit
+Voltage at VBAT
+SIM7070G
+3.0
+3.8
+4.6
+V
+SIM7070E
+3.2
+3.8
+4.2
+SIM7070G-NG
+3.0
+3.8
+4.6
+V
+Voltage at USB_VBUS
+3.5
+5.0
+5.25
+V
+The operating temperature of SIM7070 Series is listed in the following table.
+Table 33: Operating temperature
+Parameter
+Min.
+Typ.
+Max.
+Unit
+operation temperature
+-40
+25
+85
+℃
+Storage temperature
+-45
+25
++90
+℃
+Module is able to make and receive voice calls, data calls, SMS and make GPRS/LTE traffic in -40℃~
++85℃. The performance will be reduced slightly from the 3GPP specifications if the temperature is
+outside the normal operating temperature range and still within the extreme operating temperature
+range.
+5.3 Operating Mode
+5.3.1 Operating Mode Definition
+The table below summarizes the various operating modes of SIM7070 Series product.
+NOTE
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+52 / 72
+Table 34: Operating mode Definition
+Mode
+Function
+Normal operation
+Sleep
+In this case, the current consumption of module will be reduced to the
+minimal level and the module can still receive paging message and
+SMS.
+Idle
+Software is active. Module is registered to the network, and the module
+is ready to communicate.
+Cat-M1 Voice Call
+Connection between two subscribers is in progress. In this case, the
+power consumption depends on network settings.
+Standby
+Module is ready for data transmission, but no data is currently sent or
+received. In this case, power consumption depends on network
+settings.
+Data transmission
+There is data transmission in progress. In this case, power
+consumption is related to network settings (e.g. power control level);
+uplink/downlink data rates, etc.
+Minimum functionality mode
+AT command “AT+CFUN=0” and “AT+CSCLK=1”can be used to set
+the module to a minimum functionality mode without removing the
+power supply. In this mode, the RF part of the module will not work and
+the SIM card will not be accessible, but the serial port and USB port
+are still accessible. The power consumption in this mode is lower than
+normal mode.
+Flight mode
+AT command “AT+CFUN=4”can be used to set the module to flight
+mode without removing the power supply. In this mode, the RF part of
+the module will not work, but the serial port and USB port are still
+accessible. The power consumption in this mode is lower than normal
+mode.
+Power Saving Mode (PSM)
+Setting AT command” AT+CPSMS=1” can be enable the PSM mode.
+In this mode, The mode is similar to power-off. But the module remains
+registered on the network and there is no need to re-attach or
+re-establish the network connections. And all of the functions will be
+unavailable except the RTC function. PWRKEY and timer expires can
+wake up the module.
+Extended Mode DRX
+(e-DRX)
+In idle or sleep mode, module and the network may negotiate over
+non-access stratum signaling the use of extended mode DRX for
+reducing power consumption.
+5.3.2 Sleep mode
+Module can enter into sleep mode for reducing its power consumption in idle module. In sleep mode, the
+current consumption of module will be reduced to very small level, and module can still receive paging
+message and SMS.
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+53 / 72
+Several hardware and software conditions must be satisfied together in order to let SIM7070 Series enter
+sleep mode:
+
+USB condition: Connected USB can’t enter into sleep mode. So if module wants to enter into sleep
+mode, it must disconnect the power supply for USB_VBUS first.
+
+Software condition: If module wants to enter into sleep mode, AT comment “AT+CSCLK=1” must be set
+to close some clock in the module. If the value “AT+CSCLK” is “0”, module will never enter into sleep
+mode.
+
+UART condition: If module wants to enter into sleep mode, AT comment “AT+CSCLK=1” must be set to
+close some clock in the module. If the value “AT+CSCLK” is “0”, module will never enter into sleep
+mode.
+If it meets all the conditions at the same time, module will enter into sleep mode. In sleep mode, the UART
+is unavailable. If the host need to communicate with module, it need to pull down DTR can wake up module.
+5.3.3 Minimum functionality mode and Flight mode
+Minimum functionality mode ceases a majority function of the module, thus minimizing the power
+consumption. This mode is set by the AT command which provides a choice of the functionality levels.
+
+AT+CFUN=0: Minimum functionality
+
+AT+CFUN=1: Full functionality (Default)
+
+AT+CFUN=4: Flight mode
+If SIM7070 Series has been set to minimum functionality mode, the RF function and SIM card function will
+be closed. In this case, the serial port and USB are still accessible, but RF function and SIM card will be
+unavailable.
+If SIM7070 Series has been set to flight mode, the RF function will be closed. In this case, the serial port
+and USB are still accessible, but RF function will be unavailable.
+When SIM7070 Series is in minimum functionality or flight mode, it can return to full functionality by the AT
+command “AT+CFUN=1”.
+5.3.4 Power Saving Mode (PSM)
+SIM7070 Series module can enter into PSM for reducing its power consumption. The mode is similar to
+power-off, but the module remains registered on the network and there is no need to re-attach or
+re-establish the network connections. So in PSM all the functions will be unavailable except the RTC
+function, module cannot immediately respond users’ requests.
+When the module wants to use the PSM, it can be enabled via “AT+CPSMS=1” command. The command
+takes effect after module reboot. If the network supports PSM and accepts that the module uses PSM, the
+network confirms usage of PSM by allocating an Active Time value to the module. Module will be into PSM
+according to the command from network.
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+54 / 72
+Either of the following methods will wake up the module from PSM:
+
+Pulling PWRKEY pin to low level will wake up the module.
+
+When the timer expires, the module will be automatically woken up.
+5.3.5 Extended Mode DRX (e-DRX)
+In idle or sleep mode, module and the network may negotiate over non-access stratum signaling the use of
+extended mode DRX for reducing power consumption.
+E-DRX diagrammatic sketch refer to the following figure.
+Cyclelength
+Cyclelength
+Cyclelength
+ptw
+ptw
+ptw
+DRX
+DRX
+DRX
+Figure 33: e-DRX diagrammatic sketch
+When module and the network negotiate stratum signaling in idle mode or sleep mode, extended mode
+DRX can decrease the times of paging time window (PTW) and increase the cycle length. For this reason it
+had reduced the times of DRX, and had reduced the frequency of DRX between module and the network.
+So that can reduce power consumption for module.
+If e-DRX is supported by the network, then it can be enabled by “AT+CEDRXS” command.
+For details about “AT+CEDRXS”, please refer to Document [1]
+5.4 Current Consumption
+The current consumption is listed in the table below.
+Table 35: Current consumption on VBAT Pins (VBAT=3.8V)
+GNSS
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+55 / 72
+GNSS supply current
+(AT+CFUN=0,without USB connection)
+Tracking, typical:54mA
+Idle mode
+LTE supply current
+(AT+CSCLK=0；AT+CFUN=1,
+GNSS off, without USB connection）
+GSM
+typical:12mA
+CAT-M1
+typical: 18mA
+NB1/NB2
+typical:14mA
+Sleep mode
+GSM supply current
+(AT+CSCLK=1；AT+CFUN=1,
+GNSS off, without USB connection）
+GSM
+typical:2.1mA
+GSM supply current
+(AT+CSCLK=1；AT+CFUN=0,
+GNSS off, without USB connection）
+GSM
+typical:0.45mA
+Power SavingMode
+PSM supply current
+PSM mode Typical: 3.5uA
+e-DRX
+e-DRX mode supply current
+（Tested in sleep mode）
+@PTW=40.96s；eDRX=81.92s；DRX=2.56s
+Typical:0.6mA
+@PTW=25.6s；eDRX=163.84s；DRX=2.56s
+Typical:0.4mA
+GPRSdata transmission
+EGSM850(3DL,2UL)
+@power class #5Typical:369mA
+DCS1800(3DL,2UL)
+@power class #0Typical:274mA
+EGSM 850(1DL,4UL)
+@power class #5Typical:500mA
+DCS1800 (1DL,4UL)
+@power class #0Typical:401mA
+EDGEdata transmission
+EGSM850(3DL,2UL)
+@power class #5 Typical: 210mA
+DCS1800(3DL,2UL)
+@power class #0 Typical:172mA
+EGSM 850(1DL,4UL)
+@power class #5 Typical: 311mA
+DCS1800 (1DL,4UL)
+@power class #0 Typical: 285mA
+LTE Cat-M (10MHz) data transmission
+LTE-FDD B1
+@21dbm Typical: 116mA
+@10dbm Typical: 103mA
+@0dbm Typical: 91mA
+LTE-FDD B2
+@21dbm Typical: 115mA
+@10dbm Typical: 102mA
+@0dbm Typical:90mA
+LTE-FDD B3
+@21dbm Typical: 114mA
+@10dbm Typical: 102mA
+@0dbm Typical: 90mA
+LTE-FDD B4
+@21dbm Typical: 114mA
+@10dbm Typical: 102mA
+@0dbm Typical:91mA
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+56 / 72
+LTE-FDD B5
+@21dbm Typical: 117mA
+@10dbm Typical: 100mA
+@0dbm Typical: 90mA
+LTE-FDD B8
+@21dbm Typical: 117mA
+@10dbm Typical: 101mA
+@0dbm Typical:91mA
+LTE-FDD B12
+@21dbm Typical: 116mA
+@10dbm Typical: 100mA
+@0dbm Typical: 90mA
+LTE-FDD B13
+@21dbm Typical: 118mA
+@10dbm Typical: 101mA
+@0dbm Typical:93mA
+LTE-FDD B14
+@21dbm Typical: 119mA
+@10dbm Typical: 101mA
+@0dbm Typical: 90mA
+LTE-FDD B18
+@21dbm Typical: 117mA
+@10dbm Typical: 100mA
+@0dbm Typical:90mA
+LTE-FDD B19
+@21dbm Typical: 117mA
+@10dbm Typical: 101mA
+@0dbm Typical: 90mA
+LTE-FDD B20
+@21dbm Typical: 118mA
+@10dbm Typical: 101mA
+@0dbm Typical: 91mA
+LTE-FDD B25
+@21dbm Typical: 115mA
+@10dbm Typical: 102mA
+@0dbm Typical:91mA
+LTE-FDD B26
+@21dbm Typical: 116mA
+@10dbm Typical: 100mA
+@0dbm Typical:90mA
+LTE-FDD B27
+@21dbm Typical: 117mA
+@10dbm Typical: 101mA
+@0dbm Typical:90mA
+LTE-FDD B28
+@21dbm Typical: 116mA
+@10dbm Typical: 100mA
+@0dbm Typical: 91mA
+LTE-FDD B31
+@27dbm Typical: 345mA
+@17dbm Typical: 185mA
+@8dbm Typical:137mA
+LTE-FDD B66
+@21dbm Typical: 167mA
+@10dbm Typical: 131mA
+@0dbm Typical: 103mA
+LTE-FDD B72
+@27dbm Typical: 348mA
+@17dbm Typical:178mA
+@8dbm Typical: 138mA
+LTE-FDD B85
+@21dbm Typical: 172mA
+@10dbm Typical: 126mA
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+57 / 72
+@0dbm Typical:103mA
+LTE Cat-NB2data transmission(15KHz single tone)
+LTE-FDD B1
+@21dbm Typical: 137mA
+@10dbm Typical: 87mA
+@0dbm Typical: 55mA
+LTE-FDD B2
+@21dbm Typical: 140mA
+@10dbm Typical: 87mA
+@0dbm Typical: 53mA
+LTE-FDD B3
+@21dbm Typical: 142mA
+@10dbm Typical: 87mA
+@0dbm Typical: 53mA
+LTE-FDD B4
+@21dbm Typical: 141mA
+@10dbm Typical: 86mA
+@0dbm Typical: 53mA
+LTE-FDD B5
+@21dbm Typical: 146mA
+@10dbm Typical: 80mA
+@0dbm Typical: 53mA
+LTE-FDD B8
+@21dbm Typical: 143mA
+@10dbm Typical: 80mA
+@0dbm Typical: 52mA
+LTE-FDD B12
+@21dbm Typical: 139mA
+@10dbm Typical: 78mA
+@0dbm Typical: 51mA
+LTE-FDD B13
+@21dbm Typical: 153mA
+@10dbm Typical: 83mA
+@0dbm Typical: 52mA
+LTE-FDD B18
+@21dbm Typical: 147mA
+@10dbm Typical: 80mA
+@0dbm Typical: 53mA
+LTE-FDD B19
+@21dbm Typical: 147mA
+@10dbm Typical: 80mA
+@0dbm Typical: 53mA
+LTE-FDD B20
+@21dbm Typical: 147mA
+@10dbm Typical: 81mA
+@0dbm Typical: 52mA
+LTE-FDD B25
+@21dbm Typical: 140mA
+@10dbm Typical: 87mA
+@0dbm Typical: 54mA
+LTE-FDD B26
+@21dbm Typical: 147mA
+@10dbm Typical: 81mA
+@0dbm Typical: 53mA
+LTE-FDD B28
+@21dbm Typical: 143mA
+@10dbm Typical: 81mA
+@0dbm Typical: 53mA
+LTE-FDD B31
+@26dbm Typical: 302mA
+@17dbm Typical: 185mA
+@8dbm Typical:120mA
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+58 / 72
+LTE-FDD B66
+@21dbm Typical: 141mA
+@10dbm Typical: 87mA
+@0dbm Typical: 53mA
+LTE-FDD B71
+@21dbm Typical: 133mA
+@10dbm Typical: 76mA
+@0dbm Typical: 64mA
+LTE-FDD B85
+@21dbm Typical: 141mA
+@10dbm Typical: 78mA
+@0dbm Typical: 51mA
+5.5 ESD Notes
+SIM7070 Series is sensitive to ESD in the process of storage, transporting, and assembling. WhenSIM7070
+Series is mounted on the users’ mother board, the ESD components should be placed beside the
+connectors which human body may touch, such as SIM card holder, audio jacks, switches, keys, etc. The
+following table showsSIM7070 Series ESD measurement performance without any external ESD
+component.
+Table 36: The ESD performance measurement table (Temperature: 25℃, Humidity: 45%.)
+Part
+Contact discharge
+Air discharge
+VBAT,GND
++/-6K
++/-12K
+Antenna port
++/-5K
++/-10K
+Other PADs
++/-1K
++/-3K
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+59 / 72
+6.SMT Production Guide
+6.1 Top and Bottom View of SIM7070 Series
+Figure 34: Top and bottom view of SIM7070 Seri
+6.2 Label Information
+Figure 35: Label information
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+60 / 72
+Table 37: The description of label information
+No.
+Description
+A
+LOGO,No.1 Pin
+B
+Project name
+C
+Product code
+D
+Serial number
+E
+International mobile equipment identity
+F
+QR code
+6.3 Typical SMT Reflow Profile
+SIMCom provides a typical soldering profile. Therefore the soldering profile shown below is only a generic
+recommendation and should be adjusted to the specific application and manufacturing constraints.
+Figure 36: The ramp-soak-spike reflow profile of SIM7070 Series
+For more details about secondary SMT, please refer to the document [19].
+6.4 Moisture Sensitivity Level (MSL)
+SIM7070 Series is qualified to Moisture Sensitivity Level (MSL) 3 in accordance with JEDEC J-STD-033.
+The following table shows the features of Moisture Sensitivity Level (MSL). After seal off, storage conditions
+must meet the following table. If the storage time was expired, module must be baking before SMT.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+61 / 72
+Table 38: Moisture Sensitivity Level and Floor Life
+Moisture Sensitivity
+Level (MSL)
+Floor Life (out of bag) at factory ambient≤30°C/60% RH or
+as stated
+1
+Unlimited at ≦30℃/85% RH
+2
+1 year at ≦30℃/60% RH
+2a
+4 weeks at ≦30℃/60% RH
+3
+168 hours at ≦30℃/60% RH
+4
+72 hours at ≦30℃/60% RH
+5
+48 hours at ≦30℃/60% RH
+5a
+24 hours at ≦30℃/60% RH
+6
+Mandatory bake before use. After bake, it must be reflowed within the
+time limit specified on the label.
+6.5 Baking
+In order to get better yield, the module need to bake before SMT.
+
+If the packaging is in perfect condition, the module which dateofproduction is within six months has no
+use for baking. If the dateofproduction is more thansix months, the module must be baking.
+
+If the packaging had been opened or damaged, the module must be baking.
+Table 39: Baking conditions
+conditions
+parameters
+Baking temperature
+120℃
+Baking time
+8 hours
+IPC / JEDEC J-STD-033standard must be followed for production and storage.
+6.6 Stencil Foil Design Recommendation
+The recommended thickness of stencil foil is 0.15mm.
+NOTE
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+62 / 72
+Figure 37: stencil recommendation (Unit: mm)
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+63 / 72
+7.Packaging
+7.1 Tray packaging
+SIM7070 Series module support tray packaging.
+Figure 38: packaging diagram
+Module tray drawing：
+Figure 39: Tray drawing
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+64 / 72
+Table 40: Tray size
+Length（±3mm）
+Width（±3mm）
+Module number
+242.0
+161.0
+20
+Small carton drawing：
+Figure 40: Small carton drawing
+Table 41: Small Carton size
+Length（±10mm）Width（±10mm）
+Height（±10mm）
+Module number
+270
+180
+120
+20*20=400
+Big carton drawing：
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+65 / 72
+Figure 41: Big carton drawing
+Table 42: Big Carton size
+Length（±10mm）Width（±10mm）
+Height（±10mm）
+Module number
+380
+280
+280
+400*4=1600
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+66 / 72
+8.Appendix
+A. Reference Design
+Refer to <SIM7070 Series Reference Design V1.01> for the details.
+Figure 42: Reference design
+B. Design check list
+Table 43: Schematic Check List
+NO.
+Items
+1
+Insure the supply voltage for VBAT is withintherange
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+67 / 72
+2
+Insure the maximum supply current for VBAT is above its consumption when it is maximum
+power emission.
+3
+Insure the capacitor for VBAT is meet its request, in order to avoid the voltage drop exceed
+300mV.
+4
+Insure the input signal for PWRKEY pin meet its electrical level match. It recommended use
+BJT to shift its level.
+5
+Insure the netconnections of UART be correctness according to signal direction. Insure the
+signal for UART pins meet its electrical level match. It recommended use BJT or level shift IC
+to shift its level.
+6
+Insure USB port had used TVS to protect signal. And the junction capacity of TVS for DP/DM
+must be less than 3pf.
+7
+Insure SIM card signal had used TVS to protect. And the junction capacity of TVS must be
+less than 50pf.
+8
+The power supply of the active antenna should be controlled and closed.
+9
+Insure I2C signal had used resistors 1Kohm pull up to VDD_EXT if used.
+10
+The electrical level of all GPIOs is 1.8V. Insure the signal for GPIO pins meet its electrical level
+match.
+11
+The input range of ADC is 0V~1.875V. Insure the input signal never exceed its range.
+12
+User must pull up DTR when module enters into sleep mode. Insure DTR can be controlled by
+host.
+13
+Suggesting to reserve test ports for VDD_EXT and BOOT_CFG. BOOT_CFG should keep
+open before boot up.
+14
+LTE main ANT should Keep TVS to prevent ESD destroyed. And the TVS should be Low
+junction capacitance.
+15
+LTE main ANT should have a PI type matching to debug antenna
+Table 44: PCB Layout Check List
+NO.
+Items
+1
+Insure the capacitor placement for VBAT be near module pin.
+2
+Insure VBAT trace width be greater than 2mm. If NB only, insure VBAT trace width be greater
+than 1mm. And the VIA number must be enough for getting through the current.
+3
+Insure the return path GND of the power supply is good. Insure the connectivity between
+module GND and mother board GND is good.
+4
+Insure PCM trance is protected by GND, and keep it far from interference source, such as
+power supply trace, USB trace, RF trace and so on.
+5
+Insure USB trance is protected by GND, and keep it far from interference source, such as
+power supply trace, RF trace and so on. Insure DM/DP trace is differential routing, and
+differential impedance is 90 ohm.
+6
+Insure ADC trance is protected by GND.
+7
+Insure SIM card signal trance is protected by GND. Especially SIM_CLK must be protected
+alone. And avoid signal trace branched Routing.
+8
+Insure TVS avoid bypass. The trace must go through TVS pad first, and then arrived module
+pad.
+9
+There should be enough ground around the RF line. RF lines Routing prohibit right angles and
+sharp angles, trying to trace circular or obtuse angle line.
+10
+The RF line reference GND should be complete. And avoid high speed lines crossing below it.
+11
+the GND side of the RF output pin should be non hot welding disk
+12
+The routing which is RF output PIN to antenna should be isolated from other high-speed
+lines. And the routing should be 50Ωimpedance control.
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+68 / 72
+C. Coding Schemes and Maximum Net Data Rates over Air Interface
+Table 45: Coding Schemes and Maximum Net Data Rates over Air Interface
+Channel defintion(GPRS/EDGE)
+Slot class
+DL slot
+number
+UL slot number
+Active slot number
+1
+1
+1
+2
+2
+2
+1
+3
+3
+2
+2
+3
+4
+3
+1
+4
+5
+2
+2
+4
+6
+3
+2
+4
+7
+3
+3
+4
+8
+4
+1
+5
+9
+3
+2
+5
+10
+4
+2
+5
+11
+4
+3
+5
+12
+4
+4
+5
+GPRS coding scheme
+Max data rata（4 slots）
+Modulation type
+CS 1 = 9.05 kb/s / time slot
+36.2 kb/s
+GMSK
+CS 2 = 13.4 kb/s / time slot
+53.6 kb/s
+GMSK
+CS 3 = 15.6 kb/s / time slot
+62.4 kb/s
+GMSK
+CS 4 = 21.4 kb/s / time slot
+85.6 kb/s
+GMSK
+EDGE coding scheme
+Max data rata（4 slots）
+Modulation type
+MCS 1 = 8.8 kb/s/ time slot
+35.2 kb/s
+GMSK
+MCS 2 = 11.2 kb/s/ time slot
+44.8 kb/s
+GMSK
+MCS 3 = 14.8 kb/s/ time slot
+59.2 kb/s
+GMSK
+MCS 4 = 17.6 kb/s/ time slot
+70.4 kb/s
+GMSK
+MCS 5 = 22.4 kb/s/ time slot
+89.6 kb/s
+8PSK
+MCS 6 = 29.6 kb/s/ time slot
+118.4 kb/s
+8PSK
+MCS 7 = 44.8 kb/s/ time slot
+179.2 kb/s
+8PSK
+MCS 8 = 54.4 kb/s/ time slot
+217.6 kb/s
+8PSK
+MCS 9 = 59.2 kb/s/ time slot
+236.8 kb/s
+8PSK
+LTE-FDD device category
+(Downlink)
+Max data rate（peak）
+Modulation type
+Category M1
+300 kbps
+QPSK/16QAM
+Category NB2
+20 kbps
+BPSK/QPSK
+LTE-FDD device category
+(Uplink)
+Max data rate（peak）
+Modulation type
+Category M1
+300 kbps
+QPSK/16QAM
+Category NB2
+10.3 kbps
+BPSK/QPSK
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+69 / 72
+D. Related Documents
+Table 46: Related Documents
+NO.
+Title
+Description
+[1]
+SIM7070 Series AT
+Command Manual_V1.xx
+AT Command Manual
+[2]
+GSM 07.07
+Digital cellular telecommunications (Phase 2+); AT command set
+for GSM Mobile Equipment (ME)
+[3]
+GSM 07.10
+Support GSM 07.10 multiplexing protocol
+[4]
+GSM 07.05
+Digital cellular telecommunications (Phase 2+); Use of Data
+Terminal Equipment – Data Circuit terminating Equipment (DTE –
+DCE) interface for Short Message Service (SMS) and Cell
+Broadcast Service (CBS)
+[5]
+GSM 11.14
+Digital cellular telecommunications system (Phase 2+);
+Specification of the SIM Application Toolkit for the Subscriber
+Identity Module – Mobile Equipment (SIM – ME) interface
+[6]
+GSM 11.11
+Digital cellular telecommunications system (Phase 2+);
+Specification of the Subscriber Identity Module – Mobile
+Equipment (SIM – ME) interface
+[7]
+GSM 03.38
+Digital cellular telecommunications system (Phase 2+); Alphabets
+and language-specific information
+[8]
+GSM 11.10
+Digital cellular telecommunications system (Phase 2)；
+Mobile
+Station (MS) conformance specification；Part 1: Conformance
+specification
+[9]
+3GPP TS 51.010-1
+Digital cellular telecommunications system (Release 5); Mobile
+Station (MS) conformance specification
+[10]
+3GPP TS 34.124
+Electromagnetic Compatibility (EMC) for mobile terminals and
+ancillary equipment.
+[11]
+3GPP TS 34.121
+Electromagnetic Compatibility (EMC) for mobile terminals and
+ancillary equipment.
+[12]
+3GPP TS 34.123-1
+Technical Specification Group Radio Access Network; Terminal
+conformance specification; Radio transmission and reception
+(FDD)
+[13]
+3GPP TS 34.123-3
+User Equipment (UE) conformance specification; Part 3: Abstract
+Test Suites.
+[14]
+EN 301 908-02 V2.2.1
+Electromagnetic compatibility and Radio spectrum Matters
+(ERM); Base Stations (BS) and User Equipment (UE) for
+IMT-2000.
+Third Generation cellular networks; Part 2:
+Harmonized EN for IMT-2000, CDMA Direct Spread
+(UTRA FDD) (UE) covering essential requirements of article
+3.2 of the R&TTE Directive
+[15]
+EN 301 489-24 V1.2.1
+Electromagnetic compatibility and Radio Spectrum Matters (ERM);
+Electromagnetic Compatibility (EMC) standard for radio equipment
+and services; Part 24: Specific conditions for IMT-2000 CDMA
+Direct Spread (UTRA) for Mobile and portable (UE) radio and
+ancillary equipment
+[16]
+IEC/EN60950-1(2001)
+Safety of information technology equipment (2000)
+[17]
+3GPP TS 51.010-1
+Digital cellular telecommunications system (Release 5); Mobile
+Station (MS) conformance specification
+[18]
+2002/95/EC
+Directive of the European Parliament and of the Council of 27
+January 2003 on the restriction of the use of certain hazardous
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+70 / 72
+substances in electrical and electronic equipment (RoHS)
+[19]
+Module
+secondary-SMT-UGD-V1.
+xx
+Module secondary SMT Guidelines
+[20]
+SIM7070 Series UART
+Application Note_V1.xx
+This document describes how to use UART interface of SIMCom
+modules.
+[21]
+ETSI EN 301 908-13
+(ETSI TS 136521-1
+R13.4.0)
+IMT cellular networks; Harmonized EN covering the essential
+requirements of article 3.2 of the R&TTE Directive; Part 13
+[22]
+ANTENNA DESIGN
+GUIDELINES FOR
+MULTI-ANTENNA
+SYSTEM V1 01
+Design notice for multi-antenna.
+E. Terms and Abbreviations
+Table 47: Terms and Abbreviations
+Abbreviation
+Description
+ADC
+Analog-to-Digital Converter
+ARP
+Antenna Reference Point
+BER
+Bit Error Rate
+BD
+BeiDou
+BTS
+Base Transceiver Station
+CS
+Coding Scheme
+CSD
+Circuit Switched Data
+CTS
+Clear to Send
+DAC
+Digital-to-Analog Converter
+DRX
+Discontinuous Reception
+DSP
+Digital Signal Processor
+DTE
+Data Terminal Equipment (typically computer, terminal, printer)
+DTR
+Data Terminal Ready
+DTX
+Discontinuous Transmission
+DAM
+Downloadable Application Module
+DPO
+Dynamic Power Optimization
+DRX
+Discontinuous Reception
+e-DRX
+Extended Discontinuous Reception
+EFR
+Enhanced Full Rate
+EGSM
+Enhanced GSM
+EMC
+Electromagnetic Compatibility
+ESD
+Electrostatic Discharge
+ETS
+European Telecommunication Standard
+EVDO
+Evolution Data Only
+FCC
+Federal Communications Commission (U.S.)
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+71 / 72
+FD
+SIM fix dialing phonebook
+FDMA
+Frequency Division Multiple Access
+FR
+Full Rate
+GMSK
+Gaussian Minimum Shift Keying
+GNSS
+Global Navigation Satellite System
+GPRS
+General Packet Radio Service
+GPS
+Global Positioning System
+GSM
+Global Standard for Mobile Communications
+HR
+Half Rate
+HSPA
+High Speed Packet Access
+I2C
+Inter-Integrated Circuit
+IMEI
+International Mobile Equipment Identity
+LTE
+Long Term Evolution
+MO
+Mobile Originated
+MS
+Mobile Station (GSM engine), also referred to as TE
+MT
+Mobile Terminated
+NMEA
+National Marine Electronics Association
+PAP
+Password Authentication Protocol
+PBCCH
+Packet Switched Broadcast Control Channel
+PCB
+Printed Circuit Board
+PCS
+Personal Communication System, also referred to as GSM 1900
+RF
+Radio Frequency
+RMS
+Root Mean Square (value)
+RTC
+Real Time Clock
+SIM
+Subscriber Identification Module
+SMS
+Short Message Service
+SMPS
+Switched-mode power supply
+TDMA
+Time Division Multiple Access
+TE
+Terminal Equipment, also referred to as DTE
+TX
+Transmit Direction
+UART
+Universal Asynchronous Receiver & Transmitter
+VSWR
+Voltage Standing Wave Ratio
+SM
+SIM phonebook
+NC
+Not connect
+EDGE
+Enhanced data rates for GSM evolution
+HSDPA
+High Speed Downlink Packet Access
+HSUPA
+High Speed Uplink Packet Access
+ZIF
+Zero intermediate frequency
+WCDMA
+Wideband Code Division Multiple Access
+VCTCXO
+Voltage control temperature-compensated crystal oscillator
+SIM
+Universal subscriber identity module
+
+SIM7070 Series Hardware Design V1.03
+www.simcom.com
+72 / 72
+UMTS
+Universal mobile telecommunications system
+UART
+Universal asynchronous receiver transmitter
+PSM
+Power saving mode
+LD
+SIM last dialing phonebook (list of numbers most recently dialed)
+MC
+Mobile Equipment list of unanswered MT calls (missed calls)
+ON
+SIM (or ME) own numbers (MSISDNs) list
+RC
+Mobile Equipment list of received calls
+SM
+SIM phonebook
+NC
+Not connect
+F. Safety Caution
+Table 48: Safety Caution
+Marks
+Requirements
+When in a hospital or other health care facility, observe the restrictions about the use
+of mobiles. Switch the cellular terminal or mobile off, medical equipment may be
+sensitive and not operate normally due to RF energy interference.
+Switch off the cellular terminal or mobile before boarding an aircraft. Make sure it is
+switched off. The operation of wireless appliances in an aircraft is forbidden to prevent
+interference with communication systems. Forgetting to think much of these
+instructions may impact the flight safety, or offend
+local legal action, or both.
+Do not operate the cellular terminal or mobile in the presence of flammable gases or
+fumes. Switch off the cellular terminal when you are near petrol stations, fuel depots,
+chemical plants or where blasting operations are in progress. Operation of any
+electrical equipment in potentially explosive atmospheres can constitute a safety
+hazard.
+Your cellular terminal or mobile receives and transmits radio frequency energy while
+switched on. RF interference can occur if it is used close to TV sets, radios,
+computers or other electric equipment.
+Road safety comes first! Do not use a hand-held cellular terminal or mobile when
+driving a vehicle, unless it is securely mounted in a holder for hands free operation.
+Before making a call with a hand-held terminal or mobile, park the vehicle.
+GSM cellular terminals or mobiles operate over radio frequency signals and cellular
+networks and cannot be guaranteed to connect in all conditions, especially with a
+mobile fee or an invalid SIM card. While you are in this condition and need emergent
+help, please remember to use emergency calls. In order to make or receive calls, the
+cellular terminal or mobile must be switched on and in a service area with adequate
+cellular signal strength.
+Some networks do not allow for emergency call if certain network services or phone
+features are in use (e.g. lock functions, fixed dialing etc.). You may have to deactivate
+those features before you can make an emergency call.
+Also, some networks require that a valid SIM card be properly inserted in the cellular
+terminal or mobile.

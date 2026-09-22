@@ -1,0 +1,36 @@
+(
+  sym_lib_table
+  (version 7)
+  (
+    lib
+    (name "logger_v1_custom")
+    (type "KiCad")
+    (uri "${KIPRJMOD}/logger_v1_custom.kicad_sym")
+    (options "")
+    (descr "Original symbols retained in place")
+  )
+  (
+    lib
+    (name "logger_v2_custom")
+    (type "KiCad")
+    (uri "${KIPRJMOD}/logger_v2_custom.kicad_sym")
+    (options "")
+    (descr "Original symbols retained in place")
+  )
+  (
+    lib
+    (name "mimi88_symbols")
+    (type "KiCad")
+    (uri "${KIPRJMOD}/mimi88_symbols.kicad_sym")
+    (options "")
+    (descr "Original symbols retained in place")
+  )
+  (
+    lib
+    (name "logger_v2_expansion")
+    (type "KiCad")
+    (uri "${KIPRJMOD}/logger_v2_expansion.kicad_sym")
+    (options "")
+    (descr "Portable LTE and microSD expansion parts")
+  )
+)

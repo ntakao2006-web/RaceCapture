@@ -1,0 +1,189 @@
+(
+  footprint
+  "SMA_S-037-TGG_Horizontal"
+  (version 20241229)
+  (generator "pcbnew")
+  (layer "F.Cu")
+  (descr "COSMTEC S-037-TGG: 15 mm length, 7 mm square body, 5x diameter 1.5 mm drills on 5.08 mm pattern; own dimension-based mechanical STEP")
+  (tags "SMA S-037-TGG horizontal THT")
+  (
+    property
+    "Reference"
+    "REF**"
+    (at 0 -5.6 0)
+    (layer "F.SilkS")
+    (
+      effects
+      (
+        font
+        (size 1 1)
+        (thickness 0.15)
+      )
+    )
+  )
+  (
+    property
+    "Value"
+    "SMA_S-037-TGG_Horizontal"
+    (at 0 5.6 0)
+    (layer "F.Fab")
+    (
+      effects
+      (
+        font
+        (size 1 1)
+        (thickness 0.15)
+      )
+    )
+  )
+  (
+    property
+    "Datasheet"
+    "https://akizukidenshi.com/goodsaffix/S-037-TGG_20220729.pdf"
+    (at 0 0 0)
+    (layer "F.Fab")
+    (hide yes)
+    (
+      effects
+      (
+        font
+        (size 1 1)
+      )
+    )
+  )
+  (attr through_hole)
+  (
+    fp_line
+    (start -3.6 -1.3)
+    (end -3.6 1.3)
+    (
+      stroke
+      (width 0.15)
+      (type default)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start -1.3 -3.6)
+    (end 1.3 -3.6)
+    (
+      stroke
+      (width 0.15)
+      (type default)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start -1.3 3.6)
+    (end 1.3 3.6)
+    (
+      stroke
+      (width 0.15)
+      (type default)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start 3.6 -1.3)
+    (end 3.6 1.3)
+    (
+      stroke
+      (width 0.15)
+      (type default)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_rect
+    (start -3.5 -3.5)
+    (end 11.5 3.5)
+    (
+      stroke
+      (width 0.1)
+      (type default)
+    )
+    (fill none)
+    (layer "F.Fab")
+  )
+  (
+    fp_rect
+    (start -3.75 -3.75)
+    (end 11.75 3.75)
+    (
+      stroke
+      (width 0.05)
+      (type default)
+    )
+    (fill none)
+    (layer "F.CrtYd")
+  )
+  (
+    pad
+    "1"
+    thru_hole
+    circle
+    (at 0 0)
+    (size 2.5 2.5)
+    (drill 1.5)
+    (layers "*.Cu" "*.Mask")
+  )
+  (
+    pad
+    "2"
+    thru_hole
+    circle
+    (at -2.54 -2.54)
+    (size 2.5 2.5)
+    (drill 1.5)
+    (layers "*.Cu" "*.Mask")
+  )
+  (
+    pad
+    "2"
+    thru_hole
+    circle
+    (at 2.54 -2.54)
+    (size 2.5 2.5)
+    (drill 1.5)
+    (layers "*.Cu" "*.Mask")
+  )
+  (
+    pad
+    "2"
+    thru_hole
+    circle
+    (at -2.54 2.54)
+    (size 2.5 2.5)
+    (drill 1.5)
+    (layers "*.Cu" "*.Mask")
+  )
+  (
+    pad
+    "2"
+    thru_hole
+    circle
+    (at 2.54 2.54)
+    (size 2.5 2.5)
+    (drill 1.5)
+    (layers "*.Cu" "*.Mask")
+  )
+  (
+    model
+    "${KIPRJMOD}/3dmodels/COSMTEC_S-037-TGG_mechanical.step"
+    (
+      offset
+      (xyz 0 0 0)
+    )
+    (
+      scale
+      (xyz 1 1 1)
+    )
+    (
+      rotate
+      (xyz 0 0 0)
+    )
+  )
+)

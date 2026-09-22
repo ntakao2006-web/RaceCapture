@@ -1,0 +1,39 @@
+{
+  "paper": "A4",
+  "original_components_retained": 44,
+  "original_component_positions_rotations_UUIDs_and_fields_unchanged": true,
+  "original_symbol_definitions_unchanged": true,
+  "retained_power_symbols": 35,
+  "removed_obsolete_power_symbols": [
+    "#PWR03 (unused VIN)",
+    "#PWR025 (J7 pin 1 +5V)"
+  ],
+  "original_wires_retained_unchanged": 117,
+  "original_wire_segments_replaced": 4,
+  "physical_pins": 192,
+  "all_pin_connectivity_groups_match": true,
+  "unique_footprints": 17,
+  "all_pin_pad_sets_match": true,
+  "all_models_are_local_STEP": true,
+  "erc_errors": 0,
+  "erc_warnings": 1,
+  "erc_warning_details": [
+    "シンボル '74HC595' が、ライブラリ '74xx' のコピーと一致しません"
+  ],
+  "only_ERC_warning_also_present_in_original": true,
+  "PCB_unchanged": true,
+  "project_settings_unchanged": true,
+  "DNP": [
+    "R10",
+    "R13",
+    "R14"
+  ],
+  "local_label_count": 38,
+  "all_local_labels_default_size_mm": 1.27,
+  "IMU_pullups_populated": [
+    "R15",
+    "R16"
+  ],
+  "previous_wires_unchanged_this_revision": true,
+  "connectivity_unchanged_this_revision": true
+}

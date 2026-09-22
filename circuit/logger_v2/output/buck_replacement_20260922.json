@@ -1,0 +1,26 @@
+{
+  "changed_uuids": [
+    "60947d0b-8f2b-426b-abcb-976d6c3b6b9c",
+    "4981c769-e549-4966-b572-6c43b788b63e",
+    "e1d187e9-9671-4b1c-8f02-29a51779bb7f",
+    "827baaee-c4bf-45eb-b1d3-8ac792a0896e",
+    "5dd8bff5-d465-4a84-b112-f60c54abf6d3",
+    "d32f553e-ff95-4a53-89bb-618eb75ed837",
+    "0ca3c960-1e7d-407f-873f-df4b6f97ce07",
+    "09a6eb8b-34b7-4c15-8134-3d6ef9766fb6"
+  ],
+  "all_positions_preserved": true,
+  "all_wiring_preserved": true,
+  "root_and_pcb_unchanged": true,
+  "parts": 97,
+  "pin_map": {
+    "1": "FB",
+    "2": "EN",
+    "3": "VIN",
+    "4": "GND",
+    "5": "SW",
+    "6": "BST"
+  },
+  "model": "3dmodels/TSOT-23-6.step",
+  "model_kind": "KiCad nominal package model, not manufacturer exact model"
+}

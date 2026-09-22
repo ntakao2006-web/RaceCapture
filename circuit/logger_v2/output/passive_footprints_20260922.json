@@ -1,0 +1,104 @@
+{
+  "backup": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\logger_v2-backups\\before_passive_footprints_20260922_220225",
+  "changes": [
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "L2",
+      "value": "0.027u",
+      "old": "logger_v2_custom:L_0402_1005Metric",
+      "new": "logger_v2_custom:L_0603_1608Metric"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C15",
+      "value": "1u",
+      "old": "logger_v2_custom:C_0603_1608Metric",
+      "new": "logger_v2_custom:C_0805_2012Metric"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C18",
+      "value": "1p",
+      "old": "logger_v2_custom:C_0603_1608Metric",
+      "new": "logger_v2_custom:C_0603_1608Metric"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C16",
+      "value": "1p",
+      "old": "logger_v2_custom:C_0603_1608Metric",
+      "new": "logger_v2_custom:C_0603_1608Metric"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C7",
+      "value": "330u",
+      "old": "logger_v2_custom:C_0805_2012Metric",
+      "new": "logger_v2_expansion:CP_EIA-7343-31_Kemet-D"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "C23",
+      "value": "1u",
+      "old": "logger_v2_custom:C_0603_1608Metric",
+      "new": "logger_v2_custom:C_0805_2012Metric"
+    },
+    {
+      "file": "logger_v2.kicad_sch",
+      "ref": "L1",
+      "value": "2.2u",
+      "old": "logger_v2_custom:L_0402_1005Metric",
+      "new": "logger_v2_expansion:L_Bourns_SRN6045TA"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "C7",
+      "value": "330u",
+      "old": "logger_v2_custom:C_0805_2012Metric",
+      "new": "logger_v2_expansion:CP_EIA-7343-31_Kemet-D"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "L1",
+      "value": "2.2u",
+      "old": "logger_v2_custom:L_0402_1005Metric",
+      "new": "logger_v2_expansion:L_Bourns_SRN6045TA"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "C16",
+      "value": "1p",
+      "old": "logger_v2_custom:C_0603_1608Metric",
+      "new": "logger_v2_custom:C_0603_1608Metric"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "C15",
+      "value": "1u",
+      "old": "logger_v2_custom:C_0603_1608Metric",
+      "new": "logger_v2_custom:C_0805_2012Metric"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "L2",
+      "value": "0.027u",
+      "old": "logger_v2_custom:L_0402_1005Metric",
+      "new": "logger_v2_custom:L_0603_1608Metric"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "C23",
+      "value": "1u",
+      "old": "logger_v2_custom:C_0603_1608Metric",
+      "new": "logger_v2_custom:C_0805_2012Metric"
+    },
+    {
+      "file": "logger_v2.kicad_pcb",
+      "ref": "C18",
+      "value": "1p",
+      "old": "logger_v2_custom:C_0603_1608Metric",
+      "new": "logger_v2_custom:C_0603_1608Metric"
+    }
+  ],
+  "invariants": "All other components, placements, values, wiring, tracks/vias/zones, pad nets and IDs unchanged"
+}

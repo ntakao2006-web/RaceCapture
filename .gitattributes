@@ -1,5 +1,6 @@
 *.step filter=lfs diff=lfs merge=lfs -text
 *.stp filter=lfs diff=lfs merge=lfs -text
+*.3dm filter=lfs diff=lfs merge=lfs -text
 
 # Linux実機(ROCK 5B / Raspberry Pi)へ配布して実行するファイルは、必ずLF改行で
 # 作業ツリーに置く。core.autocrlf=true の環境ではチェックアウトのたびにCRLFへ

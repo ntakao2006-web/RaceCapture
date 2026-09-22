@@ -1,0 +1,98 @@
+[
+  {
+    "footprint": "logger_v2_expansion:SIMCom_SIM7070G_LCC68_24x24mm_P1mm",
+    "model": "SIMCom_SIM7070G_mechanical.step",
+    "source": "SIMCom Hardware Design V1.03 pp18-19 and Compatible Design V1.01 p12",
+    "model_kind": "dimension-based simplified mechanical STEP; shield details omitted"
+  },
+  {
+    "footprint": "logger_v2_expansion:TSSOP-24_4.4x7.8mm_P0.65mm",
+    "model": "TSSOP-24_4.4x7.8mm_P0.65mm.step",
+    "source": "KiCad 9 Package_SO:TSSOP-24_4.4x7.8mm_P0.65mm",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:TSSOP-14_4.4x5mm_P0.65mm",
+    "model": "TSSOP-14_4.4x5mm_P0.65mm.step",
+    "source": "KiCad 9 Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:nanoSIM_Hinged_CUI_NSIM-2-C",
+    "model": "nanoSIM_Hinged_CUI_NSIM-2-C.step",
+    "source": "KiCad 9 Connector_Card:nanoSIM_Hinged_CUI_NSIM-2-C",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:microSD_HC_Hirose_DM3AT-SF-PEJM5",
+    "model": "microSD_HC_Hirose_DM3AT-SF-PEJM5.step",
+    "source": "KiCad 9 Connector_Card:microSD_HC_Hirose_DM3AT-SF-PEJM5",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:U.FL_Hirose_U.FL-R-SMT-1_Vertical",
+    "model": "U.FL_Hirose_U.FL-R-SMT-1_Vertical.step",
+    "source": "KiCad 9 Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm",
+    "model": "TI_TPS62130_RGT16_mechanical.step",
+    "source": "KiCad 9 Package_DFN_QFN:VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm",
+    "model_kind": "TI nominal RGT16 geometry; simplified STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+    "model": "Crystal_SMD_3225-4Pin_3.2x2.5mm.step",
+    "source": "KiCad 9 Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:SOT-23",
+    "model": "SOT-23.step",
+    "source": "KiCad 9 Package_TO_SOT_SMD:SOT-23",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:SOT-23-6",
+    "model": "SOT-23-6.step",
+    "source": "KiCad 9 Package_TO_SOT_SMD:SOT-23-6",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:PinHeader_1x06_P2.54mm_Vertical",
+    "model": "PinHeader_1x06_P2.54mm_Vertical.step",
+    "source": "KiCad 9 Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:L_Bourns_SRN6045TA",
+    "model": "L_Bourns_SRN6045TA.step",
+    "source": "KiCad 9 Inductor_SMD:L_Bourns_SRN6045TA",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:CP_EIA-7343-31_Kemet-D",
+    "model": "CP_EIA-7343-31_Kemet-D.step",
+    "source": "KiCad 9 Capacitor_Tantalum_SMD:CP_EIA-7343-31_Kemet-D",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:C_0805_2012Metric",
+    "model": "C_0805_2012Metric.step",
+    "source": "KiCad 9 Capacitor_SMD:C_0805_2012Metric",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:C_0603_1608Metric",
+    "model": "C_0603_1608Metric.step",
+    "source": "KiCad 9 Capacitor_SMD:C_0603_1608Metric",
+    "model_kind": "matching package STEP"
+  },
+  {
+    "footprint": "logger_v2_expansion:R_0603_1608Metric",
+    "model": "R_0603_1608Metric.step",
+    "source": "KiCad 9 Resistor_SMD:R_0603_1608Metric",
+    "model_kind": "matching package STEP"
+  }
+]

@@ -1,0 +1,4401 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-19T23:10:46+0900",
+    "kicad_version": "9.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55",
+            "violations": [
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'STATUS_LATCH'",
+                            "pos": {
+                                "x": 0.8255,
+                                "y": 0.5969
+                            },
+                            "uuid": "873d2c88-519e-482f-a3ed-2484e5f9417e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                }
+            ]
+        },
+        {
+            "path": "/LTE + microSD (unwired)/",
+            "uuid_path": "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/0fd99fc8-1371-4fce-9852-3e0895e0557b",
+            "violations": [
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 1 [PWRKEY, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.4953
+                            },
+                            "uuid": "6db600ad-a4cb-4f7c-8637-4cf03e2adbce"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 1 [PWRKEY, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.4953
+                            },
+                            "uuid": "6db600ad-a4cb-4f7c-8637-4cf03e2adbce"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 3 [UART1_DTR, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5207
+                            },
+                            "uuid": "cd3146b1-b450-4a1f-af87-d77180c3850c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 3 [UART1_DTR, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5207
+                            },
+                            "uuid": "cd3146b1-b450-4a1f-af87-d77180c3850c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 4 [UART1_RI, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5461
+                            },
+                            "uuid": "8593a379-70f1-4acf-8956-5b547501b67d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 5 [UART1_DCD, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5715
+                            },
+                            "uuid": "0a771e43-0e2a-4250-8bb3-0b81f4fbcfff"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 7 [UART1_CTS, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.5969
+                            },
+                            "uuid": "4b7c384d-66df-4689-9aa5-873914ff59f4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 8 [UART1_RTS, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6223
+                            },
+                            "uuid": "c6b53e98-18fc-499c-9963-3a6718d5942d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 8 [UART1_RTS, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6223
+                            },
+                            "uuid": "c6b53e98-18fc-499c-9963-3a6718d5942d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 9 [UART1_TXD, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6477
+                            },
+                            "uuid": "ae63e8ae-84ec-4509-a3fe-205b361fdb4f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 10 [UART1_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6731
+                            },
+                            "uuid": "3b79d506-9963-4688-93e4-08ddaf488610"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 10 [UART1_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6731
+                            },
+                            "uuid": "3b79d506-9963-4688-93e4-08ddaf488610"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 56 [VBAT, Power input, Line]",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 0.3937
+                            },
+                            "uuid": "f68db655-ab50-4499-b43b-75d845838a22"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 56 [VBAT, Power input, Line]",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 0.3937
+                            },
+                            "uuid": "f68db655-ab50-4499-b43b-75d845838a22"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 6 [BOOT_CFG, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6985
+                            },
+                            "uuid": "3941ff9c-a1a8-4f95-820d-4bc17dd5aa8d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 6 [BOOT_CFG, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.6985
+                            },
+                            "uuid": "3941ff9c-a1a8-4f95-820d-4bc17dd5aa8d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 57 [VBAT, Power input, Line]",
+                            "pos": {
+                                "x": 0.6477,
+                                "y": 0.3937
+                            },
+                            "uuid": "0552d078-ec48-4d4f-932b-fe4a894ac59e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 57 [VBAT, Power input, Line]",
+                            "pos": {
+                                "x": 0.6477,
+                                "y": 0.3937
+                            },
+                            "uuid": "0552d078-ec48-4d4f-932b-fe4a894ac59e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 66 [STATUS, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.7239
+                            },
+                            "uuid": "8ec4a7f6-82c3-4bda-81ff-ab7d1d40a310"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 52 [NETLIGHT, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.7493
+                            },
+                            "uuid": "53923ec3-b940-45b0-a26d-d66bddd49a88"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 15 [VDD_EXT, Power output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.7747
+                            },
+                            "uuid": "3c20caf0-3d3f-4cb2-9135-32610d4232f6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 24 [USB_VBUS, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8001
+                            },
+                            "uuid": "b99a2718-af90-46f8-a4b3-2c454846c355"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 24 [USB_VBUS, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8001
+                            },
+                            "uuid": "b99a2718-af90-46f8-a4b3-2c454846c355"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 27 [USB_DP, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8255
+                            },
+                            "uuid": "bceb4073-e056-4d0d-ad37-d2330e4a8e42"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 28 [USB_DM, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8509
+                            },
+                            "uuid": "fdb67d2e-fc51-4a68-8fed-f2f004f3fe95"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 22 [DEBUG_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8763
+                            },
+                            "uuid": "511345ec-2f8d-4882-8bc1-a691280161c5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 22 [DEBUG_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.8763
+                            },
+                            "uuid": "511345ec-2f8d-4882-8bc1-a691280161c5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 23 [DEBUG_TXD, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9017
+                            },
+                            "uuid": "68a78451-c1d3-4380-9143-f9cf801d2122"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 49 [UART3_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9271
+                            },
+                            "uuid": "df729395-1410-4ea7-a3a8-d77efa652602"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 49 [UART3_RXD, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9271
+                            },
+                            "uuid": "df729395-1410-4ea7-a3a8-d77efa652602"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 50 [UART3_TXD, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9525
+                            },
+                            "uuid": "fd091116-a3a1-4115-b31c-325182e0b9e2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 11 [PCM_CLK, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 0.9779
+                            },
+                            "uuid": "89a763f8-37ab-4c3a-8ddb-847d720da0a1"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 12 [PCM_SYNC, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0033
+                            },
+                            "uuid": "006b3784-1787-4fe3-93b7-90d57e501618"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 13 [PCM_DIN, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0287
+                            },
+                            "uuid": "7d39e114-6e6b-439a-acb8-f01f5588db26"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 13 [PCM_DIN, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0287
+                            },
+                            "uuid": "7d39e114-6e6b-439a-acb8-f01f5588db26"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 14 [PCM_DOUT, Output, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0541
+                            },
+                            "uuid": "5eaa77db-70b8-4cb6-8357-c16a844c57ea"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 25 [ADC, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0795
+                            },
+                            "uuid": "e7701bf5-0adf-4aa1-b930-f34afb974d5e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 25 [ADC, Input, Line]",
+                            "pos": {
+                                "x": 0.2413,
+                                "y": 1.0795
+                            },
+                            "uuid": "e7701bf5-0adf-4aa1-b930-f34afb974d5e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 30 [SIM_VDD, Power output, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.4953
+                            },
+                            "uuid": "6e480a9d-5595-402f-ba96-0b894151ff10"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 31 [SIM_DATA, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.5207
+                            },
+                            "uuid": "38c164ed-de4a-4468-847b-8eee14ee22a4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 32 [SIM_CLK, Output, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.5461
+                            },
+                            "uuid": "3d562e29-fdeb-464b-9e8e-09294ba4ef97"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 33 [SIM_RST, Output, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.5715
+                            },
+                            "uuid": "c9f3d7b3-0ae6-413c-9686-c3c9fd83e0d5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 60 [RF_ANT, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.5969
+                            },
+                            "uuid": "91de45f4-f516-4636-82bc-bbaffcef6e84"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 53 [GNSS_ANT, Input, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6223
+                            },
+                            "uuid": "cd1ed8d4-59b7-4199-82c2-a89f9db85e6a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 53 [GNSS_ANT, Input, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6223
+                            },
+                            "uuid": "cd1ed8d4-59b7-4199-82c2-a89f9db85e6a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 19 [GPIO1, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6477
+                            },
+                            "uuid": "767b0704-8e8f-4d78-99ca-c000a556ca38"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 20 [GPIO2, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6731
+                            },
+                            "uuid": "57889951-c39e-4325-a950-5f0b13a4ae34"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 21 [GPIO3, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.6985
+                            },
+                            "uuid": "a52d608c-c399-4fb4-b832-b1001efd1b8f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 34 [GPIO4, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.7239
+                            },
+                            "uuid": "616d8c97-7b4f-433b-a500-cf6308081014"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 48 [GPIO5, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.7493
+                            },
+                            "uuid": "ca3f44a9-ff9d-4a24-ab4e-fee5af16c2c4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 67 [GPIO6, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.7747
+                            },
+                            "uuid": "24430332-0ebc-4a68-a634-c05f7928d1a8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 68 [GPIO7, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.8001
+                            },
+                            "uuid": "6089d17d-a3d1-4bb5-938c-7185426ca9a6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 2 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4445,
+                                "y": 1.2065
+                            },
+                            "uuid": "ac654971-0c12-451c-945d-40d574cdc1e5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 2 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4445,
+                                "y": 1.2065
+                            },
+                            "uuid": "ac654971-0c12-451c-945d-40d574cdc1e5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 17 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4699,
+                                "y": 1.2065
+                            },
+                            "uuid": "d4444a08-0634-4c34-910e-103696ff3d6c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 17 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4699,
+                                "y": 1.2065
+                            },
+                            "uuid": "d4444a08-0634-4c34-910e-103696ff3d6c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 37 [I2C_SDA, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.8255
+                            },
+                            "uuid": "7be75b61-6210-4b62-be4e-75dcfec8445f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 18 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4953,
+                                "y": 1.2065
+                            },
+                            "uuid": "7ac005a7-86c0-4d49-adac-48633d1aeea0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 18 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.4953,
+                                "y": 1.2065
+                            },
+                            "uuid": "7ac005a7-86c0-4d49-adac-48633d1aeea0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 29 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5207,
+                                "y": 1.2065
+                            },
+                            "uuid": "038e758a-0d62-46c5-9ef6-93990904e7b9"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 29 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5207,
+                                "y": 1.2065
+                            },
+                            "uuid": "038e758a-0d62-46c5-9ef6-93990904e7b9"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 38 [I2C_SCL, Output, Line]",
+                            "pos": {
+                                "x": 1.0033,
+                                "y": 0.8509
+                            },
+                            "uuid": "3dda8164-618f-40ad-9f3c-5e9be03965a6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 39 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5461,
+                                "y": 1.2065
+                            },
+                            "uuid": "38b2142c-3e93-426c-b5f7-f5fe4fadc2b5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 39 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5461,
+                                "y": 1.2065
+                            },
+                            "uuid": "38b2142c-3e93-426c-b5f7-f5fe4fadc2b5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 45 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5715,
+                                "y": 1.2065
+                            },
+                            "uuid": "244cddda-e5f2-473c-aef0-14058c7347ab"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 45 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5715,
+                                "y": 1.2065
+                            },
+                            "uuid": "244cddda-e5f2-473c-aef0-14058c7347ab"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 46 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5969,
+                                "y": 1.2065
+                            },
+                            "uuid": "50297ca0-055e-4fe3-bd55-b528c4bad17d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 46 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.5969,
+                                "y": 1.2065
+                            },
+                            "uuid": "50297ca0-055e-4fe3-bd55-b528c4bad17d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 54 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 1.2065
+                            },
+                            "uuid": "67d06b74-824c-4567-abc9-e46962f8944c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 54 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6223,
+                                "y": 1.2065
+                            },
+                            "uuid": "67d06b74-824c-4567-abc9-e46962f8944c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 58 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6477,
+                                "y": 1.2065
+                            },
+                            "uuid": "76079124-2827-4f56-8155-384345f0c0f0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 58 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6477,
+                                "y": 1.2065
+                            },
+                            "uuid": "76079124-2827-4f56-8155-384345f0c0f0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 59 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6731,
+                                "y": 1.2065
+                            },
+                            "uuid": "b44bcb7b-e588-4bf0-add6-b637042f3b4b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 59 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6731,
+                                "y": 1.2065
+                            },
+                            "uuid": "b44bcb7b-e588-4bf0-add6-b637042f3b4b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 61 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6985,
+                                "y": 1.2065
+                            },
+                            "uuid": "df7338be-257e-442f-9020-7a22ce324e5e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 61 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.6985,
+                                "y": 1.2065
+                            },
+                            "uuid": "df7338be-257e-442f-9020-7a22ce324e5e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 62 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7239,
+                                "y": 1.2065
+                            },
+                            "uuid": "1bf895d4-41ca-455d-90ce-afd8f881c1a4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 62 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7239,
+                                "y": 1.2065
+                            },
+                            "uuid": "1bf895d4-41ca-455d-90ce-afd8f881c1a4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 63 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7493,
+                                "y": 1.2065
+                            },
+                            "uuid": "c72dfe6f-949e-4bd0-b641-627a9034e296"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 63 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7493,
+                                "y": 1.2065
+                            },
+                            "uuid": "c72dfe6f-949e-4bd0-b641-627a9034e296"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 64 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7747,
+                                "y": 1.2065
+                            },
+                            "uuid": "b2d2b3ab-8eb7-4232-8b36-dc3b2a8ea56c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 64 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.7747,
+                                "y": 1.2065
+                            },
+                            "uuid": "b2d2b3ab-8eb7-4232-8b36-dc3b2a8ea56c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 65 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.8001,
+                                "y": 1.2065
+                            },
+                            "uuid": "7f78430a-d39d-413d-8297-89c9ee0f485f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U6 ピン 65 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 0.8001,
+                                "y": 1.2065
+                            },
+                            "uuid": "7f78430a-d39d-413d-8297-89c9ee0f485f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 4 [~{RESET}, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.4953
+                            },
+                            "uuid": "e65120bc-f791-4d30-b139-31b834e8499b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 4 [~{RESET}, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.4953
+                            },
+                            "uuid": "e65120bc-f791-4d30-b139-31b834e8499b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 8 [I2C/~{SPI}, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.5207
+                            },
+                            "uuid": "46d29e83-0f06-480f-a6c0-e464b9dc1a23"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 8 [I2C/~{SPI}, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.5207
+                            },
+                            "uuid": "46d29e83-0f06-480f-a6c0-e464b9dc1a23"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 9 [A0/~{CS}, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.5715
+                            },
+                            "uuid": "b9f6d531-38cb-48e0-a9a5-47b513900558"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 9 [A0/~{CS}, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.5715
+                            },
+                            "uuid": "b9f6d531-38cb-48e0-a9a5-47b513900558"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 10 [A1/SI, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.5969
+                            },
+                            "uuid": "89b92a80-d2f6-44a5-b833-5bab6cc3a62a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 10 [A1/SI, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.5969
+                            },
+                            "uuid": "89b92a80-d2f6-44a5-b833-5bab6cc3a62a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 11 [SO, Output, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.6223
+                            },
+                            "uuid": "372ff297-4087-4cd7-a45f-92154068a3f0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 12 [SCL/SCLK, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.6477
+                            },
+                            "uuid": "434d1d68-5ea9-4dc7-b4cb-83cd6b54647d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 12 [SCL/SCLK, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.6477
+                            },
+                            "uuid": "434d1d68-5ea9-4dc7-b4cb-83cd6b54647d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 13 [SDA, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.6731
+                            },
+                            "uuid": "dcf4d20d-6ba4-40e3-a9fb-9660155adc5f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 14 [~{IRQ}, Open collector, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.7239
+                            },
+                            "uuid": "a08ad723-0bc0-4f14-a08f-9fc2c34f5248"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J10 ピン 1 [In, Passive, Line]",
+                            "pos": {
+                                "x": 0.4064,
+                                "y": 1.524
+                            },
+                            "uuid": "16b6c70a-ffe4-4aef-9311-d9a5b7e39d76"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 5 [XTAL1, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.8001
+                            },
+                            "uuid": "5bd125f5-c74f-4941-870c-bea706a1978f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 5 [XTAL1, Input, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.8001
+                            },
+                            "uuid": "5bd125f5-c74f-4941-870c-bea706a1978f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 7 [VDD, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 0.4445
+                            },
+                            "uuid": "96de69f9-ee0a-41f7-93ad-f4124b33d930"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 7 [VDD, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 0.4445
+                            },
+                            "uuid": "96de69f9-ee0a-41f7-93ad-f4124b33d930"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 6 [XTAL2, Output, Line]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.8509
+                            },
+                            "uuid": "e72b03c2-cd17-42cb-9e8c-15e60c15563f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J10 ピン 2 [Ext, Passive, Line]",
+                            "pos": {
+                                "x": 0.4572,
+                                "y": 1.5748
+                            },
+                            "uuid": "891eda51-f46a-461b-af9c-486852319dfa"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J11 ピン 1 [Pin_1, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.4859
+                            },
+                            "uuid": "4dffe4ff-a913-4639-8131-338bc1730c0f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J11 ピン 2 [Pin_2, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.5113
+                            },
+                            "uuid": "8330d1cb-9472-4028-89c0-84be9680dfa8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J11 ピン 3 [Pin_3, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.5367
+                            },
+                            "uuid": "0aad926a-24bf-4cb1-9ab0-7314d662494d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J11 ピン 4 [Pin_4, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.5621
+                            },
+                            "uuid": "b76217e5-2e26-419c-9834-28bddfa4d76d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J11 ピン 5 [Pin_5, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.5875
+                            },
+                            "uuid": "0ec22a39-3a48-485f-9b99-2e392039d783"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J11 ピン 6 [Pin_6, Passive, Line]",
+                            "pos": {
+                                "x": 0.7366,
+                                "y": 1.6129
+                            },
+                            "uuid": "30d46ae2-7e6c-4a8d-807b-1846205fb5c6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 15 [GPIO0, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.5207
+                            },
+                            "uuid": "a1f37532-6cf7-423d-827d-08d66ea45930"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 16 [GPIO1, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.5461
+                            },
+                            "uuid": "79e2aed2-247e-4b40-b890-c8ba2396229e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 19 [VSS, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 0.9017
+                            },
+                            "uuid": "9f722f74-6fec-4831-92da-a0140a4751c6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 19 [VSS, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 0.9017
+                            },
+                            "uuid": "9f722f74-6fec-4831-92da-a0140a4751c6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 17 [GPIO2, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.5715
+                            },
+                            "uuid": "2a2d86cc-bc39-4374-9573-edc06e96410c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 18 [GPIO3, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.5969
+                            },
+                            "uuid": "0f1ebdec-f224-4b1d-8252-3a35acb99e95"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 20 [GPIO4/~{DSR}, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.6477
+                            },
+                            "uuid": "1e2adb34-a397-466f-ac2f-84abd44a3205"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 21 [GPIO5/~{DTR}, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.6731
+                            },
+                            "uuid": "fc522fa3-c351-40d5-bd88-bfb080d91bf5"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 22 [GPIO6/~{CD}, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.6985
+                            },
+                            "uuid": "18ed369c-5589-413c-8c88-1cf2f4995e6c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 23 [GPIO7/~{RI}, Bidirectional, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.7239
+                            },
+                            "uuid": "5cb60e9f-e043-4c26-b94b-ef4127f630f1"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 3 [RX, Input, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.7747
+                            },
+                            "uuid": "984916c2-2826-4994-89c8-920cb74c7c68"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 3 [RX, Input, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.7747
+                            },
+                            "uuid": "984916c2-2826-4994-89c8-920cb74c7c68"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 1 [~{CTS}, Input, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.8001
+                            },
+                            "uuid": "50041452-671e-448c-afdd-210f1ddfa813"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 1 [~{CTS}, Input, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.8001
+                            },
+                            "uuid": "50041452-671e-448c-afdd-210f1ddfa813"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 24 [~{RTS}, Output, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.8255
+                            },
+                            "uuid": "c3b8ac2f-b17e-49cb-b29e-6233760c8904"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U7 ピン 2 [TX, Output, Line]",
+                            "pos": {
+                                "x": 1.7018,
+                                "y": 0.8509
+                            },
+                            "uuid": "6b6c3e19-bc1e-480a-a21c-e84048985dcd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 13 [EN, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.2573
+                            },
+                            "uuid": "40e94c7d-2e76-41e2-bdfb-56447bfff2ab"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 13 [EN, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.2573
+                            },
+                            "uuid": "40e94c7d-2e76-41e2-bdfb-56447bfff2ab"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 9 [SS/TR, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.2827
+                            },
+                            "uuid": "625dc93b-b58b-4b8c-a138-70452133a6ac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 9 [SS/TR, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.2827
+                            },
+                            "uuid": "625dc93b-b58b-4b8c-a138-70452133a6ac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 10 [VIN, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 1.1811
+                            },
+                            "uuid": "33186be6-85e7-4752-ae01-a4dfc3313787"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 10 [VIN, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 1.1811
+                            },
+                            "uuid": "33186be6-85e7-4752-ae01-a4dfc3313787"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 8 [DEF, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.3081
+                            },
+                            "uuid": "78c81cd0-1cdc-494e-995d-00bb2503ba62"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 8 [DEF, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.3081
+                            },
+                            "uuid": "78c81cd0-1cdc-494e-995d-00bb2503ba62"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 7 [FSW, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.3335
+                            },
+                            "uuid": "23126037-ffb6-4882-8239-95d853e4e7ff"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 7 [FSW, Input, Line]",
+                            "pos": {
+                                "x": 1.4478,
+                                "y": 1.3335
+                            },
+                            "uuid": "23126037-ffb6-4882-8239-95d853e4e7ff"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 2 [A1, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.6096
+                            },
+                            "uuid": "79c163c8-511f-43e4-9c95-79298a948f42"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 2 [A1, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.6096
+                            },
+                            "uuid": "79c163c8-511f-43e4-9c95-79298a948f42"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 1 [SW, Output, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.2573
+                            },
+                            "uuid": "6b27349a-a5c2-4413-b367-3b7e68e57258"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 3 [A2, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.635
+                            },
+                            "uuid": "2499bbd0-92ee-49f5-a473-b3f4673c7236"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 3 [A2, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.635
+                            },
+                            "uuid": "2499bbd0-92ee-49f5-a473-b3f4673c7236"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C16 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.0701
+                            },
+                            "uuid": "9a12d507-d6e5-4dfc-91cc-f623608a97b0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 4 [A3Y, Output, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.6604
+                            },
+                            "uuid": "356f4edc-5286-470b-8520-99b79ae45315"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 5 [A4Y, Output, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.6858
+                            },
+                            "uuid": "a62d2785-87d6-487d-9c04-e2e35fa1036c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 8 [OE, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.7112
+                            },
+                            "uuid": "ea7449c6-fbdf-437e-a196-9c99dabb0a09"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 8 [OE, Input, Line]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 0.7112
+                            },
+                            "uuid": "ea7449c6-fbdf-437e-a196-9c99dabb0a09"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 14 [VOS, Input, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.3081
+                            },
+                            "uuid": "c403369c-bf8d-405a-8cf0-8153c3a89159"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 14 [VOS, Input, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.3081
+                            },
+                            "uuid": "c403369c-bf8d-405a-8cf0-8153c3a89159"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 6 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 1.4351
+                            },
+                            "uuid": "f3c54494-91c3-41f9-bceb-d12786a85de8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 6 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 1.5494,
+                                "y": 1.4351
+                            },
+                            "uuid": "f3c54494-91c3-41f9-bceb-d12786a85de8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 4 [PG, Open collector, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.3335
+                            },
+                            "uuid": "e4567280-73e6-4b37-8ae3-38b8cf91c28e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol L2 ピン 1 [1, Passive, Line]",
+                            "pos": {
+                                "x": 1.1684,
+                                "y": 1.7907
+                            },
+                            "uuid": "8cab7e8a-03c9-424f-8689-aae24a899f1d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 5 [FB, Input, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.3589
+                            },
+                            "uuid": "d5227489-5c32-4841-8263-8887461673b4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U9 ピン 5 [FB, Input, Line]",
+                            "pos": {
+                                "x": 1.651,
+                                "y": 1.3589
+                            },
+                            "uuid": "d5227489-5c32-4841-8263-8887461673b4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C16 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.1463
+                            },
+                            "uuid": "5a2bfd4c-c2c2-41c9-bb01-76b798fa6aa4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C17 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.7112,
+                                "y": 2.0701
+                            },
+                            "uuid": "7eb4d37f-3351-4921-8fa6-57becce570a9"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 1 [VCCA, Power input, Line]",
+                            "pos": {
+                                "x": 2.1463,
+                                "y": 0.4826
+                            },
+                            "uuid": "feef1836-1139-4760-a879-b94553675bf6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 1 [VCCA, Power input, Line]",
+                            "pos": {
+                                "x": 2.1463,
+                                "y": 0.4826
+                            },
+                            "uuid": "feef1836-1139-4760-a879-b94553675bf6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol L2 ピン 2 [2, Passive, Line]",
+                            "pos": {
+                                "x": 1.1684,
+                                "y": 1.8669
+                            },
+                            "uuid": "bd9c9532-2902-4eb6-956e-b5aaec53b258"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 14 [VCCB, Power input, Line]",
+                            "pos": {
+                                "x": 2.1717,
+                                "y": 0.4826
+                            },
+                            "uuid": "68245f95-395b-4063-8e65-7f3b57284778"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 14 [VCCB, Power input, Line]",
+                            "pos": {
+                                "x": 2.1717,
+                                "y": 0.4826
+                            },
+                            "uuid": "68245f95-395b-4063-8e65-7f3b57284778"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C17 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.7112,
+                                "y": 2.1463
+                            },
+                            "uuid": "0d95e141-11fa-4c14-b859-8dae5fab8c5f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 7 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 0.8382
+                            },
+                            "uuid": "8f37d306-75b8-489c-86c2-288b3ab2692f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 7 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 0.8382
+                            },
+                            "uuid": "8f37d306-75b8-489c-86c2-288b3ab2692f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C24 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.3495
+                            },
+                            "uuid": "6247a6cd-8a0f-4461-9b10-2d5133997823"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C18 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.1938,
+                                "y": 2.0701
+                            },
+                            "uuid": "86b5cfcb-6596-4cae-8f7f-3738c34fe72f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C15 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.6002,
+                                "y": 1.7907
+                            },
+                            "uuid": "ae0f90eb-e58c-4307-9c5c-bf476bff7f9e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 13 [B1Y, Output, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.5969
+                            },
+                            "uuid": "e731a744-b93d-4e86-8fcf-54bae6d8c0d2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 12 [B2Y, Output, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.6223
+                            },
+                            "uuid": "600f673f-839a-4634-b7c0-dc51e3d8472b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 11 [B3, Input, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.6477
+                            },
+                            "uuid": "181365a6-6ec3-4d7b-bd3e-5bc2b98c4b46"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 11 [B3, Input, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.6477
+                            },
+                            "uuid": "181365a6-6ec3-4d7b-bd3e-5bc2b98c4b46"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 10 [B4, Input, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.6731
+                            },
+                            "uuid": "f13409ae-0fae-4280-aae0-a65d78748e34"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U8 ピン 10 [B4, Input, Line]",
+                            "pos": {
+                                "x": 2.3368,
+                                "y": 0.6731
+                            },
+                            "uuid": "f13409ae-0fae-4280-aae0-a65d78748e34"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C24 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.4257
+                            },
+                            "uuid": "48217b4a-a2b1-430f-880b-99076832b961"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C25 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.7112,
+                                "y": 2.3495
+                            },
+                            "uuid": "aef3a176-e256-40bc-ba6c-b3c48ed8ba11"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C18 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.1938,
+                                "y": 2.1463
+                            },
+                            "uuid": "31bd3374-62cc-4693-9913-3fc531bc2d53"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C15 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.6002,
+                                "y": 1.8669
+                            },
+                            "uuid": "c8b0182e-10ec-4628-83b2-76762098fcbd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Y2 ピン 1 [1, Passive, Line]",
+                            "pos": {
+                                "x": 2.1209,
+                                "y": 1.2446
+                            },
+                            "uuid": "9305ab17-667a-4b79-9cee-de39569989a8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Y2 ピン 2 [2, Passive, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 1.1938
+                            },
+                            "uuid": "69e1766c-65ae-4edc-b31c-1f6457a41c1d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Y2 ピン 4 [4, Passive, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 1.2954
+                            },
+                            "uuid": "7caf32c6-e7a3-45bc-8f87-802169932775"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Y2 ピン 3 [3, Passive, Line]",
+                            "pos": {
+                                "x": 2.1971,
+                                "y": 1.2446
+                            },
+                            "uuid": "3f78a2f7-a415-4973-8820-ed4d98b22361"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C25 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.7112,
+                                "y": 2.4257
+                            },
+                            "uuid": "a0153bbb-7190-468e-9a25-bc2136819a3e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R21 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.5654
+                            },
+                            "uuid": "2005ab01-ac06-4a43-b08d-1248694c704f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C26 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.1938,
+                                "y": 2.3495
+                            },
+                            "uuid": "0617bb5f-c4d4-40b2-91e5-3b4bb0171fc1"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R22 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.5654
+                            },
+                            "uuid": "32b4c75a-e5e8-4e35-8ef9-ea5d539557b3"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R21 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.6416
+                            },
+                            "uuid": "655832d2-0a5e-4c7f-91f2-132037c91a08"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 2 [A1, Input, Line]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 0.6096
+                            },
+                            "uuid": "6476da4a-af2d-411e-ba3d-7bfa54fcec85"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 2 [A1, Input, Line]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 0.6096
+                            },
+                            "uuid": "6476da4a-af2d-411e-ba3d-7bfa54fcec85"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C19 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.6764,
+                                "y": 2.0701
+                            },
+                            "uuid": "b217c1b1-3d42-4aff-a16b-f60a213d9af7"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 3 [A2, Input, Line]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 0.635
+                            },
+                            "uuid": "64295a1f-a945-43ab-b538-62daf9721676"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 3 [A2, Input, Line]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 0.635
+                            },
+                            "uuid": "64295a1f-a945-43ab-b538-62daf9721676"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 4 [A3Y, Output, Line]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 0.6604
+                            },
+                            "uuid": "09c8f9a5-7099-4780-86f0-b6be38b9fea7"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 5 [A4Y, Output, Line]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 0.6858
+                            },
+                            "uuid": "e22b9447-db71-4644-8827-2eec99591fc7"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 8 [OE, Input, Line]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 0.7112
+                            },
+                            "uuid": "24eb377d-5503-4eb0-a128-8445355b25aa"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 8 [OE, Input, Line]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 0.7112
+                            },
+                            "uuid": "24eb377d-5503-4eb0-a128-8445355b25aa"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C26 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.1938,
+                                "y": 2.4257
+                            },
+                            "uuid": "f4aa59cd-894d-409a-802f-ac8f64eeec5b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R22 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.6416
+                            },
+                            "uuid": "80b18d25-30b5-4d37-927d-ade14ac9322a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C19 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.6764,
+                                "y": 2.1463
+                            },
+                            "uuid": "7866b0fa-3559-4d8a-9062-80f57b74e079"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R28 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.7178
+                            },
+                            "uuid": "e853c2f9-7df8-4ea0-8fb4-ececa7699ba3"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R23 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.5654
+                            },
+                            "uuid": "ae3587db-4203-47e6-951b-af96e216621d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R29 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.7178
+                            },
+                            "uuid": "b1f64365-5517-4c51-89d5-90b0bca6fd87"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 1 [VCCA, Power input, Line]",
+                            "pos": {
+                                "x": 2.7559,
+                                "y": 0.4826
+                            },
+                            "uuid": "ae26e468-2a99-4e1e-8255-04baf8afd5bb"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 1 [VCCA, Power input, Line]",
+                            "pos": {
+                                "x": 2.7559,
+                                "y": 0.4826
+                            },
+                            "uuid": "ae26e468-2a99-4e1e-8255-04baf8afd5bb"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R28 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.2286,
+                                "y": 2.794
+                            },
+                            "uuid": "a71a3d68-4a39-4874-9b55-40c156c61ab2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R23 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.6416
+                            },
+                            "uuid": "9ae60ac3-1d6b-4d18-8d7f-127a667d3748"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 14 [VCCB, Power input, Line]",
+                            "pos": {
+                                "x": 2.7813,
+                                "y": 0.4826
+                            },
+                            "uuid": "6dd4dde2-2c58-483c-adcd-6c68ab8de4ff"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 14 [VCCB, Power input, Line]",
+                            "pos": {
+                                "x": 2.7813,
+                                "y": 0.4826
+                            },
+                            "uuid": "6dd4dde2-2c58-483c-adcd-6c68ab8de4ff"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R29 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 2.794
+                            },
+                            "uuid": "8c256528-53d0-47e5-b909-f58a0328d243"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C27 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.6764,
+                                "y": 2.3495
+                            },
+                            "uuid": "c573c90b-44a9-4acb-8c48-126f8de1f942"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 7 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 0.8382
+                            },
+                            "uuid": "77e2babd-22a4-4dda-9f26-07ab6ccf0b20"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 7 [GND, Power input, Line]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 0.8382
+                            },
+                            "uuid": "77e2babd-22a4-4dda-9f26-07ab6ccf0b20"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R24 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.5654
+                            },
+                            "uuid": "fc0eb7a8-9f0f-493c-a43b-87d1f2dda452"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C27 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.6764,
+                                "y": 2.4257
+                            },
+                            "uuid": "807e3a00-a5e9-43d7-8f58-6d7ffce81f74"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R30 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.794
+                            },
+                            "uuid": "124eab70-037c-40bf-ae69-d6f35cb1936a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Q1 ピン 1 [G, Input, Line]",
+                            "pos": {
+                                "x": 2.6924,
+                                "y": 1.2573
+                            },
+                            "uuid": "b2dc8d91-6055-4003-b0d4-295b1541ed7f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Q1 ピン 1 [G, Input, Line]",
+                            "pos": {
+                                "x": 2.6924,
+                                "y": 1.2573
+                            },
+                            "uuid": "b2dc8d91-6055-4003-b0d4-295b1541ed7f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R24 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.6416
+                            },
+                            "uuid": "51a342f0-3035-46e1-a030-80f7d9820d82"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C20 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 2.0701
+                            },
+                            "uuid": "97c9fc60-2997-4528-88e9-dc9c13209c92"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 13 [B1Y, Output, Line]",
+                            "pos": {
+                                "x": 2.9464,
+                                "y": 0.5969
+                            },
+                            "uuid": "6d1487a7-c2be-4c26-98a6-ce2a16d5ee52"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 12 [B2Y, Output, Line]",
+                            "pos": {
+                                "x": 2.9464,
+                                "y": 0.6223
+                            },
+                            "uuid": "e47cbeec-83c6-48e3-895f-a06a6889e39e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 11 [B3, Input, Line]",
+                            "pos": {
+                                "x": 2.9464,
+                                "y": 0.6477
+                            },
+                            "uuid": "8890f89a-b392-4d3b-bba3-3bedf13d7388"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 11 [B3, Input, Line]",
+                            "pos": {
+                                "x": 2.9464,
+                                "y": 0.6477
+                            },
+                            "uuid": "8890f89a-b392-4d3b-bba3-3bedf13d7388"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Q1 ピン 3 [D, Passive, Line]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 1.2065
+                            },
+                            "uuid": "95a937f1-679e-4ffc-84af-f867c33553dd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 10 [B4, Input, Line]",
+                            "pos": {
+                                "x": 2.9464,
+                                "y": 0.6731
+                            },
+                            "uuid": "edc47c67-4630-4eb6-bfb1-ca595389daa2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U10 ピン 10 [B4, Input, Line]",
+                            "pos": {
+                                "x": 2.9464,
+                                "y": 0.6731
+                            },
+                            "uuid": "edc47c67-4630-4eb6-bfb1-ca595389daa2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R31 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.7178
+                            },
+                            "uuid": "88ecdb15-11ab-4825-9e89-b6ad2e27f8b0"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C20 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 2.1463
+                            },
+                            "uuid": "58bc2858-ec1f-46e4-8086-e4776f5e12e7"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol Q1 ピン 2 [S, Passive, Line]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 1.3081
+                            },
+                            "uuid": "81e85239-4e11-435c-85d5-9903eb11f604"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R25 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 2.5654
+                            },
+                            "uuid": "820aea22-a834-4430-ae60-4dd5659ae680"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R31 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 2.794
+                            },
+                            "uuid": "a40e52e8-0fc5-4cac-8145-a7f5abddb8ba"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R25 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 2.6416
+                            },
+                            "uuid": "ee8a5306-e33c-46d2-a5e0-499044a4eeb6"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C28 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 2.3495
+                            },
+                            "uuid": "5b3ea012-3844-432b-be6a-f9514c90e641"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R32 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 2.7178
+                            },
+                            "uuid": "69717dcd-8bdd-4426-a899-8ef8123064af"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C28 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.159,
+                                "y": 2.4257
+                            },
+                            "uuid": "488887b6-f8b4-4b6f-8909-ba55e1936c03"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R32 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 1.7526,
+                                "y": 2.794
+                            },
+                            "uuid": "fc695d42-28b1-4b87-b58b-fb030a9d193a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R26 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 2.5654
+                            },
+                            "uuid": "bbd89d44-41c8-495d-9633-faca3f7a503e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C21 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.6416,
+                                "y": 2.0701
+                            },
+                            "uuid": "e77b69ac-b5de-4608-8a3b-c1bf03737920"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 1 [VCC, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.5588
+                            },
+                            "uuid": "d07709b3-ec02-4003-8df4-53e9827c5f75"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 1 [VCC, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.5588
+                            },
+                            "uuid": "d07709b3-ec02-4003-8df4-53e9827c5f75"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 2 [RST, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.5842
+                            },
+                            "uuid": "c8b4a425-edf7-42f3-8000-93d9cf386389"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 2 [RST, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.5842
+                            },
+                            "uuid": "c8b4a425-edf7-42f3-8000-93d9cf386389"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 3 [CLK, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.6096
+                            },
+                            "uuid": "8a9f50a4-1abb-47ae-b906-dd069f854673"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 3 [CLK, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.6096
+                            },
+                            "uuid": "8a9f50a4-1abb-47ae-b906-dd069f854673"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 7 [I/O, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.635
+                            },
+                            "uuid": "53b59138-9277-42b4-a7c7-95125ced79cf"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 6 [VPP/NC, Passive, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 0.6604
+                            },
+                            "uuid": "e651f0e6-22d1-4826-a3b5-cedfdf07b0c8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R26 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 2.6416
+                            },
+                            "uuid": "91295d10-6c14-4fe2-8c1e-e5372c40a005"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C21 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.6416,
+                                "y": 2.1463
+                            },
+                            "uuid": "e3aaba65-be0f-43cf-871e-dec8243a8393"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R33 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 2.7178
+                            },
+                            "uuid": "19ea9055-843c-4e3d-b7c8-694b54bec0de"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R33 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.1336,
+                                "y": 2.794
+                            },
+                            "uuid": "b47aaa6a-8007-4033-890a-7135f8bbfd8c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C29 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.6416,
+                                "y": 2.3495
+                            },
+                            "uuid": "e2f386aa-0844-4536-aee4-9eac79e8bc33"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 1 [DAT2, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2065
+                            },
+                            "uuid": "7655b939-d77d-4f6b-88d6-b8c85d57b926"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 2 [DAT3/CD, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2319
+                            },
+                            "uuid": "bcd4f5b0-a674-4fab-8406-d87a66df737f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 3 [CMD, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2573
+                            },
+                            "uuid": "a613a687-0199-4e00-aeef-82df098912dc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 3 [CMD, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2573
+                            },
+                            "uuid": "a613a687-0199-4e00-aeef-82df098912dc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 4 [VDD, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2827
+                            },
+                            "uuid": "45042d34-0b09-4058-b8dc-850d09bf7eac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 4 [VDD, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.2827
+                            },
+                            "uuid": "45042d34-0b09-4058-b8dc-850d09bf7eac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U11 ピン 1 [I/O1, Passive, Line]",
+                            "pos": {
+                                "x": 3.1242,
+                                "y": 1.7272
+                            },
+                            "uuid": "892f3973-3275-4dc6-906c-c2345e4a3e56"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 5 [CLK, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3081
+                            },
+                            "uuid": "a220d8f0-cdc8-4024-9a3e-a60a8be0ddcc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "入力ピンが出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 5 [CLK, Input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3081
+                            },
+                            "uuid": "a220d8f0-cdc8-4024-9a3e-a60a8be0ddcc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U11 ピン 3 [I/O2, Passive, Line]",
+                            "pos": {
+                                "x": 3.1242,
+                                "y": 1.7526
+                            },
+                            "uuid": "ef9dd64b-99ce-46d2-89c8-8a84cec8d20a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 6 [VSS, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3335
+                            },
+                            "uuid": "15821445-b5f8-40fb-9b7b-758ab7681b79"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 6 [VSS, Power input, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3335
+                            },
+                            "uuid": "15821445-b5f8-40fb-9b7b-758ab7681b79"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C29 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.6416,
+                                "y": 2.4257
+                            },
+                            "uuid": "6b5f16d7-7553-427a-8922-3324109b93ea"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R27 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.5146,
+                                "y": 2.5654
+                            },
+                            "uuid": "6a6bb240-0647-4b8e-9538-d936db8162cb"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 7 [DAT0, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3589
+                            },
+                            "uuid": "3019be6b-7b11-43f3-a3c2-0bcdf82bcee8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U11 ピン 4 [I/O3, Passive, Line]",
+                            "pos": {
+                                "x": 3.1242,
+                                "y": 1.778
+                            },
+                            "uuid": "f10dc9f7-9d38-4a4c-9ba1-73bf7f1ddb27"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 8 [DAT1, Bidirectional, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.3843
+                            },
+                            "uuid": "f4098401-bece-46ce-86d6-74d7d6f4937d"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン 5 [GND/CD_COM, Passive, Line]",
+                            "pos": {
+                                "x": 3.5179,
+                                "y": 0.7874
+                            },
+                            "uuid": "c2217248-241e-47a3-ad40-ff5c66036a1c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U11 ピン 6 [I/O4, Passive, Line]",
+                            "pos": {
+                                "x": 3.1242,
+                                "y": 1.8034
+                            },
+                            "uuid": "eeacd07f-d6f3-421b-8d00-4c4b16b3ac50"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U11 ピン 5 [VBUS, Passive, Line]",
+                            "pos": {
+                                "x": 3.2004,
+                                "y": 1.6764
+                            },
+                            "uuid": "b4486339-695f-43e2-8b41-80a6f60500f1"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 10 [DET_A, Passive, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.4097
+                            },
+                            "uuid": "4ed031b0-7831-4136-847c-3ae8638aa248"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 9 [DET_B, Passive, Line]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 1.4351
+                            },
+                            "uuid": "072836b3-284a-413f-bd81-3936c5f66f1c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン SH [SHIELD, Passive, Line]",
+                            "pos": {
+                                "x": 3.5433,
+                                "y": 0.7874
+                            },
+                            "uuid": "821d7f5f-b58f-4f12-ac06-bcfb35c6673c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R27 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.5146,
+                                "y": 2.6416
+                            },
+                            "uuid": "7b248b9c-7ddc-4c98-a685-b427ffbc2bff"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U11 ピン 2 [GND, Passive, Line]",
+                            "pos": {
+                                "x": 3.2004,
+                                "y": 1.8542
+                            },
+                            "uuid": "84c12c33-c9b9-4cc0-9e38-ef05afa07a7a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R34 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 2.5146,
+                                "y": 2.7178
+                            },
+                            "uuid": "9236f32c-bdda-4945-a891-f8b1f1a6e443"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C22 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 3.1242,
+                                "y": 2.0701
+                            },
+                            "uuid": "0b52af40-e7cc-440d-9476-bfdd7ba38f07"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol R34 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 2.5146,
+                                "y": 2.794
+                            },
+                            "uuid": "996b7d76-4101-4ccb-9140-6c02a50510a2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J8 ピン CD [DETECT, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 0.6096
+                            },
+                            "uuid": "c7ba71a9-bec7-4f17-a7e4-1e678b74ce64"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C22 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 3.1242,
+                                "y": 2.1463
+                            },
+                            "uuid": "1313b55f-0c55-4627-be37-321e85285760"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C30 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 3.1242,
+                                "y": 2.3495
+                            },
+                            "uuid": "cffaa64c-e544-4b53-87bc-cb636ae4d13e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C30 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 3.1242,
+                                "y": 2.4257
+                            },
+                            "uuid": "93a5d42b-c2da-456e-9d23-bf047383150b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol J9 ピン 11 [SHIELD, Passive, Line]",
+                            "pos": {
+                                "x": 3.7592,
+                                "y": 1.4351
+                            },
+                            "uuid": "96a944b6-1297-48f8-b294-b4eb2c7a881b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U12 ピン 1 [I/O1, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 1.7272
+                            },
+                            "uuid": "f0284801-32d9-45ca-a06e-9cec77e40b78"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U12 ピン 3 [I/O2, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 1.7526
+                            },
+                            "uuid": "97e2b83c-f1d4-4657-a20a-17943b4d62ac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U12 ピン 4 [I/O3, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 1.778
+                            },
+                            "uuid": "d109bc58-45f9-44bd-a2bc-c90b6ebb6b8f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U12 ピン 6 [I/O4, Passive, Line]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 1.8034
+                            },
+                            "uuid": "43cd266a-b1d1-420e-86f6-a48c75045861"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C23 ピン 1 [Passive, Line]",
+                            "pos": {
+                                "x": 3.6068,
+                                "y": 2.0701
+                            },
+                            "uuid": "ccf47737-460e-4e59-bf9c-9604390e407f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U12 ピン 5 [VBUS, Passive, Line]",
+                            "pos": {
+                                "x": 3.81,
+                                "y": 1.6764
+                            },
+                            "uuid": "c56ae2b3-ae92-4eec-b731-1328963bae8f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol C23 ピン 2 [Passive, Line]",
+                            "pos": {
+                                "x": 3.6068,
+                                "y": 2.1463
+                            },
+                            "uuid": "4324ab27-4b5f-47ad-8b2d-85a201111715"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U12 ピン 2 [GND, Passive, Line]",
+                            "pos": {
+                                "x": 3.81,
+                                "y": 1.8542
+                            },
+                            "uuid": "79c7e5b2-1d3f-4e2d-8796-df1631ca2f66"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                }
+            ]
+        }
+    ],
+    "source": "logger_v2.kicad_sch"
+}

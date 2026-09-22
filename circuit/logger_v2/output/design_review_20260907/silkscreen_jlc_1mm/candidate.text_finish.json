@@ -1,0 +1,2599 @@
+{
+  "geometry_unchanged": true,
+  "protected_geometry_sha256": "85b6958421190f1b293b54fe572b3ff1400e40cea054b0a498093e42c32349b0",
+  "changes": [
+    {
+      "reference": "C1",
+      "before": {
+        "uuid": "1d403f23-e920-417a-a4a8-2ba9d200fbea",
+        "text": "C1",
+        "position": [
+          113.2,
+          85.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "1d403f23-e920-417a-a4a8-2ba9d200fbea",
+        "text": "C1",
+        "position": [
+          113.5,
+          85.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C10",
+      "before": {
+        "uuid": "c91f07cd-deaf-48e7-ab74-24ea3602f612",
+        "text": "C10",
+        "position": [
+          133.0,
+          75.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "c91f07cd-deaf-48e7-ab74-24ea3602f612",
+        "text": "C10",
+        "position": [
+          133.0,
+          75.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C11",
+      "before": {
+        "uuid": "e759d435-07c5-4338-9106-ffe9d33d6fc3",
+        "text": "C11",
+        "position": [
+          136.0,
+          75.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "e759d435-07c5-4338-9106-ffe9d33d6fc3",
+        "text": "C11",
+        "position": [
+          136.0,
+          75.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C12",
+      "before": {
+        "uuid": "cf3da0fc-3d7c-47cd-9c60-d526f2cf0fb2",
+        "text": "C12",
+        "position": [
+          133.0,
+          81.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "cf3da0fc-3d7c-47cd-9c60-d526f2cf0fb2",
+        "text": "C12",
+        "position": [
+          133.0,
+          81.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C13",
+      "before": {
+        "uuid": "9ae9874d-8094-4f05-afb4-85e204c76543",
+        "text": "C13",
+        "position": [
+          132.5,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "9ae9874d-8094-4f05-afb4-85e204c76543",
+        "text": "C13",
+        "position": [
+          132.5,
+          94.5
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C14",
+      "before": {
+        "uuid": "4fc5664b-65c7-43ef-bc84-3df1977a0abc",
+        "text": "C14",
+        "position": [
+          139.3,
+          94.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "4fc5664b-65c7-43ef-bc84-3df1977a0abc",
+        "text": "C14",
+        "position": [
+          136.5,
+          94.5
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C2",
+      "before": {
+        "uuid": "b3c43814-c0f4-46e5-a7c6-e09b9ccc913f",
+        "text": "C2",
+        "position": [
+          121.0,
+          62.9
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "b3c43814-c0f4-46e5-a7c6-e09b9ccc913f",
+        "text": "C2",
+        "position": [
+          121.0,
+          62.9
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C3",
+      "before": {
+        "uuid": "7970e8d3-8eba-4cec-929b-c6deb6714721",
+        "text": "C3",
+        "position": [
+          121.0,
+          71.8
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "7970e8d3-8eba-4cec-929b-c6deb6714721",
+        "text": "C3",
+        "position": [
+          121.0,
+          71.8
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C4",
+      "before": {
+        "uuid": "0a4b444d-29c8-4b2e-9a48-a463a2886453",
+        "text": "C4",
+        "position": [
+          140.0,
+          72.3
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "0a4b444d-29c8-4b2e-9a48-a463a2886453",
+        "text": "C4",
+        "position": [
+          140.0,
+          72.3
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C5",
+      "before": {
+        "uuid": "d0bc42f6-9eb1-48e8-a05e-dc7f623c5480",
+        "text": "C5",
+        "position": [
+          132.0,
+          56.365
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "d0bc42f6-9eb1-48e8-a05e-dc7f623c5480",
+        "text": "C5",
+        "position": [
+          132.0,
+          56.365
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C6",
+      "before": {
+        "uuid": "cd364d93-3023-42ad-b3bc-91ced24fea60",
+        "text": "C6",
+        "position": [
+          122.0,
+          52.9
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "cd364d93-3023-42ad-b3bc-91ced24fea60",
+        "text": "C6",
+        "position": [
+          122.0,
+          52.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C7",
+      "before": {
+        "uuid": "40016230-43af-412a-9f05-582334a98d48",
+        "text": "C7",
+        "position": [
+          124.0,
+          63.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "40016230-43af-412a-9f05-582334a98d48",
+        "text": "C7",
+        "position": [
+          124.0,
+          63.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C8",
+      "before": {
+        "uuid": "888ddf6e-44ec-49b6-b081-04566a01e0bb",
+        "text": "C8",
+        "position": [
+          136.4,
+          73.3
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "888ddf6e-44ec-49b6-b081-04566a01e0bb",
+        "text": "C8",
+        "position": [
+          136.4,
+          73.3
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "C9",
+      "before": {
+        "uuid": "e7b9325c-9ba8-4129-80a5-fc39264db2d6",
+        "text": "C9",
+        "position": [
+          135.8,
+          63.099999
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "e7b9325c-9ba8-4129-80a5-fc39264db2d6",
+        "text": "C9",
+        "position": [
+          135.8,
+          63.099999
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D1",
+      "before": {
+        "uuid": "4fe8b96e-0a8d-4688-85ed-c4b3c088f9ca",
+        "text": "D1",
+        "position": [
+          137.0,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "4fe8b96e-0a8d-4688-85ed-c4b3c088f9ca",
+        "text": "D1",
+        "position": [
+          137.0,
+          91.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D10",
+      "before": {
+        "uuid": "7ed60109-88cb-45dd-84c0-297fc6544532",
+        "text": "D10",
+        "position": [
+          117.0,
+          56.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "7ed60109-88cb-45dd-84c0-297fc6544532",
+        "text": "D10",
+        "position": [
+          117.0,
+          56.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D11",
+      "before": {
+        "uuid": "21720887-ca24-4a95-a474-6e418fb1c396",
+        "text": "D11",
+        "position": [
+          112.5,
+          92.4
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "21720887-ca24-4a95-a474-6e418fb1c396",
+        "text": "D11",
+        "position": [
+          112.5,
+          92.4
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D2",
+      "before": {
+        "uuid": "bdd5acd7-4ab4-49b5-b96b-401c50c6fe92",
+        "text": "D2",
+        "position": [
+          139.8,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "bdd5acd7-4ab4-49b5-b96b-401c50c6fe92",
+        "text": "D2",
+        "position": [
+          139.8,
+          91.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D3",
+      "before": {
+        "uuid": "abb9dec7-d2eb-4e7e-a02e-5c2ad6b7e2a0",
+        "text": "D3",
+        "position": [
+          142.6,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "abb9dec7-d2eb-4e7e-a02e-5c2ad6b7e2a0",
+        "text": "D3",
+        "position": [
+          142.6,
+          91.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D4",
+      "before": {
+        "uuid": "8d7bc116-b359-4566-998b-fd13e41305aa",
+        "text": "D4",
+        "position": [
+          145.4,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "8d7bc116-b359-4566-998b-fd13e41305aa",
+        "text": "D4",
+        "position": [
+          145.4,
+          91.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D5",
+      "before": {
+        "uuid": "a3f29284-7fef-4dca-af0a-6e45284ce5e7",
+        "text": "D5",
+        "position": [
+          148.2,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "a3f29284-7fef-4dca-af0a-6e45284ce5e7",
+        "text": "D5",
+        "position": [
+          148.2,
+          91.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D6",
+      "before": {
+        "uuid": "56c26298-df99-476e-9c01-7be3817481ae",
+        "text": "D6",
+        "position": [
+          151.0,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "56c26298-df99-476e-9c01-7be3817481ae",
+        "text": "D6",
+        "position": [
+          151.0,
+          91.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D7",
+      "before": {
+        "uuid": "1a7557ef-0df3-49f8-8466-7c210fa7a1e4",
+        "text": "D7",
+        "position": [
+          153.8,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "1a7557ef-0df3-49f8-8466-7c210fa7a1e4",
+        "text": "D7",
+        "position": [
+          153.8,
+          91.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D8",
+      "before": {
+        "uuid": "fe967155-b1cb-4a57-809b-15c325ba9905",
+        "text": "D8",
+        "position": [
+          156.6,
+          93.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "fe967155-b1cb-4a57-809b-15c325ba9905",
+        "text": "D8",
+        "position": [
+          156.6,
+          91.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "D9",
+      "before": {
+        "uuid": "104947fb-add2-4c49-a706-a323e2e459d2",
+        "text": "D9",
+        "position": [
+          117.0,
+          73.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "104947fb-add2-4c49-a706-a323e2e459d2",
+        "text": "D9",
+        "position": [
+          117.0,
+          73.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "J1",
+      "before": {
+        "uuid": "5f1de183-02a2-4e8d-8c94-2543d2b79dd6",
+        "text": "J1",
+        "position": [
+          105.0,
+          94.7
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "5f1de183-02a2-4e8d-8c94-2543d2b79dd6",
+        "text": "J1",
+        "position": [
+          105.0,
+          94.7
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "J2",
+      "before": {
+        "uuid": "342ff4c9-41f0-4e6e-a162-e5cb17f63d33",
+        "text": "J2",
+        "position": [
+          118.796,
+          51.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "342ff4c9-41f0-4e6e-a162-e5cb17f63d33",
+        "text": "J2",
+        "position": [
+          118.796,
+          51.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "J3",
+      "before": {
+        "uuid": "c1ed71e5-518f-460d-8638-7632b40f5e43",
+        "text": "J3",
+        "position": [
+          125.539999,
+          97.46
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "c1ed71e5-518f-460d-8638-7632b40f5e43",
+        "text": "J3",
+        "position": [
+          125.539999,
+          97.46
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "J4",
+      "before": {
+        "uuid": "41a8967e-0105-4f69-ad4b-506b9954ebe3",
+        "text": "J4",
+        "position": [
+          148.4,
+          97.46
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "41a8967e-0105-4f69-ad4b-506b9954ebe3",
+        "text": "J4",
+        "position": [
+          148.4,
+          97.46
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "J5",
+      "before": {
+        "uuid": "5c16ca3d-4b95-4ce3-b767-8c2ba322df2c",
+        "text": "J5",
+        "position": [
+          145.72,
+          51.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "5c16ca3d-4b95-4ce3-b767-8c2ba322df2c",
+        "text": "J5",
+        "position": [
+          145.72,
+          51.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "J6",
+      "before": {
+        "uuid": "dd356165-2cf4-4e0c-af74-499cc454fd34",
+        "text": "J6",
+        "position": [
+          112.7,
+          64.599999
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "dd356165-2cf4-4e0c-af74-499cc454fd34",
+        "text": "J6",
+        "position": [
+          112.7,
+          64.599999
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "J7",
+      "before": {
+        "uuid": "4f9c4a9c-8b8c-478d-90de-305c77b03a0a",
+        "text": "J7",
+        "position": [
+          112.7,
+          52.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "4f9c4a9c-8b8c-478d-90de-305c77b03a0a",
+        "text": "J7",
+        "position": [
+          112.7,
+          52.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "L1",
+      "before": {
+        "uuid": "44d0a290-2645-4a60-b66b-11ade747e3a9",
+        "text": "L1",
+        "position": [
+          111.0,
+          87.05
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "44d0a290-2645-4a60-b66b-11ade747e3a9",
+        "text": "L1",
+        "position": [
+          111.0,
+          88.5
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R1",
+      "before": {
+        "uuid": "03b749c2-e905-4ce0-bcdd-39880997a87a",
+        "text": "R1",
+        "position": [
+          137.0,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "03b749c2-e905-4ce0-bcdd-39880997a87a",
+        "text": "R1",
+        "position": [
+          137.0,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R10",
+      "before": {
+        "uuid": "a9516575-858f-4218-9527-0268390a1c5d",
+        "text": "R10",
+        "position": [
+          134.4,
+          91.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "a9516575-858f-4218-9527-0268390a1c5d",
+        "text": "R10",
+        "position": [
+          134.4,
+          91.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R11",
+      "before": {
+        "uuid": "093513ac-0ee2-4178-af56-30f9e3a8c1d1",
+        "text": "R11",
+        "position": [
+          156.6,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "093513ac-0ee2-4178-af56-30f9e3a8c1d1",
+        "text": "R11",
+        "position": [
+          156.6,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R12",
+      "before": {
+        "uuid": "bbad9abd-cf94-461e-a81a-70e9187c6c0a",
+        "text": "R12",
+        "position": [
+          138.6,
+          68.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "bbad9abd-cf94-461e-a81a-70e9187c6c0a",
+        "text": "R12",
+        "position": [
+          138.6,
+          68.1
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R13",
+      "before": {
+        "uuid": "ad12b7d0-a436-4653-85d0-4d059187445e",
+        "text": "R13",
+        "position": [
+          115.5,
+          64.8
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "ad12b7d0-a436-4653-85d0-4d059187445e",
+        "text": "R13",
+        "position": [
+          115.5,
+          64.8
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R14",
+      "before": {
+        "uuid": "fa1f3cba-ae5a-47ba-b081-f56c4c83ab6f",
+        "text": "R14",
+        "position": [
+          120.5,
+          59.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "fa1f3cba-ae5a-47ba-b081-f56c4c83ab6f",
+        "text": "R14",
+        "position": [
+          120.5,
+          59.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R15",
+      "before": {
+        "uuid": "03fc09b2-3e0c-4dfc-be82-4b677f260832",
+        "text": "R15",
+        "position": [
+          143.0,
+          58.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "03fc09b2-3e0c-4dfc-be82-4b677f260832",
+        "text": "R15",
+        "position": [
+          143.0,
+          58.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R16",
+      "before": {
+        "uuid": "d8092ce2-13b3-4f8f-9189-71d454232f9b",
+        "text": "R16",
+        "position": [
+          143.0,
+          64.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "d8092ce2-13b3-4f8f-9189-71d454232f9b",
+        "text": "R16",
+        "position": [
+          143.0,
+          64.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R17",
+      "before": {
+        "uuid": "db958327-2fed-400c-9ec7-0ff95e3f087d",
+        "text": "R17",
+        "position": [
+          162.5,
+          69.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "db958327-2fed-400c-9ec7-0ff95e3f087d",
+        "text": "R17",
+        "position": [
+          162.5,
+          69.6
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R18",
+      "before": {
+        "uuid": "1f9df370-d402-488a-ba60-68232763f2b1",
+        "text": "R18",
+        "position": [
+          144.5,
+          68.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "1f9df370-d402-488a-ba60-68232763f2b1",
+        "text": "R18",
+        "position": [
+          144.5,
+          70.5
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R19",
+      "before": {
+        "uuid": "a693891f-d17f-40d5-841c-3b7844e9df78",
+        "text": "R19",
+        "position": [
+          147.0,
+          68.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "a693891f-d17f-40d5-841c-3b7844e9df78",
+        "text": "R19",
+        "position": [
+          147.0,
+          70.5
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R2",
+      "before": {
+        "uuid": "65a494d3-6ae6-48bf-8be0-773f8592570c",
+        "text": "R2",
+        "position": [
+          139.8,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "65a494d3-6ae6-48bf-8be0-773f8592570c",
+        "text": "R2",
+        "position": [
+          139.8,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R20",
+      "before": {
+        "uuid": "efab955a-0dc4-4517-b4cf-cbe25b45bdd0",
+        "text": "R20",
+        "position": [
+          149.5,
+          68.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "efab955a-0dc4-4517-b4cf-cbe25b45bdd0",
+        "text": "R20",
+        "position": [
+          149.5,
+          70.5
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R3",
+      "before": {
+        "uuid": "64a5d086-74b4-4421-b277-ccbdf8ab2b84",
+        "text": "R3",
+        "position": [
+          142.6,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "64a5d086-74b4-4421-b277-ccbdf8ab2b84",
+        "text": "R3",
+        "position": [
+          142.6,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R4",
+      "before": {
+        "uuid": "f3ddcf85-bce9-433b-8c48-37b68756eef6",
+        "text": "R4",
+        "position": [
+          145.4,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "f3ddcf85-bce9-433b-8c48-37b68756eef6",
+        "text": "R4",
+        "position": [
+          145.4,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R5",
+      "before": {
+        "uuid": "b5af72a4-6ef0-4f10-a740-636aa41fdc93",
+        "text": "R5",
+        "position": [
+          113.5,
+          76.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "b5af72a4-6ef0-4f10-a740-636aa41fdc93",
+        "text": "R5",
+        "position": [
+          113.5,
+          76.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R6",
+      "before": {
+        "uuid": "a244e7d5-7cfd-4577-aca5-67e4a298f318",
+        "text": "R6",
+        "position": [
+          148.2,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "a244e7d5-7cfd-4577-aca5-67e4a298f318",
+        "text": "R6",
+        "position": [
+          148.2,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R7",
+      "before": {
+        "uuid": "28fc657b-b038-4917-ab63-9aa43dd74fe2",
+        "text": "R7",
+        "position": [
+          112.0,
+          79.4
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "28fc657b-b038-4917-ab63-9aa43dd74fe2",
+        "text": "R7",
+        "position": [
+          112.0,
+          79.4
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R8",
+      "before": {
+        "uuid": "3a7899ff-5ee4-47a8-a3ff-607c20e1878f",
+        "text": "R8",
+        "position": [
+          151.0,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "3a7899ff-5ee4-47a8-a3ff-607c20e1878f",
+        "text": "R8",
+        "position": [
+          151.0,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "R9",
+      "before": {
+        "uuid": "27212c67-00b8-4a19-a4e7-ccbe2850d3eb",
+        "text": "R9",
+        "position": [
+          153.8,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "27212c67-00b8-4a19-a4e7-ccbe2850d3eb",
+        "text": "R9",
+        "position": [
+          153.8,
+          85.65
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "U1",
+      "before": {
+        "uuid": "97fa5b93-767e-4b81-b239-6bce4c96160b",
+        "text": "U1",
+        "position": [
+          147.2,
+          81.399999
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "97fa5b93-767e-4b81-b239-6bce4c96160b",
+        "text": "U1",
+        "position": [
+          147.2,
+          81.399999
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "U2",
+      "before": {
+        "uuid": "c8b85382-c9d4-424b-935a-471be977c2c5",
+        "text": "U2",
+        "position": [
+          114.6,
+          74.899999
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "c8b85382-c9d4-424b-935a-471be977c2c5",
+        "text": "U2",
+        "position": [
+          114.6,
+          74.899999
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "U3",
+      "before": {
+        "uuid": "f0a1d981-76bd-4ec3-827a-9d427c250d69",
+        "text": "U3",
+        "position": [
+          162.1,
+          60.8
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "f0a1d981-76bd-4ec3-827a-9d427c250d69",
+        "text": "U3",
+        "position": [
+          162.1,
+          60.8
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "U4",
+      "before": {
+        "uuid": "c71fab9a-0be9-4c80-9f1e-b69cf4109718",
+        "text": "U4",
+        "position": [
+          126.5,
+          55.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "c71fab9a-0be9-4c80-9f1e-b69cf4109718",
+        "text": "U4",
+        "position": [
+          126.5,
+          55.0
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "U5",
+      "before": {
+        "uuid": "ac633ac6-4c56-473f-a30e-1a535fbf81a3",
+        "text": "U5",
+        "position": [
+          128.5,
+          63.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "ac633ac6-4c56-473f-a30e-1a535fbf81a3",
+        "text": "U5",
+        "position": [
+          128.5,
+          63.5
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "reference": "Y1",
+      "before": {
+        "uuid": "e15b7adf-3231-4d2b-9cc5-b2cd51a334a1",
+        "text": "Y1",
+        "position": [
+          117.7,
+          67.3
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.82,
+          0.82
+        ],
+        "thickness_mm": 0.12,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "e15b7adf-3231-4d2b-9cc5-b2cd51a334a1",
+        "text": "Y1",
+        "position": [
+          117.7,
+          67.3
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "GNSS",
+      "before": {
+        "uuid": "25a06ab6-e115-4e7b-a9af-fb013d88e049",
+        "text": "GNSS",
+        "position": [
+          105.0,
+          96.25
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.9,
+          0.9
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "25a06ab6-e115-4e7b-a9af-fb013d88e049",
+        "text": "GNSS",
+        "position": [
+          105.0,
+          96.25
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "IMU",
+      "before": {
+        "uuid": "bbc59bf7-6c9b-4695-b86b-15728640aec6",
+        "text": "IMU",
+        "position": [
+          162.1,
+          54.4
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.9,
+          0.9
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "bbc59bf7-6c9b-4695-b86b-15728640aec6",
+        "text": "IMU",
+        "position": [
+          162.1,
+          54.4
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "ECOLOGGER V2",
+      "before": {
+        "uuid": "dc9fc485-e5a4-4ff9-ad60-8e4edbe04e1b",
+        "text": "ECOLOGGER V2",
+        "position": [
+          146.799999,
+          83.05
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.1,
+          1.1
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "dc9fc485-e5a4-4ff9-ad60-8e4edbe04e1b",
+        "text": "ECOLOGGER V2",
+        "position": [
+          146.8,
+          82.8
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.1,
+          1.1
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "CAN2",
+      "before": {
+        "uuid": "e3042e19-6830-48ea-927a-fcfad4c142dd",
+        "text": "CAN2",
+        "position": [
+          106.5,
+          65.2
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.9,
+          0.9
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "e3042e19-6830-48ea-927a-fcfad4c142dd",
+        "text": "CAN2",
+        "position": [
+          106.5,
+          65.2
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "CAN1 / RX",
+      "before": {
+        "uuid": "e5f1321a-1bda-4b14-9abf-a95995c5911b",
+        "text": "CAN1 / RX",
+        "position": [
+          106.5,
+          52.7
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.9,
+          0.9
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "e5f1321a-1bda-4b14-9abf-a95995c5911b",
+        "text": "CAN1 / RX",
+        "position": [
+          106.5,
+          52.7
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "UNO Q SENSOR SHIELD",
+      "before": {
+        "uuid": "fd2fe494-8296-4e15-a24f-200353e497eb",
+        "text": "UNO Q SENSOR SHIELD",
+        "position": [
+          146.799999,
+          84.45
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "fd2fe494-8296-4e15-a24f-200353e497eb",
+        "text": "UNO Q SENSOR SHIELD",
+        "position": [
+          146.8,
+          84.2
+        ],
+        "layer": "F.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": false,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "5V OUT: UNPROTECTED / NO POWER INPUT",
+      "before": {
+        "uuid": "271474f4-2601-42d8-981d-3da6e399b86e",
+        "text": "5V OUT: UNPROTECTED / NO POWER INPUT",
+        "position": [
+          134.0,
+          77.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "271474f4-2601-42d8-981d-3da6e399b86e",
+        "text": "5V OUT: UNPROTECTED / NO POWER INPUT",
+        "position": [
+          134.0,
+          77.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "ECOLOGGER V2 / REV A",
+      "before": {
+        "uuid": "51db216b-e255-4312-9b02-db37dec2dc20",
+        "text": "ECOLOGGER V2 / REV A",
+        "position": [
+          134.0,
+          72.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.2,
+          1.2
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "51db216b-e255-4312-9b02-db37dec2dc20",
+        "text": "ECOLOGGER V2 / REV A",
+        "position": [
+          134.0,
+          72.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.2,
+          1.2
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "CAN1 RX ONLY / 3.3V LOGIC",
+      "before": {
+        "uuid": "7a0823f1-59e7-4353-ba30-10dbf2bd9492",
+        "text": "CAN1 RX ONLY / 3.3V LOGIC",
+        "position": [
+          134.0,
+          83.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          0.9,
+          0.9
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "7a0823f1-59e7-4353-ba30-10dbf2bd9492",
+        "text": "CAN1 RX ONLY / 3.3V LOGIC",
+        "position": [
+          134.0,
+          83.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "J7: 1=NC  2=CANH  3=CANL  4=GND",
+      "before": {
+        "uuid": "a436dc0a-15d1-4d32-b8f7-a6603bc9bc3e",
+        "text": "J7: 1=NC  2=CANH  3=CANL  4=GND",
+        "position": [
+          134.0,
+          80.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "a436dc0a-15d1-4d32-b8f7-a6603bc9bc3e",
+        "text": "J7: 1=NC  2=CANH  3=CANL  4=GND",
+        "position": [
+          134.0,
+          80.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    },
+    {
+      "board_text": "J6: 1=+5V OUT  2=CANH  3=CANL  4=GND",
+      "before": {
+        "uuid": "d2685ff3-2267-4155-a222-deaa8f1ee14f",
+        "text": "J6: 1=+5V OUT  2=CANH  3=CANL  4=GND",
+        "position": [
+          134.0,
+          75.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          0.8,
+          0.8
+        ],
+        "thickness_mm": 0.13,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      },
+      "after": {
+        "uuid": "d2685ff3-2267-4155-a222-deaa8f1ee14f",
+        "text": "J6: 1=+5V OUT  2=CANH  3=CANL  4=GND",
+        "position": [
+          134.0,
+          75.0
+        ],
+        "layer": "B.Silkscreen",
+        "size_mm": [
+          1.0,
+          1.0
+        ],
+        "thickness_mm": 0.15,
+        "mirrored": true,
+        "angle": 0.0,
+        "visible": true
+      }
+    }
+  ],
+  "input": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\output\\design_review_20260907\\silkscreen_jlc_1mm\\source.kicad_pcb",
+  "output": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2\\output\\design_review_20260907\\silkscreen_jlc_1mm\\candidate.kicad_pcb",
+  "input_sha256": "30ca8371a71b22a3fb1c98f0d95ea5627f4f6028b7b93308668d068b1eef85a7"
+}

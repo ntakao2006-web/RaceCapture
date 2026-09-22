@@ -1,0 +1,861 @@
+(
+  footprint
+  "SIMCom_SIM7070G_LCC68_24x24mm_P1mm"
+  (version 20241229)
+  (generator "pcbnew")
+  (layer "F.Cu")
+  (descr "SIM7070G (not HP): SIMCom Hardware Design V1.03 pp12,18,19; 68 perimeter lands, 2.0x0.6mm; 24x24x2.3mm")
+  (attr smd)
+  (
+    property
+    "Reference"
+    "REF**"
+    (at 0 -14.5)
+    (layer "F.SilkS")
+    (
+      effects
+      (
+        font
+        (size 1 1)
+      )
+    )
+  )
+  (
+    property
+    "Value"
+    "SIM7070G"
+    (at 0 14.5)
+    (layer "F.Fab")
+    (
+      effects
+      (
+        font
+        (size 1 1)
+      )
+    )
+  )
+  (
+    fp_rect
+    (start -12 -12)
+    (end 12 12)
+    (
+      stroke
+      (width 0.1)
+      (type solid)
+    )
+    (fill none)
+    (layer "F.Fab")
+  )
+  (
+    fp_rect
+    (start -13.5 -13.5)
+    (end 13.5 13.5)
+    (
+      stroke
+      (width 0.05)
+      (type solid)
+    )
+    (fill none)
+    (layer "F.CrtYd")
+  )
+  (
+    fp_line
+    (start -12.4 -12.4)
+    (end -10.9 -12.4)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start -12.4 -12.4)
+    (end -12.4 -10.9)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start 12.4 -12.4)
+    (end 10.9 -12.4)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start 12.4 -12.4)
+    (end 12.4 -10.9)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start 12.4 12.4)
+    (end 10.9 12.4)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start 12.4 12.4)
+    (end 12.4 10.9)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start -12.4 12.4)
+    (end -10.9 12.4)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_line
+    (start -12.4 12.4)
+    (end -12.4 10.9)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (layer "F.SilkS")
+  )
+  (
+    fp_circle
+    (center -13.5 -8)
+    (end -13.2 -8)
+    (
+      stroke
+      (width 0.12)
+      (type solid)
+    )
+    (fill solid)
+    (layer "F.SilkS")
+  )
+  (
+    pad
+    "1"
+    smd
+    oval
+    (at -12 -8 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "18"
+    smd
+    oval
+    (at -8 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "35"
+    smd
+    oval
+    (at 12 8 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "52"
+    smd
+    oval
+    (at 8 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "2"
+    smd
+    oval
+    (at -12 -7 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "19"
+    smd
+    oval
+    (at -7 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "36"
+    smd
+    oval
+    (at 12 7 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "53"
+    smd
+    oval
+    (at 7 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "3"
+    smd
+    oval
+    (at -12 -6 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "20"
+    smd
+    oval
+    (at -6 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "37"
+    smd
+    oval
+    (at 12 6 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "54"
+    smd
+    oval
+    (at 6 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "4"
+    smd
+    oval
+    (at -12 -5 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "21"
+    smd
+    oval
+    (at -5 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "38"
+    smd
+    oval
+    (at 12 5 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "55"
+    smd
+    oval
+    (at 5 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "5"
+    smd
+    oval
+    (at -12 -4 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "22"
+    smd
+    oval
+    (at -4 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "39"
+    smd
+    oval
+    (at 12 4 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "56"
+    smd
+    oval
+    (at 4 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "6"
+    smd
+    oval
+    (at -12 -3 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "23"
+    smd
+    oval
+    (at -3 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "40"
+    smd
+    oval
+    (at 12 3 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "57"
+    smd
+    oval
+    (at 3 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "7"
+    smd
+    oval
+    (at -12 -2 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "24"
+    smd
+    oval
+    (at -2 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "41"
+    smd
+    oval
+    (at 12 2 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "58"
+    smd
+    oval
+    (at 2 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "8"
+    smd
+    oval
+    (at -12 -1 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "25"
+    smd
+    oval
+    (at -1 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "42"
+    smd
+    oval
+    (at 12 1 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "59"
+    smd
+    oval
+    (at 1 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "9"
+    smd
+    oval
+    (at -12 0 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "26"
+    smd
+    oval
+    (at 0 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "43"
+    smd
+    oval
+    (at 12 0 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "60"
+    smd
+    oval
+    (at 0 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "10"
+    smd
+    oval
+    (at -12 1 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "27"
+    smd
+    oval
+    (at 1 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "44"
+    smd
+    oval
+    (at 12 -1 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "61"
+    smd
+    oval
+    (at -1 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "11"
+    smd
+    oval
+    (at -12 2 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "28"
+    smd
+    oval
+    (at 2 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "45"
+    smd
+    oval
+    (at 12 -2 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "62"
+    smd
+    oval
+    (at -2 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "12"
+    smd
+    oval
+    (at -12 3 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "29"
+    smd
+    oval
+    (at 3 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "46"
+    smd
+    oval
+    (at 12 -3 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "63"
+    smd
+    oval
+    (at -3 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "13"
+    smd
+    oval
+    (at -12 4 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "30"
+    smd
+    oval
+    (at 4 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "47"
+    smd
+    oval
+    (at 12 -4 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "64"
+    smd
+    oval
+    (at -4 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "14"
+    smd
+    oval
+    (at -12 5 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "31"
+    smd
+    oval
+    (at 5 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "48"
+    smd
+    oval
+    (at 12 -5 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "65"
+    smd
+    oval
+    (at -5 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "15"
+    smd
+    oval
+    (at -12 6 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "32"
+    smd
+    oval
+    (at 6 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "49"
+    smd
+    oval
+    (at 12 -6 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "66"
+    smd
+    oval
+    (at -6 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "16"
+    smd
+    oval
+    (at -12 7 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "33"
+    smd
+    oval
+    (at 7 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "50"
+    smd
+    oval
+    (at 12 -7 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "67"
+    smd
+    oval
+    (at -7 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "17"
+    smd
+    oval
+    (at -12 8 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "34"
+    smd
+    oval
+    (at 8 12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "51"
+    smd
+    oval
+    (at 12 -8 0)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    pad
+    "68"
+    smd
+    oval
+    (at -8 -12 90)
+    (size 2 0.6)
+    (layers "F.Cu" "F.Paste" "F.Mask")
+  )
+  (
+    zone
+    (net 0)
+    (net_name "")
+    (layer "F.Cu")
+    (uuid "bed1c6a1-6c25-476a-93a1-51ff6bf122e6")
+    (hatch edge 0.5)
+    (
+      connect_pads
+      (clearance 0)
+    )
+    (min_thickness 0.25)
+    (
+      keepout
+      (tracks not_allowed)
+      (vias not_allowed)
+      (pads not_allowed)
+      (copperpour not_allowed)
+      (footprints allowed)
+    )
+    (
+      fill
+      (thermal_gap 0.3)
+      (thermal_bridge_width 0.3)
+    )
+    (
+      polygon
+      (
+        pts
+        (xy -10.9 -9.2)
+        (xy -8.5 -9.2)
+        (xy -8.5 -6.799999999999999)
+        (xy -10.9 -6.799999999999999)
+      )
+    )
+  )
+  (
+    zone
+    (net 0)
+    (net_name "")
+    (layer "F.Cu")
+    (uuid "85c48cdb-80ab-4a82-87a4-1bae9e9026bd")
+    (hatch edge 0.5)
+    (
+      connect_pads
+      (clearance 0)
+    )
+    (min_thickness 0.25)
+    (
+      keepout
+      (tracks not_allowed)
+      (vias not_allowed)
+      (pads not_allowed)
+      (copperpour not_allowed)
+      (footprints allowed)
+    )
+    (
+      fill
+      (thermal_gap 0.3)
+      (thermal_bridge_width 0.3)
+    )
+    (
+      polygon
+      (
+        pts
+        (xy 1.3 1.9)
+        (xy 3.7 1.9)
+        (xy 3.7 4.3)
+        (xy 1.3 4.3)
+      )
+    )
+  )
+  (
+    model
+    "${KIPRJMOD}/3dmodels/SIMCom_SIM7070G_mechanical.step"
+    (
+      offset
+      (xyz 0 0 0)
+    )
+    (
+      scale
+      (xyz 1 1 1)
+    )
+    (
+      rotate
+      (xyz 0 0 0)
+    )
+  )
+)

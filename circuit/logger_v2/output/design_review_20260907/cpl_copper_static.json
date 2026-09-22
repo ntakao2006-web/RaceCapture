@@ -1,0 +1,330 @@
+{
+  "board_sha256": "30ca8371a71b22a3fb1c98f0d95ea5627f4f6028b7b93308668d068b1eef85a7",
+  "segments": 420,
+  "vias": 171,
+  "locked_count": 233,
+  "angles": {
+    "axis": 238,
+    "45deg": 182
+  },
+  "non45": [],
+  "selected_nets": {
+    "/GNSS_RF": {
+      "length_mm": 14.565,
+      "vias": 0,
+      "widths": [
+        0.3,
+        0.8,
+        1.5
+      ],
+      "layers": [
+        "F.Cu"
+      ],
+      "segments": [
+        {
+          "start": [
+            111.0,
+            88.985
+          ],
+          "end": [
+            111.0,
+            90.0
+          ],
+          "width": 0.3
+        },
+        {
+          "start": [
+            110.0,
+            91.05
+          ],
+          "end": [
+            110.0,
+            90.0
+          ],
+          "width": 0.3
+        },
+        {
+          "start": [
+            114.5,
+            90.0
+          ],
+          "end": [
+            117.5,
+            90.0
+          ],
+          "width": 0.8
+        },
+        {
+          "start": [
+            105.0,
+            90.0
+          ],
+          "end": [
+            114.5,
+            90.0
+          ],
+          "width": 1.5
+        }
+      ]
+    },
+    "Net-(U5-OSC1)": {
+      "length_mm": 15.044156766100038,
+      "vias": 2,
+      "widths": [
+        0.2,
+        0.25
+      ],
+      "layers": [
+        "B.Cu",
+        "F.Cu"
+      ],
+      "segments": [
+        {
+          "start": [
+            123.1789,
+            70.5994
+          ],
+          "end": [
+            124.8756,
+            70.5994
+          ],
+          "width": 0.2
+        },
+        {
+          "start": [
+            122.9098,
+            65.4402
+          ],
+          "end": [
+            121.9,
+            66.45
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            123.1789,
+            70.5994
+          ],
+          "end": [
+            123.1789,
+            70.9937
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            124.8756,
+            70.5994
+          ],
+          "end": [
+            125.0,
+            70.475
+          ],
+          "width": 0.2
+        },
+        {
+          "start": [
+            120.225,
+            64.775
+          ],
+          "end": [
+            121.9,
+            66.45
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            120.225,
+            64.4
+          ],
+          "end": [
+            120.225,
+            64.775
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            123.1789,
+            70.9937
+          ],
+          "end": [
+            122.3288,
+            71.8438
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            123.4464,
+            65.4402
+          ],
+          "end": [
+            122.9098,
+            65.4402
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            122.3288,
+            66.5578
+          ],
+          "end": [
+            122.3288,
+            71.8438
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            123.4464,
+            65.4402
+          ],
+          "end": [
+            122.3288,
+            66.5578
+          ],
+          "width": 0.25
+        }
+      ]
+    },
+    "Net-(U5-OSC2)": {
+      "length_mm": 8.445033012196495,
+      "vias": 0,
+      "widths": [
+        0.2,
+        0.25
+      ],
+      "layers": [
+        "F.Cu"
+      ],
+      "segments": [
+        {
+          "start": [
+            122.7058,
+            69.9494
+          ],
+          "end": [
+            122.7058,
+            70.642
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            119.7,
+            69.775
+          ],
+          "end": [
+            119.7,
+            68.15
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            121.0701,
+            71.1451
+          ],
+          "end": [
+            120.225,
+            70.3
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            124.8756,
+            69.9494
+          ],
+          "end": [
+            125.0,
+            69.825
+          ],
+          "width": 0.2
+        },
+        {
+          "start": [
+            122.7058,
+            69.9494
+          ],
+          "end": [
+            124.8756,
+            69.9494
+          ],
+          "width": 0.2
+        },
+        {
+          "start": [
+            122.7058,
+            70.642
+          ],
+          "end": [
+            122.2027,
+            71.1451
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            122.2027,
+            71.1451
+          ],
+          "end": [
+            121.0701,
+            71.1451
+          ],
+          "width": 0.25
+        },
+        {
+          "start": [
+            120.225,
+            70.3
+          ],
+          "end": [
+            119.7,
+            69.775
+          ],
+          "width": 0.25
+        }
+      ]
+    }
+  },
+  "zones": [
+    {
+      "layer": "F.Cu",
+      "net": "/GNSS_RF",
+      "rule_area": false,
+      "tracks_forbidden": true,
+      "vias_forbidden": true,
+      "copper_forbidden": false
+    },
+    {
+      "layer": "F.Cu",
+      "net": "GND",
+      "rule_area": false,
+      "tracks_forbidden": true,
+      "vias_forbidden": true,
+      "copper_forbidden": false
+    },
+    {
+      "layer": "B.Cu",
+      "net": "",
+      "rule_area": true,
+      "tracks_forbidden": true,
+      "vias_forbidden": true,
+      "copper_forbidden": false
+    },
+    {
+      "layer": "B.Cu",
+      "net": "GND",
+      "rule_area": false,
+      "tracks_forbidden": true,
+      "vias_forbidden": true,
+      "copper_forbidden": false
+    }
+  ]
+}

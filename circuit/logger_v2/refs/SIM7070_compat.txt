@@ -1,0 +1,1184 @@
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+SIM7070 Series&SIM7000 
+Compatible Design 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+SIMCom Wireless Solutions Limited 
+Building B, SIM Technology Building, No.633, Jinzhong Road 
+Changning District, Shanghai P.R.China 
+Tel: 86-21-31575100 
+support@simcom.com 
+www.simcom.com 
+LPWA Module  
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+2/22 
+ 
+ 
+Document Title: 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+Version: 
+1.01 
+Date: 
+2020-05-13 
+Status: 
+Released 
+ 
+ 
+GENERAL NOTES 
+ 
+SIMCOM OFFERS THIS INFORMATION AS A SERVICE TO ITS CUSTOMERS, TO SUPPORT 
+APPLICATION AND ENGINEERING EFFORTS THAT USE THE PRODUCTS DESIGNED BY SIMCOM. 
+THE INFORMATION PROVIDED IS BASED UPON REQUIREMENTS SPECIFICALLY PROVIDED TO 
+SIMCOM BY THE CUSTOMERS. SIMCOM HAS NOT UNDERTAKEN ANY INDEPENDENT SEARCH 
+FOR ADDITIONAL RELEVANT INFORMATION, INCLUDING ANY INFORMATION THAT MAY BE IN THE 
+CUSTOMER’S POSSESSION. FURTHERMORE, SYSTEM VALIDATION OF THIS PRODUCT 
+DESIGNED BY SIMCOM WITHIN A LARGER ELECTRONIC SYSTEM REMAINS THE RESPONSIBILITY 
+OF THE CUSTOMER OR THE CUSTOMER’S SYSTEM INTEGRATOR. ALL SPECIFICATIONS 
+SUPPLIED HEREIN ARE SUBJECT TO CHANGE. 
+ 
+ 
+COPYRIGHT 
+ 
+THIS DOCUMENT CONTAINS PROPRIETARY TECHNICAL INFORMATION WHICH IS THE PROPERTY 
+OF SIMCOM WIRELESS SOLUTIONS LIMITED COPYING, TO OTHERS AND USING THIS DOCUMENT, 
+ARE FORBIDDEN WITHOUT EXPRESS AUTHORITY BY SIMCOM. OFFENDERS ARE LIABLE TO THE 
+PAYMENT OF INDEMNIFICATIONS. ALL RIGHTS RESERVED  BY SIMCOM IN THE PROPRIETARY 
+TECHNICAL INFORMATION ，INCLUDING BUT NOT LIMITED TO REGISTRATION GRANTING OF A 
+PATENT , A UTILITY MODEL OR DESIGN. ALL SPECIFICATION SUPPLIED HEREIN ARE SUBJECT TO 
+CHANGE WITHOUT NOTICE AT ANY TIME. 
+ 
+ 
+SIMCom Wireless Solutions Limited 
+Building B, SIM Technology Building, No.633 Jinzhong Road, Changning District, Shanghai P.R.China 
+Tel: +86 21 31575100 
+Email: simcom@simcom.com 
+ 
+For more information, please visit: 
+https://www.simcom.com/download/list-863-en.html 
+ 
+For technical support, or to report documentation errors, please visit: 
+https://www.simcom.com/ask/or email to: support@simcom.com 
+ 
+Copyright © 2020 SIMCom Wireless Solutions Limited All Rights Reserved. 
+ 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+3/22 
+ 
+ 
+Version History 
+Date 
+Version 
+Description of change 
+Author 
+2019-08-22 
+1.00 
+Original 
+Zhao sen 
+2020-05-13 
+1.01 
+Modify the document format  
+Guo xiaomeng 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+4/22 
+ 
+ 
+Contents 
+Version History ..................................................................................................................................... 3 
+Contents ................................................................................................................................................ 4 
+Table Index ............................................................................................................................................ 5 
+Figure Index .......................................................................................................................................... 6 
+1. 
+Introduction ................................................................................................................................... 7 
+1.1 
+Pin Assignment Overview ........................................................................................................... 7 
+1.2 
+Differences Overview .................................................................................................................. 8 
+1.3 
+Differences of Electronic Characteristic ...................................................................................... 8 
+2. 
+Recommended Footprint ............................................................................................................ 10 
+2.1 
+Top and Bottom View ................................................................................................................ 10 
+2.2 
+Recommended PCB footprint outline ........................................................................................ 10 
+3. 
+Hardware Reference Design ....................................................................................................... 13 
+3.1 
+Recommended PCB footprint outline ........................................................................................ 13 
+3.2 
+USB Interface ............................................................................................................................ 14 
+3.3 
+Network Status Indication ......................................................................................................... 14 
+3.4 
+Power on/off circuit ................................................................................................................... 14 
+3.5 
+USIM Interface .......................................................................................................................... 15 
+3.6 
+UART Interface ......................................................................................................................... 16 
+3.7 
+Audio Interface .......................................................................................................................... 18 
+3.8 
+GPIO interface .......................................................................................................................... 18 
+3.9 
+ADC interface ............................................................................................................................ 19 
+3.10 RF Interface .............................................................................................................................. 19 
+3.11 
+GNSS Interface ......................................................................................................................... 20 
+4. 
+Appendix ...................................................................................................................................... 22 
+4.1 
+Related documents ................................................................................................................... 22 
+4.2 
+Terms and Abbreviation ............................................................................................................ 22 
+ 
+ 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+5/22 
+ 
+ 
+Table Index 
+Table 1: The Differences overview ................................................................................................................ 8 
+Table 2: Difference in Pin Definitions ............................................................................................................ 8 
+Table 3: The Differences of electronic characteristic ..................................................................................... 9 
+Table 4: The differences for VBAT power range .......................................................................................... 13 
+Table 5: PWRKEY timing and electronic characteristic ............................................................................... 15 
+Table 6: Dedicated Pins Description for module ......................................................................................... 18 
+Table 7: Module ADC Interface Information ................................................................................................ 19 
+Table 8: Recommended TVS ...................................................................................................................... 20 
+Table 9: Related documents ....................................................................................................................... 22 
+Table 10: Terms and Abbreviations ............................................................................................................. 22 
+ 
+ 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+6/22 
+ 
+ 
+Figure Index 
+Figure 1: SIM7070 and SIM7000 pin assignment (Top view) ........................................................................ 8 
+Figure 2: SIM7070 and SIM7000 top and bottom view ............................................................................... 10 
+Figure 3: Recommended PCB footprint outline for SIM7000 (Unit: mm) .................................................... 11 
+Figure 4: Recommended PCB footprint outline for SIM7070 (Unit: mm) .................................................... 12 
+Figure 5: Power supply reference circuit ..................................................................................................... 13 
+Figure 6: USB reference circuit ................................................................................................................... 14 
+Figure 7: NETLIGHT/STATUS reference circuit .......................................................................................... 14 
+Figure 8: Power on/off reference circuit ...................................................................................................... 15 
+Figure 9: SIM interface reference circuit ..................................................................................................... 16 
+Figure 10: UART Full modem ..................................................................................................................... 16 
+Figure 11: UART Null modem ..................................................................................................................... 17 
+Figure 12: Reference circuit of voltage-level translator ............................................................................... 17 
+Figure 13: Microphone reference circuit ..................................................................................................... 18 
+Figure 14: Reference circuit of GPIO voltage-level translator ..................................................................... 19 
+Figure 15: Antenna matching circuit ............................................................................................................ 19 
+Figure 16: Active antenna circuit ................................................................................................................. 20 
+Figure 17: Passive antenna circuit (Default) ............................................................................................... 20 
+ 
+ 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+7/22 
+ 
+ 
+1. Introduction 
+This document is targeted for customers to understand the differences between SIM7070 and SIM7000. 
+Users can use SIM7070 or SIM7000 module to design and develop applications quickly. 
+ 
+1.1  Pin Assignment Overview 
+The following table shows the pin assignment of SIM7070 and SIM7000. 
+PCM_DOUT
+PCM_DIN
+PCM_SYNC
+PCM_CLK
+UART1_DCD
+UART1_RI
+UART1_DTR
+GND
+PWRKEY
+UART1_RXD
+UART1_TXD
+UART1_RTS
+UART1_CTS
+BOOT_CFG
+VDD_EXT
+NC
+GND
+SIM_DATA
+SIM_VDD
+GND
+USB_DN
+DEBUG_RXD
+GPIO3
+GPIO2
+GPIO1
+GND
+USB_DP
+NC
+ADC
+USB_VBUS
+DEBUG_TXD
+SIM_CLK
+SIM_RST
+GPIO4
+I2C_SCL
+GND
+NC
+NC
+NC
+GPIO5
+UART3_RXD
+UART3_TXD
+NC
+NC
+NC
+GND
+GND
+I2C_SDA
+NC
+NC
+GND
+GND
+GND
+GND
+VBAT
+VBAT
+GND
+GPS_ANT
+NETLIGHT
+GND
+RF_ANT
+GND
+GND
+VBAT
+STATUS
+GPIO6
+GPIO7
+SIM7070VSSIM7000
+（Top View）
+43
+44
+35
+39
+38
+37
+36
+45
+42
+41
+40
+50
+49
+48
+47
+46
+51
+9
+8
+17
+13
+14
+15
+16
+7
+10
+11
+12
+2
+3
+4
+5
+6
+1
+26
+27
+18
+22
+21
+20
+19
+28
+25
+24
+23
+33
+32
+31
+30
+29
+34
+60
+59
+68
+64
+65
+66
+67
+58
+61
+62
+63
+53
+54
+55
+56
+57
+52
+NC
+Difference
+RESET
+NC
+NC
+NC
+NC
+SIM_DET
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+8/22 
+ 
+Figure 1: SIM7070 and SIM7000 pin assignment (Top view) 
+ 
+ 
+1.2  Differences Overview 
+Table 1: The Differences overview 
+Functions 
+SIM7000 
+SIM7070 
+*PIN Number 
+68 
+68 
+Cellular technology 
+GSM/GPRS/CAT M1/CAT NB1 
+GSM/GPRS/CAT M1/CAT NB2 
+GNSS 
+Support 
+Support 
+Audio 
+Support 
+Support 
+PCM 
+Support 
+Support 
+SPI 
+Not support 
+Support 
+I2C 
+Support 
+Support 
+ADC 
+Support 
+Support 
+SIM Card 
+Support 
+Support 
+Download interface 
+USB 
+USB 
+Debug interface 
+UART2 and USB 
+DEBUG_UART and USB 
+IO Power Domain 
+1.8V 
+1.8V 
+ 
+1.3  Differences of Electronic Characteristic 
+Table 2: Difference in Pin Definitions 
+ 
+ 
+ 
+ 
+For details information, please refer to each HD guide  
+ 
+Pin # 
+SIM7000 
+SIM7070 
+16 
+RESET 
+NC 
+19 
+NC 
+GPIO1 
+20 
+NC 
+GPIO2 
+21 
+NC 
+GPIO3 
+22 
+NC 
+DEBUG_RXD 
+34 
+SIM_DET 
+GPIO4 
+NOTE 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+9/22 
+ 
+ 
+Table 3: The Differences of electronic characteristic 
+ 
+Pin # 
+SIM7000 
+SIM7070 
+PIN name 
+Voltage range 
+PIN name 
+Voltage range 
+55,56,57 VBAT 
+3.0-4.3V 
+VBAT 
+SIM7070G 
+3.0～4.6V 
+SIM7070E 
+3.2～4.2V 
+38 
+ADC 
+0~VBAT 
+ADC 
+0~1.875V 
+39 
+PWRKEY 
+0.8V 
+PWRKEY 
+1.5V 
+16 
+RESET 
+1.8V 
+NC 
+- 
+19 
+NC 
+- 
+GPIO1 
+1.8V 
+20 
+NC 
+- 
+GPIO2 
+1.8V 
+21 
+NC 
+- 
+GPIO3 
+1.8V 
+22 
+NC 
+- 
+DEBUG_RXD 
+1.8V 
+34 
+SIM_DET 
+1.8V 
+GPIO4 
+1.8V 
+ 
+ 
+ 
+ 
+ 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+10/22 
+ 
+ 
+2. Recommended Footprint 
+2.1  Top and Bottom View 
+SIM7070 Series are fully compatible with SIM7000's pin packages.  
+The following figures show top and bottom view of SIM7070 and SIM7000. 
+ 
+Figure 2: SIM7070 and SIM7000 top and bottom view 
+ 
+2.2  Recommended PCB footprint outline 
+The recommended PCB package for SIM7070 and SIM7000 has the same dimensions 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+11/22 
+The recommended PCB footprint outline for SIM7070 and SIM7000 is shown as below. 
+ 
+ 
+Figure 3: Recommended PCB footprint outline for SIM7000 (Unit: mm) 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+12/22 
+ 
+Figure 4: Recommended PCB footprint outline for SIM7070 (Unit: mm) 
+ 
+ 
+ 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+13/22 
+ 
+ 
+3. Hardware Reference Design 
+This chapter introduces compatible design between SIM7070 and SIM7000 on main functionalities. 
+ 
+3.1  Recommended PCB footprint outline 
+The power supply pins of SIM7070 and SIM7000 include three VBAT pins (pin 55, pin 56, pin57). VBAT 
+pins directly supply the power to RF circuit and baseband circuit. VBAT pins of the module must be used 
+together. The following figure is the reference design of the module VBAT power supply. 
+VBAT
+VBAT
+GND
+MODULE
+FB101
+TVS
+VBAT
+Cb
+100uF
+1uF
+Ce
+Cc
+100uF
+Ca
+Cd
+100uC
+100nF
+GND
+VBAT
+ 
+Figure 5: Power supply reference circuit 
+ 
+The VBAT has different input power range for SIM7070 and SIM7000. Please refer to the following table. 
+ 
+Table 4: The differences for VBAT power range 
+Module 
+VBAT power supply 
+VBAT power peak current 
+Min. 
+Typical 
+Max. 
+Max. 
+SIM7000 
+3.0V 
+3.8V 
+4.3V 
+2000mA 
+SIM7070G 
+3V 
+3.8V 
+4.6V 
+2000mA 
+SIM7070E 
+3.2V 
+3.8V 
+4.2V 
+ 
+Power design for a module is critical to its performance. The power supply of SIM7070 and SIM7000 should 
+be able to provide sufficient current up to 2.0A. 
+ 
+ 
+ 
+ 
+For details information, please refer to each HD guide. 
+ 
+NOTE 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+14/22 
+ 
+3.2  USB Interface 
+SIM7070 and SIM7000 provide a USB interface. 
+The following circuit is the reference design of USB interface. 
+USB_VBUS
+USB_DM
+USB_DP
+GND
+USB 
+USB
+VBUS
+D-
+D+
+GND
+D2
+D1
+0 Ω
+D3
+MODULE
+HOST
+ 
+Figure 6: USB reference circuit 
+ 
+3.3  Network Status Indication 
+ 
+The NETLIGHT/STATUS pins can be used to drive a network status indicator LED. The following circuit is 
+the reference design. 
+Module
+NETLIGHT/ 
+STATUS 
+VBAT
+4. 7 K
+47 K
+R
+ 
+Figure 7: NETLIGHT/STATUS reference circuit 
+ 
+3.4  Power on/off circuit 
+SIM7070 and SIM7000 can be turned on by driving the PWRKEY pin to a low level for a certain time. It is 
+recommended use an open drain or collector driver to control the PWRKEY. A reference circuit is shown 
+below. 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+15/22 
+4.7K
+47K
+Turn on / off 
+impulse
+PWRKEY
+MODULE
+1
+ 
+Figure 8: Power on/off reference circuit 
+ 
+Table 5: PWRKEY timing and electronic characteristic 
+Project 
+PWRKEY pin 
+voltage When 
+floating 
+PWRKEY input 
+effective low level 
+voltage For turn on 
+PWRKEY input low 
+level minimum time 
+For turn on 
+PWRKEY input 
+low level minimum 
+time For turn off 
+SIM7000 
+0.8V 
+<0.5V 
+>1s 
+>1s 
+SIM7070 
+1.5V 
+<0.4 
+1.2s<t<12s 
+>1.2s 
+ 
+SIM7070 PWRKEY pin has its own reset function. The reset time is determined by the internal timer (default 
+is 12 seconds). After the PWRKEY is pulled low, the module will be reset after 12 seconds. Therefore, it is 
+not recommended to connect PWRKEY to GND all the time in external circuit design. 
+ 
+ 
+ 
+ 
+For details information, please refer to each HD guide. 
+ 
+ 
+ 
+3.5  USIM Interface 
+SIM7000 supports 1.8V and 3.0V USIM cards. But SIM7070 supports 1.8V only. 
+The pin assignment of SIM7000 USIM interface and SIM7070 USIM interface are compatible with each 
+other. A compatible design for 6-pin USIM interface is shown in the figure below: 
+NOTE 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+16/22 
+MODULE
+TVS
+SIM_ VDD
+SIM_ CLK
+SIM_ DATA
+SIM_ RST
+VCC       GND
+RST       VPP
+CLK 
+22Ω
+100nF
+C 707 10M 006 512
+SIM Socket
+22Ω
+22Ω
+22pf
+SIM_ DET
+22pf 22pf
+IO
+ 
+Figure 9: SIM interface reference circuit 
+ 
+ 
+ 
+ 
+For details information, please refer to each HD guide. 
+ 
+ 
+3.6  UART Interface 
+The module is as the DCE (Data Communication Equipment) and the client PC is as the DTE (Data 
+Terminal Equipment). AT commands are executed through UART interface.  
+SIM7000 Series provide 2 channels serial ports.SIM7000 UART1 is used for AT command communication. 
+SIM7000 UART3 interface can’t use as AT port or data transmission. It is only used as UART in DAM 
+application when secondary development. 
+SIM7070 Series provide 3 channels serial ports. UART1 is used for AT command communication. 
+In the second development, DEBUG_UART can be used for debugging, UART3 can be configured as uart 
+function or GNSS NMEA data output port. However, DEBUG_UART and UART3 cannot be used for AT 
+communication. 
+Below are the reference circuits. 
+UART1_TXD
+UART1_RXD
+UART1_RTS
+UART1_CTS
+UART1_DTR
+UART1_DCD
+UART1_RI
+TXD
+RXD
+RTS
+CTS
+DTR
+DCD
+RING
+MODUIE (DCE)
+CUSTOMER (DTE)
+Serial port
+Serial port
+ 
+Figure 10: UART Full modem 
+ 
+ 
+NOTE 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+17/22 
+UART1_TXD
+UART1_RXD
+UART1_RTS
+UART1_CTS
+UART1_DTR
+UART1_DCD
+UART1_RI
+TXD
+RXD
+RTS
+CTS
+DTR
+DCD
+RING
+MODUIE (DCE)
+CUSTOMER (DTE)
+Serial port
+Serial port
+Wake up host
+ 
+Figure 11: UART Null modem 
+ 
+A level shifter should be used if external host UART interface is 3.3V level. The voltage-level translator 
+TXB0108RGYR provided by Texas Instruments is recommended. The reference design of the 
+TXB0108RGYR is in the following figures. 
+ 
+ 
+ 
+ 
+For details information, please refer to each HD guide. 
+ 
+ 
+TXD
+RXD
+RTS
+CTS
+DTR
+DCD
+RI
+A7
+A1
+A2
+A3
+A4
+A5
+A6
+MODULE
+DCE
+TXB0108 RGYR
+UART 
+A8
+B7
+B1
+B2
+B3
+B4
+B5
+B6
+B8
+VCCA
+OE
+VDD_EXT
+VCCB
+47K
+47K
+TXD_3.3V
+DTE
+3.3V
+100nF
+100nF
+RXD_3.3V
+RTS_3.3V
+CTS_3.3V
+DTR_3.3V
+DCD_3.3V
+RI_3.3V
+ 
+Figure 12: Reference circuit of voltage-level translator 
+ 
+ 
+ 
+ 
+The VDD_EXT of each project in the diagram is different. For details information, please refer to each 
+HD guide. 
+ 
+ 
+ 
+NOTE 
+NOTE 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+18/22 
+3.7  Audio Interface 
+SIM7070 and SIM7000 provides PCM interface instead of analog audio function.  
+The following circuit is the reference design. 
+MODULE
+PCM_ IN
+PCM_ SYNC
+PCM_ CLK
+PCM_ OUT
+33pF
+ADCOUT
+FS
+BCLK
+DACIN
+MCLK
+VDD_ EXT
+1K
+1K
+SCLK
+SDIO
+I2C_ SCL
+I2C_ SDA
+VDDA
+VDDSPK
+VDDD
+3.3V3.8V VDD_ EXT
+MIC+
+MIC-
+MICBIAS
+MOUT
+MIC
+SPK
+NAU88C10
+2.2K
+1uF
+1uF
+47uF
+47uF
+2.2K
+ 
+Figure 13: Microphone reference circuit 
+ 
+ 
+ 
+ 
+For details information, please refer to each HD guide. 
+ 
+ 
+3.8  GPIO interface 
+There are some dedicated GPIO pins for SIM7070 and SIM7000.  
+ 
+Table 6: Dedicated Pins Description for module 
+ 
+SIM7000 
+SIM7070 
+GPIO voltage domain 
+1.8V 
+1.8V 
+VDD_EXT 
+1.8V 
+1.8V 
+ 
+The following circuit is the reference design. 
+NOTE 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+19/22 
+GPIO1
+GPIO2
+GPIO3
+GPIO4
+A1
+A2
+A3
+A4
+MODULE
+Voltage-Level 
+Translator
+GPIO(s)
+B1
+B2
+B3
+B4
+VCCA
+OE
+VDD_ EXT
+100nF
+3.3V
+100nF
+VCCB
+GND
+GPIO1_3.3V
+GPIO2_3.3V
+GPIO3_3.3V
+GPIO4_3.3V
+ 
+Figure 14: Reference circuit of GPIO voltage-level translator 
+ 
+3.9  ADC interface 
+SIM7070 and SIM7000 modules provide an ADC input channel to read the external voltage value.  
+They have different sampling scope. 
+ 
+Table 7: Module ADC Interface Information 
+interface 
+SIM7000 
+SIM7070 
+ADC  
+0~VBAT  
+0~1.875V 
+ 
+3.10  RF Interface 
+SIM7070 or SIM7000 provide a cellular antenna interface.  
+External antenna should be placed close to module RF pad through micro-strip line or other types of RF 
+trace, and the trace impedance must be controlled as 50Ω. 
+The following circuit is a reference design for SIM7070 and SIM7000 RF antenna circuit.  
+R2
+C1
+MODULE
+60
+MAIN_ANT
+GND
+C2
+61
+R1
+D1
+TVS
+Matching circuit
+RF connector
+ 
+Figure 15: Antenna matching circuit 
+ 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+20/22 
+The capacitors (C1/C2) are not mounted and a 0Ω resistor is mounted on R1 and R2 by default. The 
+component D1 is a TVS for ESD protection, and it is optional for users according to application environment. 
+The RF test connector is used for the conducted RF performance test, and should be placed as close as to 
+the module’s RF_ANT pin. Two TVS are recommended in the table below. 
+Table 8: Recommended TVS 
+Package 
+Part Number 
+Vender 
+0201 
+LXES03AAA1-154 
+Murata 
+0402 
+LXES15AAA1-153 
+Murata 
+ 
+3.11  GNSS Interface 
+Sim7070 and SIM7000 support GNSS function. 
+Users can adopt an active antenna or a passive antenna to SIM7070. If using a passive antenna, an 
+external LNA is a must to get better performance. The following figures are the reference circuits.   
+MODULE
+GNSS_ANT
+GND
+GND
+Matching circuit
+GNSS Active ANT
+L1
+C1
+47nH
+C2
+L2
+10 ohm
+33pF
+VDD
+ 
+Figure 16: Active antenna circuit 
+ 
+67
+MODULE
+68
+GPS_ANT
+GND
+Matching circuit
+L1
+C1
+L2
+GNSS Passive ante
+ 
+Figure 17: Passive antenna circuit (Default) 
+ 
+In above figures, the components C1, L1 and L2 are used for antenna matching. Usually, the values of the 
+components can only be achieved after antenna tuning and usually provided by antenna vendor. C2 is used 
+for DC blocking. L3 is the matching component of the external LNA, and the value of L3 is determined by the 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+21/22 
+LNA characteristic and PCB layout. Both VDD of active antenna and V_LNA need external power supplies 
+which should be considered according to active antenna and LNA characteristic. LDO/DCDC is 
+recommended to get lower current consuming by shutting down active antennas and LNA when GNSS is 
+not working. 
+GNSS can be tested by NMEA port. NMEA sentences can be obtained through UART or USB automatically. 
+NMEA sentences include GSV, GGA, RMC, GSA, and VTG. Before using GNSS, user should configure 
+SIM7070 in proper operating mode by AT command. Please refer to related documents for details. SIM7070 
+can also get position location information through AT directly. 
+ 
+ 
+ 
+ 
+For details information, please refer to each HD guide and AT command. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+NOTE 
+
+ 
+SIM7070 Series&SIM7000 Compatible Design V1.01 
+www.simcom.com 
+22/22 
+ 
+ 
+4. Appendix 
+4.1 Related documents 
+Table 9: Related documents 
+SN 
+Document name 
+Remark 
+[1] 
+SIM7070 Series Hardware Design 
+SIM7070 Series Hardware Design Document 
+[2] 
+SIM7000 Hardware Design 
+SIM7000 Hardware Design Document 
+ 
+4.2 Terms and Abbreviation 
+Table 10: Terms and Abbreviations 
+Abbreviation 
+Description 
+ESD 
+Electrostatic Discharge 
+DAM 
+Downloadable Application Module 
+GSM 
+Global Standard for Mobile Communications 
+I2C 
+Inter-Integrated Circuit 
+PCB 
+Printed Circuit Board 
+PCS 
+ 
+Personal Communication System, also referred to as GSM 1900 
+RF 
+Radio Frequency 
+RTC 
+Real Time Clock 
+Rx 
+Receive Direction 
+SIM 
+Subscriber Identification Module 
+UART 
+Universal Asynchronous Receiver & Transmitter 
+NC 
+Not connect 
+EDGE 
+Enhanced data rates for GSM evolution 
+HSDPA 
+High Speed Downlink Packet Access HSUPA 
+HSDPA 
+High Speed Downlink Packet Access HSUPA 
+HSDPA 
+High Speed Downlink Packet Access HSUPA 
+USIM 
+Universal subscriber identity module 
+UMTS 
+Universal mobile telecommunications system 
+SMPS 
+Switch Mode Power Supply 
+ 
+ 

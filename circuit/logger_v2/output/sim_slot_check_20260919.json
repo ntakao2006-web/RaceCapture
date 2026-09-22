@@ -1,0 +1,28 @@
+{
+  "slot_instances": 1,
+  "reference": "J?",
+  "position": [
+    353.06,
+    60.96,
+    0
+  ],
+  "pins": {
+    "1": "VCC",
+    "2": "RST",
+    "3": "CLK",
+    "7": "I/O",
+    "6": "VPP/NC",
+    "CD": "DETECT",
+    "5": "GND/CD_COM",
+    "SH": "SHIELD"
+  },
+  "pad_count": 10,
+  "model": "${KIPRJMOD}/3dmodels/nanoSIM_Hinged_CUI_NSIM-2-C.step",
+  "model_bytes": 1088854,
+  "cached_symbol_matches": true,
+  "schematic_sha256": {
+    "logger_v2.kicad_sch": "9f462dcefb9dc577e607d65b441c27895784af659ad9f874db8c61a8d8b4bacb",
+    "logger_v2_lte_sd.kicad_sch": "34dba706c324b4aa859f9a707d377c4ef12d2841c92131822b30da76bd423d76",
+    "logger_v2.kicad_pcb": "6f92053e676fcba729fcee2e828be40d5f4c481b5bcd450a6f16a8d5846a149b"
+  }
+}

@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-20T14:12:42+0900",
+    "kicad_version": "9.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55",
+            "violations": [
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'STATUS_LATCH'",
+                            "pos": {
+                                "x": 0.8255,
+                                "y": 0.5969
+                            },
+                            "uuid": "873d2c88-519e-482f-a3ed-2484e5f9417e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                }
+            ]
+        }
+    ],
+    "source": "logger_v2.kicad_sch"
+}

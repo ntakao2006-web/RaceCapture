@@ -1,0 +1,7 @@
+(version 1)
+(rule "RF nominal gap"
+ (condition "A.NetName == '/GNSS_RF' || B.NetName == '/GNSS_RF'")
+ (constraint clearance (min 0.3mm)))
+(rule "RF miniature ESD package"
+ (condition "A.MemberOfFootprint('D11') && B.MemberOfFootprint('D11')")
+ (constraint clearance (min 0.15mm)))

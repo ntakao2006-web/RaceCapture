@@ -1,0 +1,80 @@
+{
+  "checked_jst": "2026-09-07",
+  "method": "KiCad 9.0 COPLANAR::calcAnalyze reproduced numerically; grounded backside; no solder mask model",
+  "source": "https://github.com/KiCad/kicad-source-mirror/blob/9.0/pcb_calculator/transline/coplanar.cpp",
+  "frequency_hz": 1575420000,
+  "cases": [
+    {
+      "width_mm": 1,
+      "gap_mm": 0.3,
+      "height_mm": 1.51,
+      "copper_mm": 0.035,
+      "er": 4.5,
+      "ee": 2.5775984164132786,
+      "z0": 58.06273337906098
+    },
+    {
+      "width_mm": 1,
+      "gap_mm": 0.3,
+      "height_mm": 1.51,
+      "copper_mm": 0.035,
+      "er": 4.2,
+      "ee": 2.4422668891845105,
+      "z0": 59.649738526704084
+    },
+    {
+      "width_mm": 1.2,
+      "gap_mm": 0.3,
+      "height_mm": 1.51,
+      "copper_mm": 0.035,
+      "er": 4.5,
+      "ee": 2.6047402183332897,
+      "z0": 54.39707351740223
+    },
+    {
+      "width_mm": 1.3,
+      "gap_mm": 0.3,
+      "height_mm": 1.51,
+      "copper_mm": 0.035,
+      "er": 4.5,
+      "ee": 2.617945809933633,
+      "z0": 52.81534339454429
+    },
+    {
+      "width_mm": 1.4,
+      "gap_mm": 0.3,
+      "height_mm": 1.51,
+      "copper_mm": 0.035,
+      "er": 4.5,
+      "ee": 2.6309697984370217,
+      "z0": 51.36387959396234
+    },
+    {
+      "width_mm": 1,
+      "gap_mm": 0.3,
+      "height_mm": 1.51,
+      "copper_mm": 0.018,
+      "er": 4.5,
+      "ee": 2.6940468302016423,
+      "z0": 58.53798067731924
+    },
+    {
+      "width_mm": 1,
+      "gap_mm": 0.3,
+      "height_mm": 0.2,
+      "copper_mm": 0.035,
+      "er": 4.5,
+      "ee": 3.3790246223272304,
+      "z0": 25.793879491120517
+    },
+    {
+      "width_mm": 1.5017669654805355,
+      "gap_mm": 0.3,
+      "height_mm": 1.51,
+      "copper_mm": 0.035,
+      "er": 4.5,
+      "ee": 2.644065281279486,
+      "z0": 50.00000000000001
+    }
+  ]
+}

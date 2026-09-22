@@ -1,0 +1,23 @@
+{
+  "sheets": {
+    "logger_v2.kicad_sch": {
+      "parts": 59,
+      "unique_footprints": 20,
+      "unique_models": 19,
+      "pin_pad_match": true,
+      "models_resolve": true,
+      "placement_and_wiring_unchanged": true
+    },
+    "logger_v2_lte_sd.kicad_sch": {
+      "parts": 13,
+      "unique_footprints": 11,
+      "unique_models": 11,
+      "pin_pad_match": true,
+      "models_resolve": true,
+      "placement_and_wiring_unchanged": true
+    }
+  },
+  "pcb_byte_unchanged": true,
+  "erc": "Unchanged: one existing root STATUS_LATCH dangling label; child remains separate unconnected schematic",
+  "root_all_net_partitions_unchanged": true
+}

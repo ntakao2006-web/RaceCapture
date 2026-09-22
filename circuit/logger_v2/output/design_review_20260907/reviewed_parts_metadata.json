@@ -1,0 +1,590 @@
+[
+  {
+    "Reference": "J3",
+    "Value": "Power",
+    "Footprint": "logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical",
+    "DNP": false
+  },
+  {
+    "Reference": "J2",
+    "Value": "Digital/PWM",
+    "Footprint": "logger_v2_custom:PinSocket_1x10_P2.54mm_Vertical",
+    "DNP": false
+  },
+  {
+    "Reference": "J4",
+    "Value": "Analog",
+    "Footprint": "logger_v2_custom:PinSocket_1x06_P2.54mm_Vertical",
+    "DNP": false
+  },
+  {
+    "Reference": "J5",
+    "Value": "Digital/PWM",
+    "Footprint": "logger_v2_custom:PinSocket_1x08_P2.54mm_Vertical_ShieldSilk",
+    "DNP": false
+  },
+  {
+    "Reference": "R1",
+    "Value": "680R",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF6800T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23228",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "D3",
+    "Value": "GREEN 0805",
+    "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "DNP": false,
+    "MPN": "KT-0805G",
+    "Manufacturer": "Hubei KENTO Elec",
+    "LCSC": "C2297",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "U5",
+    "Value": "MCP25625-E/SS",
+    "Footprint": "logger_v2_custom:SSOP-28_5.3x10.2mm_P0.65mm",
+    "DNP": false,
+    "MPN": "MCP25625-E/SS",
+    "Manufacturer": "Microchip",
+    "LCSC": "C184944",
+    "JLCPCB_Class": "Extended"
+  },
+  {
+    "Reference": "J7",
+    "Value": "43045-0400",
+    "Footprint": "logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+    "DNP": false
+  },
+  {
+    "Reference": "R10",
+    "Value": "10k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": true,
+    "MPN": "0603WAF1002T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C25804",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R9",
+    "Value": "680R",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF6800T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23228",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "L1",
+    "Value": "27nH",
+    "Footprint": "logger_v2_custom:L_0402_1005Metric",
+    "DNP": false,
+    "MPN": "LQG15HS27NJ02D",
+    "Manufacturer": "Murata",
+    "LCSC": "C12669",
+    "JLCPCB_Class": "Extended"
+  },
+  {
+    "Reference": "U3",
+    "Value": "BNO055_module",
+    "Footprint": "logger_v2_custom:AE_BNO055_BO_ShieldSilk",
+    "DNP": false
+  },
+  {
+    "Reference": "D1",
+    "Value": "GREEN 0805",
+    "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "DNP": false,
+    "MPN": "KT-0805G",
+    "Manufacturer": "Hubei KENTO Elec",
+    "LCSC": "C2297",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "D2",
+    "Value": "GREEN 0805",
+    "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "DNP": false,
+    "MPN": "KT-0805G",
+    "Manufacturer": "Hubei KENTO Elec",
+    "LCSC": "C2297",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R11",
+    "Value": "680R",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF6800T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23228",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "J1",
+    "Value": "S-037-TGG",
+    "Footprint": "logger_v2_custom:SMA_S-037-TGG_Horizontal",
+    "DNP": false
+  },
+  {
+    "Reference": "U2",
+    "Value": "NEO-M9N-00B",
+    "Footprint": "logger_v2_custom:ublox_NEO",
+    "DNP": false,
+    "MPN": "NEO-M9N-00B",
+    "Manufacturer": "u-blox",
+    "LCSC": "C5119087",
+    "JLCPCB_Class": "Extended; Standard PCBA only"
+  },
+  {
+    "Reference": "R15",
+    "Value": "4.7k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF4701T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23162",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R4",
+    "Value": "680R",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF6800T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23228",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R13",
+    "Value": "120",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": true,
+    "MPN": "0603WAF1200T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C22787",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C1",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C3",
+    "Value": "18pF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CL10C180JB8NNNC",
+    "Manufacturer": "Samsung",
+    "LCSC": "C1647",
+    "Specification": "18pF C0G 50V 5%; 20MHz CL12pF crystal",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "D10",
+    "Value": "NUP2105LT1G",
+    "Footprint": "logger_v2_custom:SOT-23",
+    "DNP": false,
+    "MPN": "NUP2105LT1G",
+    "Manufacturer": "onsemi",
+    "LCSC": "C14486",
+    "JLCPCB_Class": "Extended"
+  },
+  {
+    "Reference": "R8",
+    "Value": "680R",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF6800T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23228",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R2",
+    "Value": "680R",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF6800T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23228",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "D7",
+    "Value": "GREEN 0805",
+    "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "DNP": false,
+    "MPN": "KT-0805G",
+    "Manufacturer": "Hubei KENTO Elec",
+    "LCSC": "C2297",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R3",
+    "Value": "680R",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF6800T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23228",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R14",
+    "Value": "120",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": true,
+    "MPN": "0603WAF1200T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C22787",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "D6",
+    "Value": "GREEN 0805",
+    "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "DNP": false,
+    "MPN": "KT-0805G",
+    "Manufacturer": "Hubei KENTO Elec",
+    "LCSC": "C2297",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R17",
+    "Value": "10k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF1002T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C25804",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "D9",
+    "Value": "NUP2105LT1G",
+    "Footprint": "logger_v2_custom:SOT-23",
+    "DNP": false,
+    "MPN": "NUP2105LT1G",
+    "Manufacturer": "onsemi",
+    "LCSC": "C14486",
+    "JLCPCB_Class": "Extended"
+  },
+  {
+    "Reference": "R7",
+    "Value": "27R 1W",
+    "Footprint": "logger_v2_custom:R_2512_6332Metric",
+    "DNP": false,
+    "MPN": "25121WJ0270T4E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C25478",
+    "Specification": "27ohm 5% 1W; verify antenna supply under load",
+    "JLCPCB_Class": "Extended"
+  },
+  {
+    "Reference": "D5",
+    "Value": "GREEN 0805",
+    "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "DNP": false,
+    "MPN": "KT-0805G",
+    "Manufacturer": "Hubei KENTO Elec",
+    "LCSC": "C2297",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R12",
+    "Value": "10k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF1002T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C25804",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "J6",
+    "Value": "43045-0400",
+    "Footprint": "logger_v2_custom:Molex_Micro-Fit_3.0_43045-0400_2x02_P3.00mm_Horizontal",
+    "DNP": false
+  },
+  {
+    "Reference": "D4",
+    "Value": "GREEN 0805",
+    "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "DNP": false,
+    "MPN": "KT-0805G",
+    "Manufacturer": "Hubei KENTO Elec",
+    "LCSC": "C2297",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "Y1",
+    "Value": "20MHz 12pF",
+    "Footprint": "logger_v2_custom:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+    "DNP": false,
+    "MPN": "XC2EL89COO-114YLC-20M",
+    "Manufacturer": "YXC",
+    "LCSC": "C18213008",
+    "JLCPCB_Class": "Extended"
+  },
+  {
+    "Reference": "R16",
+    "Value": "4.7k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF4701T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23162",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "D8",
+    "Value": "GREEN 0805",
+    "Footprint": "logger_v2_custom:LED_0805_2012Metric_ShieldSilk",
+    "DNP": false,
+    "MPN": "KT-0805G",
+    "Manufacturer": "Hubei KENTO Elec",
+    "LCSC": "C2297",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R6",
+    "Value": "680R",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF6800T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C23228",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R5",
+    "Value": "10k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF1002T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C25804",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "U4",
+    "Value": "ATA6561-GAQW",
+    "Footprint": "logger_v2_custom:SOIC-8_3.9x4.9mm_P1.27mm",
+    "DNP": false,
+    "MPN": "ATA6561-GAQW",
+    "Manufacturer": "Microchip",
+    "LCSC": "C2929602",
+    "JLCPCB_Class": "Extended"
+  },
+  {
+    "Reference": "C2",
+    "Value": "18pF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CL10C180JB8NNNC",
+    "Manufacturer": "Samsung",
+    "LCSC": "C1647",
+    "Specification": "18pF C0G 50V 5%; 20MHz CL12pF crystal",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "U1",
+    "Value": "74HC595D,118",
+    "Footprint": "logger_v2_custom:SOIC-16_3.9x9.9mm_P1.27mm",
+    "DNP": false,
+    "MPN": "74HC595D,118",
+    "Manufacturer": "Nexperia",
+    "LCSC": "C5947",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C4",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Function": "U1.16 VCC",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C5",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Function": "U4.3 VCC",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C6",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Function": "U4.5 VIO",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C7",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Function": "U5.1 VIO",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C8",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Function": "U5.19 VDD",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C9",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Function": "U5.27 VDDA",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C10",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Function": "U2.23 VCC",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C11",
+    "Value": "1uF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CL10A105KB8NNNC",
+    "Manufacturer": "Samsung",
+    "LCSC": "C15849",
+    "Function": "U2.23 VCC bulk",
+    "Specification": "1uF X5R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C12",
+    "Value": "100nF",
+    "Footprint": "logger_v2_custom:C_0603_1608Metric",
+    "DNP": false,
+    "MPN": "CC0603KRX7R9BB104",
+    "Manufacturer": "Yageo",
+    "LCSC": "C14663",
+    "Function": "U2.22 V_BCKP",
+    "Specification": "100nF X7R 50V 0603",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C13",
+    "Value": "10uF",
+    "Footprint": "logger_v2_custom:C_0805_2012Metric",
+    "DNP": false,
+    "MPN": "CL21A106KAYNNNE",
+    "Manufacturer": "Samsung",
+    "LCSC": "C15850",
+    "Function": "J3.4 3V3 bulk",
+    "Specification": "10uF X5R 25V 0805",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "C14",
+    "Value": "10uF",
+    "Footprint": "logger_v2_custom:C_0805_2012Metric",
+    "DNP": false,
+    "MPN": "CL21A106KAYNNNE",
+    "Manufacturer": "Samsung",
+    "LCSC": "C15850",
+    "Function": "CAN 5V bulk",
+    "Specification": "10uF X5R 25V 0805",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R18",
+    "Value": "47k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF4702T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C25819",
+    "Function": "MCU startup pulldown",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R19",
+    "Value": "47k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF4702T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C25819",
+    "Function": "MCU startup pulldown",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "R20",
+    "Value": "47k",
+    "Footprint": "logger_v2_custom:R_0603_1608Metric",
+    "DNP": false,
+    "MPN": "0603WAF4702T5E",
+    "Manufacturer": "UNI-ROYAL",
+    "LCSC": "C25819",
+    "Function": "MCU startup pulldown",
+    "JLCPCB_Class": "Basic"
+  },
+  {
+    "Reference": "D11",
+    "Value": "RF ESD",
+    "Footprint": "logger_v2_custom:D_SOD-882",
+    "DNP": false,
+    "MPN": "PESD5V0F1BL,315",
+    "Manufacturer": "Nexperia",
+    "LCSC": "C45961",
+    "Function": "SMA RF ESD protection",
+    "JLCPCB_Class": "Extended"
+  }
+]
