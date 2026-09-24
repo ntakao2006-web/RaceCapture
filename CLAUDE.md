@@ -42,6 +42,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `hardware_ans_YYYYMMDD.md`：**回路担当からの回答の一次資料**。最新は`hardware_ans_20260921.md`。回答原文をそのまま残し、確定したこと／確定しなかったこと・**こちら側の記述が訂正された箇所**・**この回答で新たに発生したこちらの宿題**を整理してある。ハード側の話が出たら`hardware_share_*`とセットで読む
 - `HANDOFF.md`：RCP JSONプロトコルの実測仕様の詳細
 - `ncec_can_spec.md`：NCEC（本番車両）のCAN通信仕様（ID・バイトマップ・デコード式・OBD2）。実装・共有用の独立ファイル
+- `sensorhub_defi_tap_design.md`：既設Defiの油温・油圧センサーを分岐してセンサーハブで読む回路の設計（回路図・部品表・換算式・校正手順）
 - `ncec_next_session_checklist.md`：**NCECに実車接続する前に必ず開く**。実車が無いと解けない宿題の一覧
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
 - `firmware/`：ESP32（Seeed Studio XIAO ESP32C3）向けPlatformIO（ESP-IDF）プロジェクト
