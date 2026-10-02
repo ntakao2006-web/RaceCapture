@@ -8,6 +8,10 @@
 
 ---
 
+> 🔴 **2026-10-02訂正：0章1・2-1章の「SORACOMはドイツでCat-M1非対応」は誤り。**
+> 参照した表は通常回線の一覧で、LTE-M/NB-IoTは別のLPWAN対応表に載っていた。
+> **plan01sはドイツのO2・VodafoneでLTE-Mが`Guaranteed`（ローミング契約あり）。** → 9章を参照。
+
 ## 0. 結論（先に）
 
 1. 🔴 **「1枚で日独両対応」という当初案は、少なくともSORACOMでは成立しない。**
@@ -167,3 +171,51 @@ Onomondo、emnify、Twilio Super SIM、Hologram なども同種のグローバ�
 | `hardware_ans_20260921.md` | **この宿題の出どころ。**6章の9 |
 | `LOGGER_V2_LTE_MODEM_QUESTIONS.md` | **3.1.3章＝SIM7070Gに通常LTEのフォールバックが無い件。**P-7の元資料、2.1〜2.3章＝要求仕様 |
 | `LOGGER_V2_LTE_MODEM_REPORT.md` | SIM7070Gの下調べ。1.2章＝上り22kbpsの試算 |
+
+---
+
+## 9. 2026-10-02追記：SORACOM 1枚で日独両対応できる（訂正）
+
+**ユーザー方針：SIM7070G前提で、ドイツでも使えるSORACOMのSIMにしたい。**
+
+### 9-1. 何を見落としていたか
+
+`Supported Carriers`の表は通常回線（2G/3G/4G）の一覧で、**LTE-M/NB-IoTは載っていない。**
+同ページに「LTE-M/NB-IoTはLPWAN Coverageを参照」との注記があり、
+公式リポジトリ`soracom/coverage-tests`の`SORACOM-LPWAN-with-features.csv`が本体だった。
+- `Guaranteed`＝ローミング契約あり（Supported Carriersと同格の保証）
+- `Validated`＝試験で通っただけ、契約・SLAなし
+
+### 9-2. LTE-Mの対応（CSVより、2026-09-30更新版）
+
+| プラン | 🇩🇪 Telekom (B3/B20) | 🇩🇪 Vodafone (B20) | 🇩🇪 O2 (B20) | 🇯🇵 Docomo (B1/B19) | 🇯🇵 SoftBank (B1/B8) |
+|---|---|---|---|---|---|
+| **plan01s** | — | ✅ Guaranteed | ✅ Guaranteed | ✅ Guaranteed | ✅ Guaranteed |
+| **planV1** | ✅ Guaranteed | ✅ Guaranteed | ✅ Guaranteed | ✅ Guaranteed | ✅ Guaranteed |
+| planX3 | — | ✅ Guaranteed | ✅ Guaranteed | ✅ Guaranteed | ✅ Guaranteed |
+| planP1 | △ Validated | — | — | — | △ Validated |
+
+- バンドはすべてSIM7070GのCat-M1対応バンドに含まれる（B1/B3/B8/B19/B20）
+- 周辺国（ベルギー・オランダ・ルクセンブルク・フランス・オーストリア）もplan01s／planV1でLTE-MがGuaranteedの事業者がある
+
+### 9-3. 推奨
+
+| | 案 |
+|---|---|
+| **本命** | **plan01s 1枚。** ドイツ2社＋日本2社でLTE-Mの保証あり。ドイツは$0.02/MBで、10MB/時なら1時間あたり約$0.2 |
+| 次点 | **planV1。** Telekomも掴めるのでドイツで3社から選べる。ドイツの通信料は$0.073/MB |
+
+- 日本国内の通信料はplan01sで$0.2/MiB → **10MB/時で約$2/時**。国内試験は短時間なら問題ない
+- ⚠️ **ニュルブルクリンク周辺でどの事業者のLTE-Mが強いかは未確認。** 現地でO2/Vodafoneが弱ければplanV1（Telekom込み）が効く
+- ⚠️ CSVの注記どおり、ローミング契約は変わりうる。**渡航前にCSVを再確認する**
+
+### 9-4. 6章の申し送りの差し替え
+
+- 6章1の「SORACOMはドイツでCat-M1非対応」は**撤回**。回路担当へは
+  **「SORACOM plan01sで日独ともLTE-Mのローミング保証あり（LPWAN対応表）」**を根拠として渡す
+- 6章2の「2枚差し替え運用」は**不要**。ただしヒンジ式ソケットはそのままで問題ない
+
+### 9-5. 出典
+
+- [soracom/coverage-tests — SORACOM-LPWAN-with-features.csv](https://github.com/soracom/coverage-tests)
+- [SORACOM IoT SIM (plan01s) — IoTストア](https://soracom.jp/store/5259/)
