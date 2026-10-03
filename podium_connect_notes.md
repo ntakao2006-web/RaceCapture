@@ -456,3 +456,67 @@ Linux側のPodiumクライアントとSTM32側のモデム通信をつなぐ処�
 | 「PodiumConnect不要」の結論 | `DASHCAM_STREAMING_RESEARCH.md` 3章・4.1節 |
 | Ver.2（UNO Q）の前提と最優先の未確認事項 | `LOGGER_V2_UNOQ_REPORT.md` 6章 |
 | EcoCapture独自のライブ共有 | `EcoCapture/cloud/README.md` |
+
+---
+
+## 9. 実装者向けの補足（2026-10-04追記）
+
+3章の記述は参照ソースと照合し直して一致を確認済み。そのうえで、**3章だけ読んで実装すると
+詰まりそうな点**をまとめる。
+
+### 9.1 参照ソースはサブモジュール。クローンしただけでは中身が空
+
+`reference/`配下の3つ（`RaceCapture-Pro_firmware` / `RaceCapture_App` / `RaceCapture_App_fork_ryandoherty`）は
+**gitサブモジュール**なので、普通にクローンすると空ディレクトリになる。8章の根拠ファイルを読むには：
+
+```bash
+git submodule update --init --depth 1
+```
+
+### 9.2 チャンネル名はRaceCapture標準名に合わせる
+
+Podiumは純正RaceCaptureの標準チャンネル名を前提に作られている。**地図表示・ラップ表示に使う
+チャンネルは、純正ファームの既定名と完全一致させておく**のが安全
+（⚠️Podiumのサーバー側はソース非公開のため「一致しないと地図が出ない」こと自体は未確認。
+ただし外す理由も無い）。
+
+| 名前 | 単位（純正既定） | 精度 | 出典 |
+|---|---|---|---|
+| `Latitude` | `Degrees` | 6 | `loggerConfig.h` `DEFAULT_GPS_LATITUDE_CONFIG` |
+| `Longitude` | `Degrees` | 6 | 同 `DEFAULT_GPS_LONGITUDE_CONFIG` |
+| `Speed` | （空） | 2 | 同 `DEFAULT_GPS_SPEED_CONFIG` |
+| `GPSSats` | （空） | 0 | 同 `DEFAULT_GPS_SATELLITE_CONFIG` |
+| `Utc` | `ms` | 0 | 同 `DEFAULT_UTC_MILLIS_CONFIG` |
+| `LapCount` / `ElapsedTime` / `Distance` | — / `Min` / `mi` | | 同 `DEFAULT_LAP_COUNT_CONFIG` ほか |
+
+緯度経度は**小数点以下6桁を落とさずに**JSONへ書くこと（`float`で丸めると地図上で数m単位でずれる）。
+
+### 9.3 metaとサンプルの細部
+
+- 純正ファームのmetaには`"prec"`（小数点以下桁数）も入る（`loggerApi.c` `json_channelConfig`）。
+  アプリ版は付けていないので**必須ではない**が、付けても問題ない
+- **ビットマスクの語数は「metaのチャンネル総数」で決まる**（その回に値があった数ではない）。
+  `語数 = floor((総数 - 1) / 32) + 1`。値が1つも無い回でも、ビットマスク語（0）は送る
+- サーバーから`"message"`キー付きの応答や想定外の行が来ることがある。アプリは
+  **ログに出して無視**しているので、未知のメッセージで落ちない作りにする
+
+### 9.4 SIM7070GのTCP送信は、チームに動いている実装がある
+
+5章経路A'で「⚠️要確認」としていたSIM7070GのATコマンド手順は、**エコランチームの
+`TMCIT-Ecorun/2026-logger-frontpanel`（C／pico-sdk）と`TMCIT-Ecorun/ecorun-talk`（Python）で
+既にSIM7070G＋SORACOMでのTCP送信が動いている**（`ecorun_team_systems.md` 1・2章）。
+`AT+CNACT`→`AT+CAOPEN`→`AT+CASEND`の実際の手順・待ち時間・エラー処理はそちらのコードを見るのが早い。
+
+- 向こうはWSS（TLS）だが、**Podiumは平文TCPなのでTLS関連の設定（`AT+CSSLCFG`等）は不要**で、
+  そのぶん手順は短くなる
+- 向こうは「1フレームごとに`AT+CASEND`1回」方式。Podiumも同じ方式で、**10Hz＝100msに1回の
+  `AT+CASEND`**になる（向こうの60ms周期より緩い）
+- ⚠️チーム側のリポジトリは**読むだけで変更しない**こと
+
+### 9.5 実装前に手元で用意しておくもの
+
+- podium.liveのアカウントと、そこで発行されたストリーミングキー（Device ID）
+  → **キーはリポジトリ・ログ・スクリーンショットに入れない**（6.1章の2）
+- 動作確認は実車不要。**ダミー値（固定の緯度経度＋適当な数値）を10Hzで流して
+  podium.liveのライブ画面に出ればプロトコルは完成**。まずPCのPythonで3.6章の流れを
+  数十行で書いて疎通させ、その後STM32へ移すと、サーバー側の問題とAT制御の問題を切り分けられる
