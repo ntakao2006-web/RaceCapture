@@ -1,0 +1,18 @@
+[Unit]
+Description=Touch display switcher for RaceCapture and EcoCapture
+Requires=racecapture-display.service
+After=racecapture-display.service racecapture-app.service ecocapture-native.service
+Wants=ecocapture-native.service
+
+[Service]
+User=arduino
+RuntimeDirectory=racecapture-touch
+RuntimeDirectoryMode=0700
+Environment=HOME=/home/arduino
+Environment=DISPLAY=:2
+ExecStart=/opt/logger-v2-racecapture/touch_launcher.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

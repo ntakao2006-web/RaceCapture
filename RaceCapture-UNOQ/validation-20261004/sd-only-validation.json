@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-04",
+  "backend_unit_tests_passed": 21,
+  "native_checks": {
+    "sd_list_100_rows_scroll_to_bottom": true,
+    "emmc_list_removed": true,
+    "dashboard_start_red_stop_black": true,
+    "sd_save_acknowledged": true,
+    "sd_summary_crc_validated": true
+  },
+  "automatic_recording": {
+    "backend_start_started_sd_and_backup": true,
+    "enabled_for_next_boot": true,
+    "handoff_current_recording": false
+  },
+  "cleanup": {
+    "sd_logger_files_before": 335,
+    "sd_files_after": 0,
+    "emmc_logs_after": 0,
+    "racecapture_sessions_removed": 1176,
+    "racecapture_duplicate_record_session_disabled": true,
+    "format_capacity_sectors": 31116288,
+    "fat_boot_copies_root_and_last_sector_verified": true,
+    "forensic_secure_erase": false,
+    "pc_validation_archives_in_scope": false
+  },
+  "retention": "SD primary; hidden eMMC backup retains latest three sessions",
+  "limitations": [
+    "Physical SD removal under load was not tested. In-flight data and FAT metadata can be lost; stop and wait for save acknowledgement before removal.",
+    "Full physical power cycle after this deployment was not performed; automatic start was verified by backend restart, and pre-update physical boot already started MCU SD recording.",
+    "Display corruption after battery replacement recovered by display restart; user confirmed normal display.",
+    "Startup CAN overflow remains a previously observed limitation, not fixed in this change."
+  ]
+}

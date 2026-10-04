@@ -1,0 +1,11 @@
+[Unit]
+Description=LoggerV2 real telemetry to RaceCapture
+After=docker.service ecocapture-web-start.service
+[Service]
+User=arduino
+ExecStart=/usr/bin/python3 /opt/logger-v2-racecapture/rcp_bridge.py
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+[Install]
+WantedBy=multi-user.target

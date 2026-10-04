@@ -1,0 +1,23 @@
+{
+  "date_jst": "2026-10-04",
+  "scope": "UNO Q native EcoCapture, HDMI/touch, SD logging, offline maps, Podium and boot recovery",
+  "deployed_mcu_source": "RaceCapture-UNOQ/logger_impl.vehicle-candidate.h",
+  "mcu_support_headers": "firmware/ecologger_v2; deployed logger_impl differs from baseline, do not flash baseline blindly",
+  "deployed_mcu_sha256": "4f0f450ce3f9b1e42b78ba48f46869b27bc03e61a508a997686067efde19febd",
+  "native_ui_source": "RaceCapture-UNOQ/ecocapture_native.cpp",
+  "boot_recovery": ["boot_communication_check.py", "ecocapture-boot-check.service", "router-stop-timeout.conf"],
+  "racecapture_toggle": ["touch_launcher.py", "racecapture-app-control.sudoers"],
+  "deployment_note": "New service/drop-in/sudoers files were installed individually; install.sh is not a complete cold provisioning recipe. Validate sudoers with visudo and install root-owned mode 0440.",
+  "logging": "Dashboard toggle; automatic power-on recording; SD-only UI with recent eMMC backups",
+  "maps": "Kanto lightweight imagery cached on eMMC; runtime viewer does not download tiles; source tiles are not versioned",
+  "podium": "Common sender independent of display; restricted SIM7070 TCP destination; latest user-provided key saved only on device",
+  "last_live_key_update": "Authentication and frame count increase verified; no key stored in repository",
+  "limitations": [
+    "LTE telemetry 10 Hz target remains unmet",
+    "External Podium live dashboard not verified",
+    "Remote master now contains newer Podium protocol findings; this push preserves them but does not implement those newly discovered differences",
+    "MCU startup recovery is a bounded workaround; physical power-cycle and lossless cold startup are not proven",
+    "Do not assume historical README or validation snapshot describes the current device state"
+  ],
+  "excluded_from_push": ["credentials", "driving raw logs", "screenshots containing positions/configuration", "build binaries", "unrelated KiCad and earlier project changes"]
+}

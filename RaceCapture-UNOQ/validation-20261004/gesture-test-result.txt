@@ -1,0 +1,4 @@
+pan before=138.998717904 after=138.99764502 drag_origin=116143.888759 pinch_recognized=0
+
+(test-native-gestures:38248): Gtk-CRITICAL **: 19:37:50.661: gtk_main_quit: assertion 'main_loops != NULL' failed
+PASS: two-contact pinch zoom, single-contact pan, manual follow state

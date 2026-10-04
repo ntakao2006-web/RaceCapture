@@ -1,0 +1,28 @@
+{
+  "reference": "hardware_share_20261004_podium.md",
+  "firmware_reference_commit": "fa6ecf6d71b88b9b2e751ef7745aaf4d892b53f2",
+  "app_reference_commit": "2738967a864af20e04b6e864e1f45279bc21c497",
+  "changes": [
+    "Always include Latitude, Longitude, Speed and GNSS-derived Unix UTC milliseconds in wire metadata",
+    "Use GPSSpeed only when Speed is unavailable; retain real CAN Speed when available",
+    "Send zero masks for valid real-source samples with no available values",
+    "Ignore unexpected authentication lines with a bounded 20-second total wait; reject explicit non-ok status",
+    "Keep NDJSON framing, metadata order and 32-bit mask packing"
+  ],
+  "tests_passed": 18,
+  "real_sample_encoder_valid": true,
+  "real_gnss_utc_milliseconds_observed": 1791072486800,
+  "live_authentication": "accepted",
+  "live_frames_observed": [88, 165],
+  "live_reconnects": 0,
+  "bridge_errors": 0,
+  "final_receive_hz": 98.7,
+  "final_recording_active": false,
+  "final_podium_enabled": true,
+  "limitations": [
+    "Actual LTE send rate is below 10 Hz; no 10 Hz throughput claim",
+    "External Podium account display is not verified",
+    "No dummy telemetry sent to the live account",
+    "No MCU firmware or wiring changes"
+  ]
+}

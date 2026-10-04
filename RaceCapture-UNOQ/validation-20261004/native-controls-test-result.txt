@@ -1,0 +1,1 @@
+PASS: actual dashboard button start/red, stop/black, SD save acknowledged, Podium page present

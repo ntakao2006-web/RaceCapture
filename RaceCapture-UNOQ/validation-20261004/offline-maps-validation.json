@@ -1,0 +1,38 @@
+{
+  "date_jst": "2026-10-04",
+  "native_sha256": "44aeec11584a15a067f5844413207851c65a32ae7d2f3d0f0e17110998bc17d8",
+  "ui": {
+    "sensor_page": "02",
+    "map_page": "03",
+    "map_page_has_scroller": false,
+    "map_canvas_height_at_1280x800_test": 502,
+    "sensor_channels_at_least_20": true,
+    "podium_toggle_roundtrip_actual_api": true,
+    "podium_red_and_black_screenshots_reviewed": true,
+    "synthetic_two_contact_zoom_and_one_contact_pan_passed": true
+  },
+  "map_pack": {
+    "state": "complete",
+    "source": "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
+    "attribution": "https://maps.gsi.go.jp/development/ichiran.html",
+    "bounds_west_south_east_north": [138.35, 34.85, 140.95, 37.20],
+    "scope": "Mainland Kanto bounding rectangle, including border areas; excludes Tokyo remote islands",
+    "source_zoom": 14,
+    "locally_generated_overview_zooms": [2, 13],
+    "requested_source_tiles": 15827,
+    "stored_source_tiles": 13021,
+    "provider_404_tiles": 2806,
+    "failed_requests": 0,
+    "stored_bytes_including_overviews": 297860911,
+    "seven_capitals_source_tiles_present": true,
+    "independent_decoded_city_and_zoom_tiles": 50,
+    "prefetch_interface": "wlan0, strict SO_BINDTODEVICE, no fallback",
+    "viewer_network_tile_requests": false,
+    "prefetch_unit_tests_passed": 3,
+    "higher_zoom": "Upscale stored parent tile; no extra downloads"
+  },
+  "limitations": [
+    "Provider 404 areas have no local imagery.",
+    "Physical two-finger manipulation on the attached touch panel was not manually retested; event-controller simulation passed."
+  ]
+}

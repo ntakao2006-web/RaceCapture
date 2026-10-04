@@ -1,0 +1,66 @@
+import unittest,struct,tempfile,json
+from pathlib import Path
+from hardware import HardwareDecoder
+from models import Configuration,Signal,validate_sample
+from sd_storage import SDStorage
+class HardwareTests(unittest.TestCase):
+ def test_gnss_cadence_does_not_halve_when_status_skips_one_solution(self):
+  decoder=HardwareDecoder();state=self.state();nav=bytearray(92);nav[20]=3;nav[21]=1
+  for itow,expected in [(1000,None),(1100,10),(1300,10),(1500,10)]:
+   struct.pack_into('<I',nav,0,itow);state.update(nav=nav.hex(),gnss_at=1900)
+   samples,_=decoder.decode(state,self.batch(),Configuration())
+   self.assertEqual(samples[0]['values']['GNSSHz'],expected)
+ def state(self):return {'mcu_ms':2000,'gnss_at':0,'nav':'00'*92,'imu_address':40,'sd_ready':1,'can_counts':[0,0]}
+ def batch(self):
+  raw=bytearray(46);struct.pack_into('<h',raw,4,981);struct.pack_into('<h',raw,24,16384)
+  return {'rows':[[1,2000,raw.hex()]],'can':[]}
+ def test_absent_gps_vehicle_channels_and_finite_imu(self):
+  samples,sensors=HardwareDecoder().decode(self.state(),self.batch(),Configuration())
+  s=validate_sample(samples[0]);self.assertIsNone(s['values']['RPM']);self.assertIsNone(s['values']['Lat']);self.assertAlmostEqual(s['values']['AccelZ'],9.81);self.assertEqual(s['quaternion'],[1,0,0,0])
+ def test_missing_imu_keeps_real_time_and_gnss(self):
+  state=self.state();state['imu_address']=0
+  samples,_=HardwareDecoder().decode(state,{'rows':[[1,2000,'']],'can':[]},Configuration())
+  self.assertEqual(samples[0]['mcu_ms'],2000);self.assertIsNone(samples[0]['values']['AccelZ']);self.assertIsNone(samples[0]['quaternion'])
+ def test_fix_validity_and_expiration(self):
+  state=self.state();nav=bytearray(92);nav[20]=3;nav[21]=1;nav[23]=19;struct.pack_into('<i',nav,28,350000000);state.update(nav=nav.hex(),gnss_at=1900)
+  decoder=HardwareDecoder();s,_=decoder.decode(state,self.batch(),Configuration());self.assertEqual(s[0]['values']['Lat'],35)
+  state['mcu_ms']=4000;s,_=decoder.decode(state,self.batch(),Configuration());self.assertIsNone(s[0]['values']['Lat'])
+ def test_signed_extended_can_and_expiration(self):
+  config=Configuration(signals=[Signal(name='RPM',channel=2,can_id=0x1234,extended=True,byte_offset=0,data_type='int16',scale=.25)])
+  batch=self.batch();batch['can']=[[1990,2,0x1234,1,0,'fcff']]
+  decoder=HardwareDecoder();s,_=decoder.decode(self.state(),batch,config);self.assertEqual(s[0]['values']['RPM'],-1)
+  batch['can']=[];batch['rows'][0][1]=4000;s,_=decoder.decode(self.state(),batch,config);self.assertIsNone(s[0]['values']['RPM'])
+ def test_sd_copy_real_fat_preserves_existing_file(self):
+  from pyfatfs.PyFat import PyFat
+  from pyfatfs.PyFatFS import PyFatFS
+  with tempfile.TemporaryDirectory() as folder:
+   folder=Path(folder);image=folder/'fat.img';image.touch();fat=PyFat();fat.mkfs(str(image),fat_type=32,size=64*1024*1024);fat.close()
+   with PyFatFS(str(image)) as fs:fs.writetext('/KEEP.TXT','existing data')
+   mbr=bytearray(512);mbr[450]=0x0c;struct.pack_into('<II',mbr,454,2048,image.stat().st_size//512);mbr[510:]=b'\x55\xaa'
+   scratch=bytearray(512)
+   def call(text):
+    if text=='SD':return 'SD ready'
+    if text.startswith('H'):
+     at,data=text[1:].split(':');data=bytes.fromhex(data);scratch[int(at):int(at)+len(data)]=data;return 'loaded'
+    if text.startswith('R'):
+     sector=int(text[1:])
+     if sector==0:return 'data:'+mbr.hex()
+     with image.open('rb') as f:f.seek((sector-2048)*512);return 'data:'+f.read(512).hex()
+    if text.startswith('W'):
+     with image.open('r+b') as f:f.seek((int(text[1:])-2048)*512);f.write(scratch)
+     return 'write_token=0x05 accepted=1 busy_done=1'
+    raise AssertionError(text)
+   source=folder/'LOG_TEST.csv';source.write_text('seq,value\n1,9.81\n');storage=SDStorage(folder/'journals');storage.status={};storage.copy(source,call)
+   self.assertTrue(storage.status['verified'])
+   with PyFatFS(str(image),read_only=True) as fs:
+    self.assertEqual(fs.readtext('/KEEP.TXT'),'existing data');self.assertEqual(fs.readbytes('/ECOLOG/LOG_TEST.csv'),source.read_bytes())
+ def test_can_batch_uses_value_at_each_sample_not_future_frame(self):
+  config=Configuration(signals=[Signal(name='RPM',channel=1,can_id=256,byte_offset=0,data_type='uint16')])
+  decoder=HardwareDecoder();batch=self.batch()
+  batch['can']=[[1990,1,256,0,0,'e803'],[2020,1,256,0,0,'d007']]
+  batch['rows']=[[1,2000,''],[2,2030,'']]
+  samples,_=decoder.decode(self.state(),batch,config)
+  self.assertEqual([s['values']['RPM'] for s in samples],[1000,2000])
+  batch={'can':[[2050,1,256,0,0,'b80b']], 'rows':[[3,2040,''],[4,2060,''],[5,3100,'']]}
+  samples,_=decoder.decode(self.state(),batch,config)
+  self.assertEqual([s['values']['RPM'] for s in samples],[2000,3000,None])

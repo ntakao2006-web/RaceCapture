@@ -1,0 +1,2 @@
+# Only the display application; no access to logger/MCU/LTE services.
+arduino ALL=(root) NOPASSWD: /usr/bin/systemctl start racecapture-app.service, /usr/bin/systemctl stop racecapture-app.service

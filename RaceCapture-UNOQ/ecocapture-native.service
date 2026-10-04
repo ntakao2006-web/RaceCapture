@@ -1,0 +1,15 @@
+[Unit]
+Description=EcoCapture lightweight native touch UI
+Requires=racecapture-display.service
+After=racecapture-display.service ecocapture-web-start.service
+
+[Service]
+User=arduino
+Environment=HOME=/home/arduino
+Environment=DISPLAY=:2
+ExecStart=/opt/logger-v2-racecapture/ecocapture-native
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

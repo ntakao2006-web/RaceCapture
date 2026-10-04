@@ -1,0 +1,31 @@
+{
+  "racecapture_toggle": {
+    "stop_ui_test": "racecapture-app inactive; race_capture process absent",
+    "start_ui_test": "racecapture-app active; new race_capture PID 4837",
+    "final_state": "stopped, EcoCapture visible",
+    "scope": "display application only; no logger, router, MCU or LTE service stop",
+    "persists_across_reboot": false
+  },
+  "podium": {
+    "key": "omitted",
+    "initial_state": "off",
+    "initial_live_failures": "intermittent modem OSError at authentication and network registration",
+    "correction": "Wire metadata maps Lat/Lon to Latitude/Longitude; local data names preserved",
+    "modem_failure_root_cause": "not established; connection succeeded after sender restart and modem reinitialization",
+    "final_state": "streaming",
+    "authentication": "server status ok received",
+    "observation_seconds_approx": 30,
+    "frames_before": 73,
+    "frames_after": 169,
+    "send_hz_approx": 3.2,
+    "target_hz": 10,
+    "reconnects_during_observation": 0,
+    "bridge_errors": 0,
+    "acquisition_hz_range": [94.1, 100.5],
+    "external_account_display_verified": false,
+    "lte_endpoint": "telemetry.podium.live:8080",
+    "racecapture_app_running_during_observation": false,
+    "local_recording": "left stopped, matching state observed before sender deployment",
+    "tests": "14 tests passed on final deployed code"
+  }
+}

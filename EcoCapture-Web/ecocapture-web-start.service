@@ -1,0 +1,13 @@
+[Unit]
+Description=Refresh EcoCapture containers after the boot router socket is created
+After=docker.service arduino-router.service ecocapture-mcu-start.service
+Requires=docker.service arduino-router.service
+Wants=ecocapture-mcu-start.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker restart ecocapture-web ecocapture-viewer
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
