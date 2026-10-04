@@ -1,0 +1,16 @@
+[Unit]
+Description=Official RaceCapture App 2.19.0
+Requires=racecapture-display.service
+After=racecapture-display.service logger-v2-rcp.service
+[Service]
+User=arduino
+RuntimeDirectory=racecapture-app
+RuntimeDirectoryMode=0700
+Environment=HOME=/home/arduino
+ExecStartPre=/bin/sleep 2
+ExecStart=/opt/logger-v2-racecapture/launch.sh
+ExecStartPost=/bin/sh -c 'sleep 8; DISPLAY=:2 /opt/logger-v2-racecapture/fit_window.py || true'
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+[Unit]
+Description=EcoLogger V2 USB administration helper
+After=NetworkManager.service docker.service
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/ecocapture-admin/device_agent.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=read-only
+ProtectSystem=strict
+ReadWritePaths=/run /var/lib/ecocapture-admin /etc/NetworkManager/system-connections
+
+[Install]
+WantedBy=multi-user.target

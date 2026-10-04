@@ -1,0 +1,11 @@
+[Unit]
+Description=RaceCapture loopback screen transport
+Requires=racecapture-display.service
+After=racecapture-display.service
+[Service]
+User=arduino
+ExecStart=/opt/logger-v2-racecapture/display_transport.sh vnc
+Restart=always
+RestartSec=3
+[Install]
+WantedBy=multi-user.target

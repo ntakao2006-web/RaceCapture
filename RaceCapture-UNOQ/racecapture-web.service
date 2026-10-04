@@ -1,0 +1,11 @@
+[Unit]
+Description=RaceCapture USB browser screen
+After=racecapture-vnc.service
+[Service]
+User=arduino
+ExecStart=/opt/logger-v2-racecapture/display_transport.sh web
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+[Install]
+WantedBy=multi-user.target

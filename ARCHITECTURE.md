@@ -1342,6 +1342,13 @@
   - ⚠️ **Podium画面に数値が表示されるところは未確認**（デバイスとしての認識まで）。
   - ロガーV2実装者向けの確定版は`hardware_share_20261004_podium.md`。
 
+### LoggerV2 / UNO Q のRaceCapture表示（2026-10-02）
+
+- 公式RaceCapture App 2.19.0 ARM64をUNO Q Linuxへ導入。既存のSTM32取得・独立SD記録・EcoCaptureの設定/ログ管理を維持し、実測50チャンネルを最大10HzでRCPへ変換する。USB ADB転送＋noVNCで既定ブラウザ（Vivaldi）に表示し、旧USB自動表示から切替済み。実測ストリーム30秒で通信/SDエラー・SD欠落増加0、アプリ内DBへの記録を確認。
+- LTE/Podium送信はOFFを維持。RaceCapture Setupからのハード設定書込、ファーム更新、ラップ計算は未対応で、既存のLoggerV2設定画面を使用する。導入・運用・検証の入口は `RaceCapture-UNOQ/README.md`。
+
+- 2026-10-02: RaceCapture表示を専用Xorg＋Adreno FD702/freedrenoによるGPU描画へ変更し、再起動後の実アプリでも使用を確認。描画上限30fps、VNC待機/まとめ各10ms。アプリCPUは変更前176%から変更後約20〜38%（各10秒、画面・操作条件は固定していない参考値）。取得約100Hz、再起動後30秒の50チャンネル受信で通信/SDエラー・SD欠落増加0。ユーザーがVivaldi表示とGNSS受信を確認済み、性能検証時は屋内のため未測位。
+
 ## 5. 開発ロードマップ（詳細版）
 
 ### Phase 0：プロトコル・ソフトウェア基盤検証（実機非依存・シミュレーション環境）

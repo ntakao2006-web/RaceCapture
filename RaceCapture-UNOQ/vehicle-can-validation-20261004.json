@@ -1,0 +1,18 @@
+{
+  "date_jst": "2026-10-04",
+  "historical_snapshot": true,
+  "superseded_by": "validation-20261004/final-validation.json",
+  "result": "incomplete_not_ready_for_reliable_vehicle_recording",
+  "touch": {"usb_id": "222a:001c", "device": "ILITEK ILITEK Multi-Touch", "input": "/dev/input/event3", "xorg_recognized": true, "human_touch_verified": false},
+  "retained_changes": ["CAN decode uses latest value at or before each sample; future frames no longer blank earlier samples", "native dashboard 60-second GPS speed graph with axes, auto range and missing-data gaps", "native UI null guards", "hardware status polling at 10 Hz", "reject SD file listing while SD recording"],
+  "tests": {"hardware_and_server": "16 passed", "native_service_restarts_during_check": 0},
+  "recording_evidence": [
+    {"file": "LOG_20261003T175253Z_e347563c.csv", "rows": 6828, "seq_gaps": 0, "rpm_present": 6801, "state": "closed"},
+    {"file": "LOG_20261003T180232Z_770d869e.csv", "rows": 7384, "seq_gaps": 0, "rpm_present": 7384, "state": "closed", "limitation": "MCU communication subsequently stopped"}
+  ],
+  "unresolved": ["MCU RPC stops after tens of seconds to roughly two minutes under vehicle CAN", "CAN receive overflow increases", "SD queue drops under recording load", "SD disabled test also stalled at MCU uptime 106741 ms"],
+  "firmware_trials": "polling/SPI/status-buffer optimizations and decoder-stall recovery did not fix communication; restored device source and sketch from recovery-20261004 pre-test backups; restored local canonical logger_impl preserving preexisting watchdog and CAN2 differences",
+  "device_backup_directory": "/home/arduino/recovery-20261004",
+  "logs_deleted": false,
+  "next_diagnostic": "Investigate MCU RouterBridge/UART thread and lock state against the actually installed Zephyr core; local 0.52.0 ELF does not match sampled core instructions. Do not claim decoded CSV seq continuity proves lossless raw CAN or SD."
+}

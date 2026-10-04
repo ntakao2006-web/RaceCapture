@@ -1,0 +1,2 @@
+[fs.opener]
+fat = pyfatfs.PyFatFSOpener:PyFatFSOpener

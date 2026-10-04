@@ -1,0 +1,10 @@
+[Unit]
+Description=RaceCapture GPU accelerated display
+After=network.target
+Conflicts=lightdm.service
+[Service]
+ExecStart=/usr/lib/xorg/Xorg :2 -config /opt/logger-v2-racecapture/xorg.conf -nolisten tcp -noreset -novtswitch -sharevts vt8 -ac
+Restart=on-failure
+RestartSec=3
+[Install]
+WantedBy=multi-user.target

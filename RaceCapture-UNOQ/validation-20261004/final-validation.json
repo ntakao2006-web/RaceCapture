@@ -1,0 +1,61 @@
+{
+  "date_jst": "2026-10-04",
+  "result": "bounded_vehicle_recording_passed_native_update_deployed",
+  "native_binary_sha256": "896e0081c78b04e34fcbebc6075ffa765f1032c5f6eb5612f4880210fefc6326",
+  "native_checks": {
+    "service": "active",
+    "unexpected_restarts": 0,
+    "self_test": "ok sample=1 http=200",
+    "synthetic_gestures": "PASS: two-contact pinch zoom, single-contact pan, manual follow state",
+    "tile_download_worker": "not started; optimized binary contains no tile endpoint"
+  },
+  "touch": "human confirmed working",
+  "mcu_binary_sha256": "4f0f450ce3f9b1e42b78ba48f46869b27bc03e61a508a997686067efde19febd",
+  "mcu_source": "../logger_impl.vehicle-candidate.h",
+  "transport_workaround": "127-byte UART bursts with 250us pacing; RTS/CTS at 921600 baud",
+  "recording": {
+    "file": "LOG_20261003T191346Z_99f7a683.csv",
+    "rows": 30085,
+    "mcu_time_span_s": 300.84,
+    "sequence_gaps": 0,
+    "rpm_values_present": 30085,
+    "bridge_error_delta": 0,
+    "can_overflow_delta": 0,
+    "sd_error_delta": 0,
+    "sd_queue_drop_delta": 0,
+    "sample_drop_delta": 0
+  },
+  "sd_readback": {
+    "file": "EL000309-verified.BIN",
+    "bytes": 223232,
+    "blocks_crc_and_sequence_valid": 436,
+    "can_records": 6324,
+    "imu_records": 911,
+    "gnss_records": 92,
+    "gnss_itow_intervals_ms": {"100": 91}
+  },
+  "gnss": {"receiver_hz": 10, "display_cadence_fix_deployed": true},
+  "imu": {"recording_hz": 100, "sampling_rate_not_reduced": true},
+  "backend_tests_passed": 19,
+  "post_native_update_recording": {
+    "file": "LOG_20261003T193829Z_ea18b83f.csv",
+    "duration_s": 30,
+    "rows": 3028,
+    "sequence_gaps": 0,
+    "rpm_values_present": 3028,
+    "bridge_error_delta": 0,
+    "can_overflow_delta": 0,
+    "sd_error_delta": 0,
+    "sd_queue_drop_delta": 0,
+    "sample_drop_delta": 0,
+    "recording_stopped": true
+  },
+  "map_policy": "No automatic tile downloads; existing cached images and track only",
+  "limitations": [
+    "Bounded test is not long-duration vehicle qualification",
+    "CAN overflow occurred outside the successful recording interval during earlier SD directory scans",
+    "Only the named SD file was CRC verified, not every file in the five-minute recording",
+    "Physical pinch interaction has not been user verified"
+  ],
+  "logs_deleted": false
+}

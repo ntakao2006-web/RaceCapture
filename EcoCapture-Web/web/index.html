@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#161616"><title>EcoCapture-Web | EcoLogger V2</title>
+  <link rel="stylesheet" href="/style.css"><script src="/map-view.js" defer></script><script src="/app.js" defer></script><script src="/device.js" defer></script><script src="/podium.js" defer></script>
+</head>
+<body>
+<header><a class="brand" href="/">EcoCapture<span>WEB / 0.2</span></a><div class="device"><strong id="device-name">EcoLogger V2</strong><span id="connection" role="status">接続待ち</span></div></header>
+<div class="shell">
+<aside><p class="eyebrow">WORKSPACE</p><nav aria-label="画面切替">
+<button class="nav active" data-page="dashboard">01 <span>Dashboard</span></button>
+<button class="nav" data-page="gnss">02 <span>GNSS / Maps</span></button>
+<button class="nav" data-page="imu">03 <span>IMU / Indicate</span></button>
+<button class="nav" data-page="logs">04 <span>Logging / Solve</span></button>
+<button class="nav" data-page="settings">05 <span>Settings / CAN</span></button>
+</nav><div class="side-bottom"><span class="eyebrow">DATA SOURCE</span><strong>STM32 → Linux → PC</strong><p>実機センサ / USB管理</p><span id="rate">受信 — Hz</span></div></aside>
+<main>
+
+<div id="message" role="status" hidden></div>
+<section id="dashboard" class="page">
+  <div class="page-title"><div><p class="eyebrow">LIVE TELEMETRY</p><h1>Dashboard</h1></div><span id="profile-label">車載CAN接続なし</span></div>
+  <div class="hero-grid"><article class="speed metric"><div class="metric-top"><span>GNSS SPEED</span><span>km/h</span></div><div class="speed-value" data-value="GPSSpeed" data-digits="1">—</div><div class="speed-bottom"><span>SPEED</span><span id="sample-seq">SEQ —</span></div></article>
+  <article class="rpm metric"><div class="metric-top"><span>ENGINE SPEED</span><span>rpm</span></div><div class="rpm-value" id="rpm-value">—</div><progress id="rpm-bar" max="6000" value="0" aria-label="回転数"></progress><p id="rpm-hint">車載CAN接続なし</p></article></div>
+  <div class="metrics"><article><span>前後加速度</span><strong data-value="LongAccel" data-digits="3">—</strong><small>g</small></article><article><span>左右加速度</span><strong data-value="LatAccel" data-digits="3">—</strong><small>g</small></article><article><span>バッテリー</span><strong data-value="BatteryVolt" data-digits="2">—</strong><small>V</small></article><article><span>累積距離</span><strong data-value="Distance" data-digits="3">—</strong><small>km</small></article></div>
+  <article class="panel trend"><div class="panel-title"><h2>速度の推移</h2><span>直近60秒 / km/h</span></div><canvas id="speed-chart" aria-label="GNSS速度の時系列グラフ"></canvas></article>
+  <div class="record-strip"><div><span id="rec-badge">○ STANDBY</span><strong id="rec-time">00:00:00</strong><small id="rec-rows">0 samples</small></div><div class="button-row"><button class="primary" id="start-log">記録開始</button><button id="stop-log" disabled>記録停止</button></div></div>
+  <div class="hardware" id="hardware-status"></div>
+</section>
+<section id="gnss" class="page" hidden>
+  <div class="page-title"><div><p class="eyebrow">POSITION & TRACK</p><h1>GNSS / Maps</h1></div><span>国土地理院・航空写真</span></div>
+  <article class="panel map-panel"><div class="panel-title"><h2>走行経路</h2><div class="button-row map-toolbar"><button id="map-zoom-in" aria-label="地図を拡大">＋</button><button id="map-zoom-out" aria-label="地図を縮小">−</button><button id="map-fit">全体表示</button><button id="map-current">現在地</button><button id="map-follow" aria-pressed="true">追従 ON</button><button id="clear-track">軌跡をクリア</button></div></div>
+  <div id="map-shell" tabindex="0" role="region" aria-label="航空写真と走行経路。ホイールで拡大縮小、左または中ボタンドラッグで移動。Homeで全体表示。"><canvas id="track-chart" aria-label="航空写真に重ねたGNSSの走行経路"></canvas><a class="map-attribution" href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">出典：国土地理院</a></div>
+  <div class="map-caption"><span id="map-status" role="status">航空写真を読み込んでいます…</span><span>ホイール：拡大・縮小 ／ 左・中ドラッグ：移動 ／ Home：全体 ／ F：現在地</span></div>
+  <details class="map-sources"><summary>写真について</summary><p>国土地理院の全国最新写真（シームレス）を使用。撮影時期・解像度は地域により異なります。縮小時は衛星画像、最大解像度を超えた拡大は同じ写真の引き伸ばしです。航空写真の取得にはPCのインターネット接続を使います。</p><p>縮小時のデータソース：Landsat8画像（GSI,TSIC,GEO Grid/AIST）、Landsat8画像（courtesy of the U.S. Geological Survey）、海底地形（GEBCO）。世界衛星画像：NASA LP DAAC / USGS EROS。沖ノ鳥島の一部：GRUS画像（© Axelspace）。<a href="https://maps.gsi.go.jp/development/ichiran.html#seamlessphoto" target="_blank" rel="noopener noreferrer">地理院タイルの詳細</a></p></details></article>
+  <article class="panel"><h2>GNSSデータ</h2><dl id="gnss-values" class="readings gnss-readings"></dl></article>
+</section>
+<section id="imu" class="page" hidden>
+  <div class="page-title"><div><p class="eyebrow">MOTION & CHANNELS</p><h1>IMU / Indicate</h1></div><span>センサ座標</span></div>
+  <div class="split"><article class="panel"><h2>加速度</h2><dl id="accel-values" class="readings"></dl><h2>角速度・姿勢</h2><dl id="gyro-values" class="readings"></dl></article><article class="panel"><h2>G表示</h2><canvas id="g-chart" aria-label="前後左右の加速度"></canvas><p class="muted">横：左右加速度 / 縦：前後加速度 / 外周：1 g</p></article></div>
+  <article class="panel"><div class="panel-title"><h2>受信状態</h2><span>実機Bridge経路</span></div><dl id="diagnostics" class="readings"></dl></article>
+</section>
+<section id="logs" class="page" hidden>
+  <div class="page-title"><div><p class="eyebrow">RECORDINGS</p><h1>Logging / Solve</h1></div><button id="refresh-logs">一覧を更新</button></div>
+  <p>保存先：UNO Q 内蔵eMMC / logs <span id="storage-free"></span></p>
+  <p class="muted">ブラウザを閉じても記録は続きます。ダウンロード・解析は記録停止後に行ってください。</p>
+  <article class="panel table-wrap"><table><thead><tr><th>ファイル</th><th>サイズ</th><th>状態</th><th>操作</th></tr></thead><tbody id="log-list"></tbody></table><p id="logs-empty">ログはまだありません。Dashboardから記録を開始できます。</p></article>
+  <article class="panel"><h2>SDの独立記録</h2><p>SDにはIMU・GNSS・CANの元データを保存します。記録停止後にダウンロードできます。<a href="/api/sd/decoder" download>CSV変換ツール</a></p><div id="sd-log-list"></div></article>
+  <article class="panel" id="solve-panel" hidden><div class="panel-title"><h2>走行データ解析</h2><span id="solve-name"></span></div><p id="solve-summary"></p><canvas id="solve-chart" aria-label="記録済みGNSS走行経路"></canvas></article>
+</section>
+<section id="settings" class="page" hidden>
+  <div class="page-title"><div><p class="eyebrow">DEVICE CONFIGURATION</p><h1>Settings / CAN</h1></div><span>V2 API / schema 1</span></div>
+  <div class="settings-tabs" role="tablist" aria-label="設定の種類"><button type="button" id="settings-can-tab" role="tab" aria-controls="settings-can" aria-selected="true">基本設定 / CAN</button><button type="button" id="settings-uno-tab" role="tab" aria-controls="device" aria-selected="false">UNO Q</button></div>
+  <div id="settings-can" role="tabpanel" aria-labelledby="settings-can-tab">
+  <article class="panel"><div class="panel-title"><h2>NCEC 2005 MT / NOPRO</h2><button type="button" id="load-ncec">NCECの信号定義を読み込む</button></div><p>500 kbps・標準ID。確定済み12信号を設定へ読み込みます。編集中の信号定義は置き換わり、下の保存ボタンで確定します。</p><p>輪速は前A・前B・後A・後B（左右未確定）。油温・油圧・舵角・ブレーキ圧は含めません。回転数表示は8000rpmまで、式の実測検証は3439rpmまでです。</p><p>CAN1・CAN2を受信専用で収集します。信号が届かない項目は空欄になります。</p></article>
+  <form id="config-form"><article class="panel"><h2>基本設定</h2><label><input type="checkbox" id="config-auto-record" checked> Web起動時にCSVを自動記録（SDは電源投入時に記録）</label><div class="form-grid"><label>機器名<input id="config-name" maxlength="48" required></label><label>表示プロファイル<select id="config-profile"><option value="no-can">車載CAN接続なし</option><option value="demo-vehicle">車両表示（RPM・スロットル）</option><option value="ncec-2005-mt">NCEC 2005 MT / NOPRO</option></select></label></div><p class="muted">表示プロファイルを切り替えてもMCUの生成・収集は続きます。</p></article>
+  <article class="panel"><div class="panel-title"><h2>CAN信号定義</h2><button type="button" id="add-signal">＋ 信号を追加</button></div><p class="notice-text">保存したビットレートを両CANに適用します。標準・拡張ID、符号、倍率に対応。送信は行いません。</p><label class="bitrate">ビットレート<select id="config-bitrate"><option value="125000">125 kbit/s</option><option value="250000">250 kbit/s</option><option value="500000">500 kbit/s</option><option value="1000000">1 Mbit/s</option></select></label><dl id="can-live" class="readings"></dl><div id="signal-list"></div></article>
+  <div class="button-row"><button class="primary" type="submit" id="save-config">UNO Qに設定を保存</button><span id="config-status" role="status"></span></div></form>
+  <article class="panel"><h2>NCEC CANデータ解析</h2><p>1行に「時刻ms CAN-ID(16進) データ(16進)」。時刻順、1回500フレームまで。読み込みは解析のみで、車両への送信やライブ計測への反映はしません。</p><textarea id="ncec-input" rows="6" aria-label="NCEC CANデータ" placeholder="0 201 1F400000271000FF"></textarea><div class="button-row"><button type="button" id="decode-ncec">解析</button><button type="button" id="download-ncec" disabled>解析CSVを保存</button></div><p id="ncec-result" role="status"></p><div class="table-wrap"><table><thead><tr><th>時刻ms</th><th>ID</th><th>信号</th><th>値</th></tr></thead><tbody id="ncec-rows"></tbody></table></div><p>燃料は生値と2秒移動平均を表示します。カウンタ異常は欠落・重複等の候補であり、欠落数を断定しません。</p><p>OBD対応情報：要求0x7E0、応答0x7E8、確認済み20PID。診断要求の送信は未実装です。</p></article>
+  <article class="panel"><h2>記録について</h2><p>IMUは約100 Hz、GNSSは10 Hzで実測します。起動するとSTM32がSDへ自動記録し、Web側は内蔵eMMCへCSVを保存します。Linuxとの通信が切れてもSD記録は続きます。記録停止後にCSVをSDへコピーできます。</p><p>加速度の方向はIMUモジュールの軸です。車体への取付方向とIMU校正は実車設置後に確認してください。LTEは初期状態で電源OFFです。</p><p id="imu-calibration"></p></article>
+</div>
+<div id="device" role="tabpanel" aria-labelledby="settings-uno-tab" hidden>
+  <article class="panel"><div class="panel-title"><h2>LTE / Podium センサ共有</h2><span>目標 10 Hz</span></div>
+  <p>LTEモジュールで位置・IMU・選択した車両信号を共有します。ローカル記録は別に続きます。</p>
+  <form id="podium-form"><div class="form-grid">
+  <label>APN<input id="podium-apn" maxlength="100" autocomplete="off"></label>
+  <label>APNユーザー名<input id="podium-user" maxlength="64" autocomplete="off"></label>
+  <label>APNパスワード<input id="podium-password" type="password" maxlength="64" autocomplete="new-password" placeholder="空欄で変更しない"></label>
+  <label>Podium送信キー<input id="podium-key" type="password" maxlength="128" autocomplete="new-password" placeholder="空欄で変更しない"></label>
+  <label>送信先<input id="podium-host" value="telemetry.podium.live" required maxlength="253"></label>
+  <label>ポート<input id="podium-port" type="number" value="8080" min="1" max="65535" required></label>
+  </div><p><label><input id="podium-hardware" type="checkbox"> SIMとLTEアンテナを接続済み</label></p>
+  <p><label><input id="podium-enabled" type="checkbox"> 電源投入後もLTE送信を開始する</label></p>
+  <fieldset><legend>送信するセンサ値</legend><div id="podium-channels" class="form-grid"></div></fieldset>
+  <div class="button-row"><button type="submit" class="primary">LTE設定を保存</button><button type="button" id="podium-stop">送信OFF</button><button type="button" id="podium-check">LTEを点検（電波OFF）</button></div></form>
+  <p id="podium-state" role="status">LTE送信OFF</p><p id="podium-result" role="status"></p>
+  <p class="muted">送信キーはこの画面に再表示されません。Podiumの接続方式は暗号化なしのTCPです。キーはUNO Q内の専用設定に保存し、ログと公開画面には含めません。SDのコピー・読出し中はLTEを休止します。</p></article>
+  <div class="page-title"><div><p class="eyebrow">USB ADMINISTRATION</p><h1>UNO Q / 管理</h1></div><span>USB接続専用</span></div>
+  <article class="panel"><div class="panel-title"><h2>Wi-Fi接続</h2><button id="wifi-scan" type="button">再検索</button></div><p id="wifi-state" role="status">状態を取得しています</p>
+  <form id="wifi-form"><div class="form-grid"><label>ネットワーク<select id="wifi-networks" disabled><option value="">Wi-Fiを検索しています…</option></select></label><label>SSID<input id="wifi-ssid" required maxlength="32" autocomplete="off"></label><label>認証<select id="wifi-security"><option value="wpa-psk">WPA / WPA2 Personal</option><option value="sae">WPA3 Personal</option><option value="open">パスワードなし</option></select></label><label>Wi-Fiパスワード<input id="wifi-password" type="password" autocomplete="new-password" maxlength="64"></label></div><div class="button-row device-actions"><button type="submit" class="primary" id="wifi-connect">接続して保存</button><button type="button" id="wifi-disconnect">Wi-Fiを切断</button></div></form><p id="wifi-result" role="status"></p><div id="wifi-viewer-links"></div></article>
+  <article class="panel"><div class="panel-title"><h2>インターネット公開</h2><span>閲覧専用</span></div><p>公開すると、リンクを知る人が走行値と位置を閲覧できます。Wi-Fi設定・機器管理・ログ操作は公開画面から利用できません。</p><div class="button-row"><button id="share-start" class="primary">閲覧用サイトを公開</button><button id="share-stop">公開を停止</button></div><p id="share-state" role="status"></p><div class="button-row"><a id="share-url" target="_blank" rel="noopener noreferrer" hidden></a><button id="share-copy" hidden>リンクをコピー</button></div><p class="muted">Cloudflare Quick Tunnelを使用します。UNO Qがオンラインの間に利用でき、公開処理の再起動でURLが変わります。</p></article>
+  <article class="panel"><div class="panel-title"><h2>タスクマネージャ</h2><span>3秒間隔 / この画面を開いている間だけ更新</span></div><div class="metrics"><article><span>CPU</span><strong id="system-cpu">—</strong><small>%</small></article><article><span>メモリ</span><strong id="system-memory">—</strong><small>%</small></article><article><span>温度</span><strong id="system-temperature">—</strong><small>°C</small></article><article><span>空きストレージ</span><strong id="system-disk">—</strong><small>GiB</small></article></div><p id="system-summary"></p><div class="table-wrap"><table><thead><tr><th>PID</th><th>プロセス</th><th>CPU %</th><th>メモリ MiB</th></tr></thead><tbody id="system-processes"></tbody></table></div><p class="muted">負荷の高い上位15件。プロセスCPUは1コアを100%とし、全体CPUは全コア合計を100%とします。</p><p id="system-error" role="status"></p></article>
+</div>
+</section>
+<footer><span>EcoLogger V2 · UNO Q</span><span id="footer-status">接続を確認しています</span></footer>
+</main></div>
+<dialog id="delete-dialog"><h2>このログを削除しますか？</h2><p id="delete-name"></p><p>UNO Qに保存されたCSVとメタデータを削除します。</p><div class="button-row"><button id="cancel-delete">キャンセル</button><button class="danger" id="confirm-delete">削除する</button></div></dialog>
+</body></html>

@@ -1,0 +1,13 @@
+# Device data, screenshots (location/configuration), and local build products.
+__pycache__/
+*.pyc
+*.png
+*.jpg
+*.BIN
+*.bin
+*.elf
+*.log
+*.jsonl
+private/
+podium.json
+ecocapture-native

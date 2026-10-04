@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "duration_s": 20.22,
+  "csv": "DEMO_20260906T034226Z_55e5dc7a.csv",
+  "csv_rows": 379,
+  "websocket_unique_samples": 279,
+  "speed_min": 26.001,
+  "speed_max": 40.47,
+  "receive_hz": 18.9,
+  "bridge_errors_during_test": 0,
+  "rows_without_test_websocket": 95,
+  "status": {
+    "device": "EcoLogger V2",
+    "version": "0.1.0",
+    "demo": true,
+    "source": "stm32-dummy",
+    "connected": true,
+    "age_ms": 26,
+    "receive_hz": 18.9,
+    "mcu_generation_hz": 50,
+    "poll_target_hz": 20,
+    "received": 501,
+    "bridge_errors": 0,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17774768128,
+    "sensors": {
+      "can": "not-connected",
+      "gnss": "not-connected",
+      "imu": "not-connected",
+      "camera": "not-connected",
+      "sd": "not-connected"
+    },
+    "logging": {
+      "active": true,
+      "name": "DEMO_20260906T034226Z_55e5dc7a.csv",
+      "rows": 379,
+      "elapsed_s": 20.105181293999976,
+      "error": null
+    }
+  }
+}

@@ -1,0 +1,124 @@
+static void loggerBridgeSerialInit();
+#define LOGGER_BRIDGE_SERIAL_INIT_HOOK loggerBridgeSerialInit
+#include <Arduino_RouterBridge.h>
+#include <Arduino.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/i2c.h>
+#include <zephyr/sys/reboot.h>
+#include <stm32u585xx.h>
+// LPUART1 links Linux and MCU. FIFO absorbs interrupt latency; RTS/CTS prevents
+// either side overrunning the other. Configure before the first RPC handshake.
+static void loggerBridgeSerialInit(){
+ unsigned key=irq_lock();uint32_t cr1=LPUART1->CR1;
+ LPUART1->CR1=cr1&~USART_CR1_UE;
+ LPUART1->CR3|=USART_CR3_RTSE|USART_CR3_CTSE;
+ LPUART1->CR1=cr1|USART_CR1_FIFOEN;irq_unlock(key);
+}
+// Real acquisition. CAN1 stays listen-only. CAN2 is normal receive mode so it
+// can ACK the dedicated sensor hub; no application CAN frames are transmitted.
+K_MUTEX_DEFINE(lock);
+K_MUTEX_DEFINE(spiLock);
+static const device *bus=DEVICE_DT_GET(DT_NODELABEL(i2c2));
+static String queued="",state="{}",result="boot",rows="",canRows="";
+static uint32_t hostAt=0,canAt=0;
+static volatile uint32_t loopHeartbeat=0;
+static volatile bool watchdogPaused=false;
+static uint32_t completed=0,seq=0,imuErrors=0,gnssErrors=0,dropped=0,gnssAt=0,imuAt=0,canCount[2]={0,0},canOverflow[2]={0,0};
+static uint8_t imuAddr=0,raw[46],nav[92]={0},sdScratch[512];
+static volatile bool recording=true;static volatile uint32_t irqRise=0;static uint8_t irqStatus=0;
+static void out(int p,int v){digitalWrite(p,v);pinMode(p,OUTPUT);digitalWrite(p,v);}
+static unsigned spiDelay=2;
+static uint8_t sp(uint8_t v){uint8_t r=0;for(int i=7;i>=0;i--){GPIOB->BSRR=(v&(1<<i))?(1UL<<15):(1UL<<31);if(spiDelay)k_busy_wait(spiDelay);GPIOB->BSRR=1UL<<13;if(spiDelay)k_busy_wait(spiDelay);r=(r<<1)|((GPIOB->IDR>>14)&1);GPIOB->BSRR=1UL<<29;}return r;}
+static void hexByte(String &s,uint8_t v){const char *h="0123456789abcdef";s+=h[v>>4];s+=h[v&15];}
+static void leds(uint8_t v){if(k_mutex_lock(&spiLock,K_NO_WAIT))return;digitalWrite(D10,HIGH);digitalWrite(A4,HIGH);sp(v);digitalWrite(D7,HIGH);k_busy_wait(2);digitalWrite(D7,LOW);k_mutex_unlock(&spiLock);}
+static int nib(char c){return c>='0'&&c<='9'?c-'0':c>='a'&&c<='f'?c-'a'+10:-1;}
+static int decode(String s,uint8_t *b,int max){if(s.length()%2||s.length()/2>(unsigned)max)return -1;for(unsigned i=0;i<s.length()/2;i++){int a=nib(s[2*i]),c=nib(s[2*i+1]);if(a<0||c<0)return -1;b[i]=(a<<4)|c;}return s.length()/2;}
+static String readState(){k_mutex_lock(&lock,K_FOREVER);String s=state;k_mutex_unlock(&lock);return s;}
+static String take(){hostAt=millis();k_mutex_lock(&lock,K_FOREVER);String s="{\"rows\":["+rows+"],\"can\":["+canRows+"]}";rows="";canRows="";k_mutex_unlock(&lock);return s;}
+static int submit(String c){k_mutex_lock(&lock,K_FOREVER);if(queued.length()){k_mutex_unlock(&lock);return -1;}queued=c;k_mutex_unlock(&lock);return 0;}
+static int iw(uint8_t r,uint8_t v){int rc=i2c_reg_write_byte(bus,imuAddr,r,v);if(rc)imuErrors++;return rc;}
+static void imuISR(){irqRise++;}
+static void imuInit(){uint8_t id=0;for(int a=0x28;a<=0x29;a++)if(!i2c_reg_read_byte(bus,a,0,&id)&&id==0xa0){imuAddr=a;break;}if(!imuAddr)return;iw(7,0);iw(0x3d,0);delay(25);iw(0x3e,0);iw(0x3b,0);iw(0x3f,0x80);delay(20);iw(7,1);iw(0x10,0x40);iw(0x0f,0x40);iw(0x12,0x1c);iw(0x11,8);iw(7,0);iw(0x3d,12);delay(25);}
+static void sdRecord(uint8_t,uint32_t,const uint8_t*,int);
+static void imuPoll(){bool valid=imuAddr&&!i2c_burst_read(bus,imuAddr,8,raw,46);if(imuAddr&&!valid)imuErrors++;seq++;if(valid){sdRecord(1,millis(),raw,46);if(digitalRead(A5)){i2c_reg_read_byte(bus,imuAddr,0x37,&irqStatus);iw(0x3f,0xc0);}}else sdRecord(4,millis(),nullptr,0);char h[64];snprintf(h,sizeof(h),"[%lu,%lu,\"",(unsigned long)seq,(unsigned long)millis());String s=h;if(valid)for(auto v:raw)hexByte(s,v);s+="\"]";k_mutex_lock(&lock,K_FOREVER);if(rows.length()+s.length()<5500){if(rows.length())rows+=",";rows+=s;}else if(recording)dropped++;k_mutex_unlock(&lock);}
+static void gnssPoll(){static uint8_t f[100];static unsigned pos=0,len=0;uint8_t n[2];if(i2c_burst_read(bus,0x42,0xfd,n,2)){gnssErrors++;return;}int count=min(1024,((int)n[0]<<8)|n[1]);while(count>0){uint8_t b[64];int take=min(64,count);if(i2c_burst_read(bus,0x42,0xff,b,take)){gnssErrors++;break;}count-=take;for(int j=0;j<take;j++){uint8_t v=b[j];if(pos==0&&v!=0xb5)continue;if(pos==1&&v!=0x62){pos=v==0xb5?1:0;continue;}f[pos++]=v;if(pos==6){len=6+f[4]+(f[5]<<8)+2;if(len>100){pos=0;continue;}}if(pos>=6&&pos==len){uint8_t a=0,c=0;for(unsigned k=2;k<len-2;k++){a+=f[k];c+=a;}if(a==f[len-2]&&c==f[len-1]&&f[2]==1&&f[3]==7&&len==100){memcpy(nav,f+6,92);gnssAt=millis();sdRecord(2,gnssAt,nav,92);}pos=0;}}}}
+static uint8_t rr(uint8_t a){k_mutex_lock(&spiLock,K_FOREVER);digitalWrite(D10,LOW);sp(3);sp(a);uint8_t v=sp(255);digitalWrite(D10,HIGH);k_mutex_unlock(&spiLock);return v;}
+static void wr(uint8_t a,uint8_t v){k_mutex_lock(&spiLock,K_FOREVER);digitalWrite(D10,LOW);sp(2);sp(a);sp(v);digitalWrite(D10,HIGH);k_mutex_unlock(&spiLock);}
+static void bm(uint8_t a,uint8_t m,uint8_t v){k_mutex_lock(&spiLock,K_FOREVER);digitalWrite(D10,LOW);sp(5);sp(a);sp(m);sp(v);digitalWrite(D10,HIGH);k_mutex_unlock(&spiLock);}
+static void frame(int channel,uint32_t id,bool ext,bool rtr,uint8_t *b,int n,uint32_t captured=0){if(!captured)captured=millis();char h[80];snprintf(h,sizeof(h),"[%lu,%d,%lu,%d,%d,\"",(unsigned long)captured,channel,(unsigned long)id,ext,rtr);String s=h;for(int i=0;i<n;i++)hexByte(s,b[i]);s+="\"]";canCount[channel-1]++;canAt=captured;uint8_t rec[15];rec[0]=channel;memcpy(rec+1,&id,4);rec[5]=ext|(rtr<<1);rec[6]=n;memcpy(rec+7,b,n);sdRecord(3,canAt,rec,7+n);k_mutex_lock(&lock,K_FOREVER);if(canRows.length()+s.length()<12000){if(canRows.length())canRows+=",";canRows+=s;}else __atomic_fetch_add(&canOverflow[channel-1],1,__ATOMIC_RELAXED);k_mutex_unlock(&lock);}
+static uint8_t can2Mode=4;
+// MCP25625 Y1 is 20 MHz: 20 TQ at 125/250/500 kbps, 10 TQ at 1 Mbps (80% sample point).
+static void can2Init(uint32_t bitrate){k_mutex_lock(&spiLock,K_FOREVER);digitalWrite(D10,LOW);sp(0xc0);digitalWrite(D10,HIGH);delay(10);wr(0x2a,bitrate==1000000?0:10000000UL/(bitrate*20)-1);wr(0x29,bitrate==1000000?0x9a:0xbe);wr(0x28,bitrate==1000000?1:3);wr(0x60,0x64);wr(0x70,0x60);wr(0x0f,0x00);delay(10);can2Mode=rr(0x0e)>>5;k_mutex_unlock(&spiLock);}
+static void can2Poll(){if(k_mutex_lock(&spiLock,K_NO_WAIT))return;uint8_t flags=rr(0x2c);for(int buf=0;buf<2;buf++)if(flags&(1<<buf)){uint8_t b[13];digitalWrite(D10,LOW);sp(buf?0x94:0x90);for(int i=0;i<13;i++)b[i]=sp(255);digitalWrite(D10,HIGH);bm(0x2c,1<<buf,0);bool ext=b[1]&8;uint32_t id=((uint32_t)b[0]<<3)|(b[1]>>5);if(ext)id=(id<<18)|((uint32_t)(b[1]&3)<<16)|((uint32_t)b[2]<<8)|b[3];frame(2,id,ext,b[4]&0x40,b+5,min(8,b[4]&15));}if(rr(0x2d)&0xc0){canOverflow[1]++;bm(0x2d,0xc0,0);}can2Mode=rr(0x0e)>>5;k_mutex_unlock(&spiLock);}
+static volatile bool can1Ready=false;
+// The high-priority capture worker never allocates, takes SPI locks, or writes SD.
+// A single producer/consumer queue decouples the three-entry hardware FIFO from
+// JSON generation and filesystem latency. Timestamps are taken at capture.
+struct Can1Packet { uint32_t ms,id; uint8_t flags,n,data[8]; };
+static Can1Packet can1Queue[128];
+static uint32_t can1Head=0,can1Tail=0;
+K_THREAD_STACK_DEFINE(can1Stack,1536);
+static struct k_thread can1Thread;
+static void can1Capture(void*,void*,void*) {
+ while(true) {
+  if(can1Ready) {
+   for(unsigned count=0;count<3&&(FDCAN1->RXF0S&15);++count) {
+    unsigned idx=(FDCAN1->RXF0S>>8)&3;
+    volatile uint32_t *m=(volatile uint32_t *)(SRAMCAN_BASE+176+idx*72);
+    uint32_t h=m[0],d=m[1],at=millis();uint8_t data[8];
+    for(int i=0;i<8;i++)data[i]=m[2+i/4]>>(8*(i%4));
+    FDCAN1->RXF0A=idx;
+    uint32_t head=__atomic_load_n(&can1Head,__ATOMIC_RELAXED),tail=__atomic_load_n(&can1Tail,__ATOMIC_ACQUIRE);
+    if(head-tail<128) {
+     Can1Packet &p=can1Queue[head&127];p.ms=at;p.id=(h&(1UL<<30))?h&0x1fffffff:(h>>18)&0x7ff;
+     p.flags=((h>>30)&1)|(((h>>29)&1)<<1);p.n=min(8,(int)((d>>16)&15));memcpy(p.data,data,8);
+     __atomic_store_n(&can1Head,head+1,__ATOMIC_RELEASE);
+    } else __atomic_fetch_add(&canOverflow[0],1,__ATOMIC_RELAXED);
+   }
+   if(FDCAN1->IR&FDCAN_IR_RF0L){__atomic_fetch_add(&canOverflow[0],1,__ATOMIC_RELAXED);FDCAN1->IR=FDCAN_IR_RF0L;}
+  }
+  k_usleep(100);
+ }
+}
+static void can1Init(uint32_t bitrate){can1Ready=false;RCC->APB1ENR2|=RCC_APB1ENR2_FDCAN1EN;RCC->CCIPR1&=~RCC_CCIPR1_FDCANSEL;GPIOA->MODER=(GPIOA->MODER&~((3UL<<22)|(3UL<<24)))|(2UL<<22)|(2UL<<24);GPIOA->AFR[1]=(GPIOA->AFR[1]&~((15UL<<12)|(15UL<<16)))|(9UL<<12)|(9UL<<16);FDCAN1->CCCR&=~FDCAN_CCCR_CSR;uint32_t wake=millis()+50;while((FDCAN1->CCCR&FDCAN_CCCR_CSA)&&millis()<wake){}FDCAN1->CCCR|=FDCAN_CCCR_INIT;uint32_t end=millis()+50;while(!(FDCAN1->CCCR&1)&&millis()<end){}if(!(FDCAN1->CCCR&1))return;FDCAN1->CCCR|=FDCAN_CCCR_CCE;FDCAN_CONFIG->CKDIV=0;FDCAN1->NBTP=((16000000UL/(bitrate*16)-1)<<16)|(12UL<<8)|1;FDCAN1->RXGFC=0;FDCAN1->CCCR=(FDCAN1->CCCR|FDCAN_CCCR_MON)&~(FDCAN_CCCR_FDOE|FDCAN_CCCR_BRSE);FDCAN1->CCCR&=~FDCAN_CCCR_INIT;can1Ready=true;}
+static void can1Poll(){for(unsigned budget=0;budget<128;++budget){uint32_t tail=__atomic_load_n(&can1Tail,__ATOMIC_RELAXED),head=__atomic_load_n(&can1Head,__ATOMIC_ACQUIRE);if(tail==head)break;Can1Packet p=can1Queue[tail&127];__atomic_store_n(&can1Tail,tail+1,__ATOMIC_RELEASE);frame(1,p.id,p.flags&1,p.flags&2,p.data,p.n,p.ms);}}
+static void ubxConfig(uint8_t *p,int n){uint8_t f[160]={0xb5,0x62,6,0x8a,(uint8_t)n,0};memcpy(f+6,p,n);uint8_t a=0,b=0;for(int i=2;i<n+6;i++){a+=f[i];b+=a;}f[n+6]=a;f[n+7]=b;i2c_write(bus,f,n+8,0x42);delay(200);}
+static void profile(){
+ uint8_t safe[]={0,1,0,0,1,0,0x21,0x30,0xe8,3};ubxConfig(safe,sizeof(safe));
+ uint32_t keys[]={0x1031001f,0x10310001,0x10310021,0x10310007,0x10310022,0x1031000d,0x1031000f,0x10310025,0x10310018,0x10310024,0x10310012,0x10310020,0x10310005};
+ uint8_t p[80]={0,1,0,0};for(int i=0;i<13;i++){memcpy(p+4+5*i,keys+i,4);p[8+5*i]=i==5?0:1;}ubxConfig(p,69);
+ uint8_t rate[]={0,1,0,0,1,0,0x72,0x10,1,2,0,0x72,0x10,0,6,0,0x91,0x20,1,1,0,0x21,0x30,100,0,2,0,0x21,0x30,1,0,0x21,0,0x11,0x20,4};ubxConfig(rate,sizeof(rate));
+}
+
+
+static int sdCmd(uint8_t cmd,uint32_t arg,uint8_t crc){k_mutex_lock(&spiLock,K_FOREVER);digitalWrite(A4,HIGH);sp(255);digitalWrite(A4,LOW);sp(0x40|cmd);for(int i=3;i>=0;i--)sp((arg>>(8*i))&255);sp(crc);for(int i=0;i<32;i++){uint8_t r=sp(255);if(!(r&128))return r;}return 255;}
+static void sdDone(){digitalWrite(A4,HIGH);sp(255);k_mutex_unlock(&spiLock);}
+static bool sdReadData(uint8_t *b,int n){uint32_t end=millis()+1500;uint8_t token;do{token=sp(255);if(token!=255)break;}while(millis()<end);if(token!=0xfe)return false;for(int i=0;i<n;i++)b[i]=sp(255);sp(255);sp(255);return true;}
+bool sdReady=false,sdHighCapacity=false;
+static void sdInit(){k_mutex_lock(&spiLock,K_FOREVER);spiDelay=2;digitalWrite(D10,HIGH);digitalWrite(A4,HIGH);for(int i=0;i<12;i++)sp(255);int r0=sdCmd(0,0,0x95);sdDone();int r8=sdCmd(8,0x1aa,0x87);uint8_t r7[4];for(int i=0;i<4;i++)r7[i]=sp(255);sdDone();int r=255;uint32_t end=millis()+3000;if(r0==1)do{sdCmd(55,0,1);sdDone();r=sdCmd(41,0x40000000,1);sdDone();if(r==0)break;delay(10);}while(millis()<end);sdReady=r==0;int ro=sdCmd(58,0,1);uint8_t ocr[4];for(int i=0;i<4;i++)ocr[i]=sp(255);sdDone();sdHighCapacity=ocr[0]&0x40;spiDelay=0;result=sdReady?"SD ready":"SD not detected";k_mutex_unlock(&spiLock);}
+static void sdWrite(String c){uint32_t sector=strtoul(c.substring(1).c_str(),nullptr,10);if(!sdReady){result="SD_WRITE_REJECTED";return;}int r=sdCmd(24,sdHighCapacity?sector:sector*512,1);if(r){result="SD_WRITE_CMD_ERROR";sdDone();return;}sp(255);sp(0xfe);for(int i=0;i<512;i++)sp(sdScratch[i]);sp(255);sp(255);uint8_t token=sp(255);uint32_t end=millis()+3000;uint8_t busy;do{busy=sp(255);if(busy==255)break;}while(millis()<end);char t[90];snprintf(t,sizeof(t),"write_token=0x%02x accepted=%d busy_done=%d",token,(token&0x1f)==5,busy==255);result=t;sdDone();}
+
+
+#include "sd_logger.h"
+#include "sd_format.h"
+static uint32_t sectorCursor; static bool sectorCursorValid=false;
+static bool sectorBounds(uint32_t lba){return sdReady&&!recording&&!sdLogging&&!sdWorking&&(!lba||(sdMounted&&lba>=partStart&&lba-partStart<partSize));}
+static void sdRead(uint32_t lba){sectorCursorValid=sectorBounds(lba);sectorCursor=lba;result=sectorCursorValid?"sector ready":"SD_READ_REJECTED";}
+K_THREAD_STACK_DEFINE(bridgeStack,4096);
+static struct k_thread bridgeThread;
+K_THREAD_STACK_DEFINE(watchdogStack,768);
+static struct k_thread watchdogThread;
+static void loopWatchdog(void*,void*,void*){
+ while(true){
+  k_msleep(5000);
+  uint32_t now=millis(),seen=loopHeartbeat;
+  if(seen&&!watchdogPaused&&now-seen>30000)sys_reboot(SYS_REBOOT_COLD);
+ }
+}
+static String sectorRead(){if(!sectorCursorValid||!sectorBounds(sectorCursor))return String("");k_mutex_lock(&spiLock,K_FOREVER);int r=sdCmd(17,sdHighCapacity?sectorCursor:sectorCursor*512,1);bool ok=r==0&&sdReadData(sdScratch,512);sdDone();k_mutex_unlock(&spiLock);if(!ok){sectorCursorValid=false;return String("");}sectorCursor++;char h[1025];const char*hex="0123456789abcdef";for(int i=0;i<512;i++){h[2*i]=hex[sdScratch[i]>>4];h[2*i+1]=hex[sdScratch[i]&15];}h[1024]=0;return String(h);}
+#include "lte_uart.h"
+static void bridgeWorker(void*,void*,void*){Bridge.begin(921600);Bridge.provide("logger.status",readState);Bridge.provide("logger.take",take);Bridge.provide("logger.command",submit);Bridge.provide("logger.sdread",sectorRead);Bridge.provide("logger.lter",lteRead);Bridge.provide("logger.ltex",lteWrite);}
+
+static void execute(String c){watchdogPaused=true;if(c=="FORMAT16")format16GB();else if(c.startsWith("FILES")){if(sdLogging||sdWorking||recording)result="SD_BUSY_RECORDING";else sdFiles(strtoul(c.c_str()+5,nullptr,10));}else if(c=="SD"){if(sdLogging||sdWorking)result="SD_BUSY_RECORDING";else sdInit();}else if(c.startsWith("R"))sdRead(strtoul(c.c_str()+1,nullptr,10));else if(c.startsWith("W")){if(sdLogging||sdWorking)result="SD_BUSY_RECORDING";else {sdWrite(c);fatCached=0xffffffff;}}else if(c.startsWith("H")){int colon=c.indexOf(':');unsigned offset=strtoul(c.substring(1,colon).c_str(),nullptr,10);int n=(c.length()-colon-1)/2;result=colon>0&&offset+n<=512&&decode(c.substring(colon+1),sdScratch+offset,n)==n?"loaded":"rejected";}else if(c.startsWith("C")){uint32_t bitrate=strtoul(c.c_str()+1,nullptr,10);if(bitrate==125000||bitrate==250000||bitrate==500000||bitrate==1000000){can1Init(bitrate);can2Init(bitrate);result="CAN1 listen-only / CAN2 sensor hub configured";}else result="invalid bitrate";}else if(c=="LOG1"||c=="LOG0"){recording=c=="LOG1";if(!recording){if(sdFailed)sdTail=sdHead;uint32_t until=millis()+20000;while((sdLogging||sdWorking||sdHead!=sdTail)&&millis()<until)delay(1);}result=recording?"recording":"stopped";}else result="unsupported";completed++;watchdogPaused=false;}
+void setup(){out(A3,LOW);out(A2,LOW);out(D4,HIGH);out(D10,HIGH);out(A4,HIGH);out(A0,HIGH);out(D3,HIGH);out(D2,LOW);out(D7,LOW);out(A1,HIGH);pinMode(D8,INPUT);out(D11,LOW);out(D13,LOW);pinMode(D12,INPUT);pinMode(A5,INPUT);pinMode(D6,INPUT);attachInterrupt(A5,imuISR,RISING);leds(128);i2c_configure(bus,I2C_MODE_CONTROLLER|I2C_SPEED_SET(I2C_SPEED_FAST));profile();imuInit();sdInit();can1Init(500000);can2Init(500000);sdMounted=mountCard();if(sdMounted&&!newSDLog())sdFailure();startSDWorker();k_thread_create(&can1Thread,can1Stack,K_THREAD_STACK_SIZEOF(can1Stack),can1Capture,nullptr,nullptr,nullptr,2,0,K_NO_WAIT);imuAt=millis();loopHeartbeat=millis();k_thread_create(&watchdogThread,watchdogStack,K_THREAD_STACK_SIZEOF(watchdogStack),loopWatchdog,nullptr,nullptr,nullptr,3,0,K_NO_WAIT);k_thread_create(&lteThread,lteStack,K_THREAD_STACK_SIZEOF(lteStack),lteWorker,nullptr,nullptr,nullptr,4,0,K_NO_WAIT);k_thread_create(&bridgeThread,bridgeStack,K_THREAD_STACK_SIZEOF(bridgeStack),bridgeWorker,nullptr,nullptr,nullptr,5,0,K_NO_WAIT);}
+void loop(){loopHeartbeat=millis();String c;k_mutex_lock(&lock,K_FOREVER);c=queued;queued="";k_mutex_unlock(&lock);if(c.length())execute(c);uint32_t now=millis();if(now-imuAt>=10){imuAt+=10;if(now-imuAt>50)imuAt=now;imuPoll();}static uint32_t gp=0;if(now-gp>=10){gp=now;gnssPoll();}can1Poll();can2Poll();static uint32_t st=0;if(now-st>=50){st=now;leds(128|(ltePower==3?2:0)|(hostAt&&now-hostAt<2000?4:0)|(gnssAt&&now-gnssAt<1000&&((nav[20]>=3&&(nav[21]&1))||((now/500)&1))?16:0)|(recording?32:0)|(imuErrors||gnssErrors||sdLogErrors||sdQueueDropped?64:0)|(canAt&&now-canAt<100?1:0));String escaped=result;escaped.replace("\\","\\\\");escaped.replace("\"","\\\"");escaped.replace("\n","\\n");escaped.replace("\r","\\r");char h[4000];snprintf(h,sizeof(h),"{\"mcu_ms\":%lu,\"seq\":%lu,\"imu_address\":%u,\"imu_errors\":%lu,\"imu_irq\":%lu,\"gnss_errors\":%lu,\"gnss_at\":%lu,\"dropped\":%lu,\"can1_ready\":%d,\"can2_mode\":%u,\"can_counts\":[%lu,%lu],\"can_overflow\":[%lu,%lu],\"sd_ready\":%d,\"sd_mounted\":%d,\"sd_logging\":%d,\"sd_file\":%lu,\"sd_bytes\":%lu,\"sd_errors\":%lu,\"sd_queue_dropped\":%lu,\"sd_blocks\":%lu,\"sd_alloc_ms\":%lu,\"completed\":%lu,\"result\":\"%s\",\"nav\":\"",(unsigned long)millis(),(unsigned long)seq,imuAddr,(unsigned long)imuErrors,(unsigned long)irqRise,(unsigned long)gnssErrors,(unsigned long)gnssAt,(unsigned long)dropped,can1Ready,can2Mode,(unsigned long)canCount[0],(unsigned long)canCount[1],(unsigned long)canOverflow[0],(unsigned long)canOverflow[1],sdReady,sdMounted,sdLogging,(unsigned long)logIndex,(unsigned long)logBytes,(unsigned long)sdLogErrors,(unsigned long)sdQueueDropped,(unsigned long)sdBlocks,(unsigned long)sdAllocMs,(unsigned long)completed,escaped.c_str());String s=h;for(auto v:nav)hexByte(s,v);char lt[96];snprintf(lt,sizeof(lt),"\",\"lte_power\":%lu,\"lte_overflows\":%lu}",(unsigned long)ltePower,(unsigned long)lteOver);s+=lt;k_mutex_lock(&lock,K_FOREVER);state=s;k_mutex_unlock(&lock);}delay(1);}

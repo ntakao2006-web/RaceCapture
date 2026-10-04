@@ -1,0 +1,41 @@
+{
+  "date_jst": "2026-10-04",
+  "architecture": "Single EcoCapture acquisition backend sends directly via SIM7070G TCP; RaceCapture and EcoCapture displays do not own the LTE connection",
+  "lte_endpoint": "telemetry.podium.live:8080",
+  "linux_lte_default_route": false,
+  "racecapture_app_send_telemetry": false,
+  "reason_app_sender_disabled": "Avoid duplicate sending; shared sender operates independently of the selected display",
+  "secret_storage": "device private/podium.json mode 0600; key omitted from public API and evidence",
+  "destination_restriction_api_test": "non-Podium host rejected with HTTP 400; saved Podium host and enabled state preserved",
+  "unit_tests": 14,
+  "final_deployed_validation": {
+    "duration_s": 30.065290980,
+    "frames": 50,
+    "observed_send_hz": 1.663047267,
+    "bridge_errors": 0,
+    "state": "streaming",
+    "startup_retry_recovered": true,
+    "recording_observed_active": "LOG_20261003T194712Z_e63fe2a5.csv",
+    "recording_left_untouched": true
+  },
+  "live_test": {
+    "authentication": "accepted by Podium",
+    "duration_s": 30.209915643,
+    "frames": 52,
+    "payload_bytes": 8611,
+    "observed_send_hz": 1.721289149,
+    "note": "10Hz is only the sender target, not achieved throughput; acquisition remains GNSS 10Hz / IMU 100Hz"
+  },
+  "concurrent_recording": {
+    "file": "LOG_20261003T194521Z_4caca6f3.csv",
+    "rows": 3027,
+    "sequence_gaps": 0,
+    "rpm_values_present": 3027,
+    "bridge_error_delta": 0,
+    "can_overflow_delta": 0,
+    "sd_error_delta": 0,
+    "sd_queue_drop_delta": 0,
+    "sample_drop_delta": 0
+  },
+  "limitations": ["Podium account graph display not inspected", "TCP protocol is not TLS", "Live transmission continues while enabled even when local recording is stopped"]
+}

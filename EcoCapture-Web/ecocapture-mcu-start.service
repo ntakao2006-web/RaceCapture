@@ -1,0 +1,14 @@
+[Unit]
+Description=Start EcoLogger MCU after the Arduino Router is ready
+After=arduino-router.service
+Requires=arduino-router.service
+
+[Service]
+Type=oneshot
+User=arduino
+SupplementaryGroups=gpiod
+ExecStart=/opt/openocd/bin/openocd -d1 -s /opt/openocd -f openocd_gpiod.cfg -c "reset_config srst_only srst_push_pull; init; reset; shutdown"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,55 @@
+{
+  "date_jst": "2026-10-04",
+  "native_sha256": "4a2b619cbb9a7251a303d89260f17ac29cbf1039e89863032e59cd611cbc78ed",
+  "native_service": "active, zero unexpected restarts",
+  "changes": [
+    "Dashboard top-position record toggle; black when stopped, red when recording",
+    "Start/stop requests disabled while pending; SD acknowledgement and failure feedback",
+    "Dedicated 06 Podium management page, masked key field, start and stop controls, live status",
+    "Remove public-only Podium config fields before saving",
+    "Keep SD ELxxxxxx.BIN format; set session creation/end timestamps in JST after stop",
+    "Journal directory sectors before timestamp edits and verify full-sector readback"
+  ],
+  "tests": {
+    "server_and_sd_timestamp": 15,
+    "podium": 14,
+    "native_real_api_toggle": "PASS: actual button start/red, stop/black, SD save acknowledgement",
+    "native_podium_controls": "PASS: stop/start via native callbacks; saved key retained",
+    "screenshots_reviewed": ["dashboard-recording.png", "dashboard-stopped.png", "podium-controls.png"]
+  },
+  "recorded_csv": {"file":"LOG_20261003T200036Z_114a6d50.csv", "rows":527, "sequence_gaps":2, "note":"Pre-final test under compilation load; moved CSV start after SD acknowledgement for final validation"},
+  "post_ordering_fix_test": {
+    "file":"LOG_20261003T200639Z_a551c02f.csv",
+    "rows":3091,
+    "sequence_gaps":0,
+    "bridge_error_delta":0,
+    "sd_error_delta":0,
+    "sd_queue_drop_delta":0,
+    "can_overflow_delta":21,
+    "result":"CSV continuity and SD save passed; strict CAN-loss check failed"
+  },
+  "warm_final_test": {
+    "file":"LOG_20261003T200806Z_c0db6779.csv",
+    "rows":3040,
+    "sequence_gaps":0,
+    "rpm_values_present":3040,
+    "bridge_error_delta":0,
+    "can_overflow_delta":0,
+    "sd_error_delta":0,
+    "sd_queue_drop_delta":0,
+    "sample_drop_delta":0,
+    "result":"PASS; SD timestamp saved; recording stopped; Podium streaming",
+    "limitation":"Earlier startup/reconnection CAN overflow remains an observed limitation, not proven fixed"
+  },
+  "sd_readback": {
+    "file": "EL000316.BIN",
+    "bytes":112128,
+    "blocks":219,
+    "crc_and_block_sequence":"all_valid",
+    "imu_records":460,
+    "gnss_records":46,
+    "can_records":3191,
+    "sha256":"6b813c0de6a164bcaca8fe0adfb68983cab03d71a4e2344b1f1de951963400977"
+  },
+  "limitations": ["SD names remain sequential, timestamps are file metadata, not names", "Physical touchscreen re-check remains for the user; UI callback tests ran under Xvfb", "Unexpected power loss before normal stop does not stamp the SD directory"]
+}

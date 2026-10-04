@@ -1,0 +1,13 @@
+[Unit]
+Description=Verify initial MCU telemetry and recover a failed boot handshake
+After=ecocapture-web-start.service
+Wants=ecocapture-web-start.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/logger-v2-racecapture/boot_communication_check.py
+TimeoutStartSec=600
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

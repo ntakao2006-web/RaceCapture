@@ -1,0 +1,29 @@
+{
+  "validated_at_device_utc": "2026-10-03T21:44:24Z",
+  "scope": "Bounded boot-handshake recovery, no MCU firmware change",
+  "software_reboot_tests": 2,
+  "successful_automatic_recoveries": 2,
+  "attempts_per_boot": [1, 1],
+  "second_boot_guard_started_utc": "21:42:00",
+  "second_boot_recovery_started_utc": "21:42:56",
+  "second_boot_verified_utc": "21:43:36",
+  "router_stop_timeout_seconds": 8,
+  "final_connected": true,
+  "final_receive_hz": 100.3,
+  "final_received": 4952,
+  "final_bridge_errors": 0,
+  "final_mcu_resets_after_connection": 0,
+  "final_sd_logging": 1,
+  "sd_blocks_observed": [554, 1374],
+  "final_sd_errors": 0,
+  "final_sd_queue_dropped": 0,
+  "startup_mcu_dropped_unchanged": 449,
+  "startup_can_overflow_unchanged": [3149, 0],
+  "unit_tests_passed": 3,
+  "limitations": [
+    "Low-level initial handshake failure cause remains undetermined; this is bounded automatic recovery.",
+    "Physical power-cycle test not performed.",
+    "Startup CAN overflow and pre-connection sample drops remain; no lossless startup claim.",
+    "Without MCU status, independently started SD recording cannot be ruled out before recovery."
+  ]
+}

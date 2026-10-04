@@ -1,0 +1,8 @@
+build/
+data/
+__pycache__/
+private/
+podium.json
+artifacts/*.csv
+artifacts/*.jsonl
+artifacts/*.log
