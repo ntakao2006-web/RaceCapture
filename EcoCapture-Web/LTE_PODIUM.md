@@ -1,5 +1,9 @@
 # LTEでセンサ値をPodiumへ共有する準備
 
+2026-10-04追記: 送信形式を次世代Podiumの確定版（`../hardware_share_20261004_podium.md`）に合わせた。認証は`apiVer`・`device`・`ver`・`sn`付きの新形式、サンプルに連番`t`、metaに`prec`、先頭チャンネルを`Interval`（`mcu_ms`）・`Utc`にした。
+実機確認: Wi-Fi経由のデバッグ送信でサーバーの生存確認`hb`の`lt`が33→69→109→140と増え、サンプルが受け付けられることを確認。LTE（SORACOM、送信ON約80秒）でも接続約16秒・認証OK・約62秒で191フレーム/31.8KB・再接続0。
+残件: LTEの実効は**約3フレーム/秒で10Hzに届かない**（Wi-Fiでは10Hz近く出るので、18バイトずつのRPC経由UART書き込みが律速と見ている。未計測）。このペースで約1.9MB/時なので5MBプランは約2.5時間分。Podium画面に数値が出るかは未確認。
+
 2026-10-03追記: SORACOM planX3 X3-5MB、Pluto付属アンテナでドコモLTE-M Band 19に接続。実回線のDNS/TCP/短いHTTPヘッダー受信と、修正後5回の電源再投入接続を確認。CFUN=1直後のCPIN?一時ERRORを期限付きで待ち、PSM/eDRX設定を回線登録後に行うよう修正。CAN/SD同時試験を含めた結果は `outputs/hardware_check_20261003/RESULT.txt`。Podium認証・送信はキー未設定のため未検証。LTE自動送信はOFF。以下は10月2日時点の準備記録で、SD満杯などの記載は現在の状態ではありません。
 
 2026-10-02。`podium_connect_notes.md`（a636114）と公式RaceCapture Appの実装を根拠に実装。

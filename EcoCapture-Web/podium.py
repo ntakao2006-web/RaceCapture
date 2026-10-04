@@ -102,8 +102,9 @@ def sensors(config,vehicle):
         if name not in config.channels:
             low,high=RANGES[name]
             result.append(Sensor(name,'deg' if name in ('Lat','Lon') else 'km/h',low,high))
-    result.append(Sensor('Utc','ms',0,0))
-    return result
+    # The official RaceCapture app always leads with these two system channels
+    # (hardware_share_20261004_podium.md, measured 2026-10-04).
+    return [Sensor('Interval','ms',0,0),Sensor('Utc','ms',0,0)]+result
 
 def utc_milliseconds(sample):
     # Only receiver-validated UTC; never substitute the PC/Linux wall clock.
@@ -117,24 +118,35 @@ def utc_milliseconds(sample):
         return int(stamp.timestamp())*1000+fraction
     except (ValueError,OverflowError):return None
 
+PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0}
+
+# Auth values confirmed against next-generation Podium on 2026-10-04: these are
+# what the official RaceCapture app 2.19.0 sends. The older
+# {'schemaVer':2,'auth':{...}} form is answered without 'lt'.
+AUTH = {'apiVer':1.1,'device':'RC_APP (RCPMK3)','ver':'2.19.0 (2.16.1)','sn':'C3PROTO01'}
+
 class Encoder:
-    def __init__(self,channels):self.channels=channels
-    def auth(self,key):return line({'cmd':{'schemaVer':2,'auth':{'deviceId':key}}})
+    def __init__(self,channels,tick=0):self.channels=channels;self.tick=tick
+    def auth(self,key):return line({'cmd':{'auth':{'deviceId':key,**AUTH}}})
     def meta(self):
         # Podium recognizes position by its canonical channel names, not our
         # local UI abbreviations. Values/mask ordering stays unchanged.
         names={'Lat':'Latitude','Lon':'Longitude'}
-        return line({'s':{'meta':[{'nm':names.get(s.name,s.name),'ut':s.unit,'sr':10,'min':s.low,'max':s.high} for s in self.channels]}})
+        return line({'s':{'meta':[{'nm':names.get(s.name,s.name),'ut':s.unit,'sr':10,'min':s.low,'max':s.high,
+                                   'prec':PRECISION.get(s.name,2)} for s in self.channels]}})
     def sample(self,sample):
         if not sample or sample.get('source')!='logger-v2-hardware' or sample.get('demo') is not False:return None
         values=[];masks=[0]*((len(self.channels)+31)//32)
         for i,ch in enumerate(self.channels):
             value=sample.get('values',{}).get(ch.name,sample.get('can_signals',{}).get(ch.name))
             if ch.name=='Utc':value=utc_milliseconds(sample)
+            if ch.name=='Interval':value=sample.get('mcu_ms')
             if ch.name=='Speed' and value is None:value=sample.get('values',{}).get('GPSSpeed')
             if type(value) in (int,float) and math.isfinite(value):
                 values.append(round(value,6));masks[i//32]|=1<<(i%32)
-        return line({'s':{'d':values+masks}})
+        # 't' is echoed back by the server as 'lt' in auth/heartbeat replies.
+        data=line({'s':{'d':values+masks,'t':self.tick}});self.tick+=1
+        return data
 
 class AuthenticationError(Exception):pass
 
@@ -184,7 +196,7 @@ class PodiumSender:
             updated=sensors(config,self.runtime.config)
             current=[(c.name,c.unit,c.low,c.high) for c in updated]
             if current!=fingerprint:
-                encoder=Encoder(updated);await transport.send(encoder.meta());fingerprint=current
+                encoder=Encoder(updated,encoder.tick);await transport.send(encoder.meta());fingerprint=current
             now=time.monotonic();sample=self.runtime.sample
             fresh=sample is not None and now-self.runtime.received_at<.5
             payload=encoder.sample(sample) if fresh and sample['seq']!=last_seq else None

@@ -25,21 +25,27 @@ class ProtocolTests(unittest.TestCase):
         encoder=Encoder(sensors(PodiumConfig(),Configuration()))
         meta=json.loads(encoder.meta())['s']['meta']
         names={'Lat':'Latitude','Lon':'Longitude'}
-        self.assertEqual([c['nm'] for c in meta],[names.get(n,n) for n in PodiumConfig().channels]+['Speed','Utc'])
-        self.assertEqual(meta[0]['ut'],'deg')
+        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed'])
+        self.assertEqual(meta[2]['ut'],'deg');self.assertEqual(meta[2]['prec'],6)
         data={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35},'password':'secret','imu_raw':'private','can_frames':['private']}
         self.assertNotIn('private',encoder.sample(data).decode())
-        self.assertEqual(encoder.auth('key'),b'{"cmd":{"schemaVer":2,"auth":{"deviceId":"key"}}}\n')
+        self.assertEqual(json.loads(encoder.auth('key')),{'cmd':{'auth':{'deviceId':'key','apiVer':1.1,'device':'RC_APP (RCPMK3)','ver':'2.19.0 (2.16.1)','sn':'C3PROTO01'}}})
     def test_empty_sample_sends_all_mask_words(self):
         encoder=Encoder([Sensor('V'+str(i),'',0,1) for i in range(65)])
-        self.assertEqual(json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{}})),{'s':{'d':[0,0,0]}})
+        self.assertEqual(json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{}})),{'s':{'d':[0,0,0],'t':0}})
     def test_required_context_and_gnss_utc_milliseconds(self):
         encoder=Encoder(sensors(PodiumConfig(channels=['RPM']),Configuration()))
-        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['RPM','Latitude','Longitude','Speed','Utc'])
+        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed'])
         sample={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35.123456789,'Lon':139.123456789,'GPSSpeed':12.5},'gnss_utc':'1970-01-01T00:00:01Z','gnss_itow_ms':1234}
-        self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[35.123457,139.123457,12.5,1234,30])
+        self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[1234,35.123457,139.123457,12.5,58])
         sample['gnss_utc']='bad';sample['values']={}
         self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[0])
+    def test_sample_counter_and_interval(self):
+        encoder=Encoder([Sensor('Interval','ms',0,0),Sensor('V','',0,1)])
+        first=json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'mcu_ms':12300,'values':{'V':1}}))['s']
+        self.assertEqual(first,{'d':[12300,1,3],'t':0})
+        self.assertEqual(json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{}}))['s']['t'],1)
+        self.assertEqual(Encoder(encoder.channels,encoder.tick).tick,2)
     def test_secrets_file_permissions_and_preserve_blank(self):
         with tempfile.TemporaryDirectory() as root:
             store=ConfigStore(root);store.update({'device_id':'private-key','password':'private-pass'},CHANNELS)
@@ -119,7 +125,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await modem.send(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{'Lat':35,'AccelX':1}}))
         wire=b''.join(uart.messages).splitlines()
         self.assertIn('auth',json.loads(wire[0])['cmd']);self.assertIn('meta',json.loads(wire[1])['s'])
-        self.assertEqual(json.loads(wire[2])['s']['d'],[35,1,129])
+        self.assertEqual(json.loads(wire[2])['s']['d'],[35,1,516])
         self.assertLess(uart.commands.index('AT+CFUN=0'),uart.commands.index('AT+CFUN=1'))
         self.assertGreaterEqual(uart.sim_queries,2)
         self.assertLess(uart.commands.index('AT+CGATT?'),uart.commands.index('AT+CPSMS=0'))
