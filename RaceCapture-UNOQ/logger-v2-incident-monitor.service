@@ -1,0 +1,23 @@
+[Unit]
+Description=LoggerV2 abrupt shutdown recorder
+After=local-fs.target
+Before=shutdown.target
+
+[Service]
+Type=simple
+Group=adm
+ExecStart=/usr/bin/python3 /opt/logger-v2-racecapture/incident_monitor.py --interval 30
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=15
+StateDirectory=logger-v2-incident
+StateDirectoryMode=0750
+UMask=0027
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/var/lib/logger-v2-incident
+
+[Install]
+WantedBy=multi-user.target

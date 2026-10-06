@@ -1,14 +1,17 @@
 #!/usr/bin/python3
 """Touch-friendly physical-display switcher for RaceCapture and EcoCapture."""
 import ctypes
+import atexit
 import os
 import re
+import signal
 import subprocess
 import threading
 
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gdk, GdkX11, GLib, Gtk
+from display_load_control import resume_all, set_paused
 
 DISPLAY = os.environ.get("DISPLAY", ":2")
 BAR_HEIGHT = 64
@@ -151,6 +154,9 @@ class Launcher(Gtk.Window):
         self.race.set_sensitive(False)
         self.power.set_label("停止中…" if action == "stop" else "起動中…")
         self.show_ecocapture(None)
+        if action == "stop":
+            # A stopped process cannot handle systemd's SIGTERM promptly.
+            set_paused("racecapture-app", False)
         def worker():
             try:
                 result = subprocess.run(["/usr/bin/sudo", "-n", "/usr/bin/systemctl", action,
@@ -177,8 +183,11 @@ class Launcher(Gtk.Window):
         gdk_window.set_override_redirect(True)
         self.panel_xid = GdkX11.X11Window.get_xid(gdk_window)
         place("racecapture")
+        set_paused("racecapture-app", False)
+        set_paused("ecocapture-native", True)
 
     def on_destroy(self, _widget):
+        resume_all()
         Gtk.main_quit()
 
     def set_active(self, button):
@@ -193,12 +202,15 @@ class Launcher(Gtk.Window):
         return True
 
     def show_racecapture(self, _button):
+        set_paused("racecapture-app", False)
         place("racecapture")
+        set_paused("ecocapture-native", True)
         self.status.set_text("RaceCapture")
         self.set_active(self.race)
         self.keep_above()
 
     def show_ecocapture(self, _button):
+        set_paused("ecocapture-native", False)
         self.status.set_text("EcoCapture")
         self.set_active(self.eco)
         self.eco_attempts = 0
@@ -207,10 +219,18 @@ class Launcher(Gtk.Window):
     def place_ecocapture(self):
         self.eco_attempts += 1
         found = place("ecocapture")
+        if found:
+            set_paused("racecapture-app", True)
         self.keep_above()
         return not found and self.eco_attempts < 40
 
 
 launcher = Launcher()
+atexit.register(resume_all)
+def shutdown(_signum, _frame):
+    resume_all()
+    GLib.idle_add(Gtk.main_quit)
+signal.signal(signal.SIGTERM, shutdown)
+signal.signal(signal.SIGINT, shutdown)
 launcher.show_all()
 Gtk.main()

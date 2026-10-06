@@ -28,6 +28,12 @@ UNO Q内の待受はRCP `127.0.0.1:7223`、画面HTTP `127.0.0.1:6080`、VNC `12
 
 常駐サービスは `logger-v2-rcp`、`racecapture-display`、`racecapture-vnc`、`racecapture-web`、`racecapture-app`。公式アプリは `/opt/racecapture`、接続部分は `/opt/logger-v2-racecapture`、ソースは `/home/arduino/RaceCapture-UNOQ` にあります。
 
+突然の電源断やハードリセットに備え、`logger-v2-incident-monitor` が30秒ごとに温度、メモリ、ストレージ、記録状態、主要サービス状態を `/var/lib/logger-v2-incident/current.json` へ原子的に保存します。正常停止時は終了マーカーを保存し、次回起動でマーカーが無ければ前回ブート末尾のjournalと利用可能なpstoreを `incidents/` に退避します。保存件数は直近10件に制限しています。走行ログやSDカードは変更しません。
+
+`arduino-router-serial` は `/dev/ttyGS0` が無い間、エラー終了せず静かに待機します。USB gadgetが後から現れれば自動的にsocatへ切り替わるため、従来の約3秒周期の再起動ループとjournal汚染を避けつつ、シリアルMonitor機能は維持します。
+
+主表示はHDMI（Linux上では`DP-1`）を想定します。接続を2回連続で確認してから出力を切り替え、1280×800または1280×720・約60Hzを優先して4K等の高負荷モードを避けます。HDMI接続中はUSB画面転送を停止し、RaceCaptureは20fps上限で動作します。RaceCaptureとEcoCaptureのうち画面の裏側にあるUIプロセスだけを一時停止し、センサー取得、eMMC記録、SD記録、RCP変換は停止しません。障害記録にはHDMI接続状態、利用可能モード、GPU周波数も含めます。
+
 `install.sh` は導入済みUNO Q用のサービス配置です。公式ARM64パッケージ、Xorg/modesetting、Mesa freedreno、x11vnc/noVNC/websockify等が必要です。専用XorgがGPUを使うため、標準ログイン画面のLightDMは停止・自動起動無効にしています。初回表示設定は `configure_display.py`、初回ダッシュボード設定はアプリ停止中に `configure_app.py` を使います。後者は作成済みのLoggerV2ページを初期配置に戻すため、ユーザーがカスタマイズした後は通常更新で実行しないでください。
 
 描画はAdreno FD702のGPUを使用します。当初のXvfb/llvmpipeによるCPU描画は操作が重かったため廃止しました。10秒測定でアプリCPUは176.0%から38.1%へ低下し、再起動後の最終測定では19.7%でした（1コア=100%、画面・操作状態は固定した厳密ベンチマークではありません）。描画上限30fps、画面転送の待機/まとめ時間は各10ms。RaceCapture既定のDashboardスライドはKivyモジュール `fastnav.py` で0.10秒に短縮します。x11vncのXDamage更新検知を有効にし、GPUで画面を切り替えた後に古いDashboardが残る現象を防ぎます。取得100HzとSD記録は維持します。GPU構成で再起動後に5サービス・取得・SD記録が約54秒で復帰し、実アプリのFD702使用と画面復帰を確認。30秒で280サンプル、SDブロック592増加、通信/SDエラー・欠落増加0でした。
