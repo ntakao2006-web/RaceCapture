@@ -48,3 +48,6 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
 - `firmware/`：ESP32（Seeed Studio XIAO ESP32C3）向けPlatformIO（ESP-IDF）プロジェクト
 - `rcp_mock_device.py`：PC上で動くRCPプロトコルのモックデバイス実装
+- `RaceCapture-UNOQ/`：Ver.2ロガー（Arduino UNO Q）のLinux側一式（RCP変換・公式アプリ表示・HDMI表示・障害記録・検証スクリプト）。**主にLintarohさんが更新している**。入口は`README.md`
+- `EcoCapture-Web/`：UNO Q上のEcoCapture（設定・ログ管理・Podium送信`podium.py`）
+- `drive_logs/`：走行ログ（SDの`EL*.BIN`とデコード結果）。位置情報を含むため`.gitignore`済みでリポジトリに入れない
