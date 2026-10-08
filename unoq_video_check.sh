@@ -20,6 +20,16 @@ SRC="$WORK/src_2s.nv12"
 SRC_BYTES=$((1920 * 1080 * 3 / 2 * 60))
 EXPECT_FRAMES=900
 
+# sudo無しで ~/ffmpeg-local に展開したffmpegがあればそれを使う（apt-get download＋dpkg -x。手順書4章）
+LOCAL_FF="$HOME/ffmpeg-local"
+if [ -x "$LOCAL_FF/usr/bin/ffmpeg" ]; then
+    export PATH="$LOCAL_FF/usr/bin:$PATH"
+    export LD_LIBRARY_PATH="$(find "$LOCAL_FF" -name '*.so*' -printf '%h
+' | sort -u | tr '
+' ':')${LD_LIBRARY_PATH:-}"
+fi
+TIME_BIN=/usr/bin/time; [ -x "$TIME_BIN" ] || TIME_BIN="$LOCAL_FF/usr/bin/time"
+
 mkdir -p "$OUT" && cd "$WORK" || { echo "作業ディレクトリを作れない: $WORK"; exit 1; }
 SUM="$OUT/summary.txt"
 say() { echo "$*" | tee -a "$SUM"; }
@@ -42,7 +52,7 @@ say "稼働中の主なサービス: $(systemctl list-units --type=service --sta
 need=()
 command -v v4l2-ctl >/dev/null || need+=(v4l-utils)
 command -v ffmpeg   >/dev/null || need+=(ffmpeg)
-[ -x /usr/bin/time ]           || need+=(time)
+[ -x "$TIME_BIN" ]            || need+=(time)
 if [ ${#need[@]} -gt 0 ]; then
     if sudo -n true 2>/dev/null; then
         say "不足パッケージを導入: ${need[*]}"
@@ -81,7 +91,8 @@ say "V-1判定: $V1"
 # ---------------------------------------------------------------- V-2
 section "V-2 ffmpegがエンコーダを持っているか"
 ffmpeg -hide_banner -encoders 2>/dev/null | grep -i v4l2 | tee "$OUT/v2_encoders.txt" >>"$SUM"
-grep -q h264_v4l2m2m "$OUT/v2_encoders.txt" && V2=OK || V2=NG
+if ! command -v ffmpeg >/dev/null; then V2="未実施（ffmpegなし）"
+elif grep -q h264_v4l2m2m "$OUT/v2_encoders.txt"; then V2=OK; else V2=NG; fi
 ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libx264 && HAS_X264=1 || HAS_X264=0
 say "V-2判定: $V2（ビルドに含まれているかだけの確認。実際に回るかはV-3で見る）"
 
@@ -103,7 +114,7 @@ else
         local t0 t1
         say "--- $name: エンコード開始（温度: $(temps)）"
         t0=$(date +%s.%N)
-        /usr/bin/time -v ffmpeg -hide_banner -loglevel verbose \
+        timeout 180 "$TIME_BIN" -v ffmpeg -hide_banner -loglevel verbose \
             -stream_loop 14 -f rawvideo -pix_fmt nv12 -s 1920x1080 -r 30 -i "$SRC" \
             "$@" -b:v 12M -fps_mode passthrough \
             -y "$OUT/out_$name.mp4" 2>"$OUT/enc_$name.log"
@@ -151,6 +162,32 @@ else
         V3="要確認（フレーム ${FRAMES_hw:-?}/$EXPECT_FRAMES、speed ${SPEED_hw:-?}x）"
     fi
     [ -n "${SPEED_sw:-}" ] && say "対照比較: HW speed=${SPEED_hw:-?}x / SW(libx264) speed=${SPEED_sw}x（はっきり分かれればHWが効いている裏付け）"
+
+    # ffmpegを通さずエンコーダを直接駆動する（2026-10-09: ffmpeg 7.1.5のh264_v4l2m2mはVenusで落ちたため。手順書5-5）
+    # 入力は高さ1088行に揃える（1080行詰めだと色差面がずれる）。入力側に30fpsを伝えないとクロックが上がらない
+    ENC0=${ENC_DEV%% *}
+    SRC88="$WORK/src_2s_1088.nv12"
+    [ "$(stat -c %s "$SRC88" 2>/dev/null || echo 0)" -eq $((1920 * 1088 * 3 / 2 * 60)) ] ||         ffmpeg -v error -y -f rawvideo -pix_fmt nv12 -s 1920x1080 -i "$SRC" -vf pad=1920:1088 -pix_fmt nv12 -f rawvideo "$SRC88"
+    if [ -n "$ENC0" ] && [ -s "$SRC88" ]; then
+        say "--- hw_v4l2（v4l2-ctlで$ENC0を直接駆動）: 開始（温度: $(temps)）"
+        t0=$(date +%s.%N)
+        timeout 180 "$TIME_BIN" -v v4l2-ctl -d "$ENC0"             --set-fmt-video-out=width=1920,height=1080,pixelformat=NV12 --set-fmt-video=pixelformat=H264 --set-output-parm=30             --stream-out-mmap --stream-mmap --stream-from="$SRC88" --stream-loop             --stream-to="$OUT/out_hw_v4l2.h264" --stream-count=$EXPECT_FRAMES >"$OUT/enc_hw_v4l2.log" 2>&1
+        RC_v4l2=$?
+        WALL_v4l2=$(awk "BEGIN{printf \"%.1f\", $(date +%s.%N)-$t0}")
+        FRAMES_v4l2=$(ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames             -of csv=p=0 "$OUT/out_hw_v4l2.h264" 2>/dev/null)
+        ffmpeg -v error -i "$OUT/out_hw_v4l2.h264" -f null - >"$OUT/decode_check_hw_v4l2.txt" 2>&1
+        say "    終了コード: $RC_v4l2  実時間: ${WALL_v4l2}秒（素材は30秒）  フレーム: ${FRAMES_v4l2:-0}/$EXPECT_FRAMES  温度: $(temps)"
+        say "    $(grep -E 'Percent of CPU' "$OUT/enc_hw_v4l2.log" | sed 's/^\s*//')"
+        [ -s "$OUT/decode_check_hw_v4l2.txt" ] && say "    ⚠️ 読み戻しでエラーあり" || say "    読み戻し: エラーなし"
+        ffmpeg -v error -y -i "$OUT/out_hw_v4l2.h264" -vf "select=eq(n\,300)" -frames:v 1 -q:v 3 "$OUT/frame_hw_v4l2.jpg" 2>/dev/null
+        if [ "$RC_v4l2" -eq 0 ] && [ "${FRAMES_v4l2:-0}" = "$EXPECT_FRAMES" ] && [ ! -s "$OUT/decode_check_hw_v4l2.txt" ]              && awk "BEGIN{exit !($WALL_v4l2 <= 30.0)}"; then
+            V3_v4l2="OK"
+        else
+            V3_v4l2="NG"
+        fi
+        say "    直接駆動の判定: $V3_v4l2（目視用に frame_hw_v4l2.jpg を保存）"
+        case "$V3" in OK*) ;; *) [ "$V3_v4l2" = OK ] && V3="△ エンコーダ本体はOK（直接駆動で実時間以上）／ffmpeg経由は ${V3}" ;; esac
+    fi
 fi
 say "V-3判定: $V3"
 
