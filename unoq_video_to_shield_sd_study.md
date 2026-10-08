@@ -1,0 +1,98 @@
+# 焼き込み映像をシールド側SDへ保存できるか（E-6の調査）
+
+2026-10-09調査。UNO Q実機（USB/adb経由）・公式回路図ABX00162・Zephyrのボード定義・データシート・リポジトリ内のファーム／回路資料から分かることをまとめた。
+**実際にLinux→STM32へ映像を流す試験はまだしていない**（理由は5章）。
+
+---
+
+## 1. 結論
+
+- **焼き込み（GPU合成・HWエンコード）はLinux側（QRB2210）でしかできない。** STM32が担えるのは「Linuxが作ったH.264をシールドのSDへ書く」保存係だけ。
+- **Linux→STM32の経路はある。** 未使用の内部SPI（Linux `spidev0.0` → STM32 SPI3）で、上限は約24Mbps。固定ビットレート（CBR）8Mbpsなら上限の約3分の1で収まる。
+- **ボトルネックはSTM32→SDの側に移った。** シールドのSDはSDMMCではなく**SPIモード**で、**CAN2・LEDシフトレジスタとSPI2を共用**しており、しかも現行ファームは**GPIOを1ビットずつ叩くソフトウェアSPI**で書いている。映像（約1MB/s）を書くにはファームの作り直しが前提。
+- **回路の変更は要らない見込み**（SPI2のピンはハードウェアSPI2として使える）。必要なのはファーム側の作業と実測。
+
+---
+
+## 2. Linux→STM32の経路
+
+| 経路 | 速度 | 映像（CBR 8Mbps≒1MB/s）に対して |
+|---|---|---|
+| Bridge（arduino-router、UART `/dev/ttyHS1`） | 921600bps＝実効最大約90KB/s | **約11分の1で不可**。走行データの受け渡しにも使用中 |
+| **内部SPI（未使用）** | **上限約24Mbps**（TXS0101で律速） | **計算上は通る（余裕約3倍）** |
+
+内部SPIの配線（3つの資料で照合済み）：
+
+| 信号 | Linux側（QRB2210） | STM32U585側 | 備考 |
+|---|---|---|---|
+| SCK | GPIO16 | PG9（SPI3_SCK） | |
+| MISO | GPIO14 | PG10（SPI3_MISO） | |
+| MOSI | GPIO15 | PB5（SPI3_MOSI） | **途中にTXS0101（1.8V→3.3V変換、プッシュプル最大24Mbps）** |
+| CS | GPIO17 | PG12（SPI3_NSS） | |
+| RDY | GPIO70 | PG13 | STM32 SPIの「RDY」機能（スレーブが受け取れる時だけ送らせる）用 |
+
+- Linux側は`spidev0.0`（QUP5、GPI DMA対応）として既に見えている。ただし**root権限でしか開けない**。
+- STM32側はArduinoのZephyrコアで`zephyr,spi-slave`として定義済み。**現行ファーム（`firmware/ecologger_v2`）は使っていない**。
+- ポートGのピン（PG9/10/12/13）はSTM32の1.8V電源系（VDDIO2）なのでLinuxと直結、PB5（MOSI）だけが3.3V系なので変換ICが入っている、と読める（回路図の配置と整合）。
+- STM32U585のSPI3は**機能限定版**：FIFOは8バイト、データ幅は8/16bit、**1回の転送は1024データまで**（DMAで区切って連続させる）。スレーブ時の最高クロックは手元の資料（製品概要版）に記載がなく未確認。
+- **RDY線があるのが大きい**：STM32の受け取りが詰まったらLinux側が待つ設計にできる。Linux側はRAM・eMMCが潤沢なので、**SDの一時的な書き込み遅延を吸収するバッファはLinux側に持たせられる**。
+
+## 3. エンコーダのビットレートと画質（実測）
+
+UNO QのHWエンコーダで5秒（150フレーム）をエンコードし、元映像との一致度を測った。
+
+| 素材 | 方式 | 設定 | 実測平均 | **1秒間の最大** | SSIM | PSNR |
+|---|---|---|---|---|---|---|
+| 実カメラ（スマホ動画・屋内） | CBR | 4M | 3.3M | 3.6M | 0.970 | 38.7dB |
+| 〃 | CBR | 6M | 4.9M | 5.4M | 0.979 | 40.9dB |
+| 〃 | CBR | **8M** | 6.6M | **7.5M** | **0.982** | **42.1dB** |
+| 〃 | CBR | 12M | 9.9M | 11.0M | 0.987 | 43.7dB |
+| 最悪条件（毎フレーム変わるノイズ） | VBR | 12M | 10.0M | **23.8M** | — | — |
+| 〃 | CBR | 12M | 9.8M | 13.0M | — | — |
+| 〃 | **CBR** | **8M** | 6.5M | **8.3M** | — | — |
+
+- **SPIで運ぶなら固定ビットレート（CBR）が必須**。VBRは最悪条件で瞬間的に23.8Mbpsまで跳ね、SPIの上限（24Mbps）に並ぶ。CBRは設定値の約1.1〜1.35倍に収まる。
+- 実カメラ素材は8Mbpsで十分な画質（SSIM 0.98以上）。ただし素材は屋内のスマホ動画で、**走行映像（路面・木々で情報量が多い）では同じビットレートでも画質が落ちる**。走行映像での確認が要る。
+- 8Mbpsなら保存量は約3.6GB/時。
+- 補足：エンコーダの初期値は1Mbps（VBR）。`unoq_video_check_procedure.md`5-4の`v4l2-ctl`直接試験は初期値のまま測っていた（速度の結論は焼き込み試験の12Mbpsで再確認済み）。
+
+## 4. STM32→SDの側（ここが本当のボトルネック）
+
+| 項目 | 現状 | 映像保存に必要なこと |
+|---|---|---|
+| SDの接続方式 | **SPIモード**（Molex 47219-2001、`circuit/logger_v2/実装方針.md`） | SDMMC（4bit）用のピン（PC8〜12・PD2）はシールド端子に出ていないので、SPIモードのまま進めるしかない |
+| SPIバス | **SPI2（D11〜D13）をCAN2（MCP25625）・LEDシフトレジスタと共用** | 映像約1MB/s＋走行ログを、CAN2の受信処理と時分割で通す |
+| 書き込み方式 | **GPIOを1ビットずつ叩くソフトウェアSPI**（`logger_impl.h`の`sp()`）、1セクタずつ書き込み | **ハードウェアSPI2＋DMA＋複数セクタ連続書き込み（CMD25）へ作り直し**が前提 |
+| SPIクロック | ソフトウェアのため実測値なし | SDはSPIモード最大25MHz、MCP25625は最大10MHz。CSごとにクロックを切り替える |
+| 計算上の余裕 | — | SD側20MHzで理論2.5MB/s、連続書き込みの実効を7割として約1.8MB/s → 映像約1MB/sに対し**余裕は2倍弱**（CAN2の処理時間を差し引く前） |
+
+## 5. 今の環境でできなかったこと・その理由
+
+| 試験 | できなかった理由 |
+|---|---|
+| Linux→STM32のSPI転送速度の実測 | Linux側`/dev/spidev0.0`はroot専用で、パスワード無しsudoが無い。STM32側も受信用の試験ファームが要る |
+| SDのハードウェアSPI書き込み速度の実測 | STM32に試験用ファームを書く必要があり、**動いているロガーのファームを一時的に置き換える**。SDへ書き込む試験は**走行ログを壊す恐れ**があるので、空のSDカードで行う |
+| STM32のRAM・Flashの余裕 | 調べられた範囲：ファームの書き込み領域は64KiB（現行ファームはコード約36.7KB）。RAMはファーム用に128KB程度の枠で、現行ファームが約93KBを使用（うち64KBが取得待ち行列）。**STM32側に大きなバッファは置けない**が、RDY線でLinux側に待たせれば小さくて済む |
+
+## 6. 次にやること（順番）
+
+1. **回路担当へ確認**：
+   - TXS0101を挟んだMOSIで実際に何MHzまで通るか
+   - STM32U585のSPI3スレーブの最高クロック
+   - SPI2の共用（SD・CAN2・LED）を映像書き込みで長時間占有しても配線・信号品質上問題ないか
+2. **実測（要準備）**：
+   - UNO Qのsudoパスワード（spidevに触るため）
+   - 空のmicroSD
+   - STM32の試験ファーム（SPI3スレーブ受信のみ → SD書き込みの順に段階的に）
+   
+   ロガーのファームは試験後に`EcoCapture-Web/build-mcu.sh`で戻す。**ファームはLintarohさんの担当範囲なので事前に調整する**
+3. 実測で「SPI3受信1MB/s」と「SD書き込み1MB/s＋走行ログ」が両立すれば、E-6を採用に進める。届かなければeMMC保存（E-5）で確定し、SDは走行データ専用のままにする
+
+## 7. 出典
+
+- [UNO Q 公式回路図 ABX00162](https://docs.arduino.cc/resources/schematics/ABX00162-schematics.pdf)（9ページ「SPI To MCU」、7ページ U1102 TXS0101、19ページ STM32側）
+- [Zephyr ボード定義 arduino_uno_q-common.dtsi](https://github.com/zephyrproject-rtos/zephyr/blob/main/boards/arduino/uno_q/arduino_uno_q-common.dtsi)（SPI3 = PG9/PG10/PB5/PG12）
+- [ArduinoCore-zephyr UNO Q overlay](https://github.com/arduino/ArduinoCore-zephyr/blob/main/variants/arduino_uno_q_stm32u585xx/arduino_uno_q_stm32u585xx.overlay)（SPI3 = spi-slave、PG13 = Internal SPI RDY）
+- UNO Q実機のデバイスツリー：`spi@4a94000`の`pinctrl-0` → `qup-spi5-default-state` → `gpio14〜17`
+- STM32U585 製品概要 DB3734 Table 23（SPI3は機能限定版）、[ST Community：SPI3の転送数上限](https://community.st.com/stm32-mcus-products-25/limitation-of-spi3-of-stm32u5-133589)
+- [TI TXS0101](https://www.ti.com/product/TXS0101)（プッシュプル最大24Mbps）
