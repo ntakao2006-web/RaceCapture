@@ -3,11 +3,14 @@
 //   → V4L2エンコーダ(venus)の入力バッファへ → H.264
 // 目的: 「合成した絵をCPU色変換なしでエンコーダへ渡し、1080p30が回るか」を測る（unoq_video_check_procedure.md 5-6）
 //
-// ビルド(UNO Q上): gcc -O2 -o overlay_enc_test overlay_enc_test.c -lEGL -lGLESv2 -lm
+// ビルド(UNO Q上): gcc -O2 -o overlay_enc_test overlay_enc_test.c -lEGL -lGLESv2 -ljpeg -lm
 // 実行: ./overlay_enc_test <src_2s.nv12> <out.h264> [frames=900] [pace=0|1] [mode=0|1]
 //   pace=1 で30fpsに合わせて流す（実運用相当のCPU負荷を見る）。0 は全速（上限性能を見る）
 //   mode=0: GPUの結果をglReadPixelsでエンコーダのバッファへコピー
 //   mode=1: エンコーダのバッファをdmabufでGPUへ共有し、GPUが直接NV12を書く（コピー無し）
+// 実カメラ: src に /dev/videoN（UVC・MJPEG）を渡すと、カメラの画をCPU(libjpeg-turbo)で展開して入力にする
+//   カメラの解像度は CAM_W x CAM_H（1080pでなければGPUで1920x1080へ拡大）。カメラのfpsで律速されるので pace は不要
+//   エンコーダはデバイス名で探す（カメラを挿すと /dev/video0 がカメラに取られるため）
 #define _GNU_SOURCE
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -15,6 +18,8 @@
 #include <GLES2/gl2ext.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>  // jpeglib.h より前に要る
+#include <jpeglib.h>
 #include <linux/videodev2.h>
 #include <math.h>
 #include <poll.h>
@@ -24,6 +29,7 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
@@ -34,6 +40,9 @@
 #define NCAP 4
 #define NPTS 600
 #define NTRACE 4
+#define CAM_W 1280
+#define CAM_H 720
+#define NCAM 4
 #define FOURCC(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
 #define DRM_FORMAT_R8 FOURCC('R', '8', ' ', ' ')
 #define DRM_FORMAT_GR88 FOURCC('G', 'R', '8', '8')
@@ -88,6 +97,15 @@ static const char *FS_YUV2RGB =
     "  float y=(texelFetch(ty,p,0).r-0.0625)*1.164; vec2 c=texelFetch(tuv,p/2,0).rg-0.5;\n"
     "  o=vec4(y+1.596*c.y, y-0.392*c.x-0.813*c.y, y+2.017*c.x, 1.0); }\n";
 
+// 実カメラ用：JPEGを展開したY/Cb/Cr（JFIF＝BT.601 full range、色差は間引かれたまま）→ RGB、1920x1080へ拡大
+// sc＝テクスチャのうち画像が入っている割合（展開バッファは8/16の倍数に切り上がっているため）
+static const char *FS_JPEG2RGB =
+    "#version 300 es\nprecision mediump float;\n"
+    "uniform sampler2D ty; uniform sampler2D tu; uniform sampler2D tv; uniform vec2 sy; uniform vec2 sc; out vec4 o;\n"
+    "void main(){ vec2 q=gl_FragCoord.xy/vec2(1920.0,1080.0);\n"
+    "  float y=texture(ty,q*sy).r; float u=texture(tu,q*sc).r-0.5; float v=texture(tv,q*sc).r-0.5;\n"
+    "  o=vec4(y+1.402*v, y-0.344*u-0.714*v, y+1.772*u, 1.0); }\n";
+
 // 重ね描き（ピクセル座標・上端が0）
 static const char *VS_OVL =
     "#version 300 es\nlayout(location=0) in vec2 a;\n"
@@ -129,6 +147,82 @@ static int freeidx[NOUT], nfree, encoded, eos;
 static size_t bytes;
 static FILE *out;
 
+// /dev/video* からデバイス名（VIDIOC_QUERYCAPのcard）で探す
+static int open_by_name(const char *name) {
+    char path[32];
+    for (int i = 0; i < 64; i++) {
+        snprintf(path, sizeof path, "/dev/video%d", i);
+        int f = open(path, O_RDWR | O_NONBLOCK); if (f < 0) continue;
+        struct v4l2_capability cap = {0};
+        if (!xioctl(f, VIDIOC_QUERYCAP, &cap) && !strcmp((char *)cap.card, name)) { printf("%s: %s\n", name, path); return f; }
+        close(f);
+    }
+    DIE("%s が見つからない", name);
+}
+
+// ---------------------------------------------------------------- 実カメラ（UVC・MJPEG）
+static int cfd = -1;
+static struct vbuf camb[NCAM];
+static struct jpeg_decompress_struct jd;
+static struct jpeg_error_mgr jerr;
+static uint8_t *pln[3];  // 展開先（成分ごと、幅・高さは8の倍数へ切り上げ）
+static int pw[3], ph[3];
+
+static void cam_open(const char *dev) {
+    cfd = open(dev, O_RDWR); if (cfd < 0) DIE("open %s", dev);
+    struct v4l2_format f = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE };
+    f.fmt.pix.width = CAM_W; f.fmt.pix.height = CAM_H; f.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+    if (xioctl(cfd, VIDIOC_S_FMT, &f)) DIE("camera S_FMT");
+    if (f.fmt.pix.width != CAM_W || f.fmt.pix.height != CAM_H || f.fmt.pix.pixelformat != V4L2_PIX_FMT_MJPEG)
+        DIE("カメラが %dx%d MJPEG を受け付けない", CAM_W, CAM_H);
+    struct v4l2_streamparm sp = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE };
+    sp.parm.capture.timeperframe.numerator = 1; sp.parm.capture.timeperframe.denominator = 30;
+    xioctl(cfd, VIDIOC_S_PARM, &sp);
+    struct v4l2_requestbuffers rq = { .count = NCAM, .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP };
+    if (xioctl(cfd, VIDIOC_REQBUFS, &rq)) DIE("camera REQBUFS");
+    for (unsigned i = 0; i < rq.count && i < NCAM; i++) {
+        struct v4l2_buffer b = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP, .index = i };
+        if (xioctl(cfd, VIDIOC_QUERYBUF, &b)) DIE("camera QUERYBUF");
+        camb[i].len = b.length; camb[i].p = mmap(NULL, b.length, PROT_READ | PROT_WRITE, MAP_SHARED, cfd, b.m.offset);
+        if (camb[i].p == MAP_FAILED) DIE("camera mmap");
+        if (xioctl(cfd, VIDIOC_QBUF, &b)) DIE("camera QBUF");
+    }
+    int t = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(cfd, VIDIOC_STREAMON, &t)) DIE("camera STREAMON");
+    jd.err = jpeg_std_error(&jerr); jpeg_create_decompress(&jd);
+}
+
+// 1枚待って展開する。展開は色変換・色差の補間をせず成分のまま取り出す（raw_data_out）
+static void cam_frame(double *t_wait, double *t_dec) {
+    double a = now();
+    struct v4l2_buffer b = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP };
+    if (xioctl(cfd, VIDIOC_DQBUF, &b)) DIE("camera DQBUF");
+    double c = now(); *t_wait += c - a;
+    jpeg_mem_src(&jd, camb[b.index].p, b.bytesused);  // UVCのMJPEGはハフマン表を省くが、libjpeg-turboが標準表で補う
+    jpeg_read_header(&jd, TRUE);
+    jd.raw_data_out = TRUE; jd.do_fancy_upsampling = FALSE; jd.dct_method = JDCT_IFAST;
+    jpeg_start_decompress(&jd);
+    if (!pln[0]) {
+        for (int i = 0; i < 3; i++) {
+            pw[i] = jd.comp_info[i].width_in_blocks * DCTSIZE; ph[i] = jd.comp_info[i].height_in_blocks * DCTSIZE;
+            pln[i] = malloc((size_t)pw[i] * (ph[i] + 16 * DCTSIZE));
+            printf("jpeg comp%d: %dx%d (h%d v%d)\n", i, pw[i], ph[i], jd.comp_info[i].h_samp_factor, jd.comp_info[i].v_samp_factor);
+        }
+    }
+    JSAMPROW rows[3][16 * DCTSIZE]; JSAMPARRAY arr[3] = { rows[0], rows[1], rows[2] };
+    const int step = jd.max_v_samp_factor * DCTSIZE;
+    while (jd.output_scanline < jd.output_height) {
+        for (int i = 0; i < 3; i++) {
+            int n = jd.comp_info[i].v_samp_factor * DCTSIZE, y0 = jd.output_scanline / step * n;
+            for (int r = 0; r < n; r++) rows[i][r] = pln[i] + (size_t)(y0 + r) * pw[i];
+        }
+        jpeg_read_raw_data(&jd, arr, step);
+    }
+    jpeg_finish_decompress(&jd);
+    if (xioctl(cfd, VIDIOC_QBUF, &b)) DIE("camera QBUF");
+    *t_dec += now() - c;
+}
+
 // capture側を取り出してファイルへ。outputの返却も回収する
 static void drain(int block) {
     struct pollfd pf = { .fd = fd, .events = POLLIN | POLLOUT };
@@ -156,12 +250,19 @@ int main(int argc, char **argv) {
     int pace = argc > 4 ? atoi(argv[4]) : 0;
     int mode = argc > 5 ? atoi(argv[5]) : 0;
 
-    // カメラ代わりの素材（1920x1080 NV12 を詰めたもの）
-    int sfd = open(argv[1], O_RDONLY); if (sfd < 0) DIE("open src");
-    struct stat st; fstat(sfd, &st);
-    const size_t fsz = W * H * 3 / 2; int nsrc = st.st_size / fsz;
-    uint8_t *src = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, sfd, 0);
-    if (src == MAP_FAILED || nsrc < 1) DIE("mmap src");
+    // 入力：実カメラ（/dev/videoN）か、カメラ代わりの素材（1920x1080 NV12 を詰めたもの）
+    const int cam = !strncmp(argv[1], "/dev/video", 10);
+    const size_t fsz = W * H * 3 / 2; int nsrc = 0;
+    uint8_t *src = NULL;
+    if (cam) {
+        cam_open(argv[1]);
+    } else {
+        int sfd = open(argv[1], O_RDONLY); if (sfd < 0) DIE("open src");
+        struct stat st; fstat(sfd, &st);
+        nsrc = st.st_size / fsz;
+        src = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, sfd, 0);
+        if (src == MAP_FAILED || nsrc < 1) DIE("mmap src");
+    }
 
     // ---- EGL（画面を使わない surfaceless）
     PFNEGLGETPLATFORMDISPLAYEXTPROC getdpy = (void *)eglGetProcAddress("eglGetPlatformDisplayEXT");
@@ -176,6 +277,7 @@ int main(int argc, char **argv) {
     GLuint p_rgb = program(VS_FULL, FS_YUV2RGB), p_col = program(VS_OVL, FS_COL);
     GLuint p_y = program(VS_FULL, FS_PACK_Y), p_uv = program(VS_FULL, FS_PACK_UV);
     GLuint p_dy = program(VS_FULL, FS_Y), p_duv = program(VS_FULL, FS_UV);
+    GLuint p_jpg = program(VS_FULL, FS_JPEG2RGB), t_c[3] = {0};
     GLuint t_y = tex(GL_R8, W, H, GL_NEAREST), t_uv = tex(GL_RG8, W / 2, H / 2, GL_NEAREST);
     GLuint t_rgb = tex(GL_RGBA8, W, H, GL_LINEAR);
     GLuint t_py = tex(GL_RGBA8, W / 4, 1088, GL_NEAREST), t_puv = tex(GL_RGBA8, W / 4, 544, GL_NEAREST);
@@ -188,7 +290,7 @@ int main(int argc, char **argv) {
     glLineWidth(3.0f);
 
     // ---- エンコーダ
-    fd = open("/dev/video0", O_RDWR | O_NONBLOCK); if (fd < 0) DIE("open /dev/video0");
+    fd = open_by_name("Qualcomm Venus video encoder");
     struct v4l2_format cf = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE };
     cf.fmt.pix_mp.width = W; cf.fmt.pix_mp.height = H; cf.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
     cf.fmt.pix_mp.num_planes = 1; cf.fmt.pix_mp.plane_fmt[0].sizeimage = 4 << 20;
@@ -257,7 +359,7 @@ int main(int argc, char **argv) {
 
     out = fopen(argv[2], "wb"); if (!out) DIE("open out");
     nfree = nout; for (int i = 0; i < nout; i++) freeidx[i] = i;
-    double s_up = 0, s_draw = 0, s_conv = 0, s_read = 0, s_wait = 0;
+    double s_up = 0, s_draw = 0, s_conv = 0, s_read = 0, s_wait = 0, s_cam = 0, s_dec = 0;
     float *pts = malloc(sizeof(float) * 2 * NPTS * NTRACE);
     const float tc[4][4] = { {1, .3f, .2f, 1}, {.2f, 1, .3f, 1}, {.3f, .6f, 1, 1}, {1, 1, .2f, 1} };
 
@@ -268,20 +370,44 @@ int main(int argc, char **argv) {
         s_wait += now() - a;
         int bi = freeidx[--nfree];
 
-        // ① カメラ映像のアップロード（実カメラでもV4L2から受けた画をGPUへ渡す分に相当）
+        // ① カメラ映像のアップロード（素材のときはV4L2から受けた画をGPUへ渡す分に相当）
+        if (cam) cam_frame(&s_cam, &s_dec);
         a = now();
-        const uint8_t *fr = src + (size_t)(f % nsrc) * fsz;
-        glBindTexture(GL_TEXTURE_2D, t_y);  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, W, H, GL_RED, GL_UNSIGNED_BYTE, fr);
-        glBindTexture(GL_TEXTURE_2D, t_uv); glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, W / 2, H / 2, GL_RG, GL_UNSIGNED_BYTE, fr + W * H);
+        if (cam) {
+            for (int i = 0; i < 3; i++) {
+                if (!t_c[i]) t_c[i] = tex(GL_R8, pw[i], ph[i], GL_LINEAR);
+                glBindTexture(GL_TEXTURE_2D, t_c[i]);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pw[i], ph[i], GL_RED, GL_UNSIGNED_BYTE, pln[i]);
+            }
+        } else {
+            const uint8_t *fr = src + (size_t)(f % nsrc) * fsz;
+            glBindTexture(GL_TEXTURE_2D, t_y);  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, W, H, GL_RED, GL_UNSIGNED_BYTE, fr);
+            glBindTexture(GL_TEXTURE_2D, t_uv); glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, W / 2, H / 2, GL_RG, GL_UNSIGNED_BYTE, fr + W * H);
+        }
         glFinish();
         double b1 = now(); s_up += b1 - a;
 
         // ② RGB化 → 重ね描き（下部の半透明パネル・4本の時系列・バー4本）
         glBindFramebuffer(GL_FRAMEBUFFER, f_rgb); glViewport(0, 0, W, H);
-        glDisable(GL_BLEND); glUseProgram(p_rgb);
-        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, t_y);
-        glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, t_uv);
-        glUniform1i(glGetUniformLocation(p_rgb, "ty"), 0); glUniform1i(glGetUniformLocation(p_rgb, "tuv"), 1);
+        glDisable(GL_BLEND);
+        if (cam) {
+            glUseProgram(p_jpg);
+            const char *nm[3] = { "ty", "tu", "tv" };
+            for (int i = 0; i < 3; i++) {
+                glActiveTexture(GL_TEXTURE0 + i); glBindTexture(GL_TEXTURE_2D, t_c[i]);
+                glUniform1i(glGetUniformLocation(p_jpg, nm[i]), i);
+            }
+            // テクスチャは上端が行0。描画先も行0＝上端で扱っている（素材の経路と同じ）
+            float cw = (float)CAM_W * jd.comp_info[1].h_samp_factor / jd.max_h_samp_factor;
+            float ch = (float)CAM_H * jd.comp_info[1].v_samp_factor / jd.max_v_samp_factor;
+            glUniform2f(glGetUniformLocation(p_jpg, "sy"), (float)CAM_W / pw[0], (float)CAM_H / ph[0]);
+            glUniform2f(glGetUniformLocation(p_jpg, "sc"), cw / pw[1], ch / ph[1]);
+        } else {
+            glUseProgram(p_rgb);
+            glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, t_y);
+            glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, t_uv);
+            glUniform1i(glGetUniformLocation(p_rgb, "ty"), 0); glUniform1i(glGetUniformLocation(p_rgb, "tuv"), 1);
+        }
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glActiveTexture(GL_TEXTURE0);
 
@@ -347,5 +473,9 @@ int main(int argc, char **argv) {
     printf("frames_in=%d encoded=%d bytes=%zu elapsed=%.2fs fps=%.1f\n", frames, encoded, bytes, el, frames / el);
     printf("mode=%d pace=%d per-frame ms: upload=%.2f draw=%.2f convert=%.2f readback=%.2f wait_encoder=%.2f\n", mode, pace,
            s_up / frames * 1e3, s_draw / frames * 1e3, s_conv / frames * 1e3, s_read / frames * 1e3, s_wait / frames * 1e3);
+    if (cam) printf("camera per-frame ms: wait_camera=%.2f jpeg_decode=%.2f\n", s_cam / frames * 1e3, s_dec / frames * 1e3);
+    struct rusage ru; getrusage(RUSAGE_SELF, &ru);
+    double cpu = ru.ru_utime.tv_sec + ru.ru_utime.tv_usec * 1e-6 + ru.ru_stime.tv_sec + ru.ru_stime.tv_usec * 1e-6;
+    printf("process CPU: %.1f%% of one core (user+sys %.2fs / %.2fs)\n", cpu / el * 100, cpu, el);
     return 0;
 }

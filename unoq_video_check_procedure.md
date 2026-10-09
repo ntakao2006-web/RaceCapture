@@ -244,7 +244,7 @@ grep -E "Percent of CPU|Elapsed .wall clock" enc_sw.log
 ### 5-6. 焼き込みパイプラインの試験（2026-10-09、カメラ無し）
 
 走行映像に走行データのプロットをリアルタイムで焼き込めるかを、カメラの代わりに素材ファイルを使って確かめた。
-試験プログラムは`tools/unoq_overlay_enc/overlay_enc_test.c`（UNO Q上で`gcc -O2 -o overlay_enc_test overlay_enc_test.c -lEGL -lGLESv2 -lm`）。
+試験プログラムは`tools/unoq_overlay_enc/overlay_enc_test.c`（UNO Q上で`gcc -O2 -o overlay_enc_test overlay_enc_test.c -lEGL -lGLESv2 -ljpeg -lm`。実カメラ入力は5-7）。
 
 流れ：カメラ代わりのNV12をGPUへアップロード → GPU（Adreno FD702、画面を使わないsurfaceless EGL）でRGB化 →
 半透明パネル・時系列4本（各600点）・バー4本を重ね描き → GPUでNV12へ変換 → HWエンコーダ（`/dev/video0`）→ H.264
@@ -271,6 +271,42 @@ grep -E "Percent of CPU|Elapsed .wall clock" enc_sw.log
 - **長時間・車内温度**：5分・室温のみ。走行1時間・夏の車内は未確認
 - **出力の高さが1088**：保存時に1080へのクロップ情報を付けるか、MP4へ格納する段で処理する
 - **保存容量**：12Mbpsで約5.2GB/時。eMMCの空き約15GBでは約3時間分（E-5・E-6の保存先の議論に関係）
+
+### 5-7. 実カメラ（USB UVC）からの取り込み試験（2026-10-09）
+
+5-6の焼き込み試験の入力を、素材ファイルから実カメラへ差し替えた。試験プログラムは同じ`overlay_enc_test.c`で、入力に`/dev/videoN`を渡すとカメラから取り込む
+（ビルドに`-ljpeg`を追加。`./overlay_enc_test /dev/video0 out.h264 300 0 1`）。
+
+**接続**：UNO QのUSB-C → USB-Cドッキングステーション（GREEN HOUSE、PD給電パススルー） → USBカメラ。
+USB-Cは1口なので、カメラ使用中はUNO Qがホスト側になり**USB経由のadbは使えない**。作業は研究室のWi-Fi（登録済み・自動接続）経由のsshで行う。
+
+**カメラ**：手持ちのBUFFALO BSWHD06M（UVC 1.00、USB 2.0接続、マイク内蔵）。`uvcvideo`で素直に認識、電源不足等の警告なし。
+
+| 形式 | 最大解像度・fps |
+|---|---|
+| MJPEG | 1280×720@30、1280×960@12 |
+| YUYV（非圧縮） | 1280×720@8、640×480@30 |
+
+- **1080pは出せない**（720pまでのカメラ）。さらに室内では**30fps指定でも実際は約11fps**しか届かない（露出を延ばしていると思われ、露出を固定する設定も外に出していない）。→ **1080p30の評価には別のカメラが要る**
+- 🔴 **カメラを挿すとデバイス番号がずれる**：カメラが`/dev/video0`・`/dev/video1`を取り、HWエンコーダは`/dev/video3`（デコーダ`/dev/video2`）へ移る。
+  試験プログラムはエンコーダを名前（`Qualcomm Venus video encoder`）で探すように直した。本番の実装も番号を決め打ちしないこと
+- **HWデコーダ（Venus）はMJPEGに非対応**（H.264・VP9・HEVCのみ）。MJPEGのカメラはCPU（またはGPU）で展開することになる
+
+**結果（720p MJPEG → CPUで展開 → GPUで1080pへ拡大・重ね描き → dmabuf → HWエンコーダ、300フレーム）**
+
+| 項目 | 実測 |
+|---|---|
+| 通し | 300/300フレームをエンコード、約11.5fps（カメラ律速） |
+| JPEG展開（libjpeg-turbo、1コア） | **20.0ms/フレーム**（720p、4:2:2） |
+| GPUへのアップロード／重ね描き／NV12変換 | 8.4ms／9.4ms／5.8ms |
+| プロセスのCPU | 1コアの約30%（11.5fps時） |
+
+切り出した1フレームを目視し、向き・色・重ね描きとも正常。
+
+**ここから言えること**：
+- 経路（カメラ → GPU → エンコーダ）自体は実カメラでも動く
+- **1080pのMJPEGを1コアで展開すると約45ms/フレーム（720pの約2.25倍）の見込みで、30fps（33ms）に届かない**。MJPEGカメラで1080p30をやるなら展開を2スレッド以上に分ける必要があり、CPUは1コア強を食う
+- **本命はH.264を出すUVCカメラ**：Venusのデコーダ（H.264対応）で展開でき、CPUをほぼ使わない（dmabufでGPUへ渡せれば最も軽い。未試験）
 
 ---
 
