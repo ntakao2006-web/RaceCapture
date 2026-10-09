@@ -9,15 +9,5 @@
 # そこで「Web停止 → ルーター停止 → 書き込み → ルーター起動 → STM32リセット → Web起動」の順にする。
 # 最後のリセットは、ルーターが待ち受けてから STM32 に $/reset を送り直させるため（Bridge は返事が来ないと永久に待つ）。
 set -eu
-IMG=$1
-test -s "$IMG"
-ROOTSH="docker run --rm --privileged --pid=host --user 0 --entrypoint /usr/bin/nsenter ecocapture-web:0.2.0 -t 1 -m -p -- /bin/sh -c"
-OCD="/opt/openocd/bin/openocd -d1 -s /opt/openocd -f /opt/openocd/openocd_gpiod.cfg"
-docker stop -t 15 ecocapture-web >/dev/null
-$ROOTSH "systemctl stop arduino-router"
-/opt/openocd/bin/arduino-flash.sh "$IMG" 2>&1 | grep -iE "error" || true
-$ROOTSH "sh /home/arduino/EcoCapture-Web/install-router.sh"
-sleep 3
-$OCD -c "reset_config srst_only srst_push_pull; init; reset run; shutdown" >/dev/null 2>&1
-docker start ecocapture-web >/dev/null
-echo "flashed: $IMG"
+# Keep one implementation, including exit-status checks (no grep/|| true).
+exec sh /home/arduino/EcoCapture-Web/flash-mcu.sh "$@"

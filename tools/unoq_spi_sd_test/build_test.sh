@@ -1,8 +1,9 @@
 #!/bin/sh
 # UNO Q上で試験ファームをビルドする（ロガー本体の firmware/ecologger_v2/build.sh の後半と同じ手順）。
 # RouterBridge/RPClite への修正は ecologger_v2/build.sh が適用済みの前提（ライブラリを直接書き換える方式のため）。
-# 書き込み:  /opt/openocd/bin/arduino-flash.sh ~/spi_sd_test_build/test_compact.elf-zsk.bin
-# 元に戻す:  /opt/openocd/bin/arduino-flash.sh ~/fw_backup/sketch_0x80F0000.bin  （書き込み前に読み出したロガーのファーム）
+# 書き込み:  sh ~/unoq_spi_sd_test/flash.sh ~/spi_sd_test_build/test_compact.elf-zsk.bin
+# 元に戻す:  sh ~/unoq_spi_sd_test/flash.sh ~/fw_backup/sketch_0x80F0000.bin
+# 共通手順 ~/EcoCapture-Web/flash-mcu.sh を先に更新すること。
 set -eu
 export TMPDIR=/tmp
 ROOT=/home/arduino

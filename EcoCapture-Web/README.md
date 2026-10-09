@@ -45,8 +45,12 @@ powershell -ExecutionPolicy Bypass -File .\EcoCapture-Web\Update-UNOQ.ps1 -Firmw
 
 事前に記録を停止します。このインストール済みUNO QのArduino core、ライブラリ、Dockerベースイメージを使います。別の未セットアップ基板用のワンクリック環境構築ではありません。
 
-UNO Q内での更新は `deploy.sh` と `build-mcu.sh`。ソースは `firmware/ecologger_v2`。MCUの実際の書き込み領域は64KiBなので、ビルドで不要シンボルを整理してサイズを検査します。Arduino RouterBridgeの更新スレッドのスタックを8192バイトへ修正し、RPC受信バッファを1024バイトへ拡張し、MCUとLinuxルーターを460800bpsへ揃えます。
+UNO Q内での更新は `deploy.sh` と `build-mcu.sh`。ソースは `firmware/ecologger_v2`。MCUの実際の書き込み領域は64KiBなので、ビルドで不要シンボルを整理してサイズを検査します。Arduino RouterBridgeの更新スレッドのスタックを8192バイトへ修正し、RPC受信バッファを1024バイトへ拡張し、MCUとLinuxルーターを921600bpsへ揃えます。
 
 `ecocapture-mcu-start.service` が起動時にMCUを開始し、`ecocapture-web-start.service` がルーターのソケット作成後にコンテナを再接続します。WebはUSB経由のローカル管理用です。閲覧専用サイトや公開リンクは既存の明示的な公開操作で使い、今回新たにインターネット公開はしていません。
+
+2026-10-09更新: MCU書き込みは共通の `flash-mcu.sh` を使い、「Web停止 → ルーター停止確認 → 書き込み → ルーター起動・ソケット待ち → STM32リセット → Web起動」の順に行います。停止・書き込み・リセットが失敗した場合はそこで終了し、成功扱いやWebの自動再開をしません。UARTが固まってルーターを停止できない場合はLinuxを再起動してから再試行します。実機でのこの修正版の確認は未実施です。
+
+`Update-UNOQ.ps1 -Firmware` は上書き前のUNO Q上のソースを `~/ecologger-source-backups/` とPCの `other/uno_q_tools/source-backups/` に保存します。これはソースの退避で、稼働中フラッシュの読み出しではありません。ソースの照合は `firmware/ecologger_v2/compare_sources.py`、ビルドイメージの静的領域の集計は `audit_image.py` を使用します。詳しい返答と統合条件は `lintaroh_answer_20261009.md`。
 
 診断結果と現在の検証範囲は `outputs/logger_v2_bench_20261001/production` を参照してください。

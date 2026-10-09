@@ -22,6 +22,13 @@ Invoke-CheckedAdb @('-s',$Serial,'push',$taskBinary,'/home/arduino/ecocapture-cl
 Invoke-CheckedAdb @('-s',$Serial,'shell','tar -xf /tmp/ecocapture-device-update.tar -C /home/arduino/EcoCapture-Web')
 Invoke-CheckedAdb @('-s',$Serial,'shell','sh /home/arduino/EcoCapture-Web/install-device-agent.sh && sh /home/arduino/EcoCapture-Web/deploy.sh')
 if($Firmware){
+    # Preserve the device-side source before replacing a potentially different version.
+    $taskSourceStamp=Get-Date -Format 'yyyyMMdd_HHmmss'
+    $taskSourceBackup="/home/arduino/ecologger-source-backups/ecologger_v2_$taskSourceStamp.tar"
+    $taskLocalSourceBackup=Join-Path $taskTools "source-backups\ecologger_v2_$taskSourceStamp.tar"
+    New-Item -ItemType Directory -Force -Path (Split-Path $taskLocalSourceBackup) | Out-Null
+    Invoke-CheckedAdb @('-s',$Serial,'shell',"mkdir -p /home/arduino/ecologger-source-backups && tar -cf $taskSourceBackup -C /home/arduino ecologger_v2")
+    Invoke-CheckedAdb @('-s',$Serial,'pull',$taskSourceBackup,$taskLocalSourceBackup)
     $taskFirmware=Join-Path $PSScriptRoot '..\firmware\ecologger_v2'
     $taskFirmwareTar=Join-Path $taskTools 'ecologger-firmware-update.tar'
     tar -cf $taskFirmwareTar -C $taskFirmware .

@@ -78,5 +78,7 @@ mv "$BUILD/logger_short.elf" "$BUILD/logger_compact.elf"
 "$ROOT/.arduino15/packages/arduino/tools/zephyr-sketch-tool/0.2.0/zephyr-sketch-tool" "$BUILD/logger_compact.elf"
 SIZE=$(wc -c < "$BUILD/logger_compact.elf-zsk.bin")
 test "$SIZE" -le 65536 || { echo "Installed sketch partition is 64 KiB; image is $SIZE bytes"; exit 1; }
+python3 "$ROOT/ecologger_v2/audit_image.py" "$BUILD/logger_compact.elf-zsk.bin" --output "$BUILD/image-audit.json"
+python3 "$ROOT/ecologger_v2/compare_sources.py" --output "$BUILD/source-manifest.json"
 echo "Ready: $BUILD/logger_compact.elf-zsk.bin ($SIZE bytes)"
 # Flash separately; do not interrupt voltage measurements or an SD write.
