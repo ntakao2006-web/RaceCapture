@@ -43,6 +43,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `HANDOFF.md`：RCP JSONプロトコルの実測仕様の詳細
 - `ncec_can_spec.md`：NCEC（本番車両）のCAN通信仕様（ID・バイトマップ・デコード式・OBD2）。実装・共有用の独立ファイル
 - `sensorhub_defi_tap_design.md`：既設Defiの油温・油圧センサーを読むセンサーハブ基板の設計（v2：油温はサーミスタを直接測りデジタルポテンショメータでDefiへ再現、ピン単位の接続表・LCSC品番つき部品表・換算式・校正手順）。使用サーミスタの特性は`datasheet/defi_temp_sensor_rt.csv`
+- `sensorhub_generic_spec.md`：**汎用センサーハブ**（アナログ8ch・デジタル4ch・出力2ch、PIC＋外部CAN数珠繋ぎ）のLintarohさん向け要求仕様。Defi傍受基板とは別物で併用する。**外部CANバス全体のID割り当て表（5章）と、設定をロガー側に置く運用ルール（6章）もここが正**
 - `ecorun_team_systems.md`：エコランチーム（GitHub組織`TMCIT-Ecorun`）の既存システム（フロントパネル・通話試作・ダッシュボード）とEcoLoggerの関係、通話・中継サーバーの構成方針。**チーム側リポジトリは読むだけで変更しない**
 - `unoq_video_check_procedure.md`：UNO Qの映像確認（V-1〜V-5）の手順と実測結果。5-6章に走行映像へのプロット焼き込みの模擬試験（試験プログラムは`tools/unoq_overlay_enc/`）
 - `unoq_video_to_shield_sd_study.md`：焼き込み映像をシールド側SDへ保存できるか（E-6）の調査。Linux→STM32の内部SPI、ビットレートと画質の実測、SD側のボトルネック
