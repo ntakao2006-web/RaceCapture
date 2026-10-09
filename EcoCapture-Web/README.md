@@ -49,7 +49,9 @@ UNO Q内での更新は `deploy.sh` と `build-mcu.sh`。ソースは `firmware/
 
 `ecocapture-mcu-start.service` が起動時にMCUを開始し、`ecocapture-web-start.service` がルーターのソケット作成後にコンテナを再接続します。WebはUSB経由のローカル管理用です。閲覧専用サイトや公開リンクは既存の明示的な公開操作で使い、今回新たにインターネット公開はしていません。
 
-2026-10-09更新: MCU書き込みは共通の `flash-mcu.sh` を使い、「Web停止 → ルーター停止確認 → 書き込み → ルーター起動・ソケット待ち → STM32リセット → Web起動」の順に行います。停止・書き込み・リセットが失敗した場合はそこで終了し、成功扱いやWebの自動再開をしません。UARTが固まってルーターを停止できない場合はLinuxを再起動してから再試行します。実機でのこの修正版の確認は未実施です。
+2026-10-09更新: MCU書き込みは共通の `flash-mcu.sh` を使い、「Web停止 → ルーター停止確認 → 書き込み → ルーター起動・ソケット待ち → STM32リセット → Web起動」の順に行います。停止・書き込み・リセットが失敗した場合はそこで終了し、成功扱いやWebの自動再開をしません。UARTが固まってルーターを停止できない場合はLinuxを再起動してから再試行します。2026-10-09に実機で確認済み（同一イメージ・新イメージとも、約18秒で全段階通過）。
+
+`ecocapture-mcu-supervisor.service`（`mcu-supervisor.py`、rootで常駐、導入は`install-mcu-supervisor.sh`）は、`/api/status`の`connected`が30秒以上falseのままなら「Web停止 → ルーター再起動 → NRSTリセット → Web起動」でMCUとの通信を戻します。起動後120秒は監視せず、書き込み中（`flash-mcu.sh`実行中）とWebに届かないときは何もしません。復帰は120秒に1回まで、3回続けて戻らなければ10分おきに下げます。MCUの内部リセット（ループ監視など）後に通信路が戻らない問題への対処で、2026-10-09にループ停止試験で停止から48秒での自動復帰を確認しました。
 
 `Update-UNOQ.ps1 -Firmware` は上書き前のUNO Q上のソースを `~/ecologger-source-backups/` とPCの `other/uno_q_tools/source-backups/` に保存します。これはソースの退避で、稼働中フラッシュの読み出しではありません。ソースの照合は `firmware/ecologger_v2/compare_sources.py`、ビルドイメージの静的領域の集計は `audit_image.py` を使用します。詳しい返答と統合条件は `lintaroh_answer_20261009.md`。
 

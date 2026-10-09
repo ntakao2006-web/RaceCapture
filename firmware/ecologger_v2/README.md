@@ -9,7 +9,11 @@
 - CAN1: FDCAN1、D4/D5、リッスンオンリー。CAN2: MCP25625、D10 CS / A0 reset、センサーハブ受信（ACKあり、データ送信なし）。
 - SD: A4 CS、SPI共有。FAT32にCRC付きELB2ブロックを保存。65,536Bの取得待ち行列と専用保存スレッドを使用。
 - Bridge: 921600bps、取得処理とは別スレッドで登録。LinuxがいなくてもSD取得・記録を開始。
-- 自動再起動（ループ監視）は未搭載（2026-10-09）。Linuxとの通信中にSTM32内部からリセットすると（`NVIC_SystemReset`・IWDG・デバッガのSYSRESETREQのいずれも）、再起動後にBridge登録とSD記録が止まった半起動状態になるため外した。NRST端子でのリセットなら通信中でも完全に復帰する。`sys_reboot`はスケッチ側へ公開されておらずリンクできない。経緯は`ARCHITECTURE.md`4章。
+- ループ監視（2026-10-09）：取得メインループが30秒以上止まると、5秒周期の`k_timer`が`NVIC_SystemReset()`でMCUを再起動する（`sys_reboot`はスケッチ側へ公開されておらずリンクできない。スレッド方式はRAM枠を超えた）。SDフォーマット等の明示的な長時間コマンド中は監視を止める。
+- ⚠️ Linuxとの通信中にSTM32内部からリセットすると、再起動後もSD記録は続くが、Linuxとの通信路は戻らない（原因未特定）。Linux側の`EcoCapture-Web/mcu-supervisor.py`が30秒以上の切断を検知し、NRSTリセット手順で復帰させる。
+- `build.sh`はRouterBridgeの受信スレッドを`$/reset`完了前から動かすよう修正する。修正前は完了を待つ間`k_yield()`で空回りし、優先度の低いSD保存スレッドが止まっていた（内部リセット後にSDが0バイトになった原因）。
+- 試験用ビルド：`logger_impl.h`の先頭に`#define LOGGER_STALL_TEST`を足すと、`logger.command`の`STALLTEST`（ループ停止）と`RESETNOW`（即リセット）が使える。本番イメージには入れない。
+- RAM：静的集計130,365Bまでは起動、130,601Bはエラーを出さずに起動しなかった（ローダー追加領域ぶん、128KiBより手前が実際の限界）。
 - LTE: A3/A2は初期状態LOW。UART IRQでRX4096/TX512バイト、GPIO RTS/CTS。LinuxのLTE専用操作が20秒途絶えたら電源OFF。設定とTCP/Podium処理はUNO Q内のEcoCapture-Webが担当。詳細は `EcoCapture-Web/LTE_PODIUM.md`。
 
 LED: CAN=直近の受信、LTE=モデム電源ON（クラウド到達はWebで確認）、UNO Q=Linuxによる受信継続、TRM=OFF、GPS=測位時点灯/未測位受信時点滅、LOG=記録指示、ERR=I2C/SDエラー、SYS=稼働。

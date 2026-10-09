@@ -12,6 +12,18 @@ p=Path("/home/arduino/.arduino15/packages/arduino/hardware/zephyr/0.52.0/librari
 s=p.read_text();s=re.sub(r"UPDATE_THREAD_STACK_SIZE\s+\d+", "UPDATE_THREAD_STACK_SIZE    8192", s)
 if 'LOGGER_BRIDGE_SERIAL_INIT_HOOK();' not in s:
     s=s.replace('        serial_ptr->begin(baud);','        serial_ptr->begin(baud);\n#ifdef LOGGER_BRIDGE_SERIAL_INIT_HOOK\n        LOGGER_BRIDGE_SERIAL_INIT_HOOK();\n#endif')
+# Serve requests before $/reset completes. If Linux keeps calling while the MCU
+# reboots, a queued request at the decoder head otherwise blocks the $/reset
+# response forever, and the k_yield() spin starves lower-priority threads (SD).
+old='''        if (Bridge) {
+            Bridge.update();
+        }
+        k_yield();'''
+new='''        // Logger patch: serve requests even before $/reset completes.
+        Bridge.update();
+        k_yield();'''
+if old in s:s=s.replace(old,new)
+elif new not in s:raise RuntimeError('Unexpected RouterBridge update loop')
 p.write_text(s)
 p=Path("/home/arduino/.arduino15/packages/arduino/hardware/zephyr/0.52.0/libraries/Arduino_RPClite/src/request.h")
 s=p.read_text().replace("(DECODER_BUFFER_SIZE / 4)","DECODER_BUFFER_SIZE")

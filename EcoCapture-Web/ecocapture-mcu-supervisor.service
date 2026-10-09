@@ -1,0 +1,12 @@
+[Unit]
+Description=Restore the EcoLogger MCU Bridge when it stays down
+After=docker.service arduino-router.service ecocapture-web-start.service
+Wants=docker.service
+
+[Service]
+ExecStart=/usr/bin/python3 /home/arduino/EcoCapture-Web/mcu-supervisor.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
