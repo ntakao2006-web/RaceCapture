@@ -1,6 +1,6 @@
 # EcoLogger V2 実測ファーム
 
-2026-10-03 実機確認: CAN2の20MHz発振子に合わせたビットタイミング、SDの書込み待ち中のSPI解放、停止中のSD読出し競合を修正。125/250/500/1000kbpsの外部折返しと約100フレーム/秒の継続試験で計14,400フレームが一致。SDファイル切替を含む同時取得でも欠落0。試験送信は一時ファームのみ。通常ファームはCAN1がリッスンオンリー、CAN2がセンサーハブ受信とACKのための通常モードで、アプリケーション用CANフレームは送信しない。詳細は `outputs/hardware_check_20261003/RESULT.txt`。
+2026-10-03 実機確認: CAN2の20MHz発振子に合わせたビットタイミング、SDの書込み待ち中のSPI解放、停止中のSD読出し競合を修正。125/250/500/1000kbpsの外部折返しと約100フレーム/秒の継続試験で計14,400フレームが一致。SDファイル切替を含む同時取得でも欠落0。試験送信は一時ファームのみ。通常ファームはCAN1がリッスンオンリー、CAN2がセンサーハブ受信とACKのための通常モードで、アプリケーション用CANフレームは送信しない（CAN2の通常モードを実機へ書き込んだのは2026-10-09。それまでの稼働版はCAN2も受信専用だった）。詳細は `outputs/hardware_check_20261003/RESULT.txt`。
 
 `ecologger_v2.ino` → `logger_impl.h` と `sd_logger.h`。UNO Q STM32U585 / Arduino Zephyr core 0.52.0。
 
@@ -8,7 +8,8 @@
 - MAX-M10M: I2C 0x42、4衛星系統/10HzのRAM設定。OTPの再書き込みなし。
 - CAN1: FDCAN1、D4/D5、リッスンオンリー。CAN2: MCP25625、D10 CS / A0 reset、センサーハブ受信（ACKあり、データ送信なし）。
 - SD: A4 CS、SPI共有。FAT32にCRC付きELB2ブロックを保存。65,536Bの取得待ち行列と専用保存スレッドを使用。
-- Bridge: 921600bps、取得処理とは別スレッドで登録。LinuxがいなくてもSD取得・記録を開始。取得メインループが30秒以上停止した場合は監視スレッドがMCUを再起動して自動復旧します。SDフォーマット等の明示的な長時間コマンド中は監視を一時停止します。
+- Bridge: 921600bps、取得処理とは別スレッドで登録。LinuxがいなくてもSD取得・記録を開始。
+- 自動再起動（ループ監視）は未搭載（2026-10-09）。Linuxとの通信中にSTM32内部からリセットすると（`NVIC_SystemReset`・IWDG・デバッガのSYSRESETREQのいずれも）、再起動後にBridge登録とSD記録が止まった半起動状態になるため外した。NRST端子でのリセットなら通信中でも完全に復帰する。`sys_reboot`はスケッチ側へ公開されておらずリンクできない。経緯は`ARCHITECTURE.md`4章。
 - LTE: A3/A2は初期状態LOW。UART IRQでRX4096/TX512バイト、GPIO RTS/CTS。LinuxのLTE専用操作が20秒途絶えたら電源OFF。設定とTCP/Podium処理はUNO Q内のEcoCapture-Webが担当。詳細は `EcoCapture-Web/LTE_PODIUM.md`。
 
 LED: CAN=直近の受信、LTE=モデム電源ON（クラウド到達はWebで確認）、UNO Q=Linuxによる受信継続、TRM=OFF、GPS=測位時点灯/未測位受信時点滅、LOG=記録指示、ERR=I2C/SDエラー、SYS=稼働。
