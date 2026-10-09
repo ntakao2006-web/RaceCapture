@@ -12,6 +12,7 @@
 //   "sdinit"          SDを初期化し、空き領域を確保する
 //   "bench <MB>"      合成データで連続書き込み速度を測る
 //   "e2e <MB>"        SPI3で受信したデータをそのままSDへ書く（受信→SDの通し試験）
+// spitest.rd → SDへ書き終えたバイト数（下位32bit）。Linux側のフロー制御（spi_fc.py）が使う
 #include <stm32u585xx.h>
 #include <zephyr/kernel.h>
 // Linux とつなぐ LPUART1 は RTS/CTS フロー制御が前提（ロガー本体 ecologger_v2.ino と同じ初期化。無いと Linux 側が送ってこない）
@@ -190,7 +191,7 @@ static bool hRead(uint32_t lba, uint8_t *buf) {
 }
 static bool waitReady(uint32_t ms) {  // ビジー（0x00）が明けて0xFFが返るまで待つ
     uint32_t end = millis() + ms;
-    while (millis() < end) { uint32_t v; spi2Words(nullptr, &v, 1); if ((v >> 24) == 0xFF) { hbFlush(); return true; } }
+    while (millis() < end) { uint32_t v; spi2Words(nullptr, &v, 1); if ((v >> 24) == 0xFF) { hbFlush(); return true; } k_yield(); }  // 待つ間はBridgeへ譲る
     return false;
 }
 
@@ -344,6 +345,8 @@ static String stat() {
              (unsigned long)ch->CSR, (unsigned long)SPI2->SR, (unsigned long)spiTimeouts, (unsigned long)completed, e2eActive, result.c_str());
     return String(t);
 }
+// フロー制御用：消費済み（SDへ書き終えた）バイト数の下位32bit。Linuxは「送った量 − これ」が受け皿（RING）を超えないように送る
+static int consumed() { return (int)(uint32_t)rdAbs; }
 static int submit(String c) { k_mutex_lock(&lock, K_FOREVER); queued = c; k_mutex_unlock(&lock); return 0; }
 
 K_THREAD_STACK_DEFINE(bridgeStack, 4096);
@@ -351,11 +354,12 @@ static struct k_thread bridgeThread;
 static void bridgeWorker(void *, void *, void *) {
     Bridge.begin(921600);
     // 書き込み直後はルーターとの最初のやり取りを取りこぼすことがあるので、登録が通るまでやり直す
-    bool a = false, b = false;
-    while (!(a && b)) {
+    bool a = false, b = false, c = false;
+    while (!(a && b && c)) {
         if (!a) a = Bridge.provide("spitest.stat", stat);
         if (!b) b = Bridge.provide("spitest.cmd", submit);
-        if (!(a && b)) k_msleep(1000);
+        if (!c) c = Bridge.provide("spitest.rd", consumed);
+        if (!(a && b && c)) k_msleep(1000);
     }
     result = "bridge ready";
 }
