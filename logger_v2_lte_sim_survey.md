@@ -11,6 +11,8 @@
 > 🔴 **2026-10-02訂正：0章1・2-1章の「SORACOMはドイツでCat-M1非対応」は誤り。**
 > 参照した表は通常回線の一覧で、LTE-M/NB-IoTは別のLPWAN対応表に載っていた。
 > **plan01sはドイツのO2・VodafoneでLTE-Mが`Guaranteed`（ローミング契約あり）。** → 9章を参照。
+>
+> ✅ **2026-10-10追記：1NCEのCoverage List（PDF）も確認し、日独ともLTE-M対応だった。** → 10章を参照。
 
 ## 0. 結論（先に）
 
@@ -222,3 +224,32 @@ Onomondo、emnify、Twilio Super SIM、Hologram なども同種のグローバ�
 
 - [soracom/coverage-tests — SORACOM-LPWAN-with-features.csv](https://github.com/soracom/coverage-tests)
 - [SORACOM IoT SIM (plan01s) — IoTストア](https://soracom.jp/store/5259/)
+
+---
+
+## 10. 2026-10-10追記：1NCEのCoverage List（PDF）で日独の行を確認した
+
+2-2章・5章で「確認できていない」としていた1NCEの国別対応表を確認した。
+**1NCEも日本・ドイツの両方でLTE-Mに対応している。** これで「1枚で両対応」はSORACOM・1NCEのどちらでも成立する。
+
+### 10-1. 該当行（「1NCE Country Coverage and supported bearer」、As of April 2026）
+
+| 国 | 2G | 3G | 4G | LTE-M | NB-IoT |
+|---|---|---|---|---|---|
+| 🇩🇪 Germany | ✅ | — | ✅ | ✅ | ✅ |
+| 🇯🇵 Japan | — | — | ✅ | ✅ | — |
+
+- どちらの国も「*」（非現地SIMの恒久利用に規制あり）の印は付いていない
+- この表は**国単位**で、どの事業者に繋がるか・バンド・保証の区分（SORACOMの`Guaranteed`／`Validated`に当たるもの）は書かれていない。
+  事業者・バンドまで確認できるのはSORACOMのCSVのほうで、**根拠としてはSORACOMのほうが強い**
+- 日本は2Gが無いので、SIM7070GのGPRSへのフォールバックは日本ではどちらのSIMでも効かない（ドイツでは1NCEなら2Gあり）
+
+### 10-2. 結論
+
+- **9-3章の推奨（SORACOM plan01s 1枚）は変えない。** 事業者単位でローミング保証が確認できているのはSORACOMだけで、料金・購入経路も確認済みのため
+- 1NCEは**同じく1枚で日独両対応の代替候補**として残す。現地でSORACOMの接続先（O2/Vodafone、planV1ならTelekomも）がどれも弱かった場合の予備になる
+- 5章の「確認できていないこと」は解消。回路担当へ渡す根拠は9-4章のとおりSORACOMのLPWAN対応表でよい
+
+### 10-3. 出典
+
+- [1NCE Country Coverage and supported bearer（PDF、As of April 2026）](https://a.storyblok.com/f/335000/x/8f7999b185/1nce-coverage-en.pdf)（[1NCE Global Coverage](https://www.1nce.com/en-eu/1nce-connect/coverage)のページからリンク）
