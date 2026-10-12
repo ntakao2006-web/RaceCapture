@@ -65,6 +65,55 @@
 - 各製品の輝度(cd/m²)と、夜に一番暗くしたときの明るさ：公表値が見つからない。
 - 日本国内での価格と入手先。
 
+## 5. サブディスプレイの部品候補（白黒液晶、2026-10-12追記）
+
+### 5-1. 選ぶときの条件
+- 表示するのは予測タイム・デルタタイム（5〜10 Hz、`logger_v2_channel_and_sensor_spec.md` 3-3章）。
+  走行中にちらっと見て読めるよう、**数字の高さ15mm以上**を目安にする（目からの距離50〜70cm）。
+- 昼の日向で読めること：**FSTN・ポジ（白地に黒文字）・半透過型**。黒地や「transmissive（透過型）」は日向に弱いので外す。
+- 夜：LEDバックライト付きで、マイコンからPWMで明るさを変えられること。
+- 外部CANから5Vをもらい、アクセサリー側マイコン（未定）からSPIで描く。液晶は3.3V。
+- 少数買い（1枚〜）ができ、日本へ送ってくれる店（DigiKey・Mouser・RS）で買えること。
+
+### 5-2. 候補
+| | ① 本命 | ② 小さく安く | ③ 小さく色つき |
+|---|---|---|---|
+| 品番 | **EA DOGXL240W-7** ＋ バックライト **EA LED94X67-GR** | **NHD-C12864LZ-FSW-FBW-3V3** | **NHD-C12864DA-FSRGB-FBW-3V3** |
+| メーカー | Display Visions（ドイツ、ELECTRONIC ASSEMBLY） | Newhaven Display（米国） | Newhaven Display（米国） |
+| 画素 | 240×128 | 128×64 | 128×64 |
+| 表示方式 | FSTN・ポジ・半透過（白地） | FSTN・ポジ・半透過、白バックライト | FSTN・ポジ・半透過、RGBバックライト |
+| 外形／表示部 | 94×67 mm／約90×47 mm（TME表記） | 表示部 70×40 mm | 表示部は未確認（図面が画像のため読めず） |
+| バックライト | 緑・赤の2色（混ぜて黄色）。1色最大120 mA、5Vなら抵抗25Ω | 白 | 赤・緑・青 各60 mA（共通アノード） |
+| 接続 | SPI（書き込みのみ、最大8 MHz）／I2C、ST互換ではなくUC1611s | SPI／パラレル、ST7565R | 4線SPI／パラレル、ST7565R |
+| 電源 | 2.7〜3.3 V（約0.9 mA） | 3.0 V | 2.7〜3.3 V |
+| 動作温度 | −20〜+70℃ | （データシートで要確認） | −20〜+70℃ |
+| 価格（1個） | 液晶本体 約£41（同系のDOGXL240S-7、RS英国）。バックライトは別売で価格未確認 | 約$17.6（DigiKey、在庫約4,000） | 約$18.6（DigiKey、在庫392） |
+| 数字の大きさ | 縦48ドットの数字で約17 mm、横に5〜6文字 | 縦32ドットで約20 mm、2行まで | 表示部が分かれば計算する |
+
+### 5-3. おすすめと理由
+- **①EA DOGXL240W-7＋EA LED94X67-GRを本命にする**。
+  - 表示部が約90×47 mmと大きく、デルタタイムを大きな数字で出しつつ、下にラップタイム・油温などを小さく並べられる。
+  - バックライトが緑と赤の2色なので、**速いとき緑・遅いとき赤**のように、色で良し悪しがわかる（MyChronのRGBバックライトと同じ使い方）。
+  - 1個から買え、基板にそのままはんだ付けできるピン付き。
+  - 240×128の画面1枚分は3,840バイト、8 MHzのSPIで約4 msで送れるので、10 Hzの更新は余裕。
+- **②は、①が大きすぎて付けられない場合の代わり**。安くて在庫も多いが、デルタタイムしか置けない。
+- **③は、小さい画面で色も変えたい場合**。表示部の大きさをデータシートの図面で確認してから決める。
+- 寒さ対策のヒーター付き（NHD-C12864A1Z-FSW-FBW-HTT、−40℃まで）は、日本でのレース・エコランでは不要と判断。
+
+### 5-4. 組むときの注意
+- **バックライトを5Vに直接つながない**（メーカーが、すぐ壊れると注意している）。①のGRは1色あたり抵抗25Ω（5V時）。
+  マイコンのPWMからMOSFETで駆動し、照度センサー（例：照度センサーIC、フォトトランジスタ）の値で明るさを変える。
+- 液晶本体は3.3V。外部CANの5Vから3.3Vのレギュレーターで作る。
+- コントラストは最初に一度コマンドで合わせる必要がある（①は温度補償が内蔵されているので、合わせた後は−20〜70℃で一定）。
+- STN液晶は寒いと反応が遅くなる。5〜10 Hzの数字の書き換えは常温なら問題ないが、真冬の早朝は数字がにじむことがある。
+- 窓には反射を抑えたポリカーボネート板を付け、液晶に直射日光の熱がこもらないようにする（上限70℃）。
+
+### 5-5. 未確認のこと
+- ①のバックライトEA LED94X67-GRの価格と、日本から買える店（DigiKey・RSに液晶本体の掲載はある）。
+- ①の表示部の正確な寸法（データシートは外形94×67 mmのみ、TMEは表示部90×46.7 mmと表記）。
+- ③の表示部の寸法。
+- アクセサリー側マイコンが未定（task_phase6_breakdown.mdで保留中）。①はUC1611s、②③はST7565Rで、どちらもマイコン用ライブラリ（u8g2等）が対応しているかは選定時に確認する。
+
 ## 出典
 - AiM MyChron6 技術仕様書（Ver.1.19）：https://dwls.aim-sportline.com/technical-sheets/aim_mychron6.pdf
 - AiM MyChron5 技術仕様：https://aim-sportline.com/en/out-of-production/mychron5/technical-specifications.htm
@@ -83,3 +132,10 @@
 - 高輝度IPS 3.5インチ（Orient Display）：https://orientdisplay.com/products/3-5-sunlight-readable-ips-320x240-1000-nits/
 - 半透過型の液晶モジュール（AliExpress）：https://www.aliexpress.com/af/Transflective-Display-Module.html
 - Sharpメモリ液晶（Adafruit）：https://learn.adafruit.com/adafruit-sharp-memory-display-breakout
+- EA DOGXL240-7 データシート（2022年3月版）：https://www.lcd-module.com/fileadmin/pdf/grafik/dogxl240-7.pdf
+- EA DOGXL240 の表示部寸法（TME）：https://www.tme.eu/en/details/eadogxl240s-7/lcd-graphic-displays/display-visions/ea-dogxl240s-7/
+- EA DOGXL240S-7 価格（RS英国）：https://uk.rs-online.com/web/p/lcd-monochrome-displays/1971299
+- EA DOGXL240W-7（DigiKey）：https://punchouttest.digikey.com.mx/en/products/detail/display-visions/EA-DOGXL240W-7/4896742
+- NHD-C12864LZ-FSW-FBW-3V3（価格・在庫）：https://www.flux.ai/vasyl/nhd-c12864lz-fsw-fbw-3v3~ny0.md 、https://uk.rs-online.com/web/p/lcd-monochrome-displays/2644053
+- NHD-C12864DA-FSRGB-FBW-3V3 データシート：https://newhavendisplay.com/content/specs/NHD-C12864DA-FSRGB-FBW-3V3.pdf （価格・在庫はDigiKeyの64128K-FC-BW-RGBのページの代替品欄：https://www.digikey.com/en/products/detail/displaytech/64128K-FC-BW-RGB/6650332 ）
+- NHD-C12864A1Z-FSW-FBW-HTT（ヒーター付き）：https://newhavendisplay.com/es/128x64-graphic-cog-lcd-display-with-white-backlight-heater/
