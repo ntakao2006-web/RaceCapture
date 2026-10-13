@@ -241,6 +241,11 @@ class PodiumSender:
             now=time.monotonic();sample=self.runtime.sample
             fresh=sample is not None and now-self.runtime.received_at<.5
             payload=encoder.sample(sample) if fresh and sample['seq']!=last_seq else None
+            # Next-generation Podium (2026-09) ignores a stream until it carries a
+            # GPS-derived timestamp (Utc); show this instead of a silent blank screen.
+            if fresh:
+                if utc_milliseconds(sample) is None:self.set_state('waiting_gps','GPS測位待ち（測位するまでPodium画面には表示されません）')
+                else:self.set_state('streaming','センサ値を送信中')
             if payload:
                 await transport.send(payload)
                 self.state['frames']+=1;self.state['bytes']+=len(payload);self.sent_at=time.monotonic();last_seq=sample['seq']
