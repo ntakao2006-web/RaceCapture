@@ -49,7 +49,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `unoq_video_to_shield_sd_study.md`：焼き込み映像をシールド側SDへ保存できるか（E-6）の調査。Linux→STM32の内部SPI、ビットレートと画質の実測、SD側のボトルネック
 - `lintaroh_share_YYYYMMDD.md`：Lintarohさんへの共有メモ。**Lintarohさんは回路担当と同一人物**で、回路・UNO Qのソフト・STM32ファームのすべてを担当している（`hardware_share_*`・`hardware_ans_*`の「回路担当」も同じ人）。最新は`lintaroh_share_20261009_2.md`（稼働中ソースの確定、CAN2のACKとループ監視の導入、**内部リセット後にLinuxとの通信路が戻らない件の相談**、Linux側の監視役`mcu-supervisor.py`、RAMの実際の限界）。その前が`lintaroh_share_20261009.md`（ファーム書き込みでLinux側UARTが固まる件、UNO Q上でしたこと、ソースの食い違い、E-6の結果と相談）と`lintaroh_share_20261009_power.md`（カメラ・モニターの機材構成案、UPSモジュールとの組み合わせで確認したいこと）、`lintaroh_share_20261010_sensorhub.md`（汎用センサーハブの仕様の要点と判断してほしい8項目。本体は`sensorhub_generic_spec.md`）
 - `lintaroh_answer_YYYYMMDD.md`：**Lintarohさんからの回答の一次資料**（本人がリポジトリへ直接push）。最新は`lintaroh_answer_20261009.md`（ファーム更新手順を共通の`EcoCapture-Web/flash-mcu.sh`へ統一、稼働中ファームの正しいソースは未確定、**STM32のRAMは現状でも映像用リングを足す余地が無い**、E-6の段階的な統合手順と本番採用の判定条件）
-- `kart_logger_display_survey.md`：カート用ロガー（MyChron等）の画面方式・夜の視認性・購入可否の調査メモと、Phase 6のサブディスプレイ用白黒液晶の部品候補（5章、本命はEA DOGXL240W-7＋緑赤バックライト）
+- `kart_logger_display_survey.md`：カート用ロガー（MyChron等）の画面方式・夜の視認性・購入可否の調査メモと、Phase 6のサブディスプレイ用白黒液晶の部品候補（5章、本命はEA DOGXL240W-7＋緑赤バックライト）、その買い方とバックライトの駆動（6章）
 - `ncec_next_session_checklist.md`：**NCECに実車接続する前に必ず開く**。実車が無いと解けない宿題の一覧
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
 - `firmware/`：ESP32（Seeed Studio XIAO ESP32C3）向けPlatformIO（ESP-IDF）プロジェクト
