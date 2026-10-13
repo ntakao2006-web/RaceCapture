@@ -178,6 +178,21 @@
    予備の分やほかの試作部品と一緒に注文する。
 3. 値段を優先するなら、メーカー直販でまとめて買う（GRが半値程度）。ただし日本へ送ってくれるかと送料を、注文前に確認する。
 
+### 6-5-2. 円で買えるか（2026-10-13追記、GRバックライトに決定）
+- **EA LED94X67-GRは円で買える**。
+  - **RSコンポーネンツ日本（jp.rs-online.com）**：日本語の商品ページがある（RS品番**197-1308**、「Display Visions 緑, 赤 ディスプレイ バックライト LED 40」）。
+    円で払え、¥3,000を超えれば送料無料で、GR 1個だけで超える見込み。1個から買える（英国のサイトで1〜4個は1個£23.37、在庫2）。
+    在庫は英国などの海外倉庫から送られる見込みなので、届くまでの日数は注文画面で確認する。
+  - **Mouser（mouser.jp）**：Mouser品番**790-EALED94X67-GR**。他の国のMouserのサイトで1個$27.71、在庫16。
+    mouser.jpは同じ在庫を円・関税込み（DDP）で売る仕組みなので、円で買えるはず（mouser.jpのページそのものは検索で確認できなかった）。
+- **液晶本体EA DOGXL240W-7も円で買える**。
+  - **DigiKey（digikey.jp）**：DigiKey品番**1481-1103-ND**。米国のサイトで1個$51.87、在庫345。digikey.jpは同じ在庫を円で売る。
+  - 注意：RSでは国によって**16個入りのトレー単位**（英国で£655.46）でしか売っていない。RS日本でも1個で買えるか、注文前に確認する。
+- **円でのおすすめの買い方**
+  1. mouser.jpで「EA DOGXL240W-7」も扱っていれば、**Mouserで液晶とGRをまとめて買う**（1回の注文で¥6,000を超え送料無料、関税込み）。
+  2. Mouserに液晶が無ければ、**液晶はdigikey.jp（1481-1103-ND）、GRはRS日本（197-1308）**。どちらも1店ずつで送料無料の条件を超える見込み。
+- 円の値段はどのサイトもページを直接開かないと出ず、ここでは確認できていない。上の値段は海外サイトの表示。
+
 ### 6-6. 未確認のこと
 - mouser.jp・digikey.jpでの円建て価格と在庫（ここに書いた値段は海外サイトの表示）。
 - メーカー直販が日本へ送るか、送料はいくらか。
@@ -216,5 +231,9 @@
 - u8g2のUC1611（EA DOGXL240）対応：https://git.tdem.in/olikraus/u8g2/blob/master/ChangeLog
 - DigiKey Japanの送料・取引条件：https://www.digikey.jp/ja/maker/search-results?pn=4156446
 - Mouser Japanの送料・取引条件：https://www.mouser.jp/medical
+- RS日本 EA LED94X67-GR（197-1308）：https://jp.rs-online.com/web/p/display-backlighting/1971308 、英国の価格・在庫：https://uk.rs-online.com/web/p/display-backlighting/1971308
+- Mouser EA LED94x67-GR（$27.71・在庫16）：https://www.mouser.pr/en/c/optoelectronics/backlighting-components/led-backlighting/?pg=2
+- DigiKey EA DOGXL240W-7（1481-1103-ND）：https://www.digikey.com/en/products/detail/display-visions/EA-DOGXL240W-7/1481-1103-ND/4896742
+- RS EA DOGXL240W-7（16個入りトレー）：https://uk.rs-online.com/web/p/lcd-monochrome-displays/1971300
 - RSコンポーネンツ日本の送料：https://jp.rs-online.com/web/content/m/first-time-purchase
 - NHD-C12864A1Z-FSW-FBW-HTT（ヒーター付き）：https://newhavendisplay.com/es/128x64-graphic-cog-lcd-display-with-white-backlight-heater/
