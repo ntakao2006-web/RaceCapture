@@ -8,19 +8,23 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from models import CHANNELS
+from models import CHANNELS, LAP_CHANNELS
 
 DEFAULT_CHANNELS = ['Lat','Lon','Altitude','GPSSpeed','Yaw','GPSFix','GPSSats',
                     'AccelX','AccelY','AccelZ','GyroX','GyroY','GyroZ','Roll','Pitch']
 RANGES = {'Lat':(-90,90),'Lon':(-180,180),'Altitude':(-500,9000),
           'GPSSpeed':(0,300),'Speed':(0,300),'Yaw':(0,360),'GPSFix':(0,5),
           'GPSSats':(0,64),'RPM':(0,10000),'Throttle':(0,100),'WaterTemp':(-40,150),
-          'BatteryVolt':(0,20)}
+          'BatteryVolt':(0,20),'LapCount':(0,10000),'CurrentLap':(0,10000),
+          'LapTime':(0,60),'BestLap':(0,60),'ElapsedTime':(0,60)}
 
 class PodiumConfig(BaseModel):
     model_config = ConfigDict(extra='forbid')
     enabled: bool = False
+    # 'lte': SIM7070 via STM32. 'wifi': the UNO Q's own Linux network (bench tests).
+    link: Literal['lte','wifi'] = 'lte'
     hardware_ready: bool = False
     host: str = Field(default='telemetry.podium.live', pattern=r'^[A-Za-z0-9][A-Za-z0-9.-]{0,252}$')
     port: int = Field(default=8080, ge=1, le=65535)
@@ -39,7 +43,8 @@ class PodiumConfig(BaseModel):
         for s in (self.username,self.password):
             if any(ord(c)<32 or ord(c)>126 or c in '"\\' for c in s):raise ValueError('Invalid AT credentials')
         if any(ord(c)<33 or ord(c)>126 for c in self.device_id):raise ValueError('Invalid key')
-        if self.enabled and not (self.hardware_ready and self.device_id and self.apn):raise ValueError('SIM, antenna, APN and key required')
+        if self.enabled and not self.device_id:raise ValueError('Key required')
+        if self.enabled and self.link=='lte' and not (self.hardware_ready and self.apn):raise ValueError('SIM, antenna and APN required')
         return self
 
 class ConfigStore:
@@ -90,8 +95,8 @@ def sensors(config,vehicle):
     custom={s.name:s.unit for s in vehicle.signals}
     result=[]
     for name in config.channels:
-        if name not in CHANNELS and name not in custom:raise ValueError('Unknown sensor')
-        unit=CHANNELS[name][1] if name in CHANNELS else custom[name]
+        if name not in CHANNELS and name not in custom and name not in LAP_CHANNELS:raise ValueError('Unknown sensor')
+        unit=CHANNELS[name][1] if name in CHANNELS else LAP_CHANNELS[name][1] if name in LAP_CHANNELS else custom[name]
         unit=unit.replace('°','deg').replace('²','^2')
         unit=unit.encode('ascii','replace').decode('ascii')
         low,high=RANGES.get(name,(-1000,1000))
@@ -102,6 +107,10 @@ def sensors(config,vehicle):
         if name not in config.channels:
             low,high=RANGES[name]
             result.append(Sensor(name,'deg' if name in ('Lat','Lon') else 'km/h',low,high))
+    # Lap channels (lap.py) are always offered; they are masked out until a line is set.
+    for name,(_,unit) in LAP_CHANNELS.items():
+        if name not in config.channels:
+            low,high=RANGES[name];result.append(Sensor(name,unit,low,high))
     # The official RaceCapture app always leads with these two system channels
     # (hardware_share_20261004_podium.md, measured 2026-10-04).
     return [Sensor('Interval','ms',0,0),Sensor('Utc','ms',0,0)]+result
@@ -118,7 +127,8 @@ def utc_milliseconds(sample):
         return int(stamp.timestamp())*1000+fraction
     except (ValueError,OverflowError):return None
 
-PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0}
+PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0,
+             'LapCount':0,'CurrentLap':0,'LapTime':4,'BestLap':4,'ElapsedTime':4}
 
 # Auth values confirmed against next-generation Podium on 2026-10-04: these are
 # what the official RaceCapture app 2.19.0 sends. The older
@@ -139,6 +149,7 @@ class Encoder:
         values=[];masks=[0]*((len(self.channels)+31)//32)
         for i,ch in enumerate(self.channels):
             value=sample.get('values',{}).get(ch.name,sample.get('can_signals',{}).get(ch.name))
+            if ch.name in LAP_CHANNELS:value=(sample.get('lap') or {}).get(ch.name)
             if ch.name=='Utc':value=utc_milliseconds(sample)
             if ch.name=='Interval':value=sample.get('mcu_ms')
             if ch.name=='Speed' and value is None:value=sample.get('values',{}).get('GPSSpeed')
@@ -162,26 +173,56 @@ async def authenticate(transport,timeout=20):
         if response['status']!='ok':raise AuthenticationError()
         return response
 
+class SocketTransport:
+    """Plain TCP over the Linux network (Wi-Fi). Same NDJSON stream as the LTE path."""
+    def __init__(self):self.reader=None;self.writer=None;self.phase='idle';self.operation='idle'
+    async def connect(self,config):
+        self.phase='podium_tcp_connect';self.operation='connect'
+        try:self.reader,self.writer=await asyncio.wait_for(asyncio.open_connection(config.host,config.port,limit=4096),20)
+        except (OSError,asyncio.TimeoutError):raise OSError('Socket open failed')
+        self.phase='podium_authentication'
+    async def send(self,data):
+        self.operation='send'
+        self.writer.write(data)
+        try:await asyncio.wait_for(self.writer.drain(),10)
+        except (OSError,asyncio.TimeoutError):raise ConnectionError('Socket no longer connected')
+    async def readline(self):
+        self.operation='readline'
+        try:raw=await asyncio.wait_for(self.reader.readline(),20)
+        except asyncio.TimeoutError:raise TimeoutError('Podium auth response timeout')
+        except ValueError:raise ValueError('Podium response too large')
+        if not raw:raise ConnectionError('Socket no longer connected')
+        return raw
+    async def close(self):
+        if self.writer:
+            self.writer.close()
+            with __import__('contextlib').suppress(Exception):await asyncio.wait_for(self.writer.wait_closed(),2)
+
+LINK_LABEL={'lte':'LTE','wifi':'Wi-Fi'}
+
 class PodiumSender:
     def __init__(self,root,runtime):
         self.store=ConfigStore(root);self.runtime=runtime
-        self.state={'state':'off','message':'LTE送信OFF','frames':0,'bytes':0,'reconnects':0,'skipped':0,'last_sent_age_ms':None}
+        self.state={'state':'off','message':'Podium送信OFF','frames':0,'bytes':0,'reconnects':0,'skipped':0,'last_sent_age_ms':None}
         self.sent_at=0;self.blocked_revision=None
 
     def status(self):
         return {**self.state,'target_hz':10,'last_sent_age_ms':round((time.monotonic()-self.sent_at)*1000) if self.sent_at else None,
-                'transport':'SIM7070G TCP / STM32 UART','configured':bool(self.store.config.device_id),'enabled':self.store.config.enabled}
+                'link':self.store.config.link,
+                'transport':'SIM7070G TCP / STM32 UART' if self.store.config.link=='lte' else 'Linux TCP (Wi-Fi)','configured':bool(self.store.config.device_id),'enabled':self.store.config.enabled}
 
     def set_state(self,name,message):self.state.update(state=name,message=message)
 
-    def sd_busy(self):
+    def sd_busy(self,config=None):
+        # Only the LTE path shares the MCU RPC link with SD reads/copies.
+        if config is not None and config.link!='lte':return False
         # Timestamp-only directory edits are serialized by the bridge and do
         # not require disconnecting telemetry after every recording stop.
         return self.runtime.sd.status.get('active') and self.runtime.sd.status.get('operation')!='timestamp'
 
     async def session(self,transport,config,revision):
         encoder=Encoder(sensors(config,self.runtime.config))
-        self.set_state('connecting','LTE回線へ接続中')
+        self.set_state('connecting',f'{LINK_LABEL[config.link]}でPodiumへ接続中')
         await transport.connect(config)
         self.set_state('authenticating','Podium認証中')
         await transport.send(encoder.auth(config.device_id))
@@ -191,7 +232,7 @@ class PodiumSender:
         fingerprint=[(c.name,c.unit,c.low,c.high) for c in encoder.channels]
         deadline=time.monotonic();last_seq=None
         while self.store.revision==revision:
-            if self.sd_busy():
+            if self.sd_busy(config):
                 raise ConnectionError('SD operation')
             updated=sensors(config,self.runtime.config)
             current=[(c.name,c.unit,c.low,c.high) for c in updated]
@@ -215,12 +256,12 @@ class PodiumSender:
             config=self.store.config;revision=self.store.revision
             if revision!=seen_revision:retry=0;seen_revision=revision
             if not config.enabled:
-                self.set_state('off','LTE送信OFF');await asyncio.sleep(.5);continue
+                self.set_state('off','Podium送信OFF');await asyncio.sleep(.5);continue
             if self.blocked_revision==revision:
                 self.set_state('auth_failed','認証失敗。送信キーを修正して保存してください。');await asyncio.sleep(.5);continue
-            if not self.runtime.bridge or not self.runtime.status()['connected'] or self.sd_busy():
+            if not self.runtime.bridge or not self.runtime.status()['connected'] or self.sd_busy(config):
                 self.set_state('waiting','MCU通信またはSD操作完了を待っています');await asyncio.sleep(.5);continue
-            transport=SIM7070(self.runtime.bridge)
+            transport=SIM7070(self.runtime.bridge) if config.link=='lte' else SocketTransport()
             try:
                 await self.session(transport,config,revision)
                 retry=0
@@ -233,13 +274,13 @@ class PodiumSender:
                 self.state['last_failure_stage']=transport.phase
                 self.state['last_failure_type']=type(exc).__name__
                 self.state['last_failure_operation']=getattr(transport,'operation','unknown')
-                safe_reasons={'Modem rejected operation','Modem response timeout',
+                safe_reasons={'Modem rejected operation','Podium response too large','Modem response timeout',
                     'Cellular connection closed','LTE receive overflow',
                     'LTE UART transmit rejected','Socket open failed',
                     'Socket no longer connected','Network registration timeout',
                     'Podium auth response timeout','SD operation'}
                 self.state['last_failure_reason']=str(exc) if str(exc) in safe_reasons else 'Transport error'
-                self.set_state('retry','LTEまたはPodiumへの接続に失敗。再接続を待っています。')
+                self.set_state('retry',f'{LINK_LABEL[config.link]}またはPodiumへの接続に失敗。再接続を待っています。')
                 retry=min(5,retry+1)
             finally:
                 with __import__('contextlib').suppress(Exception):await transport.close()

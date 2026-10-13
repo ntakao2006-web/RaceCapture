@@ -25,6 +25,16 @@ CAN1/2ともClassic CAN・受信専用です。125/250/500/1000kbpsを選択で�
 
 LTE送信は初期状態OFFです。SIM7070の内蔵TCPを使うPodiumクライアントと設定画面を追加しました。SIM・LTEアンテナ・APN・Podium送信キーを揃えてから、Settings → UNO Q → LTE / Podiumで送信を開始します。2026-10-03にSORACOM planX3 X3-5MBでドコモLTE-M Band 19への登録、DNS、TCP、短いHTTP応答を確認しました。起動直後のSIM準備待ちを修正し、最終5回の電源再投入接続が成功。Podiumは送信キー未設定のため未検証です。5MB枠を考慮し、LTEはOFFのまま、検証通信を短いヘッダーのみに限定します。PPPは不要な構成で、Linux全体をLTEでオンラインにする機能はありません。TVSを外して復旧した状態なので、保護部品の交換は別途必要です。カメラは未接続です。
 
+## ラップ計測
+
+Settings → 基本設定 / CAN の「ラップ計測」で、コントロールライン上（測位中）で「ここをラインにする」を押します。止まったまま登録した場合は、最初に通過したときの進行方向を覚え、以後はその向きの通過だけを数えます。ライン幅（初期30 m）と最短ラップ（初期60秒）を変えられます。記録中でも変更できます。
+
+時刻はGNSSのUTCで、Linuxの時計は使いません。連続する3D測位（間隔1秒以内・水平精度25 m以内）の間でラインを横切ったときだけ数えます。周回数・ラップは `lap.json` に保存し、再起動後も続きから数えます。レース開始前に「周回数をリセット」を押します。最大ラップ（初期3600秒）より長い間隔の通過は数えずに、そこから新しいラップを始めます。
+
+Dashboardに周回・現在ラップ・前回・ベストを表示し、eMMCのCSVに `LapCount`・`CurrentLap`・`LapTime`・`BestLap`・`ElapsedTime`（RaceCapture準拠、時間は分単位）を追加しました。Podiumにも常に送ります（ライン未設定の間は空欄）。STM32のSD記録にはラップは入りません（GNSSから後で再計算できます）。
+
+Podium送信は Settings → UNO Q で **LTE（本番）／Wi-Fi（試験）** を選べます。Wi-FiはUNO Q自身のネット接続を使い、APN・SIMの確認は不要です。
+
 ## 保存先・障害時
 
 Linux: `/home/arduino/ecocapture-v2-data/logs` にCSV、CAN JSONL、メタデータ。1秒ごとにflush/fsyncし、空き256MiBを下回るとeMMC記録を停止します。再起動で中断されたCSVはメタデータを `interrupted` にします。設定は同データディレクトリの `config.json` です。

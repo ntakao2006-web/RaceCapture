@@ -55,6 +55,14 @@ CHANNELS = {
     "Distance": ("累積距離", "km"), "WaterTemp": ("水温", "°C")
 }
 
+# Computed on Linux by lap.py, outside the MCU sample. Names and the minute
+# unit follow RaceCapture so Podium can show them.
+LAP_CHANNELS = {
+    "LapCount": ("完了周回数", ""), "CurrentLap": ("走行中の周", ""),
+    "LapTime": ("前回ラップ", "Min"), "BestLap": ("ベストラップ", "Min"),
+    "ElapsedTime": ("現在ラップ経過", "Min")
+}
+
 def validate_sample(value):
     if not isinstance(value, dict) or value.get("source") not in ("stm32-dummy", "logger-v2-hardware") or value.get("demo") is not (value.get("source")=="stm32-dummy") or value.get("schema") != 1:
         raise ValueError("Unexpected MCU telemetry source/schema")

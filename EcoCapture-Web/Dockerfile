@@ -2,7 +2,7 @@ FROM ghcr.io/arduino/app-bricks/python-apps-base:0.5.0
 WORKDIR /app
 COPY --chown=1000:1000 vendor /app/vendor
 ENV PYTHONPATH=/app/vendor
-COPY --chown=1000:1000 podium.py sim7070.py hardware.py sd_storage.py sd_timestamp.py sd_decode.py server.py models.py public_server.py telemetry_bridge.py ncec.py /app/
+COPY --chown=1000:1000 podium.py lap.py sim7070.py hardware.py sd_storage.py sd_timestamp.py sd_decode.py server.py models.py public_server.py telemetry_bridge.py ncec.py /app/
 COPY --chown=1000:1000 web /app/web
 COPY --chown=1000:1000 public /app/public
 ENV PYTHONPYCACHEPREFIX=/tmp/pycache

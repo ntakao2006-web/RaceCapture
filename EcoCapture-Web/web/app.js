@@ -4,6 +4,7 @@ let config, channels = [], latest = null, lastMessage = 0, socket, retry = 0, pa
 let trend = [], track = [], solveTrack = [], lastSeq = null, deleteTarget = null;
 const format = (value, digits = 1) => Number.isFinite(value) ? value.toLocaleString('en-US', {minimumFractionDigits:digits, maximumFractionDigits:digits}) : '—';
 const elapsed = s => [Math.floor(s/3600), Math.floor(s/60)%60, Math.floor(s)%60].map(x=>String(x).padStart(2,'0')).join(':');
+const lapClock = minutes => { if (!Number.isFinite(minutes)) return '—'; const s = minutes*60; return `${Math.floor(s/60)}:${(s%60).toFixed(1).padStart(4,'0')}`; };
 const bytes = n => n >= 1048576 ? `${format(n/1048576,1)} MiB` : `${format(n/1024,1)} KiB`;
 function message(text, error = false) { $('message').textContent = text; $('message').hidden = !text; if (error) console.error(text); }
 async function api(path, method = 'GET', body) {
@@ -52,6 +53,7 @@ function connect() {
 function invalidate() {
   document.querySelectorAll('[data-value]').forEach(x=>x.textContent='—');
   $('rpm-value').textContent='—'; $('rpm-bar').value=0; $('connection').textContent='接続待ち / 値は無効';
+  ['lap-count','lap-elapsed','lap-last','lap-best'].forEach(id=>$(id).textContent='—');
   $('rate').textContent='受信 — Hz'; $('start-log').disabled=true; $('footer-status').textContent='通信待ち';
   $('rec-badge').textContent='記録状態を確認中'; $('rec-badge').classList.remove('recording');
   $('rec-time').textContent='—'; $('stop-log').disabled=true; $('save-config').disabled=true;
@@ -65,6 +67,10 @@ function update(frame) {
   $('rpm-value').textContent=vehicle ? format(v.RPM,0) : '—'; $('rpm-bar').value=vehicle ? v.RPM||0 : 0;
   $('rpm-hint').textContent=vehicle ? `スロットル ${format(v.Throttle,1)} %` : '車載CAN接続なし';
   $('profile-label').textContent=config?.profile==='ncec-2005-mt'?'NCEC 2005 MT / NOPRO':vehicle?'車両表示':'車載CAN接続なし';
+  const lap=frame.sample?.lap||{};
+  $('lap-count').textContent=Number.isFinite(lap.LapCount)?String(lap.LapCount):'—';
+  $('lap-elapsed').textContent=lapClock(lap.ElapsedTime);$('lap-last').textContent=lapClock(lap.LapTime);$('lap-best').textContent=lapClock(lap.BestLap);
+  $('lap-hint').textContent=lap.LapCount===undefined||lap.LapCount===null?'ラップ計測は未設定です（Settings → ラップ計測）':lap.CurrentLap===0?'ライン通過を待っています（最初の通過から1周目）':'';
   $('connection').textContent=s.connected?'● MCU受信中':'MCU通信待ち / 値は無効';
   $('device-name').textContent=s.device; $('rate').textContent=`受信 ${format(s.receive_hz,1)} Hz`;
   $('sample-seq').textContent=`SEQ ${frame.sample?.seq ?? '—'}`;

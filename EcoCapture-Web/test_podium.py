@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 import msgpack
-from podium import ConfigStore,Encoder,Sensor,PodiumConfig,PodiumSender,AuthenticationError,sensors,authenticate
+from podium import ConfigStore,Encoder,Sensor,PodiumConfig,PodiumSender,AuthenticationError,SocketTransport,sensors,authenticate
 from models import Configuration,CHANNELS
 from sim7070 import SIM7070,LTEUART
 
@@ -25,7 +25,7 @@ class ProtocolTests(unittest.TestCase):
         encoder=Encoder(sensors(PodiumConfig(),Configuration()))
         meta=json.loads(encoder.meta())['s']['meta']
         names={'Lat':'Latitude','Lon':'Longitude'}
-        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed'])
+        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime'])
         self.assertEqual(meta[2]['ut'],'deg');self.assertEqual(meta[2]['prec'],6)
         data={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35},'password':'secret','imu_raw':'private','can_frames':['private']}
         self.assertNotIn('private',encoder.sample(data).decode())
@@ -35,11 +35,18 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{}})),{'s':{'d':[0,0,0],'t':0}})
     def test_required_context_and_gnss_utc_milliseconds(self):
         encoder=Encoder(sensors(PodiumConfig(channels=['RPM']),Configuration()))
-        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed'])
+        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime'])
         sample={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35.123456789,'Lon':139.123456789,'GPSSpeed':12.5},'gnss_utc':'1970-01-01T00:00:01Z','gnss_itow_ms':1234}
         self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[1234,35.123457,139.123457,12.5,58])
         sample['gnss_utc']='bad';sample['values']={}
         self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[0])
+    def test_lap_values_come_from_lap_timer(self):
+        encoder=Encoder(sensors(PodiumConfig(channels=['GPSSats']),Configuration()))
+        names=[c.name for c in encoder.channels]
+        sample={'source':'logger-v2-hardware','demo':False,'values':{'LapCount':99},'lap':{'LapCount':3,'LapTime':1.5}}
+        d=json.loads(encoder.sample(sample))['s']['d']
+        self.assertEqual(d[:2],[3,1.5]);self.assertEqual(d[2],1<<names.index('LapCount')|1<<names.index('LapTime'))
+        self.assertEqual(json.loads(encoder.meta())['s']['meta'][names.index('LapTime')]['ut'],'Min')
     def test_sample_counter_and_interval(self):
         encoder=Encoder([Sensor('Interval','ms',0,0),Sensor('V','',0,1)])
         first=json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'mcu_ms':12300,'values':{'V':1}}))['s']
@@ -60,6 +67,15 @@ class ProtocolTests(unittest.TestCase):
             with self.assertRaises(ValueError):PodiumConfig(**data)
         with tempfile.TemporaryDirectory() as root:
             with self.assertRaises(ValueError):ConfigStore(root).update({'channels':['Unknown']},CHANNELS)
+    def test_wifi_enable_needs_only_key(self):
+        self.assertTrue(PodiumConfig(link='wifi',enabled=True,device_id='k').enabled)
+        for data in ({'link':'wifi','enabled':True},{'link':'lte','enabled':True,'device_id':'k'},{'link':'usb'}):
+            with self.assertRaises(ValueError):PodiumConfig(**data)
+    def test_saved_config_without_link_loads_as_lte(self):
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/'private'/'podium.json';path.parent.mkdir()
+            path.write_text(json.dumps({k:v for k,v in PodiumConfig().model_dump().items() if k!='link'}))
+            store=ConfigStore(root);self.assertIsNone(store.error);self.assertEqual(store.config.link,'lte')
     def test_rpc_chunk_fits_worst_message_id(self):
         self.assertLessEqual(len(msgpack.packb([0,0xffffffff,'logger.ltex',['ff'*18]])),64)
 
@@ -187,6 +203,35 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             sender.store.revision+=1;await task
             self.assertTrue(8.5<=count/duration<=11.5,(count,duration))
             self.assertTrue(all(b-a>=.085 for a,b in zip(transport.times,transport.times[1:])))
+    async def test_wifi_socket_auth_meta_sample(self):
+        received=[]
+        async def handle(reader,writer):
+            received.append(await reader.readline())
+            writer.write(b'{"status":"ok","lt":0}\n');await writer.drain()
+            received.append(await reader.readline());received.append(await reader.readline())
+            writer.close()
+        server=await asyncio.start_server(handle,'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        config=PodiumConfig.model_construct(**{**PodiumConfig(link='wifi',device_id='k').model_dump(),'host':'127.0.0.1','port':port})
+        transport=SocketTransport();encoder=Encoder(sensors(config,Configuration()))
+        async with server:
+            await transport.connect(config)
+            await transport.send(encoder.auth('k'))
+            self.assertEqual((await authenticate(transport))['status'],'ok')
+            await transport.send(encoder.meta())
+            await transport.send(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{'Lat':35}}))
+            await asyncio.sleep(.1);await transport.close()
+        self.assertIn('auth',json.loads(received[0])['cmd']);self.assertIn('meta',json.loads(received[1])['s'])
+        self.assertIn('d',json.loads(received[2])['s'])
+    async def test_wifi_socket_refused_is_safe_reason(self):
+        config=PodiumConfig.model_construct(**{**PodiumConfig(link='wifi').model_dump(),'host':'127.0.0.1','port':1})
+        with self.assertRaisesRegex(OSError,'Socket open failed'):await SocketTransport().connect(config)
+    async def test_wifi_ignores_sd_operations_lte_does_not(self):
+        class Runtime:
+            class sd:status={'active':True,'operation':'copy'}
+        with tempfile.TemporaryDirectory() as root:
+            sender=PodiumSender(root,Runtime())
+            self.assertFalse(sender.sd_busy(PodiumConfig(link='wifi')))
+            self.assertTrue(sender.sd_busy(PodiumConfig(link='lte')))
     async def test_disabled_does_not_touch_uart(self):
         with tempfile.TemporaryDirectory() as root:
             sender=PodiumSender(root,object())

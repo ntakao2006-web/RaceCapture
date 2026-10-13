@@ -7,7 +7,7 @@ function podiumState(s){
 async function loadPodium(){
   const data=await api('/api/podium'),c=data.config;podiumState(data.status);
   $('podium-apn').value=c.apn;$('podium-user').value=c.username;$('podium-host').value=c.host;$('podium-port').value=c.port;
-  $('podium-hardware').checked=c.hardware_ready;$('podium-enabled').checked=c.enabled;
+  $('podium-hardware').checked=c.hardware_ready;document.querySelector(`input[name=podium-link][value=${c.link}]`).checked=true;$('podium-enabled').checked=c.enabled;
   $('podium-key').placeholder=c.key_configured?'保存済み / 空欄で変更しない':'Podiumの送信キー';
   $('podium-password').placeholder=c.password_configured?'保存済み / 空欄で変更しない':'APNパスワード（必要な場合）';
   $('podium-channels').replaceChildren(...data.channels.map(ch=>{const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.value=ch.name;box.checked=c.channels.includes(ch.name);label.append(box,` ${ch.label} (${ch.name})`);return label;}));
@@ -15,9 +15,9 @@ async function loadPodium(){
 }
 $('podium-form').onsubmit=event=>{event.preventDefault();action(async()=>{
   podiumBusy=true;
-  const data={enabled:$('podium-enabled').checked,hardware_ready:$('podium-hardware').checked,apn:$('podium-apn').value,username:$('podium-user').value,password:$('podium-password').value,device_id:$('podium-key').value,host:$('podium-host').value,port:Number($('podium-port').value),channels:[...$('podium-channels').querySelectorAll('input:checked')].map(x=>x.value)};
+  const data={link:document.querySelector('input[name=podium-link]:checked').value,enabled:$('podium-enabled').checked,hardware_ready:$('podium-hardware').checked,apn:$('podium-apn').value,username:$('podium-user').value,password:$('podium-password').value,device_id:$('podium-key').value,host:$('podium-host').value,port:Number($('podium-port').value),channels:[...$('podium-channels').querySelectorAll('input:checked')].map(x=>x.value)};
   $('podium-password').value='';$('podium-key').value='';
-  try{await api('/api/podium','POST',data);await loadPodium();$('podium-result').textContent='LTE設定を保存しました。';}
+  try{await api('/api/podium','POST',data);await loadPodium();$('podium-result').textContent='送信設定を保存しました。';}
   finally{data.password='';data.device_id='';podiumBusy=false;}
 });};
 $('podium-stop').onclick=()=>action(async()=>{await api('/api/podium','POST',{enabled:false});await loadPodium();});

@@ -19,8 +19,9 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sd_storage import SDStorage
 from sd_timestamp import stamp_logs
-from models import CHANNELS, Configuration, validate_sample
+from models import CHANNELS, LAP_CHANNELS, Configuration, validate_sample
 from podium import PodiumSender
+from lap import LapLine, LapTimer
 
 ROOT = Path(os.environ.get("ECOCAPTURE_DATA", "/data"))
 ROOT.mkdir(parents=True, exist_ok=True)
@@ -71,12 +72,12 @@ class Recorder:
             "started_utc": self.started, "config": config.model_dump(),
             "mcu_generation_hz": 100, "linux_poll_target_hz": 20,
             "clock": "host_utc is Linux reception time, not GNSS time; mcu_ms wraps at 2^32",
-            "units": {k: unit for k, (_, unit) in CHANNELS.items()}, "state": "recording"
+            "units": {k: unit for k, (_, unit) in {**CHANNELS, **LAP_CHANNELS}.items()}, "state": "recording"
         })
         self.file = (LOGS / self.name).open("x", encoding="utf-8", newline="")
         self.can_file = (LOGS / (self.name + ".can.jsonl")).open("x",encoding="utf-8")
         self.writer = csv.writer(self.file)
-        self.writer.writerow(["schema", "demo", "source", "host_utc", "seq", "mcu_ms", *CHANNELS,"gnss_utc","gnss_itow_ms","imu_raw","imu_temperature_C","imu_calibration","quaternion","gnss_hacc_m","can_signals"])
+        self.writer.writerow(["schema", "demo", "source", "host_utc", "seq", "mcu_ms", *CHANNELS,"gnss_utc","gnss_itow_ms","imu_raw","imu_temperature_C","imu_calibration","quaternion","gnss_hacc_m","can_signals",*LAP_CHANNELS])
         self.last_sync = time.monotonic()
         self.last_check = 0
 
@@ -90,7 +91,7 @@ class Recorder:
                 if shutil.disk_usage(ROOT).free < RESERVE_BYTES:
                     raise OSError("Storage reserve reached (256 MiB)")
             self.writer.writerow([1, int(sample["demo"]), sample["source"], sample["host_utc"], sample["seq"], sample["mcu_ms"],
-                                  *(sample["values"][k] for k in CHANNELS),sample.get("gnss_utc"),sample.get("gnss_itow_ms"),sample.get("imu_raw"),sample.get("imu_temperature_C"),json.dumps(sample.get("imu_calibration")),json.dumps(sample.get("quaternion")),sample.get("gnss_hacc_m"),json.dumps(sample.get("can_signals",{}))])
+                                  *(sample["values"][k] for k in CHANNELS),sample.get("gnss_utc"),sample.get("gnss_itow_ms"),sample.get("imu_raw"),sample.get("imu_temperature_C"),json.dumps(sample.get("imu_calibration")),json.dumps(sample.get("quaternion")),sample.get("gnss_hacc_m"),json.dumps(sample.get("can_signals",{})),*((sample.get("lap") or {}).get(k) for k in LAP_CHANNELS)])
             self.rows += 1
             if now - self.last_sync >= 1:
                 if self.can_file:self.can_file.flush();os.fsync(self.can_file.fileno())
@@ -167,6 +168,7 @@ class Runtime:
         self._frame_at = -1.0
         self._frame_text = ''
         self.podium = PodiumSender(ROOT,self)
+        self.laps = LapTimer(ROOT)
         self.podium_task = None
         self.podium_checking = False
         self.record_lock = asyncio.Lock()
@@ -224,6 +226,7 @@ class Runtime:
                     sample=validate_sample(sample)
                     if self.sample and sample['mcu_ms'] < self.sample['mcu_ms']:self.resets+=1;configured=False
                     sample['host_utc']=datetime.now(timezone.utc).isoformat()
+                    sample['lap']=self.laps.update(sample)
                     self.sample=sample;self.received_at=time.monotonic();self.received+=1
                     if not self.auto_started and self.config.auto_record:
                         self.auto_started=True
@@ -260,6 +263,7 @@ def public_snapshot():
     if status['connected']:
         sample={key:runtime.sample[key] for key in ('schema','source','demo','seq','mcu_ms','host_utc')}
         sample['values']={key:runtime.sample['values'][key] for key in CHANNELS}
+        sample['lap']=runtime.laps.values()
     return {'type':'telemetry','status':safe,'sample':sample,'_exported_monotonic':time.monotonic()}
 
 
@@ -393,7 +397,7 @@ async def save_podium(request:Request):
         runtime.podium.store.update(body,[*CHANNELS,*(s.name for s in runtime.config.signals)])
     except (ValueError,TypeError):
         # Pydantic's default error payload echoes input (including the streaming key).
-        raise HTTPException(400,'設定を確認してください。送信ONにはSIM・アンテナ確認、APN、送信キーが必要です。')
+        raise HTTPException(400,'設定を確認してください。送信ONには送信キーが必要です。LTEではさらにSIM・アンテナ確認とAPNが必要です。')
     except OSError:raise HTTPException(507,'LTE設定を保存できませんでした。')
     if runtime.podium_task:
         runtime.podium_task.cancel()
@@ -486,6 +490,39 @@ async def ncec_decode(request: Request):
         return decode_text(body['text'])
     except ValueError as exc:
         raise HTTPException(400, str(exc))
+
+
+@app.get('/api/lap')
+def lap_status():
+    return runtime.laps.public()
+
+
+@app.post('/api/lap')
+async def save_lap(request:Request):
+    try:
+        body=await request.json()
+        if not isinstance(body,dict):raise ValueError()
+        runtime.laps.configure(LapLine.model_validate({**runtime.laps.line.model_dump(),**body}))
+    except (ValueError,TypeError):raise HTTPException(400,'ラップ設定を確認してください。')
+    except OSError:raise HTTPException(507,'ラップ設定を保存できませんでした。')
+    return runtime.laps.public()
+
+
+@app.post('/api/lap/here')
+async def lap_here(request:Request):
+    body=await request.json() if int(request.headers.get('content-length','0')) else {}
+    if not runtime.status()['connected']:raise HTTPException(409,'MCUからの受信を待っています。')
+    try:runtime.laps.set_here(runtime.sample,body.get('width_m') if isinstance(body,dict) else None)
+    except ValueError:raise HTTPException(409,'GNSSが測位していません。屋外で測位してから登録してください。')
+    except OSError:raise HTTPException(507,'ラップ設定を保存できませんでした。')
+    return runtime.laps.public()
+
+
+@app.post('/api/lap/reset')
+async def lap_reset():
+    try:runtime.laps.reset()
+    except OSError:raise HTTPException(507,'ラップ記録を消去できませんでした。')
+    return runtime.laps.public()
 
 
 @app.get("/api/channels")

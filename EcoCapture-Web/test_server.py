@@ -98,6 +98,27 @@ class ServerTests(unittest.TestCase):
         self.s.runtime.sample = self.sample()
         self.s.runtime.received_at = time.monotonic()
 
+    def test_lap_line_api_and_csv_columns(self):
+        from models import LAP_CHANNELS
+        self.assertEqual(self.client.post('/api/lap/here', headers=self.headers).status_code, 409)
+        self.connected()
+        self.s.runtime.sample['values'].update(Lat=None, Lon=None)
+        self.assertEqual(self.client.post('/api/lap/here', headers=self.headers).status_code, 409)
+        self.s.runtime.sample['values'].update(Lat=36.5, Lon=140.2, GPSSpeed=0)
+        line = self.client.post('/api/lap/here', headers=self.headers, json={'width_m': 40}).json()['line']
+        self.assertTrue(line['enabled']); self.assertEqual(line['width_m'], 40); self.assertIsNone(line['bearing'])
+        self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'min_lap_s': 1}).status_code, 400)
+        self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'min_lap_s': 90}).json()['line']['min_lap_s'], 90)
+        self.assertEqual(self.client.post('/api/lap/reset', headers=self.headers).json()['values']['LapCount'], 0)
+        self.assertEqual(self.client.post('/api/lap/reset').status_code, 403)
+        self.s.runtime.recorder.start(Configuration())
+        sample = self.sample(); sample['lap'] = {'LapCount': 2, 'LapTime': 1.25}
+        self.s.runtime.recorder.append(sample); self.s.runtime.recorder.stop()
+        with (self.s.LOGS / self.s.runtime.recorder.name).open(encoding='utf-8') as f:
+            rows = list(csv.DictReader(f))
+        self.assertEqual(rows[0]['LapCount'], '2'); self.assertEqual(rows[0]['LapTime'], '1.25'); self.assertEqual(rows[0]['BestLap'], '')
+        self.assertTrue(set(LAP_CHANNELS) <= set(rows[0]))
+
     def test_stale_data_cleared_and_no_disconnected_recording(self):
         self.connected()
         self.assertIsNotNone(self.client.get("/api/telemetry").json()["sample"])
