@@ -63,6 +63,10 @@ UNO Q内での更新は `deploy.sh` と `build-mcu.sh`。ソースは `firmware/
 
 `ecocapture-mcu-supervisor.service`（`mcu-supervisor.py`、rootで常駐、導入は`install-mcu-supervisor.sh`）は、`/api/status`の`connected`が30秒以上falseのままなら「Web停止 → ルーター再起動 → NRSTリセット → Web起動」でMCUとの通信を戻します。起動後120秒は監視せず、書き込み中（`flash-mcu.sh`実行中）とWebに届かないときは何もしません。復帰は120秒に1回まで、3回続けて戻らなければ10分おきに下げます。MCUの内部リセット（ループ監視など）後に通信路が戻らない問題への対処で、2026-10-09にループ停止試験で停止から48秒での自動復帰を確認しました。
 
+2026-10-13補強: 復旧は `flash-mcu.sh --recover` へ集約し、ファーム更新と同じ `/run/lock/ecocapture-mcu.lock` の `flock` を取得します。競合中は終了コード75で操作を延期し、復旧失敗回数に含めません。ルーター停止確認→起動待ち→NRSTリセットの順序は更新時と共通です。`connected` が明示的な真偽値でないAPI応答は監視不能として扱います。Web停止後の復旧失敗は自動でWebを再開しないため、journalを確認して手動復旧します。この補強版の実機適用・復旧時間測定は未実施です。
+
+Windows更新は、既に動いている監視サービスをファイル転送後に再起動してから更新します。停止中のサービスは起動・有効化しません。手動配置では監視サービスを再起動し、古い監視プロセスを残したまま新しい更新手順を使わないでください。診断資料は `python3 mcu_diagnostics.py --output <保存先>.json` で採取できます。ttyHS1やGPIOを操作せず、TTYカウンタ、GENI/UART関連のカーネルログ、ルーター状態・journalを保存します。詳しい返答は `lintaroh_answer_20261013_2.md`。
+
 `Update-UNOQ.ps1 -Firmware` は上書き前のUNO Q上のソースを `~/ecologger-source-backups/` とPCの `other/uno_q_tools/source-backups/` に保存します。これはソースの退避で、稼働中フラッシュの読み出しではありません。ソースの照合は `firmware/ecologger_v2/compare_sources.py`、ビルドイメージの静的領域の集計は `audit_image.py` を使用します。詳しい返答と統合条件は `lintaroh_answer_20261009.md`。
 
 診断結果と現在の検証範囲は `outputs/logger_v2_bench_20261001/production` を参照してください。

@@ -1,5 +1,6 @@
 """Exercise flashing failure boundaries with fake commands, without hardware (Linux/WSL)."""
 import json
+import fcntl
 import os
 from pathlib import Path
 import subprocess
@@ -38,7 +39,7 @@ raise SystemExit(0)
 
 
 class FlashOrderTests(unittest.TestCase):
-    def run_flash(self, fail='', size=1024):
+    def run_flash(self, fail='', size=1024, recovery=False, busy=False):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder); commands=root/'bin'; commands.mkdir()
             for name in ('timeout','sleep','docker','systemctl','install','arduino-flash.sh','openocd'):
@@ -47,15 +48,20 @@ class FlashOrderTests(unittest.TestCase):
             installer.write_text((Path(__file__).parent/'install-router.sh').read_text()
                                  .replace('/etc/systemd/system/arduino-router.service.d',str(root/'service')))
             script=root/'flash-mcu.sh'
+            lock=root/'maintenance.lock'; lock.touch()
             script.write_text((Path(__file__).parent/'flash-mcu.sh').read_text()
                               .replace('/opt/openocd/bin/arduino-flash.sh',str(commands/'arduino-flash.sh'))
                               .replace('/opt/openocd/bin/openocd',str(commands/'openocd'))
                               .replace('/home/arduino/EcoCapture-Web/install-router.sh',str(installer))
-                              .replace('/var/run/arduino-router.sock',str(root/'router.sock')))
+                              .replace('/var/run/arduino-router.sock',str(root/'router.sock'))
+                              .replace('/run/lock/ecocapture-mcu.lock',str(lock)))
             image=root/'image with spaces.bin'; image.write_bytes(b'X'*size)
             env={**os.environ,'PATH':str(commands)+':'+os.environ['PATH'],
                  'EVENTS':str(root/'events'),'SOCKET':str(root/'router.sock'),'FAIL':fail}
-            result=subprocess.run(['sh',str(script),str(image)],env=env,capture_output=True,text=True,timeout=10)
+            with lock.open() as held:
+                if busy: fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                result=subprocess.run(['sh',str(script),'--recover' if recovery else str(image)],
+                                      env=env,capture_output=True,text=True,timeout=10)
             events=[json.loads(line) for line in (root/'events').read_text().splitlines()] if (root/'events').exists() else []
             return result,events
 
@@ -101,6 +107,21 @@ class FlashOrderTests(unittest.TestCase):
         result,events=self.run_flash('reset')
         self.assertEqual(result.returncode,8)
         self.assertFalse(any(e[:2]==['docker','start'] for e in events))
+
+    def test_recovery_uses_same_order_without_flashing(self):
+        result,events=self.run_flash(recovery=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertFalse(any(e[0]=='arduino-flash.sh' for e in events))
+        self.assertTrue(any(e[0]=='openocd' for e in events))
+        self.assertEqual([e[1] for e in events if e[0]=='systemctl' and e[1] in ('stop','start','restart')],
+                         ['stop','start'])
+
+    def test_shared_lock_blocks_both_flash_and_recovery_before_device_changes(self):
+        for recovery in (False,True):
+            with self.subTest(recovery=recovery):
+                result,events=self.run_flash(recovery=recovery,busy=True)
+                self.assertEqual(result.returncode,75)
+                self.assertEqual(events,[])
 
 
 if __name__=='__main__':

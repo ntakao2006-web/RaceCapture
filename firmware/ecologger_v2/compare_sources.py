@@ -12,7 +12,7 @@ from pathlib import Path
 
 def snapshot(root):
     files = sorted(p for p in root.iterdir() if p.is_file() and
-                   (p.suffix in ('.h', '.ino') or p.name in ('build.sh', 'compact_symbols.py')))
+                   (p.suffix in ('.h', '.ino') or p.name in ('build.sh', 'compact_symbols.py', 'bridge_patch.py')))
     if not files or not (root / 'logger_impl.h').is_file():
         raise ValueError('Expected an ecologger_v2 source directory with logger_impl.h')
     return {'schema': 'ecologger-v2-source-v1', 'files': {

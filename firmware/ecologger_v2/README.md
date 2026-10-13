@@ -11,7 +11,7 @@
 - Bridge: 921600bps、取得処理とは別スレッドで登録。LinuxがいなくてもSD取得・記録を開始。
 - ループ監視（2026-10-09）：取得メインループが30秒以上止まると、5秒周期の`k_timer`が`NVIC_SystemReset()`でMCUを再起動する（`sys_reboot`はスケッチ側へ公開されておらずリンクできない。スレッド方式はRAM枠を超えた）。SDフォーマット等の明示的な長時間コマンド中は監視を止める。
 - ⚠️ Linuxとの通信中にSTM32内部からリセットすると、再起動後もSD記録は続くが、Linuxとの通信路は戻らない（原因未特定）。Linux側の`EcoCapture-Web/mcu-supervisor.py`が30秒以上の切断を検知し、NRSTリセット手順で復帰させる。
-- `build.sh`はRouterBridgeの受信スレッドを`$/reset`完了前から動かすよう修正する。修正前は完了を待つ間`k_yield()`で空回りし、優先度の低いSD保存スレッドが止まっていた（内部リセット後にSDが0バイトになった原因）。
+- `build.sh`はRouterBridgeの受信スレッドを`$/reset`完了前から動かすよう修正する。2026-10-13に、依頼が続く場合も優先度の低いSD保存スレッドへ実行機会を渡すため、更新ループ末尾を`k_msleep(1)`へ補強した。既知の元コード・前回修正・適用済みの形だけを受け入れ、未知の形ではビルドを止める。補強版の再ビルド・実機測定は未実施。SDが止まった際の正確な待機箇所は、インストール済みライブラリのソースとスレッド状態で確認する。
 - 試験用ビルド：`logger_impl.h`の先頭に`#define LOGGER_STALL_TEST`を足すと、`logger.command`の`STALLTEST`（ループ停止）と`RESETNOW`（即リセット）が使える。本番イメージには入れない。
 - RAM：静的集計130,365Bまでは起動、130,601Bはエラーを出さずに起動しなかった（ローダー追加領域ぶん、128KiBより手前が実際の限界）。
 - LTE: A3/A2は初期状態LOW。UART IRQでRX4096/TX512バイト、GPIO RTS/CTS。LinuxのLTE専用操作が20秒途絶えたら電源OFF。設定とTCP/Podium処理はUNO Q内のEcoCapture-Webが担当。詳細は `EcoCapture-Web/LTE_PODIUM.md`。
