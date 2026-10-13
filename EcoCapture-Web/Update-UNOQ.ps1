@@ -1,7 +1,13 @@
-param([string]$Serial='3263089125',[switch]$Firmware)
+﻿param([string]$Serial='3263089125',[switch]$Firmware)
 $ErrorActionPreference='Stop'
 $taskTools=Join-Path $PSScriptRoot '..\other\uno_q_tools'
 $taskAdb=Join-Path $taskTools 'platform-tools\adb.exe'
+if(-not (Test-Path -LiteralPath $taskAdb)){
+    # Fall back to adb on PATH or the Android SDK tools installed by the Claude app.
+    $taskAdbCommand=Get-Command adb -ErrorAction SilentlyContinue
+    if($taskAdbCommand){$taskAdb=$taskAdbCommand.Source}else{$taskAdb=Join-Path $env:LOCALAPPDATA 'AndroidSdkTools\platform-tools\adb.exe'}
+}
+New-Item -ItemType Directory -Force -Path $taskTools | Out-Null
 function Invoke-CheckedAdb([string[]]$TaskArguments){& $taskAdb @TaskArguments;if($LASTEXITCODE -ne 0){throw 'UNO Qとの通信・更新に失敗しました。USB接続を確認してください。'}}
 $taskState=& $taskAdb -s $Serial get-state 2>$null
 if($LASTEXITCODE -ne 0 -or $taskState.Trim() -ne 'device'){throw 'UNO QがUSBで接続されていません。USBを抜き差しし、起動を待ってください。'}

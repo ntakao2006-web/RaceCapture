@@ -21,3 +21,6 @@ drive_logs/
 
 # KiCadのローカル履歴（中に独自の.gitを持つため入れない）
 .history/
+
+# UNO Q update tools (adb, cloudflared, transfer tarballs)
+other/uno_q_tools/
