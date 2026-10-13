@@ -30,6 +30,23 @@ class HardwareTests(unittest.TestCase):
   batch=self.batch();batch['can']=[[1990,2,0x1234,1,0,'fcff']]
   decoder=HardwareDecoder();s,_=decoder.decode(self.state(),batch,config);self.assertEqual(s[0]['values']['RPM'],-1)
   batch['can']=[];batch['rows'][0][1]=4000;s,_=decoder.decode(self.state(),batch,config);self.assertIsNone(s[0]['values']['RPM'])
+ def test_sensor_hub_ntc_oil_temperature(self):
+  # 10 kΩ pull-up, beta-like sensor: 25 °C = 10 kΩ, 85 °C = 1.1 kΩ.
+  oil=Signal(name='OilTemp',unit='°C',channel=2,can_id=0x500,byte_offset=2,data_type='uint16',scale=1/65535,conversion='ntc',pullup_ohm=10000,ntc_points=[(85,1100),(25,10000)])
+  self.assertAlmostEqual(oil.ntc_celsius(.5),25,places=6)            # R = 10 kΩ
+  self.assertAlmostEqual(oil.ntc_celsius(1100/11100),85,places=6)    # R = 1.1 kΩ
+  self.assertTrue(25<oil.ntc_celsius(.3)<85);self.assertLess(oil.ntc_celsius(.7),25)  # between / colder (extrapolated)
+  self.assertIsNone(oil.ntc_celsius(0));self.assertIsNone(oil.ntc_celsius(1))      # shorted / open
+  frame=bytes([0,0])+int(.5*65535).to_bytes(2,'little')+bytes([7,1])
+  batch=self.batch();batch['can']=[[1990,2,0x500,0,0,frame.hex()],[1991,1,0x500,0,0,'00000000']]
+  s,_=HardwareDecoder().decode(self.state(),batch,Configuration(signals=[oil]))
+  self.assertAlmostEqual(s[0]['can_signals']['OilTemp'],25,places=2)
+  batch['can']=[[1990,2,0x500,0,0,(bytes(2)+(65535).to_bytes(2,'little')+bytes(2)).hex()]]
+  s,_=HardwareDecoder().decode(self.state(),batch,Configuration(signals=[oil]))
+  self.assertIsNone(s[0]['can_signals'].get('OilTemp'))  # open circuit is not a temperature
+  for bad in ({'pullup_ohm':None},{'ntc_points':[(25,10000)]},{'ntc_points':[(25,1000),(85,2000)]}):
+   with self.assertRaises(ValueError):Signal(**{**oil.model_dump(),**bad})
+  self.assertEqual(Configuration.model_validate_json(Configuration(signals=[oil]).model_dump_json()).signals[0],oil)
  def test_sd_copy_real_fat_preserves_existing_file(self):
   from pyfatfs.PyFat import PyFat
   from pyfatfs.PyFatFS import PyFatFS

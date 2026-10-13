@@ -17,7 +17,7 @@ DEFAULT_CHANNELS = ['Lat','Lon','Altitude','GPSSpeed','Yaw','GPSFix','GPSSats',
 RANGES = {'Lat':(-90,90),'Lon':(-180,180),'Altitude':(-500,9000),
           'GPSSpeed':(0,300),'Speed':(0,300),'Yaw':(0,360),'GPSFix':(0,5),
           'GPSSats':(0,64),'RPM':(0,10000),'Throttle':(0,100),'WaterTemp':(-40,150),
-          'BatteryVolt':(0,20),'LapCount':(0,10000),'CurrentLap':(0,10000),
+          'BatteryVolt':(0,20),'OilTemp':(-40,200),'LapCount':(0,10000),'CurrentLap':(0,10000),
           'LapTime':(0,60),'BestLap':(0,60),'ElapsedTime':(0,60)}
 
 class PodiumConfig(BaseModel):

@@ -54,6 +54,7 @@ function invalidate() {
   document.querySelectorAll('[data-value]').forEach(x=>x.textContent='—');
   $('rpm-value').textContent='—'; $('rpm-bar').value=0; $('connection').textContent='接続待ち / 値は無効';
   ['lap-count','lap-elapsed','lap-last','lap-best'].forEach(id=>$(id).textContent='—');
+  $('signal-tiles').querySelectorAll('strong').forEach(x=>x.textContent='—');
   $('rate').textContent='受信 — Hz'; $('start-log').disabled=true; $('footer-status').textContent='通信待ち';
   $('rec-badge').textContent='記録状態を確認中'; $('rec-badge').classList.remove('recording');
   $('rec-time').textContent='—'; $('stop-log').disabled=true; $('save-config').disabled=true;
@@ -77,6 +78,8 @@ function update(frame) {
   $('storage-free').textContent=`（空き ${format(s.storage_free_bytes/1073741824,2)} GiB）`;
   $('hardware-status').replaceChildren(...Object.entries(s.sensors||{}).map(([k,v])=>{const span=document.createElement('span');span.textContent=`${k.toUpperCase()} ${v}`;return span;}));
   if($('imu-calibration'))$('imu-calibration').textContent=frame.sample?.imu_calibration?'IMU校正（0〜3）：'+Object.entries(frame.sample.imu_calibration).map(([k,v])=>`${k} ${v}`).join(' / '):'IMU校正：受信待ち';
+  const tiles=(config?.signals||[]).slice(0,8);$('signal-tiles').hidden=!tiles.length;
+  $('signal-tiles').replaceChildren(...tiles.map(signal=>{const a=document.createElement('article'),label=document.createElement('span'),value=document.createElement('strong'),unit=document.createElement('small');label.textContent=signal.name;value.textContent=format(frame.sample?.can_signals?.[signal.name],signal.conversion==='ntc'?1:2);unit.textContent=signal.unit;a.append(label,value,unit);return a;}));
   $('can-live').replaceChildren(...(config?.signals||[]).map(signal=>{const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=signal.name;dd.textContent=`${format(frame.sample?.can_signals?.[signal.name],2)} ${signal.unit}`;row.append(dt,dd);return row;}));
   const log=s.logging; $('rec-badge').textContent=log.active?'● REC':'○ STANDBY'; $('rec-badge').classList.toggle('recording',log.active);
   $('rec-time').textContent=elapsed(log.elapsed_s); $('rec-rows').textContent=`${log.rows.toLocaleString()} samples`;
@@ -166,21 +169,29 @@ async function solveLog(log){
 }
 function signalRow(signal={channel:1,name:'',unit:'',can_id:256,extended:false,byte_offset:0,data_type:'uint16',endian:'little',scale:1,offset:0}){
   const row=document.createElement('div');row.className='signal-row';
-  const fields=[['channel','CAN系統',['1','2']],['name','信号名'],['unit','単位'],['can_id','CAN ID（16進）'],['extended','ID形式',['標準','拡張']],['byte_offset','バイト位置'],['data_type','データ型',['uint8','int8','uint16','int16','uint32','int32']],['endian','バイト順',['little','big']],['scale','倍率'],['offset','オフセット'],['bit_mask','ビットマスク（省略可）']];
+  const fields=[['channel','CAN系統',['1','2']],['name','信号名'],['unit','単位'],['can_id','CAN ID（16進）'],['extended','ID形式',['標準','拡張']],['byte_offset','バイト位置'],['data_type','データ型',['uint8','int8','uint16','int16','uint32','int32']],['endian','バイト順',['little','big']],['scale','倍率'],['offset','オフセット'],['bit_mask','ビットマスク（省略可）'],['conversion','換算',['linear','ntc']],['pullup_ohm','プルアップ抵抗Ω（サーミスタ）'],['ntc_points','校正値 温度℃:抵抗Ω（サーミスタ）']];
   for(const [key,label,options] of fields){const l=document.createElement('label');l.textContent=label;let input;
-    if(options){input=document.createElement('select');options.forEach((v,i)=>{const o=document.createElement('option');o.value=key==='extended'?String(Boolean(i)):v;o.textContent=v;input.append(o);});input.value=String(signal[key]??(key==='channel'?1:options[0]));input.required=true;}
-    else{input=document.createElement('input');input.value=key==='can_id'?signal[key].toString(16).toUpperCase():(signal[key]??'');
-      if(['channel','scale','offset','byte_offset','bit_mask'].includes(key)){input.type='number';input.step=key==='byte_offset'?'1':'any';if(key==='byte_offset'){input.min='0';input.max='7';}}
+    if(options){input=document.createElement('select');options.forEach((v,i)=>{const o=document.createElement('option');o.value=key==='extended'?String(Boolean(i)):v;o.textContent=key==='conversion'?(v==='ntc'?'サーミスタ（比率→℃）':'直線（倍率・オフセット）'):v;input.append(o);});input.value=String(signal[key]??(key==='channel'?1:options[0]));input.required=true;}
+    else{input=document.createElement('input');input.value=key==='can_id'?signal[key].toString(16).toUpperCase():key==='ntc_points'?(signal.ntc_points||[]).map(([t,r])=>`${t}:${r}`).join(', '):(signal[key]??'');
+      if(key==='ntc_points')input.placeholder='例 20:12000, 60:2500, 100:680';
+      if(['channel','scale','offset','byte_offset','bit_mask','pullup_ohm'].includes(key)){input.type='number';input.step=key==='byte_offset'?'1':'any';if(key==='byte_offset'){input.min='0';input.max='7';}}
       if(key==='can_id')input.pattern='(?:0[xX])?[0-9a-fA-F]{1,8}';
-      if(key==='name'){input.pattern='[A-Za-z][A-Za-z0-9_]{0,31}';input.maxLength=32;}if(key==='unit')input.maxLength=16;input.required=!['unit','bit_mask'].includes(key);}
+      if(key==='name'){input.pattern='[A-Za-z][A-Za-z0-9_]{0,31}';input.maxLength=32;}if(key==='unit')input.maxLength=16;input.required=!['unit','bit_mask','pullup_ohm','ntc_points'].includes(key);}
     input.dataset.field=key;l.append(input);row.append(l);
   }
   const remove=document.createElement('button');remove.type='button';remove.textContent='信号を削除';remove.className='remove-signal';remove.onclick=()=>row.remove();row.append(remove);$('signal-list').append(row);
 }
+// Sensor hub analog frame (sensorhub_generic_spec.md 4-2, draft): hub n ch k -> 0x500+n*0x10+(k-1),
+// bytes 2-3 = ratio to the sensor 5 V (uint16, 0..65535). Calibration points are measured per sensor.
+$('add-hub-oil').onclick=()=>{
+  if([...document.querySelectorAll('.signal-row [data-field=name]')].some(x=>x.value==='OilTemp')){message('OilTempはすでにあります。');return;}
+  signalRow({channel:2,name:'OilTemp',unit:'°C',can_id:0x500,extended:false,byte_offset:2,data_type:'uint16',endian:'little',scale:1/65535,offset:0,conversion:'ntc',pullup_ohm:null,ntc_points:[]});
+  $('config-status').textContent='センサーハブ（ハブ0・ch1）の油温を追加しました。プルアップ抵抗値と校正値を入れて保存してください。';
+};
 $('add-signal').onclick=()=>{if($('signal-list').children.length>=64){message('信号は64個までです。');return;}signalRow();};
 function loadConfig(){ $('config-auto-record').checked=config.auto_record!==false; $('config-name').value=config.device_name;$('config-profile').value=config.profile;$('config-bitrate').value=config.can_bitrate;$('signal-list').replaceChildren();config.signals.forEach(signalRow); }
 $('config-form').onsubmit=event=>{event.preventDefault();action(async()=>{
-  const signals=[...document.querySelectorAll('.signal-row')].map(row=>{const result={};row.querySelectorAll('[data-field]').forEach(input=>{const key=input.dataset.field;result[key]=key==='bit_mask'&&!input.value?null:key==='can_id'?parseInt(input.value,16):key==='extended'?input.value==='true':['channel','scale','offset','byte_offset','bit_mask'].includes(key)?Number(input.value):input.value;});return result;});
+  const signals=[...document.querySelectorAll('.signal-row')].map(row=>{const result={};row.querySelectorAll('[data-field]').forEach(input=>{const key=input.dataset.field;result[key]=(key==='bit_mask'||key==='pullup_ohm')&&!input.value?null:key==='ntc_points'?input.value.split(',').map(x=>x.trim()).filter(Boolean).map(x=>x.split(':').map(Number)):key==='can_id'?parseInt(input.value,16):key==='extended'?input.value==='true':['channel','scale','offset','byte_offset','bit_mask','pullup_ohm'].includes(key)?Number(input.value):input.value;});return result;});
   const value={schema:1,auto_record:$('config-auto-record').checked,device_name:$('config-name').value,profile:$('config-profile').value,can_bitrate:Number($('config-bitrate').value),signals};
   const result=await api('/api/config','POST',value);config=result.config;$('config-status').textContent='保存済み';message(result.message);document.dispatchEvent(new Event('ecocapture-config-saved'));
 });};

@@ -16,6 +16,11 @@ class Signal(BaseModel):
     scale: float = 1
     offset: float = 0
     bit_mask: int | None = Field(default=None, ge=1, le=255)
+    # 'ntc': the scaled value is the ADC ratio V/Vref (0..1) of an NTC thermistor
+    # below a pull-up to the same reference (sensor hub analog frame bytes 2-3).
+    conversion: Literal["linear", "ntc"] = "linear"
+    pullup_ohm: float | None = Field(default=None, gt=0, le=1e7)
+    ntc_points: list[tuple[float, float]] = Field(default_factory=list, max_length=16)  # (°C, Ω)
 
     @model_validator(mode="after")
     def valid_layout(self):
@@ -26,7 +31,27 @@ class Signal(BaseModel):
             raise ValueError("信号が8バイトを超えています")
         if self.bit_mask is not None and self.data_type != 'uint8':
             raise ValueError('ビットマスクはuint8のみ対応します')
+        if self.conversion == "ntc":
+            points = sorted(self.ntc_points)
+            if self.pullup_ohm is None or len(points) < 2:
+                raise ValueError("サーミスタ換算にはプルアップ抵抗値と2点以上の校正値が必要です")
+            if any(r <= 0 or t <= -273 for t, r in points) or any(b[0] <= a[0] or b[1] >= a[1] for a, b in zip(points, points[1:])):
+                raise ValueError("校正値は温度が上がるほど抵抗が下がる組で入力してください")
+            if self.bit_mask is not None:
+                raise ValueError("サーミスタ換算とビットマスクは併用できません")
         return self
+
+    def ntc_celsius(self, ratio):
+        """Ratio -> °C, interpolating ln(R) linearly in 1/T between calibration points (beta model)."""
+        if not 0 < ratio < 1:
+            return None  # open / shorted sensor
+        resistance = self.pullup_ohm * ratio / (1 - ratio)
+        points = sorted(self.ntc_points)
+        pairs = list(zip(points, points[1:]))
+        lo, hi = next(((a, b) for a, b in pairs if resistance >= b[1]), pairs[-1])
+        x = lambda t: 1 / (t + 273.15)
+        f = (math.log(resistance) - math.log(lo[1])) / (math.log(hi[1]) - math.log(lo[1]))
+        return 1 / (x(lo[0]) + f * (x(hi[0]) - x(lo[0]))) - 273.15
 
 class Configuration(BaseModel):
     model_config = ConfigDict(extra="forbid", serialize_by_alias=True, validate_by_name=True)

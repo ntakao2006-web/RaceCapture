@@ -30,6 +30,9 @@ class HardwareDecoder:
                 if len(raw)<sig.byte_offset+width:continue
                 value=int.from_bytes(raw[sig.byte_offset:sig.byte_offset+width],sig.endian,signed=sig.data_type.startswith('int'))
                 value=int(bool(value&sig.bit_mask)) if sig.bit_mask else value*sig.scale+sig.offset
+                if sig.conversion=='ntc':
+                    value=sig.ntc_celsius(value)
+                    if value is None:continue
                 if math.isfinite(value):
                     history=self.can_values.setdefault(sig.name,deque())
                     history.append((stamp,value))
