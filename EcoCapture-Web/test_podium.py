@@ -28,7 +28,7 @@ class ProtocolTests(unittest.TestCase):
         encoder=Encoder(sensors(PodiumConfig(),Configuration()))
         meta=json.loads(encoder.meta())['s']['meta']
         names={'Lat':'Latitude','Lon':'Longitude'}
-        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime'])
+        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime','RaceTime','LapsLeft'])
         self.assertEqual(meta[2]['ut'],'deg');self.assertEqual(meta[2]['prec'],6)
         data={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35},'password':'secret','imu_raw':'private','can_frames':['private']}
         self.assertNotIn('private',encoder.sample(data).decode())
@@ -38,7 +38,7 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{}})),{'s':{'d':[0,0,0],'t':0}})
     def test_required_context_and_gnss_utc_milliseconds(self):
         encoder=Encoder(sensors(PodiumConfig(channels=['RPM']),Configuration()))
-        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime'])
+        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime','RaceTime','LapsLeft'])
         sample={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35.123456789,'Lon':139.123456789,'GPSSpeed':12.5},'gnss_utc':'1970-01-01T00:00:01Z','gnss_itow_ms':1234}
         self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[1234,35.123457,139.123457,12.5,58])
         sample['gnss_utc']='bad';sample['values']={}

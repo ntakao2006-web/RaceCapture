@@ -30,6 +30,19 @@ def drive_north(timer, start_ms, laps, lap_s, east_m=0.0):
             timer.update(fix(t, (t - cross) / 100.0, east_m))  # 1 m per 100 ms, crossing at `cross`
 
 
+def gate(north_m, east_m=0.0, bearing=0.0, width_m=30):
+    return {'lat': LAT0 + north_m / EARTH_M_PER_DEG,
+            'lon': LON0 + east_m / (EARTH_M_PER_DEG * math.cos(math.radians(LAT0))),
+            'bearing': bearing, 'width_m': width_m}
+
+
+def pass_north(timer, cross_ms, north_m, east_m=0.0):
+    """Come from far south and cross northing `north_m` heading north at `cross_ms`."""
+    timer.update(fix(cross_ms - 1000, north_m - 200, east_m))
+    for t in range(cross_ms - 300, cross_ms + 400, 100):
+        timer.update(fix(t, north_m + (t - cross_ms) / 100.0, east_m))
+
+
 class LapTests(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory(); self.root = Path(self.dir.name)
@@ -76,6 +89,63 @@ class LapTests(unittest.TestCase):
 
     def test_default_minimum_lap_is_short(self):
         self.assertEqual(LapLine().min_lap_s, 10)
+
+    def emc(self, **line):
+        # Motegi-like layout: standing start 500 m before the control line, goal on a branch 300 m east.
+        return self.timer(start=gate(-500), goal=gate(0, east_m=300), total_laps=7, **line)
+
+    def test_eco_run_start_six_control_passes_and_goal_make_seven_laps(self):
+        t = self.emc()
+        pass_north(t, 5_000, 0)                     # driving to the grid over the control line: ignored
+        self.assertEqual(t.values()['CurrentLap'], 0)
+        pass_north(t, 60_000, -500)                 # start
+        v = t.values(); self.assertEqual((v['CurrentLap'], v['LapsLeft']), (1, 7))
+        for k in range(6):
+            pass_north(t, 400_000 + k * 330_000, 0)
+        v = t.values(); self.assertEqual((v['LapCount'], v['CurrentLap'], v['LapsLeft']), (6, 7, 1))
+        self.assertAlmostEqual(t.state['laps'][0]['s'], 340.0)  # start -> first control pass is lap 1
+        pass_north(t, 2_400_000, 0, east_m=300)     # goal branch
+        v = t.values()
+        self.assertEqual((v['LapCount'], v['CurrentLap'], v['LapsLeft']), (7, 7, 0))
+        self.assertIsNone(v['ElapsedTime']); self.assertTrue(t.state['finished'])
+        self.assertAlmostEqual(v['RaceTime'] * 60, 2_340.0)
+        self.assertAlmostEqual(t.state['laps'][-1]['s'], 2_400 - 2_050)
+        pass_north(t, 2_800_000, 0)                 # cool-down lap after the goal: nothing changes
+        self.assertEqual(t.values()['LapCount'], 7)
+        t.reset(); self.assertFalse(t.state['finished']); self.assertEqual(t.values()['CurrentLap'], 0)
+
+    def test_goal_right_after_control_pass_does_not_add_a_lap(self):
+        t = self.emc()
+        pass_north(t, 0, -500); pass_north(t, 300_000, 0)
+        pass_north(t, 303_000, 0, east_m=300)
+        self.assertEqual(t.values()['LapCount'], 1); self.assertTrue(t.state['finished'])
+
+    def test_standing_start_learns_direction_and_last_departure_wins(self):
+        t = self.timer(start={**gate(0), 'bearing': None}, min_lap_s=30)
+        for k in range(300):  # waiting on the grid, wobbling across the line
+            t.update(fix(k * 100, 0.8 if k % 2 else -0.8, speed=0.3, yaw=200.0))
+        for k in range(1, 40):  # flag: drive off north
+            t.update(fix(30_000 + k * 100, 0.8 + k * 0.5, speed=15.0, yaw=0.0))
+        self.assertAlmostEqual(t.line.start.bearing, 0.0)
+        self.assertGreaterEqual(t.state['race_start_ms'] % 100_000, 29_800)  # the last forward crossing, not an early wobble
+        self.assertEqual(t.values()['CurrentLap'], 1)
+        self.assertEqual(json.loads((self.root / 'lap.json').read_text())['line']['start']['bearing'], 0.0)
+
+    def test_restart_before_first_lap_resets_the_clock(self):
+        t = self.emc()
+        pass_north(t, 10_000, -500); pass_north(t, 200_000, -500)
+        self.assertEqual(t.state['race_start_ms'] % 1_000_000, 200_000)
+        pass_north(t, 600_000, 0); pass_north(t, 900_000, -500)  # after lap 1 the start line is ignored
+        self.assertEqual(t.state['race_start_ms'] % 1_000_000, 200_000)
+
+    def test_set_here_for_start_and_goal(self):
+        t = LapTimer(self.root)
+        t.set_here(fix(0, 0, speed=20, yaw=0), target='control')
+        t.set_here(fix(0, -500, speed=0, yaw=0), width_m=20, target='start')
+        t.set_here(fix(0, 0, 300, speed=10, yaw=90), target='goal')
+        self.assertIsNone(t.line.start.bearing); self.assertEqual(t.line.start.width_m, 20)
+        self.assertEqual(t.line.goal.bearing, 90)
+        with self.assertRaises(ValueError): t.set_here(fix(0, 0), target='pit')
 
     def test_poor_fix_or_gap_breaks_crossing(self):
         t = self.timer()

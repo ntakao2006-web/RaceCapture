@@ -26,7 +26,8 @@ RANGES = {'Lat':(-90,90),'Lon':(-180,180),'Altitude':(-500,9000),
           'GPSSpeed':(0,300),'Speed':(0,300),'Yaw':(0,360),'GPSFix':(0,5),
           'GPSSats':(0,64),'RPM':(0,10000),'Throttle':(0,100),'WaterTemp':(-40,150),
           'BatteryVolt':(0,20),'OilTemp':(-40,200),'LapCount':(0,10000),'CurrentLap':(0,10000),
-          'LapTime':(0,60),'BestLap':(0,60),'ElapsedTime':(0,60)}
+          'LapTime':(0,60),'BestLap':(0,60),'ElapsedTime':(0,60),
+          'RaceTime':(0,600),'LapsLeft':(0,1000)}
 
 # wss://host[:port]/ws/audio/<room>. The character set also keeps the host safe
 # inside AT command quotes.
@@ -150,7 +151,8 @@ def utc_milliseconds(sample):
     except (ValueError,OverflowError):return None
 
 PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0,
-             'LapCount':0,'CurrentLap':0,'LapTime':4,'BestLap':4,'ElapsedTime':4}
+             'LapCount':0,'CurrentLap':0,'LapTime':4,'BestLap':4,'ElapsedTime':4,
+             'RaceTime':4,'LapsLeft':0}
 
 # Auth values confirmed against next-generation Podium on 2026-10-04: these are
 # what the official RaceCapture app 2.19.0 sends. The older

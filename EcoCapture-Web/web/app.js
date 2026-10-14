@@ -70,8 +70,8 @@ function update(frame) {
   $('profile-label').textContent=config?.profile==='ncec-2005-mt'?'NCEC 2005 MT / NOPRO':vehicle?'車両表示':'車載CAN接続なし';
   const lap=frame.sample?.lap||{};
   $('lap-count').textContent=Number.isFinite(lap.LapCount)?String(lap.LapCount):'—';
-  $('lap-elapsed').textContent=lapClock(lap.ElapsedTime);$('lap-last').textContent=lapClock(lap.LapTime);$('lap-best').textContent=lapClock(lap.BestLap);
-  $('lap-hint').textContent=lap.LapCount===undefined||lap.LapCount===null?'ラップ計測は未設定です（Settings → ラップ計測）':lap.CurrentLap===0?'ライン通過を待っています（最初の通過から1周目）':'';
+  $('lap-elapsed').textContent=lapClock(lap.ElapsedTime);$('lap-last').textContent=lapClock(lap.LapTime);$('lap-best').textContent=lapClock(lap.BestLap);$('lap-left').textContent=Number.isFinite(lap.LapsLeft)?String(lap.LapsLeft):'—';$('lap-race').textContent=lapClock(lap.RaceTime);
+  $('lap-hint').textContent=lap.LapCount===undefined||lap.LapCount===null?'ラップ計測は未設定です（Settings → ラップ計測）':lap.CurrentLap===0?'スタート（またはライン通過）を待っています':lap.LapCount>0&&lap.CurrentLap===lap.LapCount&&lap.ElapsedTime===null?'ゴールしました':lap.LapsLeft===1?'最終周：周回が終わったらゴールへ':'';
   $('connection').textContent=s.connected?'● MCU受信中':'MCU通信待ち / 値は無効';
   $('device-name').textContent=s.device; $('rate').textContent=`受信 ${format(s.receive_hz,1)} Hz`;
   $('sample-seq').textContent=`SEQ ${frame.sample?.seq ?? '—'}`;

@@ -1,0 +1,120 @@
+{
+  "uid": "ecorun-live",
+  "title": "EcoRun Live",
+  "tags": ["ecorun"],
+  "timezone": "browser",
+  "refresh": "1s",
+  "time": { "from": "now-5m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["1s", "2s", "5s", "10s", "30s"] },
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "name": "room",
+        "label": "Room",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "ecorun-vm" },
+        "query": { "query": "label_values(ecorun_Speed, room)", "refId": "room" },
+        "definition": "label_values(ecorun_Speed, room)",
+        "refresh": 2,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Speed",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "ecorun-vm" },
+      "targets": [{ "refId": "A", "expr": "ecorun_Speed{room=\"$room\"}", "legendFormat": "Speed" }],
+      "fieldConfig": { "defaults": { "unit": "velocitykmh", "decimals": 1 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "area", "colorMode": "none" }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Last data",
+      "description": "Seconds since the last sample reached the server. Large = link down.",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "ecorun-vm" },
+      "targets": [{ "refId": "A", "expr": "time() - timestamp(ecorun_Speed{room=\"$room\"})", "legendFormat": "age", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s", "decimals": 1,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "orange", "value": 3 }, { "color": "red", "value": 10 }
+          ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "none", "colorMode": "background" }
+    },
+    {
+      "id": 3,
+      "type": "geomap",
+      "title": "Position",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 15 },
+      "datasource": { "type": "prometheus", "uid": "ecorun-vm" },
+      "targets": [
+        { "refId": "A", "expr": "ecorun_Latitude{room=\"$room\"}", "format": "table", "range": true },
+        { "refId": "B", "expr": "ecorun_Longitude{room=\"$room\"}", "format": "table", "range": true }
+      ],
+      "transformations": [
+        { "id": "joinByField", "options": { "byField": "Time", "mode": "inner" } },
+        { "id": "organize", "options": { "renameByName": { "Value #A": "lat", "Value #B": "lon" } } }
+      ],
+      "options": {
+        "view": { "id": "fit", "allLayers": true, "zoom": 15 },
+        "controls": { "showZoom": true, "mouseWheelZoom": true },
+        "basemap": { "type": "osm-standard", "name": "Map" },
+        "layers": [
+          {
+            "type": "route",
+            "name": "Track",
+            "location": { "mode": "coords", "latitude": "lat", "longitude": "lon" },
+            "config": { "style": { "size": { "fixed": 3 }, "color": { "fixed": "blue" }, "opacity": 0.8 } }
+          },
+          {
+            "type": "markers",
+            "name": "Now",
+            "location": { "mode": "coords", "latitude": "lat", "longitude": "lon" },
+            "filterData": { "id": "byRefId", "options": "A" },
+            "config": { "style": { "size": { "fixed": 8 }, "color": { "fixed": "red" } } }
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Speed",
+      "gridPos": { "x": 0, "y": 5, "w": 12, "h": 10 },
+      "datasource": { "type": "prometheus", "uid": "ecorun-vm" },
+      "targets": [{ "refId": "A", "expr": "ecorun_Speed{room=\"$room\"}", "legendFormat": "Speed" }],
+      "fieldConfig": { "defaults": { "unit": "velocitykmh", "custom": { "lineWidth": 2, "spanNulls": 2000 } }, "overrides": [] }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Acceleration",
+      "gridPos": { "x": 0, "y": 15, "w": 24, "h": 9 },
+      "datasource": { "type": "prometheus", "uid": "ecorun-vm" },
+      "targets": [
+        { "refId": "A", "expr": "ecorun_LongAccel{room=\"$room\"}", "legendFormat": "Long" },
+        { "refId": "B", "expr": "ecorun_LatAccel{room=\"$room\"}", "legendFormat": "Lat" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none", "custom": { "spanNulls": 2000 } }, "overrides": [] }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "All channels (latest)",
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 10 },
+      "datasource": { "type": "prometheus", "uid": "ecorun-vm" },
+      "targets": [{ "refId": "A", "expr": "last_over_time({__name__=~\"ecorun_.+\", room=\"$room\"}[1m])", "instant": true, "format": "table" }],
+      "transformations": [{ "id": "organize", "options": { "excludeByName": { "Time": true, "room": true, "db": true } } }]
+    }
+  ]
+}

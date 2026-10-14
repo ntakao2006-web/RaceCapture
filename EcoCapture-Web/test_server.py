@@ -155,6 +155,14 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'min_lap_s': 90}).json()['line']['min_lap_s'], 90)
         self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'bearing': 90}).json()['line']['bearing'], 90)
         self.assertIsNone(self.client.post('/api/lap', headers=self.headers, json={'bearing': None}).json()['line']['bearing'])
+        line = self.client.post('/api/lap', headers=self.headers, json={'start': {'lat': 36.49, 'lon': 140.2, 'bearing': None}, 'total_laps': 7}).json()['line']
+        self.assertEqual((line['start']['lat'], line['start']['width_m'], line['total_laps']), (36.49, 30, 7))
+        self.assertIsNone(self.client.post('/api/lap', headers=self.headers, json={'start': None}).json()['line']['start'])
+        self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'goal': {'lat': 99, 'lon': 0}}).status_code, 400)
+        self.s.runtime.sample['values'].update(GPSSpeed=12, Yaw=90)
+        goal = self.client.post('/api/lap/here', headers=self.headers, json={'target': 'goal'}).json()['line']['goal']
+        self.assertEqual((goal['lat'], goal['bearing']), (36.5, 90))
+        self.assertEqual(self.client.post('/api/lap/here', headers=self.headers, json={'target': 'pit'}).status_code, 400)
         self.assertEqual(self.client.post('/api/lap/reset', headers=self.headers).json()['values']['LapCount'], 0)
         self.assertEqual(self.client.post('/api/lap/reset').status_code, 403)
         self.s.runtime.recorder.start(Configuration())

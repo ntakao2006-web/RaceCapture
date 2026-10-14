@@ -526,7 +526,9 @@ async def save_lap(request:Request):
 async def lap_here(request:Request):
     body=await request.json() if int(request.headers.get('content-length','0')) else {}
     if not runtime.status()['connected']:raise HTTPException(409,'MCUからの受信を待っています。')
-    try:runtime.laps.set_here(runtime.sample,body.get('width_m') if isinstance(body,dict) else None)
+    body=body if isinstance(body,dict) else {}
+    if body.get('target','control') not in ('control','start','goal'):raise HTTPException(400,'ラインの種類を確認してください。')
+    try:runtime.laps.set_here(runtime.sample,body.get('width_m'),body.get('target','control'))
     except ValueError:raise HTTPException(409,'GNSSが測位していません。屋外で測位してから登録してください。')
     except OSError:raise HTTPException(507,'ラップ設定を保存できませんでした。')
     return runtime.laps.public()

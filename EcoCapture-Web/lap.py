@@ -1,17 +1,28 @@
-"""GNSS start/finish lap timing on the Linux side.
+"""GNSS lap timing on the Linux side: control line, plus optional start and goal lines.
 
 Ported from EcoCapture Core/Navigation.cs: crossings are taken only between
-consecutive 3D fixes at most 1 s apart, the line is direction-aware, and laps
+consecutive 3D fixes at most 1 s apart, a line is direction-aware, and laps
 shorter than the minimum are ignored. All times are GNSS UTC; the Linux clock
 is never used, so a restart of the Web container does not shift lap times.
 
-Without a known travel direction the line is a circle (geofence) and the lap
-is taken at the closest approach; the heading at that pass is then saved as
-the line direction.
+A line whose travel direction is not known yet works as a circle (geofence).
+When the car leaves the circle moving at least LEARN_MIN_KMH, its GNSS heading
+becomes the line direction, and the crossing time is taken from the fixes
+inside the circle as if the line had been there all along (falling back to the
+closest approach when they do not cross it).
 
-After each pass the line is disarmed until the car is more than one line
-width away from it (the idea of RaceCapture's geo trigger), so GNSS jitter
-while stopped on the line can never add laps, whatever the minimum lap time.
+After each control or goal pass that line is disarmed until the car is more
+than one line width away from it (the idea of RaceCapture's geo trigger), so
+GNSS jitter while stopped on the line can never add laps.
+
+Eco-run courses (Honda EMC, Motegi oval) have three lines: a standing start
+line, a control line passed every lap, and a goal line on a branch that is
+crossed only once after the required laps. With a start line the race clock
+and lap 1 begin there (start to the first control pass counts as one lap);
+every forward crossing before lap 1 is complete restarts the clock, so the
+last one, the actual departure, wins over jitter on the grid. The goal ends
+the race: the stretch since the last control pass counts as the final lap
+unless it is shorter than the minimum lap (goal right after the control line).
 """
 import json
 import math
@@ -27,9 +38,20 @@ MAX_HACC_M = 25.0
 MAX_FIX_GAP_MS = 1000
 LEARN_MIN_KMH = 5.0
 KEEP_LAPS = 500
+KEEP_INSIDE = 1200  # fixes kept while inside a direction-less line (2 min at 10 Hz)
+TARGETS = ('control', 'start', 'goal')
+
+
+class Gate(BaseModel):
+    model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+    bearing: float | None = Field(default=None, ge=0, lt=360)
+    width_m: float = Field(default=30, ge=5, le=200)
 
 
 class LapLine(BaseModel):
+    """The control line (top-level fields, kept for saved settings) and the race options."""
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     enabled: bool = False
     lat: float | None = Field(default=None, ge=-90, le=90)
@@ -38,6 +60,9 @@ class LapLine(BaseModel):
     width_m: float = Field(default=30, ge=5, le=200)
     min_lap_s: float = Field(default=10, ge=5, le=7200)
     max_lap_s: float = Field(default=3600, ge=10, le=86400)
+    start: Gate | None = None
+    goal: Gate | None = None
+    total_laps: int | None = Field(default=None, ge=1, le=1000)
 
     @model_validator(mode='after')
     def valid(self):
@@ -47,9 +72,75 @@ class LapLine(BaseModel):
             raise ValueError('max_lap_s must exceed min_lap_s')
         return self
 
+    def gate(self, target):
+        if target == 'control':
+            return Gate(lat=self.lat, lon=self.lon, bearing=self.bearing, width_m=self.width_m) if self.enabled else None
+        return getattr(self, target)
+
 
 def offset_m(lat0, lon0, lat, lon):
     return ((lon - lon0) * EARTH_M_PER_DEG * math.cos(math.radians(lat0)), (lat - lat0) * EARTH_M_PER_DEG)
+
+
+def line_crossing(bearing, half, a, b):
+    """Interpolated time when a -> b crosses the line forward within `half` of its centre."""
+    rad = math.radians(bearing)
+    nx, ny = math.sin(rad), math.cos(rad)
+    d0 = a[1] * nx + a[2] * ny
+    d1 = b[1] * nx + b[2] * ny
+    if not d0 < 0 <= d1:
+        return None
+    f = -d0 / (d1 - d0)
+    px, py = a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f
+    if abs(px * ny - py * nx) > half:
+        return None
+    return round(a[0] + (b[0] - a[0]) * f)
+
+
+class Watch:
+    """Crossing detector for one line; runtime state only."""
+    def __init__(self, rearm=True):
+        self.rearm = rearm
+        self.armed = True
+        self.inside = []
+
+    def reset(self):
+        self.armed = True; self.inside = []
+
+    def observe(self, gate, current):
+        """Re-arm once the car is a line width away; runs on every usable fix, even after a gap."""
+        if not self.armed:
+            self.armed = math.hypot(*offset_m(gate.lat, gate.lon, current[1], current[2])) > gate.width_m
+            self.inside = []
+
+    def step(self, gate, previous, current, speed, yaw):
+        """previous/current are (utc_ms, lat, lon). Returns (crossing_ms or None, learned bearing or None)."""
+        a = (previous[0], *offset_m(gate.lat, gate.lon, previous[1], previous[2]))
+        b = (current[0], *offset_m(gate.lat, gate.lon, current[1], current[2]))
+        if not self.armed:
+            return None, None
+        half = gate.width_m / 2
+        if gate.bearing is not None:
+            at = line_crossing(gate.bearing, half, a, b)
+            if at is not None and self.rearm:
+                self.armed = False
+            return at, None
+        if math.hypot(b[1], b[2]) <= half:
+            self.inside = (self.inside or [a])[-KEEP_INSIDE:] + [b]
+            return None, None
+        if not self.inside:
+            return None, None
+        points, self.inside = self.inside + [b], []
+        learned = yaw % 360 if speed is not None and speed >= LEARN_MIN_KMH and yaw is not None else None
+        at = None
+        if learned is not None:
+            for p, q in zip(points, points[1:]):
+                at = line_crossing(learned, gate.width_m, p, q) or at  # the last crossing is the departure
+        if at is None:
+            at = min(points, key=lambda p: math.hypot(p[1], p[2]))[0]
+        if self.rearm:
+            self.armed = False
+        return at, learned
 
 
 class LapTimer:
@@ -66,15 +157,15 @@ class LapTimer:
         except (ValueError, OSError, AttributeError):
             self.line = LapLine(); self.state = self.empty_state()
             self.error = 'ラップ設定を読めません。設定し直してください。'
-        self.previous = None    # (utc_ms, x, y) of the last usable fix
-        self.inside = None      # closest approach while inside the geofence
-        self.latest_utc = None  # (utc_ms, monotonic) for the running lap clock
+        self.previous = None    # (utc_ms, lat, lon) of the last usable fix
+        self.latest_utc = None  # (utc_ms, monotonic) for the running clocks
         self.last_itow = None
-        self.armed = True       # False from a pass until the car is a line width away
+        self.watches = {'start': Watch(rearm=False), 'control': Watch(), 'goal': Watch()}
 
     @staticmethod
     def empty_state():
-        return {'count': 0, 'last_s': None, 'best_s': None, 'lap_start_ms': None, 'laps': []}
+        return {'count': 0, 'last_s': None, 'best_s': None, 'lap_start_ms': None, 'laps': [],
+                'race_start_ms': None, 'race_end_ms': None, 'finished': False}
 
     def save(self):
         temp = self.path.with_suffix('.tmp')
@@ -83,15 +174,30 @@ class LapTimer:
             stream.flush(); os.fsync(stream.fileno())
         temp.replace(self.path)
 
+    def try_save(self):
+        try:
+            self.save()
+        except OSError as exc:
+            self.error = f'ラップ記録を保存できません: {exc}'
+
+    def forget_motion(self):
+        self.previous = None
+        for watch in self.watches.values():
+            watch.reset()
+
     def configure(self, line):
-        self.line = line; self.previous = None; self.inside = None; self.error = None; self.armed = True
+        self.line = line; self.error = None
+        self.forget_motion()
         self.save()
 
     def reset(self):
-        self.state = self.empty_state(); self.previous = None; self.inside = None
+        self.state = self.empty_state()
+        self.forget_motion()
         self.save()
 
-    def set_here(self, sample, width_m=None):
+    def set_here(self, sample, width_m=None, target='control'):
+        if target not in TARGETS:
+            raise ValueError('Unknown line')
         values = (sample or {}).get('values', {})
         lat, lon = values.get('Lat'), values.get('Lon')
         if lat is None or lon is None:
@@ -99,43 +205,76 @@ class LapTimer:
         speed, yaw = values.get('GPSSpeed'), values.get('Yaw')
         # Heading of motion is meaningless at a standstill; learn it on the first pass instead.
         bearing = yaw % 360 if speed is not None and speed >= LEARN_MIN_KMH and yaw is not None else None
-        data = {**self.line.model_dump(), 'enabled': True, 'lat': lat, 'lon': lon, 'bearing': bearing}
-        if width_m is not None:
-            data['width_m'] = width_m
+        data = self.line.model_dump()
+        if target == 'control':
+            data.update(enabled=True, lat=lat, lon=lon, bearing=bearing)
+            if width_m is not None:
+                data['width_m'] = width_m
+        else:
+            old = data.get(target) or {}
+            data[target] = {'lat': lat, 'lon': lon, 'bearing': bearing,
+                            'width_m': width_m if width_m is not None else old.get('width_m', 30)}
         self.configure(LapLine.model_validate(data))
 
     def values(self):
         if not self.line.enabled:
             return dict.fromkeys(LAP_CHANNELS)
         s = self.state
-        elapsed = None
-        if s['lap_start_ms'] is not None and self.latest_utc:
-            now_ms = self.latest_utc[0] + (time.monotonic() - self.latest_utc[1]) * 1000
-            elapsed = max(0.0, (now_ms - s['lap_start_ms']) / 1000)
+        now_ms = self.latest_utc[0] + (time.monotonic() - self.latest_utc[1]) * 1000 if self.latest_utc else None
+        since = lambda start: None if start is None or now_ms is None else max(0.0, (now_ms - start) / 1000)
         minutes = lambda sec: None if sec is None else sec / 60
-        return {'LapCount': s['count'], 'CurrentLap': s['count'] + 1 if s['lap_start_ms'] is not None else 0,
-                'LapTime': minutes(s['last_s']), 'BestLap': minutes(s['best_s']), 'ElapsedTime': minutes(elapsed)}
+        if s['finished']:
+            elapsed, current = None, s['count']
+            race = None if s['race_start_ms'] is None else (s['race_end_ms'] - s['race_start_ms']) / 1000
+        else:
+            elapsed, current = since(s['lap_start_ms']), s['count'] + 1 if s['lap_start_ms'] is not None else 0
+            race = since(s['race_start_ms'])
+        total = self.line.total_laps
+        return {'LapCount': s['count'], 'CurrentLap': current,
+                'LapTime': minutes(s['last_s']), 'BestLap': minutes(s['best_s']), 'ElapsedTime': minutes(elapsed),
+                'RaceTime': minutes(race), 'LapsLeft': None if total is None else max(0, total - s['count'])}
+
+    def record_lap(self, at_ms):
+        s = self.state
+        lap = (at_ms - s['lap_start_ms']) / 1000
+        s['count'] += 1; s['last_s'] = lap
+        s['best_s'] = lap if s['best_s'] is None else min(s['best_s'], lap)
+        s['laps'] = (s['laps'] + [{'n': s['count'], 's': round(lap, 3), 'end_utc_ms': at_ms}])[-KEEP_LAPS:]
+
+    def started(self, at_ms):
+        s = self.state
+        if s['finished'] or s['count'] > 0:
+            return
+        s['race_start_ms'] = s['lap_start_ms'] = at_ms  # a later forward crossing (re-start) replaces it
+        self.try_save()
 
     def crossed(self, at_ms):
-        self.armed = False
         s = self.state
+        if s['finished'] or (self.line.start is not None and s['race_start_ms'] is None):
+            return
         if s['lap_start_ms'] is None:
             s['lap_start_ms'] = at_ms
+            if s['race_start_ms'] is None:
+                s['race_start_ms'] = at_ms
         else:
             lap = (at_ms - s['lap_start_ms']) / 1000
             if lap < self.line.min_lap_s:
                 return
             if lap <= self.line.max_lap_s:
-                s['count'] += 1; s['last_s'] = lap
-                s['best_s'] = lap if s['best_s'] is None else min(s['best_s'], lap)
-                s['laps'] = (s['laps'] + [{'n': s['count'], 's': round(lap, 3), 'end_utc_ms': at_ms}])[-KEEP_LAPS:]
+                self.record_lap(at_ms)
             # A gap longer than any real lap (pit stop, next day) restarts the
             # running lap without counting it; totals stay until an explicit reset.
             s['lap_start_ms'] = at_ms
-        try:
-            self.save()
-        except OSError as exc:
-            self.error = f'ラップ記録を保存できません: {exc}'
+        self.try_save()
+
+    def finished(self, at_ms):
+        s = self.state
+        if s['finished'] or s['lap_start_ms'] is None:
+            return
+        if (at_ms - s['lap_start_ms']) / 1000 >= self.line.min_lap_s:
+            self.record_lap(at_ms)
+        s['finished'] = True; s['race_end_ms'] = at_ms; s['lap_start_ms'] = None
+        self.try_save()
 
     def update(self, sample):
         values = sample.get('values', {})
@@ -147,43 +286,42 @@ class LapTimer:
         lat, lon = values.get('Lat'), values.get('Lon')
         hacc = sample.get('gnss_hacc_m')
         if utc is None or lat is None or lon is None or (hacc is not None and hacc > MAX_HACC_M):
-            self.previous = None; self.inside = None
+            self.previous = None  # keep each line's disarm: a poor fix must not re-arm it
+            for watch in self.watches.values():
+                watch.inside = []
             return self.values()
         self.latest_utc = (utc, time.monotonic())
         if not self.line.enabled:
             return self.values()
-        x, y = offset_m(self.line.lat, self.line.lon, lat, lon)
-        previous, self.previous = self.previous, (utc, x, y)
-        if not self.armed:
-            self.armed = math.hypot(x, y) > self.line.width_m
-            self.inside = None
-            return self.values()
+        previous, self.previous = self.previous, (utc, lat, lon)
+        for target in TARGETS:
+            if (gate := self.line.gate(target)) is not None:
+                self.watches[target].observe(gate, self.previous)
         if previous is None or not 0 < utc - previous[0] <= MAX_FIX_GAP_MS:
-            self.inside = None
+            for watch in self.watches.values():
+                watch.inside = []
             return self.values()
-        half = self.line.width_m / 2
-        if self.line.bearing is not None:
-            b = math.radians(self.line.bearing)
-            nx, ny = math.sin(b), math.cos(b)
-            d0 = previous[1] * nx + previous[2] * ny
-            d1 = x * nx + y * ny
-            if d0 < 0 <= d1:
-                f = -d0 / (d1 - d0)
-                px, py = previous[1] + (x - previous[1]) * f, previous[2] + (y - previous[2]) * f
-                if abs(px * ny - py * nx) <= half:
-                    self.crossed(round(previous[0] + (utc - previous[0]) * f))
-        else:
-            distance = math.hypot(x, y)
-            if distance <= half:
-                if self.inside is None or distance < self.inside['distance']:
-                    self.inside = {'distance': distance, 'utc': utc, 'yaw': values.get('Yaw'), 'speed': values.get('GPSSpeed')}
-            elif self.inside is not None:
-                closest, self.inside = self.inside, None
-                if closest['speed'] is not None and closest['speed'] >= LEARN_MIN_KMH and closest['yaw'] is not None:
-                    self.line = self.line.model_copy(update={'bearing': closest['yaw'] % 360})
-                self.crossed(closest['utc'])
+        learned_any = False
+        for target, event in (('start', self.started), ('control', self.crossed), ('goal', self.finished)):
+            gate = self.line.gate(target)
+            if gate is None:
+                continue
+            at, learned = self.watches[target].step(gate, previous, self.previous, values.get('GPSSpeed'), values.get('Yaw'))
+            if learned is not None:
+                self.learn(target, learned); learned_any = True
+            if at is not None:
+                event(at)
+        if learned_any:
+            self.try_save()
         return self.values()
+
+    def learn(self, target, bearing):
+        if target == 'control':
+            self.line = self.line.model_copy(update={'bearing': bearing})
+        else:
+            self.line = self.line.model_copy(update={target: getattr(self.line, target).model_copy(update={'bearing': bearing})})
 
     def public(self):
         return {'line': self.line.model_dump(), 'values': self.values(), 'error': self.error,
-                'laps': self.state['laps'][-20:], 'running': self.state['lap_start_ms'] is not None}
+                'laps': self.state['laps'][-20:], 'running': self.state['lap_start_ms'] is not None,
+                'finished': self.state['finished']}
