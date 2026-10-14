@@ -8,6 +8,10 @@ is never used, so a restart of the Web container does not shift lap times.
 Without a known travel direction the line is a circle (geofence) and the lap
 is taken at the closest approach; the heading at that pass is then saved as
 the line direction.
+
+After each pass the line is disarmed until the car is more than one line
+width away from it (the idea of RaceCapture's geo trigger), so GNSS jitter
+while stopped on the line can never add laps, whatever the minimum lap time.
 """
 import json
 import math
@@ -32,7 +36,7 @@ class LapLine(BaseModel):
     lon: float | None = Field(default=None, ge=-180, le=180)
     bearing: float | None = Field(default=None, ge=0, lt=360)
     width_m: float = Field(default=30, ge=5, le=200)
-    min_lap_s: float = Field(default=60, ge=5, le=7200)
+    min_lap_s: float = Field(default=10, ge=5, le=7200)
     max_lap_s: float = Field(default=3600, ge=10, le=86400)
 
     @model_validator(mode='after')
@@ -66,6 +70,7 @@ class LapTimer:
         self.inside = None      # closest approach while inside the geofence
         self.latest_utc = None  # (utc_ms, monotonic) for the running lap clock
         self.last_itow = None
+        self.armed = True       # False from a pass until the car is a line width away
 
     @staticmethod
     def empty_state():
@@ -79,7 +84,7 @@ class LapTimer:
         temp.replace(self.path)
 
     def configure(self, line):
-        self.line = line; self.previous = None; self.inside = None; self.error = None
+        self.line = line; self.previous = None; self.inside = None; self.error = None; self.armed = True
         self.save()
 
     def reset(self):
@@ -112,6 +117,7 @@ class LapTimer:
                 'LapTime': minutes(s['last_s']), 'BestLap': minutes(s['best_s']), 'ElapsedTime': minutes(elapsed)}
 
     def crossed(self, at_ms):
+        self.armed = False
         s = self.state
         if s['lap_start_ms'] is None:
             s['lap_start_ms'] = at_ms
@@ -148,6 +154,10 @@ class LapTimer:
             return self.values()
         x, y = offset_m(self.line.lat, self.line.lon, lat, lon)
         previous, self.previous = self.previous, (utc, x, y)
+        if not self.armed:
+            self.armed = math.hypot(x, y) > self.line.width_m
+            self.inside = None
+            return self.values()
         if previous is None or not 0 < utc - previous[0] <= MAX_FIX_GAP_MS:
             self.inside = None
             return self.values()

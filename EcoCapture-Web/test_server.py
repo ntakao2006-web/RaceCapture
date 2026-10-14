@@ -153,6 +153,8 @@ class ServerTests(unittest.TestCase):
         self.assertTrue(line['enabled']); self.assertEqual(line['width_m'], 40); self.assertIsNone(line['bearing'])
         self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'min_lap_s': 1}).status_code, 400)
         self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'min_lap_s': 90}).json()['line']['min_lap_s'], 90)
+        self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'bearing': 90}).json()['line']['bearing'], 90)
+        self.assertIsNone(self.client.post('/api/lap', headers=self.headers, json={'bearing': None}).json()['line']['bearing'])
         self.assertEqual(self.client.post('/api/lap/reset', headers=self.headers).json()['values']['LapCount'], 0)
         self.assertEqual(self.client.post('/api/lap/reset').status_code, 403)
         self.s.runtime.recorder.start(Configuration())

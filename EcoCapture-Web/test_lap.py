@@ -25,6 +25,7 @@ def drive_north(timer, start_ms, laps, lap_s, east_m=0.0):
     """Repeatedly cross the line heading north; each pass crosses at start + k*lap_s."""
     for k in range(laps + 1):
         cross = start_ms + k * lap_s * 1000
+        timer.update(fix(cross - 1000, -200.0, east_m))  # out on the lap, far from the line
         for t in range(cross - 300, cross + 400, 100):
             timer.update(fix(t, (t - cross) / 100.0, east_m))  # 1 m per 100 ms, crossing at `cross`
 
@@ -62,6 +63,19 @@ class LapTests(unittest.TestCase):
         self.assertEqual(t.values()['CurrentLap'], 0)
         drive_north(t, 100_000, laps=1, lap_s=10)  # 10 s < 30 s minimum
         self.assertEqual(t.values()['LapCount'], 0); self.assertEqual(t.values()['CurrentLap'], 1)
+
+    def test_jitter_on_the_line_never_adds_laps_until_the_car_leaves(self):
+        t = self.timer(min_lap_s=5)
+        drive_north(t, 10_000, laps=0, lap_s=60)
+        self.assertEqual(t.values()['CurrentLap'], 1)
+        for k in range(600):  # stopped on the line for 60 s, position wobbling +-1 m
+            t.update(fix(20_000 + k * 100, 1.0 if k % 2 else -1.0, speed=0.5))
+        self.assertEqual(t.values()['LapCount'], 0)
+        drive_north(t, 120_000, laps=0, lap_s=60)  # leaves, comes round, crosses again
+        self.assertEqual(t.values()['LapCount'], 1)
+
+    def test_default_minimum_lap_is_short(self):
+        self.assertEqual(LapLine().min_lap_s, 10)
 
     def test_poor_fix_or_gap_breaks_crossing(self):
         t = self.timer()
