@@ -1,9 +1,17 @@
-"""Sensor-only Podium NDJSON. No CAN frames, files, camera or replay queue."""
+"""Sensor-only Podium NDJSON. No CAN frames, files, camera or replay queue.
+
+Two destinations: straight to Podium (plain TCP, key on the logger), or via the
+team's ecorun-logger-server, which owns the Podium session and key; the logger
+then sends batched Podium rows over that server's /ws/audio/{room} WebSocket.
+"""
 import asyncio
+import base64
+import hashlib
 import json
 import math
 import os
 import re
+import ssl
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -20,11 +28,23 @@ RANGES = {'Lat':(-90,90),'Lon':(-180,180),'Altitude':(-500,9000),
           'BatteryVolt':(0,20),'OilTemp':(-40,200),'LapCount':(0,10000),'CurrentLap':(0,10000),
           'LapTime':(0,60),'BestLap':(0,60),'ElapsedTime':(0,60)}
 
+# wss://host[:port]/ws/audio/<room>. The character set also keeps the host safe
+# inside AT command quotes.
+SERVER_URL = re.compile(r'(wss?)://([A-Za-z0-9][A-Za-z0-9.-]{0,252})(?::(\d{1,5}))?(/[A-Za-z0-9._~/%-]{1,200})')
+
+def parse_server_url(url):
+    scheme,host,port,path=SERVER_URL.fullmatch(url).groups()
+    tls=scheme=='wss'
+    return tls,host,int(port) if port else 443 if tls else 80,path
+
 class PodiumConfig(BaseModel):
     model_config = ConfigDict(extra='forbid')
     enabled: bool = False
     # 'lte': SIM7070 via STM32. 'wifi': the UNO Q's own Linux network (bench tests).
     link: Literal['lte','wifi'] = 'lte'
+    # 'podium': direct TCP to Podium. 'server': ecorun-logger-server relays to Podium.
+    destination: Literal['podium','server'] = 'podium'
+    server_url: str = Field(default='', max_length=300)
     hardware_ready: bool = False
     host: str = Field(default='telemetry.podium.live', pattern=r'^[A-Za-z0-9][A-Za-z0-9.-]{0,252}$')
     port: int = Field(default=8080, ge=1, le=65535)
@@ -43,7 +63,9 @@ class PodiumConfig(BaseModel):
         for s in (self.username,self.password):
             if any(ord(c)<32 or ord(c)>126 or c in '"\\' for c in s):raise ValueError('Invalid AT credentials')
         if any(ord(c)<33 or ord(c)>126 for c in self.device_id):raise ValueError('Invalid key')
-        if self.enabled and not self.device_id:raise ValueError('Key required')
+        if self.server_url and not SERVER_URL.fullmatch(self.server_url):raise ValueError('Invalid relay server URL')
+        if self.enabled and self.destination=='podium' and not self.device_id:raise ValueError('Key required')
+        if self.enabled and self.destination=='server' and not self.server_url:raise ValueError('Relay server URL required')
         if self.enabled and self.link=='lte' and not (self.hardware_ready and self.apn):raise ValueError('SIM, antenna and APN required')
         return self
 
@@ -138,13 +160,21 @@ AUTH = {'apiVer':1.1,'device':'RC_APP (RCPMK3)','ver':'2.19.0 (2.16.1)','sn':'C3
 class Encoder:
     def __init__(self,channels,tick=0):self.channels=channels;self.tick=tick
     def auth(self,key):return line({'cmd':{'auth':{'deviceId':key,**AUTH}}})
-    def meta(self):
+    def meta_list(self):
         # Podium recognizes position by its canonical channel names, not our
         # local UI abbreviations. Values/mask ordering stays unchanged.
         names={'Lat':'Latitude','Lon':'Longitude'}
-        return line({'s':{'meta':[{'nm':names.get(s.name,s.name),'ut':s.unit,'sr':10,'min':s.low,'max':s.high,
-                                   'prec':PRECISION.get(s.name,2)} for s in self.channels]}})
+        return [{'nm':names.get(s.name,s.name),'ut':s.unit,'sr':10,'min':s.low,'max':s.high,
+                 'prec':PRECISION.get(s.name,2)} for s in self.channels]
+    def meta(self):return line({'s':{'meta':self.meta_list()}})
     def sample(self,sample):
+        row=self.row(sample)
+        if row is None:return None
+        # 't' is echoed back by the server as 'lt' in auth/heartbeat replies.
+        data=line({'s':{'d':row,'t':self.tick}});self.tick+=1
+        return data
+    def row(self,sample):
+        """Podium 'd' array (values in meta order, then bitmasks), or None."""
         if not sample or sample.get('source')!='logger-v2-hardware' or sample.get('demo') is not False:return None
         values=[];masks=[0]*((len(self.channels)+31)//32)
         for i,ch in enumerate(self.channels):
@@ -154,10 +184,11 @@ class Encoder:
             if ch.name=='Interval':value=sample.get('mcu_ms')
             if ch.name=='Speed' and value is None:value=sample.get('values',{}).get('GPSSpeed')
             if type(value) in (int,float) and math.isfinite(value):
-                values.append(round(value,6));masks[i//32]|=1<<(i%32)
-        # 't' is echoed back by the server as 'lt' in auth/heartbeat replies.
-        data=line({'s':{'d':values+masks,'t':self.tick}});self.tick+=1
-        return data
+                # Podium shows 'prec' decimals anyway; dropping the rest shortens
+                # the LTE stream, which is limited by bytes through the MCU RPC.
+                prec=PRECISION.get(ch.name,2)
+                values.append(int(round(value)) if prec==0 else round(value,prec));masks[i//32]|=1<<(i%32)
+        return values+masks
 
 class AuthenticationError(Exception):pass
 
@@ -176,11 +207,21 @@ async def authenticate(transport,timeout=20):
 class SocketTransport:
     """Plain TCP over the Linux network (Wi-Fi). Same NDJSON stream as the LTE path."""
     def __init__(self):self.reader=None;self.writer=None;self.phase='idle';self.operation='idle'
-    async def connect(self,config):
-        self.phase='podium_tcp_connect';self.operation='connect'
-        try:self.reader,self.writer=await asyncio.wait_for(asyncio.open_connection(config.host,config.port,limit=4096),20)
+    async def connect(self,config,endpoint=None):
+        # endpoint=(host,port,tls) for the relay server; default is Podium itself.
+        host,port,tls=endpoint or (config.host,config.port,False)
+        self.phase='relay_connect' if endpoint else 'podium_tcp_connect';self.operation='connect'
+        context=ssl.create_default_context() if tls else None
+        try:self.reader,self.writer=await asyncio.wait_for(asyncio.open_connection(host,port,limit=4096,ssl=context,server_hostname=host if tls else None),20)
         except (OSError,asyncio.TimeoutError):raise OSError('Socket open failed')
-        self.phase='podium_authentication'
+        self.phase='relay_handshake' if endpoint else 'podium_authentication'
+    async def read_some(self,wait=.01):
+        """Whatever has arrived (b'' if nothing within `wait`)."""
+        self.operation='read'
+        try:data=await asyncio.wait_for(self.reader.read(4096),wait)
+        except asyncio.TimeoutError:return b''
+        if not data:raise ConnectionError('Socket no longer connected')
+        return data
     async def send(self,data):
         self.operation='send'
         self.writer.write(data)
@@ -198,7 +239,67 @@ class SocketTransport:
             self.writer.close()
             with __import__('contextlib').suppress(Exception):await asyncio.wait_for(self.writer.wait_closed(),2)
 
+class WebSocket:
+    """Minimal RFC 6455 client over any byte transport (Linux socket or SIM7070).
+
+    Kept dependency-free so the LTE path, where TLS runs inside the modem and
+    bytes go through AT commands, uses exactly the same framing as Wi-Fi.
+    """
+    GUID=b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+    MAX_PAYLOAD=65536
+    def __init__(self,transport):self.transport=transport;self.buffer=bytearray()
+    async def handshake(self,host,port,path,tls,timeout=20):
+        key=base64.b64encode(os.urandom(16))
+        default=443 if tls else 80
+        authority=host if port==default else f'{host}:{port}'
+        await self.transport.send((f'GET {path} HTTP/1.1\r\nHost: {authority}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n'
+            f'Sec-WebSocket-Key: {key.decode()}\r\nSec-WebSocket-Version: 13\r\n\r\n').encode('ascii'))
+        deadline=time.monotonic()+timeout
+        while b'\r\n\r\n' not in self.buffer:
+            if time.monotonic()>deadline:raise TimeoutError('Relay handshake timeout')
+            if len(self.buffer)>8192:raise ValueError('Relay handshake too large')
+            self.buffer.extend(await self.transport.read_some())
+        end=self.buffer.index(b'\r\n\r\n')+4
+        head=bytes(self.buffer[:end]).decode('latin-1');del self.buffer[:end]
+        if not re.match(r'HTTP/1\.1 101\b',head):raise ConnectionError('Relay refused WebSocket')
+        accept=base64.b64encode(hashlib.sha1(key+self.GUID).digest()).decode()
+        if not re.search(r'(?im)^sec-websocket-accept:\s*'+re.escape(accept)+r'\s*$',head):raise ConnectionError('Relay refused WebSocket')
+    @staticmethod
+    def frame(opcode,payload):
+        # Client frames must be masked (RFC 6455 5.3).
+        mask=os.urandom(4);n=len(payload)
+        head=bytes([0x80|opcode])+(bytes([0x80|n]) if n<126 else bytes([0xfe])+n.to_bytes(2,'big') if n<65536 else bytes([0xff])+n.to_bytes(8,'big'))
+        return head+mask+bytes(b^mask[i%4] for i,b in enumerate(payload))
+    async def send_json(self,data):
+        await self.transport.send(self.frame(1,json.dumps(data,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('ascii')))
+    async def poll(self,wait=.01):
+        """Text messages that have fully arrived. Answers pings, raises on close."""
+        self.buffer.extend(await self.transport.read_some(wait))
+        messages=[]
+        while len(self.buffer)>=2:
+            opcode=self.buffer[0]&0x0f;n=self.buffer[1]&0x7f;at=2
+            if self.buffer[1]&0x80:raise ValueError('Relay sent a masked frame')
+            if n==126:
+                if len(self.buffer)<4:break
+                n=int.from_bytes(self.buffer[2:4],'big');at=4
+            elif n==127:
+                if len(self.buffer)<10:break
+                n=int.from_bytes(self.buffer[2:10],'big');at=10
+            if n>self.MAX_PAYLOAD:raise ValueError('Relay frame too large')
+            if len(self.buffer)<at+n:break
+            payload=bytes(self.buffer[at:at+n]);del self.buffer[:at+n]
+            if opcode==8:raise ConnectionError('Relay closed WebSocket')
+            if opcode==9:await self.transport.send(self.frame(10,payload))
+            elif opcode==1:messages.append(payload.decode('utf-8','replace'))
+            # Binary (room voice) and pong frames are ignored.
+        return messages
+
 LINK_LABEL={'lte':'LTE','wifi':'Wi-Fi'}
+# Rows per WebSocket message to the relay: fewer AT+CASEND round trips on LTE.
+RELAY_BATCH=5
+# Polling the relay costs an AT+CARECV on LTE, so do it rarely there.
+RELAY_POLL_S={'lte':2.0,'wifi':.2}
+RELAY_STATE={'idle':'待機','waiting_meta':'定義待ち','connecting':'Podiumへ接続中','streaming':'Podiumへ送信中','error':'Podium接続エラー'}
 
 class PodiumSender:
     def __init__(self,root,runtime):
@@ -208,8 +309,9 @@ class PodiumSender:
 
     def status(self):
         return {**self.state,'target_hz':10,'last_sent_age_ms':round((time.monotonic()-self.sent_at)*1000) if self.sent_at else None,
-                'link':self.store.config.link,
-                'transport':'SIM7070G TCP / STM32 UART' if self.store.config.link=='lte' else 'Linux TCP (Wi-Fi)','configured':bool(self.store.config.device_id),'enabled':self.store.config.enabled}
+                'link':self.store.config.link,'destination':self.store.config.destination,
+                'transport':('SIM7070G TCP / STM32 UART' if self.store.config.link=='lte' else 'Linux TCP (Wi-Fi)')+(' → 中継サーバー' if self.store.config.destination=='server' else ''),
+                'configured':bool(self.store.config.server_url if self.store.config.destination=='server' else self.store.config.device_id),'enabled':self.store.config.enabled}
 
     def set_state(self,name,message):self.state.update(state=name,message=message)
 
@@ -254,6 +356,60 @@ class PodiumSender:
             deadline=max(deadline+.1,time.monotonic())
             await asyncio.sleep(max(0,deadline-time.monotonic()))
 
+    async def relay_session(self,transport,config,revision):
+        """Batched Podium rows to ecorun-logger-server, which talks to Podium."""
+        tls,host,port,path=parse_server_url(config.server_url)
+        self.set_state('connecting',f'{LINK_LABEL[config.link]}で中継サーバーへ接続中')
+        await transport.connect(config,(host,port,tls))
+        ws=WebSocket(transport)
+        await ws.handshake(host,port,path,tls)
+        transport.phase='relay_streaming'
+        # Voice for the room would otherwise be pushed down the metered LTE link.
+        await ws.send_json({'type':'hello','client_id':'ecologger-v2','protocol':2,'receive_audio':False})
+        encoder=Encoder(sensors(config,self.runtime.config))
+        await ws.send_json({'type':'podium.meta','meta':encoder.meta_list()})
+        self.set_state('streaming','中継サーバーへ送信中')
+        fingerprint=[(c.name,c.unit,c.low,c.high) for c in encoder.channels]
+        deadline=time.monotonic();last_seq=None;rows=[];first_at=0;polled=time.monotonic()
+        while self.store.revision==revision:
+            if self.sd_busy(config):
+                raise ConnectionError('SD operation')
+            updated=sensors(config,self.runtime.config)
+            current=[(c.name,c.unit,c.low,c.high) for c in updated]
+            if current!=fingerprint:
+                rows=[];encoder=Encoder(updated);await ws.send_json({'type':'podium.meta','meta':encoder.meta_list()});fingerprint=current
+            now=time.monotonic();sample=self.runtime.sample
+            fresh=sample is not None and now-self.runtime.received_at<.5
+            row=encoder.row(sample) if fresh and sample['seq']!=last_seq else None
+            if fresh and utc_milliseconds(sample) is None:
+                self.set_state('waiting_gps','GPS測位待ち（測位するまでPodium画面には表示されません）')
+            if row is not None:
+                if not rows:first_at=now
+                rows.append(row);last_seq=sample['seq']
+            else:self.state['skipped']+=1
+            # A partial batch still goes out if samples stall, so nothing waits long.
+            if len(rows)>=RELAY_BATCH or rows and now-first_at>=1:
+                await ws.send_json({'type':'podium.samples','samples':rows})
+                self.state['frames']+=len(rows);self.state['bytes']+=len(json.dumps(rows));self.sent_at=time.monotonic();rows=[]
+            if time.monotonic()-polled>=RELAY_POLL_S[config.link]:
+                polled=time.monotonic()
+                for text in await ws.poll():self.relay_message(text,sample,fresh)
+            deadline=max(deadline+.1,time.monotonic())
+            await asyncio.sleep(max(0,deadline-time.monotonic()))
+
+    def relay_message(self,text,sample,fresh):
+        try:event=json.loads(text)
+        except ValueError:return
+        if not isinstance(event,dict):return
+        if event.get('type')=='error' and str(event.get('code','')).startswith('podium_'):
+            if event.get('code')=='podium_not_configured':raise ConnectionError('Relay has no Podium key')
+            self.state['relay_error']=event.get('code')
+        elif event.get('type')=='podium.status':
+            state=event.get('state');self.state['relay_state']=state;self.state['relay_lt']=event.get('lt')
+            if fresh and utc_milliseconds(sample) is None:return
+            label=RELAY_STATE.get(state,str(state))
+            self.set_state('streaming' if state=='streaming' else 'relay_'+str(state),f'中継サーバー経由：{label}'+(f'（Podium受信 {event["lt"]} 件目）' if isinstance(event.get('lt'),int) else ''))
+
     async def run(self):
         from sim7070 import SIM7070
         retry=0;seen_revision=-1
@@ -268,7 +424,7 @@ class PodiumSender:
                 self.set_state('waiting','MCU通信またはSD操作完了を待っています');await asyncio.sleep(.5);continue
             transport=SIM7070(self.runtime.bridge) if config.link=='lte' else SocketTransport()
             try:
-                await self.session(transport,config,revision)
+                await (self.relay_session if config.destination=='server' else self.session)(transport,config,revision)
                 retry=0
             except AuthenticationError:
                 self.blocked_revision=revision
@@ -283,9 +439,12 @@ class PodiumSender:
                     'Cellular connection closed','LTE receive overflow',
                     'LTE UART transmit rejected','Socket open failed',
                     'Socket no longer connected','Network registration timeout',
-                    'Podium auth response timeout','SD operation'}
+                    'Podium auth response timeout','SD operation',
+                    'Relay handshake timeout','Relay refused WebSocket','Relay closed WebSocket',
+                    'Relay has no Podium key','Relay frame too large'}
                 self.state['last_failure_reason']=str(exc) if str(exc) in safe_reasons else 'Transport error'
-                self.set_state('retry',f'{LINK_LABEL[config.link]}またはPodiumへの接続に失敗。再接続を待っています。')
+                target='中継サーバー' if config.destination=='server' else 'Podium'
+                self.set_state('retry',f'{LINK_LABEL[config.link]}または{target}への接続に失敗。再接続を待っています。')
                 retry=min(5,retry+1)
             finally:
                 with __import__('contextlib').suppress(Exception):await transport.close()

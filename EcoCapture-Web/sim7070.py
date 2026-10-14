@@ -54,7 +54,9 @@ class SIM7070:
         self.buffer.clear()
         await self.uart.write(text.encode('ascii')+b'\r')
         return await self.wait(b'\r\nOK\r\n',timeout)
-    async def connect(self,config):
+    async def connect(self,config,endpoint=None):
+        # endpoint=(host,port,tls) for the relay server; default is Podium itself.
+        host,port,tls=endpoint or (config.host,config.port,False)
         self.phase='modem_initialization'
         await self.uart.power(True)
         await asyncio.sleep(3)
@@ -104,9 +106,19 @@ class SIM7070:
             if re.search(rb'\+CNACT:\s*0,1,"(?!0\.0\.0\.0)[^"]+"',pdp):break
             if time.monotonic()>until:raise TimeoutError('PDP activation timeout')
             await asyncio.sleep(1)
-        await self.command('AT+CASSLCFG=0,"SSL",0')
-        self.phase='podium_tcp_connect'
-        await self.command(f'AT+CAOPEN=0,0,"TCP","{config.host}",{config.port}',30)
+        if tls:
+            # TLS runs inside the modem. These settings are the ones the team's
+            # ecorun-talk uses against Tailscale Funnel (TLS 1.2, ECDHE-ECDSA-
+            # AES128-GCM); the server certificate is not verified (no CA loaded).
+            await self.command('AT+CSSLCFG="SSLVERSION",0,3')
+            await self.command('AT+CSSLCFG="IGNORERTCTIME",0,1')
+            await self.command(f'AT+CSSLCFG="SNI",0,"{host}"')
+            await self.command('AT+CSSLCFG="CIPHERSUITE",0,0,0xC02B')
+            await self.command('AT+CASSLCFG=0,"SSL",1')
+            await self.command('AT+CASSLCFG=0,"CRINDEX",0')
+        else:await self.command('AT+CASSLCFG=0,"SSL",0')
+        self.phase='relay_connect' if endpoint else 'podium_tcp_connect'
+        await self.command(f'AT+CAOPEN=0,0,"TCP","{host}",{port}',30)
         response=await self.wait(b'+CAOPEN:',30)
         # URC may follow the final OK or be fragmented across UART reads.
         until=time.monotonic()+30
@@ -114,7 +126,7 @@ class SIM7070:
             if time.monotonic()>until:raise TimeoutError('Socket open response timeout')
             await self.pump();response=bytes(self.buffer);await asyncio.sleep(.01)
         if not re.search(rb'\+CAOPEN:\s*0,0\r\n',response):raise OSError('Socket open failed')
-        self.phase='podium_authentication'
+        self.phase='relay_handshake' if endpoint else 'podium_authentication'
     async def send(self,data):
         # One TCP stream message can span multiple CASENDs, including large meta.
         for at in range(0,len(data),1024):
@@ -129,19 +141,25 @@ class SIM7070:
         if self.sent%100==0:
             state=await self.command('AT+CASTATE?')
             if not re.search(rb'\+CASTATE:\s*0,1\b',state):raise ConnectionError('Socket no longer connected')
+    async def receive(self,until):
+        response=await self.command('AT+CARECV=0,512')
+        # SIMCom V1.03 uses +CARECV: <length>,<raw payload>, not a line string.
+        match=re.search(rb'\+CARECV:\s*(\d+),',response)
+        if not match:return b''
+        n=int(match[1])
+        if n>512:raise ValueError('Invalid socket receive length')
+        while len(self.buffer)<match.end()+n:
+            if time.monotonic()>until:raise TimeoutError('Truncated socket payload')
+            await self.pump()
+        return bytes(self.buffer[match.end():match.end()+n])
+    async def read_some(self,wait=0):
+        # One AT+CARECV poll; `wait` only mirrors the socket transport's signature.
+        data=bytes(self.stream)+await self.receive(time.monotonic()+20);self.stream.clear()
+        return data
     async def readline(self):
         until=time.monotonic()+20
         while b'\n' not in self.stream:
-            response=await self.command('AT+CARECV=0,512')
-            # SIMCom V1.03 uses +CARECV: <length>,<raw payload>, not a line string.
-            match=re.search(rb'\+CARECV:\s*(\d+),',response)
-            if match:
-                n=int(match[1])
-                if n>512:raise ValueError('Invalid socket receive length')
-                while len(self.buffer)<match.end()+n:
-                    if time.monotonic()>until:raise TimeoutError('Truncated socket payload')
-                    await self.pump()
-                self.stream.extend(self.buffer[match.end():match.end()+n])
+            self.stream.extend(await self.receive(until))
             if len(self.stream)>4096:raise ValueError('Podium response too large')
             if time.monotonic()>until:raise TimeoutError('Podium auth response timeout')
             await asyncio.sleep(.05)

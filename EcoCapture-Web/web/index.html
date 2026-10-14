@@ -69,19 +69,21 @@
 <div id="device" role="tabpanel" aria-labelledby="settings-uno-tab" hidden>
   <article class="panel"><div class="panel-title"><h2>Podium センサ共有（LTE / Wi-Fi）</h2><span>目標 10 Hz</span></div>
   <p>位置・IMU・選択した車両信号をPodiumへ送ります。本番はLTE、卓上の確認はUNO QのWi-Fiを使えます。ローカル記録は別に続きます。</p>
-  <form id="podium-form"><p class="button-row"><label class="choice"><input type="radio" name="podium-link" value="lte" checked> LTE（本番）</label><label class="choice"><input type="radio" name="podium-link" value="wifi"> Wi-Fi（UNO Qのネット接続で試験）</label></p><div class="form-grid">
+  <form id="podium-form"><p class="button-row"><label class="choice"><input type="radio" name="podium-link" value="lte" checked> LTE（本番）</label><label class="choice"><input type="radio" name="podium-link" value="wifi"> Wi-Fi（UNO Qのネット接続で試験）</label></p>
+  <p class="button-row"><label class="choice"><input type="radio" name="podium-destination" value="podium" checked> Podiumへ直接</label><label class="choice"><input type="radio" name="podium-destination" value="server"> 中継サーバー経由（ecorun-logger-server）</label></p><div class="form-grid">
   <label>APN<input id="podium-apn" maxlength="100" autocomplete="off"></label>
   <label>APNユーザー名<input id="podium-user" maxlength="64" autocomplete="off"></label>
   <label>APNパスワード<input id="podium-password" type="password" maxlength="64" autocomplete="new-password" placeholder="空欄で変更しない"></label>
   <label>Podium送信キー<input id="podium-key" type="password" maxlength="128" autocomplete="new-password" placeholder="空欄で変更しない"></label>
   <label>送信先<input id="podium-host" value="telemetry.podium.live" required maxlength="253"></label>
   <label>ポート<input id="podium-port" type="number" value="8080" min="1" max="65535" required></label>
+  <label>中継サーバーURL<input id="podium-server-url" maxlength="300" autocomplete="off" placeholder="wss://example.ts.net/ws/audio/main"></label>
   </div><p><label><input id="podium-hardware" type="checkbox"> SIMとLTEアンテナを接続済み</label></p>
   <p><label><input id="podium-enabled" type="checkbox"> 送信する（電源投入後も自動で開始）</label></p>
   <fieldset><legend>送信するセンサ値</legend><div id="podium-channels" class="form-grid"></div></fieldset>
   <div class="button-row"><button type="submit" class="primary">送信設定を保存</button><button type="button" id="podium-stop">送信OFF</button><button type="button" id="podium-check">LTEを点検（電波OFF）</button></div></form>
   <p id="podium-state" role="status">Podium送信OFF</p><p id="podium-result" role="status"></p>
-  <p class="muted">送信キーはこの画面に再表示されません。Podiumの接続方式は暗号化なしのTCPです。キーはUNO Q内の専用設定に保存し、ログと公開画面には含めません。LTE経路ではSDのコピー・読出し中に送信を休止します。Wi-Fi経路ではUNO QがWi-Fiでインターネットに出られる必要があります（Settings → UNO Q → Wi-Fi）。</p></article>
+  <p class="muted">送信キーはこの画面に再表示されません。Podiumの接続方式は暗号化なしのTCPです。キーはUNO Q内の専用設定に保存し、ログと公開画面には含めません。LTE経路ではSDのコピー・読出し中に送信を休止します。Wi-Fi経路ではUNO QがWi-Fiでインターネットに出られる必要があります（Settings → UNO Q → Wi-Fi）。中継サーバー経由ではPodium送信キーはサーバー側に置くので、ここでの入力は不要です（URL末尾のroom名ごとにサーバーへ設定）。</p></article>
   <div class="page-title"><div><p class="eyebrow">USB ADMINISTRATION</p><h1>UNO Q / 管理</h1></div><span>USB接続専用</span></div>
   <article class="panel"><div class="panel-title"><h2>Wi-Fi接続</h2><button id="wifi-scan" type="button">再検索</button></div><p id="wifi-state" role="status">状態を取得しています</p>
   <form id="wifi-form"><div class="form-grid"><label>ネットワーク<select id="wifi-networks" disabled><option value="">Wi-Fiを検索しています…</option></select></label><label>SSID<input id="wifi-ssid" required maxlength="32" autocomplete="off"></label><label>認証<select id="wifi-security"><option value="wpa-psk">WPA / WPA2 Personal</option><option value="sae">WPA3 Personal</option><option value="open">パスワードなし</option></select></label><label>Wi-Fiパスワード<input id="wifi-password" type="password" autocomplete="new-password" maxlength="64"></label></div><div class="button-row device-actions"><button type="submit" class="primary" id="wifi-connect">接続して保存</button><button type="button" id="wifi-disconnect">Wi-Fiを切断</button></div></form><p id="wifi-result" role="status"></p><div id="wifi-viewer-links"></div></article>

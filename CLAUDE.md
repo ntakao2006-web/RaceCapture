@@ -44,7 +44,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `ncec_can_spec.md`：NCEC（本番車両）のCAN通信仕様（ID・バイトマップ・デコード式・OBD2）。実装・共有用の独立ファイル
 - `sensorhub_defi_tap_design.md`：既設Defiの油温・油圧センサーを読むセンサーハブ基板の設計（v2：油温はサーミスタを直接測りデジタルポテンショメータでDefiへ再現、ピン単位の接続表・LCSC品番つき部品表・換算式・校正手順）。使用サーミスタの特性は`datasheet/defi_temp_sensor_rt.csv`
 - `sensorhub_generic_spec.md`：**汎用センサーハブ**（アナログ8ch・デジタル4ch・出力2ch、PIC＋外部CAN数珠繋ぎ）のLintarohさん向け要求仕様。Defi傍受基板とは別物で併用する。**外部CANバス全体のID割り当て表（5章）と、設定をロガー側に置く運用ルール（6章）もここが正**
-- `ecorun_team_systems.md`：エコランチーム（GitHub組織`TMCIT-Ecorun`）の既存システム（フロントパネル・通話試作・ダッシュボード）とEcoLoggerの関係、通話・中継サーバーの構成方針。**チーム側リポジトリは読むだけで変更しない**
+- `ecorun_team_systems.md`：エコランチーム（GitHub組織`TMCIT-Ecorun`）の既存システム（フロントパネル・通話試作・ダッシュボード）とEcoLoggerの関係、通話・中継サーバーの構成方針。**チーム側リポジトリは読むだけで変更しない**（例外：`ecorun-logger-server`はMaruo.Sさんの依頼でブランチ＋PRで変更する。2026-10-14〜）
 - `unoq_video_check_procedure.md`：UNO Qの映像確認（V-1〜V-5）の手順と実測結果。5-6章に走行映像へのプロット焼き込みの模擬試験（試験プログラムは`tools/unoq_overlay_enc/`）
 - `unoq_video_to_shield_sd_study.md`：焼き込み映像をシールド側SDへ保存できるか（E-6）の調査。Linux→STM32の内部SPI、ビットレートと画質の実測、SD側のボトルネック
 - `lintaroh_share_YYYYMMDD.md`：Lintarohさんへの共有メモ。**Lintarohさんは回路担当と同一人物**で、回路・UNO Qのソフト・STM32ファームのすべてを担当している（`hardware_share_*`・`hardware_ans_*`の「回路担当」も同じ人）。最新は`lintaroh_share_20261009_2.md`（稼働中ソースの確定、CAN2のACKとループ監視の導入、**内部リセット後にLinuxとの通信路が戻らない件の相談**、Linux側の監視役`mcu-supervisor.py`、RAMの実際の限界）。その前が`lintaroh_share_20261009.md`（ファーム書き込みでLinux側UARTが固まる件、UNO Q上でしたこと、ソースの食い違い、E-6の結果と相談）と`lintaroh_share_20261009_power.md`（カメラ・モニターの機材構成案、UPSモジュールとの組み合わせで確認したいこと）、`lintaroh_share_20261010_sensorhub.md`（汎用センサーハブの仕様の要点と判断してほしい8項目。本体は`sensorhub_generic_spec.md`）、`lintaroh_share_20261013_oiltemp.md`（エコラン大会向けにユニバーサル基板版ハブで油温を読むための確認事項）

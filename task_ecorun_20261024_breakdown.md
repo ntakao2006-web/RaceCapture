@@ -53,6 +53,21 @@
 - [ ] ER-5-1 走行後に2台分のログを日付・走行回ごとのフォルダへまとめるスクリプト（Windows、ワンクリック）
 - [ ] ER-5-2 当日用A4手順書1枚（取付・ランプ確認・回収・困ったとき）
 
+## ER-7 Podiumをチームのサーバー経由にする（2026-10-14起票）
+
+チームの Maruo.S さんから依頼された（2026-10-14）。チームの通話サーバー `TMCIT-Ecorun/ecorun-logger-server`（Rust）が
+ロガーからテレメトリを受けてPodium Connectへ中継し、ロガーはPodiumへ直接つながない形にする。
+**Podiumへ直接送る経路は消さずに残し、設定で切り替えられるようにする**（当日サーバー経由が動かなければ戻す）。
+実機では**ER-1-2（直接送ってPodium画面に数値が出る）を先に通してから**サーバー経由へ切り替える。
+表示されない原因が中身にあるのか経路にあるのかを混同しないため。
+
+- [x] ER-7-1 サーバー側：`/ws/audio/{room}` で `podium.meta`・`podium.samples`（数行まとめ）を受け、roomごとにPodiumへ中継する。キーはサーバーの環境変数だけに置く。hello の `receive_audio:false` で通話音声を流さない。偽Podiumとの通し試験済み。PR：[TMCIT-Ecorun/ecorun-logger-server#1](https://github.com/TMCIT-Ecorun/ecorun-logger-server/pull/1)（2026-10-14）
+- [x] ER-7-2 ロガー側（`podium.py`）：送信先「Podiumへ直接／中継サーバー経由」と中継サーバーURLの設定、自前のWebSocket（Wi-Fi・LTE共通）、5行ずつのまとめ送り、値をPodiumの表示桁数で丸めてバイト数を減らす。LTEはモデム内TLS（`ecorun-talk`と同じ設定）。PCテスト30件と、実コード→サーバー→偽Podiumで40行が連番で届くことを確認（2026-10-14）。**UNO Q実機へは未反映**
+- [ ] ER-7-3 Maruo.Sさんにサーバーを立ててもらい、ストリーミングキーを渡す（`ECORUN_PODIUM_KEYS`）。URL（`wss://…/ws/audio/<room>`）を受け取る
+- [ ] ER-7-4 UNO QからWi-Fi→サーバー経由で実Podiumに表示されることを確認する（ER-1-2の後）
+- [ ] ER-7-5 LTE→サーバー経由（SIM7070GのTLS＋WebSocket）で通す。直接送信（約3フレーム/秒）と比べて何フレーム/秒出るかを測る。SORACOMの速度クラスが最低に落ちている件（Maruo.Sさん談）も合わせて判断する
+- [ ] ER-7-6 サーバー側でログ保存（テレメトリ。音声は保存しないか1ファイルにまとめる）。Maruo.Sさんの依頼で、ER-7-4以降に着手
+
 ## ER-6 Ver.1（保険）
 
 - [ ] ER-6-1 電源ONで記録開始、**電源を切るだけで終了**してよい運用にできるか確認する（SD_Eject不要化。直前のデータがどこまで残るか試験）
