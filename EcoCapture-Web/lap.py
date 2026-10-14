@@ -23,6 +23,8 @@ every forward crossing before lap 1 is complete restarts the clock, so the
 last one, the actual departure, wins over jitter on the grid. The goal ends
 the race: the stretch since the last control pass counts as the final lap
 unless it is shorter than the minimum lap (goal right after the control line).
+With a required lap count the goal is ignored until the final lap, so a goal
+line placed roughly from a map cannot end the race early.
 """
 import json
 import math
@@ -270,6 +272,10 @@ class LapTimer:
     def finished(self, at_ms):
         s = self.state
         if s['finished'] or s['lap_start_ms'] is None:
+            return
+        # The goal is only reached on the final lap. A goal line drawn from a map
+        # too close to the circuit must not end the race on an ordinary lap.
+        if self.line.total_laps is not None and s['count'] < self.line.total_laps - 1:
             return
         if (at_ms - s['lap_start_ms']) / 1000 >= self.line.min_lap_s:
             self.record_lap(at_ms)

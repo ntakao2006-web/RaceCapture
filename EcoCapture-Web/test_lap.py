@@ -114,8 +114,17 @@ class LapTests(unittest.TestCase):
         self.assertEqual(t.values()['LapCount'], 7)
         t.reset(); self.assertFalse(t.state['finished']); self.assertEqual(t.values()['CurrentLap'], 0)
 
-    def test_goal_right_after_control_pass_does_not_add_a_lap(self):
+    def test_goal_is_ignored_before_the_final_lap(self):
         t = self.emc()
+        pass_north(t, 0, -500); pass_north(t, 300_000, 0)
+        pass_north(t, 600_000, 0, east_m=300)       # goal drawn too close to the circuit: lap 2 only
+        self.assertFalse(t.state['finished']); self.assertEqual(t.values()['LapCount'], 1)
+        t.line = t.line.model_copy(update={'total_laps': None})
+        pass_north(t, 900_000, 0, east_m=300)       # without a lap count the goal is always taken
+        self.assertTrue(t.state['finished'])
+
+    def test_goal_right_after_control_pass_does_not_add_a_lap(self):
+        t = self.timer(start=gate(-500), goal=gate(0, east_m=300))  # no lap count: goal any time
         pass_north(t, 0, -500); pass_north(t, 300_000, 0)
         pass_north(t, 303_000, 0, east_m=300)
         self.assertEqual(t.values()['LapCount'], 1); self.assertTrue(t.state['finished'])
