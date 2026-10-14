@@ -29,6 +29,9 @@ LOGS = ROOT / "logs"
 LOGS.mkdir(exist_ok=True)
 CONFIG_PATH = ROOT / "config.json"
 RESERVE_BYTES = 256 * 1024 * 1024
+# Dashcam-style retention: below this free space, delete the oldest finished
+# logs (never the one being written). RESERVE_BYTES stays as the hard floor.
+KEEP_FREE_BYTES = int(os.environ.get("ECOCAPTURE_KEEP_FREE_BYTES", 1024 * 1024 * 1024))
 PUBLIC_DIR=ROOT/'public'
 PUBLIC_DIR.mkdir(exist_ok=True)
 
@@ -58,9 +61,8 @@ class Recorder:
     def start(self, config):
         if self.file:
             return
-        # UI exposes SD only; keep a small, automatically managed local backup.
-        self.prune_backups()
-        if shutil.disk_usage(ROOT).free < RESERVE_BYTES:
+        # eMMC records independently of the SD card; old logs make room as needed.
+        if self.make_room() < RESERVE_BYTES:
             raise HTTPException(507, "内蔵ストレージの空き容量が不足しています")
         self.started = datetime.now(timezone.utc).isoformat()
         self.started_mono = time.monotonic()
@@ -88,7 +90,7 @@ class Recorder:
         try:
             if now - self.last_check >= 1:
                 self.last_check = now
-                if shutil.disk_usage(ROOT).free < RESERVE_BYTES:
+                if self.make_room() < RESERVE_BYTES:
                     raise OSError("Storage reserve reached (256 MiB)")
             self.writer.writerow([1, int(sample["demo"]), sample["source"], sample["host_utc"], sample["seq"], sample["mcu_ms"],
                                   *(sample["values"][k] for k in CHANNELS),sample.get("gnss_utc"),sample.get("gnss_itow_ms"),sample.get("imu_raw"),sample.get("imu_temperature_C"),json.dumps(sample.get("imu_calibration")),json.dumps(sample.get("quaternion")),sample.get("gnss_hacc_m"),json.dumps(sample.get("can_signals",{})),*((sample.get("lap") or {}).get(k) for k in LAP_CHANNELS)])
@@ -125,16 +127,22 @@ class Recorder:
         except OSError as exc:
             self.error = str(exc)
 
-    def prune_backups(self):
-        closed=sorted(LOGS.glob('LOG_*.csv'),key=lambda p:p.stat().st_mtime,reverse=True)
-        keep=2 if self.file is None else 3
-        for path in closed[keep:]:
-            if self.file and path.name==self.name:continue
-            for suffix in ('','.meta.json','.can.jsonl','.sd-journal.jsonl'):
-                target=path.with_name(path.name+suffix)
+    def make_room(self):
+        free=shutil.disk_usage(ROOT).free
+        if free>=KEEP_FREE_BYTES:return free
+        closed=sorted((p for p in LOGS.glob('LOG_*.csv') if not (self.file and p.name==self.name)),key=lambda p:p.stat().st_mtime)
+        for path in closed:
+            if free>=KEEP_FREE_BYTES:break
+            self.delete_log(path)
+            free=shutil.disk_usage(ROOT).free
+        return free
+
+    def delete_log(self,path):
+        # A file that cannot be removed must not stop the recording in progress.
+        targets=[path.with_name(path.name+suffix) for suffix in ('','.meta.json','.can.jsonl','.sd-journal.jsonl')]
+        for target in targets+[ROOT/'sd-journals'/(path.name+'.timestamps.jsonl')]:
+            with suppress(OSError):
                 if target.is_file() and not target.is_symlink():target.unlink()
-            journal=ROOT/'sd-journals'/(path.name+'.timestamps.jsonl')
-            if journal.is_file() and not journal.is_symlink():journal.unlink()
 
     def status(self):
         return {"active": self.file is not None, "name": self.name, "rows": self.rows,
@@ -173,6 +181,7 @@ class Runtime:
         self.podium_checking = False
         self.record_lock = asyncio.Lock()
         self.record_sd_first = None
+        self.sd_note = None
 
     def status(self):
         age = time.monotonic() - self.received_at if self.sample else None
@@ -187,7 +196,12 @@ class Runtime:
                 "config_error": self.config_error, "storage": "internal-emmc",
                 "storage_free_bytes": shutil.disk_usage(ROOT).free,
                 "sensors": self.sensors if fresh else {k:"通信待ち" for k in self.sensors}, "hardware": self.hardware,
-                "logging": self.recorder.status(), "sd_copy": self.sd.status, "podium":self.podium.status()}
+                "logging": {**self.recorder.status(),"sd_warning":self.sd_warning()}, "sd_copy": self.sd.status, "podium":self.podium.status()}
+
+    def sd_warning(self):
+        if not self.recorder.file or not self.bridge:return None
+        if (self.hardware.get('sd_logging') or self.record_sd_first is not None) and not self.hardware.get('sd_errors'):return None
+        return self.sd_note or 'SDに記録されていません。本体（eMMC）には記録しています。'
 
     def envelope(self):
         status = self.status()
@@ -530,44 +544,52 @@ def all_channels():
     return [{"name": key, "label": label, "unit": unit} for key, (label, unit) in CHANNELS.items()]
 
 
+async def start_sd():
+    """Start SD logging next to the eMMC CSV. Returns a warning, or None when SD is recording."""
+    if not runtime.hardware.get('sd_mounted'):
+        return 'SDカードが認識されていません。本体（eMMC）にだけ記録しています。電源を入れ直すとSDも記録します。'
+    if runtime.hardware.get('sd_errors',0):
+        return 'SD異常が残っています。本体（eMMC）にだけ記録しています。カードを確認して電源を入れ直してください。'
+    try:
+        before=json.loads(await runtime.bridge.call('logger.status'))
+        if runtime.record_sd_first is None:
+            runtime.record_sd_first=before.get('sd_file',0)+(0 if before.get('sd_logging') else 1)
+        result=await runtime.bridge.command("LOG1")
+        if result!='recording':raise RuntimeError('SD start rejected')
+        for _ in range(50):
+            state=json.loads(await runtime.bridge.call('logger.status'))
+            if state.get('sd_logging'):break
+            await asyncio.sleep(.1)
+        else:raise RuntimeError('SD start not confirmed')
+    except Exception:
+        runtime.record_sd_first=None
+        with suppress(Exception):await runtime.bridge.command('LOG0')
+        return 'SD記録の開始を確認できませんでした。本体（eMMC）にだけ記録しています。'
+    return None
+
+
 @app.post("/api/log/start")
 async def start_log():
     async with runtime.record_lock:
         if runtime.sd.status.get("active"):raise HTTPException(409,"SD操作完了後に記録を開始してください")
         if not runtime.status()["connected"]:
             raise HTTPException(409, "MCUからの受信を確認してから記録を開始してください")
-        if runtime.bridge and not runtime.hardware.get('sd_mounted'):
-            raise HTTPException(409, "SDカードが認識されていません。記録は開始していません。")
-        if runtime.bridge and runtime.hardware.get('sd_errors',0):
-            raise HTTPException(409,"SD異常が残っています。カードを確認して電源を入れ直してください。")
-        if runtime.recorder.file and runtime.hardware.get('sd_logging'):
-            return runtime.recorder.status()
-        if runtime.bridge:
-            try:
-                before=json.loads(await runtime.bridge.call('logger.status'))
-                if runtime.record_sd_first is None:
-                    runtime.record_sd_first=before.get('sd_file',0)+(0 if before.get('sd_logging') else 1)
-                result=await runtime.bridge.command("LOG1")
-                if result!='recording':raise RuntimeError('SD start rejected')
-                for _ in range(50):
-                    state=json.loads(await runtime.bridge.call('logger.status'))
-                    if state.get('sd_logging'):break
-                    await asyncio.sleep(.1)
-                else:raise RuntimeError('SD start not confirmed')
-            except Exception:
-                runtime.recorder.stop()
-                runtime.record_sd_first=None
-                with suppress(Exception):await runtime.bridge.command('LOG0')
-                raise HTTPException(503,'SD記録の開始を確認できませんでした。接続とSDカードを確認してください。')
+        # eMMC always records; a missing or failing SD card is only a warning.
         runtime.recorder.start(runtime.config)
-        return runtime.recorder.status()
+        if runtime.bridge and not runtime.hardware.get('sd_logging'):
+            runtime.sd_note=await start_sd()
+        return runtime.status()["logging"]
 
 
 @app.post("/api/log/stop")
 async def stop_log():
     async with runtime.record_lock:
         runtime.auto_started=True
-        if runtime.bridge:
+        state={}
+        if runtime.bridge and runtime.record_sd_first is None and not runtime.hardware.get('sd_logging'):
+            # SD never started for this recording: closing the eMMC CSV must not wait on it.
+            with suppress(Exception):await runtime.bridge.command("LOG0")
+        elif runtime.bridge:
             try:
                 result=await runtime.bridge.command("LOG0")
                 state=json.loads(await runtime.bridge.call('logger.status'))
@@ -576,6 +598,7 @@ async def stop_log():
             except Exception:
                 raise HTTPException(503,'SD保存の完了を確認できません。電源を切らず再度停止してください。')
         runtime.recorder.stop()
+        runtime.sd_note=None
         if runtime.bridge and state.get('sd_errors',0):
             runtime.record_sd_first=None
             runtime.sd.status={'active':False,'error':'SD異常を検出しました。本体の予備記録を保存しました。SDを確認して電源を入れ直してください。'}
