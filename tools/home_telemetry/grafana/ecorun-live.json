@@ -201,14 +201,31 @@
       "maxDataPoints": 3000
     },
     {
+      "id": 7,
+      "type": "text",
+      "title": "Talk",
+      "transparent": false,
+      "description": "ecorun-logger-server の通話画面（Socket.IO、HOLD TO TALK）。同じアドレス（:8443 の /）で動いている必要がある。roomは画面内で選ぶ",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 8,
+        "h": 14
+      },
+      "options": {
+        "mode": "html",
+        "content": "<iframe src=\"/\" allow=\"microphone; autoplay\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
+      }
+    },
+    {
       "id": 5,
       "type": "timeseries",
       "title": "Acceleration",
       "gridPos": {
-        "x": 0,
+        "x": 8,
         "y": 15,
-        "w": 24,
-        "h": 9
+        "w": 16,
+        "h": 14
       },
       "datasource": {
         "type": "prometheus",
@@ -244,7 +261,7 @@
       "title": "All channels (latest)",
       "gridPos": {
         "x": 0,
-        "y": 24,
+        "y": 29,
         "w": 24,
         "h": 10
       },
