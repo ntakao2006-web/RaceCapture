@@ -71,6 +71,9 @@
 ## ER-5 回収と手順書
 
 - [ ] ER-5-1 走行後に2台分のログを日付・走行回ごとのフォルダへまとめるスクリプト（Windows、ワンクリック）
+  - **2026-10-14 実装**：`tools/collect_logs/Collect-Logs.cmd`（本体 `collect_logs.py`）。Cドライブ以外の全ドライブからVer.1のSD（`logs`）とVer.2のSD（`EL*.BIN`、CSVへ変換も）を、USBでつないだUNO Qからは本体（eMMC）のCSVを、`drive_logs/<回収日>/runNN_<時刻>/{v1_sd,v2_sd,v2_emmc}/` へ集める。
+    元のファイルは消さない。回収済みは `drive_logs/collected.json` で覚えて二度取らない。記録中のeMMCログは取らない。偽データの試験2件と、10/4の実物の `EL000003.BIN` で確認済み
+  - 残り：**当日使うPCにPythonが要る**（チームメンバーのPCで回すならPythonの有無を確認、無ければ回収はこのPCで行う運用にする）。Ver.1の実物のSDと、実機UNO Qからの回収は未確認（ER-4-1のリハーサルで一緒に試す）
 - [ ] ER-5-2 当日用A4手順書1枚（取付・ランプ確認・回収・困ったとき）
 
 ## ER-7 Podiumをチームのサーバー経由にする（2026-10-14起票）
