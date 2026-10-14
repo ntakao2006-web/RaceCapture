@@ -364,8 +364,8 @@ class PodiumSender:
         ws=WebSocket(transport)
         await ws.handshake(host,port,path,tls)
         transport.phase='relay_streaming'
-        # Voice for the room would otherwise be pushed down the metered LTE link.
-        await ws.send_json({'type':'hello','client_id':'ecologger-v2','protocol':2,'receive_audio':False})
+        # No playable audio formats: the room's voice is not pushed down the metered LTE link.
+        await ws.send_json({'type':'hello','client_id':'ecologger-v2','protocol':2,'audio_formats':[]})
         encoder=Encoder(sensors(config,self.runtime.config))
         await ws.send_json({'type':'podium.meta','meta':encoder.meta_list()})
         self.set_state('streaming','中継サーバーへ送信中')

@@ -171,7 +171,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(log[0],b'GET /ws/audio/main HTTP/1.1')
         texts=[json.loads(p) for op,p in log[1:] if op==1]
         self.assertIn((10,b'hi'),log[1:])
-        self.assertEqual(texts[0],{'type':'hello','client_id':'ecologger-v2','protocol':2,'receive_audio':False})
+        self.assertEqual(texts[0],{'type':'hello','client_id':'ecologger-v2','protocol':2,'audio_formats':[]})
         self.assertEqual(texts[1]['type'],'podium.meta');self.assertEqual(texts[1]['meta'][2]['nm'],'Latitude')
         batches=[t['samples'] for t in texts[2:]]
         self.assertTrue(batches and all(t['type']=='podium.samples' for t in texts[2:]))
