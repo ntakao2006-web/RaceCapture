@@ -106,6 +106,7 @@
 - [ ] ER-7-4 UNO QからWi-Fi→サーバー経由で実Podiumに表示されることを確認する（ER-1-2の後）
 - [ ] ER-7-5 LTE→サーバー経由（SIM7070GのTLS＋WebSocket）で通す。直接送信（約3フレーム/秒）と比べて何フレーム/秒出るかを測る。SORACOMの速度クラスが最低に落ちている件（Maruo.Sさん談）も合わせて判断する
 - [ ] ER-7-6 サーバー側でログ保存（テレメトリ。音声は保存しないか1ファイルにまとめる）。Maruo.Sさんの依頼で、ER-7-4以降に着手
+  - **2026-10-15 実装（自宅サーバーで稼働中、PRは未提出）**：ブランチ`feature/telemetry-log`（`feature/podium-relay`の上。手元のみでGitHubへは未push）。受けた`podium.meta`・`podium.samples`を、Podiumのキーの有無に関係なく`ECORUN_TELEMETRY_DIR`（既定`data/telemetry`）へroom・セッションごとのJSON Linesで保存（`meta`のたびに新ファイル、行は受けたまま＋サーバー受信時刻）。単体テスト5件通過。**PRはER-7-4を通してから出す**（依頼の順番どおり）
 
 ## ER-8 自宅の試験サーバーと自前のライブ表示（2026-10-15起票）
 
@@ -115,16 +116,16 @@ Podiumは自分でコースを作れず（会場は申請制）、ジムカー�
 ライブ表示は既存ツール（Grafana等）を使い、走行後の解析は`.ld`へ書き出してMoTeC i2で見る（ユーザーはアセットコルサでi2 Proに慣れている）。
 **大会（10/24）までは ER-7 の経路を通すことを優先し**、自前コース・i2書き出しは大会後でよい。
 
-- [x] ER-8-1 ROCK 5Bを自宅試験サーバーにする（2026-10-15）：Armbian Debian 13 minimal（kernel current 6.18、microSDから起動。eMMCには旧ダッシュカムOSが残っている）、
+- [x] ER-8-1 ROCK 5Bを自宅試験サーバーにする（2026-10-15）：Armbian Debian 13 minimal（kernel current 6.18。当初microSDから起動し、同日eMMCへ移した（ER-8-7））、
   SSHは鍵のみ、Tailscale（PCからは `ssh ecorun-home`）。`ecorun-logger-server`（`feature/podium-relay`）をビルドし、
   単体テストと偽Podiumとの通し試験（`podium_relay_test`）が通ることを確認。Web画面もビルドし、systemdサービス
   `ecorun-logger-server`（`0.0.0.0:3000`、設定は`/etc/ecorun-logger-server.env`）として常駐させ、PCからTailscale経由で`/healthz`に応答
-- [ ] ER-8-2 ロガーがLTEから自宅サーバーへ届く入口を作る（Tailscale Funnel等。ポート開放はしない）。Funnelの有効化はTailscaleの管理画面でユーザーが行う
+- [x] ER-8-2 ロガーがLTEから自宅サーバーへ届く入口を作る（Tailscale Funnel等。ポート開放はしない）。Funnelの有効化はTailscaleの管理画面でユーザーが行う（2026-10-15：Funnelで`https://rock-5b.<tailnet名>.ts.net/（実際のURLはこのリポジトリに書かない）`→`127.0.0.1:3000`。公開はサーバーの3000番だけ。ロガーからは`wss://rock-5b.<tailnet名>.ts.net/ws/audio/<room>`。**受け口に認証が無い**のでURLは共有しない。Tailscaleの外（スマホのLTE等）からの到達は未確認）
 - [ ] ER-8-3 自宅サーバーをER-7-4・7-5の試験先として使う（Maruo.Sさんのサーバー（ER-7-3）を待たずに、UNO Q→自宅サーバー→実Podiumを通す。Podiumのキーは`/etc/ecorun-logger-server.env`にだけ置く）
-- [ ] ER-8-4 受けたテレメトリをGrafana等でライブ表示する（ER-7-6の保存と同じ受け口を使う）
+- [x] ER-8-4 受けたテレメトリをGrafana等でライブ表示する（ER-7-6の保存と同じ受け口を使う）（2026-10-15：保存ファイル→`tools/home_telemetry/jsonl_to_vm.py`（常駐`ecorun-vm-bridge`）→VictoriaMetrics（`127.0.0.1:8428`、保持5年）→Grafana 13（`http://100.64.45.52:3001/`、Tailscale内のみ、閲覧はログイン不要、ダッシュボード`tools/home_telemetry/grafana/ecorun-live.json`）。10/4の走行ログ約13分を`replay_sender.py`で「今走っている」形で流し、速度・加速度・地図の軌跡・全チャンネル表が実時間で更新されることを確認。**遅れは約2〜4秒**（ファイルまで0.1〜0.4秒、VictoriaMetricsが検索可能にするまで1.5〜3秒）。UNO Q実機からは未確認）
 - [ ] ER-8-5 （大会後）コース定義をサーバー側で持つ：スタート線・ゴール線・セクター線を別々の線分で定義し、周回コースとジムカーナ（スタートとゴールが別）の両方を扱う。ロガー側のラップ判定（ER-2）との役割分担もここで決める
 - [ ] ER-8-6 （大会後）走行後に`.ld`へ書き出してMoTeC i2で開く。自作の`.ld`でi2 Proの機能が使えるかを最初に確認する
-- [ ] ER-8-7 （急がない）`armbian-install`でSDからeMMCへ移す（旧OSは消える。ユーザー了承済み）
+- [x] ER-8-7 （急がない）`armbian-install`でSDからeMMCへ移す（旧OSは消える。ユーザー了承済み）（2026-10-15：`armbian-install --target /dev/mmcblk0 --boot emmc --fs ext4 --yes`。SDを抜いてeMMCから起動し、サービス・Tailscaleとも自動で上がることを確認）
 
 ## ER-6 Ver.1（保険）
 
