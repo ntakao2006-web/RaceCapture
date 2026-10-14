@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoRun Live Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body, #map { margin: 0; height: 100%; background: #111; }
+  .hud { position: absolute; z-index: 1000; font: 600 14px/1.2 system-ui, sans-serif; color: #fff;
+         background: rgba(0,0,0,.55); border-radius: 6px; padding: 6px 10px; }
+  #speed { left: 10px; bottom: 10px; font-size: 28px; }
+  #speed small { font-size: 13px; font-weight: 400; }
+  #status { right: 10px; bottom: 10px; font-weight: 400; font-size: 12px; }
+  #follow { left: 56px; top: 10px; cursor: pointer; border: 0; }  /* right side is under Grafana's panel menu */
+  #follow.on { background: rgba(255,200,0,.85); color: #000; }
+  .car { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent;
+         border-bottom: 22px solid #ff3b30; filter: drop-shadow(0 0 2px #000); transform-origin: 50% 60%; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="speed" class="hud">-- <small>km/h</small></div>
+<div id="status" class="hud">connecting…</div>
+<button id="follow" class="hud on">追従中</button>
+<script>
+// Live position from live_bridge.py, drawn smoothly:
+// - samples arrive evenly at ~10 Hz; the car is drawn RENDER_DELAY behind the
+//   newest sample and interpolated between the two around that time each frame;
+// - "follow" pans the map to the car every frame but never touches the zoom,
+//   so the zoom you pick stays. Dragging the map turns follow off.
+const RENDER_DELAY = 150;          // ms behind the newest sample
+const TRAIL_MS = 5 * 60 * 1000;    // trail length
+const params = new URLSearchParams(location.search);
+const room = params.get('room') || 'home-test';
+const zoom = Number(params.get('zoom') || 18);
+
+const map = L.map('map', { zoomControl: true, zoomSnap: 0.25, scrollWheelZoom: 'center',
+                           attributionControl: true }).setView([35.68, 139.76], zoom);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { maxNativeZoom: 19, maxZoom: 22, attribution: 'Imagery &copy; Esri' }).addTo(map);
+// Grafana may create the iframe while its panel is still 0 px high; redraw on resize.
+new ResizeObserver(() => map.invalidateSize({ animate: false })).observe(document.getElementById('map'));
+const trail = L.polyline([], { color: '#ffd400', weight: 3, opacity: .9 }).addTo(map);
+const carIcon = L.divIcon({ className: '', html: '<div class="car"></div>', iconSize: [16, 22], iconAnchor: [8, 13] });
+const car = L.marker([0, 0], { icon: carIcon, interactive: false });
+
+// Samples as {t (sample ms), at (local arrival ms), lat, lon, speed}
+let samples = [];
+let follow = true, placed = false;
+const followBtn = document.getElementById('follow');
+function setFollow(on) {
+  follow = on;
+  followBtn.classList.toggle('on', on);
+  followBtn.textContent = on ? '追従中' : '追従する';
+  map.options.scrollWheelZoom = on ? 'center' : true;
+}
+followBtn.onclick = () => setFollow(!follow);
+map.on('dragstart', () => setFollow(false));
+
+function addSample(s, at) {
+  if (typeof s.Latitude !== 'number' || typeof s.Longitude !== 'number') return;
+  samples.push({ t: s.t, at, lat: s.Latitude, lon: s.Longitude, speed: s.Speed });
+  trail.addLatLng([s.Latitude, s.Longitude]);
+  const cut = s.t - TRAIL_MS;
+  let drop = 0;
+  while (drop < samples.length && samples[drop].t < cut) drop++;
+  if (drop) {
+    samples = samples.slice(drop);
+    trail.setLatLngs(trail.getLatLngs().slice(drop));
+  }
+}
+
+function connect() {
+  // Works both direct (http://host:3002/map) and behind `tailscale serve` (https://host:8443/live/map).
+  const base = location.pathname.replace(/\/map\/?$/, '');
+  const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}`);
+  const status = document.getElementById('status');
+  ws.onopen = () => { status.textContent = `${room}: connected`; };
+  ws.onclose = () => { status.textContent = `${room}: reconnecting…`; setTimeout(connect, 2000); };
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    const now = performance.now();
+    if (msg.history) {
+      samples = []; trail.setLatLngs([]);
+      // Spread history arrival times by sample time so interpolation starts at the newest.
+      const last = msg.history.length ? msg.history[msg.history.length - 1].t : 0;
+      for (const s of msg.history) addSample(s, now - (last - s.t));
+      return;
+    }
+    addSample(msg, now);
+  };
+}
+
+function bearing(a, b) {
+  const y = Math.sin((b.lon - a.lon) * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180);
+  const x = Math.cos(a.lat * Math.PI / 180) * Math.sin(b.lat * Math.PI / 180) -
+            Math.sin(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.cos((b.lon - a.lon) * Math.PI / 180);
+  return Math.atan2(y, x) * 180 / Math.PI;
+}
+
+let heading = 0;
+function frame() {
+  requestAnimationFrame(frame);
+  const n = samples.length;
+  if (n === 0) return;
+  // Map "render time" onto the arrival timeline, then interpolate between samples.
+  const rt = performance.now() - RENDER_DELAY;
+  let i = n - 1;
+  while (i > 0 && samples[i - 1].at > rt) i--;
+  const b = samples[i], a = samples[Math.max(0, i - 1)];
+  const span = b.at - a.at;
+  const k = span > 0 ? Math.min(1, Math.max(0, (rt - a.at) / span)) : 1;
+  const pos = { lat: a.lat + (b.lat - a.lat) * k, lon: a.lon + (b.lon - a.lon) * k };
+  if (a !== b && (a.lat !== b.lat || a.lon !== b.lon)) heading = bearing(a, b);
+  car.setLatLng([pos.lat, pos.lon]);
+  car.getElement()?.firstChild && (car.getElement().firstChild.style.transform = `rotate(${heading}deg)`);
+  if (!placed) { car.addTo(map); placed = true; map.setView([pos.lat, pos.lon], zoom, { animate: false }); }
+  if (follow) map.panTo([pos.lat, pos.lon], { animate: false });
+  const sp = a.speed !== undefined && b.speed !== undefined ? a.speed + (b.speed - a.speed) * k : b.speed;
+  document.getElementById('speed').innerHTML = `${sp === undefined ? '--' : sp.toFixed(0)} <small>km/h</small>`;
+}
+connect();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
