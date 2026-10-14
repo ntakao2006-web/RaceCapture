@@ -5,18 +5,18 @@
     "ecorun"
   ],
   "timezone": "browser",
-  "refresh": "1s",
+  "refresh": "500ms",
   "time": {
     "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
+      "500ms",
       "1s",
       "2s",
       "5s",
-      "10s",
-      "30s"
+      "10s"
     ]
   },
   "schemaVersion": 39,
@@ -190,16 +190,20 @@
         "view": {
           "id": "fit",
           "allLayers": true,
-          "lastOnly": false,
-          "zoom": 15
+          "lastOnly": true,
+          "zoom": 18,
+          "padding": 0
         },
         "controls": {
           "showZoom": true,
           "mouseWheelZoom": true
         },
         "basemap": {
-          "type": "osm-standard",
-          "name": "Map"
+          "type": "esri-xyz",
+          "name": "Aerial",
+          "config": {
+            "server": "world-imagery"
+          }
         },
         "layers": [
           {
@@ -214,10 +218,10 @@
               "arrow": 1,
               "style": {
                 "size": {
-                  "fixed": 4
+                  "fixed": 3
                 },
                 "color": {
-                  "fixed": "red"
+                  "fixed": "yellow"
                 },
                 "opacity": 0.9
               }
