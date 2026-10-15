@@ -6,6 +6,7 @@ then sends batched Podium rows over that server's /ws/audio/{room} WebSocket.
 """
 import asyncio
 import base64
+import collections
 import hashlib
 import json
 import math
@@ -55,6 +56,9 @@ class PodiumConfig(BaseModel):
     # itself (needs the key on the logger).
     backup_server_urls: list[str] = Field(default_factory=list, max_length=3)
     fallback_direct: bool = False
+    # Take the pit's voice from the relay (one low-bitrate mix). It pauses on its
+    # own whenever telemetry starts to lag; telemetry always wins the link.
+    voice_receive: bool = False
     hardware_ready: bool = False
     host: str = Field(default='telemetry.podium.live', pattern=r'^[A-Za-z0-9][A-Za-z0-9.-]{0,252}$')
     port: int = Field(default=8080, ge=1, le=65535)
@@ -269,7 +273,7 @@ class WebSocket:
     """
     GUID=b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
     MAX_PAYLOAD=65536
-    def __init__(self,transport):self.transport=transport;self.buffer=bytearray();self.heard_at=time.monotonic()
+    def __init__(self,transport):self.transport=transport;self.buffer=bytearray();self.heard_at=time.monotonic();self.binary=[]
     async def ping(self):await self.transport.send(self.frame(9,b'ecologger'))
     async def handshake(self,host,port,path,tls,timeout=20):
         key=base64.b64encode(os.urandom(16))
@@ -296,7 +300,8 @@ class WebSocket:
     async def send_json(self,data):
         await self.transport.send(self.frame(1,json.dumps(data,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('ascii')))
     async def poll(self,wait=.01):
-        """Text messages that have fully arrived. Answers pings, raises on close."""
+        """Text messages that have fully arrived. Answers pings, raises on close.
+        Binary frames (room voice) are appended to self.binary."""
         self.buffer.extend(await self.transport.read_some(wait))
         messages=[]
         while len(self.buffer)>=2:
@@ -315,7 +320,8 @@ class WebSocket:
             if opcode==8:raise ConnectionError('Relay closed WebSocket')
             if opcode==9:await self.transport.send(self.frame(10,payload))
             elif opcode==1:messages.append(payload.decode('utf-8','replace'))
-            # Binary (room voice) and pong frames are ignored.
+            elif opcode==2:self.binary.append(payload)
+            # Pong frames only refresh heard_at.
         return messages
 
 LINK_LABEL={'lte':'LTE','wifi':'Wi-Fi'}
@@ -338,6 +344,64 @@ RELAY_POLL_S={'lte':2.0,'wifi':.2}
 # dead and the next relay is tried. LTE polls rarely, so its limits are longer.
 RELAY_PING_S={'lte':5.0,'wifi':3.0}
 RELAY_SILENT_S={'lte':15.0,'wifi':8.0}
+# Voice from the relay: the server's logger mix (8 kHz mono Opus, one packet per 120 ms).
+VOICE_FORMAT={'sample_rate':8000,'channels':1,'frame_ms':120}
+# While voice is arriving the relay is polled this often (on LTE each poll is an
+# AT+CARECV of at most 512 bytes; ~700 B/s of voice needs about two a second).
+# With nobody talking the normal, slow poll applies, so silence costs nothing.
+VOICE_POLL_S={'lte':.5,'wifi':.12}
+VOICE_ACTIVE_S=3.0
+VOICE_QUEUE=50
+
+class VoiceGuard:
+    """Decides whether the logger takes voice, so that telemetry never lags for it.
+
+    Telemetry lags when a batch of rows waits too long before it is sent, or
+    when fewer rows go out per second than before voice was switched on. Either
+    switches voice off (the relay is told to stop sending it) for a pause that
+    doubles each time voice trips again soon after coming back.
+    """
+    MAX_DELAY_S={'lte':2.0,'wifi':1.0}
+    WINDOW_S=4.0
+    MIN_RATE_RATIO=.8
+    PAUSE_S=30.0
+    MAX_PAUSE_S=300.0
+    def __init__(self,link):
+        self.link=link;self.on=False;self.paused_until=0;self.pause=self.PAUSE_S;self.resumed_at=None
+        self.baseline=None;self.sent=[];self.reason=None;self.trips=0
+    def batch_sent(self,rows,delay,now=None):
+        """A batch of `rows` went out `delay` s after its first row. Returns 'off' to stop voice."""
+        now=time.monotonic() if now is None else now
+        self.sent.append((now,rows))
+        self.sent=[(t,n) for t,n in self.sent if now-t<=self.WINDOW_S]
+        if not self.on:
+            # Rows per second without voice: what voice must not eat into.
+            if now-self.sent[0][0]>=self.WINDOW_S*.75:self.baseline=self.rate()
+            return None
+        if delay>self.MAX_DELAY_S[self.link]:return self.trip(now,'telemetry_delay')
+        if self.baseline and now-self.resumed_at>=self.WINDOW_S and self.rate()<self.baseline*self.MIN_RATE_RATIO:
+            return self.trip(now,'telemetry_rate')
+        return None
+    def rate(self):
+        if len(self.sent)<2:return 0
+        span=self.sent[-1][0]-self.sent[0][0]
+        return sum(n for _,n in self.sent[1:])/span if span>0 else 0
+    def trip(self,now,reason):
+        soon=self.trips and now-self.resumed_at<self.pause*2
+        self.pause=min(self.MAX_PAUSE_S,self.pause*2) if soon else self.PAUSE_S
+        self.on=False;self.paused_until=now+self.pause;self.reason=reason;self.trips+=1;self.sent=[]
+        return 'off'
+    def want(self,enabled,now=None):
+        """'on' when voice should start now, 'off' when it must stop, else None."""
+        now=time.monotonic() if now is None else now
+        if not enabled:
+            if self.on:self.on=False;self.reason=None;return 'off'
+            return None
+        # Start only once a no-voice baseline exists, so a slow link is noticed.
+        if not self.on and now>=self.paused_until and self.baseline is not None:
+            self.on=True;self.resumed_at=now;self.sent=[];return 'on'
+        return None
+
 RELAY_STATE={'idle':'待機','waiting_meta':'定義待ち','connecting':'Podiumへ接続中','streaming':'Podiumへ送信中','error':'Podium接続エラー'}
 
 TRANSPORT_LABEL={'lte':'SIM7070G TCP / STM32 UART','wifi':'Linux TCP (Wi-Fi)','auto':'自動（Wi-Fi／LTE）'}
@@ -345,7 +409,10 @@ TRANSPORT_LABEL={'lte':'SIM7070G TCP / STM32 UART','wifi':'Linux TCP (Wi-Fi)','a
 class PodiumSender:
     def __init__(self,root,runtime):
         self.store=ConfigStore(root);self.runtime=runtime
-        self.state={'state':'off','message':'Podium送信OFF','frames':0,'bytes':0,'reconnects':0,'skipped':0,'last_sent_age_ms':None}
+        self.state={'state':'off','message':'Podium送信OFF','frames':0,'bytes':0,'reconnects':0,'skipped':0,'last_sent_age_ms':None,
+                    'voice':'off','voice_packets':0,'voice_bytes':0,'voice_dropped':0,'voice_pauses':0,'voice_reason':None}
+        # Received voice packets (Opus) for whatever plays them; oldest dropped first.
+        self.voice=collections.deque(maxlen=VOICE_QUEUE)
         self.sent_at=0;self.blocked_revision=None
         self.active_link=None;self.watch_wifi=False;self.wifi_checked=0;self.wifi_skip_until=0;self.wifi_unknown=0
         self.session_frames=0
@@ -464,8 +531,9 @@ class PodiumSender:
         ws=WebSocket(transport)
         await ws.handshake(host,port,path,tls)
         transport.phase='relay_streaming'
-        # No playable audio formats: the room's voice is not pushed down the metered LTE link.
+        # Voice starts off; VoiceGuard turns it on once telemetry has a baseline.
         await ws.send_json({'type':'hello','client_id':'ecologger-v2','protocol':2,'audio_formats':[]})
+        guard=VoiceGuard(config.link);voice_heard=0;self.state['voice']='off'
         encoder=Encoder(sensors(config,self.runtime.config))
         await ws.send_json({'type':'podium.meta','meta':encoder.meta_list()})
         self.set_state('streaming','中継サーバーへ送信中')
@@ -491,15 +559,41 @@ class PodiumSender:
             # A partial batch still goes out if samples stall, so nothing waits long.
             if len(rows)>=RELAY_BATCH or rows and now-first_at>=1:
                 await ws.send_json({'type':'podium.samples','samples':rows})
-                self.sent(len(rows),len(json.dumps(rows)));rows=[]
+                self.sent(len(rows),len(json.dumps(rows)))
+                if guard.batch_sent(len(rows),time.monotonic()-first_at)=='off':await self.voice_switch(ws,False,guard)
+                rows=[]
+            change=guard.want(config.voice_receive)
+            if change:await self.voice_switch(ws,change=='on',guard)
             if time.monotonic()-pinged>=RELAY_PING_S[config.link]:
                 pinged=time.monotonic();await ws.ping()
-            if time.monotonic()-polled>=RELAY_POLL_S[config.link]:
+            fast=guard.on and time.monotonic()-voice_heard<VOICE_ACTIVE_S
+            if time.monotonic()-polled>=(VOICE_POLL_S if fast else RELAY_POLL_S)[config.link]:
                 polled=time.monotonic()
                 for text in await ws.poll():self.relay_message(text,sample,fresh)
+                if ws.binary:
+                    voice_heard=time.monotonic();self.voice_received(ws.binary,guard.on);ws.binary=[]
                 if time.monotonic()-ws.heard_at>RELAY_SILENT_S[config.link]:raise ConnectionError('Relay not responding')
             deadline=max(deadline+.1,time.monotonic())
             await asyncio.sleep(max(0,deadline-time.monotonic()))
+
+    async def voice_switch(self,ws,on,guard):
+        """Tell the relay to start or stop the voice mix (it re-reads the hello)."""
+        await ws.send_json({'type':'hello','client_id':'ecologger-v2','protocol':2,'audio_formats':[VOICE_FORMAT] if on else []})
+        if on:self.state.update(voice='on',voice_reason=None)
+        elif guard.reason:
+            self.state.update(voice='paused',voice_reason=guard.reason,voice_pauses=self.state['voice_pauses']+1)
+            self.event('voice_paused',reason=guard.reason,pause_s=guard.pause,link=self.active_link)
+        else:self.state.update(voice='off',voice_reason=None)
+
+    def voice_received(self,packets,taking):
+        if not taking:
+            # Already in flight when voice was switched off: not worth playing late.
+            self.state['voice_dropped']+=len(packets);return
+        self.state['voice_packets']+=len(packets);self.state['voice_bytes']+=sum(len(p) for p in packets)
+        self.voice.extend(packets)
+        play=getattr(self.runtime,'play_voice',None)
+        if play is not None:
+            for packet in packets:play(packet)
 
     def relay_message(self,text,sample,fresh):
         try:event=json.loads(text)
@@ -577,6 +671,7 @@ class PodiumSender:
                         self.set_state('retry',f'{LINK_LABEL[link]}または{target}への接続に失敗。再接続を待っています。')
                         retry=min(5,retry+1)
             finally:
+                self.state['voice']='off'
                 with __import__('contextlib').suppress(Exception):await transport.close()
             if retry:
                 until=time.monotonic()+min(30,2**retry)

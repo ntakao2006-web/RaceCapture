@@ -11,7 +11,7 @@ import msgpack
 import re
 import base64
 import hashlib
-from podium import ConfigStore,Encoder,Sensor,PodiumConfig,PodiumSender,AuthenticationError,SocketTransport,WebSocket,sensors,authenticate,parse_server_url
+from podium import ConfigStore,Encoder,Sensor,PodiumConfig,PodiumSender,AuthenticationError,SocketTransport,WebSocket,VoiceGuard,sensors,authenticate,parse_server_url
 from models import Configuration,CHANNELS
 from sim7070 import SIM7070,LTEUART
 
@@ -502,6 +502,122 @@ class FailoverTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(1.2);self.assertFalse(task.done())   # well past the 0.5 s silent limit
                 sender.store.revision+=1;await asyncio.wait_for(task,2)
         self.assertGreaterEqual(sum(1 for x in log[1:] if x[0]==9),5)
+
+
+class VoiceGuardTests(unittest.TestCase):
+    def feed(self,guard,start,seconds,rows=5,every=.5,delay=.5):
+        t=start
+        while t<start+seconds:
+            result=guard.batch_sent(rows,delay,t)
+            if result:return t,result
+            t+=every
+        return t,None
+    def test_waits_for_a_baseline_then_starts(self):
+        guard=VoiceGuard('lte')
+        self.assertIsNone(guard.want(True,0))                 # no telemetry measured yet
+        t,_=self.feed(guard,0,4)
+        self.assertEqual(guard.want(True,t),'on');self.assertAlmostEqual(guard.baseline,10,delta=.5)
+        self.assertIsNone(guard.want(True,t+1))
+        self.assertEqual(guard.want(False,t+2),'off');self.assertIsNone(guard.reason)
+    def test_late_batch_pauses_voice(self):
+        guard=VoiceGuard('lte');t,_=self.feed(guard,0,4);guard.want(True,t)
+        self.assertEqual(guard.batch_sent(5,2.5,t+.5),'off')
+        self.assertEqual(guard.reason,'telemetry_delay');self.assertFalse(guard.on)
+        self.assertIsNone(guard.want(True,t+10))                # still paused
+        self.assertEqual(guard.want(True,t+31),'on')
+    def test_fewer_rows_per_second_pauses_voice(self):
+        guard=VoiceGuard('wifi');t,_=self.feed(guard,0,4);guard.want(True,t)
+        t,result=self.feed(guard,t+.5,10,rows=3)                 # 6 rows/s against 10
+        self.assertEqual(result,'off');self.assertEqual(guard.reason,'telemetry_rate')
+    def test_steady_telemetry_keeps_voice(self):
+        guard=VoiceGuard('lte');t,_=self.feed(guard,0,4);guard.want(True,t)
+        _,result=self.feed(guard,t+.5,30)
+        self.assertIsNone(result);self.assertTrue(guard.on)
+    def test_tripping_again_soon_doubles_the_pause(self):
+        guard=VoiceGuard('lte');t,_=self.feed(guard,0,4);guard.want(True,t)
+        guard.batch_sent(5,3,t+1);first=guard.pause
+        guard.want(True,guard.paused_until);guard.batch_sent(5,3,guard.paused_until+1)
+        self.assertEqual(guard.pause,first*2)
+
+async def voice_relay(reader,writer,log):
+    """Answers pings and streams binary 'voice' frames while the client's hello asks for it."""
+    head=await reader.readuntil(b'\r\n\r\n')
+    key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
+    accept=base64.b64encode(hashlib.sha1(key+WebSocket.GUID).digest())
+    writer.write(b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+b'\r\n\r\n')
+    await writer.drain()
+    streaming=asyncio.Event()
+    async def talk():
+        while True:
+            await streaming.wait()
+            writer.write(bytes([0x82,80])+bytes(80));await writer.drain();await asyncio.sleep(.12)
+    talker=asyncio.create_task(talk())
+    try:
+        while True:
+            try:b0,b1=await reader.readexactly(2)
+            except asyncio.IncompleteReadError:return
+            n=b1&0x7f
+            if n==126:n=int.from_bytes(await reader.readexactly(2),'big')
+            mask=await reader.readexactly(4);payload=bytes(b^mask[i%4] for i,b in enumerate(await reader.readexactly(n)))
+            if b0&0x0f==9:writer.write(bytes([0x8a,len(payload)])+payload);await writer.drain()
+            if b0&0x0f==1:
+                message=json.loads(payload)
+                if message['type']=='hello':
+                    log.append(message['audio_formats'])
+                    streaming.set() if message['audio_formats'] else streaming.clear()
+    finally:talker.cancel()
+
+class VoiceRelayTests(unittest.IsolatedAsyncioTestCase):
+    async def test_voice_is_taken_and_dropped_when_telemetry_lags(self):
+        log=[]
+        server=await asyncio.start_server(lambda r,w:voice_relay(r,w,log),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;played=[]
+            class sd:status={'active':False}
+            def play_voice(self,packet):self.played.append(packet)
+        with tempfile.TemporaryDirectory() as root,patch.object(VoiceGuard,'WINDOW_S',.6),patch.object(VoiceGuard,'PAUSE_S',60):
+            runtime=Runtime();sender=PodiumSender(root,runtime)
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main',voice_receive=True)
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                async def run(seconds,start):
+                    for seq in range(start,start+int(seconds*10)):
+                        runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                        'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                        runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                await run(2.5,0)
+                self.assertEqual(sender.state['voice'],'on')
+                self.assertGreater(sender.state['voice_packets'],3);self.assertEqual(len(runtime.played),sender.state['voice_packets'])
+                # Samples stop: the open batch waits past the limit, so voice must yield.
+                with patch.dict(VoiceGuard.MAX_DELAY_S,{'wifi':.3}):
+                    real=sender.sent
+                    def slow(frames,size):real(frames,size);time.sleep(.4)
+                    sender.sent=slow;await run(1,100);sender.sent=real
+                await run(.5,200)
+                self.assertEqual(sender.state['voice'],'paused');self.assertEqual(sender.state['voice_reason'],'telemetry_delay')
+                packets=sender.state['voice_packets'];await run(1,300)
+                self.assertEqual(sender.state['voice_packets'],packets)   # nothing taken while paused
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+            self.assertTrue(any(e['event']=='voice_paused' for e in sender.events()))
+        self.assertEqual(log[0],[]);self.assertEqual(log[1],[{'sample_rate':8000,'channels':1,'frame_ms':120}]);self.assertEqual(log[2],[])
+
+    async def test_voice_stays_off_unless_enabled(self):
+        log=[]
+        server=await asyncio.start_server(lambda r,w:voice_relay(r,w,log),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        with tempfile.TemporaryDirectory() as root,patch.object(VoiceGuard,'WINDOW_S',.6):
+            runtime=Runtime();sender=PodiumSender(root,runtime)
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main')
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                for seq in range(20):
+                    runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                    'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                    runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+        self.assertEqual(log,[[]]);self.assertEqual(sender.state['voice_packets'],0)
 
 
 if __name__=='__main__':unittest.main()
