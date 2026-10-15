@@ -124,6 +124,17 @@ function frame() {
 }
 connect();
 requestAnimationFrame(frame);
+
+// Embedded next to the talk panel (same origin): Space pressed on the map is
+// push-to-talk too, instead of doing nothing.
+for (const type of ['keydown', 'keyup']) window.addEventListener(type, (e) => {
+  if (e.code !== 'Space' || window.parent === window) return;
+  let talk = null;
+  try { talk = window.parent.document.querySelector('iframe[data-talk]'); } catch { return; }
+  if (!talk || !talk.contentWindow) return;
+  e.preventDefault();
+  talk.contentWindow.dispatchEvent(new KeyboardEvent(type, { code: 'Space', key: ' ', repeat: e.repeat }));
+});
 </script>
 </body>
 </html>

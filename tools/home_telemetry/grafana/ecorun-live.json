@@ -205,7 +205,7 @@
       "type": "text",
       "title": "Talk",
       "transparent": false,
-      "description": "ecorun-logger-server の通話画面（Socket.IO、HOLD TO TALK）。同じアドレス（:8443 の /）で動いている必要がある。roomは画面内で選ぶ",
+      "description": "ecorun-logger-server の通話画面。ダッシュボードのどこでSpaceを押しても通話になる（このパネルのHTMLにあるスクリプトがSpaceを通話画面へ転送する。Grafanaの設定でHTMLの無害化を切っている前提）",
       "gridPos": {
         "x": 0,
         "y": 15,
@@ -214,7 +214,7 @@
       },
       "options": {
         "mode": "html",
-        "content": "<iframe src=\"/\" allow=\"microphone; autoplay\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
+        "content": "<iframe data-talk src=\"/\" allow=\"microphone; autoplay\" style=\"width:100%;height:100%;border:0;display:block\"></iframe><img src=\"data:,\" alt=\"\" style=\"display:none\" onerror=\"if(!window.__ecoPtt){window.__ecoPtt=1;const typing=t=>t&&t.closest&&t.closest('input,textarea,select,[contenteditable=true]');for(const type of ['keydown','keyup'])window.addEventListener(type,e=>{if(e.code!=='Space'||typing(e.target))return;const f=document.querySelector('iframe[data-talk]');if(!f||!f.contentWindow)return;e.preventDefault();e.stopPropagation();f.contentWindow.dispatchEvent(new KeyboardEvent(type,{code:'Space',key:' ',repeat:e.repeat}));},true);}\">"
       }
     },
     {
