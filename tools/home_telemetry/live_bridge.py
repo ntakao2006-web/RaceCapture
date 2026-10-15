@@ -14,7 +14,12 @@ This process follows those files and
      and sends each one to
        - browsers on ws://<host>:3002/ws?room=<room>  (the live map page), and
        - Grafana Live (channel stream/ecorun/<room>) when a token file exists.
-It also serves the map page at http://<host>:3002/map?room=<room>.
+It also serves the map page at http://<host>:3002/map?room=<room>, and over the
+same WebSocket
+  - keeps shapes people draw on the map (lines, circles, markers...) per room in
+    SQLite, so every viewer sees the same course notes, and
+  - relays the positions of viewers who chose to share theirs (pit crew walking
+    the course), so everyone can see who is where.
 
 Time is the logger's GNSS `Utc` when present, else the server receive time.
 Not part of the team server.
@@ -26,7 +31,9 @@ import json
 import math
 import os
 import re
+import sqlite3
 import time
+import uuid
 import urllib.request
 from collections import deque
 from http import HTTPStatus
@@ -37,6 +44,8 @@ from websockets.http11 import Response
 
 UTC_MIN_MS = 1_500_000_000_000  # reject Utc=0 / uptime-like values
 HISTORY = 3000                  # points per room sent to a newly opened map (5 min at 10 Hz)
+VIEWER_STALE_S = 60             # a shared viewer position disappears after this long
+MAX_SHAPE_BYTES = 200_000       # one drawn shape as GeoJSON
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -164,9 +173,41 @@ class Playout:
             await self.emit(self.room, ts, fields)
 
 
+class Shapes:
+    """Drawn map shapes per room: GeoJSON Features keyed by an id the browser picks."""
+
+    def __init__(self, path):
+        self.db = sqlite3.connect(path)
+        self.db.execute('CREATE TABLE IF NOT EXISTS shapes (room TEXT, id TEXT, feature TEXT, updated REAL, '
+                        'PRIMARY KEY (room, id))')
+        self.db.commit()
+
+    def all(self, room):
+        rows = self.db.execute('SELECT feature FROM shapes WHERE room=? ORDER BY updated', (room,))
+        return [json.loads(f) for (f,) in rows]
+
+    def save(self, room, feature):
+        self.db.execute('INSERT OR REPLACE INTO shapes VALUES (?,?,?,?)',
+                        (room, feature['id'], json.dumps(feature), time.time()))
+        self.db.commit()
+
+    def delete(self, room, shape_id):
+        self.db.execute('DELETE FROM shapes WHERE room=? AND id=?', (room, shape_id))
+        self.db.commit()
+
+
+def valid_feature(feature):
+    return (isinstance(feature, dict) and feature.get('type') == 'Feature'
+            and isinstance(feature.get('id'), str) and 0 < len(feature['id']) <= 64
+            and isinstance(feature.get('geometry'), dict)
+            and len(json.dumps(feature)) <= MAX_SHAPE_BYTES)
+
+
 class Bridge:
     def __init__(self, args):
         self.args = args
+        self.shapes = Shapes(args.db)
+        self.viewers = {}  # websocket -> {id, room, name, lat, lon, acc, at}
         self.followers = {}
         self.playouts = {}
         self.clients = {}  # websocket -> room
@@ -240,6 +281,48 @@ class Bridge:
                 'Content-Length': str(len(body))}), body)
         return connection.respond(HTTPStatus.NOT_FOUND, 'not found\n')
 
+    async def room_send(self, room, msg):
+        text = json.dumps(msg)
+        for ws, r in list(self.clients.items()):
+            if r == room:
+                try:
+                    await ws.send(text)
+                except Exception:
+                    self.clients.pop(ws, None)
+
+    def viewer_list(self, room):
+        now = time.time()
+        return [{k: v[k] for k in ('id', 'name', 'lat', 'lon', 'acc')} | {'age': round(now - v['at'])}
+                for v in self.viewers.values() if v['room'] == room and now - v['at'] < VIEWER_STALE_S]
+
+    async def push_viewers(self):
+        """Everyone's shared position, every 2 s (a handful of phones: negligible load)."""
+        while True:
+            await asyncio.sleep(2)
+            for room in {r for r in self.clients.values()}:
+                await self.room_send(room, {'viewers': self.viewer_list(room)})
+
+    async def handle(self, ws, room, msg):
+        kind = msg.get('type')
+        if kind == 'shape.save' and valid_feature(msg.get('feature')):
+            self.shapes.save(room, msg['feature'])
+            await self.room_send(room, {'shape': msg['feature']})
+        elif kind == 'shape.delete' and isinstance(msg.get('id'), str):
+            self.shapes.delete(room, msg['id'])
+            await self.room_send(room, {'shape_deleted': msg['id']})
+        elif kind == 'viewer.pos':
+            try:
+                lat, lon = float(msg['lat']), float(msg['lon'])
+                acc = min(float(msg.get('acc') or 0), 10_000)
+            except (KeyError, TypeError, ValueError):
+                return
+            if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+                return
+            v = self.viewers.setdefault(ws, {'id': uuid.uuid4().hex[:8]})
+            v.update(room=room, name=str(msg.get('name') or '?')[:20], lat=lat, lon=lon, acc=acc, at=time.time())
+        elif kind == 'viewer.stop':
+            self.viewers.pop(ws, None)
+
     async def client(self, ws):
         query = ws.request.path.partition('?')[2]
         room = dict(p.split('=', 1) for p in query.split('&') if '=' in p).get('room', '')
@@ -247,9 +330,20 @@ class Bridge:
         try:
             history = list(self.playouts[room].history) if room in self.playouts else []
             await ws.send(json.dumps({'history': [{'t': ts, **fl} for ts, fl in history]}))
-            await ws.wait_closed()
+            await ws.send(json.dumps({'shapes': self.shapes.all(room), 'viewers': self.viewer_list(room)}))
+            async for raw in ws:
+                if isinstance(raw, str) and len(raw) <= MAX_SHAPE_BYTES + 1000:
+                    try:
+                        msg = json.loads(raw)
+                    except ValueError:
+                        continue
+                    if isinstance(msg, dict):
+                        await self.handle(ws, room, msg)
+        except Exception:
+            pass
         finally:
             self.clients.pop(ws, None)
+            self.viewers.pop(ws, None)
 
 
 async def main():
@@ -259,11 +353,13 @@ async def main():
     ap.add_argument('--grafana-url', default='http://127.0.0.1:3001/api/live/push/ecorun')
     ap.add_argument('--grafana-token-file', default='/etc/ecorun-grafana-token')
     ap.add_argument('--listen', default='0.0.0.0:3002')
+    ap.add_argument('--db', default=os.path.join(HERE, 'map.db'), help='SQLite file for drawn shapes')
     args = ap.parse_args()
 
     bridge = Bridge(args)
     host, port = args.listen.rsplit(':', 1)
-    async with serve(bridge.client, host, int(port), process_request=bridge.http):
+    async with serve(bridge.client, host, int(port), process_request=bridge.http, max_size=MAX_SHAPE_BYTES + 1000):
+        asyncio.get_running_loop().create_task(bridge.push_viewers())
         await bridge.follow()
 
 
