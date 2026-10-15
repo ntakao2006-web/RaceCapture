@@ -35,6 +35,7 @@
   <button id="draw">描く</button>
   <select id="color" title="描く色"><option value="#ffd400">黄</option><option value="#ff3b30">赤</option><option value="#34c759">緑</option><option value="#00c7ff">水色</option><option value="#ffffff">白</option></select>
   <button id="share">📍 自分の位置を共有</button>
+  <button id="app" title="ブラウザを閉じても位置を送り続けるアプリ（OwnTracks）の設定">📱 アプリで共有</button>
 </div>
 <script>
 // Live position from live_bridge.py, drawn smoothly:
@@ -181,12 +182,15 @@ shareBtn.onclick = () => {
   { enableHighAccuracy: true, maximumAge: 2000 });
   shareBtn.classList.add('on'); shareBtn.textContent = '📍 共有中（押すと止める）';
 };
+// The browser stops sending once the page is in the background; OwnTracks keeps going.
+document.getElementById('app').onclick = () =>
+  window.open(`${location.origin}/owntracks/?room=${encodeURIComponent(room)}`, '_blank');
 function showViewers(list) {
   viewersLayer.clearLayers();
   for (const v of list) {
     L.circle([v.lat, v.lon], { radius: Math.min(v.acc, 50), color: '#1e88e5', weight: 1, fillOpacity: .15, interactive: false }).addTo(viewersLayer);
     L.circleMarker([v.lat, v.lon], { radius: 6, color: '#fff', weight: 2, fillColor: '#1e88e5', fillOpacity: 1 })
-      .bindTooltip(v.name + (v.age > 15 ? `（${v.age}秒前）` : ''), { permanent: true, direction: 'right', className: 'viewer-label' })
+      .bindTooltip((v.app ? '📱' : '') + v.name + (v.age > 15 ? `（${v.age}秒前）` : ''), { permanent: true, direction: 'right', className: 'viewer-label' })
       .addTo(viewersLayer);
   }
 }

@@ -20,17 +20,28 @@ same WebSocket
     SQLite, so every viewer sees the same course notes, and
   - relays the positions of viewers who chose to share theirs (pit crew walking
     the course), so everyone can see who is where.
+A browser stops sending its position once the page is in the background, so the
+pit crew can also share through the OwnTracks app (Android/iOS, keeps running in
+the background). That needs plain HTTP POST, which the WebSocket server above
+cannot take, so a second small listener (--owntracks-listen, published at
+/owntracks) serves
+  GET  /            a page that issues a personal setup link (owntracks:///config?inline=...)
+  POST /register    {room, name} -> {token, tid}; the token is the app's password
+  POST /pub         what the app sends (Basic auth: name / token)
+and the positions join the same viewer list as the browsers'.
 
 Time is the logger's GNSS `Utc` when present, else the server receive time.
 Not part of the team server.
 """
 import argparse
 import asyncio
+import base64
 import glob
 import json
 import math
 import os
 import re
+import secrets
 import sqlite3
 import time
 import uuid
@@ -45,6 +56,8 @@ from websockets.http11 import Response
 UTC_MIN_MS = 1_500_000_000_000  # reject Utc=0 / uptime-like values
 HISTORY = 3000                  # points per room sent to a newly opened map (5 min at 10 Hz)
 VIEWER_STALE_S = 60             # a shared viewer position disappears after this long
+APP_STALE_S = 15 * 60           # ...but an OwnTracks phone standing still may report only every few minutes
+MAX_HTTP_BODY = 16_000          # one OwnTracks message
 MAX_SHAPE_BYTES = 200_000       # one drawn shape as GeoJSON
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -196,6 +209,44 @@ class Shapes:
         self.db.commit()
 
 
+class AppUsers:
+    """OwnTracks phones: one random token per person, issued by the setup page."""
+
+    def __init__(self, db):
+        self.db = db
+        self.db.execute('CREATE TABLE IF NOT EXISTS app_users (token TEXT PRIMARY KEY, room TEXT, name TEXT, '
+                        'tid TEXT, created REAL)')
+        self.db.commit()
+
+    def register(self, room, name):
+        token, tid = secrets.token_urlsafe(18), make_tid(name)
+        self.db.execute('INSERT INTO app_users VALUES (?,?,?,?,?)', (token, room, name, tid, time.time()))
+        self.db.commit()
+        return token, tid
+
+    def lookup(self, token):
+        row = self.db.execute('SELECT room, name, tid FROM app_users WHERE token=?', (token,)).fetchone()
+        return dict(zip(('room', 'name', 'tid'), row)) if row else None
+
+
+def make_tid(name):
+    """OwnTracks shows a 2-character 'tracker id' in its own map; take it from the name."""
+    letters = re.sub(r'[^A-Za-z0-9]', '', name)
+    return (letters[:2] or name[:2] or '??').upper()
+
+
+def basic_auth(headers):
+    """(user, password) from an Authorization: Basic header, or (None, None)."""
+    kind, _, value = headers.get('authorization', '').partition(' ')
+    if kind.lower() != 'basic':
+        return None, None
+    try:
+        user, _, password = base64.b64decode(value).decode().partition(':')
+    except ValueError:
+        return None, None
+    return user, password
+
+
 def valid_feature(feature):
     return (isinstance(feature, dict) and feature.get('type') == 'Feature'
             and isinstance(feature.get('id'), str) and 0 < len(feature['id']) <= 64
@@ -207,7 +258,8 @@ class Bridge:
     def __init__(self, args):
         self.args = args
         self.shapes = Shapes(args.db)
-        self.viewers = {}  # websocket -> {id, room, name, lat, lon, acc, at}
+        self.app_users = AppUsers(self.shapes.db)
+        self.viewers = {}  # websocket (or 'app:<token>') -> {id, room, name, lat, lon, acc, at[, app]}
         self.followers = {}
         self.playouts = {}
         self.clients = {}  # websocket -> room
@@ -292,8 +344,9 @@ class Bridge:
 
     def viewer_list(self, room):
         now = time.time()
-        return [{k: v[k] for k in ('id', 'name', 'lat', 'lon', 'acc')} | {'age': round(now - v['at'])}
-                for v in self.viewers.values() if v['room'] == room and now - v['at'] < VIEWER_STALE_S]
+        return [{k: v[k] for k in ('id', 'name', 'lat', 'lon', 'acc')} | {'age': round(now - v['at']), 'app': 'app' in v}
+                for v in self.viewers.values()
+                if v['room'] == room and now - v['at'] < (APP_STALE_S if 'app' in v else VIEWER_STALE_S)]
 
     async def push_viewers(self):
         """Everyone's shared position, every 2 s (a handful of phones: negligible load)."""
@@ -322,6 +375,78 @@ class Bridge:
             v.update(room=room, name=str(msg.get('name') or '?')[:20], lat=lat, lon=lon, acc=acc, at=time.time())
         elif kind == 'viewer.stop':
             self.viewers.pop(ws, None)
+
+    # --- OwnTracks app side ------------------------------------------------
+    async def app_http(self, reader, writer):
+        """One request per connection (Connection: close); enough for a few phones."""
+        status, ctype, body = 400, 'text/plain', b'bad request\n'
+        try:
+            head = await asyncio.wait_for(reader.readuntil(b'\r\n\r\n'), 10)
+            line, *fields = head.decode('latin-1').split('\r\n')
+            method, target, _ = line.split(' ', 2)
+            headers = {k.strip().lower(): v.strip() for k, _, v in (f.partition(':') for f in fields if f)}
+            length = int(headers.get('content-length') or 0)
+            if 0 <= length <= MAX_HTTP_BODY:
+                data = await asyncio.wait_for(reader.readexactly(length), 10) if length else b''
+                status, ctype, body = await self.app_route(method, target.partition('?')[0], headers, data)
+        except (asyncio.TimeoutError, asyncio.IncompleteReadError, asyncio.LimitOverrunError,
+                ValueError, AttributeError, TypeError, OSError):
+            pass
+        reason = HTTPStatus(status).phrase
+        writer.write(f'HTTP/1.1 {status} {reason}\r\nContent-Type: {ctype}\r\nContent-Length: {len(body)}\r\n'
+                     f'Cache-Control: no-store\r\nConnection: close\r\n\r\n'.encode() + body)
+        try:
+            await writer.drain()
+            writer.close()
+        except OSError:
+            pass
+
+    async def app_route(self, method, path, headers, data):
+        if method == 'GET' and path in ('/', '/index.html'):
+            with open(os.path.join(HERE, 'owntracks.html'), 'rb') as f:
+                return 200, 'text/html; charset=utf-8', f.read()
+        if method == 'POST' and path == '/register':
+            msg = json.loads(data or b'{}')
+            room = str(msg.get('room') or '').strip()[:64]
+            name = str(msg.get('name') or '').strip()[:20]
+            if not room or not name:
+                return 400, 'text/plain', b'room and name are required\n'
+            token, tid = self.app_users.register(room, name)
+            print(f'OwnTracks: registered {name!r} in room {room!r}', flush=True)
+            return 200, 'application/json', json.dumps({'token': token, 'tid': tid, 'name': name}).encode()
+        if method == 'POST' and path == '/pub':
+            user = self.app_users.lookup(basic_auth(headers)[1] or '')
+            if not user:
+                return 401, 'text/plain', b'unknown token\n'
+            msg = json.loads(data) if data.strip() else {}
+            if isinstance(msg, dict) and msg.get('_type') == 'location':
+                self.app_position(user, msg)
+            return 200, 'application/json', json.dumps(self.app_reply(user)).encode()
+        return 404, 'text/plain', b'not found\n'
+
+    def app_position(self, user, msg):
+        try:
+            lat, lon = float(msg['lat']), float(msg['lon'])
+            acc = min(float(msg.get('acc') or 0), 10_000)
+        except (KeyError, TypeError, ValueError):
+            return
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            return
+        key = 'app:' + user['tid'] + ':' + user['name']
+        v = self.viewers.setdefault(key, {'id': uuid.uuid4().hex[:8], 'app': True})
+        v.update(room=user['room'], name=user['name'], lat=lat, lon=lon, acc=acc, at=time.time())
+
+    def app_reply(self, user):
+        """Everyone else in the room, so the OwnTracks app's own map shows the team too."""
+        now, out = time.time(), []
+        for v in self.viewer_list(user['room']):
+            if v['name'] == user['name']:
+                continue
+            tid = make_tid(v['name'])
+            out.append({'_type': 'card', 'tid': tid, 'name': v['name']})
+            out.append({'_type': 'location', 'tid': tid, 'lat': v['lat'], 'lon': v['lon'],
+                        'acc': round(v['acc']), 'tst': int(now - v['age']), 'topic': f'owntracks/ecorun/{v["id"]}'})
+        return out
 
     async def client(self, ws):
         query = ws.request.path.partition('?')[2]
@@ -354,11 +479,15 @@ async def main():
     ap.add_argument('--grafana-token-file', default='/etc/ecorun-grafana-token')
     ap.add_argument('--listen', default='0.0.0.0:3002')
     ap.add_argument('--db', default=os.path.join(HERE, 'map.db'), help='SQLite file for drawn shapes')
+    ap.add_argument('--owntracks-listen', default='127.0.0.1:3003', help='HTTP for the OwnTracks app')
     args = ap.parse_args()
 
     bridge = Bridge(args)
     host, port = args.listen.rsplit(':', 1)
-    async with serve(bridge.client, host, int(port), process_request=bridge.http, max_size=MAX_SHAPE_BYTES + 1000):
+    app_host, app_port = args.owntracks_listen.rsplit(':', 1)
+    app_server = await asyncio.start_server(bridge.app_http, app_host, int(app_port))
+    async with app_server, serve(bridge.client, host, int(port), process_request=bridge.http,
+                                 max_size=MAX_SHAPE_BYTES + 1000):
         asyncio.get_running_loop().create_task(bridge.push_viewers())
         await bridge.follow()
 
