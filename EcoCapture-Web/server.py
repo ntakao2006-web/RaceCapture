@@ -198,6 +198,16 @@ class Runtime:
                 "sensors": self.sensors if fresh else {k:"通信待ち" for k in self.sensors}, "hardware": self.hardware,
                 "logging": {**self.recorder.status(),"sd_warning":self.sd_warning()}, "sd_copy": self.sd.status, "podium":self.podium.status()}
 
+    async def wifi_connected(self):
+        """NetworkManager state of wlan0 via the host agent (Podium automatic link). None if unknown."""
+        try:
+            transport=httpx.AsyncHTTPTransport(uds='/run/ecocapture-admin/agent.sock')
+            async with httpx.AsyncClient(transport=transport,base_url='http://agent',timeout=1.5) as client:
+                response=await client.get('/wifi')
+            if response.status_code>=400:return None
+            return str(response.json().get('state','')).startswith('100')
+        except (httpx.HTTPError,ValueError,OSError):return None
+
     def sd_warning(self):
         if not self.recorder.file or not self.bridge:return None
         if (self.hardware.get('sd_logging') or self.record_sd_first is not None) and not self.hardware.get('sd_errors'):return None

@@ -42,7 +42,10 @@ class PodiumConfig(BaseModel):
     model_config = ConfigDict(extra='forbid')
     enabled: bool = False
     # 'lte': SIM7070 via STM32. 'wifi': the UNO Q's own Linux network (bench tests).
-    link: Literal['lte','wifi'] = 'lte'
+    # 'auto': Wi-Fi while the UNO Q has it (pit, tethering), otherwise LTE. On
+    # track the car is out of Wi-Fi range, so a forgotten Wi-Fi setting can no
+    # longer leave the stream silent.
+    link: Literal['lte','wifi','auto'] = 'lte'
     # 'podium': direct TCP to Podium. 'server': ecorun-logger-server relays to Podium.
     destination: Literal['podium','server'] = 'podium'
     server_url: str = Field(default='', max_length=300)
@@ -67,7 +70,7 @@ class PodiumConfig(BaseModel):
         if self.server_url and not SERVER_URL.fullmatch(self.server_url):raise ValueError('Invalid relay server URL')
         if self.enabled and self.destination=='podium' and not self.device_id:raise ValueError('Key required')
         if self.enabled and self.destination=='server' and not self.server_url:raise ValueError('Relay server URL required')
-        if self.enabled and self.link=='lte' and not (self.hardware_ready and self.apn):raise ValueError('SIM, antenna and APN required')
+        if self.enabled and self.link!='wifi' and not (self.hardware_ready and self.apn):raise ValueError('SIM, antenna and APN required')
         return self
 
 class ConfigStore:
@@ -208,13 +211,14 @@ async def authenticate(transport,timeout=20):
 
 class SocketTransport:
     """Plain TCP over the Linux network (Wi-Fi). Same NDJSON stream as the LTE path."""
-    def __init__(self):self.reader=None;self.writer=None;self.phase='idle';self.operation='idle'
+    def __init__(self,connect_timeout=20):
+        self.reader=None;self.writer=None;self.phase='idle';self.operation='idle';self.connect_timeout=connect_timeout
     async def connect(self,config,endpoint=None):
         # endpoint=(host,port,tls) for the relay server; default is Podium itself.
         host,port,tls=endpoint or (config.host,config.port,False)
         self.phase='relay_connect' if endpoint else 'podium_tcp_connect';self.operation='connect'
         context=ssl.create_default_context() if tls else None
-        try:self.reader,self.writer=await asyncio.wait_for(asyncio.open_connection(host,port,limit=4096,ssl=context,server_hostname=host if tls else None),20)
+        try:self.reader,self.writer=await asyncio.wait_for(asyncio.open_connection(host,port,limit=4096,ssl=context,server_hostname=host if tls else None),self.connect_timeout)
         except (OSError,asyncio.TimeoutError):raise OSError('Socket open failed')
         self.phase='relay_handshake' if endpoint else 'podium_authentication'
     async def read_some(self,wait=.01):
@@ -297,32 +301,59 @@ class WebSocket:
         return messages
 
 LINK_LABEL={'lte':'LTE','wifi':'Wi-Fi'}
+# Automatic link: how often Wi-Fi is re-checked while streaming over it, how
+# long Wi-Fi is skipped after it failed, and a short connect timeout so a
+# hotspot without internet falls back to LTE quickly.
+WIFI_CHECK_S=2.0
+WIFI_SKIP_S=30.0
+AUTO_WIFI_CONNECT_S=8
 # Rows per WebSocket message to the relay: fewer AT+CASEND round trips on LTE.
 RELAY_BATCH=5
 # Polling the relay costs an AT+CARECV on LTE, so do it rarely there.
 RELAY_POLL_S={'lte':2.0,'wifi':.2}
 RELAY_STATE={'idle':'待機','waiting_meta':'定義待ち','connecting':'Podiumへ接続中','streaming':'Podiumへ送信中','error':'Podium接続エラー'}
 
+TRANSPORT_LABEL={'lte':'SIM7070G TCP / STM32 UART','wifi':'Linux TCP (Wi-Fi)','auto':'自動（Wi-Fi／LTE）'}
+
 class PodiumSender:
     def __init__(self,root,runtime):
         self.store=ConfigStore(root);self.runtime=runtime
         self.state={'state':'off','message':'Podium送信OFF','frames':0,'bytes':0,'reconnects':0,'skipped':0,'last_sent_age_ms':None}
         self.sent_at=0;self.blocked_revision=None
+        self.active_link=None;self.watch_wifi=False;self.wifi_checked=0;self.wifi_skip_until=0
 
     def status(self):
         return {**self.state,'target_hz':10,'last_sent_age_ms':round((time.monotonic()-self.sent_at)*1000) if self.sent_at else None,
-                'link':self.store.config.link,'destination':self.store.config.destination,
-                'transport':('SIM7070G TCP / STM32 UART' if self.store.config.link=='lte' else 'Linux TCP (Wi-Fi)')+(' → 中継サーバー' if self.store.config.destination=='server' else ''),
+                'link':self.store.config.link,'active_link':self.active_link,'destination':self.store.config.destination,
+                'transport':TRANSPORT_LABEL[self.active_link or self.store.config.link]+(' → 中継サーバー' if self.store.config.destination=='server' else ''),
                 'configured':bool(self.store.config.server_url if self.store.config.destination=='server' else self.store.config.device_id),'enabled':self.store.config.enabled}
 
     def set_state(self,name,message):self.state.update(state=name,message=message)
 
     def sd_busy(self,config=None):
-        # Only the LTE path shares the MCU RPC link with SD reads/copies.
-        if config is not None and config.link!='lte':return False
+        # Only the LTE path shares the MCU RPC link with SD reads/copies ('auto' may become LTE).
+        if config is not None and config.link=='wifi':return False
         # Timestamp-only directory edits are serialized by the bridge and do
         # not require disconnecting telemetry after every recording stop.
         return self.runtime.sd.status.get('active') and self.runtime.sd.status.get('operation')!='timestamp'
+
+    async def wifi_connected(self):
+        """True/False from the UNO Q's NetworkManager; None when unknown (no agent, bench)."""
+        check=getattr(self.runtime,'wifi_connected',None)
+        if check is None:return None
+        try:return await check()
+        except Exception:return None
+
+    async def choose_link(self,config):
+        if config.link!='auto':return config.link
+        if time.monotonic()<self.wifi_skip_until:return 'lte'
+        return 'lte' if await self.wifi_connected() is False else 'wifi'
+
+    async def check_wifi(self):
+        """In automatic mode, leave Wi-Fi as soon as it drops (the car went out on track)."""
+        if not self.watch_wifi or time.monotonic()-self.wifi_checked<WIFI_CHECK_S:return
+        self.wifi_checked=time.monotonic()
+        if await self.wifi_connected() is False:raise ConnectionError('Wi-Fi lost')
 
     async def session(self,transport,config,revision):
         encoder=Encoder(sensors(config,self.runtime.config))
@@ -338,6 +369,7 @@ class PodiumSender:
         while self.store.revision==revision:
             if self.sd_busy(config):
                 raise ConnectionError('SD operation')
+            await self.check_wifi()
             updated=sensors(config,self.runtime.config)
             current=[(c.name,c.unit,c.low,c.high) for c in updated]
             if current!=fingerprint:
@@ -376,6 +408,7 @@ class PodiumSender:
         while self.store.revision==revision:
             if self.sd_busy(config):
                 raise ConnectionError('SD operation')
+            await self.check_wifi()
             updated=sensors(config,self.runtime.config)
             current=[(c.name,c.unit,c.low,c.high) for c in updated]
             if current!=fingerprint:
@@ -424,9 +457,13 @@ class PodiumSender:
                 self.set_state('auth_failed','認証失敗。送信キーを修正して保存してください。');await asyncio.sleep(.5);continue
             if not self.runtime.bridge or not self.runtime.status()['connected'] or self.sd_busy(config):
                 self.set_state('waiting','MCU通信またはSD操作完了を待っています');await asyncio.sleep(.5);continue
-            transport=SIM7070(self.runtime.bridge) if config.link=='lte' else SocketTransport()
+            auto=config.link=='auto'
+            link=await self.choose_link(config)
+            self.active_link=link;self.watch_wifi=auto and link=='wifi';self.wifi_checked=time.monotonic()
+            session_config=config.model_copy(update={'link':link})
+            transport=SIM7070(self.runtime.bridge) if link=='lte' else SocketTransport(AUTO_WIFI_CONNECT_S if auto else 20)
             try:
-                await (self.relay_session if config.destination=='server' else self.session)(transport,config,revision)
+                await (self.relay_session if config.destination=='server' else self.session)(transport,session_config,revision)
                 retry=0
             except AuthenticationError:
                 self.blocked_revision=revision
@@ -443,11 +480,16 @@ class PodiumSender:
                     'Socket no longer connected','Network registration timeout',
                     'Podium auth response timeout','SD operation',
                     'Relay handshake timeout','Relay refused WebSocket','Relay closed WebSocket',
-                    'Relay has no Podium key','Relay frame too large'}
+                    'Relay has no Podium key','Relay frame too large','Wi-Fi lost'}
                 self.state['last_failure_reason']=str(exc) if str(exc) in safe_reasons else 'Transport error'
                 target='中継サーバー' if config.destination=='server' else 'Podium'
-                self.set_state('retry',f'{LINK_LABEL[config.link]}または{target}への接続に失敗。再接続を待っています。')
-                retry=min(5,retry+1)
+                if auto and link=='wifi':
+                    # Straight over to LTE, no back-off: the stream must not pause on track.
+                    self.wifi_skip_until=time.monotonic()+WIFI_SKIP_S
+                    self.set_state('retry','Wi-Fiが使えないためLTEへ切り替えます')
+                else:
+                    self.set_state('retry',f'{LINK_LABEL[link]}または{target}への接続に失敗。再接続を待っています。')
+                    retry=min(5,retry+1)
             finally:
                 with __import__('contextlib').suppress(Exception):await transport.close()
             if retry:

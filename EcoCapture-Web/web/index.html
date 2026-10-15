@@ -79,7 +79,7 @@
 <div id="device" role="tabpanel" aria-labelledby="settings-uno-tab" hidden>
   <article class="panel"><div class="panel-title"><h2>Podium センサ共有（LTE / Wi-Fi）</h2><span>目標 10 Hz</span></div>
   <p>位置・IMU・選択した車両信号をPodiumへ送ります。本番はLTE、卓上の確認はUNO QのWi-Fiを使えます。ローカル記録は別に続きます。</p>
-  <form id="podium-form"><p class="button-row"><label class="choice"><input type="radio" name="podium-link" value="lte" checked> LTE（本番）</label><label class="choice"><input type="radio" name="podium-link" value="wifi"> Wi-Fi（UNO Qのネット接続で試験）</label></p>
+  <form id="podium-form"><p class="button-row"><label class="choice"><input type="radio" name="podium-link" value="auto"> 自動（Wi-Fiがあれば Wi-Fi、無ければ LTE。本番はこれ）</label><label class="choice"><input type="radio" name="podium-link" value="lte" checked> LTEだけ</label><label class="choice"><input type="radio" name="podium-link" value="wifi"> Wi-Fiだけ（試験用）</label></p>
   <p class="button-row"><label class="choice"><input type="radio" name="podium-destination" value="podium" checked> Podiumへ直接</label><label class="choice"><input type="radio" name="podium-destination" value="server"> 中継サーバー経由（ecorun-logger-server）</label></p><div class="form-grid">
   <label>APN<input id="podium-apn" maxlength="100" autocomplete="off"></label>
   <label>APNユーザー名<input id="podium-user" maxlength="64" autocomplete="off"></label>

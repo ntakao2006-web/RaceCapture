@@ -2,7 +2,7 @@
 let podiumLoaded=false,podiumTick=0,podiumBusy=false;
 document.addEventListener('ecocapture-config-saved',()=>{podiumLoaded=false;});
 function podiumState(s){
-  $('podium-state').textContent=`${s.message} · 送信 ${s.frames} 件 / 再接続 ${s.reconnects} 回${s.last_sent_age_ms===null?'':` / 最終送信 ${s.last_sent_age_ms} ms前`}`;
+  $('podium-state').textContent=`${s.message}${s.link==='auto'&&s.active_link?`（自動：今は${s.active_link==='wifi'?'Wi-Fi':'LTE'}）`:''} · 送信 ${s.frames} 件 / 再接続 ${s.reconnects} 回${s.last_sent_age_ms===null?'':` / 最終送信 ${s.last_sent_age_ms} ms前`}`;
 }
 async function loadPodium(){
   const data=await api('/api/podium'),c=data.config;podiumState(data.status);

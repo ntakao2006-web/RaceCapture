@@ -151,6 +151,60 @@ async def fake_relay(reader,writer,log,replies=()):
         log.append((b0&0x0f,payload))
 
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
+    async def test_auto_link_prefers_wifi_only_while_it_is_up(self):
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;up=None
+            class sd:status={'active':False}
+            async def wifi_connected(self):return self.up
+        with tempfile.TemporaryDirectory() as root:
+            runtime=Runtime();sender=PodiumSender(root,runtime)
+            auto=PodiumConfig(link='auto',apn='test.apn',hardware_ready=True)
+            self.assertEqual(await sender.choose_link(auto),'wifi')          # unknown: try Wi-Fi
+            runtime.up=False;self.assertEqual(await sender.choose_link(auto),'lte')
+            runtime.up=True;self.assertEqual(await sender.choose_link(auto),'wifi')
+            sender.wifi_skip_until=time.monotonic()+30
+            self.assertEqual(await sender.choose_link(auto),'lte')           # Wi-Fi just failed
+            self.assertEqual(await sender.choose_link(PodiumConfig(link='wifi')),'wifi')
+            with self.assertRaises(ValueError):PodiumConfig(link='auto',enabled=True,device_id='k')  # LTE fallback needs APN
+            Runtime.sd.status={'active':True,'operation':'copy'}  # 'auto' may end up on LTE, which shares the MCU link
+            self.assertTrue(sender.sd_busy(auto));self.assertFalse(sender.sd_busy(PodiumConfig(link='wifi')))
+            Runtime.sd.status={'active':False}
+
+    async def test_auto_link_leaves_wifi_when_it_drops_mid_stream(self):
+        log=[]
+        server=await asyncio.start_server(lambda r,w:fake_relay(r,w,log,[]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;up=True
+            class sd:status={'active':False}
+            async def wifi_connected(self):return self.up
+        with tempfile.TemporaryDirectory() as root, patch('podium.WIFI_CHECK_S',0):
+            runtime=Runtime();sender=PodiumSender(root,runtime);sender.watch_wifi=True
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main')
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                await asyncio.sleep(.3);self.assertFalse(task.done())
+                runtime.up=False
+                with self.assertRaisesRegex(ConnectionError,'Wi-Fi lost'):await asyncio.wait_for(task,2)
+
+    async def test_auto_link_falls_back_to_lte_without_backoff(self):
+        closed=await asyncio.start_server(lambda r,w:w.close(),'127.0.0.1',0);port=closed.sockets[0].getsockname()[1];closed.close();await closed.wait_closed()
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;bridge=object()
+            class sd:status={'active':False}
+            def status(self):return {'connected':True}
+            async def wifi_connected(self):return True
+        with tempfile.TemporaryDirectory() as root:
+            sender=PodiumSender(root,Runtime())
+            sender.store.config=PodiumConfig(link='auto',apn='test.apn',hardware_ready=True,enabled=True,destination='server',
+                                             server_url=f'ws://127.0.0.1:{port}/ws/audio/main')
+            task=asyncio.create_task(sender.run())
+            for _ in range(40):
+                await asyncio.sleep(.05)
+                if sender.active_link=='lte':break
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):await task
+        self.assertEqual(sender.active_link,'lte');self.assertGreater(sender.wifi_skip_until,time.monotonic())
+        self.assertEqual(sender.status()['active_link'],'lte');self.assertIn('SIM7070G',sender.status()['transport'])
     async def test_relay_hello_meta_and_batched_samples_over_websocket(self):
         log=[];status=b'{"type":"podium.status","room_id":"main","state":"streaming","lt":4}'
         server=await asyncio.start_server(lambda r,w:fake_relay(r,w,log,[status]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
