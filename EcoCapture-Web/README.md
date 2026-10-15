@@ -33,7 +33,7 @@ Settings → 基本設定 / CAN の「ラップ計測」で、コントロール
 
 Dashboardに周回・現在ラップ・前回・ベストを表示し、eMMCのCSVに `LapCount`・`CurrentLap`・`LapTime`・`BestLap`・`ElapsedTime`（RaceCapture準拠、時間は分単位）を追加しました。Podiumにも常に送ります（ライン未設定の間は空欄）。STM32のSD記録にはラップは入りません（GNSSから後で再計算できます）。
 
-Podium送信は Settings → UNO Q で **自動／LTEだけ／Wi-Fiだけ（試験）** を選べます。**本番は「自動」**：UNO QのWi-Fiがつながっていれば Wi-Fi で送り、つながっていなければ LTE で送ります。Wi-Fiで送信中に Wi-Fi が切れたら（コースに出たら）2秒以内に気づき、待たずに LTE へ移ります（切れてから30秒は Wi-Fi を試しません）。LTEで送れている間は Wi-Fi に戻りません。Wi-FiはUNO Q自身のネット接続を使い、APN・SIMの確認は不要です。
+Podium送信は Settings → UNO Q で **自動／LTEだけ／Wi-Fiだけ（試験）** を選べます。**本番は「自動」**：UNO QのWi-Fiがつながっていれば Wi-Fi で送り、つながっていなければ LTE で送ります。Wi-Fiで送信中に Wi-Fi が切れたら（コースに出たら）2秒以内に気づき、待たずに LTE へ移ります（切れてから30秒は Wi-Fi を試しません）。LTEで送れている間は Wi-Fi に戻りません。Wi-Fiの通信には「送ったデータに5秒返事が無ければ切断」（`TCP_USER_TIMEOUT`）を付け、電波が弱くつながったまま通らない状態でも抜けます。切替の記録は `GET /api/podium/events`。**本番で「自動」を使うのは `podium_auto_link_test_plan.md` の実機試験を全部通してから**。Wi-FiはUNO Q自身のネット接続を使い、APN・SIMの確認は不要です。
 
 ## 保存先・障害時
 

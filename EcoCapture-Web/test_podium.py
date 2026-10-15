@@ -170,6 +170,27 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(sender.sd_busy(auto));self.assertFalse(sender.sd_busy(PodiumConfig(link='wifi')))
             Runtime.sd.status={'active':False}
 
+    async def test_unreadable_wifi_state_counts_as_lost(self):
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+            async def wifi_connected(self):return None
+        with tempfile.TemporaryDirectory() as root, patch('podium.WIFI_CHECK_S',0):
+            sender=PodiumSender(root,Runtime());sender.watch_wifi=True
+            await sender.check_wifi()  # one unreadable answer is tolerated
+            with self.assertRaisesRegex(ConnectionError,'Wi-Fi state unknown'):await sender.check_wifi()
+
+    @unittest.skipUnless(hasattr(__import__('socket'),'TCP_USER_TIMEOUT'),'Linux only (runs in the UNO Q image)')
+    async def test_auto_wifi_socket_gives_up_on_unacknowledged_data(self):
+        import socket
+        server=await asyncio.start_server(lambda r,w:None,'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        async with server:
+            transport=SocketTransport(8,5000)
+            await transport.connect(PodiumConfig(),('127.0.0.1',port,False))
+            sock=transport.writer.get_extra_info('socket')
+            self.assertEqual(sock.getsockopt(socket.IPPROTO_TCP,socket.TCP_USER_TIMEOUT),5000)
+            await transport.close()
+
     async def test_auto_link_leaves_wifi_when_it_drops_mid_stream(self):
         log=[]
         server=await asyncio.start_server(lambda r,w:fake_relay(r,w,log,[]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
@@ -203,8 +224,11 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
                 if sender.active_link=='lte':break
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):await task
+            events=sender.events()
         self.assertEqual(sender.active_link,'lte');self.assertGreater(sender.wifi_skip_until,time.monotonic())
         self.assertEqual(sender.status()['active_link'],'lte');self.assertIn('SIM7070G',sender.status()['transport'])
+        self.assertEqual([(e['event'],e.get('link')) for e in events[:3]],[('session_start','wifi'),('session_end','wifi'),('session_start','lte')])
+        self.assertEqual(events[1]['reason'],'Socket open failed')
     async def test_relay_hello_meta_and_batched_samples_over_websocket(self):
         log=[];status=b'{"type":"podium.status","room_id":"main","state":"streaming","lt":4}'
         server=await asyncio.start_server(lambda r,w:fake_relay(r,w,log,[status]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]

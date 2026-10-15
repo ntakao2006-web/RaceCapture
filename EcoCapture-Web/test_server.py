@@ -58,6 +58,30 @@ class ServerTests(unittest.TestCase):
         self.assertIsNotNone(self.s.runtime.recorder.file)
         self.assertEqual(self.s.runtime.record_sd_first,7)
 
+    def test_wifi_state_from_host_agent(self):
+        class Response:
+            def __init__(self,data,code=200):self.data=data;self.status_code=code
+            def json(self):return self.data
+        def client(answer):
+            class Client:
+                def __init__(self,**kw):pass
+                async def __aenter__(self):return self
+                async def __aexit__(self,*a):return False
+                async def get(self,path):
+                    if isinstance(answer,Exception):raise answer
+                    return answer
+            return Client
+        cases=[(Response({'state':'100 (connected)','addresses':['192.168.1.5']}),True),
+               (Response({'state':'30 (disconnected)','addresses':[]}),False),
+               (Response({'state':'70 (connecting (getting IP configuration))','addresses':[]}),False),
+               (Response({'state':'unknown','addresses':['10.0.0.2']}),True),
+               (Response({'state':'unknown','addresses':[]}),False),
+               (Response({'detail':'x'},503),None),
+               (self.s.httpx.ConnectError('no agent'),None)]
+        for answer,expected in cases:
+            with patch.object(self.s.httpx,'AsyncClient',client(answer)):
+                self.assertEqual(asyncio.run(self.s.runtime.wifi_connected()),expected,answer)
+
     def test_missing_sd_still_records_emmc_with_warning(self):
         from unittest.mock import AsyncMock
         self.connected()

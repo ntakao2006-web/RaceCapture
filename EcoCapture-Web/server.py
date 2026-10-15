@@ -205,7 +205,11 @@ class Runtime:
             async with httpx.AsyncClient(transport=transport,base_url='http://agent',timeout=1.5) as client:
                 response=await client.get('/wifi')
             if response.status_code>=400:return None
-            return str(response.json().get('state','')).startswith('100')
+            data=response.json();state=str(data.get('state',''))
+            # nmcli GENERAL.STATE is "100 (connected)" when up. If the format ever
+            # differs, fall back to what the Web UI already uses: an IPv4 address.
+            if state[:1].isdigit():return state.startswith('100')
+            return bool(data.get('addresses'))
         except (httpx.HTTPError,ValueError,OSError):return None
 
     def sd_warning(self):
@@ -410,6 +414,12 @@ def podium_config():
     return {'config':runtime.podium.store.public(),'status':runtime.podium.status(),
             'channels':[{'name':n,'label':label,'unit':unit} for n,(label,unit) in CHANNELS.items()]+
                        [{'name':s.name,'label':s.name,'unit':s.unit} for s in runtime.config.signals if s.name not in CHANNELS]}
+
+
+@app.get('/api/podium/events')
+def podium_events():
+    # Link switches and first frames (for measuring the Wi-Fi -> LTE pause). No keys or payloads.
+    return runtime.podium.events()
 
 
 @app.post('/api/podium')

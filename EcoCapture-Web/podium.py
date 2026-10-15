@@ -11,6 +11,7 @@ import json
 import math
 import os
 import re
+import socket
 import ssl
 import time
 from dataclasses import dataclass
@@ -211,8 +212,9 @@ async def authenticate(transport,timeout=20):
 
 class SocketTransport:
     """Plain TCP over the Linux network (Wi-Fi). Same NDJSON stream as the LTE path."""
-    def __init__(self,connect_timeout=20):
-        self.reader=None;self.writer=None;self.phase='idle';self.operation='idle';self.connect_timeout=connect_timeout
+    def __init__(self,connect_timeout=20,user_timeout_ms=None):
+        self.reader=None;self.writer=None;self.phase='idle';self.operation='idle'
+        self.connect_timeout=connect_timeout;self.user_timeout_ms=user_timeout_ms
     async def connect(self,config,endpoint=None):
         # endpoint=(host,port,tls) for the relay server; default is Podium itself.
         host,port,tls=endpoint or (config.host,config.port,False)
@@ -220,6 +222,13 @@ class SocketTransport:
         context=ssl.create_default_context() if tls else None
         try:self.reader,self.writer=await asyncio.wait_for(asyncio.open_connection(host,port,limit=4096,ssl=context,server_hostname=host if tls else None),self.connect_timeout)
         except (OSError,asyncio.TimeoutError):raise OSError('Socket open failed')
+        # Linux aborts the connection when sent data stays unacknowledged this
+        # long, so a Wi-Fi link that is still "associated" but no longer passes
+        # data (weak signal leaving the pit) fails within seconds instead of
+        # filling the kernel send buffer for minutes.
+        sock=self.writer.get_extra_info('socket')
+        if self.user_timeout_ms and sock is not None and hasattr(socket,'TCP_USER_TIMEOUT'):
+            sock.setsockopt(socket.IPPROTO_TCP,socket.TCP_USER_TIMEOUT,self.user_timeout_ms)
         self.phase='relay_handshake' if endpoint else 'podium_authentication'
     async def read_some(self,wait=.01):
         """Whatever has arrived (b'' if nothing within `wait`)."""
@@ -307,6 +316,10 @@ LINK_LABEL={'lte':'LTE','wifi':'Wi-Fi'}
 WIFI_CHECK_S=2.0
 WIFI_SKIP_S=30.0
 AUTO_WIFI_CONNECT_S=8
+AUTO_WIFI_USER_TIMEOUT_MS=5000
+# Wi-Fi state unreadable this many checks in a row counts as lost (LTE is always acceptable).
+WIFI_UNKNOWN_LIMIT=2
+EVENTS_MAX_BYTES=1_000_000
 # Rows per WebSocket message to the relay: fewer AT+CASEND round trips on LTE.
 RELAY_BATCH=5
 # Polling the relay costs an AT+CARECV on LTE, so do it rarely there.
@@ -320,7 +333,11 @@ class PodiumSender:
         self.store=ConfigStore(root);self.runtime=runtime
         self.state={'state':'off','message':'Podium送信OFF','frames':0,'bytes':0,'reconnects':0,'skipped':0,'last_sent_age_ms':None}
         self.sent_at=0;self.blocked_revision=None
-        self.active_link=None;self.watch_wifi=False;self.wifi_checked=0;self.wifi_skip_until=0
+        self.active_link=None;self.watch_wifi=False;self.wifi_checked=0;self.wifi_skip_until=0;self.wifi_unknown=0
+        self.session_frames=0
+        # Link changes and first/last frames with wall-clock times, to measure
+        # how long the stream pauses when it moves from Wi-Fi to LTE.
+        self.events_path=Path(root)/'podium-events.jsonl'
 
     def status(self):
         return {**self.state,'target_hz':10,'last_sent_age_ms':round((time.monotonic()-self.sent_at)*1000) if self.sent_at else None,
@@ -329,6 +346,28 @@ class PodiumSender:
                 'configured':bool(self.store.config.server_url if self.store.config.destination=='server' else self.store.config.device_id),'enabled':self.store.config.enabled}
 
     def set_state(self,name,message):self.state.update(state=name,message=message)
+
+    def event(self,kind,**fields):
+        try:
+            if self.events_path.exists() and self.events_path.stat().st_size>EVENTS_MAX_BYTES:
+                self.events_path.replace(self.events_path.with_suffix('.jsonl.1'))
+            with self.events_path.open('a',encoding='utf-8') as stream:
+                stream.write(json.dumps({'t':round(time.time(),3),'event':kind,**fields},ensure_ascii=False)+'\n')
+        except OSError:pass
+
+    def events(self,limit=100):
+        try:lines=self.events_path.read_text(encoding='utf-8').splitlines()[-limit:]
+        except OSError:return []
+        result=[]
+        for line in lines:
+            try:result.append(json.loads(line))
+            except ValueError:pass
+        return result
+
+    def sent(self,frames,size):
+        self.state['frames']+=frames;self.state['bytes']+=size;self.sent_at=time.monotonic()
+        if self.session_frames==0:self.event('first_frame',link=self.active_link)
+        self.session_frames+=frames
 
     def sd_busy(self,config=None):
         # Only the LTE path shares the MCU RPC link with SD reads/copies ('auto' may become LTE).
@@ -353,7 +392,10 @@ class PodiumSender:
         """In automatic mode, leave Wi-Fi as soon as it drops (the car went out on track)."""
         if not self.watch_wifi or time.monotonic()-self.wifi_checked<WIFI_CHECK_S:return
         self.wifi_checked=time.monotonic()
-        if await self.wifi_connected() is False:raise ConnectionError('Wi-Fi lost')
+        up=await self.wifi_connected()
+        if up is False:raise ConnectionError('Wi-Fi lost')
+        self.wifi_unknown=0 if up else self.wifi_unknown+1
+        if self.wifi_unknown>=WIFI_UNKNOWN_LIMIT:raise ConnectionError('Wi-Fi state unknown')
 
     async def session(self,transport,config,revision):
         encoder=Encoder(sensors(config,self.runtime.config))
@@ -384,7 +426,7 @@ class PodiumSender:
                 else:self.set_state('streaming','センサ値を送信中')
             if payload:
                 await transport.send(payload)
-                self.state['frames']+=1;self.state['bytes']+=len(payload);self.sent_at=time.monotonic();last_seq=sample['seq']
+                self.sent(1,len(payload));last_seq=sample['seq']
             else:self.state['skipped']+=1
             # Never build a backlog or burst historical samples after a slow send.
             deadline=max(deadline+.1,time.monotonic())
@@ -425,7 +467,7 @@ class PodiumSender:
             # A partial batch still goes out if samples stall, so nothing waits long.
             if len(rows)>=RELAY_BATCH or rows and now-first_at>=1:
                 await ws.send_json({'type':'podium.samples','samples':rows})
-                self.state['frames']+=len(rows);self.state['bytes']+=len(json.dumps(rows));self.sent_at=time.monotonic();rows=[]
+                self.sent(len(rows),len(json.dumps(rows)));rows=[]
             if time.monotonic()-polled>=RELAY_POLL_S[config.link]:
                 polled=time.monotonic()
                 for text in await ws.poll():self.relay_message(text,sample,fresh)
@@ -459,9 +501,11 @@ class PodiumSender:
                 self.set_state('waiting','MCU通信またはSD操作完了を待っています');await asyncio.sleep(.5);continue
             auto=config.link=='auto'
             link=await self.choose_link(config)
-            self.active_link=link;self.watch_wifi=auto and link=='wifi';self.wifi_checked=time.monotonic()
+            self.active_link=link;self.watch_wifi=auto and link=='wifi';self.wifi_checked=time.monotonic();self.wifi_unknown=0
+            self.session_frames=0;self.event('session_start',link=link,mode=config.link,destination=config.destination)
             session_config=config.model_copy(update={'link':link})
-            transport=SIM7070(self.runtime.bridge) if link=='lte' else SocketTransport(AUTO_WIFI_CONNECT_S if auto else 20)
+            transport=(SIM7070(self.runtime.bridge) if link=='lte' else
+                       SocketTransport(AUTO_WIFI_CONNECT_S,AUTO_WIFI_USER_TIMEOUT_MS) if auto else SocketTransport())
             try:
                 await (self.relay_session if config.destination=='server' else self.session)(transport,session_config,revision)
                 retry=0
@@ -480,8 +524,10 @@ class PodiumSender:
                     'Socket no longer connected','Network registration timeout',
                     'Podium auth response timeout','SD operation',
                     'Relay handshake timeout','Relay refused WebSocket','Relay closed WebSocket',
-                    'Relay has no Podium key','Relay frame too large','Wi-Fi lost'}
+                    'Relay has no Podium key','Relay frame too large','Wi-Fi lost','Wi-Fi state unknown'}
                 self.state['last_failure_reason']=str(exc) if str(exc) in safe_reasons else 'Transport error'
+                self.event('session_end',link=link,reason=self.state['last_failure_reason'],frames=self.session_frames,
+                           last_sent_age_s=round(time.monotonic()-self.sent_at,3) if self.sent_at else None)
                 target='中継サーバー' if config.destination=='server' else 'Podium'
                 if auto and link=='wifi':
                     # Straight over to LTE, no back-off: the stream must not pause on track.
