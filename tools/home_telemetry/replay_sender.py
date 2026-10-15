@@ -31,20 +31,28 @@ CHANNELS = [  # (csv column, Podium name, unit, min, max, prec)
 
 
 def rows_10hz(path):
-    """Yield (mcu_ms, {column: float}) every 100 ms, carrying GNSS columns forward."""
+    """Yield (ms, {column: float}) once per GNSS fix (10 Hz), timed by its iTOW.
+
+    Picking rows by mcu_ms instead (every >= 100 ms) drifts against the fixes,
+    so now and then a fix is sent twice and the next one skipped: the car stops
+    for 0.1 s and then jumps twice as far. The logger itself (podium.py) times
+    rows by iTOW too. IMU columns are carried forward from the latest row.
+    """
     last = {}
-    next_ms = None
+    prev_itow, offset = None, 0
     with open(path, newline='') as f:
         for rec in csv.DictReader(f):
             for col, *_ in CHANNELS:
                 if col and rec.get(col):
                     last[col] = float(rec[col])
-            ms = int(rec['mcu_ms'])
-            if next_ms is None:
-                next_ms = ms
-            if ms >= next_ms and 'Lat' in last:
-                yield ms, dict(last)
-                next_ms = ms + 100
+            if not rec.get('gnss_itow_ms') or 'Lat' not in last:
+                continue
+            itow = int(float(rec['gnss_itow_ms']))
+            if prev_itow is not None and itow != prev_itow:
+                if itow < prev_itow:  # GPS week rollover
+                    offset += 7 * 24 * 3600 * 1000
+                yield itow + offset, dict(last)
+            prev_itow = itow
 
 
 def packed_row(interval_ms, utc_ms, values):
@@ -80,7 +88,7 @@ async def main():
             first_ms = first_ms if first_ms is not None else ms
             elapsed = (ms - first_ms) / 1000 / args.speed
             await asyncio.sleep(max(0.0, t0 + elapsed - time.time()))
-            batch.append(packed_row(ms - first_ms, int(time.time() * 1000), values))
+            batch.append(packed_row(ms - first_ms, int((t0 + elapsed) * 1000), values))
             if len(batch) == 5:
                 await ws.send(json.dumps({'type': 'podium.samples', 'samples': batch}))
                 sent += len(batch)

@@ -61,6 +61,10 @@ map.on('dragstart', () => setFollow(false));
 
 function addSample(s, at) {
   if (typeof s.Latitude !== 'number' || typeof s.Longitude !== 'number') return;
+  // A new run (logger restarted, demo loop back at the start): don't join it
+  // to the old trail with a straight line or slide the car across.
+  const prev = samples[samples.length - 1];
+  if (prev && (s.t - prev.t > 5000 || s.t < prev.t)) { samples = []; trail.setLatLngs([]); }
   samples.push({ t: s.t, at, lat: s.Latitude, lon: s.Longitude, speed: s.Speed });
   trail.addLatLng([s.Latitude, s.Longitude]);
   const cut = s.t - TRAIL_MS;
