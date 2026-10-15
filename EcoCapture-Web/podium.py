@@ -50,6 +50,11 @@ class PodiumConfig(BaseModel):
     # 'podium': direct TCP to Podium. 'server': ecorun-logger-server relays to Podium.
     destination: Literal['podium','server'] = 'podium'
     server_url: str = Field(default='', max_length=300)
+    # Relay failover: tried in order after server_url when a relay cannot be
+    # reached, drops, or stops answering pings. The last resort can be Podium
+    # itself (needs the key on the logger).
+    backup_server_urls: list[str] = Field(default_factory=list, max_length=3)
+    fallback_direct: bool = False
     hardware_ready: bool = False
     host: str = Field(default='telemetry.podium.live', pattern=r'^[A-Za-z0-9][A-Za-z0-9.-]{0,252}$')
     port: int = Field(default=8080, ge=1, le=65535)
@@ -69,6 +74,8 @@ class PodiumConfig(BaseModel):
             if any(ord(c)<32 or ord(c)>126 or c in '"\\' for c in s):raise ValueError('Invalid AT credentials')
         if any(ord(c)<33 or ord(c)>126 for c in self.device_id):raise ValueError('Invalid key')
         if self.server_url and not SERVER_URL.fullmatch(self.server_url):raise ValueError('Invalid relay server URL')
+        if any(not SERVER_URL.fullmatch(u) for u in self.backup_server_urls):raise ValueError('Invalid backup relay server URL')
+        if self.fallback_direct and not self.device_id:raise ValueError('Key required for direct fallback')
         if self.enabled and self.destination=='podium' and not self.device_id:raise ValueError('Key required')
         if self.enabled and self.destination=='server' and not self.server_url:raise ValueError('Relay server URL required')
         if self.enabled and self.link!='wifi' and not (self.hardware_ready and self.apn):raise ValueError('SIM, antenna and APN required')
@@ -262,7 +269,8 @@ class WebSocket:
     """
     GUID=b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
     MAX_PAYLOAD=65536
-    def __init__(self,transport):self.transport=transport;self.buffer=bytearray()
+    def __init__(self,transport):self.transport=transport;self.buffer=bytearray();self.heard_at=time.monotonic()
+    async def ping(self):await self.transport.send(self.frame(9,b'ecologger'))
     async def handshake(self,host,port,path,tls,timeout=20):
         key=base64.b64encode(os.urandom(16))
         default=443 if tls else 80
@@ -303,6 +311,7 @@ class WebSocket:
             if n>self.MAX_PAYLOAD:raise ValueError('Relay frame too large')
             if len(self.buffer)<at+n:break
             payload=bytes(self.buffer[at:at+n]);del self.buffer[:at+n]
+            self.heard_at=time.monotonic()
             if opcode==8:raise ConnectionError('Relay closed WebSocket')
             if opcode==9:await self.transport.send(self.frame(10,payload))
             elif opcode==1:messages.append(payload.decode('utf-8','replace'))
@@ -324,6 +333,11 @@ EVENTS_MAX_BYTES=1_000_000
 RELAY_BATCH=5
 # Polling the relay costs an AT+CARECV on LTE, so do it rarely there.
 RELAY_POLL_S={'lte':2.0,'wifi':.2}
+# Relay liveness: a WebSocket ping goes out this often and the relay must have
+# sent something (pong, status) within the silent limit, or the link counts as
+# dead and the next relay is tried. LTE polls rarely, so its limits are longer.
+RELAY_PING_S={'lte':5.0,'wifi':3.0}
+RELAY_SILENT_S={'lte':15.0,'wifi':8.0}
 RELAY_STATE={'idle':'待機','waiting_meta':'定義待ち','connecting':'Podiumへ接続中','streaming':'Podiumへ送信中','error':'Podium接続エラー'}
 
 TRANSPORT_LABEL={'lte':'SIM7070G TCP / STM32 UART','wifi':'Linux TCP (Wi-Fi)','auto':'自動（Wi-Fi／LTE）'}
@@ -335,6 +349,8 @@ class PodiumSender:
         self.sent_at=0;self.blocked_revision=None
         self.active_link=None;self.watch_wifi=False;self.wifi_checked=0;self.wifi_skip_until=0;self.wifi_unknown=0
         self.session_frames=0
+        # Relay failover: position in targets() and failures in a row without a frame sent.
+        self.target_index=0;self.target_failures=0;self.active_target=None
         # Link changes and first/last frames with wall-clock times, to measure
         # how long the stream pauses when it moves from Wi-Fi to LTE.
         self.events_path=Path(root)/'podium-events.jsonl'
@@ -343,7 +359,15 @@ class PodiumSender:
         return {**self.state,'target_hz':10,'last_sent_age_ms':round((time.monotonic()-self.sent_at)*1000) if self.sent_at else None,
                 'link':self.store.config.link,'active_link':self.active_link,'destination':self.store.config.destination,
                 'transport':TRANSPORT_LABEL[self.active_link or self.store.config.link]+(' → 中継サーバー' if self.store.config.destination=='server' else ''),
-                'configured':bool(self.store.config.server_url if self.store.config.destination=='server' else self.store.config.device_id),'enabled':self.store.config.enabled}
+                'configured':bool(self.store.config.server_url if self.store.config.destination=='server' else self.store.config.device_id),'enabled':self.store.config.enabled,
+                'target':self.active_target}
+
+    def targets(self,config):
+        '''[(kind, url)] in failover order: ('server', url)..., then ('podium', None).'''
+        if config.destination!='server':return [('podium',None)]
+        result=[('server',u) for u in [config.server_url,*config.backup_server_urls] if u]
+        if config.fallback_direct and config.device_id:result.append(('podium',None))
+        return result
 
     def set_state(self,name,message):self.state.update(state=name,message=message)
 
@@ -446,7 +470,7 @@ class PodiumSender:
         await ws.send_json({'type':'podium.meta','meta':encoder.meta_list()})
         self.set_state('streaming','中継サーバーへ送信中')
         fingerprint=[(c.name,c.unit,c.low,c.high) for c in encoder.channels]
-        deadline=time.monotonic();last_seq=None;rows=[];first_at=0;polled=time.monotonic()
+        deadline=time.monotonic();last_seq=None;rows=[];first_at=0;polled=pinged=ws.heard_at=time.monotonic()
         while self.store.revision==revision:
             if self.sd_busy(config):
                 raise ConnectionError('SD operation')
@@ -468,9 +492,12 @@ class PodiumSender:
             if len(rows)>=RELAY_BATCH or rows and now-first_at>=1:
                 await ws.send_json({'type':'podium.samples','samples':rows})
                 self.sent(len(rows),len(json.dumps(rows)));rows=[]
+            if time.monotonic()-pinged>=RELAY_PING_S[config.link]:
+                pinged=time.monotonic();await ws.ping()
             if time.monotonic()-polled>=RELAY_POLL_S[config.link]:
                 polled=time.monotonic()
                 for text in await ws.poll():self.relay_message(text,sample,fresh)
+                if time.monotonic()-ws.heard_at>RELAY_SILENT_S[config.link]:raise ConnectionError('Relay not responding')
             deadline=max(deadline+.1,time.monotonic())
             await asyncio.sleep(max(0,deadline-time.monotonic()))
 
@@ -492,7 +519,7 @@ class PodiumSender:
         retry=0;seen_revision=-1
         while True:
             config=self.store.config;revision=self.store.revision
-            if revision!=seen_revision:retry=0;seen_revision=revision
+            if revision!=seen_revision:retry=0;seen_revision=revision;self.target_index=0;self.target_failures=0
             if not config.enabled:
                 self.set_state('off','Podium送信OFF');await asyncio.sleep(.5);continue
             if self.blocked_revision==revision:
@@ -503,14 +530,18 @@ class PodiumSender:
             link=await self.choose_link(config)
             self.active_link=link;self.watch_wifi=auto and link=='wifi';self.wifi_checked=time.monotonic();self.wifi_unknown=0
             self.session_frames=0;self.event('session_start',link=link,mode=config.link,destination=config.destination)
-            session_config=config.model_copy(update={'link':link})
+            targets=self.targets(config);kind,url=targets[self.target_index%len(targets)]
+            self.active_target={'kind':kind,'host':parse_server_url(url)[1] if url else config.host,
+                                'index':self.target_index%len(targets),'count':len(targets)}
+            session_config=config.model_copy(update={'link':link,**({'server_url':url} if url else {})})
             transport=(SIM7070(self.runtime.bridge) if link=='lte' else
                        SocketTransport(AUTO_WIFI_CONNECT_S,AUTO_WIFI_USER_TIMEOUT_MS) if auto else SocketTransport())
             try:
-                await (self.relay_session if config.destination=='server' else self.session)(transport,session_config,revision)
+                await (self.relay_session if kind=='server' else self.session)(transport,session_config,revision)
                 retry=0
             except AuthenticationError:
-                self.blocked_revision=revision
+                if config.destination=='podium':self.blocked_revision=revision
+                else:self.target_index+=1;self.set_state('retry','Podiumへの直接送信の認証に失敗。中継サーバーへ戻ります。')
             except asyncio.CancelledError:raise
             except Exception as exc:
                 # Modem responses / exceptions may contain key or carrier credentials.
@@ -524,18 +555,27 @@ class PodiumSender:
                     'Socket no longer connected','Network registration timeout',
                     'Podium auth response timeout','SD operation',
                     'Relay handshake timeout','Relay refused WebSocket','Relay closed WebSocket',
-                    'Relay has no Podium key','Relay frame too large','Wi-Fi lost','Wi-Fi state unknown'}
+                    'Relay has no Podium key','Relay frame too large','Wi-Fi lost','Wi-Fi state unknown',
+                    'Relay not responding'}
                 self.state['last_failure_reason']=str(exc) if str(exc) in safe_reasons else 'Transport error'
-                self.event('session_end',link=link,reason=self.state['last_failure_reason'],frames=self.session_frames,
+                self.event('session_end',link=link,target=self.active_target['host'],reason=self.state['last_failure_reason'],frames=self.session_frames,
                            last_sent_age_s=round(time.monotonic()-self.sent_at,3) if self.sent_at else None)
-                target='中継サーバー' if config.destination=='server' else 'Podium'
+                target='中継サーバー' if kind=='server' else 'Podium'
                 if auto and link=='wifi':
                     # Straight over to LTE, no back-off: the stream must not pause on track.
                     self.wifi_skip_until=time.monotonic()+WIFI_SKIP_S
                     self.set_state('retry','Wi-Fiが使えないためLTEへ切り替えます')
                 else:
-                    self.set_state('retry',f'{LINK_LABEL[link]}または{target}への接続に失敗。再接続を待っています。')
-                    retry=min(5,retry+1)
+                    # Next target straight away; back off only once every target failed in a row.
+                    self.target_failures=0 if self.session_frames else self.target_failures+1
+                    self.target_index+=1
+                    if len(targets)>1 and self.target_failures<len(targets):
+                        nxt=targets[self.target_index%len(targets)][0]
+                        self.set_state('retry',f'{target}への送信が途切れたため、'+('Podiumへ直接' if nxt=='podium' else '次の中継サーバー')+'へ切り替えます')
+                    else:
+                        self.target_failures=0
+                        self.set_state('retry',f'{LINK_LABEL[link]}または{target}への接続に失敗。再接続を待っています。')
+                        retry=min(5,retry+1)
             finally:
                 with __import__('contextlib').suppress(Exception):await transport.close()
             if retry:

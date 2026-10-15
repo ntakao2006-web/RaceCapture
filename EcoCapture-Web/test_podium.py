@@ -421,4 +421,87 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):await task
 
+async def silent_after_ping_relay(reader,writer):
+    """Completes the handshake, sends one ping, then never answers (a dead mobile link)."""
+    head=await reader.readuntil(b'\r\n\r\n')
+    key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
+    accept=base64.b64encode(hashlib.sha1(key+WebSocket.GUID).digest())
+    writer.write(b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+b'\r\n\r\n')
+    writer.write(bytes([0x89,2])+b'hi');await writer.drain()
+    with __import__('contextlib').suppress(Exception):
+        while await reader.read(4096):pass
+
+async def pong_relay(reader,writer,log):
+    """Like fake_relay, but answers every client ping with a pong."""
+    head=await reader.readuntil(b'\r\n\r\n')
+    key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
+    log.append(head.split(b'\r\n')[0])
+    accept=base64.b64encode(hashlib.sha1(key+WebSocket.GUID).digest())
+    writer.write(b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+b'\r\n\r\n')
+    await writer.drain()
+    while True:
+        try:b0,b1=await reader.readexactly(2)
+        except asyncio.IncompleteReadError:return
+        n=b1&0x7f
+        if n==126:n=int.from_bytes(await reader.readexactly(2),'big')
+        mask=await reader.readexactly(4);payload=bytes(b^mask[i%4] for i,b in enumerate(await reader.readexactly(n)))
+        log.append((b0&0x0f,payload))
+        if b0&0x0f==9:writer.write(bytes([0x8a,len(payload)])+payload);await writer.drain()
+
+class FailoverTests(unittest.IsolatedAsyncioTestCase):
+    def test_backup_urls_and_direct_fallback_are_validated(self):
+        ok=PodiumConfig(link='wifi',destination='server',server_url='wss://a.example/ws/audio/x',
+                        backup_server_urls=['wss://b.example/ws/audio/x'],fallback_direct=True,device_id='key',enabled=True)
+        sender=PodiumSender(tempfile.mkdtemp(),None)
+        self.assertEqual(sender.targets(ok),[('server','wss://a.example/ws/audio/x'),('server','wss://b.example/ws/audio/x'),('podium',None)])
+        self.assertEqual(sender.targets(PodiumConfig(device_id='k')),[('podium',None)])
+        with self.assertRaises(ValueError):PodiumConfig(backup_server_urls=['http://b.example/x'])
+        with self.assertRaises(ValueError):PodiumConfig(destination='server',server_url='wss://a.example/ws/audio/x',fallback_direct=True)
+
+    async def test_dead_primary_moves_to_backup_without_backoff(self):
+        closed=await asyncio.start_server(lambda r,w:w.close(),'127.0.0.1',0);dead=closed.sockets[0].getsockname()[1];closed.close();await closed.wait_closed()
+        log=[]
+        backup=await asyncio.start_server(lambda r,w:pong_relay(r,w,log),'127.0.0.1',0);port=backup.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;bridge=object()
+            class sd:status={'active':False}
+            def status(self):return {'connected':True}
+        with tempfile.TemporaryDirectory() as root:
+            sender=PodiumSender(root,Runtime())
+            sender.store.config=PodiumConfig(link='wifi',enabled=True,destination='server',
+                server_url=f'ws://127.0.0.1:{dead}/ws/audio/main',backup_server_urls=[f'ws://127.0.0.1:{port}/ws/audio/main'])
+            async with backup:
+                task=asyncio.create_task(sender.run())
+                for _ in range(40):
+                    await asyncio.sleep(.05)
+                    if log:break
+                task.cancel()
+                with self.assertRaises(asyncio.CancelledError):await task
+            events=sender.events()
+        self.assertEqual(log[0],b'GET /ws/audio/main HTTP/1.1')   # reached the backup within 2 s
+        self.assertEqual(sender.status()['target']['index'],1)
+        self.assertEqual([(e['event'],e.get('target')) for e in events[:2]],[('session_start',None),('session_end','127.0.0.1')])
+
+    async def test_silent_relay_is_dropped_and_answering_relay_is_kept(self):
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        silent=await asyncio.start_server(silent_after_ping_relay,'127.0.0.1',0);sport=silent.sockets[0].getsockname()[1]
+        log=[]
+        alive=await asyncio.start_server(lambda r,w:pong_relay(r,w,log),'127.0.0.1',0);aport=alive.sockets[0].getsockname()[1]
+        limits={'RELAY_PING_S':{'wifi':.1,'lte':.1},'RELAY_SILENT_S':{'wifi':.5,'lte':.5},'RELAY_POLL_S':{'wifi':.05,'lte':.05}}
+        with tempfile.TemporaryDirectory() as root,patch.multiple('podium',**limits):
+            sender=PodiumSender(root,Runtime())
+            async with silent:
+                config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{sport}/ws/audio/main')
+                with self.assertRaisesRegex(ConnectionError,'Relay not responding'):
+                    await asyncio.wait_for(sender.relay_session(SocketTransport(),config,0),3)
+            async with alive:
+                config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{aport}/ws/audio/main')
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                await asyncio.sleep(1.2);self.assertFalse(task.done())   # well past the 0.5 s silent limit
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+        self.assertGreaterEqual(sum(1 for x in log[1:] if x[0]==9),5)
+
+
 if __name__=='__main__':unittest.main()
