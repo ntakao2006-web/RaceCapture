@@ -575,7 +575,8 @@ class VoiceRelayTests(unittest.IsolatedAsyncioTestCase):
             config=Configuration();sample=None;received_at=0;played=[]
             class sd:status={'active':False}
             def play_voice(self,packet):self.played.append(packet)
-        with tempfile.TemporaryDirectory() as root,patch.object(VoiceGuard,'WINDOW_S',.6),patch.object(VoiceGuard,'PAUSE_S',60):
+        # The window must hold at least 2 batches (sent every .5 s), or the rate reads 0 on a slow CPU (UNO Q).
+        with tempfile.TemporaryDirectory() as root,patch.object(VoiceGuard,'WINDOW_S',1.2),patch.object(VoiceGuard,'PAUSE_S',60):
             runtime=Runtime();sender=PodiumSender(root,runtime)
             config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main',voice_receive=True)
             async with server:
