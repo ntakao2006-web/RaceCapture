@@ -665,8 +665,11 @@ class PodiumSender:
         except ValueError:return
         if not isinstance(event,dict):return
         if event.get('type')=='error' and str(event.get('code','')).startswith('podium_'):
-            if event.get('code')=='podium_not_configured':raise ConnectionError('Relay has no Podium key')
             self.state['relay_error']=event.get('code')
+            if event.get('code')=='podium_not_configured' and not (fresh and utc_milliseconds(sample) is None):
+                # The team's own pit display (map, Grafana) and voice go through the
+                # relay, Podium is only the backup (decided 2026-10-15): keep streaming.
+                self.set_state('streaming','中継サーバーへ送信中（サーバーにPodiumの送信キーが無いため、Podiumには出ません）')
         elif event.get('type')=='podium.status':
             state=event.get('state');self.state['relay_state']=state;self.state['relay_lt']=event.get('lt')
             if fresh and utc_milliseconds(sample) is None:return

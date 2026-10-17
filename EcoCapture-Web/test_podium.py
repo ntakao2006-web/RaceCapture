@@ -258,18 +258,26 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         first=batches[0][0];self.assertEqual(first[2],35.5);self.assertEqual(first[1]-first[0],1791936000000)
         self.assertIn(0.12,batches[0][0])
         self.assertEqual(sender.state['relay_lt'],4);self.assertIn('Podium受信 4 件目',sender.state['message'])
-    async def test_relay_without_podium_key_is_reported(self):
+    async def test_relay_without_podium_key_keeps_streaming(self):
+        # The relay is the team's own pit display first; a missing Podium key there is only reported.
         log=[];err=b'{"type":"error","code":"podium_not_configured","message":"x"}'
         server=await asyncio.start_server(lambda r,w:fake_relay(r,w,log,[err]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
         class Runtime:
             config=Configuration();sample=None;received_at=0
             class sd:status={'active':False}
         with tempfile.TemporaryDirectory() as root:
-            sender=PodiumSender(root,Runtime())
+            runtime=Runtime();sender=PodiumSender(root,runtime)
             config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main',enabled=True)
             async with server:
-                with self.assertRaisesRegex(ConnectionError,'Relay has no Podium key'):
-                    await asyncio.wait_for(sender.relay_session(SocketTransport(),config,0),5)
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                for seq in range(25):
+                    runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                    'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                    runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                self.assertFalse(task.done())
+                self.assertEqual(sender.state['relay_error'],'podium_not_configured');self.assertIn('Podiumには出ません',sender.state['message'])
+                self.assertGreaterEqual(sender.state['frames'],15)
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
     async def test_lte_relay_enables_modem_tls_with_sni(self):
         uart=FakeUART();modem=SIM7070(uart=uart)
         config=PodiumConfig(apn='test.apn',hardware_ready=True)
