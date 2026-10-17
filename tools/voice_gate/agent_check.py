@@ -41,6 +41,14 @@ def play(name):
         sock.sendto(b'P' + opus.encode(pcm[at:at + va.PACKET]), AGENT)
         time.sleep(max(0, start + (i + 1) * 0.12 - time.monotonic()))
     print(f'sent {i + 1} packets ({(i + 1) * 0.12:.1f} s)')
+    time.sleep(1)
+    sock.settimeout(1)
+    sock.sendto(b'S1', AGENT)   # also opens the microphone for a few seconds; only the status is used
+    while True:
+        data = sock.recv(4096)
+        if data[:1] == b'A':
+            print('agent', json.loads(data[1:]))
+            break
 
 
 def listen(seconds, name):

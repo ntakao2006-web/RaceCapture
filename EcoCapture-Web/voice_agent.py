@@ -48,6 +48,8 @@ OPEN_PROB, MIN_FRAMES, HOLD_FRAMES, PREROLL = 0.6, 2, 40, 10   # same rules as v
 UPLINK_HOLD_S = 3.0
 PLAY_IDLE_S = 2.0        # close the player after this long without pit voice
 PLAY_PREBUFFER = 2       # packets queued before playback starts (240 ms against jitter)
+LOW_WATER_S = 0.04       # only fill with silence once this little sound is left in ALSA
+GAP = OUT_RATE // 50     # 20 ms of silence per fill
 
 log = logging.getLogger('voice')
 
@@ -165,7 +167,7 @@ class Agent:
         self.play_queue = collections.deque(maxlen=25)
         self.play_event = threading.Event()
         self.uplink_until = 0.0
-        self.stats = {'played': 0, 'sent': 0, 'talking': False, 'capturing': False, 'playing': False, 'mic_errors': 0}
+        self.stats = {'played': 0, 'sent': 0, 'talking': False, 'capturing': False, 'playing': False, 'mic_errors': 0, 'gaps': 0}
 
     def tell(self, data):
         try:
@@ -189,27 +191,39 @@ class Agent:
                 self.play_queue.clear()
                 continue
             set_volume()
+            # Start on the first samples (not when the whole buffer is full), so the
+            # clock below knows how much is still queued in ALSA.
             proc = subprocess.Popen(['aplay', '-q', '-D', f'plughw:CARD={CARD},DEV=0', '-f', 'S16_LE', '-r', str(OUT_RATE),
-                                     '-c', '1', '-t', 'raw', '--buffer-time=360000'],
+                                     '-c', '1', '-t', 'raw', '--buffer-time=500000', '--start-delay=20000'],
                                     stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
             self.stats['playing'] = True
-            idle_since = None
-            silence = np.zeros(PACKET, dtype=np.int16).tobytes()
+            idle_since, started, written = None, time.monotonic(), 0.0
+            gap = np.zeros(GAP, dtype=np.int16).tobytes()
             try:
                 while True:
+                    queued = written - (time.monotonic() - started)   # seconds of sound still in ALSA
                     if self.play_queue:
                         with self.opus_lock:
                             pcm = self.opus.decode(self.play_queue.popleft())
-                        data = pcm.tobytes() if pcm is not None else silence
+                        data = pcm.tobytes() if pcm is not None else np.zeros(PACKET, dtype=np.int16).tobytes()
                         idle_since = None
                         self.stats['played'] += 1
                     else:
                         idle_since = idle_since or time.monotonic()
                         if time.monotonic() - idle_since > PLAY_IDLE_S:
                             break
-                        data = silence   # keep the device fed between words: no clicks
-                    proc.stdin.write(data)   # blocks at real-time pace once ALSA's buffer is full
+                        if queued > LOW_WATER_S:
+                            time.sleep(0.01)   # the next packet may still arrive in time
+                            continue
+                        # About to run dry: a little silence keeps the device fed (no clicks).
+                        data = gap
+                        if self.stats['playing'] and idle_since and time.monotonic() - idle_since < 0.5:
+                            self.stats['gaps'] += 1
+                    if queued < 0:   # it ran dry anyway; restart the clock from now
+                        started, written = time.monotonic(), 0.0
+                    proc.stdin.write(data)
                     proc.stdin.flush()
+                    written += len(data) / 2 / OUT_RATE
             except (BrokenPipeError, OSError):
                 log.warning('player stopped (device gone?)')
             finally:
