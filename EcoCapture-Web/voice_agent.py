@@ -12,8 +12,14 @@ interface and talks to podium.py over Unix datagrams in /run/ecocapture-voice:
 The driver has no push-to-talk button: RNNoise (v0.1.1, see tools/voice_gate)
 says per 10 ms whether it is speech, and only speech is encoded and sent. The
 microphone is read only while uplink is wanted, so it costs nothing otherwise.
-Devices are found by ALSA card name every time, so a re-plugged or reset dock
-comes back on its own.
+Devices are chosen like a phone does (Agent.router, re-checked every
+ROUTE_CHECK_S): a connected Bluetooth headset first, otherwise the USB audio
+card. Bluetooth goes through PipeWire. Its microphone (HFP) is only used on a
+USB Bluetooth adapter: the UNO Q's built-in WCN3990 sends call audio to its PCM
+pins, never to Linux (measured 2026-10-17: 1,888 SCO packets out, 0 back), so
+with the built-in radio the headset is ears only (A2DP) and the USB microphone
+stays in use. USB devices are found by ALSA card name, so a re-plugged or reset
+dock comes back on its own.
 """
 import collections
 import ctypes
@@ -50,6 +56,11 @@ PLAY_IDLE_S = 2.0        # close the player after this long without pit voice
 PLAY_PREBUFFER = 2       # packets queued before playback starts (240 ms against jitter)
 LOW_WATER_S = 0.04       # only fill with silence once this little sound is left in ALSA
 GAP = OUT_RATE // 50     # 20 ms of silence per fill
+ROUTE_CHECK_S = 2.0
+RECONNECT_S = 15.0
+RECENT_FILE = Path(os.environ.get('STATE_DIRECTORY', '/var/lib/ecocapture-voice')) / 'recent_headsets.json'
+HFP, A2DP = 'headset-head-unit', 'a2dp-sink'
+PW_ENV = {**os.environ, 'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')}
 
 log = logging.getLogger('voice')
 
@@ -61,9 +72,131 @@ def card_present(name=CARD):
         return False
 
 
-def set_volume():
-    subprocess.run(['amixer', '-q', '-c', CARD, 'set', 'Speaker', VOLUME, 'unmute'],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+def set_volume(route):
+    if route['speaker'][0] == 'alsa':
+        subprocess.run(['amixer', '-q', '-c', CARD, 'set', 'Speaker', VOLUME, 'unmute'],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+    else:   # Bluetooth came up at 40-50 % here, which was inaudible (2026-10-17)
+        subprocess.run(['wpctl', 'set-volume', str(route['speaker_id']), '1.0'], env=PW_ENV,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+
+
+def pipewire_objects():
+    try:
+        out = subprocess.run(['pw-dump'], env=PW_ENV, capture_output=True, timeout=3, check=False).stdout
+        return json.loads(out or b'[]')
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return []
+
+
+def usb_adapter(props):
+    """True when the headset hangs off a USB Bluetooth adapter (call audio reaches Linux)."""
+    hci = re.search(r'hci\d+', ' '.join(str(props.get(k, '')) for k in ('api.bluez5.path', 'api.bluez5.adapter')))
+    return '/usb' in os.path.realpath(f'/sys/class/bluetooth/{hci.group(0) if hci else "hci0"}/device')
+
+
+def bluetooth_route(objects):
+    """(route, None) for a connected headset ready to use, (None, (device id, profile index))
+    when its profile must change first, or (None, None) when there is none."""
+    for dev in objects:
+        props = dev.get('info', {}).get('props', {})
+        if not dev.get('type', '').endswith(':Device') or props.get('device.api') != 'bluez5':
+            continue
+        params = dev['info'].get('params', {})
+        profiles = {p.get('name'): p.get('index') for p in params.get('EnumProfile', [])}
+        active = (params.get('Profile') or [{}])[0].get('name')
+        hfp = usb_adapter(props) and HFP in profiles
+        want = HFP if hfp else A2DP if A2DP in profiles else None
+        if want is None:
+            continue
+        if active != want:
+            return None, (dev['id'], profiles[want])
+        nodes = [o for o in objects if o.get('type', '').endswith(':Node')
+                 and o.get('info', {}).get('props', {}).get('device.id') == dev['id']]
+        sink = next((n for n in nodes if n['info']['props'].get('media.class') == 'Audio/Sink'), None)
+        source = next((n for n in nodes if str(n['info']['props'].get('media.class', '')).startswith('Audio/Source')), None)
+        if sink is None:
+            continue
+        mic = ('pw', source['info']['props']['node.name']) if hfp and source else ('alsa', CARD) if card_present() else None
+        return {'kind': 'bluetooth-hfp' if hfp else 'bluetooth-a2dp', 'name': props.get('device.description', 'Bluetooth'),
+                'address': str(props.get('api.bluez5.address', '')).upper(),
+                'speaker': ('pw', sink['info']['props']['node.name']), 'speaker_id': sink['id'], 'mic': mic}, None
+    return None, None
+
+
+def choose_route():
+    """Where pit voice plays and the driver is heard: Bluetooth headset, else USB card, else None."""
+    route, change = bluetooth_route(pipewire_objects())
+    if change:
+        subprocess.run(['wpctl', 'set-profile', str(change[0]), str(change[1])], env=PW_ENV,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        time.sleep(1.5)
+        route, _ = bluetooth_route(pipewire_objects())
+    if route:
+        return route
+    if card_present():
+        return {'kind': 'usb', 'name': CARD, 'speaker': ('alsa', CARD), 'speaker_id': None, 'mic': ('alsa', CARD)}
+    return None
+
+
+def recent_headsets():
+    """Headset addresses, most recently used first (kept across restarts)."""
+    try:
+        return [m for m in json.loads(RECENT_FILE.read_text()) if re.fullmatch(r'[0-9A-F:]{17}', m)]
+    except (OSError, ValueError, TypeError):
+        return []
+
+
+def remember_headset(mac):
+    recent = [mac] + [m for m in recent_headsets() if m != mac]
+    try:
+        RECENT_FILE.write_text(json.dumps(recent[:10]))
+    except OSError:
+        pass
+
+
+def reconnect_order(paired, recent):
+    """Like a phone: the headset used last first, then other recently used ones, then the rest."""
+    return [m for m in recent if m in paired] + [m for m in paired if m not in recent]
+
+
+def reconnect_headsets():
+    """Call paired, trusted headsets until one connects (most headsets connect on
+    their own when taken out of the case; this covers the ones that wait to be called)."""
+    try:
+        paired = subprocess.run(['bluetoothctl', 'devices', 'Paired'], capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return
+    for mac in reconnect_order(re.findall(r'Device ([0-9A-F:]{17})', paired), recent_headsets()):
+        try:
+            info = subprocess.run(['bluetoothctl', 'info', mac], capture_output=True, text=True, timeout=5).stdout
+            if 'Trusted: yes' not in info or 'Audio Sink' not in info:
+                continue
+            if 'Connected: yes' in info:
+                return
+            subprocess.run(['bluetoothctl', '--timeout', '6', 'connect', mac], capture_output=True, timeout=10)
+            if 'Connected: yes' in subprocess.run(['bluetoothctl', 'info', mac], capture_output=True, text=True, timeout=5).stdout:
+                return
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+
+
+def player_command(speaker):
+    kind, target = speaker
+    if kind == 'alsa':
+        # Start on the first samples (not when the whole buffer is full), so the
+        # player's clock knows how much is still queued in ALSA.
+        return ['aplay', '-q', '-D', f'plughw:CARD={target},DEV=0', '-f', 'S16_LE', '-r', str(OUT_RATE),
+                '-c', '1', '-t', 'raw', '--buffer-time=500000', '--start-delay=20000']
+    return ['pw-cat', '--playback', '-a', '--target', target, '--rate', str(OUT_RATE), '--channels', '1',
+            '--format', 's16', '--latency', '60ms', '-']
+
+
+def recorder_command(mic):
+    kind, target = mic
+    if kind == 'alsa':
+        return ['arecord', '-q', '-D', f'plughw:CARD={target},DEV=0', '-f', 'S16_LE', '-r', str(IN_RATE), '-c', '1', '-t', 'raw']
+    return ['pw-cat', '--record', '-a', '--target', target, '--rate', str(IN_RATE), '--channels', '1', '--format', 's16', '-']
 
 
 class Opus:
@@ -167,6 +300,7 @@ class Agent:
         self.play_queue = collections.deque(maxlen=25)
         self.play_event = threading.Event()
         self.uplink_until = 0.0
+        self.route = None
         self.stats = {'played': 0, 'sent': 0, 'talking': False, 'capturing': False, 'playing': False, 'mic_errors': 0, 'gaps': 0}
 
     def tell(self, data):
@@ -176,7 +310,25 @@ class Agent:
             pass   # podium.py not running: nothing to tell
 
     def status(self):
-        return {**self.stats, 'card': CARD, 'card_present': card_present()}
+        route = self.route or {}
+        return {**self.stats, 'card': CARD, 'card_present': card_present(), 'route': route.get('kind'),
+                'device': route.get('name'), 'mic': bool(route.get('mic'))}
+
+    def router(self):
+        """Follow the devices like a phone: a headset that connects takes over, one that drops gives way."""
+        called = 0.0
+        while True:
+            route = choose_route()
+            if (route is None or not route['kind'].startswith('bluetooth')) and time.monotonic() - called > RECONNECT_S:
+                called = time.monotonic()
+                reconnect_headsets()
+                route = choose_route()
+            if route != self.route:
+                if route and route.get('address'):
+                    remember_headset(route['address'])
+                log.info('audio route: %s', route and f"{route['kind']} ({route['name']}), mic {route['mic']}")
+                self.route = route
+            time.sleep(ROUTE_CHECK_S)
 
     # --- pit voice -> earphone -------------------------------------------------
     def player(self):
@@ -187,20 +339,18 @@ class Agent:
                 time.sleep(0.12)
                 if not self.play_queue:
                     continue
-            if not card_present():
+            route = self.route
+            if not route:
                 self.play_queue.clear()
                 continue
-            set_volume()
-            # Start on the first samples (not when the whole buffer is full), so the
-            # clock below knows how much is still queued in ALSA.
-            proc = subprocess.Popen(['aplay', '-q', '-D', f'plughw:CARD={CARD},DEV=0', '-f', 'S16_LE', '-r', str(OUT_RATE),
-                                     '-c', '1', '-t', 'raw', '--buffer-time=500000', '--start-delay=20000'],
+            set_volume(route)
+            proc = subprocess.Popen(player_command(route['speaker']), env=PW_ENV,
                                     stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
             self.stats['playing'] = True
             idle_since, started, written = None, time.monotonic(), 0.0
             gap = np.zeros(GAP, dtype=np.int16).tobytes()
             try:
-                while True:
+                while self.route == route:   # a headset came or went: reopen on the new device
                     queued = written - (time.monotonic() - started)   # seconds of sound still in ALSA
                     if self.play_queue:
                         with self.opus_lock:
@@ -239,15 +389,16 @@ class Agent:
     def capture(self):
         rnnoise = RNNoise()
         while True:
-            if time.monotonic() > self.uplink_until or not card_present():
+            route = self.route
+            if time.monotonic() > self.uplink_until or not route or not route['mic']:
                 time.sleep(0.3)
                 continue
-            proc = subprocess.Popen(['arecord', '-q', '-D', f'plughw:CARD={CARD},DEV=0', '-f', 'S16_LE', '-r', str(IN_RATE),
-                                     '-c', '1', '-t', 'raw'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            proc = subprocess.Popen(recorder_command(route['mic']), env=PW_ENV,
+                                    stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             self.stats['capturing'] = True
             gate, down, pending = Gate(), Downsampler(), np.zeros(0, dtype=np.float32)
             try:
-                while time.monotonic() <= self.uplink_until:
+                while time.monotonic() <= self.uplink_until and self.route == route:
                     raw = proc.stdout.read(FRAME * 2)
                     if len(raw) < FRAME * 2:
                         self.stats['mic_errors'] += 1
@@ -286,6 +437,8 @@ class Agent:
 
     # --- messages from podium.py ----------------------------------------------
     def serve(self):
+        self.route = choose_route()
+        threading.Thread(target=self.router, daemon=True).start()
         threading.Thread(target=self.player, daemon=True).start()
         threading.Thread(target=self.capture, daemon=True).start()
         log.info('voice agent ready on %s (card %s)', self.path, CARD)

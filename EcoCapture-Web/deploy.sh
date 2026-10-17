@@ -5,6 +5,7 @@ cd /home/arduino/EcoCapture-Web
 mkdir -p /home/arduino/ecocapture-v2-data/public
 python3 build_public.py
 python3 test_device_agent.py
+python3 test_voice_agent.py
 python3 -m unittest -v test_flash_mcu test_mcu_supervisor test_mcu_diagnostics
 docker build --network=none -t ecocapture-web:0.2.0 .
 docker run --rm --network=none --entrypoint python3 \
