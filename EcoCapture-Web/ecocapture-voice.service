@@ -1,0 +1,23 @@
+[Unit]
+Description=EcoLogger V2 driver voice (USB audio, RNNoise, Opus) for Podium relay
+After=sound.target
+
+[Service]
+Type=simple
+User=arduino
+Group=audio
+SupplementaryGroups=audio
+ExecStart=/usr/bin/python3 /opt/ecocapture-voice/voice_agent.py
+Restart=always
+RestartSec=3
+# The Web container bind-mounts this directory, so it must outlive restarts.
+RuntimeDirectory=ecocapture-voice
+RuntimeDirectoryMode=0770
+RuntimeDirectoryPreserve=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

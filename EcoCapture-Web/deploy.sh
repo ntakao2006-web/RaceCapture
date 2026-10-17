@@ -32,6 +32,7 @@ docker run -d --name ecocapture-web --restart unless-stopped \
   -p 127.0.0.1:8080:8080 \
   -v /var/run/arduino-router.sock:/var/run/arduino-router.sock \
   -v /run/ecocapture-admin:/run/ecocapture-admin \
+  -v /run/ecocapture-voice:/run/ecocapture-voice \
   -v /home/arduino/ecocapture-v2-data:/data \
   --log-opt max-size=5m --log-opt max-file=2 \
   ecocapture-web:0.2.0

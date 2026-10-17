@@ -89,7 +89,7 @@
   <label>ポート<input id="podium-port" type="number" value="8080" min="1" max="65535" required></label>
   <label>中継サーバーURL<input id="podium-server-url" maxlength="300" autocomplete="off" placeholder="wss://example.ts.net/ws/audio/main"></label>
   <label>予備の中継サーバーURL（1行に1つ・上から順に試す・3つまで）<textarea id="podium-backup-urls" rows="2" maxlength="920" autocomplete="off" placeholder="wss://backup.example.ts.net/ws/audio/main"></textarea></label>
-  </div><p><label><input id="podium-fallback-direct" type="checkbox"> 中継サーバーが全部つながらないときはPodiumへ直接送る（送信キーが必要）</label></p><p><label><input id="podium-voice" type="checkbox"> ピットの音声を受ける（中継サーバー経由のみ・テレメトリが遅れたら自動で一時停止）</label></p><p><label><input id="podium-hardware" type="checkbox"> SIMとLTEアンテナを接続済み</label></p>
+  </div><p><label><input id="podium-fallback-direct" type="checkbox"> 中継サーバーが全部つながらないときはPodiumへ直接送る（送信キーが必要）</label></p><p><label><input id="podium-voice" type="checkbox"> ピットの音声を受ける（中継サーバー経由のみ・テレメトリが遅れたら自動で一時停止）</label></p><p><label><input id="podium-voice-send" type="checkbox"> ドライバーの声を送る（UNO QのUSBマイク・声のある間だけ・テレメトリが遅れたら自動で一時停止）</label></p><p><label><input id="podium-hardware" type="checkbox"> SIMとLTEアンテナを接続済み</label></p>
   <p><label><input id="podium-enabled" type="checkbox"> 送信する（電源投入後も自動で開始）</label></p>
   <fieldset><legend>送信するセンサ値</legend><div id="podium-channels" class="form-grid"></div></fieldset>
   <div class="button-row"><button type="submit" class="primary">送信設定を保存</button><button type="button" id="podium-stop">送信OFF</button><button type="button" id="podium-check">LTEを点検（電波OFF）</button></div></form>

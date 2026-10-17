@@ -11,7 +11,7 @@ import msgpack
 import re
 import base64
 import hashlib
-from podium import ConfigStore,Encoder,Sensor,PodiumConfig,PodiumSender,AuthenticationError,SocketTransport,WebSocket,VoiceGuard,sensors,authenticate,parse_server_url
+from podium import ConfigStore,Encoder,Sensor,PodiumConfig,PodiumSender,AuthenticationError,SocketTransport,WebSocket,VoiceGuard,VoiceLink,sensors,authenticate,parse_server_url
 from models import Configuration,CHANNELS
 from sim7070 import SIM7070,LTEUART
 
@@ -539,7 +539,7 @@ class VoiceGuardTests(unittest.TestCase):
         guard.want(True,guard.paused_until);guard.batch_sent(5,3,guard.paused_until+1)
         self.assertEqual(guard.pause,first*2)
 
-async def voice_relay(reader,writer,log):
+async def voice_relay(reader,writer,log,uplink=None):
     """Answers pings and streams binary 'voice' frames while the client's hello asks for it."""
     head=await reader.readuntil(b'\r\n\r\n')
     key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
@@ -560,8 +560,10 @@ async def voice_relay(reader,writer,log):
             if n==126:n=int.from_bytes(await reader.readexactly(2),'big')
             mask=await reader.readexactly(4);payload=bytes(b^mask[i%4] for i,b in enumerate(await reader.readexactly(n)))
             if b0&0x0f==9:writer.write(bytes([0x8a,len(payload)])+payload);await writer.drain()
+            if b0&0x0f==2 and uplink is not None:uplink.append(('opus',payload))
             if b0&0x0f==1:
                 message=json.loads(payload)
+                if message['type']=='audio.ptt' and uplink is not None:uplink.append(('ptt',message['active']))
                 if message['type']=='hello':
                     log.append(message['audio_formats'])
                     streaming.set() if message['audio_formats'] else streaming.clear()
@@ -619,6 +621,56 @@ class VoiceRelayTests(unittest.IsolatedAsyncioTestCase):
                     runtime.received_at=time.monotonic();await asyncio.sleep(.1)
                 sender.store.revision+=1;await asyncio.wait_for(task,2)
         self.assertEqual(log,[[]]);self.assertEqual(sender.state['voice_packets'],0)
+
+    async def test_driver_voice_goes_up_after_ptt_and_stops_when_telemetry_lags(self):
+        log=[];uplink=[]
+        server=await asyncio.start_server(lambda r,w:voice_relay(r,w,log,uplink),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        class Link:
+            # Stands in for voice_agent.py: the driver talks for 3 packets whenever asked.
+            def __init__(self):self.asked=0;self.queue=[]
+            def want_uplink(self):
+                self.asked+=1
+                if self.asked==1:self.queue+=[('A',b'{"card_present":true}'),('T',b'1'),('U',b''*20),('U',b''*20),('U',b''*20),('T',b'0')]
+                elif self.asked==2:self.queue+=[('T',b'1'),('U',b''*20)]   # still talking when telemetry lags
+                return True
+            def receive(self):out,self.queue=self.queue,[];return out
+            def play(self,packet):pass
+        with tempfile.TemporaryDirectory() as root,patch.object(VoiceGuard,'WINDOW_S',1.2),patch.object(VoiceGuard,'PAUSE_S',60):
+            runtime=Runtime();sender=PodiumSender(root,runtime);sender.voice_link=link=Link()
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main',voice_send=True)
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                async def run(seconds,start):
+                    for seq in range(start,start+int(seconds*10)):
+                        runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                        'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                        runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                await run(3.5,0)
+                self.assertEqual(sender.state['voice'],'on');self.assertEqual(sender.state['voice_sent'],4)
+                self.assertTrue(sender.state['voice_talking']);self.assertEqual(sender.state['voice_agent'],{'card_present':True})
+                with patch.dict(VoiceGuard.MAX_DELAY_S,{'wifi':.3}):
+                    real=sender.sent
+                    def slow(frames,size):real(frames,size);time.sleep(.4)
+                    sender.sent=slow;await run(1,100);sender.sent=real
+                await run(.5,200)
+                self.assertEqual(sender.state['voice'],'paused');self.assertFalse(sender.state['voice_talking'])
+                asked=link.asked;await run(1.5,300)
+                self.assertEqual(link.asked,asked)   # microphone not asked for while paused
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+        # Only sending: the relay is never asked for the pit mix.
+        self.assertTrue(all(f==[] for f in log))
+        self.assertEqual(uplink,[('ptt',True),('opus',b''*20),('opus',b''*20),('opus',b''*20),('ptt',False),
+                                 ('ptt',True),('opus',b''*20),('ptt',False)])
+
+
+class VoiceLinkTests(unittest.TestCase):
+    def test_no_agent_is_harmless(self):
+        with tempfile.TemporaryDirectory() as root:
+            link=VoiceLink(root)
+            link.play(b'x');self.assertFalse(link.want_uplink());self.assertEqual(link.receive(),[])
 
 
 if __name__=='__main__':unittest.main()
