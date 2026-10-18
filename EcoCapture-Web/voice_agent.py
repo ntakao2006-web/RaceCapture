@@ -57,7 +57,8 @@ PLAY_PREBUFFER = 2       # packets queued before playback starts (240 ms against
 LOW_WATER_S = 0.04       # only fill with silence once this little sound is left in ALSA
 GAP = OUT_RATE // 50     # 20 ms of silence per fill
 ROUTE_CHECK_S = 2.0
-RECONNECT_S = 15.0
+RECONNECT_S = 15.0        # first call; doubles after each miss up to RECONNECT_MAX_S
+RECONNECT_MAX_S = 300.0
 RECENT_FILE = Path(os.environ.get('STATE_DIRECTORY', '/var/lib/ecocapture-voice')) / 'recent_headsets.json'
 HFP, A2DP = 'headset-head-unit', 'a2dp-sink'
 PW_ENV = {**os.environ, 'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')}
@@ -316,19 +317,25 @@ class Agent:
 
     def router(self):
         """Follow the devices like a phone: a headset that connects takes over, one that drops gives way."""
-        called = 0.0
+        called, wait = 0.0, RECONNECT_S
         while True:
-            route = choose_route()
-            if (route is None or not route['kind'].startswith('bluetooth')) and time.monotonic() - called > RECONNECT_S:
-                called = time.monotonic()
+            self.use(choose_route())   # follow a drop at once; calling the headset back comes after
+            if self.route is not None and self.route['kind'].startswith('bluetooth'):
+                called, wait = time.monotonic(), RECONNECT_S   # first call back RECONNECT_S after a drop
+            elif time.monotonic() - called > wait:
+                # A headset left in its case cannot answer; calling it every few seconds all
+                # night preceded a hung built-in radio (2026-10-18), so back off.
+                called, wait = time.monotonic(), min(RECONNECT_MAX_S, wait * 2)
                 reconnect_headsets()
-                route = choose_route()
-            if route != self.route:
-                if route and route.get('address'):
-                    remember_headset(route['address'])
-                log.info('audio route: %s', route and f"{route['kind']} ({route['name']}), mic {route['mic']}")
-                self.route = route
+                self.use(choose_route())
             time.sleep(ROUTE_CHECK_S)
+
+    def use(self, route):
+        if route != self.route:
+            if route and route.get('address'):
+                remember_headset(route['address'])
+            log.info('audio route: %s', route and f"{route['kind']} ({route['name']}), mic {route['mic']}")
+            self.route = route
 
     # --- pit voice -> earphone -------------------------------------------------
     def player(self):
