@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
  */
 class RelayClient(private val urls: List<String>, private val clientId: String, private val handler: Handler) {
     private val client = OkHttpClient.Builder()
-        .pingInterval(10, TimeUnit.SECONDS) // a dead LTE link shows up as a missing pong
+        .pingInterval(5, TimeUnit.SECONDS) // a dead link shows up as a missing pong within ~10 s
         .connectTimeout(10, TimeUnit.SECONDS)
         .build()
     private var socket: WebSocket? = null
