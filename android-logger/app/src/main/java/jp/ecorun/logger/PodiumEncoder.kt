@@ -31,6 +31,10 @@ object PodiumEncoder {
         Channel("GyroX", "GyroX", "deg/s", -1000.0, 1000.0, 2),
         Channel("GyroY", "GyroY", "deg/s", -1000.0, 1000.0, 2),
         Channel("GyroZ", "GyroZ", "deg/s", -1000.0, 1000.0, 2),
+        // Car axes after the mounting calibration: + accelerating / to the right / up.
+        Channel("LongAccel", "LongAccel", "g", -8.0, 8.0, 3),
+        Channel("LatAccel", "LatAccel", "g", -8.0, 8.0, 3),
+        Channel("VertAccel", "VertAccel", "g", -8.0, 8.0, 3),
         // Lap channels as the Ver.2 logger sends them (minutes, RaceCapture names);
         // masked out until a control line is set.
         Channel("LapCount", "LapCount", "", 0.0, 10000.0, 0),

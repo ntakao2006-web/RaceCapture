@@ -62,6 +62,7 @@ class LoggerService : Service() {
         handler = Handler(thread.looper)
         val settings = Settings(this)
         Race.init(this)
+        Imu.init(this)
         handler.post {
             hub = SensorHub(this, handler).also { it.start() }
             try { log = LogWriter(this, settings.carName) } catch (e: Exception) { logError = e.toString() }

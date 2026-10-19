@@ -62,6 +62,7 @@ class SensorHub(context: Context, private val handler: Handler) : SensorEventLis
             if (l.hasAccuracy()) l.accuracy.toDouble() else null,
             if (l.hasSpeed()) l.speed * 3.6 else null,
             if (l.hasBearing()) l.bearing.toDouble() else null))
+        Imu.onFix(l.time, if (l.hasSpeed()) l.speed.toDouble() else null, if (l.hasBearing()) l.bearing.toDouble() else null)
     }
 
     override fun onSensorChanged(e: SensorEvent) {
@@ -97,12 +98,12 @@ class SensorHub(context: Context, private val handler: Handler) : SensorEventLis
             out["GPSFix"] = 0.0
         }
         out["GPSSats"] = satsUsed.toDouble()
-        if (accelN > 0) {
-            out["AccelX"] = accel[0] / accelN; out["AccelY"] = accel[1] / accelN; out["AccelZ"] = accel[2] / accelN
-        }
-        if (gyroN > 0) {
-            out["GyroX"] = gyro[0] / gyroN; out["GyroY"] = gyro[1] / gyroN; out["GyroZ"] = gyro[2] / gyroN
-        }
+        val a = if (accelN > 0) DoubleArray(3) { accel[it] / accelN } else null
+        val w = if (gyroN > 0) DoubleArray(3) { gyro[it] / gyroN } else null
+        a?.let { out["AccelX"] = it[0]; out["AccelY"] = it[1]; out["AccelZ"] = it[2] }
+        w?.let { out["GyroX"] = it[0]; out["GyroY"] = it[1]; out["GyroZ"] = it[2] }
+        // Car axes from the mounting calibration (Mount.kt).
+        Imu.onRow(a, w, out["GPSSpeed"])?.let { out["LongAccel"] = it[0]; out["LatAccel"] = it[1]; out["VertAccel"] = it[2] }
         accel.fill(0.0); gyro.fill(0.0); accelN = 0; gyroN = 0
         if (Race.config().control != null) Race.values()?.let { v ->
             out["LapCount"] = v.count.toDouble(); out["CurrentLap"] = v.current.toDouble()

@@ -38,6 +38,7 @@ class SettingsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Race.init(this)
+        Imu.init(this)
         settings = Settings(this)
         window.statusBarColor = Color.BLACK
         window.navigationBarColor = Color.BLACK
@@ -78,6 +79,25 @@ class SettingsActivity : Activity() {
                     Uri.parse("package:$packageName")))
             })
         note("記録ファイル：端末の Download/EcoLogger/ に走行ごとに1つ")
+
+        section("取付けの向き（前後・左右・上下のG）")
+        note(Imu.describe())
+        note("ホルダーに付けたら、車を平らな所に止めて揺らさずに「1G校正」。しなくても、記録中に停車すると自動で取る。" +
+            "前方は画面がドライバーを向いている前提で始まり、走ると加速・減速からGNSSで校正される")
+        val imuButtons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        imuButtons.addView(button("今の向きで1G校正") {
+            when {
+                !Status.running -> toast("記録を始めてから押してください")
+                Imu.calibrateNow() -> { toast("校正しました"); build() }
+                else -> toast("揺れています。車を止めて、2秒ほど触らずに押してください")
+            }
+        })
+        imuButtons.addView(button("校正をやり直す（自動に戻す）") {
+            AlertDialog.Builder(this).setMessage("1G・前方の校正を消して、自動で取り直します。よいですか？")
+                .setPositiveButton("やり直す") { _, _ -> Imu.clear(); build() }
+                .setNegativeButton("やめる", null).show()
+        })
+        column.addView(imuButtons)
 
         section("車とサーバー")
         val car = field("車の名前（記録ファイル名・サーバーでの表示名）", settings.carName, "例：car2", !running)
