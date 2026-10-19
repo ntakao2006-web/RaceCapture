@@ -22,9 +22,20 @@ LOG=$PWD/lte_voice_$(date +%Y%m%d_%H%M%S).log
 DIR=/run/ecocapture-voice
 exec >>"$LOG" 2>&1
 
+# Retries until the web service has taken the settings: right after boot it answers the
+# first GET and then restarts, and a lost POST left phase A on Wi-Fi (2026-10-19).
 set_podium() {
-  curl -s -X POST -H 'Content-Type: application/json' -H 'X-EcoCapture: 1' -d "$1" 127.0.0.1:8080/api/podium \
-    | python3 -c 'import json,sys;d=json.load(sys.stdin);c=d.get("config");print("settings:",d if c is None else (c["link"],c["destination"],"recv",c["voice_receive"],"send",c["voice_send"]))'
+  i=0
+  until curl -s -X POST -H 'Content-Type: application/json' -H 'X-EcoCapture: 1' -d "$1" 127.0.0.1:8080/api/podium \
+      | python3 -c '
+import json,sys
+want=json.loads(sys.argv[1])
+try:c=json.load(sys.stdin)["config"]
+except Exception:sys.exit(1)
+if any(c.get(k)!=v for k,v in want.items()):sys.exit(1)
+print("settings:",(c["link"],c["destination"],"recv",c["voice_receive"],"send",c["voice_send"]))' "$1"; do
+    i=$((i+1)); [ $i -gt 24 ] && { echo "settings not applied after 120 s"; return 1; }; sleep 5
+  done
 }
 wait_streaming() {
   i=0

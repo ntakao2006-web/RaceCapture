@@ -123,6 +123,8 @@ class FakeUART:
                 self.outgoing.extend(b'\r\nERROR\r\n');continue
             if command=='AT+CGATT?':self.attach+=1;response=f'+CGATT: {int(self.attach>1)}\r\n'
             if command=='AT+CNACT?':response='+CNACT: 0,1,"10.1.2.3"\r\n'
+            if command in ('AT+CNMP?','AT+CMNB?'):
+                response=f'+{command[3:7]}: {getattr(self,"mode",{}).get(command,2 if command=="AT+CNMP?" else 3)}\r\n'
             if command.startswith('AT+CAOPEN='):
                 self.outgoing.extend(b'\r\nOK\r\n+CAOPEN: 0,0\r\n');continue
             if command.startswith('AT+CARECV='):
@@ -286,6 +288,22 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('AT+CASSLCFG=0,"SSL",1',uart.commands)
         self.assertEqual(uart.commands[-1],'AT+CAOPEN=0,0,"TCP","car.example.ts.net",443')
         uart.network.extend(b'abc');self.assertEqual(await modem.read_some(),b'abc')
+
+    async def test_connect_records_phase_times_and_modem_mode(self):
+        uart=FakeUART();modem=SIM7070(uart=uart)
+        await modem.connect(PodiumConfig(apn='test.apn',hardware_ready=True),('car.example.ts.net',443,True))
+        self.assertEqual(modem.modem,{'cnmp':2,'cmnb':3,'cnmp_set':38,'cmnb_set':1})
+        self.assertLess(uart.commands.index('AT+CFUN=0'),uart.commands.index('AT+CNMP=38'))
+        self.assertLess(uart.commands.index('AT+CMNB=1'),uart.commands.index('AT+CFUN=1'))
+        for phase in ('modem_initialization','sim_ready','network_registration','pdp_activation','relay_connect'):
+            self.assertIn(phase,modem.timings)
+        self.assertGreaterEqual(modem.timings['network_registration'],1)   # one 1 s wait for CGATT
+
+    async def test_lte_m_only_is_not_rewritten_once_set(self):
+        uart=FakeUART();uart.mode={'AT+CNMP?':38,'AT+CMNB?':1};modem=SIM7070(uart=uart)
+        await modem.connect(PodiumConfig(apn='test.apn',hardware_ready=True),('car.example.ts.net',443,True))
+        self.assertEqual(modem.modem,{'cnmp':38,'cmnb':1})
+        self.assertFalse([c for c in uart.commands if c.startswith(('AT+CNMP=','AT+CMNB='))])
 
     async def test_auth_ignores_unexpected_lines_before_ok(self):
         class Transport:

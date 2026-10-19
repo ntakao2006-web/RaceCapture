@@ -497,9 +497,17 @@ class PodiumSender:
             except ValueError:pass
         return result
 
+    def transport_timings(self):
+        """Per-phase connect seconds and modem mode settings of the LTE transport, for events."""
+        transport=getattr(self,'transport',None)
+        out={}
+        if getattr(transport,'timings',None):out['phases']=dict(transport.timings)
+        if getattr(transport,'modem',None):out['modem']=dict(transport.modem)
+        return out
+
     def sent(self,frames,size):
         self.state['frames']+=frames;self.state['bytes']+=size;self.sent_at=time.monotonic()
-        if self.session_frames==0:self.event('first_frame',link=self.active_link)
+        if self.session_frames==0:self.event('first_frame',link=self.active_link,**self.transport_timings())
         self.session_frames+=frames
 
     def sd_busy(self,config=None):
@@ -700,6 +708,7 @@ class PodiumSender:
             session_config=config.model_copy(update={'link':link,**({'server_url':url} if url else {})})
             transport=(SIM7070(self.runtime.bridge) if link=='lte' else
                        SocketTransport(AUTO_WIFI_CONNECT_S,AUTO_WIFI_USER_TIMEOUT_MS) if auto else SocketTransport())
+            self.transport=transport
             try:
                 await (self.relay_session if kind=='server' else self.session)(transport,session_config,revision)
                 retry=0
@@ -723,7 +732,7 @@ class PodiumSender:
                     'Relay not responding'}
                 self.state['last_failure_reason']=str(exc) if str(exc) in safe_reasons else 'Transport error'
                 self.event('session_end',link=link,target=self.active_target['host'],reason=self.state['last_failure_reason'],frames=self.session_frames,
-                           last_sent_age_s=round(time.monotonic()-self.sent_at,3) if self.sent_at else None)
+                           last_sent_age_s=round(time.monotonic()-self.sent_at,3) if self.sent_at else None,**self.transport_timings())
                 target='中継サーバー' if kind=='server' else 'Podium'
                 if auto and link=='wifi':
                     # Straight over to LTE, no back-off: the stream must not pause on track.

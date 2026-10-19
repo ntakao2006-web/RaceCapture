@@ -34,8 +34,18 @@ class LTEUART:
 class SIM7070:
     def __init__(self,bridge=None,uart=None):
         self.uart=uart or LTEUART(bridge);self.buffer=bytearray();self.stream=bytearray();self.sent=0
+        # Seconds spent in each connect phase, and the modem's network-mode settings
+        # (power-on to telemetry took 2+ min on 2026-10-19; this shows where).
+        self.timings={};self.modem={};self._phase_at=None
         self.phase='idle'
         self.operation='idle'
+    @property
+    def phase(self):return self._phase
+    @phase.setter
+    def phase(self,value):
+        now=time.monotonic()
+        if self._phase_at is not None:self.timings[self._phase]=round(self.timings.get(self._phase,0)+now-self._phase_at,1)
+        self._phase=value;self._phase_at=now
     async def pump(self):
         self.buffer.extend(await self.uart.read())
         if len(self.buffer)>16384:raise OSError('Modem response too large')
@@ -60,14 +70,28 @@ class SIM7070:
         self.phase='modem_initialization'
         await self.uart.power(True)
         await asyncio.sleep(3)
-        # Autobaud synchronization; no persistent baud or RF setting is changed here.
+        # Autobaud synchronization; no persistent baud setting is changed here.
         for attempt in range(5):
             try:await self.command('AT');break
             except (OSError,TimeoutError):
                 if attempt==4:raise
         await self.command('ATE0')
+        for query in ('AT+CNMP?','AT+CMNB?'):
+            # Which radio access technologies the modem searches.
+            with __import__('contextlib').suppress(OSError,TimeoutError):
+                match=re.search(rb'\+(CNMP|CMNB):\s*(\d+)',await self.command(query))
+                if match:self.modem[match[1].decode().lower()]=int(match[2])
         await self.command('AT+IFC=2,2')
         await self.command('AT+CFUN=0',10)
+        # Search LTE-M only (user decision 2026-10-20). As delivered the modem also
+        # scans GSM and NB-IoT (CNMP 51, CMNB 3): Japan has no GSM, the SIM is used on
+        # LTE-M only, and Germany's carriers have LTE-M, so those scans only delay
+        # attach after a move. The modem keeps these settings; written only on change.
+        for setting,value in (('cnmp',38),('cmnb',1)):
+            if self.modem.get(setting)!=value:
+                with __import__('contextlib').suppress(OSError,TimeoutError):
+                    await self.command(f'AT+{setting.upper()}={value}')
+                    self.modem[f'{setting}_set']=value
         await self.command(f'AT+CGDCONT=1,"IP","{config.apn}"')
         await self.command('AT+CFUN=1',15)
         # CFUN=1 returns before the SIM is ready on the real SIM7070G.
