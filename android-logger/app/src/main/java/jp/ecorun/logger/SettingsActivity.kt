@@ -82,7 +82,11 @@ class SettingsActivity : Activity() {
 
         section("取付けの向き（前後・左右・上下のG）")
         note(Imu.describe())
-        note("ホルダーに付けたら、車を平らな所に止めて揺らさずに「1G校正」。しなくても、記録中に停車すると自動で取る。" +
+        note(if (RaceClass.ensure(this).twoWheel)
+            "二輪：ホルダーに付けたら、車体をまっすぐ立てて（センタースタンドか支えて）揺らさずに「1G校正」。" +
+            "しなくても、まっすぐ一定の速さで走っている間に自動で取る（サイドスタンドで傾いた停車中は使わない）。" +
+            "前方は画面がライダーを向いている前提で始まり、走ると加速・減速からGNSSで校正される"
+        else "四輪：ホルダーに付けたら、車を平らな所に止めて揺らさずに「1G校正」。しなくても、記録中に停車すると自動で取る。" +
             "前方は画面がドライバーを向いている前提で始まり、走ると加速・減速からGNSSで校正される")
         val imuButtons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         imuButtons.addView(button("今の向きで1G校正") {
@@ -106,10 +110,21 @@ class SettingsActivity : Activity() {
         if (running) note("記録中は変えられません（止めてから変えてください）")
 
         section("大会")
+        val klass = RaceClass.ensure(this)
+        note("クラスを選ぶと規定周回数・規定時間が入り、1G校正の取り方（二輪は走行中、四輪は停車中）も切り替わる")
+        val classes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        for (c in RaceClass.entries) {
+            classes.addView(button(c.label) { c.apply(this); toast("${c.label} にしました"); build() }.apply {
+                (background as GradientDrawable).setColor(if (c == klass) Color.rgb(35, 134, 54) else Color.rgb(48, 54, 61))
+            }, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginEnd = px(8) })
+        }
+        column.addView(classes)
         val cfg = Race.config()
-        val laps = field("規定周回数", cfg.totalLaps?.toString() ?: "", "例：7", true, InputType.TYPE_CLASS_NUMBER)
+        val custom = klass == RaceClass.OTHER
+        val laps = field("規定周回数", cfg.totalLaps?.toString() ?: "", "例：3", custom, InputType.TYPE_CLASS_NUMBER)
         val limit = field("規定時間（分:秒）", cfg.timeLimitS?.let { DashboardView.clock(it, false) + ".%02d".format(Math.round((it % 1) * 100).toInt().coerceAtMost(99)) } ?: "",
-            "例：39:20.11", true, InputType.TYPE_CLASS_TEXT)
+            "例：16:27.36", custom, InputType.TYPE_CLASS_TEXT)
+        if (!custom) note("規定周回数・規定時間を変えるときは「その他（手入力）」を選ぶ")
         val minLap = field("最短ラップ（秒、これより短い周は数えない）", "%.0f".format(cfg.minLapS), "10", true, InputType.TYPE_CLASS_NUMBER)
         column.addView(button("車・サーバー・大会の設定を保存") {
             if (!running) {
@@ -118,8 +133,9 @@ class SettingsActivity : Activity() {
             val total = laps.text.toString().trim().toIntOrNull()
             val lim = parseClock(limit.text.toString())
             val min = minLap.text.toString().trim().toDoubleOrNull()
-            if (limit.text.isNotBlank() && lim == null) { toast("規定時間は 39:20.11 の形で入れてください"); return@button }
-            Race.configure(Race.config().copy(totalLaps = total, timeLimitS = lim, minLapS = (min ?: 10.0).coerceIn(5.0, 7200.0)))
+            if (custom && limit.text.isNotBlank() && lim == null) { toast("規定時間は 16:27.36 の形で入れてください"); return@button }
+            val c = Race.config().copy(minLapS = (min ?: 10.0).coerceIn(5.0, 7200.0))
+            Race.configure(if (custom) c.copy(totalLaps = total, timeLimitS = lim) else c)
             toast("保存しました"); build()
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
 

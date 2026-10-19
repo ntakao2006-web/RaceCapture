@@ -110,4 +110,31 @@ class MountTest {
         near(m.up!!, copy.up!!, 1e-12)
         assertTrue(copy.manual)
     }
+
+    @Test
+    fun twoWheelIgnoresALeaningStopAndLearnsUpWhileRiding() {
+        val m = Mount().apply { twoWheel = true }
+        // On the side stand: leaning 15 degrees, perfectly still. Must not become "up".
+        val lean = Math.toRadians(15.0)
+        rows(m, doubleArrayOf(g * cos(lean), g * sin(lean), 0.0), 60)
+        assertNull(m.up)
+        // Riding straight at a steady 25 km/h, upright on average (sway either side).
+        var t = 0L; val v = 25 / 3.6
+        m.onFix(t, v, 90.0)
+        repeat(12) { k ->
+            val sway = if (k % 2 == 0) 0.4 else -0.4
+            rows(m, doubleArrayOf(g, sway, 0.0), 10, speedKmh = v * 3.6)
+            t += 1000
+            m.onFix(t, v, 90.0)
+        }
+        near(upX, m.up!!, 5e-3) // within about 0.3 degrees
+    }
+
+    @Test
+    fun twoWheelManualCalibrationStillWorks() {
+        val m = Mount().apply { twoWheel = true }
+        rows(m, doubleArrayOf(g, 0.0, 0.0), 20, speedKmh = null)
+        assertTrue(m.calibrateNow())
+        near(upX, m.up!!, 1e-9)
+    }
 }

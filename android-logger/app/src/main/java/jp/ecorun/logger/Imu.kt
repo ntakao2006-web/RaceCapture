@@ -19,6 +19,7 @@ object Imu {
             if (prefs != null) return
             val p = context.applicationContext.getSharedPreferences("imu", Context.MODE_PRIVATE)
             prefs = p
+            mount.twoWheel = Settings(context).raceClass?.twoWheel ?: true
             try {
                 p.getString("mount", null)?.let { s -> val a = JSONArray(s); mount.load(DoubleArray(a.length()) { a.getDouble(it) }) }
             } catch (_: Exception) {}
@@ -38,12 +39,16 @@ object Imu {
 
     fun clear() = synchronized(lock) { mount.clearCalibration(); save() }
 
+    fun setTwoWheel(on: Boolean) = synchronized(lock) { mount.twoWheel = on }
+
     /** One line for the settings screen. */
     fun describe(): String = synchronized(lock) {
         val up = when {
+            mount.up == null && mount.twoWheel -> "1G：まだ（まっすぐ一定の速さで10秒ほど走ると自動で取るか、下のボタンで）"
             mount.up == null -> "1G：まだ（停車中に自動で取るか、下のボタンで）"
             mount.manual && mount.moved -> "1G：手動で校正済み。ただし今の向きと10°以上違います（付け直した？）"
             mount.manual -> "1G：手動で校正済み"
+            mount.twoWheel -> "1G：走行中に自動で校正済み"
             else -> "1G：停車中に自動で校正済み"
         }
         val fwd = when {

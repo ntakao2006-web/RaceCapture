@@ -21,7 +21,7 @@ object Race {
     fun init(context: Context) = synchronized(lock) {
         if (timer != null) return
         prefs = context.applicationContext.getSharedPreferences("race", Context.MODE_PRIVATE)
-        val (config, state) = try { load() } catch (_: Exception) { LapConfig(totalLaps = 7, timeLimitS = DEFAULT_LIMIT_S) to LapState() }
+        val (config, state) = try { load() } catch (_: Exception) { LapConfig(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState() }
         timer = LapTimer(config, state) { save(it) }
     }
 
@@ -67,7 +67,7 @@ object Race {
     }
 
     private fun load(): Pair<LapConfig, LapState> {
-        val text = prefs.getString("race", null) ?: return LapConfig(totalLaps = 7, timeLimitS = DEFAULT_LIMIT_S) to LapState()
+        val text = prefs.getString("race", null) ?: return LapConfig(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState()
         val o = JSONObject(text)
         val config = LapConfig(gate(o.optJSONObject("control")), gate(o.optJSONObject("start")), gate(o.optJSONObject("goal")),
             o.optDouble("minLap", 10.0), o.optDouble("maxLap", 3600.0),
@@ -79,6 +79,6 @@ object Race {
         return config to state
     }
 
-    /** Honda EMC 2026, four-wheel class: 7 laps in 39:20.11. */
-    const val DEFAULT_LIMIT_S = 39 * 60 + 20.11
+    /** Honda EMC 2026, two-wheel classes: 3 laps in 16:27.36 (see [RaceClass]). */
+    const val DEFAULT_LIMIT_S = 16 * 60 + 27.36
 }

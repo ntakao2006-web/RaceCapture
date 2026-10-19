@@ -36,6 +36,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Race.init(this)
+        Imu.init(this)
+        RaceClass.ensure(this)
         window.statusBarColor = Color.BLACK
         window.navigationBarColor = Color.BLACK
         dashboard = DashboardView(this)

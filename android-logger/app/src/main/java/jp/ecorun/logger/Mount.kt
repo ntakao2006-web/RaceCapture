@@ -11,6 +11,8 @@ import kotlin.math.sqrt
  * - Up (1G calibration): the mean accelerometer reading while the car is
  *   still. Taken automatically whenever the car stands still and the phone is
  *   steady, or on demand from the settings screen (then it is kept fixed).
+ *   For two-wheelers ([twoWheel]) the automatic one comes from straight,
+ *   steady riding instead, since a parked bike leans.
  * - Forward: starts as "the back of the phone faces forward" (the screen faces
  *   the driver) and is then learned from GNSS: while driving straight, the
  *   horizontal acceleration measured between two fixes is weighted by the GNSS
@@ -32,6 +34,14 @@ class Mount {
     private var intervalSum = DoubleArray(3)
     private var intervalN = 0
     private var lastFix: Triple<Long, Double, Double>? = null // utc, speed m/s, bearing
+    private val uprightSum = DoubleArray(3)
+    private var uprightN = 0
+
+    /**
+     * Two-wheelers stand leaning on a side stand or the rider's foot, so the
+     * resting reading is not "up" for them: learn it while riding instead.
+     */
+    var twoWheel = false
 
     /** Feed one 0.1 s row (mean accel m/s², mean gyro deg/s, GNSS speed km/h if known). */
     fun onRow(accel: DoubleArray?, gyroDegS: DoubleArray?, speedKmh: Double?) {
@@ -40,6 +50,7 @@ class Mount {
         intervalN++
         window.addLast(accel.copyOf())
         while (window.size > STILL_ROWS) window.removeFirst()
+        if (twoWheel) return // see uprightSample()
         // Automatic calibration needs GNSS to say the car is not moving.
         val still = speedKmh != null && speedKmh < 1.0 && (gyroDegS == null || norm(gyroDegS) < 2.0)
         stillRows = if (still) stillRows + 1 else 0
@@ -68,7 +79,6 @@ class Mount {
         intervalSum = DoubleArray(3); intervalN = 0
         if (speedMs == null) { lastFix = null; return }
         lastFix = Triple(utcMs, speedMs, bearing ?: Double.NaN)
-        val u = up ?: return
         if (prev == null || mean == null || n < 5) return
         val dt = (utcMs - prev.first) / 1000.0
         if (dt !in 0.5..1.6) return
@@ -76,12 +86,34 @@ class Mount {
         if (!bearing.isFiniteOrNull() || prev.third.isNaN()) return
         var turn = abs(bearing!! - prev.third) % 360
         if (turn > 180) turn = 360 - turn
-        if (turn / dt > 4.0) return // only straight driving: no centripetal part
         val dvdt = (speedMs - prev.second) / dt
+        if (twoWheel && turn / dt < 2.0 && abs(dvdt) < 0.2) uprightSample(mean)
+        if (turn / dt > 4.0) return // only straight driving: no centripetal part
         if (abs(dvdt) < 0.3) return
+        val u = up ?: return
         val h = horizontal(mean, u)
         for (i in 0..2) forwardSum[i] += h[i] * dvdt
         forwardWeight += dvdt * dvdt
+    }
+
+    /**
+     * Two-wheelers: riding straight at a steady speed the bike is upright on
+     * average, so the mean reading over such stretches is "up". Recent stretches
+     * weigh more, so a re-mounted phone is followed within a minute or so.
+     */
+    private fun uprightSample(mean: DoubleArray) {
+        val u = unit(mean)
+        val current = up
+        if (manual) {
+            if (current != null) moved = angleDeg(current, u) > MOVED_DEG
+            return
+        }
+        for (i in 0..2) uprightSum[i] = uprightSum[i] * 0.95 + u[i]
+        uprightN++
+        if (uprightN < MIN_UPRIGHT) return
+        val next = unit(uprightSum)
+        if (current != null && angleDeg(current, next) > MOVED_DEG) { forwardSum.fill(0.0); forwardWeight = 0.0 }
+        up = next
     }
 
     /** Manual 1G calibration from the last rows; null when the phone is not steady. */
@@ -93,6 +125,7 @@ class Mount {
 
     fun clearCalibration() {
         up = null; manual = false; moved = false; forwardSum.fill(0.0); forwardWeight = 0.0; stillRows = 0
+        uprightSum.fill(0.0); uprightN = 0
     }
 
     val forwardLearned: Boolean get() = forwardWeight >= MIN_FORWARD_WEIGHT
@@ -152,6 +185,7 @@ class Mount {
         const val STILL_ROWS = 20          // 2 s of rows
         const val MOVED_DEG = 10.0
         const val MIN_FORWARD_WEIGHT = 3.0 // about a dozen 0.5 m/s² speed changes
+        const val MIN_UPRIGHT = 10         // straight, steady 1 s stretches before trusting them
 
         fun dot(a: DoubleArray, b: DoubleArray) = a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
         fun norm(a: DoubleArray) = sqrt(dot(a, a))
