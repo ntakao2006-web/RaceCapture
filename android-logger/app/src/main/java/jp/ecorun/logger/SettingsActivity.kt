@@ -80,6 +80,11 @@ class SettingsActivity : Activity() {
             })
         note("記録ファイル：端末の Download/EcoLogger/ に走行ごとに1つ")
 
+        section("画面")
+        toggle("この画面を開いている間は画面を消さない（記録していなくても）", settings.keepScreenOn) { settings.keepScreenOn = it }
+        toggle("記録中は画面を最大の明るさにする（日なたで読めるように。電池は減りやすい）", settings.fullBrightness) { settings.fullBrightness = it }
+        note("記録中は設定に関係なく画面を消さない。ほかのアプリ（Discordなど）を前に出していると、そのアプリの設定で暗くなるので、走行中はこのアプリを前に出しておく")
+
         section("取付けの向き（前後・左右・上下のG）")
         note(Imu.describe())
         note(if (RaceClass.ensure(this).twoWheel)
@@ -111,14 +116,15 @@ class SettingsActivity : Activity() {
 
         section("大会")
         val klass = RaceClass.ensure(this)
-        note("クラスを選ぶと規定周回数・規定時間が入り、1G校正の取り方（二輪は走行中、四輪は停車中）も切り替わる")
-        val classes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        for (c in RaceClass.entries) {
-            classes.addView(button(c.label) { c.apply(this); toast("${c.label} にしました"); build() }.apply {
+        note("クラス（2026年 全国大会の競技規則の名前）を選ぶと規定周回数・規定時間が入り、1G校正の取り方（二輪は走行中、四輪は停車中）も切り替わる")
+        for ((i, c) in RaceClass.entries.withIndex()) {
+            if (i == 3) note("ほかの公式クラス")
+            column.addView(button((if (c == klass) "✓ " else "　") + c.label) { c.apply(this); toast("${c.code} にしました"); build() }.apply {
                 (background as GradientDrawable).setColor(if (c == klass) Color.rgb(35, 134, 54) else Color.rgb(48, 54, 61))
-            }, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginEnd = px(8) })
+                gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+                textSize = 16f
+            }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
         }
-        column.addView(classes)
         val cfg = Race.config()
         val custom = klass == RaceClass.OTHER
         val laps = field("規定周回数", cfg.totalLaps?.toString() ?: "", "例：3", custom, InputType.TYPE_CLASS_NUMBER)
@@ -200,6 +206,14 @@ class SettingsActivity : Activity() {
             2 -> { val m = parts[0].toIntOrNull(); val sec = parts[1].toDoubleOrNull(); if (m == null || sec == null) null else m * 60 + sec }
             else -> null
         }
+    }
+
+    private fun toggle(label: String, value: Boolean, onChange: (Boolean) -> Unit) {
+        column.addView(android.widget.Switch(this).apply {
+            text = label; textSize = 16f; setTextColor(Color.WHITE); isChecked = value
+            setPadding(0, px(6), 0, px(6))
+            setOnCheckedChangeListener { _, on -> onChange(on) }
+        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
     }
 
     private fun title(s: String) = text(s, 26f, Color.WHITE, true)

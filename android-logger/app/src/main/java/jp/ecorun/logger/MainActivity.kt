@@ -84,9 +84,14 @@ class MainActivity : Activity() {
 
     private fun refresh() {
         val running = Status.running
-        if (running) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val settings = Settings(this)
+        if (running || settings.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setShowWhenLocked(running)
+        val brightness = if (running && settings.fullBrightness) 1f else WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        if (window.attributes.screenBrightness != brightness) {
+            window.attributes = window.attributes.apply { screenBrightness = brightness }
+        }
 
         startStop.text = if (running) "■ 長押しで停止" else "● 記録を始める"
         (startStop.background as GradientDrawable).setColor(if (running) Color.rgb(48, 54, 61) else Color.rgb(35, 134, 54))
@@ -107,6 +112,7 @@ class MainActivity : Activity() {
             relay = Status.relay, relayConnected = Status.relayConnected,
             batteryPct = if (level >= 0) level * 100 / scale else null, charging = plugged,
             lap = Race.values(), config = Race.config(), lapSumS = Race.laps().sum(),
+            classCode = settings.raceClass?.code ?: "",
             warning = warning(running, now),
         )
         ui.removeCallbacksAndMessages(null)
