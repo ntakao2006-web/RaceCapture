@@ -54,13 +54,18 @@ class Signal(BaseModel):
         return 1 / (x(lo[0]) + f * (x(hi[0]) - x(lo[0]))) - 273.15
 
 class Configuration(BaseModel):
-    model_config = ConfigDict(extra="forbid", serialize_by_alias=True, validate_by_name=True)
+    # serialize_by_alias/validate_by_name only exist from pydantic 2.11; older
+    # installs ignore them, so also set populate_by_name and dump by alias here.
+    model_config = ConfigDict(extra="forbid", serialize_by_alias=True, validate_by_name=True, populate_by_name=True)
     schema_version: Literal[1] = Field(default=1, alias="schema")
     device_name: str = Field(default="EcoLogger V2", min_length=1, max_length=48)
     profile: Literal["no-can", "demo-vehicle", "ncec-2005-mt"] = "no-can"
     can_bitrate: Literal[125000, 250000, 500000, 1000000] = 500000
     auto_record: bool = True
     signals: list[Signal] = Field(default_factory=list, max_length=64)
+
+    def model_dump(self, *, by_alias=True, **kwargs):
+        return super().model_dump(by_alias=by_alias, **kwargs)
 
     @model_validator(mode="after")
     def unique_names(self):
