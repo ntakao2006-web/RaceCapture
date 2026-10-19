@@ -1,16 +1,18 @@
-"""走行後のログ回収（ER-5-1）。Ver.1・Ver.2の2台分を走行回ごとのフォルダへまとめる。
+"""走行後のログ回収（ER-5-1）。Ver.1・Ver.2・スマホ組を走行回ごとのフォルダへまとめる。
 
 集めるもの（どれも元のファイルは消さない・書き換えない）:
-  - Ver.1（ESP32-S3）のSDカード: logs フォルダの CSV・.meta.json・.end.json
+  - Ver.1（ESP32-S3）のSDカード: logs フォルダの CSV・_can.csv・.meta.json・.end.json
   - Ver.2（UNO Q）のシールドSDカード: ELxxxxxx.BIN（CSVへ変換も行う）
-  - Ver.2 本体（eMMC）: USBのadb転送経由でWebのAPIからCSV・メタデータ・CAN生ログ
+  - Ver.2 本体（eMMC）: WebのAPIからCSV・メタデータ・CAN生ログ。USB（adb転送）か、
+    同じWi-Fi（テザリング）上の uno-q.local で届いた方から取る
+  - スマホ組（Androidロガー）: USBの「ファイル転送」でつないだ端末の Download/EcoLogger の EL_*.csv
 
-出力: drive_logs/<回収日>/run<NN>_<時刻>/{v1_sd,v2_sd,v2_emmc}/
+出力: drive_logs/<回収日>/run<NN>_<時刻>/{v1_sd,v2_sd,v2_emmc,phone}/
 前回までに回収したファイル（名前と大きさが同じもの）は drive_logs/collected.json で覚えておき、
 もう一度は取らない。新しいものが1つも無ければフォルダを作らない。
 
 使い方: Collect-Logs.cmd をダブルクリック。
-  python collect_logs.py [--drives E: F:] [--url http://127.0.0.1:8080/] [--no-emmc] [--out DIR]
+  python collect_logs.py [--drives E: F:] [--url URL ...] [--no-emmc] [--no-phone] [--phone-dir DIR] [--out DIR]
 """
 import argparse
 import ctypes
@@ -18,8 +20,10 @@ import json
 import re
 import shutil
 import string
+import os
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -29,8 +33,12 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / 'EcoCapture-Web'))
 
-V1_NAME = re.compile(r'.+_L[0-9A-F]{8}_\d{4}\.(csv|meta\.json|end\.json)$|^L[0-9A-F]{8}_\d{4}\.(csv|meta\.json|end\.json)$', re.I)
+V1_NAME = re.compile(r'^(.+_)?L[0-9A-F]{8}_\d{4}(_can\.csv|\.csv|\.meta\.json|\.end\.json)$', re.I)
 V2_SD_NAME = re.compile(r'^EL\d{6}\.BIN$', re.I)
+PHONE_NAME = re.compile(r'^EL_[A-Za-z0-9_-]+_\d{8}_\d{6}\.csv$')
+DEFAULT_URLS = ['http://127.0.0.1:8080/', 'http://uno-q.local:8080/']
+ADB_CANDIDATES = [Path(os.environ.get('LOCALAPPDATA', '')) / 'Android' / 'Sdk' / 'platform-tools' / 'adb.exe',
+                  REPO / 'other' / 'uno_q_tools' / 'platform-tools' / 'adb.exe']
 
 
 def candidate_drives():
@@ -112,21 +120,59 @@ def http_get(url, timeout=10):
         return response.read()
 
 
-def reach_uno_q(url, log):
+def find_adb():
+    return shutil.which('adb') or next((str(p) for p in ADB_CANDIDATES if p.is_file()), None)
+
+
+def reach_uno_q(urls, log):
+    """Return the first URL that answers. A localhost URL is retried after setting up the adb forward."""
+    for url in urls:
+        status = urllib.parse.urljoin(url, 'api/status')
+        try:
+            http_get(status, timeout=3)
+            return url
+        except (urllib.error.URLError, OSError):
+            pass
+        parsed = urllib.parse.urlparse(url)
+        adb = find_adb()
+        if parsed.hostname not in ('127.0.0.1', 'localhost') or not adb:
+            continue
+        try:
+            subprocess.run([adb, 'forward', f'tcp:{parsed.port or 80}', 'tcp:8080'], capture_output=True, timeout=15, check=True)
+            http_get(status, timeout=5)
+            return url
+        except (OSError, subprocess.SubprocessError, urllib.error.URLError):
+            pass
+    log('  UNO Qに接続できません（USBケーブル・電源、またはPCとUNO Qが同じテザリングにいるかを確認）。本体の記録は今回は回収しません。')
+    return None
+
+
+def stage_phones(staging, log):
+    """Copy phone CSVs over MTP into staging; returns [(device, [files])]."""
     try:
-        http_get(urllib.parse.urljoin(url, 'api/status'), timeout=3)
-        return True
-    except (urllib.error.URLError, OSError):
-        pass
-    adb = shutil.which('adb') or str(REPO / 'other' / 'uno_q_tools' / 'platform-tools' / 'adb.exe')
-    port = urllib.parse.urlparse(url).port or 80
-    try:
-        subprocess.run([adb, 'forward', f'tcp:{port}', 'tcp:8080'], capture_output=True, timeout=15, check=True)
-        http_get(urllib.parse.urljoin(url, 'api/status'), timeout=5)
-        return True
-    except (OSError, subprocess.SubprocessError, urllib.error.URLError):
-        log('  UNO Qに接続できません（USBケーブルと電源を確認）。本体の記録は今回は回収しません。')
-        return False
+        result = subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                                 '-File', str(Path(__file__).with_name('phone_mtp.ps1')), '-Dest', str(staging)],
+                                capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=900)
+    except (OSError, subprocess.SubprocessError) as exc:
+        log(f'  スマホを調べられませんでした: {exc}')
+        return []
+    for line in result.stdout.splitlines():
+        if line.startswith('FAILED '):
+            log(f'  コピーに失敗: {line[7:]}')
+    if result.returncode:
+        log(f'  スマホを調べられませんでした: {result.stderr.strip()[:200]}')
+    return list_phone_dirs(staging)
+
+
+def list_phone_dirs(root):
+    if not root.is_dir():
+        return []
+    found = []
+    for folder in [root, *sorted(p for p in root.iterdir() if p.is_dir())]:
+        files = sorted(p for p in folder.iterdir() if p.is_file() and PHONE_NAME.match(p.name))
+        if files:
+            found.append((folder.name, files))
+    return found
 
 
 def collect_emmc(run, manifest, url, log):
@@ -159,8 +205,10 @@ def collect_emmc(run, manifest, url, log):
 def main(argv=None):
     parser = argparse.ArgumentParser(description='走行ログを2台分まとめて回収する')
     parser.add_argument('--drives', nargs='*', help='調べるドライブ（省略時はCドライブ以外すべて）')
-    parser.add_argument('--url', default='http://127.0.0.1:8080/', help='UNO QのWeb（adb転送先）')
+    parser.add_argument('--url', nargs='+', default=DEFAULT_URLS, help='UNO QのWeb（上から順に試す。127.0.0.1はadb転送）')
     parser.add_argument('--no-emmc', action='store_true', help='UNO Q本体からは回収しない')
+    parser.add_argument('--no-phone', action='store_true', help='スマホからは回収しない')
+    parser.add_argument('--phone-dir', type=Path, help='スマホのEcoLoggerフォルダを手でコピーした場所（USBの自動コピーの代わり）')
     parser.add_argument('--out', type=Path, default=REPO / 'drive_logs')
     args = parser.parse_args(argv)
     log = print
@@ -181,11 +229,24 @@ def main(argv=None):
                 problems.append(f'{drive}: {exc}')
         if not args.no_emmc:
             log('Ver.2 本体（eMMC）')
-            if reach_uno_q(args.url, log):
+            url = reach_uno_q(args.url, log)
+            if url:
                 try:
-                    collect_emmc(run, manifest, args.url, log)
+                    collect_emmc(run, manifest, url, log)
                 except (urllib.error.URLError, OSError, ValueError) as exc:
                     problems.append(f'UNO Q: {exc}')
+        if not args.no_phone:
+            log('スマホ（Androidロガー）')
+            with tempfile.TemporaryDirectory() as staging:
+                phones = list_phone_dirs(args.phone_dir) if args.phone_dir else stage_phones(Path(staging), log)
+                if not phones:
+                    log('  スマホのログは見つかりませんでした（USBを「ファイル転送」にしてつなぐ）。')
+                for device, files in phones:
+                    log(f'  {device}（{len(files)} ファイル）')
+                    try:
+                        collect_sd(run, manifest, 'phone', files, log)
+                    except OSError as exc:
+                        problems.append(f'{device}: {exc}')
     finally:
         save_manifest(manifest_path, manifest)
     log('')
