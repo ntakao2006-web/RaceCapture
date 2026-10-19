@@ -70,23 +70,24 @@ class WS:
         return out
 
 
-def frames(name):
+def frames(name, frame=FRAME, bitrate=12000):
+    """Opus packets of `frame` samples from an 8 kHz mono WAV (default: the browser page's 60 ms, 12 kbps)."""
     lib = ctypes.CDLL(ctypes.util.find_library('opus') or 'libopus.so.0')
     lib.opus_encoder_create.restype = ctypes.c_void_p
     lib.opus_encode.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_int32]
     lib.opus_encoder_ctl.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int32]
     err = ctypes.c_int()
     enc = lib.opus_encoder_create(8000, 1, 2048, ctypes.byref(err))
-    lib.opus_encoder_ctl(enc, 4002, 12000)
+    lib.opus_encoder_ctl(enc, 4002, bitrate)
     w = wave.open(name)
     assert w.getframerate() == 8000 and w.getnchannels() == 1 and w.getsampwidth() == 2
     pcm = array.array('h', w.readframes(w.getnframes()))
-    pcm.extend([0] * (-len(pcm) % FRAME))
+    pcm.extend([0] * (-len(pcm) % frame))
     out, buf = [], ctypes.create_string_buffer(400)
-    for at in range(0, len(pcm), FRAME):
-        chunk = pcm[at:at + FRAME]
+    for at in range(0, len(pcm), frame):
+        chunk = pcm[at:at + frame]
         addr, _ = chunk.buffer_info()
-        n = lib.opus_encode(enc, addr, FRAME, buf, len(buf))
+        n = lib.opus_encode(enc, addr, frame, buf, len(buf))
         out.append(buf.raw[:n])
     return out
 

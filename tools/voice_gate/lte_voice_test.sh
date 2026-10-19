@@ -38,7 +38,9 @@ wait_streaming() {
 fake() {
   [ -n "$FAKE" ] && kill $FAKE 2>/dev/null; sleep 1
   rm -f $DIR/agent.sock
-  python3 fake_agent.py driver_reply.wav "$1" "$2" >>"$LOG.agent" 2>&1 &
+  # driver_read.wav: the user reading pit-radio lines (29 s, 8 kHz, peak -3 dBFS), recorded
+  # 2026-10-19. The earlier driver_reply.wav was a garbled pre-gain clip (peak -30 dBFS).
+  python3 fake_agent.py driver_read.wav "$1" "$2" >>"$LOG.agent" 2>&1 &
   FAKE=$!; sleep 2
 }
 phase() {
