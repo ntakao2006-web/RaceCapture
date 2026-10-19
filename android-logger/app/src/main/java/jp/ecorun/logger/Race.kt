@@ -21,7 +21,7 @@ object Race {
     fun init(context: Context) = synchronized(lock) {
         if (timer != null) return
         prefs = context.applicationContext.getSharedPreferences("race", Context.MODE_PRIVATE)
-        val (config, state) = try { load() } catch (_: Exception) { LapConfig(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState() }
+        val (config, state) = try { load() } catch (_: Exception) { MOTEGI.copy(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState() }
         timer = LapTimer(config, state) { save(it) }
     }
 
@@ -67,7 +67,7 @@ object Race {
     }
 
     private fun load(): Pair<LapConfig, LapState> {
-        val text = prefs.getString("race", null) ?: return LapConfig(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState()
+        val text = prefs.getString("race", null) ?: return MOTEGI.copy(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState()
         val o = JSONObject(text)
         val config = LapConfig(gate(o.optJSONObject("control")), gate(o.optJSONObject("start")), gate(o.optJSONObject("goal")),
             o.optDouble("minLap", 10.0), o.optDouble("maxLap", 3600.0),
@@ -81,4 +81,29 @@ object Race {
 
     /** Honda EMC 2026, two-wheel classes: 3 laps in 16:27.36 (see [RaceClass]). */
     const val DEFAULT_LIMIT_S = 16 * 60 + 27.36
+
+    /**
+     * Rough lines for the national final (Motegi oval), picked by the user on
+     * Google Maps on 2026-10-19 ("たしか"): all on the west straight, north to
+     * south goal - control - start. Cars run counter-clockwise, i.e. south here,
+     * so a lap is start -> round the oval -> control, and the final lap leaves
+     * for the goal before the control line. This matches the regulation
+     * distances (7 laps 16389.68 m, 3 laps 6856.72 m: one lap ~2383 m, the goal
+     * ~290 m before the start). Heading 150 deg (SSE, along the straight) and a
+     * 40 m width so a point 10-20 m off still catches the car. To be replaced
+     * on the course walk with "set here".
+     */
+    val MOTEGI = LapConfig(
+        control = Gate(36.532800, 140.226322, 150.0, 40.0),
+        start = Gate(36.530730, 140.228057, 150.0, 40.0),
+        goal = Gate(36.533566, 140.226005, 150.0, 40.0),
+    )
+
+    /** Puts the Motegi lines in, keeping the class settings. */
+    fun useMotegiLines() {
+        synchronized(lock) {
+            val t = timer ?: return
+            t.configure(t.config.copy(control = MOTEGI.control, start = MOTEGI.start, goal = MOTEGI.goal))
+        }
+    }
 }

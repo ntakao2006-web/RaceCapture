@@ -146,7 +146,13 @@ class SettingsActivity : Activity() {
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
 
         section("ライン")
-        note("コースウォークで記録を始めてからライン上に立ち「現在地にする」。地図で調べた「緯度, 経度」を入れてもよい。向きは最初の通過で自動に決まる")
+        note("最初は全国大会（もてぎ）のおおよその位置が入っている（地図から拾った値・向き150°・幅40m）。" +
+            "コースウォークで記録を始めてからライン上に立ち「現在地にする」で正確にする（そのときの向きは最初の通過で自動に決まる）。地図で調べた「緯度, 経度」を入れてもよい")
+        column.addView(button("もてぎ（全国大会）のおおよその位置に戻す") {
+            AlertDialog.Builder(this).setMessage("3本のラインを、地図から拾ったもてぎの位置に戻します。よいですか？")
+                .setPositiveButton("戻す") { _, _ -> Race.useMotegiLines(); build() }
+                .setNegativeButton("やめる", null).show()
+        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
         for ((target, name) in listOf("control" to "コントロールライン（毎周通る）", "start" to "スタートライン（任意）", "goal" to "ゴールライン（任意）")) {
             line(target, name)
         }
