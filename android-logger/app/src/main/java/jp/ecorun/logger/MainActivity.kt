@@ -47,7 +47,12 @@ class MainActivity : Activity() {
             setOnLongClickListener { if (Status.running) { LoggerService.stop(this@MainActivity); later() }; true }
         }
         settingsButton = button("設定", Color.rgb(48, 54, 61)).apply {
-            setOnClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) }
+            // During the race the settings open only on a long press, so a brush cannot change anything.
+            setOnClickListener {
+                if (Race.racing()) toast("走行中は長押しで開きます")
+                else startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+            }
+            setOnLongClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)); true }
         }
         val bar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -113,6 +118,7 @@ class MainActivity : Activity() {
             batteryPct = if (level >= 0) level * 100 / scale else null, charging = plugged,
             lap = Race.values(), config = Race.config(), lapSumS = Race.laps().sum(),
             classCode = settings.raceClass?.code ?: "",
+            reference = Race.reference?.id?.let { "基準$it" } ?: "基準なし",
             warning = warning(running, now),
         )
         ui.removeCallbacksAndMessages(null)

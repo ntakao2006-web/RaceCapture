@@ -3,7 +3,7 @@ import math
 import tempfile
 import unittest
 from pathlib import Path
-from lap import LapLine, LapTimer, EARTH_M_PER_DEG
+from lap import LapLine, LapTimer, EARTH_M_PER_DEG, line_code
 from models import LAP_CHANNELS
 
 LAT0, LON0 = 36.5, 140.2
@@ -211,6 +211,31 @@ class LapTests(unittest.TestCase):
         (self.root / 'lap.json').write_text('{bad')
         t = LapTimer(self.root)
         self.assertFalse(t.line.enabled); self.assertIsNotNone(t.error)
+
+
+
+class LineCodeTest(unittest.TestCase):
+    """The QR text the Android loggers read (android-logger LineCodeTest uses the same strings)."""
+
+    def test_format_and_id(self):
+        line = LapLine.model_validate({'enabled': True, 'lat': 36.5328, 'lon': 140.226322, 'bearing': 150.0, 'width_m': 40,
+                                       'start': {'lat': 36.53073, 'lon': 140.228057, 'width_m': 30}, 'set_at': '2026-10-24T06:40+09:00'})
+        text, code = line_code(line)
+        lines = 'c=36.5328000,140.2263220,150.0,40|s=36.5307300,140.2280570,-,30|g=-'
+        self.assertEqual(text, f'ECOLINES1|{lines}|at=2026-10-24T06:40+09:00|src=Ver.2|id={code}')
+        import hashlib
+        self.assertEqual(code, hashlib.sha1(lines.encode()).hexdigest()[:4].upper())
+        self.assertEqual(code, '1600')  # also fixed in android-logger LineCodeTest
+
+    def test_changing_a_line_stamps_gnss_time(self):
+        with tempfile.TemporaryDirectory() as root:
+            t = LapTimer(root)
+            t.update(fix(0, 0.0))  # 2026-10-24T00:00:00Z = 09:00 JST
+            t.configure(LapLine(enabled=True, lat=LAT0, lon=LON0))
+            self.assertEqual(t.line.set_at, '2026-10-24T09:00+09:00')
+            same = t.line.model_copy(update={'min_lap_s': 20})
+            t.configure(same.model_copy(update={'set_at': None}))
+            self.assertIsNone(t.line.set_at)  # only a change of the lines themselves is stamped
 
 
 if __name__ == '__main__':

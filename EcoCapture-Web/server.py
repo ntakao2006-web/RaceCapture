@@ -21,7 +21,7 @@ from sd_storage import SDStorage
 from sd_timestamp import stamp_logs
 from models import CHANNELS, LAP_CHANNELS, Configuration, validate_sample
 from podium import PodiumSender
-from lap import LapLine, LapTimer
+from lap import LapLine, LapTimer, line_code
 
 ROOT = Path(os.environ.get("ECOCAPTURE_DATA", "/data"))
 ROOT.mkdir(parents=True, exist_ok=True)
@@ -540,6 +540,20 @@ async def save_lap(request:Request):
     except (ValueError,TypeError):raise HTTPException(400,'ラップ設定を確認してください。')
     except OSError:raise HTTPException(507,'ラップ設定を保存できませんでした。')
     return runtime.laps.public()
+
+
+@app.get('/api/lap/code')
+def lap_code():
+    """The lines as a QR code for the Android loggers (lap.line_code)."""
+    import segno
+    line = runtime.laps.line
+    if not line.enabled:
+        raise HTTPException(409, 'コントロールラインが未登録です')
+    text, code = line_code(line)
+    svg = segno.make(text, error='m').svg_inline(scale=6, border=4, dark='#000', light='#fff')
+    unknown = [name for name, target in (('コントロール', 'control'), ('スタート', 'start'), ('ゴール', 'goal'))
+               if line.gate(target) is not None and line.gate(target).bearing is None]
+    return {'text': text, 'id': code, 'at': line.set_at, 'svg': svg, 'unknown_bearing': unknown}
 
 
 @app.post('/api/lap/here')

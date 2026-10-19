@@ -26,10 +26,12 @@ unless it is shorter than the minimum lap (goal right after the control line).
 With a required lap count the goal is ignored until the final lap, so a goal
 line placed roughly from a map cannot end the race early.
 """
+import hashlib
 import json
 import math
 import os
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from models import LAP_CHANNELS
@@ -65,6 +67,7 @@ class LapLine(BaseModel):
     start: Gate | None = None
     goal: Gate | None = None
     total_laps: int | None = Field(default=None, ge=1, le=1000)
+    set_at: str | None = None  # when the lines last changed (GNSS time, JST), shown with the QR code
 
     @model_validator(mode='after')
     def valid(self):
@@ -78,6 +81,29 @@ class LapLine(BaseModel):
         if target == 'control':
             return Gate(lat=self.lat, lon=self.lon, bearing=self.bearing, width_m=self.width_m) if self.enabled else None
         return getattr(self, target)
+
+
+JST = timezone(timedelta(hours=9))
+
+
+def line_code(line):
+    """The lines as one text line for the QR code the Android loggers read
+    (android-logger LineCode.kt reads the same format). The Ver.2 GNSS with its
+    active antenna is the single reference every phone copies:
+
+      ECOLINES1|c=lat,lon,bearing,width|s=...|g=...|at=<when>|src=Ver.2|id=XXXX
+
+    "-" stands for a missing line or an unknown bearing; id is the first four
+    hex digits (upper case) of SHA-1 over the "c=...|s=...|g=..." part.
+    Returns (text, id)."""
+    def gate(g):
+        if g is None:
+            return '-'
+        bearing = '-' if g.bearing is None else f'{g.bearing:.1f}'
+        return f'{g.lat:.7f},{g.lon:.7f},{bearing},{int(round(g.width_m))}'
+    lines = '|'.join(f'{key}={gate(line.gate(target))}' for key, target in (('c', 'control'), ('s', 'start'), ('g', 'goal')))
+    code = hashlib.sha1(lines.encode('utf-8')).hexdigest()[:4].upper()
+    return f'ECOLINES1|{lines}|at={line.set_at or ""}|src=Ver.2|id={code}', code
 
 
 def offset_m(lat0, lon0, lat, lon):
@@ -188,6 +214,10 @@ class LapTimer:
             watch.reset()
 
     def configure(self, line):
+        gates = lambda l: [l.gate(t) for t in TARGETS]
+        if gates(line) != gates(self.line) and self.latest_utc is not None:
+            stamp = datetime.fromtimestamp(self.latest_utc[0] / 1000, JST).strftime('%Y-%m-%dT%H:%M+09:00')
+            line = line.model_copy(update={'set_at': stamp})
         self.line = line; self.error = None
         self.forget_motion()
         self.save()

@@ -146,15 +146,33 @@ class SettingsActivity : Activity() {
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
 
         section("ライン")
-        note("最初は全国大会（もてぎ）のおおよその位置が入っている（地図から拾った値・向き150°・幅40m）。" +
-            "コースウォークで記録を始めてからライン上に立ち「現在地にする」で正確にする（そのときの向きは最初の通過で自動に決まる）。地図で調べた「緯度, 経度」を入れてもよい")
-        column.addView(button("もてぎ（全国大会）のおおよその位置に戻す") {
-            AlertDialog.Builder(this).setMessage("3本のラインを、地図から拾ったもてぎの位置に戻します。よいですか？")
-                .setPositiveButton("戻す") { _, _ -> Race.useMotegiLines(); build() }
-                .setNegativeButton("やめる", null).show()
-        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
-        for ((target, name) in listOf("control" to "コントロールライン（毎周通る）", "start" to "スタートライン（任意）", "goal" to "ゴールライン（任意）")) {
-            line(target, name)
+        val ref = Race.reference
+        val locked = Race.locked
+        note(when {
+            ref != null -> "基準：${ref.id}（${ref.source} ${ref.at}）から読み込んだライン" + if (locked) "。ロック中" else "。ロックを外しています"
+            locked -> "この端末で決めたライン。ロック中"
+            else -> "この端末で決めたライン（Ver.2の基準ではありません）"
+        })
+        spacing()?.let { note(it) }
+        note("基準はVer.2で取る（アクティブアンテナのGNSSの方が10倍ほど正確なため）。Ver.2のWeb画面の「ラインをスマホへ」に出るQRを、下のボタンで読み込む。読み込むとロックがかかる")
+        val refButtons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        refButtons.addView(button("Ver.2の基準をQRで読み込む") { scanReference() })
+        refButtons.addView(button("文字で貼り付け") { pasteReference() })
+        refButtons.addView(if (locked) button("ロックを外す（長押し）") { toast("長押しで外します") }.apply {
+            setOnLongClickListener {
+                AlertDialog.Builder(this@SettingsActivity).setMessage("ラインのロックを外します。外すとラインを変えられるようになります。よいですか？")
+                    .setPositiveButton("外す") { _, _ -> Race.setLocked(false); build() }
+                    .setNegativeButton("やめる", null).show(); true
+            }
+        } else button("ロックする") { Race.setLocked(true); toast("ロックしました"); build() })
+        column.addView(refButtons)
+        if (!locked) {
+            column.addView(button("もてぎ（全国大会）のおおよその位置に戻す") {
+                confirm("3本のラインを、地図から拾ったもてぎの位置（おおよそ）に戻します。よいですか？") { Race.useMotegiLines(); build() }
+            }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
+        }
+        for ((target, name) in listOf("control" to "コントロールライン（毎周通る）", "start" to "スタートライン", "goal" to "ゴールライン")) {
+            line(target, name, locked)
         }
 
         section("ラップ")
@@ -163,22 +181,24 @@ class SettingsActivity : Activity() {
         note(if (list.isEmpty()) "まだ周回はありません" else list.mapIndexed { i, s -> "${i + 1}周目 ${DashboardView.clock(s, true)}" }.joinToString("　"))
         if (v?.finished == true) note("ゴール済み")
         column.addView(button("ラップをリセット（本番の前に必ず）") {
-            AlertDialog.Builder(this).setMessage("周回の記録を消して、スタート前に戻します。よいですか？")
+            AlertDialog.Builder(this).setMessage("周回の記録を消して、スタート前に戻します。ラインもロックします。よいですか？")
                 .setPositiveButton("リセット") { _, _ -> Race.reset(); build() }
                 .setNegativeButton("やめる", null).show()
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
     }
 
-    private fun line(target: String, name: String) {
+    private fun line(target: String, name: String, locked: Boolean) {
         val g = Race.config().gate(target)
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(px(14), px(10), px(14), px(10))
             background = GradientDrawable().apply { setColor(card); cornerRadius = 12 * dp }
         }
-        box.addView(text(name, 17f, Color.WHITE, true))
-        box.addView(text(g?.let { "%.6f, %.6f　幅 %.0fm　向き %s".format(it.lat, it.lon, it.widthM, it.bearing?.let { b -> "%.0f°".format(b) } ?: "未定（最初の通過で決まる）") }
+        box.addView(text(name + if (locked) "　🔒" else "", 17f, Color.WHITE, true))
+        box.addView(text(g?.let { "%.7f, %.7f　幅 %.0fm　向き %s".format(it.lat, it.lon, it.widthM, it.bearing?.let { b -> "%.0f°".format(b) } ?: "未定（最初の通過で決まる）") }
             ?: "未設定", 15f, muted, false))
+        column.addView(box, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
+        if (locked) return
         val coords = EditText(this).apply {
             hint = "緯度, 経度（Googleマップの右クリックで出る形）"; setHintTextColor(muted); setTextColor(Color.WHITE)
             isSingleLine = true; inputType = InputType.TYPE_CLASS_TEXT
@@ -186,21 +206,69 @@ class SettingsActivity : Activity() {
         box.addView(coords, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
         val buttons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         buttons.addView(button("現在地にする") {
-            if (!Status.running) toast("記録を始めてから押してください")
-            else if (Race.setHere(target)) { toast("現在地をラインにしました"); build() }
-            else toast("測位できていません")
+            if (!Status.running) { toast("記録を始めてから押してください"); return@button }
+            confirm("${name}を今いる位置に変えます。よいですか？") {
+                if (Race.setHere(target)) { toast("現在地をラインにしました"); build() } else toast("測位できていません")
+            }
         })
         buttons.addView(button("入れた座標にする") {
             val p = coords.text.split(",").map { it.trim().toDoubleOrNull() }
             if (p.size != 2 || p[0] == null || p[1] == null || p[0]!! !in -90.0..90.0 || p[1]!! !in -180.0..180.0) {
                 toast("「36.531234, 140.226543」の形で入れてください")
-            } else {
-                Race.configure(Race.config().withGate(target, Gate(p[0]!!, p[1]!!, null, g?.widthM ?: 30.0))); build()
+            } else confirm("${name}を入れた座標に変えます。よいですか？") {
+                Race.setGate(target, Gate(p[0]!!, p[1]!!, null, g?.widthM ?: 30.0)); build()
             }
         })
-        if (g != null) buttons.addView(button("消す") { Race.configure(Race.config().withGate(target, null)); build() })
+        if (g != null) buttons.addView(button("消す") { confirm("${name}を消します。よいですか？") { Race.setGate(target, null); build() } })
         box.addView(buttons)
-        column.addView(box, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
+    }
+
+    /** Distances between the lines, so a line taken at the wrong place stands out. */
+    private fun spacing(): String? {
+        val c = Race.config()
+        fun d(a: Gate?, b: Gate?): String? {
+            if (a == null || b == null) return null
+            val x = (b.lon - a.lon) * 111320.0 * Math.cos(Math.toRadians(a.lat)); val y = (b.lat - a.lat) * 111320.0
+            return "%.0fm".format(Math.hypot(x, y))
+        }
+        val parts = listOfNotNull(d(c.goal, c.control)?.let { "ゴール→コントロール $it" }, d(c.control, c.start)?.let { "コントロール→スタート $it" })
+        return if (parts.isEmpty()) null else "ライン間の距離：" + parts.joinToString("、") + "（もてぎの目安：約90m、約280m）"
+    }
+
+    private fun confirm(message: String, ok: () -> Unit) {
+        AlertDialog.Builder(this).setMessage(message).setPositiveButton("はい") { _, _ -> ok() }.setNegativeButton("やめる", null).show()
+    }
+
+    private fun importText(text: String) {
+        try {
+            val r = Race.importReference(text)
+            AlertDialog.Builder(this).setMessage("基準 ${r.id}（${r.source} ${r.at}）のラインを読み込み、ロックしました。\n" + (spacing() ?: ""))
+                .setPositiveButton("OK", null).show()
+        } catch (e: LineCode.Invalid) {
+            AlertDialog.Builder(this).setMessage(e.message).setPositiveButton("OK", null).show()
+        }
+        build()
+    }
+
+    private fun scanReference() {
+        val doImport = {
+            com.google.mlkit.vision.codescanner.GmsBarcodeScanning.getClient(this,
+                com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions.Builder()
+                    .setBarcodeFormats(com.google.mlkit.vision.barcode.common.Barcode.FORMAT_QR_CODE).build())
+                .startScan()
+                .addOnSuccessListener { code -> code.rawValue?.let { importText(it) } ?: toast("読み取れませんでした") }
+                .addOnFailureListener { toast("QRの読み取りを使えません（${it.message}）。「文字で貼り付け」を使ってください") }
+        }
+        if (Race.locked) confirm("今のロックされたラインを、読み込んだ基準で置き換えます。よいですか？") { doImport() } else doImport()
+    }
+
+    private fun pasteReference() {
+        val input = EditText(this).apply { hint = "ECOLINES1|c=…"; setTextColor(Color.WHITE) }
+        val clip = getSystemService(android.content.ClipboardManager::class.java).primaryClip
+        clip?.getItemAt(0)?.text?.toString()?.takeIf { it.startsWith(LineCode.PREFIX) }?.let { input.setText(it) }
+        AlertDialog.Builder(this).setMessage("Ver.2の画面の「文字で写す」の内容を貼り付けてください").setView(input)
+            .setPositiveButton("読み込む") { _, _ -> importText(input.text.toString()) }
+            .setNegativeButton("やめる", null).show()
     }
 
     private fun parseClock(s: String): Double? {

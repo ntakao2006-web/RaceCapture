@@ -51,4 +51,28 @@ $('lap-reset').onclick=()=>{
   if(!confirm('周回数・ラップの記録を0に戻します。レース開始前だけ押してください。よろしいですか？'))return;
   action(()=>lapCall('/api/lap/reset',undefined,'周回数をリセットしました。次のスタート（またはライン通過）から1周目です。'));
 };
+// The lines as a QR code for the Android loggers (lap.line_code / android-logger LineCode.kt).
+let lapQrText='';
+$('lap-qr-show').onclick=()=>action(async()=>{
+  const d=await api('/api/lap/code');
+  lapQrText=d.text;
+  $('lap-qr-svg').innerHTML=d.svg;
+  $('lap-qr-id').textContent=d.id;
+  $('lap-qr-at').textContent=d.at?`（${d.at.replace('T',' ').replace('+09:00','')} に登録）`:'';
+  $('lap-qr-warn').textContent=d.unknown_bearing.length?`注意：${d.unknown_bearing.join('・')}ラインの向きが未定です。各スマホが最初の通過で別々に決めるので、分かっていれば進行方向（°）を入れて保存してからQRを出してください。`:'';
+  $('lap-qr-text').textContent=d.text;
+  $('lap-qr').hidden=false;$('lap-qr-copy').hidden=false;
+  $('lap-result').textContent=`基準 ${d.id} のQRを表示しました。ラインを変えたら、もう一度「QRを表示」を押してください。`;
+});
+$('lap-qr-copy').onclick=()=>action(async()=>{
+  try{
+    await navigator.clipboard.writeText(lapQrText);
+    $('lap-result').textContent='文字をコピーしました。LINEなどでスマホへ送り、EcoLoggerの「文字で貼り付け」に貼ってください。';
+  }catch{
+    // The page is plain http on the LAN, where the clipboard API is often refused: select it for a manual copy.
+    const range=document.createRange();range.selectNodeContents($('lap-qr-text'));
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(range);
+    $('lap-result').textContent='自動でコピーできないので、選択した文字をコピーしてスマホへ送ってください。';
+  }
+});
 setInterval(()=>{if(page==='settings'&&!lapLoaded)api('/api/lap').then(lapShow).catch(()=>{});},500);

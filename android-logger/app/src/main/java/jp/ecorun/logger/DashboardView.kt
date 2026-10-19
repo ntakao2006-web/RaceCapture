@@ -28,6 +28,7 @@ data class Dash(
     val lapSumS: Double = 0.0,
     val warning: String? = null,
     val classCode: String = "",
+    val reference: String = "",
 )
 
 /**
@@ -105,7 +106,7 @@ class DashboardView(context: Context) : View(context) {
             v.current == 0 -> (if (total != null) "0 / $total" else "0") to "スタート前"
             else -> (if (total != null) "${v.current} / $total" else "${v.current}") to (v.lapsLeft?.let { "残り${it}周" } ?: "")
         }
-        tileBox(c, gx, top, gw, gh, if (d.classCode.isEmpty()) "周回" else "周回　${d.classCode}", lapValue, lapSub, white, label)
+        tileBox(c, gx, top, gw, gh, listOf("周回", d.classCode, d.reference).filter { it.isNotEmpty() }.joinToString("　"), lapValue, lapSub, white, label)
 
         // Race clock.
         val limit = cfg.timeLimitS

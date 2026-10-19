@@ -169,6 +169,7 @@ class ServerTests(unittest.TestCase):
     def test_lap_line_api_and_csv_columns(self):
         from models import LAP_CHANNELS
         self.assertEqual(self.client.post('/api/lap/here', headers=self.headers).status_code, 409)
+        self.assertEqual(self.client.get('/api/lap/code').status_code, 409)  # no control line yet
         self.connected()
         self.s.runtime.sample['values'].update(Lat=None, Lon=None)
         self.assertEqual(self.client.post('/api/lap/here', headers=self.headers).status_code, 409)
@@ -186,6 +187,11 @@ class ServerTests(unittest.TestCase):
         self.s.runtime.sample['values'].update(GPSSpeed=12, Yaw=90)
         goal = self.client.post('/api/lap/here', headers=self.headers, json={'target': 'goal'}).json()['line']['goal']
         self.assertEqual((goal['lat'], goal['bearing']), (36.5, 90))
+        code = self.client.get('/api/lap/code').json()  # the QR for the Android loggers
+        self.assertTrue(code['text'].startswith('ECOLINES1|c=36.5000000,140.2000000,-,40|s=-|g=36.5000000,140.2000000,90.0,30|'))
+        self.assertTrue(code['text'].endswith('|id=' + code['id']))
+        self.assertTrue(code['svg'].startswith('<svg'))
+        self.assertEqual(code['unknown_bearing'], ['コントロール'])
         self.assertEqual(self.client.post('/api/lap/here', headers=self.headers, json={'target': 'pit'}).status_code, 400)
         self.assertEqual(self.client.post('/api/lap/reset', headers=self.headers).json()['values']['LapCount'], 0)
         self.assertEqual(self.client.post('/api/lap/reset').status_code, 403)

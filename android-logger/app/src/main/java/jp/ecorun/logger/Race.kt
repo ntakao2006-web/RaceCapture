@@ -23,6 +23,8 @@ object Race {
         prefs = context.applicationContext.getSharedPreferences("race", Context.MODE_PRIVATE)
         val (config, state) = try { load() } catch (_: Exception) { MOTEGI.copy(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState() }
         timer = LapTimer(config, state) { save(it) }
+        locked = prefs.getBoolean("locked", false)
+        reference = prefs.getString("refId", null)?.let { Ref(it, prefs.getString("refAt", "") ?: "", prefs.getString("refSrc", "") ?: "") }
     }
 
     fun onFix(fix: Fix) = synchronized(lock) {
@@ -34,10 +36,49 @@ object Race {
     fun config(): LapConfig = synchronized(lock) { timer?.config ?: LapConfig() }
     fun laps(): List<Double> = synchronized(lock) { timer?.state?.laps?.toList() ?: emptyList() }
     fun configure(c: LapConfig) = synchronized(lock) { timer?.configure(c) }
-    fun reset() = synchronized(lock) { timer?.reset() }
+    /** Clears the laps; done just before the race, so the lines get locked as well. */
+    fun reset() = synchronized(lock) { timer?.reset(); locked = true; saveLock() }
 
-    /** Returns false when there is no recent fix to take the position from. */
+    /** Between the start and the goal: the driver screen then guards the settings button. */
+    fun racing(): Boolean = synchronized(lock) { timer?.state?.let { it.raceStartMs != null && !it.finished } ?: false }
+
+    /** The Ver.2 reference the lines came from (QR), or null for lines set on this phone. */
+    data class Ref(val id: String, val at: String, val source: String)
+
+    var reference: Ref? = null; private set
+    /** Locked lines cannot be changed from the screen until unlocked (long press + confirm). */
+    var locked = false; private set
+
+    /** Takes the lines from a Ver.2 QR code and locks them. Throws [LineCode.Invalid]. */
+    fun importReference(text: String): Ref = synchronized(lock) {
+        val t = timer ?: throw LineCode.Invalid("まだ準備できていません")
+        val r = LineCode.parse(text, t.config)
+        t.configure(r.config)
+        val ref = Ref(r.id, r.at, r.source)
+        reference = ref; locked = true; saveLock()
+        ref
+    }
+
+    fun setLocked(on: Boolean) = synchronized(lock) { locked = on; saveLock() }
+
+    /** Lines changed on this phone are no longer the Ver.2 reference. */
+    private fun ownLines() { reference = null; saveLock() }
+
+    private fun saveLock() {
+        prefs.edit().putBoolean("locked", locked).putString("refId", reference?.id).putString("refAt", reference?.at)
+            .putString("refSrc", reference?.source).apply()
+    }
+
+    /** Line edits from the screen; refused while locked. */
+    fun setGate(target: String, g: Gate?): Boolean = synchronized(lock) {
+        if (locked) return false
+        timer?.configure(config().withGate(target, g)); ownLines(); true
+    }
+
+    /** Returns false when there is no recent fix to take the position from, or the lines are locked. */
     fun setHere(target: String): Boolean = synchronized(lock) {
+        if (locked) return false
+        ownLines()
         val f = lastFix ?: return false
         if (System.currentTimeMillis() - f.utcMs > 5000) return false
         timer?.setHere(target, f); true
@@ -103,6 +144,8 @@ object Race {
     fun useMotegiLines() {
         synchronized(lock) {
             val t = timer ?: return
+            if (locked) return
+            ownLines()
             t.configure(t.config.copy(control = MOTEGI.control, start = MOTEGI.start, goal = MOTEGI.goal))
         }
     }
