@@ -18,6 +18,8 @@ docker run --rm --network=none --entrypoint python3 \
   -v "$PWD/test_podium.py:/app/test_podium.py:ro" ecocapture-web:0.2.0 /app/test_podium.py
 docker run --rm --network=none --entrypoint python3 \
   -v "$PWD/test_lap.py:/app/test_lap.py:ro" ecocapture-web:0.2.0 /app/test_lap.py
+docker run --rm --network=none --entrypoint python3 -v "$PWD/test_lap.py:/app/test_lap.py:ro" \
+  -v "$PWD/test_field.py:/app/test_field.py:ro" ecocapture-web:0.2.0 /app/test_field.py
 docker run --rm --network=none --entrypoint python3 \
   -v "$PWD/test_ncec.py:/app/test_ncec.py:ro" ecocapture-web:0.2.0 /app/test_ncec.py
 docker run --rm --network=none --entrypoint python3 \
@@ -30,7 +32,7 @@ if docker container inspect ecocapture-web >/dev/null 2>&1; then
 fi
 docker run -d --name ecocapture-web --restart unless-stopped \
   --user 1000:1000 --cap-drop=ALL --security-opt=no-new-privileges \
-  -p 127.0.0.1:8080:8080 \
+  -p 127.0.0.1:8080:8080 -p 8082:8082 \
   -v /var/run/arduino-router.sock:/var/run/arduino-router.sock \
   -v /run/ecocapture-admin:/run/ecocapture-admin \
   -v /run/ecocapture-voice:/run/ecocapture-voice \

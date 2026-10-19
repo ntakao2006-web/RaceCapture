@@ -203,6 +203,28 @@ class LapTests(unittest.TestCase):
         self.assertEqual(t.line.bearing, 10)
         with self.assertRaises(ValueError):t.set_here({'values': {'Lat': None, 'Lon': None}})
 
+    def test_set_here_standing_averages_the_last_three_seconds(self):
+        t = LapTimer(self.root)  # course walk: no line yet
+        for k in range(40):  # 4 s on foot at the line, jittering +-1 m around 5 m north
+            last = fix(k * 100, 5.0 + (1.0 if k % 2 else -1.0), speed=0.3)
+            t.update(last)
+        t.set_here(last, target='control')
+        north = (t.line.lat - LAT0) * EARTH_M_PER_DEG
+        self.assertAlmostEqual(north, 5.0, delta=0.1)  # the last fix alone is 1 m off
+        self.assertEqual(t.last_here['fixes'], 31)
+        self.assertLessEqual(t.last_here['spread_m'], 1.1)
+        self.assertEqual(t.public()['here']['target'], 'control')
+
+    def test_set_here_moving_uses_the_current_fix(self):
+        t = LapTimer(self.root)
+        for k in range(40):  # driving north at 1 m per 100 ms: 30 m in the window
+            last = fix(k * 100, k * 1.0, speed=36, yaw=0)
+            t.update(last)
+        t.set_here(last, target='start')
+        self.assertAlmostEqual((t.line.start.lat - LAT0) * EARTH_M_PER_DEG, 39.0, delta=0.01)
+        self.assertEqual(t.last_here['fixes'], 1)
+        self.assertEqual(t.line.start.bearing, 0.0)
+
     def test_invalid_line(self):
         for data in ({'enabled': True}, {'min_lap_s': 100, 'max_lap_s': 50}, {'bearing': 360}):
             with self.assertRaises(ValueError):LapLine(**data)

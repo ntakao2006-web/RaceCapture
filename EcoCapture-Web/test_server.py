@@ -145,6 +145,16 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(bridge.command.await_count, 2)
         asyncio.run(check())
 
+    def test_field_link_gives_key_urls_and_qr(self):
+        from unittest.mock import AsyncMock
+        with patch.object(self.s, 'device_request', AsyncMock(return_value={'addresses': ['192.168.43.20']})):
+            data = self.client.get('/api/field/link').json()
+        token = (Path(self.temp.name) / 'field_token').read_text().strip()
+        self.assertEqual(data['urls'], [f'http://uno-q.local:8082/?k={token}', f'http://192.168.43.20:8082/?k={token}'])
+        self.assertIn('<svg', data['svg'])
+        # The admin UI stays localhost-only: the key is not handed to the LAN from here.
+        self.assertEqual(self.client.get('/api/field/link', headers={'host': 'uno-q.local:8080'}).status_code, 403)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         os.environ["ECOCAPTURE_DATA"] = self.temp.name

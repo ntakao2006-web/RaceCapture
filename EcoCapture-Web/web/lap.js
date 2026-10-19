@@ -75,4 +75,12 @@ $('lap-qr-copy').onclick=()=>action(async()=>{
     $('lap-result').textContent='自動でコピーできないので、選択した文字をコピーしてスマホへ送ってください。';
   }
 });
+// Phone course-walk screen (field.py) on port 8082, opened with the key in its URL.
+$('field-show').onclick=()=>action(async()=>{
+  const d=await api('/api/field/link');
+  $('field-svg').innerHTML=d.svg;
+  $('field-urls').replaceChildren(...d.urls.map(url=>{const code=document.createElement('code');code.className='lap-qr-text';code.textContent=url;return code;}));
+  $('field-link').hidden=false;
+  $('lap-result').textContent=d.addresses.length?'スマホのカメラでQRを読んでください。':'UNO QのWi-Fiが未接続です。テザリングにつないでからQRを読んでください（Settings → UNO Q → Wi-Fi）。';
+});
 setInterval(()=>{if(page==='settings'&&!lapLoaded)api('/api/lap').then(lapShow).catch(()=>{});},500);

@@ -31,6 +31,7 @@ import json
 import math
 import os
 import time
+from collections import deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -44,6 +45,11 @@ LEARN_MIN_KMH = 5.0
 KEEP_LAPS = 500
 KEEP_INSIDE = 1200  # fixes kept while inside a direction-less line (2 min at 10 Hz)
 TARGETS = ('control', 'start', 'goal')
+# Registering a line while standing on it: average the last few seconds of fixes
+# (a person on foot at the course walk), unless they spread like a moving car.
+HERE_WINDOW_MS = 3000
+HERE_MIN_FIXES = 10
+HERE_MAX_SPREAD_M = 3.0
 
 
 class Gate(BaseModel):
@@ -188,6 +194,8 @@ class LapTimer:
         self.previous = None    # (utc_ms, lat, lon) of the last usable fix
         self.latest_utc = None  # (utc_ms, monotonic) for the running clocks
         self.last_itow = None
+        self.recent = deque(maxlen=60)  # (utc_ms, lat, lon) of usable fixes, for set_here
+        self.last_here = None
         self.watches = {'start': Watch(rearm=False), 'control': Watch(), 'goal': Watch()}
 
     @staticmethod
@@ -227,13 +235,29 @@ class LapTimer:
         self.forget_motion()
         self.save()
 
-    def set_here(self, sample, width_m=None, target='control'):
-        if target not in TARGETS:
-            raise ValueError('Unknown line')
+    def here_position(self, sample):
+        """(lat, lon, fixes averaged, spread in m) for the line being registered here."""
         values = (sample or {}).get('values', {})
         lat, lon = values.get('Lat'), values.get('Lon')
         if lat is None or lon is None:
             raise ValueError('GNSS not fixed')
+        fresh = self.latest_utc is not None and time.monotonic() - self.latest_utc[1] < 1.5
+        if fresh and self.recent:
+            last = self.recent[-1][0]
+            points = [p for p in self.recent if last - p[0] <= HERE_WINDOW_MS]
+            if len(points) >= HERE_MIN_FIXES:
+                mlat = sum(p[1] for p in points) / len(points)
+                mlon = sum(p[2] for p in points) / len(points)
+                spread = max(math.hypot(*offset_m(mlat, mlon, p[1], p[2])) for p in points)
+                if spread <= HERE_MAX_SPREAD_M:
+                    return mlat, mlon, len(points), spread
+        return lat, lon, 1, None
+
+    def set_here(self, sample, width_m=None, target='control'):
+        if target not in TARGETS:
+            raise ValueError('Unknown line')
+        values = (sample or {}).get('values', {})
+        lat, lon, count, spread = self.here_position(sample)
         speed, yaw = values.get('GPSSpeed'), values.get('Yaw')
         # Heading of motion is meaningless at a standstill; learn it on the first pass instead.
         bearing = yaw % 360 if speed is not None and speed >= LEARN_MIN_KMH and yaw is not None else None
@@ -247,6 +271,7 @@ class LapTimer:
             data[target] = {'lat': lat, 'lon': lon, 'bearing': bearing,
                             'width_m': width_m if width_m is not None else old.get('width_m', 30)}
         self.configure(LapLine.model_validate(data))
+        self.last_here = {'target': target, 'fixes': count, 'spread_m': None if spread is None else round(spread, 2)}
 
     def values(self):
         if not self.line.enabled:
@@ -327,6 +352,7 @@ class LapTimer:
                 watch.inside = []
             return self.values()
         self.latest_utc = (utc, time.monotonic())
+        self.recent.append((utc, lat, lon))
         if not self.line.enabled:
             return self.values()
         previous, self.previous = self.previous, (utc, lat, lon)
@@ -360,4 +386,14 @@ class LapTimer:
     def public(self):
         return {'line': self.line.model_dump(), 'values': self.values(), 'error': self.error,
                 'laps': self.state['laps'][-20:], 'running': self.state['lap_start_ms'] is not None,
-                'finished': self.state['finished']}
+                'finished': self.state['finished'], 'here': self.last_here}
+
+
+def line_qr(line):
+    """The QR code of line_code as inline SVG, with what the screens show next to it."""
+    import segno
+    text, code = line_code(line)
+    svg = segno.make(text, error='m').svg_inline(scale=6, border=4, dark='#000', light='#fff')
+    unknown = [name for name, target in (('コントロール', 'control'), ('スタート', 'start'), ('ゴール', 'goal'))
+               if line.gate(target) is not None and line.gate(target).bearing is None]
+    return {'text': text, 'id': code, 'at': line.set_at, 'svg': svg, 'unknown_bearing': unknown}

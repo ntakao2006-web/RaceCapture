@@ -68,6 +68,9 @@
   <div class="button-row"><button type="button" data-lap-here="goal">現在地をこのラインにする</button><button type="button" data-lap-clear="goal">このラインを使わない</button></div></fieldset>
   <div class="form-grid"><label>最短ラップ（秒）<input id="lap-min" type="number" min="5" max="7200" step="1" value="10"></label><label>規定周回数（空欄なら指定なし）<input id="lap-total" type="number" min="1" max="1000" step="1" placeholder="例: 7"></label></div>
   <div class="button-row"><button type="button" class="primary" id="lap-save">すべて保存</button><button type="button" id="lap-off">ラップ計測OFF</button><button type="button" class="danger" id="lap-reset">周回数をリセット</button></div>
+  <div class="lap-share"><h3>コースウォーク画面をスマホで開く</h3><p class="muted">ライン登録・規定周回数・周回のリセットだけができるスマホ向けの画面です。スマホとUNO Qを同じテザリング（Wi-Fi）につなぎ、下のQRをスマホのカメラで読んで開き、ブックマークしておきます。URLには合言葉が入っているので、チーム外に渡さないでください。</p>
+  <div class="button-row"><button type="button" id="field-show">QRを表示</button></div>
+  <div id="field-link" hidden><div id="field-svg" class="lap-qr-svg"></div><div id="field-urls"></div><p class="muted">「uno-q.local」で開けないスマホは、数字のアドレスの方を使います（数字はテザリングをつなぎ直すと変わることがあります）。</p></div></div>
   <div class="lap-share"><h3>ラインをスマホへ（Androidロガーの基準）</h3><p class="muted">このロガー（アクティブアンテナのGNSS）で取ったラインを全台の基準にします。スマホのEcoLoggerで「Ver.2の基準をQRで読み込む」を押して、下のQRを写してください。全台の画面の「基準」の番号がここと同じなら、同じラインで計っています。</p>
   <div class="button-row"><button type="button" id="lap-qr-show">QRを表示</button><button type="button" id="lap-qr-copy" hidden>文字で写す</button></div>
   <div id="lap-qr" hidden><div id="lap-qr-svg" class="lap-qr-svg"></div><p>基準 <strong id="lap-qr-id" class="lap-qr-id"></strong>　<span id="lap-qr-at" class="muted"></span></p><p id="lap-qr-warn" class="lap-qr-warn"></p><code id="lap-qr-text" class="lap-qr-text"></code></div></div>

@@ -21,7 +21,8 @@ from sd_storage import SDStorage
 from sd_timestamp import stamp_logs
 from models import CHANNELS, LAP_CHANNELS, Configuration, validate_sample
 from podium import PodiumSender
-from lap import LapLine, LapTimer, line_code
+import field
+from lap import LapLine, LapTimer, line_qr
 
 ROOT = Path(os.environ.get("ECOCAPTURE_DATA", "/data"))
 ROOT.mkdir(parents=True, exist_ok=True)
@@ -321,7 +322,18 @@ async def lifespan(app):
     task = asyncio.create_task(runtime.collect())
     public_task=asyncio.create_task(export_public())
     runtime.podium_task=asyncio.create_task(runtime.podium.run())
+    field_server=field_task=None
+    if field.FIELD_PORT:
+        # Phone course-walk screen on the LAN (field.py). Failing to bind must not stop the logger.
+        try:
+            field_server=field.make_server(runtime,ROOT)
+            field_task=asyncio.create_task(field.serve(field_server))
+        except Exception as exc:
+            print(f'course-walk screen disabled: {exc}')
     yield
+    if field_server:
+        field_server.should_exit=True
+        with suppress(Exception):await asyncio.wait_for(field_task,5)
     task.cancel()
     public_task.cancel()
     runtime.podium_task.cancel()
@@ -545,15 +557,10 @@ async def save_lap(request:Request):
 @app.get('/api/lap/code')
 def lap_code():
     """The lines as a QR code for the Android loggers (lap.line_code)."""
-    import segno
     line = runtime.laps.line
     if not line.enabled:
         raise HTTPException(409, 'コントロールラインが未登録です')
-    text, code = line_code(line)
-    svg = segno.make(text, error='m').svg_inline(scale=6, border=4, dark='#000', light='#fff')
-    unknown = [name for name, target in (('コントロール', 'control'), ('スタート', 'start'), ('ゴール', 'goal'))
-               if line.gate(target) is not None and line.gate(target).bearing is None]
-    return {'text': text, 'id': code, 'at': line.set_at, 'svg': svg, 'unknown_bearing': unknown}
+    return line_qr(line)
 
 
 @app.post('/api/lap/here')
@@ -573,6 +580,18 @@ async def lap_reset():
     try:runtime.laps.reset()
     except OSError:raise HTTPException(507,'ラップ記録を消去できませんでした。')
     return runtime.laps.public()
+
+
+@app.get('/api/field/link')
+async def field_link():
+    """URLs (with the key) and a QR code that open the phone course-walk screen (field.py)."""
+    import segno
+    token=field.load_token(ROOT)
+    try:addresses=(await device_request('/wifi')).get('addresses',[])
+    except HTTPException:addresses=[]
+    urls=field.field_urls(token,addresses)
+    svg=segno.make(urls[0],error='m').svg_inline(scale=5,border=4,dark='#000',light='#fff')
+    return {'enabled':bool(field.FIELD_PORT),'urls':urls,'svg':svg,'addresses':addresses}
 
 
 @app.get("/api/channels")
