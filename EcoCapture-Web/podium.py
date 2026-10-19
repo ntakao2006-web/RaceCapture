@@ -401,7 +401,9 @@ class VoiceGuard:
     """
     MAX_DELAY_S={'lte':2.0,'wifi':1.0}
     WINDOW_S=4.0
-    MIN_RATE_RATIO=.8
+    # On LTE the driver's voice costs about 2 of ~7 rows/s (2026-10-19, outdoors,
+    # no CAN1): accepted while talking. 0.6 leaves room for that, not for worse.
+    MIN_RATE_RATIO={'lte':.6,'wifi':.8}
     PAUSE_S=30.0
     MAX_PAUSE_S=300.0
     def __init__(self,link):
@@ -417,7 +419,7 @@ class VoiceGuard:
             if now-self.sent[0][0]>=self.WINDOW_S*.75:self.baseline=self.rate()
             return None
         if delay>self.MAX_DELAY_S[self.link]:return self.trip(now,'telemetry_delay')
-        if self.baseline and now-self.resumed_at>=self.WINDOW_S and self.rate()<self.baseline*self.MIN_RATE_RATIO:
+        if self.baseline and now-self.resumed_at>=self.WINDOW_S and self.rate()<self.baseline*self.MIN_RATE_RATIO[self.link]:
             return self.trip(now,'telemetry_rate')
         return None
     def rate(self):

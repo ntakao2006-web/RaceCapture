@@ -5,15 +5,18 @@
 #
 #   setsid nohup sh lte_voice_test.sh wss://<relay>/ws/audio/voice-test 120 >/dev/null 2>&1 &
 #
-# To run it once on the next power-up (the UNO Q is powered by the PC's USB, so unplugging it
-# to carry it outside reboots it), add a one-shot entry for user arduino:
-#   @reboot crontab -r; sh $HOME/audio_check/lte_voice_test.sh wss://<relay>/ws/audio/voice-test 120
+# To run it on the next power-up (the UNO Q is powered by the PC's USB, so unplugging it
+# to carry it outside reboots it), add an entry for user arduino:
+#   @reboot sh $HOME/audio_check/lte_voice_test.sh wss://<relay>/ws/audio/voice-test 120
+# The entry is removed only after a complete run (lte_voice.done marks it), so a power blip
+# while plugging in the battery (a 5 s boot, 2026-10-19) no longer uses it up.
 #
 # Phases: no voice / pit voice down / driver voice up (talking all the time) /
 # up (4 s talk, 6 s quiet) / both. Each phase reconnects (a settings change restarts the
 # session), waits for streaming, then measures. At the end the send settings and the real
 # voice agent's socket are put back.
 cd "$(dirname "$0")"
+[ -e lte_voice.done ] && exit 0
 URL=$1; SECS=${2:-120}
 LOG=$PWD/lte_voice_$(date +%Y%m%d_%H%M%S).log
 DIR=/run/ecocapture-voice
@@ -66,4 +69,5 @@ phase 'E down + up always'  "{$BASE,\"voice_receive\":true,\"voice_send\":true}"
 echo; echo "===== restore ($(date +%T)) ====="
 set_podium '{"enabled":true,"link":"wifi","destination":"podium","voice_receive":false,"voice_send":false}'
 curl -s 127.0.0.1:8080/api/podium/events > "$LOG.events.json"
+date > lte_voice.done; crontab -r 2>/dev/null; sync
 echo "done $(date)"

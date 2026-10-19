@@ -537,6 +537,13 @@ class VoiceGuardTests(unittest.TestCase):
         guard=VoiceGuard('wifi');t,_=self.feed(guard,0,4);guard.want(True,t)
         t,result=self.feed(guard,t+.5,10,rows=3)                 # 6 rows/s against 10
         self.assertEqual(result,'off');self.assertEqual(guard.reason,'telemetry_rate')
+    def test_lte_accepts_the_drop_voice_costs(self):
+        # Measured 2026-10-19: ~7 rows/s without voice, ~5 while the driver talks.
+        guard=VoiceGuard('lte');t,_=self.feed(guard,0,4,rows=7,every=1);guard.want(True,t)
+        _,result=self.feed(guard,t+1,30,rows=5,every=1)
+        self.assertIsNone(result);self.assertTrue(guard.on)
+        _,result=self.feed(guard,t+31,10,rows=3,every=1)       # 3 of 7 is more than voice may take
+        self.assertEqual(result,'off');self.assertEqual(guard.reason,'telemetry_rate')
     def test_steady_telemetry_keeps_voice(self):
         guard=VoiceGuard('lte');t,_=self.feed(guard,0,4);guard.want(True,t)
         _,result=self.feed(guard,t+.5,30)
