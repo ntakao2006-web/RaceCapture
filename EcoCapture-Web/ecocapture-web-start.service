@@ -6,7 +6,10 @@ Wants=ecocapture-mcu-start.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/docker restart ecocapture-web ecocapture-viewer
+# Runs only at boot and in the boot handshake recovery, before any recording starts.
+# The web container did not stop on SIGTERM and was killed after docker's default
+# 10 s on every boot (2026-10-20), so the wait is shortened to 2 s.
+ExecStart=/usr/bin/docker restart -t 2 ecocapture-web ecocapture-viewer
 RemainAfterExit=yes
 
 [Install]
