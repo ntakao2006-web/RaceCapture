@@ -23,7 +23,7 @@ class RelayClient(private val urls: List<String>, private val clientId: String, 
         .connectTimeout(10, TimeUnit.SECONDS)
         .build()
     private var socket: WebSocket? = null
-    private var connected = false
+    var connected = false; private set
     private var index = 0
     private var failuresInRow = 0
     private var stopped = false
@@ -34,9 +34,8 @@ class RelayClient(private val urls: List<String>, private val clientId: String, 
     var droppedRows = 0L; private set
     var lastError = ""; private set
     val state: String get() = when {
-        urls.isEmpty() -> "送信先なし（記録のみ）"
-        connected -> (if (index == 0) "主" else "予備${index}") + "へ送信中"
-        else -> "接続中…（" + (if (index == 0) "主" else "予備${index}") + "）"
+        connected -> if (index == 0) "主" else "予備"
+        else -> "接続中"
     }
 
     fun start() { if (urls.isNotEmpty()) connect() }

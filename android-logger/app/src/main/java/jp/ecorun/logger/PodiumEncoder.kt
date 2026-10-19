@@ -31,6 +31,15 @@ object PodiumEncoder {
         Channel("GyroX", "GyroX", "deg/s", -1000.0, 1000.0, 2),
         Channel("GyroY", "GyroY", "deg/s", -1000.0, 1000.0, 2),
         Channel("GyroZ", "GyroZ", "deg/s", -1000.0, 1000.0, 2),
+        // Lap channels as the Ver.2 logger sends them (minutes, RaceCapture names);
+        // masked out until a control line is set.
+        Channel("LapCount", "LapCount", "", 0.0, 10000.0, 0),
+        Channel("CurrentLap", "CurrentLap", "", 0.0, 10000.0, 0),
+        Channel("LapTime", "LapTime", "Min", 0.0, 60.0, 4),
+        Channel("BestLap", "BestLap", "Min", 0.0, 60.0, 4),
+        Channel("ElapsedTime", "ElapsedTime", "Min", 0.0, 60.0, 4),
+        Channel("RaceTime", "RaceTime", "Min", 0.0, 600.0, 4),
+        Channel("LapsLeft", "LapsLeft", "", 0.0, 1000.0, 0),
     )
 
     fun hello(clientId: String): String =

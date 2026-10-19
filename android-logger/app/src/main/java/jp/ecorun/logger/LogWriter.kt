@@ -37,7 +37,7 @@ class LogWriter(context: Context, carName: String) {
 
     fun write(row: Map<String, Double?>) {
         out.write(COLUMNS.joinToString(",") { key ->
-            row[key]?.let { PodiumEncoder.number(it, if (key == "Lat" || key == "Lon") 7 else 3) } ?: ""
+            row[key]?.let { PodiumEncoder.number(it, if (key == "Lat" || key == "Lon") 7 else if (key in MINUTES) 5 else 3) } ?: ""
         })
         out.write("\n")
         // Flush once a second: a sudden power cut loses at most that much.
@@ -48,7 +48,9 @@ class LogWriter(context: Context, carName: String) {
     fun close() = out.close()
 
     companion object {
+        private val MINUTES = setOf("LapTime", "BestLap", "ElapsedTime", "RaceTime")
         val COLUMNS = listOf("Interval", "Utc", "Lat", "Lon", "Altitude", "GPSSpeed", "Yaw", "Accuracy",
-            "GPSFix", "GPSSats", "AccelX", "AccelY", "AccelZ", "GyroX", "GyroY", "GyroZ")
+            "GPSFix", "GPSSats", "AccelX", "AccelY", "AccelZ", "GyroX", "GyroY", "GyroZ",
+            "LapCount", "CurrentLap", "LapTime", "BestLap", "ElapsedTime", "RaceTime", "LapsLeft")
     }
 }

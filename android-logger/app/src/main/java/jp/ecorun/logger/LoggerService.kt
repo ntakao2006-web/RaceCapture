@@ -14,10 +14,20 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.os.SystemClock
 
-/** What the screen shows; written by the service thread, read by the activity. */
+/** What the screens show; written by the service thread, read by the activities. */
 object Status {
     @Volatile var running = false
-    @Volatile var text = "停止中"
+    @Volatile var startedAt = 0L          // SystemClock.elapsedRealtime() at start
+    @Volatile var fileName: String? = null
+    @Volatile var logError = ""
+    @Volatile var rows = 0L
+    @Volatile var fix = 0                 // 0 none, 2 = 2D, 3 = 3D
+    @Volatile var sats = 0
+    @Volatile var accuracyM: Double? = null
+    @Volatile var speedKmh: Double? = null
+    @Volatile var relay: String? = null   // null: no server configured
+    @Volatile var relayConnected = false
+    @Volatile var relayError = ""
 }
 
 /**
@@ -51,12 +61,16 @@ class LoggerService : Service() {
         thread = HandlerThread("logger").apply { start() }
         handler = Handler(thread.looper)
         val settings = Settings(this)
+        Race.init(this)
         handler.post {
             hub = SensorHub(this, handler).also { it.start() }
             try { log = LogWriter(this, settings.carName) } catch (e: Exception) { logError = e.toString() }
-            relay = RelayClient(settings.urls, settings.carName.ifEmpty { "android" }, handler).also { it.start() }
+            relay = if (settings.urls.isEmpty()) null
+                    else RelayClient(settings.urls, settings.carName.ifEmpty { "android" }, handler).also { it.start() }
             startedAt = SystemClock.elapsedRealtime()
             nextTick = SystemClock.uptimeMillis()
+            Status.startedAt = startedAt
+            Status.relay = relay?.state
             Status.running = true
             tick()
         }
@@ -67,30 +81,25 @@ class LoggerService : Service() {
         try { log?.write(row) } catch (e: Exception) { logError = e.toString(); log = null }
         relay?.offer(PodiumEncoder.row(row))
         rows++
-        if (rows % 5 == 0L) Status.text = describe(row)
+        publish(row)
         // Fixed 100 ms grid; after a stall skip ahead instead of bursting.
         nextTick = maxOf(nextTick + 100, SystemClock.uptimeMillis())
         handler.postAtTime({ tick() }, nextTick)
     }
 
-    private fun describe(row: Map<String, Double?>): String {
-        val fix = when (row["GPSFix"]?.toInt()) { 3 -> "3D測位"; 2 -> "2D測位"; else -> "測位待ち" }
-        val r = relay
-        return buildString {
-            append("GNSS：$fix・衛星${row["GPSSats"]?.toInt() ?: 0}")
-            row["Accuracy"]?.let { append("・精度±%.1fm".format(it)) }
-            append("\n速度：%.1f km/h".format(row["GPSSpeed"] ?: 0.0))
-            append("\n記録：").append(log?.let { "${it.fileName}（${rows}行）" } ?: "できていません $logError")
-            if (r != null) {
-                append("\n送信：${r.state}・送った行 ${r.sentRows}・捨てた行 ${r.droppedRows}")
-                if (r.lastError.isNotEmpty()) append("\n最後のエラー：${r.lastError}")
-            }
-        }
+    private fun publish(row: Map<String, Double?>) {
+        Status.rows = rows
+        Status.fileName = log?.fileName
+        Status.logError = logError
+        Status.fix = row["GPSFix"]?.toInt() ?: 0
+        Status.sats = row["GPSSats"]?.toInt() ?: 0
+        Status.accuracyM = row["Accuracy"]
+        Status.speedKmh = row["GPSSpeed"]
+        relay?.let { Status.relay = it.state; Status.relayConnected = it.connected; Status.relayError = it.lastError }
     }
 
     override fun onDestroy() {
         Status.running = false
-        Status.text = "停止中"
         handler.removeCallbacksAndMessages(null)
         handler.post {
             hub.stop()

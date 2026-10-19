@@ -58,6 +58,10 @@ class SensorHub(context: Context, private val handler: Handler) : SensorEventLis
 
     override fun onLocationChanged(l: Location) {
         synchronized(lock) { location = l }
+        Race.onFix(Fix(l.time, l.latitude, l.longitude,
+            if (l.hasAccuracy()) l.accuracy.toDouble() else null,
+            if (l.hasSpeed()) l.speed * 3.6 else null,
+            if (l.hasBearing()) l.bearing.toDouble() else null))
     }
 
     override fun onSensorChanged(e: SensorEvent) {
@@ -100,6 +104,12 @@ class SensorHub(context: Context, private val handler: Handler) : SensorEventLis
             out["GyroX"] = gyro[0] / gyroN; out["GyroY"] = gyro[1] / gyroN; out["GyroZ"] = gyro[2] / gyroN
         }
         accel.fill(0.0); gyro.fill(0.0); accelN = 0; gyroN = 0
+        if (Race.config().control != null) Race.values()?.let { v ->
+            out["LapCount"] = v.count.toDouble(); out["CurrentLap"] = v.current.toDouble()
+            out["LapTime"] = v.lastS?.div(60); out["BestLap"] = v.bestS?.div(60)
+            out["ElapsedTime"] = v.elapsedS?.div(60); out["RaceTime"] = v.raceS?.div(60)
+            out["LapsLeft"] = v.lapsLeft?.toDouble()
+        }
         out
     }
 }
