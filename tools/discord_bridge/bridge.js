@@ -16,16 +16,24 @@
 //
 // Env: DISCORD_TOKEN, DISCORD_GUILD_ID, DISCORD_CHANNEL_ID,
 //      ECORUN_URL (default ws://127.0.0.1:3000), ECORUN_ROOM (default home-test).
+// Slash command /ecologger join [channel] [room] | leave | status moves the bot;
+// the result is kept in STATE_FILE (default ./state.json) and wins over
+// DISCORD_CHANNEL_ID / ECORUN_ROOM after a restart.
 // DRY_RUN=tone|listen skips Discord: "tone" sends a 3 s test tone into the room,
 // "listen" counts the mix packets it gets (to test the server side without a token).
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const OpusScript = require('opusscript');
 const WebSocket = require('ws');
 
 const ECORUN_URL = process.env.ECORUN_URL || 'ws://127.0.0.1:3000';
 const ROOM = process.env.ECORUN_ROOM || 'home-test';
 const DRY_RUN = process.env.DRY_RUN || '';
+const GUILD_ID = process.env.DISCORD_GUILD_ID;
+const STATE_FILE = process.env.STATE_FILE || path.join(__dirname, 'state.json');
+const ROOM_NAME = /^[A-Za-z0-9_-]{1,64}$/;
 
 const ROOM_RATE = 8000;          // server format (src/audio.rs)
 const SEND_FRAME = 480;          // 60 ms at 8 kHz, the server's frame
@@ -93,24 +101,39 @@ const clip = (v) => Math.max(-32768, Math.min(32767, Math.round(v)));
 
 // ---- the server room -----------------------------------------------------
 class Room {
-  constructor(onMix) {
+  constructor(name, onMix) {
+    this.name = name;
     this.onMix = onMix;
     this.ws = null;
     this.ptt = false;
     this.connect();
   }
   connect() {
-    const url = `${ECORUN_URL}/ws/audio/${encodeURIComponent(ROOM)}`;
+    const name = this.name;
+    const url = `${ECORUN_URL}/ws/audio/${encodeURIComponent(name)}`;
     const ws = this.ws = new WebSocket(url);
     ws.on('open', () => {
-      log(`room ${ROOM}: connected`);
+      log(`room ${name}: connected`);
       this.ptt = false;
       ws.send(JSON.stringify({ type: 'hello', client_id: 'discord-bridge', protocol: 1, audio_formats: [MIX_FORMAT] }));
     });
-    ws.on('message', (data, binary) => { if (binary) this.onMix(data); });
-    ws.on('close', () => { log(`room ${ROOM}: closed, reconnecting`); setTimeout(() => this.connect(), 2000); });
-    ws.on('error', (e) => log(`room ${ROOM}: ${e.message}`));
+    ws.on('message', (data, binary) => { if (binary && ws === this.ws) this.onMix(data); });
+    ws.on('close', () => {
+      if (ws !== this.ws) return;  // switched to another room
+      log(`room ${name}: closed, reconnecting`);
+      setTimeout(() => { if (ws === this.ws) this.connect(); }, 2000);
+    });
+    ws.on('error', (e) => log(`room ${name}: ${e.message}`));
   }
+  // Move to another room (another car). The old socket is closed without reconnecting.
+  switchTo(name) {
+    if (name === this.name) return;
+    const old = this.ws;
+    this.name = name;
+    this.connect();
+    old.close();
+  }
+  get connected() { return this.ws.readyState === WebSocket.OPEN; }
   setPtt(active) {
     if (active === this.ptt || this.ws.readyState !== WebSocket.OPEN) return;
     this.ptt = active;
@@ -182,7 +205,7 @@ function dryRun() {
   if (DRY_RUN === 'listen') {
     const decoder = new OpusScript(ROOM_RATE, 1);
     let packets = 0, bytes = 0, peak = 0;
-    new Room((p) => {
+    new Room(ROOM, (p) => {
       packets++; bytes += p.length;
       const pcm = toInt16(decoder.decode(p));
       for (const v of pcm) peak = Math.max(peak, Math.abs(v));
@@ -191,7 +214,7 @@ function dryRun() {
     return;
   }
   // tone: 440 Hz as if a Discord user spoke for 3 s, fed through the real 48 kHz path
-  const room = new Room(() => {});
+  const room = new Room(ROOM, () => {});
   const up = new DiscordToRoom(room);
   const encoder48 = new OpusScript(DISCORD_RATE, 2, OpusScript.Application.VOIP);
   let t = 0, frames = 0;
@@ -207,7 +230,7 @@ function dryRun() {
 
 // ---- Discord ---------------------------------------------------------------
 function discord() {
-  const { Client, GatewayIntentBits, Events } = require('discord.js');
+  const { Client, GatewayIntentBits, Events, SlashCommandBuilder, ChannelType, MessageFlags } = require('discord.js');
   const {
     joinVoiceChannel, createAudioPlayer, createAudioResource, StreamType, NoSubscriberBehavior,
     AudioPlayerStatus, EndBehaviorType, VoiceConnectionStatus, entersState,
@@ -223,7 +246,8 @@ function discord() {
   player.on('error', (e) => { log('player:', e.message); stream = null; });
 
   // room -> Discord: a new raw-PCM resource whenever the room starts talking again
-  const room = new Room((packet) => {
+  const state = loadState();
+  const room = new Room(state.room || ROOM, (packet) => {
     let mono;
     try { mono = toInt16(decoder8k.decode(packet)); } catch { return; }
     if (!stream) {
@@ -235,38 +259,142 @@ function discord() {
   });
   const down = new DiscordToRoom(room);
 
-  async function join() {
-    const guild = await client.guilds.fetch(process.env.DISCORD_GUILD_ID);
-    const connection = joinVoiceChannel({
-      guildId: guild.id, channelId: process.env.DISCORD_CHANNEL_ID,
+  // The voice channel we want to be in (null after /ecologger leave). Saved with the
+  // room so a restart goes back to where the last command put us.
+  let wantChannel = state.channelId === undefined ? (process.env.DISCORD_CHANNEL_ID || null) : state.channelId;
+  let connection = null;
+  const prepared = new WeakSet();
+
+  async function join(channelId) {
+    const guild = await client.guilds.fetch(GUILD_ID);
+    // joinVoiceChannel moves an existing connection in this guild instead of making a new one
+    const c = connection = joinVoiceChannel({
+      guildId: guild.id, channelId,
       adapterCreator: guild.voiceAdapterCreator, selfDeaf: false, selfMute: false,
     });
-    connection.subscribe(player);
-    connection.on(VoiceConnectionStatus.Ready, () => log('discord voice: ready'));
-    connection.on(VoiceConnectionStatus.Disconnected, async () => {
+    if (prepared.has(c)) return;
+    prepared.add(c);
+    c.subscribe(player);
+    c.on(VoiceConnectionStatus.Ready, () => log(`discord voice: ready (${c.joinConfig.channelId})`));
+    c.on(VoiceConnectionStatus.Disconnected, async () => {
       try {
         await Promise.race([
-          entersState(connection, VoiceConnectionStatus.Signalling, 5000),
-          entersState(connection, VoiceConnectionStatus.Connecting, 5000),
+          entersState(c, VoiceConnectionStatus.Signalling, 5000),
+          entersState(c, VoiceConnectionStatus.Connecting, 5000),
         ]);
       } catch {
+        if (c !== connection) return;
         log('discord voice: lost, rejoining');
-        connection.destroy();
-        setTimeout(join, 3000);
+        c.destroy();
+        connection = null;
+        setTimeout(() => { if (wantChannel && !connection) join(wantChannel).catch((e) => log('join failed:', e.message)); }, 3000);
       }
     });
     // Discord -> room
-    connection.receiver.speaking.on('start', (userId) => {
-      if (connection.receiver.subscriptions.has(userId)) return;
-      const opus = connection.receiver.subscribe(userId, { end: { behavior: EndBehaviorType.AfterSilence, duration: 400 } });
+    c.receiver.speaking.on('start', (userId) => {
+      if (c.receiver.subscriptions.has(userId)) return;
+      const opus = c.receiver.subscribe(userId, { end: { behavior: EndBehaviorType.AfterSilence, duration: 400 } });
       opus.on('data', (packet) => down.pushOpus(userId, packet));
       opus.on('end', () => down.drop(userId));
       opus.on('error', (e) => log(`receive ${userId}:`, e.message));
     });
   }
 
-  client.once(Events.ClientReady, (c) => { log(`discord: logged in as ${c.user.tag}`); join().catch((e) => log('join failed:', e.message)); });
+  function leave() {
+    if (connection) { connection.destroy(); connection = null; }
+  }
+
+  // ---- /ecologger join|leave|status ----------------------------------------
+  // One parent command, so it never collides with other bots' /join and /leave
+  // (the team's ecorun-talk bot already uses those two).
+  const command = new SlashCommandBuilder()
+    .setName('ecologger').setDescription('EcoLoggerの中継Bot（ロガーの部屋 ⇔ このボイスチャンネル）')
+    .addSubcommand((s) => s.setName('join').setDescription('ボイスチャンネルに入ってロガーの部屋とつなぐ')
+      .addChannelOption((o) => o.setName('channel').setDescription('入るボイスチャンネル（省略時は呼んだ人がいる所）')
+        .addChannelTypes(ChannelType.GuildVoice))
+      .addStringOption((o) => o.setName('room').setDescription('つなぐロガーの部屋（省略時は今の部屋）').setMaxLength(64)))
+    .addSubcommand((s) => s.setName('leave').setDescription('ボイスチャンネルから出る（再起動しても戻らない）'))
+    .addSubcommand((s) => s.setName('status').setDescription('いまの接続先を表示'));
+
+  function statusText() {
+    const vs = connection ? connection.state.status : 'not joined';
+    return [
+      `部屋: \`${room.name}\`（${room.connected ? '接続中' : '切断中'}）`,
+      `ボイスチャンネル: ${connection ? `<#${connection.joinConfig.channelId}>` : 'なし'}（${vs}）`,
+      `Discord→部屋で送信中: ${room.ptt ? 'はい' : 'いいえ'}`,
+    ].join('\n');
+  }
+
+  async function onCommand(it) {
+    const sub = it.options.getSubcommand();
+    const reply = (content) => it.reply({ content, flags: MessageFlags.Ephemeral });
+    if (sub === 'status') return reply(statusText());
+    if (sub === 'leave') {
+      wantChannel = null;
+      saveState({ channelId: null, room: room.name });
+      leave();
+      log(`command: leave by ${it.user.tag}`);
+      return reply('ボイスチャンネルから出ました。部屋とのつながりはそのままです。');
+    }
+    // join
+    const roomName = it.options.getString('room');
+    if (roomName !== null && !ROOM_NAME.test(roomName)) return reply('部屋の名前は英数字・`-`・`_`だけにしてください。');
+    let channelId = it.options.getChannel('channel')?.id;
+    if (!channelId) {
+      const member = await it.guild.members.fetch(it.user.id);
+      channelId = member.voice.channelId;
+      if (!channelId) return reply('ボイスチャンネルに入ってから呼ぶか、`channel`で指定してください。');
+    }
+    await it.deferReply({ flags: MessageFlags.Ephemeral });
+    if (roomName && roomName !== room.name) {
+      // the server only accepts registered rooms (400 otherwise): try it, fall back if it fails
+      const prev = room.name;
+      room.switchTo(roomName);
+      for (let i = 0; i < 30 && !room.connected; i++) await new Promise((r) => setTimeout(r, 100));
+      if (!room.connected) {
+        room.switchTo(prev);
+        return it.editReply(`部屋 \`${roomName}\` に入れませんでした（サーバーに登録されていない名前かもしれません）。\`${prev}\` のままです。`);
+      }
+    }
+    wantChannel = channelId;
+    saveState({ channelId, room: room.name });
+    log(`command: join ${channelId} room ${room.name} by ${it.user.tag}`);
+    try {
+      await join(channelId);
+      await entersState(connection, VoiceConnectionStatus.Ready, 15000);
+      await it.editReply(`つなぎました。\n${statusText()}`);
+    } catch (e) {
+      await it.editReply(`ボイスチャンネルに入れませんでした（${e.message}）。\n${statusText()}`);
+    }
+  }
+
+  client.on(Events.InteractionCreate, (it) => {
+    if (!it.isChatInputCommand() || it.commandName !== 'ecologger' || it.guildId !== GUILD_ID) return;
+    onCommand(it).catch((e) => {
+      log('command failed:', e.message);
+      if (!it.replied && !it.deferred) it.reply({ content: `失敗しました（${e.message}）`, flags: MessageFlags.Ephemeral }).catch(() => {});
+    });
+  });
+
+  client.once(Events.ClientReady, async (c) => {
+    log(`discord: logged in as ${c.user.tag}`);
+    try {
+      const guild = await client.guilds.fetch(GUILD_ID);
+      await guild.commands.set([command.toJSON()]);  // guild commands show up at once
+      log('discord: /ecologger registered');
+    } catch (e) { log('command registration failed:', e.message); }
+    if (wantChannel) join(wantChannel).catch((e) => log('join failed:', e.message));
+    else log('discord voice: not joining (left by command)');
+  });
   client.login(process.env.DISCORD_TOKEN);
+}
+
+// Where the last /ecologger command left us: {channelId, room}.
+function loadState() {
+  try { return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); } catch { return {}; }
+}
+function saveState(s) {
+  try { fs.writeFileSync(STATE_FILE, JSON.stringify(s) + '\n'); } catch (e) { log('state not saved:', e.message); }
 }
 
 if (DRY_RUN) dryRun(); else discord();

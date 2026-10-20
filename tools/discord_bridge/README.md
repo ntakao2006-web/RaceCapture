@@ -22,6 +22,15 @@ DRY_RUN=tone   ECORUN_ROOM=bridge-test node bridge.js   # Discordの人が3秒�
 ```
 2026-10-15：自宅サーバーで、toneの3秒分がlisten側にミックスとして25パケット（120ms×25）届くことを確認。
 
+## Discordでの操作（`/ecologger`）
+先輩のBot（`ecorun-talk`）の`/join`・`/leave`と被らないよう、1つの親コマンドにまとめている。返事は呼んだ本人にだけ見える。
+- `/ecologger join` … 呼んだ人がいるボイスチャンネルに入る。`channel:`で入る先を指定、`room:`でつなぐロガーの部屋（車）を切り替え。
+  部屋はサーバーに登録済みの名前だけ（未登録なら元の部屋のまま、と返事する）
+- `/ecologger leave` … ボイスチャンネルから出る（部屋とのつながりは残す。再起動しても入り直さない）
+- `/ecologger status` … いまの部屋・ボイスチャンネル・Discord→部屋で送信中か
+- 最後のコマンドの結果は`~/discord-bridge/state.json`に残り、再起動後は`DISCORD_CHANNEL_ID`・`ECORUN_ROOM`よりこちらが優先される
+- コマンドは起動時にそのDiscordサーバー専用として登録する（すぐ出る）。Botは1つのDiscordサーバーで同時に1つのボイスチャンネルにしか入れない
+
 ## Discordサーバー側の設定
 - ボイスチャンネルの権限で`@everyone`の「音声検出を使用」をオフ（ピットはプッシュトゥトーク強制）
 - Botには「音声検出を使用」「接続」「発言」を許可（招待URLの`permissions=36701184`がこの4つ＋チャンネルを見る）
