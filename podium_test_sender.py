@@ -7,6 +7,7 @@
 使い方:
     python podium_test_sender.py            # キーは画面に表示されない入力で聞かれる
     python podium_test_sender.py --seconds 120
+    python podium_test_sender.py --seconds 600 --site motegi --laps
 
 ストリーミングキーはファイル・ログ・引数に残さない（実行時に貼り付けて入力する）。
 """
@@ -35,8 +36,20 @@ META = [
     {"nm": "RPM", "ut": "rpm", "sr": 10, "min": 0, "max": 8000, "prec": 0},
 ]
 
-# ダミー走行の中心（鈴鹿サーキット付近）。半径約300mの円を回る
-CENTER_LAT, CENTER_LON = 34.8431, 136.5410
+# ダミー走行の中心。半径約300mの円を60秒で1周する
+SITES = {
+    "suzuka": (34.8431, 136.5410),  # 鈴鹿サーキット付近
+    "motegi": (36.5330, 140.2270),  # モビリティリゾートもてぎ（エコラン会場）付近
+}
+
+# --laps のときに足すラップ系チャンネル（RaceCapture準拠、時間は分単位）
+LAP_META = [
+    {"nm": "LapCount", "ut": "", "sr": 10, "min": 0, "max": 10000, "prec": 0},
+    {"nm": "LapTime", "ut": "Min", "sr": 10, "min": 0, "max": 60, "prec": 4},
+    {"nm": "BestLap", "ut": "Min", "sr": 10, "min": 0, "max": 60, "prec": 4},
+    {"nm": "CurrentLap", "ut": "", "sr": 10, "min": 0, "max": 10000, "prec": 0},
+    {"nm": "ElapsedTime", "ut": "Min", "sr": 10, "min": 0, "max": 60, "prec": 4},
+]
 
 
 def send(sock, obj):
@@ -68,11 +81,22 @@ def key_from_app_log():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seconds", type=int, default=60, help="ダミー値を送り続ける秒数")
+    ap.add_argument("--site", choices=sorted(SITES), default="suzuka", help="ダミー走行の場所")
+    ap.add_argument("--laps", action="store_true", help="ラップ系チャンネル（60秒で1周）も送る")
     ap.add_argument("--from-app-log", action="store_true",
                     help="キーを手入力せず、公式RaceCaptureアプリのログ(~/.kivy/logs)から最後に使われたものを読む")
+    ap.add_argument("--key-file", metavar="PODIUM_JSON",
+                    help="キーを手入力せず、EcoCapture-Webの設定ファイル(private/podium.json)のdevice_idを使う（UNO Q上で実行する用）")
     args = ap.parse_args()
 
-    if args.from_app_log:
+    if args.key_file:
+        with open(args.key_file, encoding="utf-8") as f:
+            key = json.load(f).get("device_id", "").strip()
+        if not key:
+            print("設定ファイルにキーがありません")
+            return
+        print("EcoCapture-Webに保存済みのキーを使います")
+    elif args.from_app_log:
         key = key_from_app_log()
         if not key:
             print("公式アプリのログからキーが見つかりませんでした")
@@ -120,7 +144,10 @@ def main():
     print("    ○認証OK")
 
     print("[3] meta送信")
-    send(sock, {"s": {"meta": META}})
+    meta = META + (LAP_META if args.laps else [])
+    center_lat, center_lon = SITES[args.site]
+    print(f"    場所: {args.site} / ラップ: {'あり' if args.laps else 'なし'}")
+    send(sock, {"s": {"meta": meta}})
 
     print(f"[4] ダミー値を10Hzで{args.seconds}秒送信（Podiumのライブ画面を確認してください）")
     sock.settimeout(0.0)
@@ -132,12 +159,15 @@ def main():
         values = [
             int(t * 1000),                 # Interval: 送信開始からのms
             int(time.time() * 1000),       # Utc: UNIX時刻のms
-            round(CENTER_LAT + 0.0027 * math.sin(ang), 6),
-            round(CENTER_LON + 0.0033 * math.cos(ang), 6),
+            round(center_lat + 0.0027 * math.sin(ang), 6),
+            round(center_lon + 0.0033 * math.cos(ang), 6),
             round(110 + 20 * math.sin(ang * 3), 2),
             int(4000 + 2000 * math.sin(ang * 5)),
         ]
-        bitmask = (1 << len(META)) - 1  # 全チャンネルに値あり
+        if args.laps:
+            lap = int(t // 60)  # 1周60秒。周回数は完了した周の数
+            values += [lap, 1.0 if lap else 0, 1.0 if lap else 0, lap + 1, round(t / 60, 4)]
+        bitmask = (1 << len(meta)) - 1  # 全チャンネルに値あり
         send(sock, {"s": {"d": values + [bitmask], "t": n}})
         n += 1
         try:

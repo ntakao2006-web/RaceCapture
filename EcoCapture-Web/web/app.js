@@ -70,8 +70,8 @@ function update(frame) {
   $('profile-label').textContent=config?.profile==='ncec-2005-mt'?'NCEC 2005 MT / NOPRO':vehicle?'車両表示':'車載CAN接続なし';
   const lap=frame.sample?.lap||{};
   $('lap-count').textContent=Number.isFinite(lap.LapCount)?String(lap.LapCount):'—';
-  $('lap-elapsed').textContent=lapClock(lap.ElapsedTime);$('lap-last').textContent=lapClock(lap.LapTime);$('lap-best').textContent=lapClock(lap.BestLap);
-  $('lap-hint').textContent=lap.LapCount===undefined||lap.LapCount===null?'ラップ計測は未設定です（Settings → ラップ計測）':lap.CurrentLap===0?'ライン通過を待っています（最初の通過から1周目）':'';
+  $('lap-elapsed').textContent=lapClock(lap.ElapsedTime);$('lap-last').textContent=lapClock(lap.LapTime);$('lap-best').textContent=lapClock(lap.BestLap);$('lap-left').textContent=Number.isFinite(lap.LapsLeft)?String(lap.LapsLeft):'—';$('lap-race').textContent=lapClock(lap.RaceTime);
+  $('lap-hint').textContent=lap.LapCount===undefined||lap.LapCount===null?'ラップ計測は未設定です（Settings → ラップ計測）':lap.CurrentLap===0?'スタート（またはライン通過）を待っています':lap.LapCount>0&&lap.CurrentLap===lap.LapCount&&lap.ElapsedTime===null?'ゴールしました':lap.LapsLeft===1?'最終周：周回が終わったらゴールへ':'';
   $('connection').textContent=s.connected?'● MCU受信中':'MCU通信待ち / 値は無効';
   $('device-name').textContent=s.device; $('rate').textContent=`受信 ${format(s.receive_hz,1)} Hz`;
   $('sample-seq').textContent=`SEQ ${frame.sample?.seq ?? '—'}`;
@@ -81,7 +81,8 @@ function update(frame) {
   const tiles=(config?.signals||[]).slice(0,8);$('signal-tiles').hidden=!tiles.length;
   $('signal-tiles').replaceChildren(...tiles.map(signal=>{const a=document.createElement('article'),label=document.createElement('span'),value=document.createElement('strong'),unit=document.createElement('small');label.textContent=signal.name;value.textContent=format(frame.sample?.can_signals?.[signal.name],signal.conversion==='ntc'?1:2);unit.textContent=signal.unit;a.append(label,value,unit);return a;}));
   $('can-live').replaceChildren(...(config?.signals||[]).map(signal=>{const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=signal.name;dd.textContent=`${format(frame.sample?.can_signals?.[signal.name],2)} ${signal.unit}`;row.append(dt,dd);return row;}));
-  const log=s.logging; $('rec-badge').textContent=log.active?'● REC':'○ STANDBY'; $('rec-badge').classList.toggle('recording',log.active);
+  const log=s.logging; $('rec-badge').textContent=log.active?(log.sd_warning?'● REC（本体のみ）':'● REC'):'○ STANDBY';
+  $('rec-warning').textContent=log.sd_warning||''; $('rec-warning').hidden=!log.sd_warning; $('rec-badge').classList.toggle('recording',log.active);
   $('rec-time').textContent=elapsed(log.elapsed_s); $('rec-rows').textContent=`${log.rows.toLocaleString()} samples`;
   $('start-log').disabled=log.active||!s.connected; $('stop-log').disabled=!log.active; $('save-config').disabled=log.active;
   $('footer-status').textContent=`受信 ${s.received.toLocaleString()} 件 · ${s.age_ms??'—'} ms · 内蔵eMMC`;

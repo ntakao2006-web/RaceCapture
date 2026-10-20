@@ -1,0 +1,13 @@
+{
+  "name": "ecorun-discord-bridge",
+  "private": true,
+  "description": "Discord voice channel <-> ecorun-logger-server room (ER-10-8)",
+  "main": "bridge.js",
+  "engines": { "node": ">=22.12" },
+  "dependencies": {
+    "@discordjs/voice": "0.19.2",
+    "discord.js": "14.27.0",
+    "opusscript": "0.0.8",
+    "ws": "8.22.0"
+  }
+}

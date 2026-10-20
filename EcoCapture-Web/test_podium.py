@@ -8,7 +8,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 import msgpack
-from podium import ConfigStore,Encoder,Sensor,PodiumConfig,PodiumSender,AuthenticationError,SocketTransport,sensors,authenticate
+import re
+import base64
+import hashlib
+from podium import ConfigStore,Encoder,Sensor,PodiumConfig,PodiumSender,AuthenticationError,SocketTransport,WebSocket,VoiceGuard,VoiceLink,sensors,authenticate,parse_server_url
 from models import Configuration,CHANNELS
 from sim7070 import SIM7070,LTEUART
 
@@ -25,7 +28,7 @@ class ProtocolTests(unittest.TestCase):
         encoder=Encoder(sensors(PodiumConfig(),Configuration()))
         meta=json.loads(encoder.meta())['s']['meta']
         names={'Lat':'Latitude','Lon':'Longitude'}
-        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime'])
+        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime','RaceTime','LapsLeft'])
         self.assertEqual(meta[2]['ut'],'deg');self.assertEqual(meta[2]['prec'],6)
         data={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35},'password':'secret','imu_raw':'private','can_frames':['private']}
         self.assertNotIn('private',encoder.sample(data).decode())
@@ -35,7 +38,7 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{}})),{'s':{'d':[0,0,0],'t':0}})
     def test_required_context_and_gnss_utc_milliseconds(self):
         encoder=Encoder(sensors(PodiumConfig(channels=['RPM']),Configuration()))
-        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime'])
+        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime','RaceTime','LapsLeft'])
         sample={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35.123456789,'Lon':139.123456789,'GPSSpeed':12.5},'gnss_utc':'1970-01-01T00:00:01Z','gnss_itow_ms':1234}
         self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[1234,35.123457,139.123457,12.5,58])
         sample['gnss_utc']='bad';sample['values']={}
@@ -76,6 +79,16 @@ class ProtocolTests(unittest.TestCase):
             path=Path(root)/'private'/'podium.json';path.parent.mkdir()
             path.write_text(json.dumps({k:v for k,v in PodiumConfig().model_dump().items() if k!='link'}))
             store=ConfigStore(root);self.assertIsNone(store.error);self.assertEqual(store.config.link,'lte')
+    def test_relay_destination_needs_url_not_key(self):
+        config=PodiumConfig(link='wifi',destination='server',server_url='wss://car.example.ts.net/ws/audio/main',enabled=True)
+        self.assertEqual(parse_server_url(config.server_url),(True,'car.example.ts.net',443,'/ws/audio/main'))
+        self.assertEqual(parse_server_url('ws://10.0.0.5:3000/ws/audio/x'),(False,'10.0.0.5',3000,'/ws/audio/x'))
+        for url in ('https://h/ws','wss://h"x/ws','wss://h/ws a','wss://h',''):
+            with self.assertRaises(ValueError):PodiumConfig(link='wifi',destination='server',server_url=url,enabled=True)
+    def test_values_rounded_to_podium_precision(self):
+        encoder=Encoder([Sensor('Lat','deg',-90,90),Sensor('RPM','rpm',0,1),Sensor('AccelX','G',0,1)])
+        row=encoder.row({'source':'logger-v2-hardware','demo':False,'values':{'Lat':35.12345678,'RPM':812.6,'AccelX':0.123456}})
+        self.assertEqual(row,[35.123457,813,0.12,7]);self.assertIs(type(row[1]),int)
     def test_rpc_chunk_fits_worst_message_id(self):
         self.assertLessEqual(len(msgpack.packb([0,0xffffffff,'logger.ltex',['ff'*18]])),64)
 
@@ -110,6 +123,8 @@ class FakeUART:
                 self.outgoing.extend(b'\r\nERROR\r\n');continue
             if command=='AT+CGATT?':self.attach+=1;response=f'+CGATT: {int(self.attach>1)}\r\n'
             if command=='AT+CNACT?':response='+CNACT: 0,1,"10.1.2.3"\r\n'
+            if command in ('AT+CNMP?','AT+CMNB?'):
+                response=f'+{command[3:7]}: {getattr(self,"mode",{}).get(command,2 if command=="AT+CNMP?" else 3)}\r\n'
             if command.startswith('AT+CAOPEN='):
                 self.outgoing.extend(b'\r\nOK\r\n+CAOPEN: 0,0\r\n');continue
             if command.startswith('AT+CARECV='):
@@ -118,7 +133,178 @@ class FakeUART:
             if command=='AT+CASTATE?':response='+CASTATE: 0,1\r\n'
             self.outgoing.extend(('\r\n'+response+'OK\r\n').encode())
 
+async def fake_relay(reader,writer,log,replies=()):
+    """Accept one WebSocket client, record its JSON messages, send `replies`."""
+    head=await reader.readuntil(b'\r\n\r\n')
+    key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
+    log.append(head.split(b'\r\n')[0])
+    accept=base64.b64encode(hashlib.sha1(key+WebSocket.GUID).digest())
+    writer.write(b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+b'\r\n\r\n')
+    for reply in replies:writer.write(bytes([0x81,len(reply)])+reply)
+    writer.write(bytes([0x89,2])+b'hi')
+    await writer.drain()
+    while True:
+        try:b0,b1=await reader.readexactly(2)
+        except asyncio.IncompleteReadError:return
+        assert b1&0x80,'client frames must be masked'
+        n=b1&0x7f
+        if n==126:n=int.from_bytes(await reader.readexactly(2),'big')
+        mask=await reader.readexactly(4);payload=bytes(b^mask[i%4] for i,b in enumerate(await reader.readexactly(n)))
+        log.append((b0&0x0f,payload))
+
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
+    async def test_auto_link_prefers_wifi_only_while_it_is_up(self):
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;up=None
+            class sd:status={'active':False}
+            async def wifi_connected(self):return self.up
+        with tempfile.TemporaryDirectory() as root:
+            runtime=Runtime();sender=PodiumSender(root,runtime)
+            auto=PodiumConfig(link='auto',apn='test.apn',hardware_ready=True)
+            self.assertEqual(await sender.choose_link(auto),'wifi')          # unknown: try Wi-Fi
+            runtime.up=False;self.assertEqual(await sender.choose_link(auto),'lte')
+            runtime.up=True;self.assertEqual(await sender.choose_link(auto),'wifi')
+            sender.wifi_skip_until=time.monotonic()+30
+            self.assertEqual(await sender.choose_link(auto),'lte')           # Wi-Fi just failed
+            self.assertEqual(await sender.choose_link(PodiumConfig(link='wifi')),'wifi')
+            with self.assertRaises(ValueError):PodiumConfig(link='auto',enabled=True,device_id='k')  # LTE fallback needs APN
+            Runtime.sd.status={'active':True,'operation':'copy'}  # 'auto' may end up on LTE, which shares the MCU link
+            self.assertTrue(sender.sd_busy(auto));self.assertFalse(sender.sd_busy(PodiumConfig(link='wifi')))
+            Runtime.sd.status={'active':False}
+
+    async def test_unreadable_wifi_state_counts_as_lost(self):
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+            async def wifi_connected(self):return None
+        with tempfile.TemporaryDirectory() as root, patch('podium.WIFI_CHECK_S',0):
+            sender=PodiumSender(root,Runtime());sender.watch_wifi=True
+            await sender.check_wifi()  # one unreadable answer is tolerated
+            with self.assertRaisesRegex(ConnectionError,'Wi-Fi state unknown'):await sender.check_wifi()
+
+    @unittest.skipUnless(hasattr(__import__('socket'),'TCP_USER_TIMEOUT'),'Linux only (runs in the UNO Q image)')
+    async def test_auto_wifi_socket_gives_up_on_unacknowledged_data(self):
+        import socket
+        server=await asyncio.start_server(lambda r,w:None,'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        async with server:
+            transport=SocketTransport(8,5000)
+            await transport.connect(PodiumConfig(),('127.0.0.1',port,False))
+            sock=transport.writer.get_extra_info('socket')
+            self.assertEqual(sock.getsockopt(socket.IPPROTO_TCP,socket.TCP_USER_TIMEOUT),5000)
+            await transport.close()
+
+    async def test_auto_link_leaves_wifi_when_it_drops_mid_stream(self):
+        log=[]
+        server=await asyncio.start_server(lambda r,w:fake_relay(r,w,log,[]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;up=True
+            class sd:status={'active':False}
+            async def wifi_connected(self):return self.up
+        with tempfile.TemporaryDirectory() as root, patch('podium.WIFI_CHECK_S',0):
+            runtime=Runtime();sender=PodiumSender(root,runtime);sender.watch_wifi=True
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main')
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                await asyncio.sleep(.3);self.assertFalse(task.done())
+                runtime.up=False
+                with self.assertRaisesRegex(ConnectionError,'Wi-Fi lost'):await asyncio.wait_for(task,2)
+
+    async def test_auto_link_falls_back_to_lte_without_backoff(self):
+        closed=await asyncio.start_server(lambda r,w:w.close(),'127.0.0.1',0);port=closed.sockets[0].getsockname()[1];closed.close();await closed.wait_closed()
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;bridge=object()
+            class sd:status={'active':False}
+            def status(self):return {'connected':True}
+            async def wifi_connected(self):return True
+        with tempfile.TemporaryDirectory() as root:
+            sender=PodiumSender(root,Runtime())
+            sender.store.config=PodiumConfig(link='auto',apn='test.apn',hardware_ready=True,enabled=True,destination='server',
+                                             server_url=f'ws://127.0.0.1:{port}/ws/audio/main')
+            task=asyncio.create_task(sender.run())
+            for _ in range(40):
+                await asyncio.sleep(.05)
+                if sender.active_link=='lte':break
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):await task
+            events=sender.events()
+        self.assertEqual(sender.active_link,'lte');self.assertGreater(sender.wifi_skip_until,time.monotonic())
+        self.assertEqual(sender.status()['active_link'],'lte');self.assertIn('SIM7070G',sender.status()['transport'])
+        self.assertEqual([(e['event'],e.get('link')) for e in events[:3]],[('session_start','wifi'),('session_end','wifi'),('session_start','lte')])
+        self.assertEqual(events[1]['reason'],'Socket open failed')
+    async def test_relay_hello_meta_and_batched_samples_over_websocket(self):
+        log=[];status=b'{"type":"podium.status","room_id":"main","state":"streaming","lt":4}'
+        server=await asyncio.start_server(lambda r,w:fake_relay(r,w,log,[status]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        with tempfile.TemporaryDirectory() as root:
+            runtime=Runtime();sender=PodiumSender(root,runtime)
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main',enabled=True)
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                for seq in range(12):
+                    runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5,'AccelX':0.123456},
+                                    'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                    runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                sender.store.revision+=1;await task
+                await asyncio.sleep(.1)
+        self.assertEqual(log[0],b'GET /ws/audio/main HTTP/1.1')
+        texts=[json.loads(p) for op,p in log[1:] if op==1]
+        self.assertIn((10,b'hi'),log[1:])
+        self.assertEqual(texts[0],{'type':'hello','client_id':'ecologger-v2','protocol':2,'audio_formats':[]})
+        self.assertEqual(texts[1]['type'],'podium.meta');self.assertEqual(texts[1]['meta'][2]['nm'],'Latitude')
+        batches=[t['samples'] for t in texts[2:]]
+        self.assertTrue(batches and all(t['type']=='podium.samples' for t in texts[2:]))
+        self.assertEqual(len(batches[0]),5)
+        names=[m['nm'] for m in texts[1]['meta']]
+        first=batches[0][0];self.assertEqual(first[2],35.5);self.assertEqual(first[1]-first[0],1791936000000)
+        self.assertIn(0.12,batches[0][0])
+        self.assertEqual(sender.state['relay_lt'],4);self.assertIn('Podium受信 4 件目',sender.state['message'])
+    async def test_relay_without_podium_key_keeps_streaming(self):
+        # The relay is the team's own pit display first; a missing Podium key there is only reported.
+        log=[];err=b'{"type":"error","code":"podium_not_configured","message":"x"}'
+        server=await asyncio.start_server(lambda r,w:fake_relay(r,w,log,[err]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        with tempfile.TemporaryDirectory() as root:
+            runtime=Runtime();sender=PodiumSender(root,runtime)
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main',enabled=True)
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                for seq in range(25):
+                    runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                    'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                    runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                self.assertFalse(task.done())
+                self.assertEqual(sender.state['relay_error'],'podium_not_configured');self.assertIn('Podiumには出ません',sender.state['message'])
+                self.assertGreaterEqual(sender.state['frames'],15)
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+    async def test_lte_relay_enables_modem_tls_with_sni(self):
+        uart=FakeUART();modem=SIM7070(uart=uart)
+        config=PodiumConfig(apn='test.apn',hardware_ready=True)
+        await modem.connect(config,('car.example.ts.net',443,True))
+        self.assertIn('AT+CSSLCFG="SNI",0,"car.example.ts.net"',uart.commands)
+        self.assertIn('AT+CASSLCFG=0,"SSL",1',uart.commands)
+        self.assertEqual(uart.commands[-1],'AT+CAOPEN=0,0,"TCP","car.example.ts.net",443')
+        uart.network.extend(b'abc');self.assertEqual(await modem.read_some(),b'abc')
+
+    async def test_connect_records_phase_times_and_modem_mode(self):
+        uart=FakeUART();modem=SIM7070(uart=uart)
+        await modem.connect(PodiumConfig(apn='test.apn',hardware_ready=True),('car.example.ts.net',443,True))
+        self.assertEqual(modem.modem,{'cnmp':2,'cmnb':3,'cnmp_set':38,'cmnb_set':1})
+        self.assertLess(uart.commands.index('AT+CFUN=0'),uart.commands.index('AT+CNMP=38'))
+        self.assertLess(uart.commands.index('AT+CMNB=1'),uart.commands.index('AT+CFUN=1'))
+        for phase in ('modem_initialization','sim_ready','network_registration','pdp_activation','relay_connect'):
+            self.assertIn(phase,modem.timings)
+        self.assertGreaterEqual(modem.timings['network_registration'],1)   # one 1 s wait for CGATT
+
+    async def test_lte_m_only_is_not_rewritten_once_set(self):
+        uart=FakeUART();uart.mode={'AT+CNMP?':38,'AT+CMNB?':1};modem=SIM7070(uart=uart)
+        await modem.connect(PodiumConfig(apn='test.apn',hardware_ready=True),('car.example.ts.net',443,True))
+        self.assertEqual(modem.modem,{'cnmp':38,'cmnb':1})
+        self.assertFalse([c for c in uart.commands if c.startswith(('AT+CNMP=','AT+CMNB='))])
+
     async def test_auth_ignores_unexpected_lines_before_ok(self):
         class Transport:
             replies=iter([b'notice\n',b'[]\n',b'{"message":"hello"}\n',b'{"status":"ok"}\n'])
@@ -260,5 +446,264 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(Reject.attempts,2)
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):await task
+
+async def silent_after_ping_relay(reader,writer):
+    """Completes the handshake, sends one ping, then never answers (a dead mobile link)."""
+    head=await reader.readuntil(b'\r\n\r\n')
+    key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
+    accept=base64.b64encode(hashlib.sha1(key+WebSocket.GUID).digest())
+    writer.write(b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+b'\r\n\r\n')
+    writer.write(bytes([0x89,2])+b'hi');await writer.drain()
+    with __import__('contextlib').suppress(Exception):
+        while await reader.read(4096):pass
+
+async def pong_relay(reader,writer,log):
+    """Like fake_relay, but answers every client ping with a pong."""
+    head=await reader.readuntil(b'\r\n\r\n')
+    key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
+    log.append(head.split(b'\r\n')[0])
+    accept=base64.b64encode(hashlib.sha1(key+WebSocket.GUID).digest())
+    writer.write(b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+b'\r\n\r\n')
+    await writer.drain()
+    while True:
+        try:b0,b1=await reader.readexactly(2)
+        except asyncio.IncompleteReadError:return
+        n=b1&0x7f
+        if n==126:n=int.from_bytes(await reader.readexactly(2),'big')
+        mask=await reader.readexactly(4);payload=bytes(b^mask[i%4] for i,b in enumerate(await reader.readexactly(n)))
+        log.append((b0&0x0f,payload))
+        if b0&0x0f==9:writer.write(bytes([0x8a,len(payload)])+payload);await writer.drain()
+
+class FailoverTests(unittest.IsolatedAsyncioTestCase):
+    def test_backup_urls_and_direct_fallback_are_validated(self):
+        ok=PodiumConfig(link='wifi',destination='server',server_url='wss://a.example/ws/audio/x',
+                        backup_server_urls=['wss://b.example/ws/audio/x'],fallback_direct=True,device_id='key',enabled=True)
+        sender=PodiumSender(tempfile.mkdtemp(),None)
+        self.assertEqual(sender.targets(ok),[('server','wss://a.example/ws/audio/x'),('server','wss://b.example/ws/audio/x'),('podium',None)])
+        self.assertEqual(sender.targets(PodiumConfig(device_id='k')),[('podium',None)])
+        with self.assertRaises(ValueError):PodiumConfig(backup_server_urls=['http://b.example/x'])
+        with self.assertRaises(ValueError):PodiumConfig(destination='server',server_url='wss://a.example/ws/audio/x',fallback_direct=True)
+
+    async def test_dead_primary_moves_to_backup_without_backoff(self):
+        closed=await asyncio.start_server(lambda r,w:w.close(),'127.0.0.1',0);dead=closed.sockets[0].getsockname()[1];closed.close();await closed.wait_closed()
+        log=[]
+        backup=await asyncio.start_server(lambda r,w:pong_relay(r,w,log),'127.0.0.1',0);port=backup.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;bridge=object()
+            class sd:status={'active':False}
+            def status(self):return {'connected':True}
+        with tempfile.TemporaryDirectory() as root:
+            sender=PodiumSender(root,Runtime())
+            sender.store.config=PodiumConfig(link='wifi',enabled=True,destination='server',
+                server_url=f'ws://127.0.0.1:{dead}/ws/audio/main',backup_server_urls=[f'ws://127.0.0.1:{port}/ws/audio/main'])
+            async with backup:
+                task=asyncio.create_task(sender.run())
+                for _ in range(40):
+                    await asyncio.sleep(.05)
+                    if log:break
+                task.cancel()
+                with self.assertRaises(asyncio.CancelledError):await task
+            events=sender.events()
+        self.assertEqual(log[0],b'GET /ws/audio/main HTTP/1.1')   # reached the backup within 2 s
+        self.assertEqual(sender.status()['target']['index'],1)
+        self.assertEqual([(e['event'],e.get('target')) for e in events[:2]],[('session_start',None),('session_end','127.0.0.1')])
+
+    async def test_silent_relay_is_dropped_and_answering_relay_is_kept(self):
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        silent=await asyncio.start_server(silent_after_ping_relay,'127.0.0.1',0);sport=silent.sockets[0].getsockname()[1]
+        log=[]
+        alive=await asyncio.start_server(lambda r,w:pong_relay(r,w,log),'127.0.0.1',0);aport=alive.sockets[0].getsockname()[1]
+        limits={'RELAY_PING_S':{'wifi':.1,'lte':.1},'RELAY_SILENT_S':{'wifi':.5,'lte':.5},'RELAY_POLL_S':{'wifi':.05,'lte':.05}}
+        with tempfile.TemporaryDirectory() as root,patch.multiple('podium',**limits):
+            sender=PodiumSender(root,Runtime())
+            async with silent:
+                config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{sport}/ws/audio/main')
+                with self.assertRaisesRegex(ConnectionError,'Relay not responding'):
+                    await asyncio.wait_for(sender.relay_session(SocketTransport(),config,0),3)
+            async with alive:
+                config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{aport}/ws/audio/main')
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                await asyncio.sleep(1.2);self.assertFalse(task.done())   # well past the 0.5 s silent limit
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+        self.assertGreaterEqual(sum(1 for x in log[1:] if x[0]==9),5)
+
+
+class VoiceGuardTests(unittest.TestCase):
+    def feed(self,guard,start,seconds,rows=5,every=.5,delay=.5):
+        t=start
+        while t<start+seconds:
+            result=guard.batch_sent(rows,delay,t)
+            if result:return t,result
+            t+=every
+        return t,None
+    def test_waits_for_a_baseline_then_starts(self):
+        guard=VoiceGuard('lte')
+        self.assertIsNone(guard.want(True,0))                 # no telemetry measured yet
+        t,_=self.feed(guard,0,4)
+        self.assertEqual(guard.want(True,t),'on');self.assertAlmostEqual(guard.baseline,10,delta=.5)
+        self.assertIsNone(guard.want(True,t+1))
+        self.assertEqual(guard.want(False,t+2),'off');self.assertIsNone(guard.reason)
+    def test_late_batch_pauses_voice(self):
+        guard=VoiceGuard('lte');t,_=self.feed(guard,0,4);guard.want(True,t)
+        self.assertEqual(guard.batch_sent(5,2.5,t+.5),'off')
+        self.assertEqual(guard.reason,'telemetry_delay');self.assertFalse(guard.on)
+        self.assertIsNone(guard.want(True,t+10))                # still paused
+        self.assertEqual(guard.want(True,t+31),'on')
+    def test_fewer_rows_per_second_pauses_voice(self):
+        guard=VoiceGuard('wifi');t,_=self.feed(guard,0,4);guard.want(True,t)
+        t,result=self.feed(guard,t+.5,10,rows=3)                 # 6 rows/s against 10
+        self.assertEqual(result,'off');self.assertEqual(guard.reason,'telemetry_rate')
+    def test_lte_accepts_the_drop_voice_costs(self):
+        # Measured 2026-10-19: ~7 rows/s without voice, ~5 while the driver talks.
+        guard=VoiceGuard('lte');t,_=self.feed(guard,0,4,rows=7,every=1);guard.want(True,t)
+        _,result=self.feed(guard,t+1,30,rows=5,every=1)
+        self.assertIsNone(result);self.assertTrue(guard.on)
+        _,result=self.feed(guard,t+31,10,rows=3,every=1)       # 3 of 7 is more than voice may take
+        self.assertEqual(result,'off');self.assertEqual(guard.reason,'telemetry_rate')
+    def test_steady_telemetry_keeps_voice(self):
+        guard=VoiceGuard('lte');t,_=self.feed(guard,0,4);guard.want(True,t)
+        _,result=self.feed(guard,t+.5,30)
+        self.assertIsNone(result);self.assertTrue(guard.on)
+    def test_tripping_again_soon_doubles_the_pause(self):
+        guard=VoiceGuard('lte');t,_=self.feed(guard,0,4);guard.want(True,t)
+        guard.batch_sent(5,3,t+1);first=guard.pause
+        guard.want(True,guard.paused_until);guard.batch_sent(5,3,guard.paused_until+1)
+        self.assertEqual(guard.pause,first*2)
+
+async def voice_relay(reader,writer,log,uplink=None):
+    """Answers pings and streams binary 'voice' frames while the client's hello asks for it."""
+    head=await reader.readuntil(b'\r\n\r\n')
+    key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
+    accept=base64.b64encode(hashlib.sha1(key+WebSocket.GUID).digest())
+    writer.write(b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+b'\r\n\r\n')
+    await writer.drain()
+    streaming=asyncio.Event()
+    async def talk():
+        while True:
+            await streaming.wait()
+            writer.write(bytes([0x82,80])+bytes(80));await writer.drain();await asyncio.sleep(.12)
+    talker=asyncio.create_task(talk())
+    try:
+        while True:
+            try:b0,b1=await reader.readexactly(2)
+            except asyncio.IncompleteReadError:return
+            n=b1&0x7f
+            if n==126:n=int.from_bytes(await reader.readexactly(2),'big')
+            mask=await reader.readexactly(4);payload=bytes(b^mask[i%4] for i,b in enumerate(await reader.readexactly(n)))
+            if b0&0x0f==9:writer.write(bytes([0x8a,len(payload)])+payload);await writer.drain()
+            if b0&0x0f==2 and uplink is not None:uplink.append(('opus',payload))
+            if b0&0x0f==1:
+                message=json.loads(payload)
+                if message['type']=='audio.ptt' and uplink is not None:uplink.append(('ptt',message['active']))
+                if message['type']=='hello':
+                    log.append(message['audio_formats'])
+                    streaming.set() if message['audio_formats'] else streaming.clear()
+    finally:talker.cancel()
+
+class VoiceRelayTests(unittest.IsolatedAsyncioTestCase):
+    async def test_voice_is_taken_and_dropped_when_telemetry_lags(self):
+        log=[]
+        server=await asyncio.start_server(lambda r,w:voice_relay(r,w,log),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0;played=[]
+            class sd:status={'active':False}
+            def play_voice(self,packet):self.played.append(packet)
+        # The window must hold at least 2 batches (sent every .5 s), or the rate reads 0 on a slow CPU (UNO Q).
+        with tempfile.TemporaryDirectory() as root,patch.object(VoiceGuard,'WINDOW_S',1.2),patch.object(VoiceGuard,'PAUSE_S',60):
+            runtime=Runtime();sender=PodiumSender(root,runtime)
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main',voice_receive=True)
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                async def run(seconds,start):
+                    for seq in range(start,start+int(seconds*10)):
+                        runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                        'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                        runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                await run(2.5,0)
+                self.assertEqual(sender.state['voice'],'on')
+                self.assertGreater(sender.state['voice_packets'],3);self.assertEqual(len(runtime.played),sender.state['voice_packets'])
+                # Samples stop: the open batch waits past the limit, so voice must yield.
+                with patch.dict(VoiceGuard.MAX_DELAY_S,{'wifi':.3}):
+                    real=sender.sent
+                    def slow(frames,size):real(frames,size);time.sleep(.4)
+                    sender.sent=slow;await run(1,100);sender.sent=real
+                await run(.5,200)
+                self.assertEqual(sender.state['voice'],'paused');self.assertEqual(sender.state['voice_reason'],'telemetry_delay')
+                packets=sender.state['voice_packets'];await run(1,300)
+                self.assertEqual(sender.state['voice_packets'],packets)   # nothing taken while paused
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+            self.assertTrue(any(e['event']=='voice_paused' for e in sender.events()))
+        self.assertEqual(log[0],[]);self.assertEqual(log[1],[{'sample_rate':8000,'channels':1,'frame_ms':120}]);self.assertEqual(log[2],[])
+
+    async def test_voice_stays_off_unless_enabled(self):
+        log=[]
+        server=await asyncio.start_server(lambda r,w:voice_relay(r,w,log),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        with tempfile.TemporaryDirectory() as root,patch.object(VoiceGuard,'WINDOW_S',.6):
+            runtime=Runtime();sender=PodiumSender(root,runtime)
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main')
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                for seq in range(20):
+                    runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                    'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                    runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+        self.assertEqual(log,[[]]);self.assertEqual(sender.state['voice_packets'],0)
+
+    async def test_driver_voice_goes_up_after_ptt_and_stops_when_telemetry_lags(self):
+        log=[];uplink=[]
+        server=await asyncio.start_server(lambda r,w:voice_relay(r,w,log,uplink),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        class Link:
+            # Stands in for voice_agent.py: the driver talks for 3 packets whenever asked.
+            def __init__(self):self.asked=0;self.queue=[]
+            def want_uplink(self):
+                self.asked+=1
+                if self.asked==1:self.queue+=[('A',b'{"card_present":true}'),('T',b'1'),('U',b''*20),('U',b''*20),('U',b''*20),('T',b'0')]
+                elif self.asked==2:self.queue+=[('T',b'1'),('U',b''*20)]   # still talking when telemetry lags
+                return True
+            def receive(self):out,self.queue=self.queue,[];return out
+            def play(self,packet):pass
+        with tempfile.TemporaryDirectory() as root,patch.object(VoiceGuard,'WINDOW_S',1.2),patch.object(VoiceGuard,'PAUSE_S',60):
+            runtime=Runtime();sender=PodiumSender(root,runtime);sender.voice_link=link=Link()
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main',voice_send=True)
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                async def run(seconds,start):
+                    for seq in range(start,start+int(seconds*10)):
+                        runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                        'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                        runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                await run(3.5,0)
+                self.assertEqual(sender.state['voice'],'on');self.assertEqual(sender.state['voice_sent'],4)
+                self.assertTrue(sender.state['voice_talking']);self.assertEqual(sender.state['voice_agent'],{'card_present':True})
+                with patch.dict(VoiceGuard.MAX_DELAY_S,{'wifi':.3}):
+                    real=sender.sent
+                    def slow(frames,size):real(frames,size);time.sleep(.4)
+                    sender.sent=slow;await run(1,100);sender.sent=real
+                await run(.5,200)
+                self.assertEqual(sender.state['voice'],'paused');self.assertFalse(sender.state['voice_talking'])
+                asked=link.asked;await run(1.5,300)
+                self.assertEqual(link.asked,asked)   # microphone not asked for while paused
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+        # Only sending: the relay is never asked for the pit mix.
+        self.assertTrue(all(f==[] for f in log))
+        self.assertEqual(uplink,[('ptt',True),('opus',b''*20),('opus',b''*20),('opus',b''*20),('ptt',False),
+                                 ('ptt',True),('opus',b''*20),('ptt',False)])
+
+
+class VoiceLinkTests(unittest.TestCase):
+    def test_no_agent_is_harmless(self):
+        with tempfile.TemporaryDirectory() as root:
+            link=VoiceLink(root)
+            link.play(b'x');self.assertFalse(link.want_uplink());self.assertEqual(link.receive(),[])
+
 
 if __name__=='__main__':unittest.main()

@@ -61,7 +61,7 @@ class FlashOrderTests(unittest.TestCase):
             with lock.open() as held:
                 if busy: fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
                 result=subprocess.run(['sh',str(script),'--recover' if recovery else str(image)],
-                                      env=env,capture_output=True,text=True,timeout=10)
+                                      env=env,capture_output=True,text=True,timeout=60)  # readiness failure spawns ~30 stub processes; slow on UNO Q
             events=[json.loads(line) for line in (root/'events').read_text().splitlines()] if (root/'events').exists() else []
             return result,events
 

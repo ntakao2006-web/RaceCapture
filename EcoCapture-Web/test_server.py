@@ -16,12 +16,23 @@ from models import CHANNELS, Configuration, Signal, validate_sample
 
 
 class ServerTests(unittest.TestCase):
-    def test_backup_retention_keeps_three_sessions(self):
-        for _ in range(5):
+    def test_emmc_retention_deletes_oldest_finished_logs_only_when_space_is_low(self):
+        for n in range(5):
             self.s.runtime.recorder.start(Configuration());self.s.runtime.recorder.stop()
-        self.assertEqual(len(list(self.s.LOGS.glob('LOG_*.csv'))),3)
+            path=self.s.LOGS/self.s.runtime.recorder.name;os.utime(path,(1000+n,1000+n))
+        self.assertEqual(len(list(self.s.LOGS.glob('LOG_*.csv'))),5)
+        names=[p.name for p in sorted(self.s.LOGS.glob('LOG_*.csv'),key=lambda p:p.stat().st_mtime)]
+        self.s.runtime.recorder.start(Configuration());current=self.s.runtime.recorder.name
+        space=iter([0,0,0,self.s.KEEP_FREE_BYTES])
+        with patch.object(self.s.shutil,"disk_usage",side_effect=lambda _:type("Space",(),{"free":next(space,self.s.KEEP_FREE_BYTES)})()):
+            self.assertGreaterEqual(self.s.runtime.recorder.make_room(),self.s.KEEP_FREE_BYTES)
+        left={p.name for p in self.s.LOGS.glob('LOG_*.csv')}
+        self.assertNotIn(names[0],left);self.assertNotIn(names[1],left);self.assertNotIn(names[2],left)
+        self.assertIn(names[3],left);self.assertIn(current,left)
         self.assertEqual(len(list(self.s.LOGS.glob('*.meta.json'))),3)
-        self.assertEqual(len(list(self.s.LOGS.glob('*.can.jsonl'))),3)
+        with patch.object(self.s.shutil,"disk_usage",return_value=type("Space",(),{"free":0})()):
+            self.s.runtime.recorder.make_room()
+        self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},{current})
 
     def test_removed_sd_closes_backup_without_claiming_sd_saved(self):
         from unittest.mock import AsyncMock
@@ -47,13 +58,70 @@ class ServerTests(unittest.TestCase):
         self.assertIsNotNone(self.s.runtime.recorder.file)
         self.assertEqual(self.s.runtime.record_sd_first,7)
 
-    def test_start_requires_sd_and_stop_does_not_claim_unconfirmed_save(self):
+    def test_wifi_state_from_host_agent(self):
+        class Response:
+            def __init__(self,data,code=200):self.data=data;self.status_code=code
+            def json(self):return self.data
+        def client(answer):
+            class Client:
+                def __init__(self,**kw):pass
+                async def __aenter__(self):return self
+                async def __aexit__(self,*a):return False
+                async def get(self,path):
+                    if isinstance(answer,Exception):raise answer
+                    return answer
+            return Client
+        cases=[(Response({'state':'100 (connected)','addresses':['192.168.1.5']}),True),
+               (Response({'state':'30 (disconnected)','addresses':[]}),False),
+               (Response({'state':'70 (connecting (getting IP configuration))','addresses':[]}),False),
+               (Response({'state':'unknown','addresses':['10.0.0.2']}),True),
+               (Response({'state':'unknown','addresses':[]}),False),
+               (Response({'detail':'x'},503),None),
+               (self.s.httpx.ConnectError('no agent'),None)]
+        for answer,expected in cases:
+            with patch.object(self.s.httpx,'AsyncClient',client(answer)):
+                self.assertEqual(asyncio.run(self.s.runtime.wifi_connected()),expected,answer)
+
+    def test_missing_sd_still_records_emmc_with_warning(self):
+        from unittest.mock import AsyncMock
+        self.connected()
+        self.s.runtime.bridge=AsyncMock()
+        self.s.runtime.hardware={'sd_mounted':0}
+        log=asyncio.run(self.s.start_log())
+        self.assertTrue(log['active']);self.assertIn('SDカードが認識されていません',log['sd_warning'])
+        self.s.runtime.bridge.command.assert_not_called()
+        self.assertIsNone(self.s.runtime.record_sd_first)
+        self.s.runtime.bridge.command.side_effect=RuntimeError('bridge down')
+        log=asyncio.run(self.s.stop_log())
+        self.assertFalse(log['active']);self.assertIsNone(self.s.runtime.status()['logging']['sd_warning'])
+
+    def test_failed_sd_start_keeps_emmc_recording(self):
+        from unittest.mock import AsyncMock
+        self.connected()
+        self.s.runtime.bridge=AsyncMock()
+        self.s.runtime.hardware={'sd_mounted':1}
+        self.s.runtime.bridge.call.return_value=json.dumps({'sd_logging':0,'sd_file':3})
+        self.s.runtime.bridge.command.return_value='rejected'
+        log=asyncio.run(self.s.start_log())
+        self.assertTrue(log['active']);self.assertIn('本体（eMMC）にだけ',log['sd_warning'])
+        self.assertIsNone(self.s.runtime.record_sd_first)
+
+    def test_sd_lost_while_recording_is_warned(self):
+        from unittest.mock import AsyncMock
+        self.connected()
+        self.s.runtime.bridge=AsyncMock()
+        self.s.runtime.hardware={'sd_mounted':1,'sd_logging':1}
+        self.s.runtime.recorder.start(Configuration());self.s.runtime.record_sd_first=1
+        self.assertIsNone(self.s.runtime.status()['logging']['sd_warning'])
+        self.s.runtime.hardware={'sd_mounted':1,'sd_logging':0,'sd_errors':1}
+        self.assertIn('eMMC',self.s.runtime.status()['logging']['sd_warning'])
+
+    def test_stop_does_not_claim_unconfirmed_sd_save(self):
         from unittest.mock import AsyncMock
         from fastapi import HTTPException
         self.connected()
         self.s.runtime.bridge=AsyncMock()
-        with self.assertRaises(HTTPException):asyncio.run(self.s.start_log())
-        self.assertIsNone(self.s.runtime.recorder.file)
+        self.s.runtime.hardware={'sd_mounted':1,'sd_logging':1}
         self.s.runtime.recorder.start(self.s.runtime.config)
         self.s.runtime.bridge.command.return_value='stopped'
         self.s.runtime.bridge.call.return_value=json.dumps({'sd_logging':1})
@@ -76,6 +144,16 @@ class ServerTests(unittest.TestCase):
             await self.s.sd_logs()
             self.assertEqual(bridge.command.await_count, 2)
         asyncio.run(check())
+
+    def test_field_link_gives_key_urls_and_qr(self):
+        from unittest.mock import AsyncMock
+        with patch.object(self.s, 'device_request', AsyncMock(return_value={'addresses': ['192.168.43.20']})):
+            data = self.client.get('/api/field/link').json()
+        token = (Path(self.temp.name) / 'field_token').read_text().strip()
+        self.assertEqual(data['urls'], [f'http://uno-q.local:8082/?k={token}', f'http://192.168.43.20:8082/?k={token}'])
+        self.assertIn('<svg', data['svg'])
+        # The admin UI stays localhost-only: the key is not handed to the LAN from here.
+        self.assertEqual(self.client.get('/api/field/link', headers={'host': 'uno-q.local:8080'}).status_code, 403)
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -101,6 +179,7 @@ class ServerTests(unittest.TestCase):
     def test_lap_line_api_and_csv_columns(self):
         from models import LAP_CHANNELS
         self.assertEqual(self.client.post('/api/lap/here', headers=self.headers).status_code, 409)
+        self.assertEqual(self.client.get('/api/lap/code').status_code, 409)  # no control line yet
         self.connected()
         self.s.runtime.sample['values'].update(Lat=None, Lon=None)
         self.assertEqual(self.client.post('/api/lap/here', headers=self.headers).status_code, 409)
@@ -109,6 +188,21 @@ class ServerTests(unittest.TestCase):
         self.assertTrue(line['enabled']); self.assertEqual(line['width_m'], 40); self.assertIsNone(line['bearing'])
         self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'min_lap_s': 1}).status_code, 400)
         self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'min_lap_s': 90}).json()['line']['min_lap_s'], 90)
+        self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'bearing': 90}).json()['line']['bearing'], 90)
+        self.assertIsNone(self.client.post('/api/lap', headers=self.headers, json={'bearing': None}).json()['line']['bearing'])
+        line = self.client.post('/api/lap', headers=self.headers, json={'start': {'lat': 36.49, 'lon': 140.2, 'bearing': None}, 'total_laps': 7}).json()['line']
+        self.assertEqual((line['start']['lat'], line['start']['width_m'], line['total_laps']), (36.49, 30, 7))
+        self.assertIsNone(self.client.post('/api/lap', headers=self.headers, json={'start': None}).json()['line']['start'])
+        self.assertEqual(self.client.post('/api/lap', headers=self.headers, json={'goal': {'lat': 99, 'lon': 0}}).status_code, 400)
+        self.s.runtime.sample['values'].update(GPSSpeed=12, Yaw=90)
+        goal = self.client.post('/api/lap/here', headers=self.headers, json={'target': 'goal'}).json()['line']['goal']
+        self.assertEqual((goal['lat'], goal['bearing']), (36.5, 90))
+        code = self.client.get('/api/lap/code').json()  # the QR for the Android loggers
+        self.assertTrue(code['text'].startswith('ECOLINES1|c=36.5000000,140.2000000,-,40|s=-|g=36.5000000,140.2000000,90.0,30|'))
+        self.assertTrue(code['text'].endswith('|id=' + code['id']))
+        self.assertTrue(code['svg'].startswith('<svg'))
+        self.assertEqual(code['unknown_bearing'], ['コントロール'])
+        self.assertEqual(self.client.post('/api/lap/here', headers=self.headers, json={'target': 'pit'}).status_code, 400)
         self.assertEqual(self.client.post('/api/lap/reset', headers=self.headers).json()['values']['LapCount'], 0)
         self.assertEqual(self.client.post('/api/lap/reset').status_code, 403)
         self.s.runtime.recorder.start(Configuration())

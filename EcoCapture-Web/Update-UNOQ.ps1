@@ -28,7 +28,7 @@ Invoke-CheckedAdb @('-s',$Serial,'push',$taskBinary,'/home/arduino/ecocapture-cl
 Invoke-CheckedAdb @('-s',$Serial,'shell','tar -xf /tmp/ecocapture-device-update.tar -C /home/arduino/EcoCapture-Web')
 # Reload an already-running supervisor so it uses the shared maintenance lock.
 # Preserve an intentionally stopped/disabled service.
-Invoke-CheckedAdb @('-s',$Serial,'shell','docker run --rm --privileged --pid=host --user 0 --entrypoint /usr/bin/nsenter ecocapture-web:0.2.0 -t 1 -m -p -- /bin/sh -c "if systemctl is-active --quiet ecocapture-mcu-supervisor; then timeout 25 systemctl restart ecocapture-mcu-supervisor; fi"')
+Invoke-CheckedAdb @('-s',$Serial,'shell','docker run --rm --privileged --pid=host --user 0 --entrypoint /usr/bin/nsenter ecocapture-web:0.2.0 -t 1 -m -p -- /bin/sh -c ''if systemctl is-active --quiet ecocapture-mcu-supervisor; then timeout 25 systemctl restart ecocapture-mcu-supervisor; fi''')
 Invoke-CheckedAdb @('-s',$Serial,'shell','sh /home/arduino/EcoCapture-Web/install-device-agent.sh && sh /home/arduino/EcoCapture-Web/deploy.sh')
 if($Firmware){
     # Preserve the device-side source before replacing a potentially different version.

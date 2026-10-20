@@ -19,8 +19,17 @@
 //   GPIO21 (XIAO D6) -> MCP2562FD TXD(pin1)     … 本モードでは HIGH 固定(TWAI非接続)
 //   MCP2562FD: VDD=5V, VIO=3.3V, VSS/STBY=GND, CANH(7)->OBD6, CANL(6)->OBD14, GND->OBD4/5
 //   ※実車では卓上終端の120Ωを外すこと(車両バスは両端終端済み)。
+//
+// ===== MPP_SOC=1 (env esp32-c3-mpp-soc, ER-12) =====
+//  電動二輪クラスのMPP充電器のCAN計測コネクタ(DIN 41524: 1=CAN Hi, 2=CAN Low, 3=GND)から
+//  ID 0x402 の先頭2バイト(ビッグエンディアン・unsigned・0.01%)をSOCとして表示する。
+//  生フレームの行は出さず、0x402だけを "SOC ..." の1行にする。
+//  MPPを載せると充電が始まるため、載せた直後に最初に受けた値を "FIRST" として目立たせる
+//  (電源投入後の最初の値、または0x402が SOC_GAP_US 以上途切れた後の最初の値)。
+//  手順: 基板の終端120Ωを外す → USBでPCにつなぎ受信待機 → 充電器へ接続 → MPPを載せる。
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <atomic>
 #include "freertos/FreeRTOS.h"
@@ -61,6 +70,41 @@ static std::atomic<uint32_t> s_total{0};     // 受信総数
 static std::atomic<uint32_t> s_window{0};    // 直近1秒の受信数
 static std::atomic<uint32_t> s_drop_rb{0};   // ringbuf満杯で捨てた行数
 
+#ifndef MPP_SOC
+#define MPP_SOC 0
+#endif
+#if MPP_SOC
+#define SOC_CAN_ID        0x402
+#define SOC_GAP_US        3000000        // これ以上途切れたらMPPを載せ直したとみなす
+static std::atomic<uint32_t> s_soc_count{0}; // 0x402の受信数
+
+// 0x402 を1行にする。rx_taskからのみ呼ぶ(状態はこのタスク内だけで持つ)。
+static int format_soc_line(char *line, size_t size, int64_t t, const twai_message_t &m)
+{
+    static int64_t  last_us  = 0;
+    static int64_t  first_us = 0;
+    static unsigned first_raw = 0;
+
+    unsigned raw = ((unsigned)m.data[0] << 8) | m.data[1];   // 0.01%単位
+    bool first = (last_us == 0) || (t - last_us > SOC_GAP_US);
+    last_us = t;
+    s_soc_count.fetch_add(1, std::memory_order_relaxed);
+
+    if (first) {
+        first_us  = t;
+        first_raw = raw;
+        return snprintf(line, size,
+                        "\n########## FIRST SOC = %u.%02u %% ##########\n",
+                        raw / 100, raw % 100);
+    }
+    int diff = (int)raw - (int)first_raw;
+    return snprintf(line, size, "SOC %u.%02u %%  (first %u.%02u, %c%d.%02u, %llds)\n",
+                    raw / 100, raw % 100, first_raw / 100, first_raw % 100,
+                    diff < 0 ? '-' : '+', abs(diff) / 100, abs(diff) % 100,
+                    (long long)((t - first_us) / 1000000));
+}
+#endif
+
 static void rx_task(void *arg)
 {
     char line[LOG_LINE_MAX];
@@ -71,6 +115,19 @@ static void rx_task(void *arg)
             continue;
         }
         int64_t t = esp_timer_get_time();
+
+#if MPP_SOC
+        s_total.fetch_add(1, std::memory_order_relaxed);
+        s_window.fetch_add(1, std::memory_order_relaxed);
+        if (m.extd || m.rtr || m.identifier != SOC_CAN_ID || m.data_length_code < 2) {
+            continue;
+        }
+        int sn = format_soc_line(line, sizeof(line), t, m);
+        if (xRingbufferSend(s_rb, line, sn, 0) != pdTRUE) {
+            s_drop_rb.fetch_add(1, std::memory_order_relaxed);
+        }
+        continue;
+#endif
 
         // 形式: t_us,id_hex,ext,rtr,dlc,data_hex
         int n = snprintf(line, sizeof(line), "%lld,%03X,%d,%d,%d,",
@@ -123,6 +180,19 @@ static void out_task(void *arg)
                 st.state == TWAI_STATE_BUS_OFF     ? "BUS_OFF" :
                 st.state == TWAI_STATE_RECOVERING  ? "RECOVERING" : "STOPPED";
 
+#if MPP_SOC
+            // SOCの行を読みやすくするため、状態は5秒に1回だけ短く出す。
+            // frames>0 で soc=0 なら、つながってはいるが0x402が来ていない(MPP未装着等)。
+            static int stat_div = 0;
+            if (++stat_div >= 5) {
+                stat_div = 0;
+                printf("# stat frames=%u soc=%u buserr=%u state=%s\n",
+                       (unsigned)s_total.load(std::memory_order_relaxed),
+                       (unsigned)s_soc_count.load(std::memory_order_relaxed),
+                       (unsigned)st.bus_error_count, state);
+            }
+            (void)win; (void)alerts;
+#else
             printf("# stat t=%lld total=%u rate=%u/s drop_rb=%u "
                    "rx_missed=%u rx_overrun=%u buserr=%u tec=%d rec=%d state=%s alerts=0x%x\n",
                    (long long)now,
@@ -132,6 +202,7 @@ static void out_task(void *arg)
                    (unsigned)st.bus_error_count,
                    (int)st.tx_error_counter, (int)st.rx_error_counter,
                    state, (unsigned)alerts);
+#endif
             fflush(stdout);
             // 取りこぼしが起きた分を1回だけ経過表示に出す用途で total は累積のまま。
             t_next += 1000000;
@@ -163,7 +234,13 @@ extern "C" void app_main(void)
            "GPIO%d held HIGH(recessive)\n",
            (int)CAN_TX_DECOY_GPIO, (int)CAN_TXD_WIRE_GPIO);
     printf("# bitrate=%dk, RX=GPIO%d\n", (int)CAN_BITRATE_KBPS, (int)CAN_RX_GPIO);
+#if MPP_SOC
+    printf("# MPP SOC mode: shows CAN ID 0x%03X bytes0-1 x 0.01%%. Use the FIRST value.\n",
+           (unsigned)SOC_CAN_ID);
+    printf("# remove the 120ohm terminator. then: charger CAN connector -> set MPP on charger\n");
+#else
     printf("# line format: t_us,id_hex,ext,rtr,dlc,data_hex   (lines starting with '#' are status)\n");
+#endif
 
     // --- 安全策1+2: LISTEN_ONLY + TX信号はダミーGPIOへ ---
     twai_general_config_t g =
