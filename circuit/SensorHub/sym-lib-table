@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "SensorHub")(type "KiCad")(uri "${KIPRJMOD}/SensorHub.kicad_sym")(options "")(descr "SensorHub project symbols"))
+)
