@@ -142,8 +142,8 @@ class DashboardView(context: Context) : View(context) {
             avg == null -> (if (running) "この周の平均 計測中" else "スタート前") to label
             else -> "この周の平均 %.1f（%s）".format(avg, signed(avg - target)) to (if (avg >= target) green else yellow)
         }
-        val margin = if (cfg.marginS > 0) "（余裕${"%.0f".format(cfg.marginS)}秒）" else ""
-        tileBox(c, x, y, w, h, "この周の目標 平均km/h$margin", target?.let { "%.1f".format(it) } ?: "—", sub, white, subColor)
+        val margin = if (cfg.marginS > 0) "　余裕${"%.0f".format(cfg.marginS)}秒" else ""
+        tileBox(c, x, y, w, h, "目標 平均km/h$margin", target?.let { "%.1f".format(it) } ?: "—", sub, white, subColor)
 
         val last = v?.lastS
         if (v == null || v.count == 0 || last == null) {
@@ -195,6 +195,9 @@ class DashboardView(context: Context) : View(context) {
         val inset = h * 0.06f
         paint.typeface = normal; paint.color = label; paint.textAlign = Paint.Align.LEFT
         paint.textSize = h * 0.13f
+        val room = w - inset * 3
+        val wide = paint.measureText(name)
+        if (wide > room) paint.textSize *= room / wide
         c.drawText(name, x + inset * 1.5f, y + inset + paint.textSize, paint)
         text(c, value, RectF(x + inset, y + h * 0.22f, x + w - inset, y + h * 0.78f), valueColor, bold, 0.95f)
         if (sub.isNotEmpty()) text(c, sub, RectF(x + inset, y + h * 0.76f, x + w - inset, y + h - inset), subColor, normal, 0.85f)
