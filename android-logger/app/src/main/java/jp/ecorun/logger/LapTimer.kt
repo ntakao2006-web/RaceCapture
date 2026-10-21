@@ -28,6 +28,8 @@ data class LapConfig(
     val timeLimitS: Double? = null,
     /** Regulation distance in metres, for the average-speed pacing ([Pace]). */
     val raceDistanceM: Double? = null,
+    /** Seconds the pacing aims to finish ahead of [timeLimitS] ([Settings.marginS]). */
+    val marginS: Double = 0.0,
 ) {
     fun gate(target: String) = when (target) { "control" -> control; "start" -> start; else -> goal }
     fun withGate(target: String, g: Gate?) = when (target) {

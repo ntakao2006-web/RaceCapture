@@ -8,7 +8,9 @@ import kotlin.math.hypot
  * distance has to be covered within the regulation time, so after every lap the
  * driver gets the average speed the next lap needs to finish exactly on time
  * (the remaining distance over the remaining time). Driving the previous lap
- * faster than its target lowers the next target, and the reverse.
+ * faster than its target lowers the next target, and the reverse. The time
+ * aimed at is the limit less [LapConfig.marginS], since finishing even a few
+ * seconds late disqualifies.
  *
  * Lap distances come from the regulation distance, not from GNSS: a standing
  * start before the control line makes the first lap shorter by the start ->
@@ -23,6 +25,9 @@ object Pace {
         if (a == null || b == null) return 0.0
         return hypot((a.lon - b.lon) * M_PER_DEG * cos(Math.toRadians((a.lat + b.lat) / 2)), (a.lat - b.lat) * M_PER_DEG)
     }
+
+    /** The finishing time the pacing aims at. */
+    private fun plannedS(c: LapConfig) = c.timeLimitS?.let { it - c.marginS }
 
     /** Distance of lap [index] (0 = first) in metres, or null without a regulation distance and lap count. */
     fun lapDistanceM(c: LapConfig, index: Int): Double? {
@@ -40,7 +45,7 @@ object Pace {
     /** Average speed (km/h) lap [index] needs, given the lap times before it; null once past the limit. */
     fun targetKmh(c: LapConfig, laps: List<Double>, index: Int): Double? {
         val total = c.raceDistanceM ?: return null
-        val limit = c.timeLimitS ?: return null
+        val limit = plannedS(c) ?: return null
         if (lapDistanceM(c, index) == null) return null
         var done = 0.0
         for (k in 0 until index) done += lapDistanceM(c, k) ?: return null
@@ -53,10 +58,10 @@ object Pace {
     fun lapKmh(c: LapConfig, index: Int, seconds: Double): Double? =
         lapDistanceM(c, index)?.let { if (seconds > 0) it / seconds * 3.6 else null }
 
-    /** Seconds ahead (+) of an even pace over the regulation distance after the first [count] laps. */
+    /** Seconds ahead (+) of an even pace to the planned finish (margin included) after the first [count] laps. */
     fun bankedS(c: LapConfig, laps: List<Double>, count: Int): Double? {
         val total = c.raceDistanceM ?: return null
-        val limit = c.timeLimitS ?: return null
+        val limit = plannedS(c) ?: return null
         var done = 0.0
         for (k in 0 until count) done += lapDistanceM(c, k) ?: return null
         return done / total * limit - laps.take(count).sum()

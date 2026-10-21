@@ -133,6 +133,8 @@ class SettingsActivity : Activity() {
         val distance = field("規定距離（m、目標の平均速度に使う）", cfg.raceDistanceM?.let { "%.2f".format(it) } ?: "",
             "例：6856.72", custom, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL)
         if (!custom) note("規定周回数・規定時間・規定距離を変えるときは「その他（手入力）」を選ぶ")
+        val margin = field("余裕（秒）：規定時間よりこれだけ早くゴールする目標で平均速度を出す（${klass.code}用）", "%.0f".format(settings.marginS(klass)),
+            "例：30", true, InputType.TYPE_CLASS_NUMBER)
         val minLap = field("最短ラップ（秒、これより短い周は数えない）", "%.0f".format(cfg.minLapS), "10", true, InputType.TYPE_CLASS_NUMBER)
         column.addView(button("車・サーバー・大会の設定を保存") {
             if (!running) {
@@ -142,7 +144,9 @@ class SettingsActivity : Activity() {
             val lim = parseClock(limit.text.toString())
             val min = minLap.text.toString().trim().toDoubleOrNull()
             if (custom && limit.text.isNotBlank() && lim == null) { toast("規定時間は 16:27.36 の形で入れてください"); return@button }
-            val c = Race.config().copy(minLapS = (min ?: 10.0).coerceIn(5.0, 7200.0))
+            val marginS = (margin.text.toString().trim().toDoubleOrNull() ?: Settings.DEFAULT_MARGIN_S).coerceIn(0.0, 600.0)
+            settings.setMarginS(klass, marginS)
+            val c = Race.config().copy(minLapS = (min ?: 10.0).coerceIn(5.0, 7200.0), marginS = marginS)
             Race.configure(if (custom) c.copy(totalLaps = total, timeLimitS = lim,
                 raceDistanceM = distance.text.toString().trim().toDoubleOrNull()?.takeIf { it > 0 }) else c)
             toast("保存しました"); build()

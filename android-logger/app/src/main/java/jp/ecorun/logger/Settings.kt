@@ -31,6 +31,17 @@ class Settings(context: Context) {
     var raceClass: RaceClass?
         get() = prefs.getString("class", null)?.let { n -> RaceClass.entries.firstOrNull { it.name == n } }
         set(v) = prefs.edit().putString("class", v?.name).apply()
+
+    /**
+     * Seconds to finish ahead of the time limit (a few seconds late disqualifies),
+     * kept per class because the cars and the two-wheelers take it differently.
+     */
+    fun marginS(c: RaceClass): Double = prefs.getFloat("margin_${c.name}", DEFAULT_MARGIN_S.toFloat()).toDouble()
+    fun setMarginS(c: RaceClass, s: Double) = prefs.edit().putFloat("margin_${c.name}", s.toFloat()).apply()
+
+    companion object {
+        const val DEFAULT_MARGIN_S = 30.0
+    }
 }
 
 /**
@@ -58,17 +69,21 @@ enum class RaceClass(val code: String, val official: String, val laps: Int?, val
 
     /** Makes this the class: its laps and time limit, and the matching 1G calibration. */
     fun apply(context: android.content.Context) {
-        Settings(context).raceClass = this
-        if (laps != null) Race.configure(Race.config().copy(totalLaps = laps, timeLimitS = limitS, raceDistanceM = distanceM))
+        val settings = Settings(context)
+        settings.raceClass = this
+        val c = Race.config().copy(marginS = settings.marginS(this))
+        Race.configure(if (laps != null) c.copy(totalLaps = laps, timeLimitS = limitS, raceDistanceM = distanceM) else c)
         Imu.setTwoWheel(twoWheel)
     }
 
     companion object {
         fun ensure(context: android.content.Context): RaceClass {
-            val c = Settings(context).raceClass ?: return CN_MOTORCYCLE.also { it.apply(context) }
-            // Classes chosen before the regulation distance was kept get it here.
-            if (c.distanceM != null && Race.config().raceDistanceM != c.distanceM)
-                Race.configure(Race.config().copy(raceDistanceM = c.distanceM))
+            val settings = Settings(context)
+            val c = settings.raceClass ?: return CN_MOTORCYCLE.also { it.apply(context) }
+            // Classes chosen before the regulation distance and the margin were kept get them here.
+            val cfg = Race.config()
+            val fixed = cfg.copy(raceDistanceM = c.distanceM ?: cfg.raceDistanceM, marginS = settings.marginS(c))
+            if (fixed != cfg) Race.configure(fixed)
             return c
         }
     }

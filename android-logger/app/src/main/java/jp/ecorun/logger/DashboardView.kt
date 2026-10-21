@@ -138,11 +138,12 @@ class DashboardView(context: Context) : View(context) {
         val avg = if (running && elapsed != null && elapsed >= 5) v!!.lapDistM / elapsed * 3.6 else null
         val (sub, subColor) = when {
             v?.finished == true -> "ゴール" to label
-            target == null -> (if (v?.raceS != null) "規定時間を過ぎました" else "") to red
+            target == null -> (v?.raceS?.let { if (it < (cfg.timeLimitS ?: 0.0)) "余裕を使い切りました" else "規定時間を過ぎました" } ?: "") to red
             avg == null -> (if (running) "この周の平均 計測中" else "スタート前") to label
             else -> "この周の平均 %.1f（%s）".format(avg, signed(avg - target)) to (if (avg >= target) green else yellow)
         }
-        tileBox(c, x, y, w, h, "この周の目標 平均km/h", target?.let { "%.1f".format(it) } ?: "—", sub, white, subColor)
+        val margin = if (cfg.marginS > 0) "（余裕${"%.0f".format(cfg.marginS)}秒）" else ""
+        tileBox(c, x, y, w, h, "この周の目標 平均km/h$margin", target?.let { "%.1f".format(it) } ?: "—", sub, white, subColor)
 
         val last = v?.lastS
         if (v == null || v.count == 0 || last == null) {

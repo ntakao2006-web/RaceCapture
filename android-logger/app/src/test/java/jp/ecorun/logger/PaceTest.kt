@@ -39,6 +39,17 @@ class PaceTest {
         assertEquals(-20.0, Pace.bankedS(motegi, listOf(slow), 1)!!, 1e-6)
     }
 
+    /** With a margin, driving every lap at its target ends the margin ahead of the limit. */
+    @Test
+    fun marginFinishesEarly() {
+        val c = motegi.copy(marginS = 30.0)
+        assertEquals(6856.72 / (limit - 30) * 3.6, Pace.targetKmh(c, emptyList(), 0)!!, 1e-9)
+        val laps = mutableListOf<Double>()
+        for (k in 0 until 3) laps.add(Pace.lapDistanceM(c, k)!! / (Pace.targetKmh(c, laps, k)!! / 3.6))
+        assertEquals(limit - 30, laps.sum(), 1e-6)
+        assertEquals(0.0, Pace.bankedS(c, laps, 3)!!, 1e-6)
+    }
+
     @Test
     fun nothingWithoutADistanceOrPastTheLimit() {
         assertNull(Pace.targetKmh(motegi.copy(raceDistanceM = null), emptyList(), 0))
