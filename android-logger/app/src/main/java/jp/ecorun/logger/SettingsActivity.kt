@@ -116,25 +116,31 @@ class SettingsActivity : Activity() {
 
         section("大会")
         val klass = RaceClass.ensure(this)
-        note("クラス（2026年 全国大会の競技規則の名前）を選ぶと規定周回数・規定時間が入り、1G校正の取り方（二輪は走行中、四輪は停車中）も切り替わる")
+        val classLocked = Race.classLocked
+        note("クラス（2026年 全国大会の競技規則の名前）を選ぶと規定周回数・規定時間・規定距離が入り、1G校正の取り方（二輪は走行中、四輪は停車中）も切り替わる")
+        note(if (classLocked) "🔒 クラス・周回数・時間・距離・余裕はロック中（変えるときは下の「ロックを外す」を長押し）"
+            else "クラス・周回数・時間・距離・余裕はロックしていません。決めたら下の「ロックする」で固定する（ラップのリセットでも自動でロック）")
         for ((i, c) in RaceClass.entries.withIndex()) {
-            if (i == 3) note("ほかの公式クラス")
-            column.addView(button((if (c == klass) "✓ " else "　") + c.label) { c.apply(this); toast("${c.code} にしました"); build() }.apply {
+            if (classLocked && c != klass) continue
+            if (i == 3 && !classLocked) note("ほかの公式クラス")
+            column.addView(button((if (c == klass) "✓ " else "　") + c.label) {
+                if (Race.classLocked) toast("ロック中です") else { c.apply(this); toast("${c.code} にしました"); build() }
+            }.apply {
                 (background as GradientDrawable).setColor(if (c == klass) Color.rgb(35, 134, 54) else Color.rgb(48, 54, 61))
                 gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
                 textSize = 16f
             }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
         }
         val cfg = Race.config()
-        val custom = klass == RaceClass.OTHER
+        val custom = klass == RaceClass.OTHER && !classLocked
         val laps = field("規定周回数", cfg.totalLaps?.toString() ?: "", "例：3", custom, InputType.TYPE_CLASS_NUMBER)
         val limit = field("規定時間（分:秒）", cfg.timeLimitS?.let { DashboardView.clock(it, false) + ".%02d".format(Math.round((it % 1) * 100).toInt().coerceAtMost(99)) } ?: "",
             "例：16:27.36", custom, InputType.TYPE_CLASS_TEXT)
         val distance = field("規定距離（m、目標の平均速度に使う）", cfg.raceDistanceM?.let { "%.2f".format(it) } ?: "",
             "例：6856.72", custom, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL)
-        if (!custom) note("規定周回数・規定時間・規定距離を変えるときは「その他（手入力）」を選ぶ")
+        if (!custom && !classLocked) note("規定周回数・規定時間・規定距離を変えるときは「その他（手入力）」を選ぶ")
         val margin = field("余裕（秒）：規定時間よりこれだけ早くゴールする目標で平均速度を出す（${klass.code}用）", "%.0f".format(settings.marginS(klass)),
-            "例：30", true, InputType.TYPE_CLASS_NUMBER)
+            "例：30", !classLocked, InputType.TYPE_CLASS_NUMBER)
         val minLap = field("最短ラップ（秒、これより短い周は数えない）", "%.0f".format(cfg.minLapS), "10", true, InputType.TYPE_CLASS_NUMBER)
         column.addView(button("車・サーバー・大会の設定を保存") {
             if (!running) {
@@ -144,13 +150,25 @@ class SettingsActivity : Activity() {
             val lim = parseClock(limit.text.toString())
             val min = minLap.text.toString().trim().toDoubleOrNull()
             if (custom && limit.text.isNotBlank() && lim == null) { toast("規定時間は 16:27.36 の形で入れてください"); return@button }
-            val marginS = (margin.text.toString().trim().toDoubleOrNull() ?: Settings.DEFAULT_MARGIN_S).coerceIn(0.0, 600.0)
-            settings.setMarginS(klass, marginS)
-            val c = Race.config().copy(minLapS = (min ?: 10.0).coerceIn(5.0, 7200.0), marginS = marginS)
-            Race.configure(if (custom) c.copy(totalLaps = total, timeLimitS = lim,
+            var c = Race.config().copy(minLapS = (min ?: 10.0).coerceIn(5.0, 7200.0))
+            if (!Race.classLocked) {
+                val marginS = (margin.text.toString().trim().toDoubleOrNull() ?: Settings.DEFAULT_MARGIN_S).coerceIn(0.0, 600.0)
+                settings.setMarginS(klass, marginS)
+                c = c.copy(marginS = marginS)
+            }
+            Race.configure(if (custom && !Race.classLocked) c.copy(totalLaps = total, timeLimitS = lim,
                 raceDistanceM = distance.text.toString().trim().toDoubleOrNull()?.takeIf { it > 0 }) else c)
             toast("保存しました"); build()
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
+        column.addView(if (classLocked) button("大会の設定のロックを外す（長押し）") { toast("長押しで外します") }.apply {
+            setOnLongClickListener {
+                AlertDialog.Builder(this@SettingsActivity).setMessage("クラス・周回数・時間・距離・余裕のロックを外します。外すと変えられるようになります。よいですか？")
+                    .setPositiveButton("外す") { _, _ -> Race.setClassLocked(false); build() }
+                    .setNegativeButton("やめる", null).show(); true
+            }
+        } else button("大会の設定をロックする") {
+            Race.setClassLocked(true); toast("ロックしました（未保存の入力は捨てました）"); build()
+        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
 
         section("ライン")
         val ref = Race.reference
@@ -188,7 +206,7 @@ class SettingsActivity : Activity() {
         note(if (list.isEmpty()) "まだ周回はありません" else list.mapIndexed { i, s -> "${i + 1}周目 ${DashboardView.clock(s, true)}" }.joinToString("　"))
         if (v?.finished == true) note("ゴール済み")
         column.addView(button("ラップをリセット（本番の前に必ず）") {
-            AlertDialog.Builder(this).setMessage("周回の記録を消して、スタート前に戻します。ラインもロックします。よいですか？")
+            AlertDialog.Builder(this).setMessage("周回の記録を消して、スタート前に戻します。ラインと大会の設定（クラス・余裕など）もロックします。よいですか？")
                 .setPositiveButton("リセット") { _, _ -> Race.reset(); build() }
                 .setNegativeButton("やめる", null).show()
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })

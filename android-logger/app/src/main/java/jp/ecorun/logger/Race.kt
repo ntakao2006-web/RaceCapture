@@ -24,6 +24,7 @@ object Race {
         val (config, state) = try { load() } catch (_: Exception) { MOTEGI.copy(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S, raceDistanceM = DEFAULT_DISTANCE_M) to LapState() }
         timer = LapTimer(config, state) { save(it) }
         locked = prefs.getBoolean("locked", false)
+        classLocked = prefs.getBoolean("classLocked", false)
         reference = prefs.getString("refId", null)?.let { Ref(it, prefs.getString("refAt", "") ?: "", prefs.getString("refSrc", "") ?: "") }
     }
 
@@ -36,8 +37,8 @@ object Race {
     fun config(): LapConfig = synchronized(lock) { timer?.config ?: LapConfig() }
     fun laps(): List<Double> = synchronized(lock) { timer?.state?.laps?.toList() ?: emptyList() }
     fun configure(c: LapConfig) = synchronized(lock) { timer?.configure(c) }
-    /** Clears the laps; done just before the race, so the lines get locked as well. */
-    fun reset() = synchronized(lock) { timer?.reset(); locked = true; saveLock() }
+    /** Clears the laps; done just before the race, so the lines and the class settings get locked as well. */
+    fun reset() = synchronized(lock) { timer?.reset(); locked = true; classLocked = true; saveLock() }
 
     /** Between the start and the goal: the driver screen then guards the settings button. */
     fun racing(): Boolean = synchronized(lock) { timer?.state?.let { it.raceStartMs != null && !it.finished } ?: false }
@@ -61,11 +62,15 @@ object Race {
 
     fun setLocked(on: Boolean) = synchronized(lock) { locked = on; saveLock() }
 
+    /** Locked class settings (class, laps, time, distance, margin) cannot be changed from the screen until unlocked. */
+    var classLocked = false; private set
+    fun setClassLocked(on: Boolean) = synchronized(lock) { classLocked = on; saveLock() }
+
     /** Lines changed on this phone are no longer the Ver.2 reference. */
     private fun ownLines() { reference = null; saveLock() }
 
     private fun saveLock() {
-        prefs.edit().putBoolean("locked", locked).putString("refId", reference?.id).putString("refAt", reference?.at)
+        prefs.edit().putBoolean("locked", locked).putBoolean("classLocked", classLocked).putString("refId", reference?.id).putString("refAt", reference?.at)
             .putString("refSrc", reference?.source).apply()
     }
 
