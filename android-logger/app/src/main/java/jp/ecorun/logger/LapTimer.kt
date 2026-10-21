@@ -26,6 +26,8 @@ data class LapConfig(
     val totalLaps: Int? = null,
     /** Regulation time in seconds (only shown to the driver, never ends the race). */
     val timeLimitS: Double? = null,
+    /** Regulation distance in metres, for the average-speed pacing ([Pace]). */
+    val raceDistanceM: Double? = null,
 ) {
     fun gate(target: String) = when (target) { "control" -> control; "start" -> start; else -> goal }
     fun withGate(target: String, g: Gate?) = when (target) {
@@ -42,6 +44,14 @@ data class LapState(
     var raceEndMs: Long? = null,
     var finished: Boolean = false,
     val laps: MutableList<Double> = ArrayList(),
+    /** Distance driven in the current lap (GNSS speed over time), for its running average. */
+    var lapDistM: Double = 0.0,
+    /**
+     * Regulation lap distance over the GNSS distance of the last whole lap: GNSS
+     * runs a few percent short (2.2-2.3 km against 2.38 km on the team's Motegi
+     * log), so the running average is scaled to agree with the lap averages.
+     */
+    var distScale: Double = 1.0,
 )
 
 /** One GNSS fix: GNSS UTC, position, horizontal accuracy, speed (km/h), heading. */
@@ -52,6 +62,7 @@ data class Fix(val utcMs: Long, val lat: Double, val lon: Double,
 data class LapValues(
     val count: Int, val current: Int, val lastS: Double?, val bestS: Double?, val elapsedS: Double?,
     val raceS: Double?, val lapsLeft: Int?, val finished: Boolean,
+    val lapDistM: Double = 0.0,
 )
 
 private const val EARTH_M_PER_DEG = 111320.0
@@ -135,7 +146,7 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
 
     fun reset() {
         state.count = 0; state.lastS = null; state.bestS = null; state.lapStartMs = null
-        state.raceStartMs = null; state.raceEndMs = null; state.finished = false; state.laps.clear()
+        state.raceStartMs = null; state.raceEndMs = null; state.finished = false; state.laps.clear(); state.lapDistM = 0.0; state.distScale = 1.0
         forgetMotion(); onChange(this)
     }
 
@@ -159,7 +170,7 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
                 s.raceStartMs?.let { (s.raceEndMs!! - it) / 1000.0 }, total?.let { maxOf(0, it - s.count) }, true)
         } else {
             LapValues(s.count, if (s.lapStartMs != null) s.count + 1 else 0, s.lastS, s.bestS, since(s.lapStartMs),
-                since(s.raceStartMs), total?.let { maxOf(0, it - s.count) }, false)
+                since(s.raceStartMs), total?.let { maxOf(0, it - s.count) }, false, s.lapDistM * s.distScale)
         }
     }
 
@@ -167,6 +178,8 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
         val lap = (at - state.lapStartMs!!) / 1000.0
         state.count++; state.lastS = lap
         state.bestS = state.bestS?.let { minOf(it, lap) } ?: lap
+        val ratio = Pace.lapDistanceM(config, state.laps.size)?.let { if (state.lapDistM > 0) it / state.lapDistM else null }
+        if (ratio != null && ratio in 0.85..1.15) state.distScale = ratio
         state.laps.add(lap)
     }
 
@@ -216,6 +229,7 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
             watches.values.forEach { it.inside = ArrayList() }
             return
         }
+        val lapBefore = state.lapStartMs
         var learnedAny = false
         for (t in listOf("start", "control", "goal")) {
             val g = config.gate(t) ?: continue
@@ -223,7 +237,23 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
             if (learned != null) { config = config.withGate(t, g.copy(bearing = learned)); learnedAny = true }
             if (at != null) when (t) { "start" -> started(at); "control" -> crossed(at); else -> finished(at) }
         }
+        addDistance(prev, fix, lapBefore)
         if (learnedAny) onChange(this)
+    }
+
+    /** Adds the part of prev -> fix driven in the current lap (all of it, or what follows a new lap's start). */
+    private fun addDistance(prev: Fix, fix: Fix, lapBefore: Long?) {
+        val start = state.lapStartMs ?: return
+        if (state.finished) return
+        if (start != lapBefore) state.lapDistM = 0.0
+        val from = maxOf(start, prev.utcMs)
+        if (from >= fix.utcMs) return
+        val a = prev.speedKmh; val b = fix.speedKmh
+        val mps = if (a != null && b != null) (a + b) / 2 / 3.6 else {
+            val p = offset(Gate(prev.lat, prev.lon), fix)
+            hypot(p.x, p.y) / ((fix.utcMs - prev.utcMs) / 1000.0)
+        }
+        state.lapDistM += mps * (fix.utcMs - from) / 1000.0
     }
 
     companion object {

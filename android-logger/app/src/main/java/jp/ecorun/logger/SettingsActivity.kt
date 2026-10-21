@@ -130,7 +130,9 @@ class SettingsActivity : Activity() {
         val laps = field("規定周回数", cfg.totalLaps?.toString() ?: "", "例：3", custom, InputType.TYPE_CLASS_NUMBER)
         val limit = field("規定時間（分:秒）", cfg.timeLimitS?.let { DashboardView.clock(it, false) + ".%02d".format(Math.round((it % 1) * 100).toInt().coerceAtMost(99)) } ?: "",
             "例：16:27.36", custom, InputType.TYPE_CLASS_TEXT)
-        if (!custom) note("規定周回数・規定時間を変えるときは「その他（手入力）」を選ぶ")
+        val distance = field("規定距離（m、目標の平均速度に使う）", cfg.raceDistanceM?.let { "%.2f".format(it) } ?: "",
+            "例：6856.72", custom, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL)
+        if (!custom) note("規定周回数・規定時間・規定距離を変えるときは「その他（手入力）」を選ぶ")
         val minLap = field("最短ラップ（秒、これより短い周は数えない）", "%.0f".format(cfg.minLapS), "10", true, InputType.TYPE_CLASS_NUMBER)
         column.addView(button("車・サーバー・大会の設定を保存") {
             if (!running) {
@@ -141,7 +143,8 @@ class SettingsActivity : Activity() {
             val min = minLap.text.toString().trim().toDoubleOrNull()
             if (custom && limit.text.isNotBlank() && lim == null) { toast("規定時間は 16:27.36 の形で入れてください"); return@button }
             val c = Race.config().copy(minLapS = (min ?: 10.0).coerceIn(5.0, 7200.0))
-            Race.configure(if (custom) c.copy(totalLaps = total, timeLimitS = lim) else c)
+            Race.configure(if (custom) c.copy(totalLaps = total, timeLimitS = lim,
+                raceDistanceM = distance.text.toString().trim().toDoubleOrNull()?.takeIf { it > 0 }) else c)
             toast("保存しました"); build()
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
 

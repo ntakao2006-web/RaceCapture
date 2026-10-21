@@ -25,7 +25,7 @@ data class Dash(
     val charging: Boolean = false,
     val lap: LapValues? = null,
     val config: LapConfig = LapConfig(),
-    val lapSumS: Double = 0.0,
+    val laps: List<Double> = emptyList(),
     val warning: String? = null,
     val classCode: String = "",
     val reference: String = "",
@@ -120,20 +120,64 @@ class DashboardView(context: Context) : View(context) {
             tileBox(c, gx + gw + pad, top, gw, gh, "経過", v?.raceS?.let { clock(it, false) } ?: "—", "", white, label)
         }
 
+        if (cfg.raceDistanceM != null && total != null && limit != null) speedTiles(c, gx, top + gh + pad, gw, gh, pad, d)
+        else timeTiles(c, gx, top + gh + pad, gw, gh, pad, d)
+    }
+
+    /**
+     * Eco-run pacing ([Pace]): the average speed this lap needs to finish on
+     * time, against the lap's running average; the previous lap's average
+     * against the target it had, and the time banked on an even pace.
+     */
+    private fun speedTiles(c: Canvas, x: Float, y: Float, w: Float, h: Float, pad: Float, d: Dash) {
+        val cfg = d.config; val v = d.lap
+        val index = v?.count ?: 0
+        val running = v != null && !v.finished && v.current > 0
+        val target = if (v?.finished == true) null else Pace.targetKmh(cfg, d.laps, index)
+        val elapsed = v?.elapsedS
+        val avg = if (running && elapsed != null && elapsed >= 5) v!!.lapDistM / elapsed * 3.6 else null
+        val (sub, subColor) = when {
+            v?.finished == true -> "ゴール" to label
+            target == null -> (if (v?.raceS != null) "規定時間を過ぎました" else "") to red
+            avg == null -> (if (running) "この周の平均 計測中" else "スタート前") to label
+            else -> "この周の平均 %.1f（%s）".format(avg, signed(avg - target)) to (if (avg >= target) green else yellow)
+        }
+        tileBox(c, x, y, w, h, "この周の目標 平均km/h", target?.let { "%.1f".format(it) } ?: "—", sub, white, subColor)
+
+        val last = v?.lastS
+        if (v == null || v.count == 0 || last == null) {
+            tileBox(c, x + w + pad, y, w, h, "前の周 平均km/h", "—", "", white, label)
+            return
+        }
+        val prev = v.count - 1
+        val lastKmh = Pace.lapKmh(cfg, prev, last)
+        val gap = Pace.targetKmh(cfg, d.laps, prev)?.let { t -> lastKmh?.let { it - t } }
+        val banked = Pace.bankedS(cfg, d.laps, v.count)
+        val parts = listOfNotNull(gap?.let { "目標比 " + signed(it) }, banked?.let { "貯金 " + (if (it >= 0) "+" else "−") + clock(abs(it), false) })
+        tileBox(c, x + w + pad, y, w, h, "前の周 平均km/h", lastKmh?.let { "%.1f".format(it) } ?: "—",
+            parts.joinToString("　").ifEmpty { clock(last, true) }, white, if (banked == null) label else if (banked >= 0) green else red)
+    }
+
+    private fun signed(kmh: Double) = (if (kmh >= 0) "+" else "−") + "%.1f".format(abs(kmh))
+
+    /** Without a regulation distance: lap times against an even share of the time limit. */
+    private fun timeTiles(c: Canvas, x: Float, y: Float, w: Float, h: Float, pad: Float, d: Dash) {
+        val cfg = d.config; val v = d.lap
+        val limit = cfg.timeLimitS; val total = cfg.totalLaps
         // Current lap against the pace that still makes the time limit.
         val elapsed = v?.elapsedS
         val target = if (v != null && !v.finished && limit != null && total != null && v.raceS != null && elapsed != null) {
             val lapsToGo = total - v.count
             if (lapsToGo > 0) (limit - (v.raceS - elapsed)) / lapsToGo else null
         } else null
-        tileBox(c, gx, top + gh + pad, gw, gh, "今の周", elapsed?.let { clock(it, true) } ?: "—",
+        tileBox(c, x, y, w, h, "今の周", elapsed?.let { clock(it, true) } ?: "—",
             target?.let { "目標 " + clock(it, false) } ?: "",
             if (target != null && elapsed != null && elapsed > target) yellow else white, label)
 
         // Previous lap and the time banked against an even pace.
-        val savings = if (v != null && limit != null && total != null && v.count > 0) v.count * (limit / total) - d.lapSumS else null
+        val savings = if (v != null && limit != null && total != null && v.count > 0) v.count * (limit / total) - d.laps.sum() else null
         val savingsText = savings?.let { "貯金 " + (if (it >= 0) "+" else "−") + clock(abs(it), false) } ?: (v?.bestS?.let { "ベスト " + clock(it, true) } ?: "")
-        tileBox(c, gx + gw + pad, top + gh + pad, gw, gh, "前回", v?.lastS?.let { clock(it, true) } ?: "—",
+        tileBox(c, x + w + pad, y, w, h, "前回", v?.lastS?.let { clock(it, true) } ?: "—",
             savingsText, white, if (savings == null) label else if (savings >= 0) green else red)
     }
 

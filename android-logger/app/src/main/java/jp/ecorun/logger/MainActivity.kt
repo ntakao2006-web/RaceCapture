@@ -116,7 +116,7 @@ class MainActivity : Activity() {
             speedKmh = if (running) Status.speedKmh else null,
             relay = Status.relay, relayConnected = Status.relayConnected,
             batteryPct = if (level >= 0) level * 100 / scale else null, charging = plugged,
-            lap = Race.values(), config = Race.config(), lapSumS = Race.laps().sum(),
+            lap = Race.values(), config = Race.config(), laps = Race.laps(),
             classCode = settings.raceClass?.code ?: "",
             reference = Race.reference?.id?.let { "基準$it" } ?: "基準なし",
             warning = warning(running, now),

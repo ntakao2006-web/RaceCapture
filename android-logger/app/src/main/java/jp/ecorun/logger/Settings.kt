@@ -42,7 +42,8 @@ class Settings(context: Context) {
  * The team's classes this year come first (CNG3 = the kosen CN fuel class,
  * CN two-wheel, EV two-wheel). OTHER keeps whatever laps / time are typed in.
  */
-enum class RaceClass(val code: String, val official: String, val laps: Int?, val limitS: Double?, val twoWheel: Boolean) {
+enum class RaceClass(val code: String, val official: String, val laps: Int?, val limitS: Double?, val twoWheel: Boolean,
+                     val distanceM: Double? = if (laps == 7) 16389.68 else if (laps == 3) 6856.72 else null) {
     CNG3("CNG3", "CNグループⅢ（大学・短大・高専・専門学校生クラス）", 7, 39 * 60 + 20.11, false),
     CN_MOTORCYCLE("CN二輪", "CN二輪車クラス", 3, 16 * 60 + 27.36, true),
     EV_MOTORCYCLE("EV二輪", "電動二輪車クラス", 3, 16 * 60 + 27.36, true),
@@ -58,12 +59,17 @@ enum class RaceClass(val code: String, val official: String, val laps: Int?, val
     /** Makes this the class: its laps and time limit, and the matching 1G calibration. */
     fun apply(context: android.content.Context) {
         Settings(context).raceClass = this
-        if (laps != null) Race.configure(Race.config().copy(totalLaps = laps, timeLimitS = limitS))
+        if (laps != null) Race.configure(Race.config().copy(totalLaps = laps, timeLimitS = limitS, raceDistanceM = distanceM))
         Imu.setTwoWheel(twoWheel)
     }
 
     companion object {
-        fun ensure(context: android.content.Context): RaceClass =
-            Settings(context).raceClass ?: CN_MOTORCYCLE.also { it.apply(context) }
+        fun ensure(context: android.content.Context): RaceClass {
+            val c = Settings(context).raceClass ?: return CN_MOTORCYCLE.also { it.apply(context) }
+            // Classes chosen before the regulation distance was kept get it here.
+            if (c.distanceM != null && Race.config().raceDistanceM != c.distanceM)
+                Race.configure(Race.config().copy(raceDistanceM = c.distanceM))
+            return c
+        }
     }
 }

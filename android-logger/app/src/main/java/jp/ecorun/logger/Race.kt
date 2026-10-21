@@ -21,7 +21,7 @@ object Race {
     fun init(context: Context) = synchronized(lock) {
         if (timer != null) return
         prefs = context.applicationContext.getSharedPreferences("race", Context.MODE_PRIVATE)
-        val (config, state) = try { load() } catch (_: Exception) { MOTEGI.copy(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState() }
+        val (config, state) = try { load() } catch (_: Exception) { MOTEGI.copy(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S, raceDistanceM = DEFAULT_DISTANCE_M) to LapState() }
         timer = LapTimer(config, state) { save(it) }
         locked = prefs.getBoolean("locked", false)
         reference = prefs.getString("refId", null)?.let { Ref(it, prefs.getString("refAt", "") ?: "", prefs.getString("refSrc", "") ?: "") }
@@ -100,28 +100,30 @@ object Race {
             .put("control", gateJson(c.control)).put("start", gateJson(c.start)).put("goal", gateJson(c.goal))
             .put("minLap", c.minLapS).put("maxLap", c.maxLapS)
             .put("totalLaps", c.totalLaps ?: JSONObject.NULL).put("limit", c.timeLimitS ?: JSONObject.NULL)
+            .put("distance", c.raceDistanceM ?: JSONObject.NULL)
             .put("count", s.count).put("last", s.lastS ?: JSONObject.NULL).put("best", s.bestS ?: JSONObject.NULL)
             .put("lapStart", s.lapStartMs ?: JSONObject.NULL).put("raceStart", s.raceStartMs ?: JSONObject.NULL)
             .put("raceEnd", s.raceEndMs ?: JSONObject.NULL).put("finished", s.finished)
-            .put("laps", JSONArray(s.laps))
+            .put("laps", JSONArray(s.laps)).put("lapDist", s.lapDistM).put("distScale", s.distScale)
         prefs.edit().putString("race", json.toString()).apply()
     }
 
     private fun load(): Pair<LapConfig, LapState> {
-        val text = prefs.getString("race", null) ?: return MOTEGI.copy(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S) to LapState()
+        val text = prefs.getString("race", null) ?: return MOTEGI.copy(totalLaps = 3, timeLimitS = DEFAULT_LIMIT_S, raceDistanceM = DEFAULT_DISTANCE_M) to LapState()
         val o = JSONObject(text)
         val config = LapConfig(gate(o.optJSONObject("control")), gate(o.optJSONObject("start")), gate(o.optJSONObject("goal")),
             o.optDouble("minLap", 10.0), o.optDouble("maxLap", 3600.0),
-            if (o.isNull("totalLaps")) null else o.getInt("totalLaps"), o.doubleOrNull("limit"))
+            if (o.isNull("totalLaps")) null else o.getInt("totalLaps"), o.doubleOrNull("limit"), o.doubleOrNull("distance"))
         val laps = o.optJSONArray("laps")
         val state = LapState(o.optInt("count"), o.doubleOrNull("last"), o.doubleOrNull("best"),
             o.longOrNull("lapStart"), o.longOrNull("raceStart"), o.longOrNull("raceEnd"), o.optBoolean("finished"),
-            MutableList(laps?.length() ?: 0) { laps!!.getDouble(it) })
+            MutableList(laps?.length() ?: 0) { laps!!.getDouble(it) }, o.optDouble("lapDist", 0.0), o.optDouble("distScale", 1.0))
         return config to state
     }
 
     /** Honda EMC 2026, two-wheel classes: 3 laps in 16:27.36 (see [RaceClass]). */
     const val DEFAULT_LIMIT_S = 16 * 60 + 27.36
+    const val DEFAULT_DISTANCE_M = 6856.72
 
     /**
      * Rough lines for the national final (Motegi oval), picked by the user on
