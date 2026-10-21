@@ -113,7 +113,8 @@ class DashboardView(context: Context) : View(context) {
         if (limit != null) {
             val race = v?.raceS
             val rem = if (race == null) limit else limit - race
-            val sub = if (race == null) "スタート前" else "経過 " + clock(race, false)
+            val margin = if (cfg.marginS > 0 && cfg.raceDistanceM != null) "　余裕${"%.0f".format(cfg.marginS)}秒" else ""
+            val sub = (if (race == null) "スタート前" else "経過 " + clock(race, false)) + margin
             tileBox(c, gx + gw + pad, top, gw, gh, "残り時間", (if (rem < 0) "+" else "") + clock(abs(rem), false), sub,
                 if (rem < 0) red else if (rem < 120) yellow else white, label)
         } else {
@@ -126,37 +127,34 @@ class DashboardView(context: Context) : View(context) {
 
     /**
      * Eco-run pacing ([Pace]): the average speed this lap needs to finish on
-     * time, against the lap's running average; the previous lap's average
-     * against the target it had, and the time banked on an even pace.
+     * time (set when the lap starts, so it holds still while the driver works
+     * to it), and beside it this lap's running average, which moves as the
+     * lap goes on, green at or above the target and yellow below.
      */
     private fun speedTiles(c: Canvas, x: Float, y: Float, w: Float, h: Float, pad: Float, d: Dash) {
         val cfg = d.config; val v = d.lap
         val index = v?.count ?: 0
         val running = v != null && !v.finished && v.current > 0
         val target = if (v?.finished == true) null else Pace.targetKmh(cfg, d.laps, index)
-        val elapsed = v?.elapsedS
-        val avg = if (running && elapsed != null && elapsed >= 5) v!!.lapDistM / elapsed * 3.6 else null
-        val (sub, subColor) = when {
+        val banked = if (v != null && v.count > 0) Pace.bankedS(cfg, d.laps, v.count) else null
+        val (targetSub, targetSubColor) = when {
             v?.finished == true -> "ゴール" to label
             target == null -> (v?.raceS?.let { if (it < (cfg.timeLimitS ?: 0.0)) "余裕を使い切りました" else "規定時間を過ぎました" } ?: "") to red
-            avg == null -> (if (running) "この周の平均 計測中" else "スタート前") to label
-            else -> "この周の平均 %.1f（%s）".format(avg, signed(avg - target)) to (if (avg >= target) green else yellow)
+            banked != null -> "貯金 " + (if (banked >= 0) "+" else "−") + clock(abs(banked), false) to (if (banked >= 0) green else red)
+            running -> "" to label
+            else -> "スタート前" to label
         }
-        val margin = if (cfg.marginS > 0) "　余裕${"%.0f".format(cfg.marginS)}秒" else ""
-        tileBox(c, x, y, w, h, "目標 平均km/h$margin", target?.let { "%.1f".format(it) } ?: "—", sub, white, subColor)
+        tileBox(c, x, y, w, h, "この周の目標 平均km/h", target?.let { "%.1f".format(it) } ?: "—", targetSub, white, targetSubColor)
 
-        val last = v?.lastS
-        if (v == null || v.count == 0 || last == null) {
-            tileBox(c, x + w + pad, y, w, h, "前の周 平均km/h", "—", "", white, label)
-            return
+        val elapsed = v?.elapsedS
+        val avg = if (running && elapsed != null && elapsed >= 5) v!!.lapDistM / elapsed * 3.6 else null
+        val (avgSub, avgColor) = when {
+            avg == null -> (if (running) "計測中" else if (v?.finished == true) "ゴール" else "スタート前") to white
+            target == null -> "" to white
+            else -> "目標比 " + signed(avg - target) to (if (avg >= target) green else yellow)
         }
-        val prev = v.count - 1
-        val lastKmh = Pace.lapKmh(cfg, prev, last)
-        val gap = Pace.targetKmh(cfg, d.laps, prev)?.let { t -> lastKmh?.let { it - t } }
-        val banked = Pace.bankedS(cfg, d.laps, v.count)
-        val parts = listOfNotNull(gap?.let { "目標比 " + signed(it) }, banked?.let { "貯金 " + (if (it >= 0) "+" else "−") + clock(abs(it), false) })
-        tileBox(c, x + w + pad, y, w, h, "前の周 平均km/h", lastKmh?.let { "%.1f".format(it) } ?: "—",
-            parts.joinToString("　").ifEmpty { clock(last, true) }, white, if (banked == null) label else if (banked >= 0) green else red)
+        tileBox(c, x + w + pad, y, w, h, "この周の平均 km/h", avg?.let { "%.1f".format(it) } ?: "—", avgSub,
+            if (avg == null) white else avgColor, if (avg == null) label else avgColor)
     }
 
     private fun signed(kmh: Double) = (if (kmh >= 0) "+" else "−") + "%.1f".format(abs(kmh))
