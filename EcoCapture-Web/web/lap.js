@@ -14,16 +14,22 @@ function lapMode(line){
     ?{name:'エコラン式',text:'数え方：エコラン式（スタートラインあり）— スタートから最初のコントロール通過までが1周目です。'}
     :{name:'サーキット式',text:'数え方：サーキット式（スタートラインなし）— 最初のコントロール通過では数えず、次のコントロール通過で1周目です。エコランの周回で数えるにはスタートラインを登録します。'};
 }
+// The form is refreshed from the logger while open, so a value changed elsewhere (the phone's
+// course-walk screen, another browser) shows up here. Fields being edited are left alone, and
+// "すべて保存" sends only those, so it never writes back a stale value of an untouched field.
+const lapInputs=()=>[...document.querySelectorAll('#lap-panel input')];
+const lapDirty=input=>input.dataset.dirty==='1';
+function lapSet(input,value){if(!lapDirty(input))input.value=value;}
 function lapShow(data){
   const l=data.line;
   for(const f of lapLines()){
     const g=lapGate(l,f.dataset.target);
-    lapField(f,'coord').value=g?`${g.lat.toFixed(6)}, ${g.lon.toFixed(6)}`:'';
-    lapField(f,'width').value=g?g.width_m:30;
-    lapField(f,'bearing').value=g&&g.bearing!==null?Math.round(g.bearing):'';
+    lapSet(lapField(f,'coord'),g?`${g.lat.toFixed(6)}, ${g.lon.toFixed(6)}`:'');
+    lapSet(lapField(f,'width'),g?g.width_m:30);
+    lapSet(lapField(f,'bearing'),g&&g.bearing!==null?Math.round(g.bearing):'');
     lapField(f,'state').textContent=!g?'（未登録）':g.bearing===null?'（登録済み・向きは最初の通過で決定）':`（登録済み・向き ${Math.round(g.bearing)}°）`;
   }
-  $('lap-min').value=l.min_lap_s;$('lap-total').value=l.total_laps??'';
+  lapSet($('lap-min'),l.min_lap_s);lapSet($('lap-total'),l.total_laps??'');
   const mode=lapMode(l);
   $('lap-mode').textContent=mode.text;$('lap-mode').dataset.mode=mode.name;
   $('lap-line-state').textContent=!l.enabled?'未設定':`${mode.name}：`+[l.start&&'スタート',`コントロール`,l.goal&&'ゴール'].filter(Boolean).join('・')+(l.total_laps?`／${l.total_laps}周`:'');
@@ -43,26 +49,36 @@ function lapFlash(text,kind){
   const f=$('lap-saved');f.textContent=text;f.className=`save-flash ${kind}`;
   void f.offsetWidth;f.classList.add('show');
 }
-async function lapCall(path,body,done){
+async function lapCall(path,body,done,saved=[]){
   lapFlash('保存中…','busy');
   try{
-    const data=await api(path,'POST',body);lapShow(data);
+    const data=await api(path,'POST',body);
+    for(const input of saved)delete input.dataset.dirty;
+    lapShow(data);
   }catch(error){lapFlash(`✕ ${error.message}`,'bad');throw error;}
   $('lap-result').textContent=done;lapFlash(`✓ ${done}`,'ok');
 }
 for(const f of lapLines()){
-  f.querySelector('[data-lap-here]').onclick=()=>action(()=>lapCall('/api/lap/here',{target:f.dataset.target,width_m:Number(lapField(f,'width').value)},'現在地をラインとして保存しました。'));
+  const own=()=>['coord','width','bearing'].map(name=>lapField(f,name));
+  f.querySelector('[data-lap-here]').onclick=()=>action(()=>lapCall('/api/lap/here',{target:f.dataset.target,width_m:Number(lapField(f,'width').value)},'現在地をラインとして保存しました。',own()));
   const clear=f.querySelector('[data-lap-clear]');
-  if(clear)clear.onclick=()=>action(()=>lapCall('/api/lap',{[f.dataset.target]:null},'このラインを外しました。'));
+  if(clear)clear.onclick=()=>action(()=>lapCall('/api/lap',{[f.dataset.target]:null},'このラインを外しました。',own()));
 }
+for(const input of lapInputs())input.addEventListener('input',()=>{
+  input.dataset.dirty='1';lapFlash('未保存の変更があります（「すべて保存」で反映）','busy');
+});
 $('lap-save').onclick=()=>action(()=>{
-  const body={min_lap_s:Number($('lap-min').value),total_laps:$('lap-total').value===''?null:Number($('lap-total').value)};
+  const body={};
+  if(lapDirty($('lap-min')))body.min_lap_s=Number($('lap-min').value);
+  if(lapDirty($('lap-total')))body.total_laps=$('lap-total').value===''?null:Number($('lap-total').value);
   for(const f of lapLines()){
+    if(!['coord','width','bearing'].some(name=>lapDirty(lapField(f,name))))continue;
     const g=lapRead(f);
     if(f.dataset.target==='control')Object.assign(body,g?{enabled:true,...g}:{enabled:false});
     else body[f.dataset.target]=g;
   }
-  return lapCall('/api/lap',body,'保存が完了しました。');
+  if(!Object.keys(body).length){lapFlash('変更はありません（表示はロガーに保存済みの値です）','ok');return;}
+  return lapCall('/api/lap',body,'保存が完了しました。',lapInputs().filter(lapDirty));
 });
 $('lap-off').onclick=()=>action(()=>lapCall('/api/lap',{enabled:false},'ラップ計測をOFFにしました。周回数は残っています。'));
 $('lap-reset').onclick=()=>{
@@ -101,4 +117,8 @@ $('field-show').onclick=()=>action(async()=>{
   $('field-link').hidden=false;
   $('lap-result').textContent=d.addresses.length?'スマホのカメラでQRを読んでください。':'UNO QのWi-Fiが未接続です。テザリングにつないでからQRを読んでください（Settings → UNO Q → Wi-Fi）。';
 });
-setInterval(()=>{if(page==='settings'&&!lapLoaded)api('/api/lap').then(lapShow).catch(()=>{});},500);
+let lapPolledAt=0;
+setInterval(()=>{
+  if(page!=='settings'||(lapLoaded&&Date.now()-lapPolledAt<2000))return;
+  lapPolledAt=Date.now();api('/api/lap').then(lapShow).catch(()=>{});
+},500);
