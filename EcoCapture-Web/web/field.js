@@ -62,6 +62,10 @@ function show(d){
     card.querySelector('[data-dist]').textContent=!gate?'':fixed?`ここから ${fmtDist(distance(g,gate))}`:'—';
     card.querySelector('[data-here]').disabled=!fixed;
   }
+  $('count-mode').textContent=!line.enabled?'数え方：— （コントロール未登録）':line.start
+    ?'数え方：エコラン式 — スタートから最初のコントロール通過までが1周目'
+    :'数え方：サーキット式 — 最初のコントロール通過は数えず、次の通過で1周目。エコランの周回にするにはスタートを登録';
+  $('count-mode').classList.toggle('circuit',line.enabled&&!line.start);
   $('total-now').textContent=line.total_laps?`${line.total_laps}周`:'指定なし';
   for(const b of document.querySelectorAll('[data-total]'))
     b.setAttribute('aria-pressed',String(String(line.total_laps??'')===b.dataset.total));

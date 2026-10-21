@@ -7,6 +7,13 @@ function lapGate(line,target){
   if(target==='control')return line.enabled?{lat:line.lat,lon:line.lon,bearing:line.bearing,width_m:line.width_m}:null;
   return line[target];
 }
+// Counting depends only on whether a start line is set (lap.py crossed/started).
+function lapMode(line){
+  if(!line.enabled)return {name:'',text:'数え方：— （コントロールライン未登録）'};
+  return line.start
+    ?{name:'エコラン式',text:'数え方：エコラン式（スタートラインあり）— スタートから最初のコントロール通過までが1周目です。'}
+    :{name:'サーキット式',text:'数え方：サーキット式（スタートラインなし）— 最初のコントロール通過では数えず、次のコントロール通過で1周目です。エコランの周回で数えるにはスタートラインを登録します。'};
+}
 function lapShow(data){
   const l=data.line;
   for(const f of lapLines()){
@@ -17,7 +24,9 @@ function lapShow(data){
     lapField(f,'state').textContent=!g?'（未登録）':g.bearing===null?'（登録済み・向きは最初の通過で決定）':`（登録済み・向き ${Math.round(g.bearing)}°）`;
   }
   $('lap-min').value=l.min_lap_s;$('lap-total').value=l.total_laps??'';
-  $('lap-line-state').textContent=!l.enabled?'未設定':[l.start&&'スタート',`コントロール`,l.goal&&'ゴール'].filter(Boolean).join('・')+(l.total_laps?`／${l.total_laps}周`:'');
+  const mode=lapMode(l);
+  $('lap-mode').textContent=mode.text;$('lap-mode').dataset.mode=mode.name;
+  $('lap-line-state').textContent=!l.enabled?'未設定':`${mode.name}：`+[l.start&&'スタート',`コントロール`,l.goal&&'ゴール'].filter(Boolean).join('・')+(l.total_laps?`／${l.total_laps}周`:'');
   if(data.error)$('lap-result').textContent=data.error;
   lapLoaded=true;
 }

@@ -17,13 +17,14 @@
 </section>
 
 <section class="lines">
-  <article class="card line" data-target="start"><div class="line-head"><h2>スタート</h2><span class="dist" data-dist>—</span></div><p class="state" data-state>未登録</p><button class="big" data-here>ここをスタートにする</button></article>
+  <article class="card line" data-target="start"><div class="line-head"><h2>スタート</h2><span class="dist" data-dist>—</span></div><p class="state" data-state>未登録</p><p class="hint">登録するとエコラン式（スタートから最初のコントロールまでが1周目）。無ければサーキット式（最初のコントロール通過では数えない）。</p><button class="big" data-here>ここをスタートにする</button></article>
   <article class="card line" data-target="control"><div class="line-head"><h2>コントロール</h2><span class="dist" data-dist>—</span></div><p class="state" data-state>未登録</p><button class="big primary" data-here>ここをコントロールにする</button></article>
   <article class="card line" data-target="goal"><div class="line-head"><h2>ゴール</h2><span class="dist" data-dist>—</span></div><p class="state" data-state>未登録</p><button class="big" data-here>ここをゴールにする</button></article>
 </section>
 
 <section class="card">
   <h2>規定周回数 <span id="total-now" class="now">—</span></h2>
+  <p id="count-mode" class="mode" role="status">数え方：—</p>
   <div class="choices"><button data-total="7">7周<small>四輪</small></button><button data-total="3">3周<small>二輪・2人乗り</small></button><button data-total="">指定なし</button></div>
 </section>
 

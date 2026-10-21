@@ -27,3 +27,4 @@ h2{font-size:1.05rem;margin:0 0 .6rem;display:flex;justify-content:space-between
 #message.ok{border-color:var(--ok);color:var(--ok)}
 .qr svg{width:min(300px,100%);height:auto;display:block;margin:.6rem auto 0;background:#fff}
 .qr-id{font-size:1.6rem;letter-spacing:.1em}.warn{color:var(--warn);font-weight:700;font-size:.9rem}
+.mode{font-size:.9rem;font-weight:600;line-height:1.6;margin:.2rem 0 .8rem;padding:.5rem .7rem;border-left:4px solid var(--ok);background:#f6f6f6}.mode.circuit{border-left-color:var(--warn)}
