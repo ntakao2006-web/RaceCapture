@@ -38,8 +38,17 @@ function lapRead(fieldset){
   const bearing=lapField(fieldset,'bearing').value;
   return {lat:parts[0],lon:parts[1],width_m:Number(lapField(fieldset,'width').value),bearing:bearing===''?null:Number(bearing)%360};
 }
+// The result goes next to the buttons too: lap-result sits below the QR sections, out of view.
+function lapFlash(text,kind){
+  const f=$('lap-saved');f.textContent=text;f.className=`save-flash ${kind}`;
+  void f.offsetWidth;f.classList.add('show');
+}
 async function lapCall(path,body,done){
-  const data=await api(path,'POST',body);lapShow(data);$('lap-result').textContent=done;
+  lapFlash('保存中…','busy');
+  try{
+    const data=await api(path,'POST',body);lapShow(data);
+  }catch(error){lapFlash(`✕ ${error.message}`,'bad');throw error;}
+  $('lap-result').textContent=done;lapFlash(`✓ ${done}`,'ok');
 }
 for(const f of lapLines()){
   f.querySelector('[data-lap-here]').onclick=()=>action(()=>lapCall('/api/lap/here',{target:f.dataset.target,width_m:Number(lapField(f,'width').value)},'現在地をラインとして保存しました。'));
@@ -53,7 +62,7 @@ $('lap-save').onclick=()=>action(()=>{
     if(f.dataset.target==='control')Object.assign(body,g?{enabled:true,...g}:{enabled:false});
     else body[f.dataset.target]=g;
   }
-  return lapCall('/api/lap',body,'保存しました。');
+  return lapCall('/api/lap',body,'保存が完了しました。');
 });
 $('lap-off').onclick=()=>action(()=>lapCall('/api/lap',{enabled:false},'ラップ計測をOFFにしました。周回数は残っています。'));
 $('lap-reset').onclick=()=>{
