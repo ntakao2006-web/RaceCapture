@@ -590,8 +590,11 @@ async def field_link():
     try:addresses=(await device_request('/wifi')).get('addresses',[])
     except HTTPException:addresses=[]
     urls=field.field_urls(token,addresses)
-    svg=segno.make(urls[0],error='m').svg_inline(scale=5,border=4,dark='#000',light='#fff')
-    return {'enabled':bool(field.FIELD_PORT),'urls':urls,'svg':svg,'addresses':addresses}
+    # Android browsers often cannot resolve uno-q.local (two phones failed on 2026-10-22), so the
+    # QR carries the numeric address whenever the Wi-Fi has one; the name stays listed for iPhone/PC.
+    qr_url=urls[1] if addresses else urls[0]
+    svg=segno.make(qr_url,error='m').svg_inline(scale=5,border=4,dark='#000',light='#fff')
+    return {'enabled':bool(field.FIELD_PORT),'urls':urls,'qr_url':qr_url,'svg':svg,'addresses':addresses}
 
 
 @app.get("/api/channels")

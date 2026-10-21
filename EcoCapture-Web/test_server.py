@@ -152,6 +152,7 @@ class ServerTests(unittest.TestCase):
         token = (Path(self.temp.name) / 'field_token').read_text().strip()
         self.assertEqual(data['urls'], [f'http://uno-q.local:8082/?k={token}', f'http://192.168.43.20:8082/?k={token}'])
         self.assertIn('<svg', data['svg'])
+        self.assertEqual(data['qr_url'], f'http://192.168.43.20:8082/?k={token}')
         # The admin UI stays localhost-only: the key is not handed to the LAN from here.
         self.assertEqual(self.client.get('/api/field/link', headers={'host': 'uno-q.local:8080'}).status_code, 403)
 

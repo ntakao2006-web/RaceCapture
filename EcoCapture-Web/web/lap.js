@@ -115,7 +115,7 @@ $('field-show').onclick=()=>action(async()=>{
   $('field-svg').innerHTML=d.svg;
   $('field-urls').replaceChildren(...d.urls.map(url=>{const code=document.createElement('code');code.className='lap-qr-text';code.textContent=url;return code;}));
   $('field-link').hidden=false;
-  $('lap-result').textContent=d.addresses.length?'スマホのカメラでQRを読んでください。':'UNO QのWi-Fiが未接続です。テザリングにつないでからQRを読んでください（Settings → UNO Q → Wi-Fi）。';
+  $('lap-result').textContent=d.addresses.length?'スマホのカメラでQRを読んでください。':'UNO QのWi-Fiのアドレスが取れません。QRは「uno-q.local」で、Androidでは開けないことがあります。テザリングにつないでから押し直してください（Settings → UNO Q → Wi-Fi）。';
 });
 let lapPolledAt=0;
 setInterval(()=>{
