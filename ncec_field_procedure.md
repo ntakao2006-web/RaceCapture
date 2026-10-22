@@ -44,15 +44,50 @@
 
 ## 1. 家でやっておくこと（15分）
 
-### 1-1. ファームウェアの確認（多くの場合、書き込み不要）
+### 1-1. いま書き込まれているファームを起動メッセージで確かめる（5分）
 
-基板には **2026-09-05のレクサスUX調査時点で `can_obd_logger` が書き込まれている**。
-その後ファーム側の変更はないので、**基板を触っていなければ再書き込みは不要**。
-別PCへ繋ぎ替えた・別ファーム（`can_logger` / `can_selftest`）を焼いた覚えがある場合だけ、次を実行する。
+この基板は用途ごとに別のファームを書き込んで使っている。**前回どれを書いたかの記憶や記録に頼らず、毎回実機の起動メッセージで確かめる**。
+（例：2026-10-19にEV二輪のMPP充電器向けのSOC表示版をビルドしており、書き込んだならNCECでは使えない状態になっている）
+
+**手順**
+
+1. 基板をPCへUSBでつなぐ（CANはつながなくてよい）
+2. シリアルモニタを開く
+   ```bash
+   python -m platformio device monitor -p COM5 -b 115200
+   ```
+3. XIAOの **Rボタン（リセット）を1回押す**。起動メッセージは電源投入から約0.3秒で1回しか出ないので、モニタを開いただけでは見逃す
+4. 最初に出る `#` 行（または `=====` の行）を下の表と照らし合わせる
+5. Ctrl+C でモニタを閉じる（閉じないと次の書き込みや`can_capture_logger.py`がCOM5を開けない）
+
+**各ファームの起動メッセージ**
+
+| 起動メッセージの1行目 | 見分けるための次の行 | ファーム（ビルドのenv） | NCECで使えるか |
+|---|---|---|---|
+| `# ===== CAN raw logger + OBD2 poller (TWAI_MODE_NORMAL) =====` | `# *** WARNING: THIS FIRMWARE TRANSMITS ON THE CAN BUS ***`、`# polling 21 PIDs: ...` | `can_obd_logger`（`esp32-c3-can-obd-logger`） | **○ これを使う**（ただし下の注意を参照） |
+| 同上 | `# polling 4 PIDs: ...` | `can_obd_logger` のPIDを4項目に絞った特別ビルド（チェックリストのB専用） | B以外では× 通常のPIDテーブルに戻して書き直す |
+| `# ===== CAN read-only logger (LISTEN_ONLY / no bus injection) =====` | `# line format: t_us,...`、`# bitrate=500k` | `can_logger`（`esp32-c3-can-logger`） | × 送信しないのでOBD2の応答が取れない |
+| 同上 | `# bitrate=250k` または `# bitrate=125k` | `can_logger`（`-250k` / `-125k`） | × 速度も違う |
+| 同上 | `# MPP SOC mode: shows CAN ID 0x402 ...` | `can_logger` のSOC表示版（`esp32-c3-mpp-soc`、ER-12） | × 0x402以外は何も表示・記録しない |
+| `==================================================` に続けて ` MCP2562FD wiring self-test (TWAI self-reception)` | `[OK]`/`[NG]` の行や `---- batch result: PASS=...` | `can_selftest`（卓上の配線テスト） | × **実車禁止** |
+| 何も出ない | — | 不明（`logger_v1`等の別プロジェクト、またはポート違い） | × 書き込む |
+
+起動メッセージを見逃しても、毎秒のステータス行で区別できる。
+
+- `# obd req=0x7E0 poll=on sent=...` が出る → `can_obd_logger`
+- `# stat t=... total=... rate=.../s` だけが出る → `can_logger`（通常版）
+- `# stat frames=... soc=... buserr=...` が5秒ごとに出る → `can_logger` のSOC表示版
+
+**判定**
+
+- `can_obd_logger`（`polling 21 PIDs`）以外なら、次で書き込む。
+- `can_obd_logger` と出ても、**卓上専用の`-bench`ビルドは起動メッセージが通常版と同じで見分けられない**。また、mode 22（`d`/`s`/`w`キー）が入ったのは2026-09-12で、それより前の版も起動メッセージは同じ。**少しでも迷ったら書き込む**（1分で終わり、何度書いても害はない）。
 
 ```bash
-cd firmware/can_obd_logger && python -m platformio run -e esp32-c3-can-obd-logger -t upload
+cd firmware/can_obd_logger && python -m platformio run -e esp32-c3-can-obd-logger -t upload --upload-port COM5
 ```
+
+書き込んだあとは、もう一度手順2〜4で `# ===== CAN raw logger + OBD2 poller` と `# polling 21 PIDs` が出ることを確かめる。
 
 > **`-e esp32-c3-can-obd-logger-bench` を焼かないこと**（`TWAI_MODE_NO_ACK`の卓上専用ビルド。実車禁止）。
 > 送信するのは **OBD2 mode 01（読み取り）とACKだけ**。DTC消去・アクチュエータ制御は含まない。
@@ -66,7 +101,7 @@ cd firmware/can_obd_logger && python -m platformio run -e esp32-c3-can-obd-logge
 > ファームは`can_obd_logger`のまま（`# obd req=...`行が出ることで確認）。
 > 実測：`r`→`RESUMED`が約209ms、`p`→`PAUSED`が約213ms、`drop_rb`/`rx_missed`/`rx_overrun`はすべて0。
 > **ポーリング停止中は`txerr`が7712で固定され、再開で再び増加**＝キーがバス動作へ実際に反映されている。
-> **基板を触っていなければ、このステップはもう不要。**
+> **基板を触っていなければ、このステップはもう不要。** ただし1-1で書き込み直した場合はやり直す。
 
 ```bash
 python can_capture_logger.py --port COM5 --out rehearsal --limit-seconds 25 --phase-plan "0:poll:t_poll,10:passive:t_passive,20:poll:t_resume"
