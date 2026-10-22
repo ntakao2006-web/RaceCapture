@@ -760,7 +760,7 @@
             "type": "prometheus",
             "uid": "ecorun-vm"
           },
-          "expr": "time() - timestamp(ecorun_Speed{room=\"$room\"})",
+          "expr": "time() - timestamp(ecorun_Interval{room=\"$room\"})",
           "instant": true,
           "range": false
         }

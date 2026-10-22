@@ -115,7 +115,7 @@ def build(old):
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 8}],
              color_mode='value', description='受信機が出す水平精度（大きいほど悪い）。ライン幅の判定にも足している'),
         oil_temp(pos(15, y, 4, 4)),
-        stat('最終受信', [target(f'time() - timestamp(ecorun_Speed{{{ROOM}}})')], pos(19, y, 5, 4), unit='s', decimals=1,
+        stat('最終受信', [target(f'time() - timestamp(ecorun_Interval{{{ROOM}}})')], pos(19, y, 5, 4), unit='s', decimals=1,
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 10}],
              color_mode='background', no_value='受信なし', description='最後にロガーのデータが届いてからの秒数'),
     ]
