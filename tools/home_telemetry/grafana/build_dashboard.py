@@ -52,6 +52,22 @@ def stat(title, targets, pos, unit=None, decimals=None, description='', threshol
             'fieldConfig': {'defaults': defaults, 'overrides': []}, 'options': options, 'description': description}
 
 
+def oil_temp(at):
+    """Oil temperature with the sensor hub's state; blank for a vehicle without one (Super Cub)."""
+    p = stat('油温', [target(last('OilTemp'), 'A', '油温'), target(last('OilTempState'), 'B', '状態')], at,
+             unit='celsius', decimals=0, color_mode='value',
+             thresholds=[{'color': 'blue', 'value': None}, {'color': 'green', 'value': 60},
+                         {'color': 'orange', 'value': 110}, {'color': 'red', 'value': 125}],
+             description='センサーハブの油温。状態が「正常」以外のときは温度が出ない')
+    p['fieldConfig']['overrides'] = [{'matcher': {'id': 'byName', 'options': '状態'}, 'properties': [
+        {'id': 'unit', 'value': 'none'},
+        {'id': 'mappings', 'value': [{'type': 'value', 'options': {
+            '0': {'text': '正常', 'color': 'green'}, '1': {'text': 'オープン', 'color': 'red'},
+            '2': {'text': '短絡', 'color': 'red'}, '3': {'text': 'データ異常', 'color': 'red'},
+            '4': {'text': '通信途絶', 'color': 'red'}}}]}]}]
+    return p
+
+
 def pos(x, y, w, h):
     return {'x': x, 'y': y, 'w': w, 'h': h}
 
@@ -90,12 +106,16 @@ def build(old):
     y += 6
     # --- second row: lap times and whether the data is good ------------------
     panels += [
-        stat('前回ラップ', [target(last('LapTime', 60))], pos(0, y, 6, 4), unit='dthms'),
-        stat('この周の経過', [target(last('ElapsedTime', 60))], pos(6, y, 6, 4), unit='dthms'),
-        stat('GPS衛星数', [target(last('GPSSats'))], pos(12, y, 5, 4), decimals=0,
+        stat('前回ラップ', [target(last('LapTime', 60))], pos(0, y, 4, 4), unit='dthms'),
+        stat('この周の経過', [target(last('ElapsedTime', 60))], pos(4, y, 4, 4), unit='dthms'),
+        stat('GPS衛星数', [target(last('GPSSats'))], pos(8, y, 3, 4), decimals=0,
              thresholds=[{'color': 'red', 'value': None}, {'color': 'orange', 'value': 6}, {'color': 'green', 'value': 10}],
              color_mode='value'),
-        stat('最終受信', [target(f'time() - timestamp(ecorun_Speed{{{ROOM}}})')], pos(17, y, 7, 4), unit='s', decimals=1,
+        stat('GNSS精度', [target(last('GPSAcc'))], pos(11, y, 4, 4), unit='lengthm', decimals=1,
+             thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 8}],
+             color_mode='value', description='受信機が出す水平精度（大きいほど悪い）。ライン幅の判定にも足している'),
+        oil_temp(pos(15, y, 4, 4)),
+        stat('最終受信', [target(f'time() - timestamp(ecorun_Speed{{{ROOM}}})')], pos(19, y, 5, 4), unit='s', decimals=1,
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 10}],
              color_mode='background', no_value='受信なし', description='最後にロガーのデータが届いてからの秒数'),
     ]
@@ -106,7 +126,7 @@ def build(old):
     y += 14
     # --- line passes for the timing sheet, and talk --------------------------
     passes = {
-        'type': 'table', 'title': '通過時刻（スタート・コントロール・ゴール）', 'gridPos': pos(0, y, 24, 12), 'datasource': VM,
+        'type': 'table', 'title': '通過時刻（スタート・コントロール・ゴール）', 'gridPos': pos(0, y, 24, 9), 'datasource': VM,
         'description': 'ロガーが判定した各ラインの通過時刻。live_bridge.pyが周回の切り替わりから出す。'
                        '「レース」はスタート時刻（同じ部屋で何度か走ったときの区別）',
         'targets': [target(f'last_over_time(ecorun_lap_at{{{ROOM}}}[24h])', 'A', fmt='table')],
@@ -128,11 +148,11 @@ def build(old):
         'options': {'showHeader': True, 'cellHeight': 'sm'},
     }
     panels.append(passes)
-    y += 12
-    # --- bottom: detail --------------------------------------------------------
-    panels.append(dict(accel, title='加速度', gridPos=pos(0, y, 24, 9)))
     y += 9
-    panels.append(dict(table, title='全チャンネル（最新）', gridPos=pos(0, y, 24, 10)))
+    # --- bottom: detail --------------------------------------------------------
+    panels.append(dict(accel, title='加速度', gridPos=pos(0, y, 24, 6)))
+    y += 6
+    panels.append(dict(table, title='全チャンネル（最新）', gridPos=pos(0, y, 24, 7)))
 
     for i, p in enumerate(panels, 1):
         p['id'] = i

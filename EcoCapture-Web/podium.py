@@ -29,7 +29,7 @@ RANGES = {'Lat':(-90,90),'Lon':(-180,180),'Altitude':(-500,9000),
           'GPSSats':(0,64),'RPM':(0,10000),'Throttle':(0,100),'WaterTemp':(-40,150),
           'BatteryVolt':(0,20),'OilTemp':(-40,200),'LapCount':(0,10000),'CurrentLap':(0,10000),
           'LapTime':(0,60),'BestLap':(0,60),'ElapsedTime':(0,60),
-          'RaceTime':(0,600),'LapsLeft':(0,1000)}
+          'RaceTime':(0,600),'LapsLeft':(0,1000),'GPSAcc':(0,1000),'OilTempState':(0,4)}
 
 # wss://host[:port]/ws/audio/<room>. The character set also keeps the host safe
 # inside AT command quotes.
@@ -148,6 +148,14 @@ def sensors(config,vehicle):
         if name not in config.channels:
             low,high=RANGES[name]
             result.append(Sensor(name,'deg' if name in ('Lat','Lon') else 'km/h',low,high))
+    # The pit's display (2026-10-23): GNSS horizontal accuracy always, and an oil
+    # temperature from the sensor hub with its state (open/short...) whenever the
+    # vehicle has one. A vehicle without it (Super Cub) sends neither.
+    if 'GPSAcc' not in config.channels:result.append(Sensor('GPSAcc','m',*RANGES['GPSAcc']))
+    for sig in vehicle.signals:
+        if getattr(sig,'conversion',None)=='sensorhub_oiltemp':
+            if sig.name not in config.channels:result.append(Sensor(sig.name,'degC',*RANGES.get(sig.name,(-40,200))))
+            result.append(Sensor(sig.name+'State','',0,4))
     # Lap channels (lap.py) are always offered; they are masked out until a line is set.
     for name,(_,unit) in LAP_CHANNELS.items():
         if name not in config.channels:
@@ -170,7 +178,7 @@ def utc_milliseconds(sample):
 
 PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0,
              'LapCount':0,'CurrentLap':0,'LapTime':4,'BestLap':4,'ElapsedTime':4,
-             'RaceTime':4,'LapsLeft':0}
+             'RaceTime':4,'LapsLeft':0,'GPSAcc':1,'OilTempState':0}
 
 # Auth values confirmed against next-generation Podium on 2026-10-04: these are
 # what the official RaceCapture app 2.19.0 sends. The older
@@ -203,6 +211,7 @@ class Encoder:
             if ch.name=='Utc':value=utc_milliseconds(sample)
             if ch.name=='Interval':value=sample.get('mcu_ms')
             if ch.name=='Speed' and value is None:value=sample.get('values',{}).get('GPSSpeed')
+            if ch.name=='GPSAcc':value=sample.get('gnss_hacc_m')
             if type(value) in (int,float) and math.isfinite(value):
                 # Podium shows 'prec' decimals anyway; dropping the rest shortens
                 # the LTE stream, which is limited by bytes through the MCU RPC.

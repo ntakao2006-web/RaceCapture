@@ -390,7 +390,7 @@
       "gridPos": {
         "x": 0,
         "y": 6,
-        "w": 6,
+        "w": 4,
         "h": 4
       },
       "datasource": {
@@ -435,9 +435,9 @@
       "type": "stat",
       "title": "この周の経過",
       "gridPos": {
-        "x": 6,
+        "x": 4,
         "y": 6,
-        "w": 6,
+        "w": 4,
         "h": 4
       },
       "datasource": {
@@ -482,9 +482,9 @@
       "type": "stat",
       "title": "GPS衛星数",
       "gridPos": {
-        "x": 12,
+        "x": 8,
         "y": 6,
-        "w": 5,
+        "w": 3,
         "h": 4
       },
       "datasource": {
@@ -547,11 +547,206 @@
     },
     {
       "type": "stat",
+      "title": "GNSS精度",
+      "gridPos": {
+        "x": 11,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_GPSAcc{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "—",
+          "unit": "lengthm",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 8
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "受信機が出す水平精度（大きいほど悪い）。ライン幅の判定にも足している",
+      "id": 10
+    },
+    {
+      "type": "stat",
+      "title": "油温",
+      "gridPos": {
+        "x": 15,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_OilTemp{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false,
+          "legendFormat": "油温"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_OilTempState{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false,
+          "legendFormat": "状態"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "—",
+          "unit": "celsius",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 110
+              },
+              {
+                "color": "red",
+                "value": 125
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "状態"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "正常",
+                        "color": "green"
+                      },
+                      "1": {
+                        "text": "オープン",
+                        "color": "red"
+                      },
+                      "2": {
+                        "text": "短絡",
+                        "color": "red"
+                      },
+                      "3": {
+                        "text": "データ異常",
+                        "color": "red"
+                      },
+                      "4": {
+                        "text": "通信途絶",
+                        "color": "red"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "description": "センサーハブの油温。状態が「正常」以外のときは温度が出ない",
+      "id": 11
+    },
+    {
+      "type": "stat",
       "title": "最終受信",
       "gridPos": {
-        "x": 17,
+        "x": 19,
         "y": 6,
-        "w": 7,
+        "w": 5,
         "h": 4
       },
       "datasource": {
@@ -611,10 +806,10 @@
         "justifyMode": "center"
       },
       "description": "最後にロガーのデータが届いてからの秒数",
-      "id": 10
+      "id": 12
     },
     {
-      "id": 11,
+      "id": 13,
       "type": "text",
       "title": "",
       "transparent": true,
@@ -631,7 +826,7 @@
       }
     },
     {
-      "id": 12,
+      "id": 14,
       "type": "timeseries",
       "title": "速度",
       "gridPos": {
@@ -671,7 +866,7 @@
         "x": 0,
         "y": 24,
         "w": 24,
-        "h": 12
+        "h": 9
       },
       "datasource": {
         "type": "prometheus",
@@ -782,17 +977,17 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 13
+      "id": 15
     },
     {
-      "id": 14,
+      "id": 16,
       "type": "timeseries",
       "title": "加速度",
       "gridPos": {
         "x": 0,
-        "y": 36,
+        "y": 33,
         "w": 24,
-        "h": 9
+        "h": 6
       },
       "datasource": {
         "type": "prometheus",
@@ -823,14 +1018,14 @@
       "maxDataPoints": 3000
     },
     {
-      "id": 15,
+      "id": 17,
       "type": "table",
       "title": "全チャンネル（最新）",
       "gridPos": {
         "x": 0,
-        "y": 45,
+        "y": 39,
         "w": 24,
-        "h": 10
+        "h": 7
       },
       "datasource": {
         "type": "prometheus",
