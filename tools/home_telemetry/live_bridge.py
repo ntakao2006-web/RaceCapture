@@ -97,6 +97,77 @@ def to_points(names, entry):
     return points
 
 
+class Pace:
+    """Average speeds for the pit (2026-10-23): eco-run is judged on average speed, and
+    the logger sends no distance, so speed is integrated over time here.
+
+    Adds to each point RaceAvgSpeed (since the start, from RaceTime), LapAvgSpeed (the lap
+    being driven, from ElapsedTime) and LastLapAvgSpeed (the lap before), all km/h.
+    A new race (RaceTime going back) or lap (ElapsedTime going back) starts over; a gap in
+    the data longer than MAX_GAP_S is not integrated across."""
+    MAX_GAP_S = 5.0
+
+    def __init__(self):
+        self.last_ts = None
+        self.race = self.lap = None   # [km, minutes at the start of the integration]
+        self.race_min = self.lap_min = None
+        self.last_lap_avg = None
+        self.count = None
+        self.start_ms = None
+        self.events = []   # line passes for the timing sheet, taken by Bridge.follow
+
+    def event(self, lap, kind, at_ms, lap_s=None, avg=None):
+        """One line pass: lap 0 is the start; kind start/control/goal."""
+        self.events.append({'lap': lap, 'kind': kind, 'at_ms': int(at_ms), 'lap_s': lap_s, 'avg': avg,
+                            'race': time.strftime('%H:%M', time.localtime(self.start_ms / 1000))})
+
+    def add(self, ts_ms, fields):
+        speed = fields.get('Speed', fields.get('GPSSpeed'))
+        race_min, lap_min = fields.get('RaceTime'), fields.get('ElapsedTime')
+        dt = (ts_ms - self.last_ts) / 1000 if self.last_ts is not None else None
+        self.last_ts = ts_ms
+        step = speed * dt / 3600 if speed is not None and dt is not None and 0 < dt <= self.MAX_GAP_S else 0.0
+        # A completed lap (or the goal): the pass time is when the new lap's clock started,
+        # or for the goal, the start plus the final race time. Checked before the lap
+        # integration below starts over, so the finished lap's distance is still there.
+        count = fields.get('LapCount')
+        if count is not None and self.count is not None and count > self.count and self.start_ms is not None:
+            finished = race_min is not None and lap_min is None
+            at = self.start_ms + race_min * 60000 if finished else ts_ms - (lap_min or 0) * 60000
+            lap_s = fields['LapTime'] * 60 if fields.get('LapTime') is not None else None
+            avg = self.lap[0] / (lap_s / 3600) if self.lap is not None and lap_s else None
+            self.event(int(count), 'goal' if finished else 'control', at, lap_s, avg)
+            if avg is not None:
+                self.last_lap_avg = avg   # the goal lap too, which has no next lap to start
+        if count is not None:
+            self.count = count
+        if race_min is None:
+            self.race = None
+        elif self.race is None or self.race_min is None or race_min < self.race_min - 0.05:   # 3 s of jitter is not a new race
+            self.race = [0.0, race_min]
+            new_start = ts_ms - race_min * 60000
+            if self.start_ms is None or abs(new_start - self.start_ms) > 2000:   # not just the bridge restarting
+                self.start_ms = new_start
+                self.event(0, 'start', new_start)
+        elif race_min > self.race_min:   # frozen after the goal: driving to the paddock does not count
+            self.race[0] += step
+        if lap_min is None:
+            self.lap = None
+        elif self.lap is None or self.lap_min is None or lap_min < self.lap_min - 0.05:
+            if self.lap is not None and self.lap_min is not None and self.lap_min > self.lap[1]:
+                self.last_lap_avg = self.lap[0] / ((self.lap_min - self.lap[1]) / 60)
+            self.lap = [0.0, lap_min]
+        else:
+            self.lap[0] += step
+        self.race_min, self.lap_min = race_min, lap_min
+        for name, acc, now in (('RaceAvgSpeed', self.race, race_min), ('LapAvgSpeed', self.lap, lap_min)):
+            if acc is not None and now - acc[1] > 0.1:   # 6 s in: too early is only noise
+                fields[name] = acc[0] / ((now - acc[1]) / 60)
+        if self.last_lap_avg is not None and self.race is not None:
+            fields['LastLapAvgSpeed'] = self.last_lap_avg
+        return fields
+
+
 def line_protocol(measurement, tags, fields, ts_ms):
     tag = ''.join(f',{k}={re.sub(r"([ ,=])", r"\\\1", v)}' for k, v in tags.items())
     body = ','.join(f'{k}={v!r}' for k, v in fields.items())
@@ -262,6 +333,7 @@ class Bridge:
         self.viewers = {}  # websocket (or 'app:<token>') -> {id, room, name, lat, lon, acc, at[, app]}
         self.followers = {}
         self.playouts = {}
+        self.paces = {}   # room -> Pace
         self.clients = {}  # websocket -> room
         self.started = time.time()
         self.token = None
@@ -284,7 +356,18 @@ class Bridge:
                 except OSError:
                     continue
                 if points:
-                    vm_batch += [line_protocol('ecorun', {'room': f.room}, fl, ts) for ts, fl in points]
+                    pace = self.paces.setdefault(f.room, Pace())
+                    points = [(ts, pace.add(ts, fl)) for ts, fl in points]
+                    # Line passes as ecorun_lap_at{room,lap,kind,race,seconds,avg} = pass time (ms), one
+                    # sample each. Lap time and average are labels so one query gives one row per pass.
+                    for e in pace.events:
+                        tags = {'room': f.room, 'lap': f"{e['lap']:02d}", 'kind': e['kind'], 'race': e['race'],
+                                'seconds': '-' if e['lap_s'] is None else f"{e['lap_s']:.1f}",
+                                'avg': '-' if e['avg'] is None else f"{e['avg']:.1f}"}
+                        vm_batch.append(line_protocol('ecorun_lap', tags, {'at': float(e['at_ms'])}, e['at_ms']))
+                        print(f'{f.room}: {e}', flush=True)
+                    pace.events.clear()
+                    vm_batch +=[line_protocol('ecorun', {'room': f.room}, fl, ts) for ts, fl in points]
                     self.playout(f.room).add(points)
             if vm_batch and time.time() - last_vm >= 0.5:
                 batch, vm_batch, last_vm = vm_batch, [], time.time()
