@@ -47,3 +47,6 @@ outputs/ups_bench_20261022/investigation/diff_check.log
 
 # Editor locks and local KiCad session state
 *.lck
+
+# Driver voice recordings from tools/voice_gate/mic_check.sh (a real person's voice)
+tools/voice_gate/mic_check_*/

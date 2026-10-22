@@ -7,7 +7,8 @@ interface and talks to podium.py over Unix datagrams in /run/ecocapture-voice:
                    b'S1'       uplink wanted (repeat at least every UPLINK_HOLD_S)
   agent -> podium  b'U'+opus   driver voice, 8 kHz mono, one 120 ms Opus packet
                    b'T1'/b'T0' driver started / stopped talking (relay audio.ptt)
-                   b'A'+json   status, answered to every b'S1'
+                   b'A'+json   status, answered to every b'S1' and b'C'
+  podium -> agent  b'C'+json   new settings from the pit (SETTINGS keys, any subset)
 
 The driver has no push-to-talk button: RNNoise (v0.1.1, see tools/voice_gate)
 says per 10 ms whether it is speech, and only speech is encoded and sent. The
@@ -45,10 +46,20 @@ SOCKET_DIR = Path(os.environ.get('ECOVOICE_DIR', '/run/ecocapture-voice'))
 RNNOISE = os.environ.get('ECOVOICE_RNNOISE', '/opt/ecocapture-voice/librnnoise_old.so')
 VOLUME = os.environ.get('ECOVOICE_VOLUME', '80%')   # 40 % (the device default) was inaudible on 2026-10-17
 BITRATE = int(os.environ.get('ECOVOICE_BITRATE', '6000'))
-# The lavalier at full capture volume peaked at only -30 dBFS after RNNoise when
-# spoken to normally (2026-10-17), too quiet for the pit. RNNoise has already
-# removed the background, so a fixed make-up gain does not raise the noise.
+# Make-up gain after RNNoise (it has already removed the background, so this does
+# not raise the noise). Microphones differ by 20 dB and more: the lavalier peaked at
+# -30 dBFS (2026-10-17), the USB-C earphone's speech sat near -50 dBFS (2026-10-22).
+# So the gain follows the driver's speech level (Leveller): it starts at GAIN and
+# moves within MIN_GAIN..MAX_GAIN towards TARGET_DBFS (RMS of speech, 8 kHz).
 GAIN = 10 ** (float(os.environ.get('ECOVOICE_GAIN_DB', '14')) / 20)
+MIN_GAIN, MAX_GAIN = 1.0, 10 ** (30 / 20)
+TARGET_DBFS = -16.0      # -20 needed the volume raised in Discord (2026-10-22)
+# Below this the microphone is cut before RNNoise: the USB-C earphone adapter gave a
+# 29 Hz hum with harmonics (95 % of its signal, 2026-10-22) and RNNoise then took
+# no speech for speech at all (0 % of frames; 14 % once cut, like a clean mic).
+# 250 Hz rather than 150 also takes most wind noise, which came through loudly at a
+# jog; the pit hears 8 kHz telephone band (300-3400 Hz) anyway.
+HIGHPASS_HZ = 250
 
 IN_RATE = 48000          # RNNoise works on 48 kHz, 10 ms frames
 FRAME = 480
@@ -64,6 +75,11 @@ ROUTE_CHECK_S = 2.0
 RECONNECT_S = 15.0        # first call; doubles after each miss up to RECONNECT_MAX_S
 RECONNECT_MAX_S = 300.0
 RECENT_FILE = Path(os.environ.get('STATE_DIRECTORY', '/var/lib/ecocapture-voice')) / 'recent_headsets.json'
+SETTINGS_FILE = RECENT_FILE.with_name('settings.json')
+# What the pit may change over the relay (logger.config, 2026-10-22: "a little quiet",
+# "wind noise" had to be fixed by hand on the UNO Q). Name: (lowest, highest).
+SETTINGS = {'level_db': (-30, -6), 'max_gain_db': (0, 40), 'lowcut_hz': (0, 400),
+            'bitrate': (6000, 16000), 'volume': (0, 100)}
 HFP, A2DP = 'headset-head-unit', 'a2dp-sink'
 PW_ENV = {**os.environ, 'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')}
 
@@ -81,6 +97,46 @@ def usb_card(playback=True):
         if (card / 'usbid').exists() and any(card.glob('pcm*c')) and (not playback or any(card.glob('pcm*p'))):
             found.append(name)
     return CARD if CARD in found else found[0] if found else None
+
+
+def settings():
+    return {'level_db': TARGET_DBFS, 'max_gain_db': round(float(20 * np.log10(MAX_GAIN)), 1), 'lowcut_hz': HIGHPASS_HZ,
+            'bitrate': BITRATE, 'volume': int(VOLUME.rstrip('%'))}
+
+
+def apply_settings(new):
+    """Takes the known keys of new, each clamped to its range; returns the settings in use."""
+    global TARGET_DBFS, MAX_GAIN, HIGHPASS_HZ, BITRATE, VOLUME
+    clean = {}
+    for key, value in (new or {}).items():
+        if key in SETTINGS and isinstance(value, (int, float)) and not isinstance(value, bool):
+            low, high = SETTINGS[key]
+            clean[key] = min(max(value, low), high)
+    if 'level_db' in clean:
+        TARGET_DBFS = float(clean['level_db'])
+    if 'max_gain_db' in clean:
+        MAX_GAIN = 10 ** (clean['max_gain_db'] / 20)
+    if 'lowcut_hz' in clean:
+        HIGHPASS_HZ = int(clean['lowcut_hz'])
+    if 'bitrate' in clean:
+        BITRATE = int(clean['bitrate'])
+    if 'volume' in clean:
+        VOLUME = f"{int(clean['volume'])}%"
+    return settings()
+
+
+def load_settings():
+    try:
+        apply_settings(json.loads(SETTINGS_FILE.read_text()))
+    except (OSError, ValueError, AttributeError):
+        pass
+
+
+def save_settings():
+    try:
+        SETTINGS_FILE.write_text(json.dumps(settings()))
+    except OSError:
+        pass
 
 
 def set_volume(route):
@@ -232,6 +288,9 @@ class Opus:
         self.out = ctypes.create_string_buffer(1275)
         self.pcm = np.zeros(PACKET, dtype=np.int16)
 
+    def set_bitrate(self, bitrate):
+        self.lib.opus_encoder_ctl(self.enc, self.SET_BITRATE, bitrate)
+
     def encode(self, pcm):
         pcm = np.ascontiguousarray(pcm, dtype=np.int16)
         n = self.lib.opus_encode(self.enc, pcm.ctypes.data, len(pcm), self.out, len(self.out))
@@ -258,6 +317,45 @@ class Downsampler:
         out = y[self.phase::6]
         self.phase = (self.phase - len(y)) % 6
         return out
+
+
+class HighPass:
+    """Linear-phase FIR high-pass (HIGHPASS_HZ) on 10 ms frames, by FFT (overlap-save):
+    -75 dB at 100 Hz, -22 dB at 200 Hz, flat from 300 Hz, about 7 % of one UNO Q core
+    (the same filter by np.convolve took 22 %). Delay 16 ms."""
+    def __init__(self, taps=1569, size=2048):
+        self.hz = HIGHPASS_HZ
+        n = np.arange(taps) - (taps - 1) / 2
+        h = np.sinc(2 * HIGHPASS_HZ / IN_RATE * n) * np.blackman(taps)
+        h = -h / h.sum()
+        h[(taps - 1) // 2] += 1
+        self.H = np.fft.rfft(h, size)
+        self.buf = np.zeros(size, dtype=np.float32)
+
+    def process(self, x):
+        if not self.hz:
+            return np.asarray(x, dtype=np.float32)
+        self.buf = np.concatenate([self.buf[len(x):], np.asarray(x, dtype=np.float32)])
+        return np.fft.irfft(np.fft.rfft(self.buf) * self.H, len(self.buf))[-len(x):].astype(np.float32)
+
+
+class Leveller:
+    """Gain that brings the driver's speech to TARGET_DBFS, learnt from sent packets only
+    (the gate has already left out the silence). Kept across talk spurts."""
+    def __init__(self, gain=GAIN):
+        self.gain = min(max(gain, MIN_GAIN), MAX_GAIN)
+
+    def process(self, pcm):
+        pcm = np.asarray(pcm, dtype=np.float32)
+        rms = float(np.sqrt(np.mean(pcm.astype(np.float64) ** 2))) if len(pcm) else 0.0
+        if rms > 3:   # not the padded silence at the end of a spurt
+            want = min(max(32768 * 10 ** (TARGET_DBFS / 20) / rms, MIN_GAIN), MAX_GAIN)
+            # 120 ms packets: louder comes down within a packet or two, quieter goes up over ~1 s
+            self.gain += (want - self.gain) * (0.5 if want < self.gain else 0.12)
+        # A shout right after quiet talk must not clip while the gain is still coming down.
+        peak = float(np.abs(pcm).max()) if len(pcm) else 0.0
+        gain = min(self.gain, 0.9 * 32767 / peak) if peak else self.gain
+        return np.clip(pcm * gain, -32768, 32767)
 
 
 class RNNoise:
@@ -316,7 +414,9 @@ class Agent:
         self.play_event = threading.Event()
         self.uplink_until = 0.0
         self.route = None
-        self.stats = {'played': 0, 'sent': 0, 'talking': False, 'capturing': False, 'playing': False, 'mic_errors': 0, 'gaps': 0}
+        self.stats = {'played': 0, 'sent': 0, 'talking': False, 'capturing': False, 'playing': False, 'mic_errors': 0, 'gaps': 0,
+                      'gain_db': round(20 * np.log10(GAIN), 1)}
+        self.leveller = Leveller()
 
     def tell(self, data):
         try:
@@ -327,7 +427,18 @@ class Agent:
     def status(self):
         route = self.route or {}
         return {**self.stats, 'card': usb_card(playback=False), 'card_present': usb_card(playback=False) is not None, 'route': route.get('kind'),
-                'device': route.get('name'), 'mic': bool(route.get('mic'))}
+                'device': route.get('name'), 'mic': bool(route.get('mic')), 'settings': settings()}
+
+    def configure(self, new):
+        if not new:
+            return   # the pit only asked what is in use
+        apply_settings(new)
+        with self.opus_lock:
+            self.opus.set_bitrate(BITRATE)
+        if self.route and 'volume' in (new or {}):
+            set_volume(self.route)   # heard at once, not only at the next pit message
+        save_settings()
+        log.info('settings from the pit: %s', settings())
 
     def router(self):
         """Follow the devices like a phone: a headset that connects takes over, one that drops gives way."""
@@ -418,13 +529,16 @@ class Agent:
                                     stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             self.stats['capturing'] = True
             gate, down, pending = Gate(), Downsampler(), np.zeros(0, dtype=np.float32)
+            highpass = HighPass()
             try:
                 while time.monotonic() <= self.uplink_until and self.route == route:
                     raw = proc.stdout.read(FRAME * 2)
                     if len(raw) < FRAME * 2:
                         self.stats['mic_errors'] += 1
                         break
-                    clean, prob = rnnoise.process(np.frombuffer(raw, dtype=np.int16))
+                    if highpass.hz != HIGHPASS_HZ:   # changed from the pit
+                        highpass = HighPass()
+                    clean, prob = rnnoise.process(highpass.process(np.frombuffer(raw, dtype=np.int16)))
                     was = gate.talking
                     frames = gate.process(clean, prob)
                     if gate.talking and not was:
@@ -451,7 +565,8 @@ class Agent:
 
     def send_packet(self, pcm):
         with self.opus_lock:
-            packet = self.opus.encode(np.clip(pcm * GAIN, -32768, 32767).astype(np.int16))
+            packet = self.opus.encode(self.leveller.process(pcm).astype(np.int16))
+            self.stats['gain_db'] = round(20 * np.log10(self.leveller.gain), 1)
         if packet:
             self.tell(b'U' + packet)
             self.stats['sent'] += 1
@@ -471,8 +586,17 @@ class Agent:
             elif data == b'S1':
                 self.uplink_until = time.monotonic() + UPLINK_HOLD_S
                 self.tell(b'A' + json.dumps(self.status()).encode())
+            elif data[:1] == b'C':
+                try:
+                    new = json.loads(data[1:])
+                except ValueError:
+                    new = None
+                if isinstance(new, dict):
+                    self.configure(new)
+                self.tell(b'A' + json.dumps(self.status()).encode())
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s %(message)s')
+    load_settings()
     Agent().serve()

@@ -29,6 +29,13 @@ handoff_20261020_voice_field_test.md を読んで、そこに書いた有人の�
 | マイク・耳 | 本番に近いUSB-Cのイヤホン（ALSA名`Audio`＝Synaptics Hi-Res Audio、マイク・再生・Sidetoneあり）。**音声エージェントは名前を決め打ちしない形に直した**（10/22）：USBオーディオのうちマイク＋再生のあるものを自動で選ぶ。`ECOVOICE_CARD`は「複数挿したときにどれを優先するか」だけ。音量のつまみ名も`Speaker`/`PCM`/`Headphone`の順に試す |
 | UNO Q ⇔ 中継 | 10/22 21:33からUNO Q（`ecologger-v2`）が`voice-test`に接続、ピットの音声を受ける側（`mix_listener=true`）で入っている |
 
+### 10/22夜にやったこと（詳細は`task_ecorun_20261024_breakdown.md`のER-10-8・ER-10-9）
+- USB-Cイヤホンのマイクは29Hzのうなりが強く声が小さい → 音声エージェントに低音カット（250Hz）と自動の増幅（目標−16dBFS・上限+30dB）。Discordで「少しガビガビだが言葉は取れる」
+- Discord Botが会話を重ねると落ちる不具合（opusscriptのメモリ）を修正
+- ピットからDiscordの **`/ecologger audio`** で、声の大きさ・増幅の上限・低音カット・ビットレート・イヤホンの音量を見る・変えられる（中継サーバーの`logger.config`、自宅版のみ）
+- 録音で各段を聞き比べる道具：`ssh unoq sh ~/audio_check/mic_check.sh 10`（`tools/voice_gate/mic_check.sh`）
+- 次に試すこと：電波の良い場所で抜き挿し・風切り音・`/ecologger audio`の実操作
+
 ### T1の段取り（Wi-Fi・室内、ピット→ドライバー）
 1. ピット役：Discordの個人テストサーバーのボイスチャンネルに入り、`/ecologger join`。`/ecologger status`で部屋`voice-test`につながったことを見る
 2. ドライバー役：イヤホンはまだ耳に入れず手に持つ（音量は80%で鳴る。初回は大きさを確かめてから耳へ）

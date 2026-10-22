@@ -42,6 +42,15 @@ const DISCORD_RATE = 48000;
 const RATIO = DISCORD_RATE / ROOM_RATE;  // 6
 const PTT_OFF_MS = 500;          // release ptt this long after the last Discord audio
 const MAX_BUFFER = SEND_FRAME * 4;
+// /ecologger audio options: [option, description, min, max]; ranges match voice_agent.SETTINGS.
+const AUDIO_OPTIONS = [
+  ['level', 'ドライバーの声の大きさの目標 dBFS（大きいほど大きい。標準 -16）', -30, -6],
+  ['max_gain', 'マイクの増幅の上限 dB（上げると小さいマイクでも大きくなるが雑音も増える。標準 30）', 0, 40],
+  ['lowcut', '低音カット Hz（上げると風切り音が減る。0でなし。標準 250）', 0, 400],
+  ['bitrate', 'ドライバーの声のビットレート kbps（上げると音質が上がるがLTEの通信量が増える。標準 6）', 6, 16],
+  ['volume', 'ドライバーのイヤホンの音量 %（標準 80）', 0, 100],
+];
+const AUDIO_KEYS = { level: 'level_db', max_gain: 'max_gain_db', lowcut: 'lowcut_hz', bitrate: 'bitrate', volume: 'volume' };
 
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
@@ -96,14 +105,50 @@ class Upsampler {
   }
 }
 
+// ---- room -> Discord as one endless stream ---------------------------------
+// Every OpusScript instance takes WASM heap that is never given back, and once the heap
+// grows the arrays of the older instances are detached: encode() then throws "offset is
+// out of bounds" (the bot crashed 7 times on 2026-10-22; a test broke after 75 instances,
+// 0.1.1 after 109). A new audio resource per talk spurt made a new encoder each time, so
+// the player gets one stream for good: room audio when there is some, silence otherwise.
+const DISCORD_FRAME = DISCORD_RATE / 50 * 2 * 2;  // 20 ms of 48 kHz stereo s16, in bytes
+const ROOM_QUEUE_MAX = DISCORD_RATE * 2 * 2;       // 1 s; behind that, drop the oldest
+
+class RoomStream extends require('stream').Readable {
+  constructor() {
+    super({ highWaterMark: DISCORD_FRAME });
+    this.queue = [];
+    this.queued = 0;
+  }
+  feed(buf) {
+    this.queue.push(buf);
+    this.queued += buf.length;
+    while (this.queued > ROOM_QUEUE_MAX) this.queued -= this.queue.shift().length;
+  }
+  _read() {
+    if (this.queued < DISCORD_FRAME) { this.push(Buffer.alloc(DISCORD_FRAME)); return; }
+    const out = Buffer.alloc(DISCORD_FRAME);
+    let filled = 0;
+    while (filled < DISCORD_FRAME) {
+      const head = this.queue[0], use = Math.min(head.length, DISCORD_FRAME - filled);
+      head.copy(out, filled, 0, use);
+      filled += use;
+      if (use === head.length) this.queue.shift(); else this.queue[0] = head.subarray(use);
+    }
+    this.queued -= DISCORD_FRAME;
+    this.push(out);
+  }
+}
+
 const toInt16 = (buf) => new Int16Array(buf.buffer, buf.byteOffset, buf.length / 2);
 const clip = (v) => Math.max(-32768, Math.min(32767, Math.round(v)));
 
 // ---- the server room -----------------------------------------------------
 class Room {
-  constructor(name, onMix) {
+  constructor(name, onMix, onControl = () => {}) {
     this.name = name;
     this.onMix = onMix;
+    this.onControl = onControl;
     this.ws = null;
     this.ptt = false;
     this.connect();
@@ -117,7 +162,11 @@ class Room {
       this.ptt = false;
       ws.send(JSON.stringify({ type: 'hello', client_id: 'discord-bridge', protocol: 1, audio_formats: [MIX_FORMAT] }));
     });
-    ws.on('message', (data, binary) => { if (binary && ws === this.ws) this.onMix(data); });
+    ws.on('message', (data, binary) => {
+      if (ws !== this.ws) return;
+      if (binary) this.onMix(data);
+      else { try { this.onControl(JSON.parse(data.toString())); } catch { /* not JSON */ } }
+    });
     ws.on('close', () => {
       if (ws !== this.ws) return;  // switched to another room
       log(`room ${name}: closed, reconnecting`);
@@ -138,6 +187,11 @@ class Room {
     if (active === this.ptt || this.ws.readyState !== WebSocket.OPEN) return;
     this.ptt = active;
     this.ws.send(JSON.stringify({ type: 'audio.ptt', active }));
+  }
+  sendJson(event) {
+    if (this.ws.readyState !== WebSocket.OPEN) return false;
+    this.ws.send(JSON.stringify(event));
+    return true;
   }
   sendOpus(packet) {
     if (this.ws.readyState === WebSocket.OPEN) this.ws.send(packet);
@@ -197,7 +251,12 @@ class DiscordToRoom {
       this.room.setPtt(false);
     }
   }
-  drop(userId) { this.sources.delete(userId); }
+  // A speaker stopped: forget the queued sound but keep the decoder (a new OpusScript per
+  // utterance is what wore out the WASM heap, see RoomStream).
+  drop(userId) {
+    const s = this.sources.get(userId);
+    if (s) { s.buf = []; s.len = 0; }
+  }
 }
 
 // ---- dry runs (no Discord) ------------------------------------------------
@@ -235,27 +294,39 @@ function discord() {
     joinVoiceChannel, createAudioPlayer, createAudioResource, StreamType, NoSubscriberBehavior,
     AudioPlayerStatus, EndBehaviorType, VoiceConnectionStatus, entersState,
   } = require('@discordjs/voice');
-  const { PassThrough } = require('stream');
+  const prism = require('prism-media');   // comes with @discordjs/voice
 
   const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
   const decoder8k = new OpusScript(ROOM_RATE, 1);
   const up = new Upsampler();
   const player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Play, maxMissedFrames: 50 } });
+  // room -> Discord: one endless resource (RoomStream). Only if the player ever stops
+  // is a new one made.
+  // The encoder is made here (not by createAudioResource) to keep its read-ahead to two
+  // frames: by default the streams would queue some 400 ms of silence ahead of the voice.
   let stream = null;
-  player.on(AudioPlayerStatus.Idle, () => { stream = null; });
-  player.on('error', (e) => { log('player:', e.message); stream = null; });
+  const play = () => {
+    stream = new RoomStream();
+    const encoder = new prism.opus.Encoder({ rate: DISCORD_RATE, channels: 2, frameSize: DISCORD_FRAME / 4,
+      readableHighWaterMark: 2, writableHighWaterMark: DISCORD_FRAME });
+    player.play(createAudioResource(stream.pipe(encoder), { inputType: StreamType.Opus }));
+  };
+  player.on(AudioPlayerStatus.Idle, () => { log('player idle, restarting the stream'); play(); });
+  player.on('error', (e) => { log('player:', e.message); });
+  play();
 
-  // room -> Discord: a new raw-PCM resource whenever the room starts talking again
+  // The logger's answers to /ecologger audio (logger.config through the server).
+  let loggerConfig = null;
+  const configWaiters = [];
   const state = loadState();
   const room = new Room(state.room || ROOM, (packet) => {
     let mono;
     try { mono = toInt16(decoder8k.decode(packet)); } catch { return; }
-    if (!stream) {
-      stream = new PassThrough();
-      player.play(createAudioResource(stream, { inputType: StreamType.Raw }));
-    }
-    const pcm = up.push(mono);
-    stream.write(Buffer.from(pcm.buffer));
+    stream.feed(Buffer.from(up.push(mono).buffer));
+  }, (event) => {
+    if (event.type !== 'logger.config' || !event.data) return;
+    loggerConfig = event.data;
+    configWaiters.splice(0).forEach((resolve) => resolve(event.data));
   });
   const down = new DiscordToRoom(room);
 
@@ -314,7 +385,33 @@ function discord() {
         .addChannelTypes(ChannelType.GuildVoice))
       .addStringOption((o) => o.setName('room').setDescription('つなぐロガーの部屋（省略時は今の部屋）').setMaxLength(64)))
     .addSubcommand((s) => s.setName('leave').setDescription('ボイスチャンネルから出る（再起動しても戻らない）'))
-    .addSubcommand((s) => s.setName('status').setDescription('いまの接続先を表示'));
+    .addSubcommand((s) => s.setName('status').setDescription('いまの接続先を表示'))
+    .addSubcommand((s) => {
+      s.setName('audio').setDescription('ロガーの音声の設定を見る・変える（何も指定しなければ見るだけ）');
+      for (const [name, text, min, max] of AUDIO_OPTIONS) {
+        s.addIntegerOption((o) => o.setName(name).setDescription(text).setMinValue(min).setMaxValue(max));
+      }
+      return s;
+    });
+
+  // Ask the logger in the room (logger.config) and wait for its answer: on LTE it reads
+  // the server every 2 s, so up to about 6 s.
+  async function askLogger(voice) {
+    if (!room.sendJson({ type: 'logger.config', data: { voice } })) return null;
+    return new Promise((resolve) => {
+      configWaiters.push(resolve);
+      setTimeout(() => { const i = configWaiters.indexOf(resolve); if (i >= 0) { configWaiters.splice(i, 1); resolve(null); } }, 8000);
+    });
+  }
+
+  function audioText(c) {
+    const v = c.voice || {};
+    return [
+      `ドライバーの声の大きさ（目標）: ${v.level_db} dBFS　／　増幅の上限: ${v.max_gain_db} dB（いま ${c.gain_db} dB）`,
+      `低音カット: ${v.lowcut_hz ? `${v.lowcut_hz} Hz` : 'なし'}　／　ビットレート: ${v.bitrate / 1000} kbps`,
+      `ドライバーのイヤホンの音量: ${v.volume}%　／　マイク: ${c.mic ? c.device : 'なし'}`,
+    ].join('\n');
+  }
 
   function statusText() {
     const vs = connection ? connection.state.status : 'not joined';
@@ -329,6 +426,21 @@ function discord() {
     const sub = it.options.getSubcommand();
     const reply = (content) => it.reply({ content, flags: MessageFlags.Ephemeral });
     if (sub === 'status') return reply(statusText());
+    if (sub === 'audio') {
+      const voice = {};
+      for (const [name] of AUDIO_OPTIONS) {
+        const value = it.options.getInteger(name);
+        if (value !== null) voice[AUDIO_KEYS[name]] = name === 'bitrate' ? value * 1000 : value;
+      }
+      await it.deferReply({ flags: MessageFlags.Ephemeral });
+      const answer = await askLogger(voice);
+      if (Object.keys(voice).length) log(`command: audio ${JSON.stringify(voice)} by ${it.user.tag}`);
+      if (!answer) {
+        return it.editReply(`ロガーから返事がありません（部屋 \`${room.name}\` にロガーがいない、または音声が止まっている）。`
+          + (loggerConfig ? `\n前回の値:\n${audioText(loggerConfig)}` : ''));
+      }
+      return it.editReply(`${Object.keys(voice).length ? '変えました。' : 'いまの設定です。'}\n${audioText(answer)}`);
+    }
     if (sub === 'leave') {
       wantChannel = null;
       saveState({ channelId: null, room: room.name });

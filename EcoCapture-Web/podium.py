@@ -469,7 +469,7 @@ class PodiumSender:
                 'link':self.store.config.link,'active_link':self.active_link,'destination':self.store.config.destination,
                 'transport':TRANSPORT_LABEL[self.active_link or self.store.config.link]+(' → 中継サーバー' if self.store.config.destination=='server' else ''),
                 'configured':bool(self.store.config.server_url if self.store.config.destination=='server' else self.store.config.device_id),'enabled':self.store.config.enabled,
-                'target':self.active_target}
+                'target':self.active_target,**self.transport_timings()}
 
     def targets(self,config):
         '''[(kind, url)] in failover order: ('server', url)..., then ('podium', None).'''
@@ -503,6 +503,7 @@ class PodiumSender:
         out={}
         if getattr(transport,'timings',None):out['phases']=dict(transport.timings)
         if getattr(transport,'modem',None):out['modem']=dict(transport.modem)
+        if getattr(transport,'radio',None):out['radio']=dict(transport.radio)
         return out
 
     def sent(self,frames,size):
@@ -637,7 +638,12 @@ class PodiumSender:
         for kind,payload in self.voice_link.receive():
             if kind=='A':
                 try:self.state['voice_agent']=json.loads(payload)
-                except ValueError:pass
+                except ValueError:continue
+                if getattr(self,'config_asked',False):
+                    # Answer to the pit's logger.config: what the agent now uses.
+                    self.config_asked=False;agent=self.state['voice_agent']
+                    up.append(ws.text_frame({'type':'logger.config','data':{'voice':agent.get('settings'),
+                        **{k:agent.get(k) for k in ('gain_db','device','mic','route')}}}))
             elif not allowed:continue
             elif kind=='T' and (payload==b'1')!=talking:
                 talking=payload==b'1';up.append(ws.text_frame({'type':'audio.ptt','active':talking}))
@@ -674,6 +680,13 @@ class PodiumSender:
         try:event=json.loads(text)
         except ValueError:return
         if not isinstance(event,dict):return
+        if event.get('type')=='logger.config':
+            # From the pit through the relay (2026-10-22): voice settings for voice_agent.py,
+            # or {} to ask what is in use. The agent answers with b'A' (voice_uplink sends it on).
+            voice=(event.get('data') or {}).get('voice') if isinstance(event.get('data'),dict) else None
+            if self.voice_link.send(b'C'+json.dumps(voice if isinstance(voice,dict) else {}).encode()):
+                self.config_asked=True
+            return
         if event.get('type')=='error' and str(event.get('code','')).startswith('podium_'):
             self.state['relay_error']=event.get('code')
             if event.get('code')=='podium_not_configured' and not (fresh and utc_milliseconds(sample) is None):

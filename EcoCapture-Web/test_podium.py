@@ -131,6 +131,8 @@ class FakeUART:
                 n=min(11,len(self.network));payload=bytes(self.network[:n]);del self.network[:n]
                 self.outgoing.extend(f'\r\n+CARECV: {n},'.encode()+payload+b'\r\nOK\r\n');continue
             if command=='AT+CASTATE?':response='+CASTATE: 0,1\r\n'
+            if command=='AT+CPSI?':response='+CPSI: LTE CAT-M1,Online,440-10,0x1A2B,12345678,123,EUTRAN-BAND19,6150,3,3,-11,-97,-68,7\r\n'
+            if command=='AT+CSQ':response='+CSQ: 17,99\r\n'
             self.outgoing.extend(('\r\n'+response+'OK\r\n').encode())
 
 async def fake_relay(reader,writer,log,replies=()):
@@ -298,6 +300,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         for phase in ('modem_initialization','sim_ready','network_registration','pdp_activation','relay_connect'):
             self.assertIn(phase,modem.timings)
         self.assertGreaterEqual(modem.timings['network_registration'],1)   # one 1 s wait for CGATT
+        self.assertEqual({k:modem.radio[k] for k in ('band','rsrq','rsrp','rssi','sinr','csq')},
+                         {'band':'EUTRAN-BAND19','rsrq':-11,'rsrp':-97,'rssi':-68,'sinr':7,'csq':17})
+        self.assertLess(uart.commands.index('AT+CPSI?'),uart.commands.index('AT+CPSMS=0'))
 
     async def test_lte_m_only_is_not_rewritten_once_set(self):
         uart=FakeUART();uart.mode={'AT+CNMP?':38,'AT+CMNB?':1};modem=SIM7070(uart=uart)
@@ -572,8 +577,9 @@ class VoiceGuardTests(unittest.TestCase):
         guard.want(True,guard.paused_until);guard.batch_sent(5,3,guard.paused_until+1)
         self.assertEqual(guard.pause,first*2)
 
-async def voice_relay(reader,writer,log,uplink=None):
-    """Answers pings and streams binary 'voice' frames while the client's hello asks for it."""
+async def voice_relay(reader,writer,log,uplink=None,say=()):
+    """Answers pings and streams binary 'voice' frames while the client's hello asks for it.
+    say: text messages (dicts) the pit sends to the logger right after its first hello."""
     head=await reader.readuntil(b'\r\n\r\n')
     key=re.search(rb'(?im)^sec-websocket-key:\s*(\S+)',head)[1]
     accept=base64.b64encode(hashlib.sha1(key+WebSocket.GUID).digest())
@@ -597,6 +603,11 @@ async def voice_relay(reader,writer,log,uplink=None):
             if b0&0x0f==1:
                 message=json.loads(payload)
                 if message['type']=='audio.ptt' and uplink is not None:uplink.append(('ptt',message['active']))
+                if message['type']=='logger.config' and uplink is not None:uplink.append(('config',message['data']))
+                if message['type']=='hello' and say:
+                    for text in say:
+                        data=json.dumps(text).encode();writer.write(bytes([0x81,len(data)])+data)
+                    await writer.drain();say=()
                 if message['type']=='hello':
                     log.append(message['audio_formats'])
                     streaming.set() if message['audio_formats'] else streaming.clear()
@@ -697,6 +708,38 @@ class VoiceRelayTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(f==[] for f in log))
         self.assertEqual(uplink,[('ptt',True),('opus',b''*20),('opus',b''*20),('opus',b''*20),('ptt',False),
                                  ('ptt',True),('opus',b''*20),('ptt',False)])
+
+
+class LoggerConfigTests(unittest.IsolatedAsyncioTestCase):
+    async def test_pit_settings_reach_the_agent_and_its_answer_goes_back(self):
+        log=[];uplink=[]
+        pit={'type':'logger.config','session_id':7,'data':{'voice':{'level_db':-12}}}
+        server=await asyncio.start_server(lambda r,w:voice_relay(r,w,log,uplink,say=[pit]),'127.0.0.1',0);port=server.sockets[0].getsockname()[1]
+        class Runtime:
+            config=Configuration();sample=None;received_at=0
+            class sd:status={'active':False}
+        class Link:
+            # Stands in for voice_agent.py: answers b'C' with its status, settings included.
+            def __init__(self):self.got=[];self.queue=[]
+            def send(self,data):
+                self.got.append(data)
+                self.queue.append(('A',json.dumps({'settings':{'level_db':-12.0},'gain_db':20.0,'device':'Audio','mic':True,'route':'usb'}).encode()))
+                return True
+            def want_uplink(self):return True
+            def receive(self):out,self.queue=self.queue,[];return out
+            def play(self,packet):pass
+        with tempfile.TemporaryDirectory() as root:
+            runtime=Runtime();sender=PodiumSender(root,runtime);sender.voice_link=link=Link()
+            config=PodiumConfig(link='wifi',destination='server',server_url=f'ws://127.0.0.1:{port}/ws/audio/main')
+            async with server:
+                task=asyncio.create_task(sender.relay_session(SocketTransport(),config,0))
+                for seq in range(10):
+                    runtime.sample={'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':seq*100,'values':{'Lat':35.5},
+                                    'gnss_utc':'2026-10-14T00:00:00Z','gnss_itow_ms':seq*100}
+                    runtime.received_at=time.monotonic();await asyncio.sleep(.1)
+                sender.store.revision+=1;await asyncio.wait_for(task,2)
+        self.assertEqual(link.got,[b'C{"level_db": -12}'])
+        self.assertEqual(uplink,[('config',{'voice':{'level_db':-12.0},'gain_db':20.0,'device':'Audio','mic':True,'route':'usb'})])
 
 
 class VoiceLinkTests(unittest.TestCase):

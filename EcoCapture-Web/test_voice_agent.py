@@ -5,6 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import numpy as np
+
 import voice_agent as va
 
 A, B, C = '40:DE:17:B6:15:45', '11:22:33:44:55:66', 'AA:BB:CC:DD:EE:FF'
@@ -48,6 +50,67 @@ class RouteTests(unittest.TestCase):
             self.assertEqual(va.choose_route()['kind'], 'usb')
         with patch.object(va, 'pipewire_objects', return_value=[]), patch.object(va, 'usb_card', return_value=None):
             self.assertIsNone(va.choose_route())
+
+
+class SignalTests(unittest.TestCase):
+    def tone(self, hz, seconds=0.5, rate=va.IN_RATE, level=3000):
+        return level * np.sin(2 * np.pi * hz * np.arange(int(rate * seconds)) / rate)
+
+    def test_high_pass_removes_the_hum_and_keeps_the_voice(self):
+        for hz, low, high in ((29, 0, 0.01), (59, 0, 0.05), (1000, 0.95, 1.05)):
+            hp, x = va.HighPass(), self.tone(hz)
+            y = np.concatenate([hp.process(x[i:i + va.FRAME]) for i in range(0, len(x), va.FRAME)])
+            ratio = np.sqrt(np.mean(y[-4800:] ** 2) / np.mean(x[-4800:] ** 2))
+            self.assertTrue(low <= ratio <= high, (hz, ratio))
+
+    def test_leveller_raises_a_quiet_voice_up_to_its_limit_and_lowers_a_loud_one(self):
+        quiet = self.tone(400, 0.12, va.OUT_RATE, level=100)   # about -50 dBFS
+        lev = va.Leveller()
+        for _ in range(60):
+            out = lev.process(quiet)
+        self.assertAlmostEqual(lev.gain, va.MAX_GAIN, delta=0.5)
+        normal = self.tone(400, 0.12, va.OUT_RATE, level=1000)   # about -30 dBFS
+        out = lev.process(normal)   # right after the quiet talk: held below clipping at once
+        self.assertLess(np.abs(out).max(), 32767)
+        for _ in range(10):
+            out = lev.process(normal)
+        self.assertAlmostEqual(20 * np.log10(np.sqrt(np.mean(out ** 2)) / 32768), va.TARGET_DBFS, delta=1.5)
+        shout = self.tone(400, 0.12, va.OUT_RATE, level=20000)
+        self.assertLess(np.abs(lev.process(shout)).max(), 32767)   # never made quieter than it is
+        for _ in range(10):
+            lev.process(shout)
+        self.assertAlmostEqual(lev.gain, va.MIN_GAIN, delta=0.01)
+
+    def test_leveller_ignores_padding_silence(self):
+        lev = va.Leveller()
+        lev.process(np.zeros(va.PACKET))
+        self.assertEqual(lev.gain, va.GAIN)
+
+
+class SettingsTests(unittest.TestCase):
+    def setUp(self):
+        self.saved = va.settings()
+        self.addCleanup(va.apply_settings, self.saved)
+
+    def test_pit_settings_are_clamped_and_unknown_keys_ignored(self):
+        got = va.apply_settings({'level_db': -3, 'max_gain_db': 99, 'lowcut_hz': 300, 'bitrate': 1000,
+                                 'volume': 70, 'rm -rf': 1, 'lowcut': 'x'})
+        self.assertEqual(got, {'level_db': -6.0, 'max_gain_db': 40.0, 'lowcut_hz': 300, 'bitrate': 6000, 'volume': 70})
+        self.assertEqual(va.VOLUME, '70%')
+        self.assertEqual(va.apply_settings({'volume': True})['volume'], 70)   # not a number
+
+    def test_settings_survive_a_restart(self):
+        with tempfile.TemporaryDirectory() as root, patch.object(va, 'SETTINGS_FILE', Path(root) / 'settings.json'):
+            va.apply_settings({'level_db': -12, 'lowcut_hz': 200})
+            va.save_settings()
+            va.apply_settings({'level_db': -20, 'lowcut_hz': 250})
+            va.load_settings()
+            self.assertEqual((va.TARGET_DBFS, va.HIGHPASS_HZ), (-12.0, 200))
+
+    def test_low_cut_off_passes_the_sound_unchanged(self):
+        va.apply_settings({'lowcut_hz': 0})
+        x = np.arange(va.FRAME, dtype=np.float32)
+        self.assertTrue(np.array_equal(va.HighPass().process(x), x))
 
 
 class UsbCardTests(unittest.TestCase):

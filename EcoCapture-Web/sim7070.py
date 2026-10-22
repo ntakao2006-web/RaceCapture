@@ -37,6 +37,8 @@ class SIM7070:
         # Seconds spent in each connect phase, and the modem's network-mode settings
         # (power-on to telemetry took 2+ min on 2026-10-19; this shows where).
         self.timings={};self.modem={};self._phase_at=None
+        # Latest radio quality (AT+CPSI?, AT+CSQ), to compare LTE antennas (2026-10-21).
+        self.radio={}
         self.phase='idle'
         self.operation='idle'
     @property
@@ -116,6 +118,7 @@ class SIM7070:
             if re.search(rb'\+CGATT:\s*1\b',attached):break
             if time.monotonic()>until:raise TimeoutError('Network registration timeout')
             await asyncio.sleep(1)
+        await self.read_radio()
         # Firmware 1951B14 rejects these during RF/SIM initialization.
         await self.command('AT+CPSMS=0')
         self.phase='pdp_activation'
@@ -165,6 +168,24 @@ class SIM7070:
         if self.sent%100==0:
             state=await self.command('AT+CASTATE?')
             if not re.search(rb'\+CASTATE:\s*0,1\b',state):raise ConnectionError('Socket no longer connected')
+        if self.sent%25==0:await self.read_radio()
+    async def read_radio(self):
+        # Best effort: a failed query must not drop the link. CPSI on LTE ends with
+        # ...,<RSRQ>,<RSRP>,<RSSI>,<RSSNR> (SIM7070 AT manual).
+        radio={'at':round(time.time())}
+        with __import__('contextlib').suppress(OSError,TimeoutError):
+            line=re.search(rb'\+CPSI:\s*([^\r\n]*)',await self.command('AT+CPSI?'))
+            if line:
+                cpsi=line[1].decode(errors='replace');radio['cpsi']=cpsi
+                fields=cpsi.split(',')
+                band=next((f for f in fields if 'BAND' in f.upper()),None)
+                if band:radio['band']=band
+                with __import__('contextlib').suppress(ValueError):
+                    if len(fields)>=14:radio.update(zip(('rsrq','rsrp','rssi','sinr'),map(int,fields[-4:])))
+        with __import__('contextlib').suppress(OSError,TimeoutError):
+            csq=re.search(rb'\+CSQ:\s*(\d+),',await self.command('AT+CSQ'))
+            if csq:radio['csq']=int(csq[1])
+        self.radio=radio
     async def receive(self,until):
         response=await self.command('AT+CARECV=0,512')
         # SIMCom V1.03 uses +CARECV: <length>,<raw payload>, not a line string.
