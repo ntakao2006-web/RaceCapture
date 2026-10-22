@@ -18,6 +18,13 @@ import kotlin.math.sin
  *   up to 10 s later still count as consecutive. Both were seen missing a start
  *   line on the 2026-10-22 test ride (24 m off the centre at 18 m accuracy;
  *   and 25-47 m accuracy for the 7 s around a crossing 10 m off the centre).
+ * - A missed start line does not lose the race: the control line starts it
+ *   instead ([LapState.startFallback]). If the car was seen standing near the
+ *   start line and leaving it, its closest pass by the line after that (else
+ *   the departure itself) is taken as the start and the control crossing ends
+ *   lap 1; otherwise the clock starts at the control
+ *   line, and is moved back to such a departure if one follows (the car went
+ *   through the control line on its way to the grid).
  * - Persistence is left to the caller ([onChange]).
  */
 data class Gate(val lat: Double, val lon: Double, val bearing: Double? = null, val widthM: Double = 30.0)
@@ -59,6 +66,12 @@ data class LapState(
      * log), so the running average is scaled to agree with the lap averages.
      */
     var distScale: Double = 1.0,
+    /**
+     * How the race was started when the start line was missed: "depart" (the
+     * car leaving a stop near the start line), "control" (the control line), or
+     * null (the start line itself, or no start line configured).
+     */
+    var startFallback: String? = null,
 )
 
 /** One GNSS fix: GNSS UTC, position, horizontal accuracy, speed (km/h), heading. */
@@ -70,6 +83,7 @@ data class LapValues(
     val count: Int, val current: Int, val lastS: Double?, val bestS: Double?, val elapsedS: Double?,
     val raceS: Double?, val lapsLeft: Int?, val finished: Boolean,
     val lapDistM: Double = 0.0,
+    val startFallback: String? = null,
 )
 
 private const val EARTH_M_PER_DEG = 111320.0
@@ -77,6 +91,10 @@ private const val MAX_HACC_M = 25.0
 private const val MAX_FIX_GAP_MS = 10_000L
 private const val LEARN_MIN_KMH = 5.0
 private const val KEEP_INSIDE = 600
+/** A stop within this distance of the start line, then moving off, is taken as the start if the line is missed. */
+private const val DEPART_NEAR_M = 60.0
+private const val STOPPED_KMH = 3.0
+private const val MOVING_KMH = 5.0
 
 private data class P(val t: Long, val x: Double, val y: Double)
 
@@ -148,12 +166,21 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
     /** GNSS UTC of the last usable fix and the monotonic ms it arrived at. */
     var latest: Pair<Long, Long>? = null; private set
     private val watches = mapOf("start" to Watch(rearm = false), "control" to Watch(), "goal" to Watch())
+    /**
+     * For a missed start line: the last time the car stood near it, and then the
+     * estimated start, its closest pass by the line after moving off (on the
+     * 2026-10-22 ride it stopped 40 m short, so moving off was 9.5 s early).
+     */
+    private var stoppedNearStartMs: Long? = null
+    private var departMs: Long? = null
+    private var nearestStartM: Double? = null
 
     fun configure(c: LapConfig) { config = c; forgetMotion(); onChange(this) }
 
     fun reset() {
         state.count = 0; state.lastS = null; state.bestS = null; state.lapStartMs = null
         state.raceStartMs = null; state.raceEndMs = null; state.finished = false; state.laps.clear(); state.lapDistM = 0.0; state.distScale = 1.0
+        state.startFallback = null; stoppedNearStartMs = null; departMs = null; nearestStartM = null
         forgetMotion(); onChange(this)
     }
 
@@ -174,10 +201,11 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
         val total = config.totalLaps
         return if (s.finished) {
             LapValues(s.count, s.count, s.lastS, s.bestS, null,
-                s.raceStartMs?.let { (s.raceEndMs!! - it) / 1000.0 }, total?.let { maxOf(0, it - s.count) }, true)
+                s.raceStartMs?.let { (s.raceEndMs!! - it) / 1000.0 }, total?.let { maxOf(0, it - s.count) }, true,
+                startFallback = s.startFallback)
         } else {
             LapValues(s.count, if (s.lapStartMs != null) s.count + 1 else 0, s.lastS, s.bestS, since(s.lapStartMs),
-                since(s.raceStartMs), total?.let { maxOf(0, it - s.count) }, false, s.lapDistM * s.distScale)
+                since(s.raceStartMs), total?.let { maxOf(0, it - s.count) }, false, s.lapDistM * s.distScale, s.startFallback)
         }
     }
 
@@ -193,11 +221,18 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
     private fun started(at: Long) {
         if (state.finished || state.count > 0) return
         state.raceStartMs = at; state.lapStartMs = at // a later forward crossing (re-start) replaces it
+        state.startFallback = null
         onChange(this)
     }
 
     private fun crossed(at: Long) {
-        if (state.finished || (config.start != null && state.raceStartMs == null)) return
+        if (state.finished) return
+        if (config.start != null && state.raceStartMs == null) return startFromControl(at)
+        // Started at the control line on the way to the grid, then left the grid with the start line missed again.
+        val depart = departMs
+        if (state.startFallback == "control" && state.count == 0 && depart != null && depart > state.lapStartMs!!) {
+            state.raceStartMs = depart; state.lapStartMs = depart; state.startFallback = "depart"
+        }
         val start = state.lapStartMs
         if (start == null) {
             state.lapStartMs = at
@@ -209,6 +244,33 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
             state.lapStartMs = at
         }
         onChange(this)
+    }
+
+    /** The start line was missed: start from a departure near it (lap 1 ends here), else from this control crossing. */
+    private fun startFromControl(at: Long) {
+        val depart = departMs
+        if (depart != null && (at - depart) / 1000.0 in config.minLapS..config.maxLapS) {
+            state.raceStartMs = depart; state.lapStartMs = depart; state.startFallback = "depart"
+            recordLap(at)
+        } else {
+            state.raceStartMs = at; state.startFallback = "control"
+        }
+        state.lapStartMs = at
+        onChange(this)
+    }
+
+    /** Watches for the car standing near the start line and moving off, until the race has a lap. */
+    private fun watchDeparture(fix: Fix) {
+        val g = config.start ?: return
+        val speed = fix.speedKmh ?: return
+        if (state.finished || state.count > 0 || (state.raceStartMs != null && state.startFallback == null)) return
+        val p = offset(g, fix)
+        val d = hypot(p.x, p.y)
+        if (speed < STOPPED_KMH && d <= DEPART_NEAR_M) stoppedNearStartMs = fix.utcMs
+        else if (speed >= MOVING_KMH) stoppedNearStartMs?.let { departMs = it; nearestStartM = null; stoppedNearStartMs = null }
+        if (departMs != null && speed >= MOVING_KMH && d <= DEPART_NEAR_M && d < (nearestStartM ?: Double.MAX_VALUE)) {
+            nearestStartM = d; departMs = fix.utcMs
+        }
     }
 
     private fun finished(at: Long) {
@@ -230,6 +292,7 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
         }
         latest = fix.utcMs to nowMonoMs
         if (config.control == null) return
+        watchDeparture(fix)
         val prev = previous
         previous = fix
         for (t in TARGETS) config.gate(t)?.let { watches.getValue(t).observe(it, fix) }

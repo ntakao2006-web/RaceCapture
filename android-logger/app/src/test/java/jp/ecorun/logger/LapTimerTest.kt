@@ -105,12 +105,69 @@ class LapTimerTest {
         assertEquals(1_800_000_000_500L, offCentre(18.0))
     }
 
+    /** A start line 200 m before the control that never registers (it faces the other way). */
+    private val missedStart = Gate(lat0 - 200 / mPerDegLat, lon0, bearing = 180.0)
+
+    /** Standing near the start from [from] to [to] s, then moving off. */
+    private fun LapTimer.waitAndLeave(from: Double, to: Double) {
+        var t = from
+        while (t <= to) { feed(fix(t, -205.0, kmh = 0.0)); t += 1.0 }
+        feed(fix(to + 1, -200.0, kmh = 20.0))
+    }
+
     @Test
-    fun startLineStartsTheRaceAndControlBeforeItIsIgnored() {
+    fun missedStartIsTakenFromTheDepartureNearIt() {
+        val lt = timer(LapConfig(control = north, start = missedStart))
+        lt.waitAndLeave(0.0, 5.0)
+        lt.pass(60.0)
+        assertEquals(1_800_000_006_000L, lt.state.raceStartMs) // passing the line, not standing 5 m short of it
+        assertEquals(1, lt.state.count)
+        assertEquals(54.0, lt.state.lastS!!, 0.01)
+        assertEquals("depart", lt.state.startFallback)
+    }
+
+    @Test
+    fun missedStartWithoutAStopStartsAtTheControlLine() {
+        val lt = timer(LapConfig(control = north, start = missedStart))
+        lt.pass(0.0)
+        assertEquals(1_800_000_000_000L, lt.state.raceStartMs)
+        assertEquals(0, lt.state.count)
+        assertEquals("control", lt.state.startFallback)
+        lt.pass(60.0)
+        assertEquals(1, lt.state.count)
+    }
+
+    /** Through the control line on the way to the grid, then the start line missed: the clock moves to the departure. */
+    @Test
+    fun controlPassOnTheWayToTheGridIsReplacedByTheDeparture() {
+        val lt = timer(LapConfig(control = north, start = missedStart))
+        lt.pass(0.0)
+        lt.waitAndLeave(15.0, 25.0) // over 10 s later: the test car "jumps" back, which must not be joined up
+        lt.pass(85.0)
+        assertEquals(1_800_000_026_000L, lt.state.raceStartMs)
+        assertEquals(1, lt.state.count)
+        assertEquals(59.0, lt.state.lastS!!, 0.01)
+        assertEquals("depart", lt.state.startFallback)
+    }
+
+    @Test
+    fun startLineSeenAfterAControlFallbackTakesOver() {
         val start = Gate(lat0 - 200 / mPerDegLat, lon0, bearing = 0.0)
         val lt = timer(LapConfig(control = north, start = start))
         lt.pass(0.0)
-        assertNull(lt.state.raceStartMs)
+        assertEquals("control", lt.state.startFallback)
+        lt.feed(fix(29.5, -205.0), fix(30.5, -195.0))
+        assertEquals(1_800_000_030_000L, lt.state.raceStartMs)
+        assertNull(lt.state.startFallback)
+        assertEquals(0, lt.state.count)
+    }
+
+    @Test
+    fun startLineStartsTheRaceAndOverridesAControlPassBeforeIt() {
+        val start = Gate(lat0 - 200 / mPerDegLat, lon0, bearing = 0.0)
+        val lt = timer(LapConfig(control = north, start = start))
+        lt.pass(0.0) // on the way to the grid: a provisional start (see missedStart* tests)
+        assertEquals("control", lt.state.startFallback)
         lt.feed(fix(10.0, -205.0), fix(11.0, -195.0))
         assertEquals(1_800_000_010_500L, lt.state.raceStartMs)
         lt.pass(70.0) // start to first control pass is lap 1

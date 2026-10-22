@@ -106,7 +106,14 @@ class DashboardView(context: Context) : View(context) {
             v.current == 0 -> (if (total != null) "0 / $total" else "0") to "スタート前"
             else -> (if (total != null) "${v.current} / $total" else "${v.current}") to (v.lapsLeft?.let { "残り${it}周" } ?: "")
         }
-        tileBox(c, gx, top, gw, gh, listOf("周回", d.classCode, d.reference).filter { it.isNotEmpty() }.joinToString("　"), lapValue, lapSub, white, label)
+        // A missed start line (LapTimer started the race another way) is shown in place of the sub-line.
+        val fallback = when (v?.startFallback) {
+            "depart" -> "スタート未検出：停車から推定"
+            "control" -> "スタート未検出：コントロールから"
+            else -> null
+        }
+        tileBox(c, gx, top, gw, gh, listOf("周回", d.classCode, d.reference).filter { it.isNotEmpty() }.joinToString("　"), lapValue,
+            fallback ?: lapSub, white, if (fallback != null) yellow else label)
 
         // Race clock.
         val limit = cfg.timeLimitS

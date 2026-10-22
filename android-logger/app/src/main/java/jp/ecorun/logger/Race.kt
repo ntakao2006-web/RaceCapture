@@ -110,6 +110,7 @@ object Race {
             .put("lapStart", s.lapStartMs ?: JSONObject.NULL).put("raceStart", s.raceStartMs ?: JSONObject.NULL)
             .put("raceEnd", s.raceEndMs ?: JSONObject.NULL).put("finished", s.finished)
             .put("laps", JSONArray(s.laps)).put("lapDist", s.lapDistM).put("distScale", s.distScale)
+            .put("startFallback", s.startFallback ?: JSONObject.NULL)
         prefs.edit().putString("race", json.toString()).apply()
     }
 
@@ -123,7 +124,8 @@ object Race {
         val laps = o.optJSONArray("laps")
         val state = LapState(o.optInt("count"), o.doubleOrNull("last"), o.doubleOrNull("best"),
             o.longOrNull("lapStart"), o.longOrNull("raceStart"), o.longOrNull("raceEnd"), o.optBoolean("finished"),
-            MutableList(laps?.length() ?: 0) { laps!!.getDouble(it) }, o.optDouble("lapDist", 0.0), o.optDouble("distScale", 1.0))
+            MutableList(laps?.length() ?: 0) { laps!!.getDouble(it) }, o.optDouble("lapDist", 0.0), o.optDouble("distScale", 1.0),
+            if (o.isNull("startFallback")) null else o.getString("startFallback"))
         return config to state
     }
 
