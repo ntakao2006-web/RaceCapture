@@ -404,12 +404,24 @@ function discord() {
     });
   }
 
+  // Each line: what it is now, what changing it does, and the option to change it with,
+  // so the pit can act on the reply alone (asked for on 2026-10-23).
   function audioText(c) {
     const v = c.voice || {};
+    const atMax = c.gain_db !== undefined && v.max_gain_db !== undefined && c.gain_db >= v.max_gain_db - 0.5;
     return [
-      `ドライバーの声の大きさ（目標）: ${v.level_db} dBFS　／　増幅の上限: ${v.max_gain_db} dB（いま ${c.gain_db} dB）`,
-      `低音カット: ${v.lowcut_hz ? `${v.lowcut_hz} Hz` : 'なし'}　／　ビットレート: ${v.bitrate / 1000} kbps`,
-      `ドライバーのイヤホンの音量: ${v.volume}%　／　マイク: ${c.mic ? c.device : 'なし'}`,
+      `**ドライバーの声の大きさ** ${v.level_db} dBFS（-30〜-6、標準 -16）`,
+      '　声が小さい → 上げる（例 `level:-12`）／大きすぎ・割れる → 下げる',
+      `**増幅の上限** ${v.max_gain_db} dB（0〜40、標準 30）　いまの増幅 ${c.gain_db} dB${atMax ? '（上限に達している）' : ''}`,
+      '　上限に達していて声が小さい → 上げる（例 `max_gain:36`）／雑音が大きい → 下げる',
+      `**低音カット** ${v.lowcut_hz ? `${v.lowcut_hz} Hz` : 'なし'}（0〜400、標準 250）`,
+      '　風切り音・ゴーという音が大きい → 上げる（例 `lowcut:350`）／声がこもる・細い → 下げる',
+      `**ビットレート** ${v.bitrate / 1000} kbps（6〜16、標準 6）`,
+      '　声がガビガビ → 上げる（例 `bitrate:10`）。上げるほどLTEの通信量が増え、テレメトリを圧迫しうる',
+      `**ドライバーのイヤホンの音量** ${v.volume}%（0〜100、標準 80）`,
+      '　ドライバーがピットの声を聞き取れない → 上げる（例 `volume:95`）',
+      `マイク: ${c.mic ? c.device : 'なし（USBのマイク・イヤホンが挿さっているか）'}`,
+      '複数まとめて変えられる（例 `/ecologger audio level:-12 lowcut:300`）。値はロガーの再起動後も残る',
     ].join('\n');
   }
 
