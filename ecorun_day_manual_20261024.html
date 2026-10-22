@@ -84,10 +84,12 @@
   <h2>3. コースウォーク（10/24朝・Ver.2のラップ）</h2>
   <ol>
     <li>Ver.2を手持ち電源で持ち、スマホのテザリングにつなぐ。スマホでブックマークした<b>コースウォーク画面</b>を開き、「測位OK」になるまで待つ。</li>
+    <li><span class="who">（ロガー担当）</span>PCも同じテザリングで <b>Start-RadioWalk.cmd</b>（<span class="who">tools\lte_antenna\</span>）→「電波の記録を始めました」。LTEの電波を位置つきで記録（30分で自動停止）。</li>
     <li>各ラインの真上に立って止まり「<b>ここを〇〇にする</b>」：<b>コントロール（必須）</b>、スタート・ゴール（別の場所なら）。直前3秒の位置を平均して登録する。</li>
     <li>規定周回数：<span class="fill" style="min-width:12mm"></span>周のボタンを押す（四輪7周・二輪3周）。</li>
     <li>スマホ組は、画面下の「QRを表示」をEcoLoggerアプリで読む。全台の「基準」の番号がそろっているか見る。</li>
     <li><span class="warn">レース開始前に「周回数をリセット」</span>を押す（押さないと前の続きから数える）。</li>
+    <li><span class="who">（ロガー担当）</span>歩き終えたら <b>Fetch-RadioWalk.cmd</b> →「止めて回収しました」（<span class="who">drive_logs\日付\radio_walk\</span>）。</li>
   </ol>
 </section>
 
@@ -126,6 +128,7 @@
     <tr><td>Ver.1 ERR点灯</td><td>電源入れ直し。Ver.2が記録中なら走行を優先</td></tr>
     <tr><td>回収で「UNO Qに接続できません」</td><td>USBケーブル・電源を確認して再実行（SD分は回収済み）</td></tr>
     <tr><td>回収で「スマホのログは見つかりません」</td><td>USBを「ファイル転送」に。だめならエクスプローラーで<b>内部共有ストレージ\Download\EcoLogger</b>をPCへコピー</td></tr>
+    <tr><td>RadioWalkで「接続できません」</td><td>同じテザリングか確認。だめなら省いてよい（<b>ライン・記録に影響なし</b>）</td></tr>
     <tr><td>【要確認】と出た</td><td>表示をスマホで撮影してロガー担当へ。SD・本体のファイルは消さずに保管</td></tr>
   </table>
 </section>
