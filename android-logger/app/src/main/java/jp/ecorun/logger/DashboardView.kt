@@ -126,10 +126,11 @@ class DashboardView(context: Context) : View(context) {
     }
 
     /**
-     * Eco-run pacing ([Pace]): the average speed this lap needs to finish on
-     * time (set when the lap starts, so it holds still while the driver works
-     * to it), and beside it this lap's running average, which moves as the
-     * lap goes on, green at or above the target and yellow below.
+     * Eco-run pacing ([Pace], as the team's record sheet): the average speed
+     * this lap needs to reach its checkpoint (set when the lap starts, so it
+     * holds still while the driver works to it), with the gap to the plan and
+     * the first-half speed that makes it up sooner; beside it this lap's running
+     * average, coloured like the sheet: green on target, red slow, yellow too fast.
      */
     private fun speedTiles(c: Canvas, x: Float, y: Float, w: Float, h: Float, pad: Float, d: Dash) {
         val cfg = d.config; val v = d.lap
@@ -137,10 +138,12 @@ class DashboardView(context: Context) : View(context) {
         val running = v != null && !v.finished && v.current > 0
         val target = if (v?.finished == true) null else Pace.targetKmh(cfg, d.laps, index)
         val banked = if (v != null && v.count > 0) Pace.bankedS(cfg, d.laps, v.count) else null
+        val half = if (target != null && banked != null) Pace.halfTargetKmh(cfg, d.laps, index) else null
         val (targetSub, targetSubColor) = when {
-            v?.finished == true -> "ゴール" to label
-            target == null -> (v?.raceS?.let { if (it < (cfg.timeLimitS ?: 0.0)) "余裕を使い切りました" else "規定時間を過ぎました" } ?: "") to red
-            banked != null -> "貯金 " + (if (banked >= 0) "+" else "−") + clock(abs(banked), false) to (if (banked >= 0) green else red)
+            v?.finished == true -> (banked?.let { "ゴール　差 " + gap(it) } ?: "ゴール") to label
+            target == null -> (v?.raceS?.let { if (it < (cfg.timeLimitS ?: 0.0)) "目標タイムを過ぎました" else "規定時間を過ぎました" } ?: "") to red
+            banked != null -> listOfNotNull("差 " + gap(banked), half?.let { "前半 %.1f".format(it) }).joinToString("　") to
+                (if (banked >= 0) green else red)
             running -> "" to label
             else -> "スタート前" to label
         }
@@ -151,11 +154,16 @@ class DashboardView(context: Context) : View(context) {
         val (avgSub, avgColor) = when {
             avg == null -> (if (running) "計測中" else if (v?.finished == true) "ゴール" else "スタート前") to white
             target == null -> "" to white
-            else -> "目標比 " + signed(avg - target) to (if (avg >= target) green else yellow)
+            avg < target -> "遅い　" + signed(avg - target) to red
+            avg > target + FAST_KMH -> "速すぎ　" + signed(avg - target) to yellow
+            else -> "目標どおり　" + signed(avg - target) to green
         }
         tileBox(c, x + w + pad, y, w, h, "この周の平均 km/h", avg?.let { "%.1f".format(it) } ?: "—", avgSub,
             if (avg == null) white else avgColor, if (avg == null) label else avgColor)
     }
+
+    /** Gap to the plan in seconds, + ahead. */
+    private fun gap(s: Double) = (if (s >= 0) "+" else "−") + (if (abs(s) < 60) "%.0f秒".format(abs(s)) else clock(abs(s), false))
 
     private fun signed(kmh: Double) = (if (kmh >= 0) "+" else "−") + "%.1f".format(abs(kmh))
 
@@ -212,6 +220,8 @@ class DashboardView(context: Context) : View(context) {
     }
 
     companion object {
+        /** Above target by more than this, the lap is shown as too fast (the sheet: green 25-26 km/h around 25.2). */
+        const val FAST_KMH = 1.0
         /** m:ss (or h:mm:ss), with tenths when [tenths]. */
         fun clock(seconds: Double, tenths: Boolean): String {
             val t = if (tenths) floor(seconds * 10) / 10 else floor(seconds)

@@ -4,13 +4,14 @@ import kotlin.math.cos
 import kotlin.math.hypot
 
 /**
- * Average-speed pacing, which is what eco-run drivers steer by: the regulation
- * distance has to be covered within the regulation time, so after every lap the
- * driver gets the average speed the next lap needs to finish exactly on time
- * (the remaining distance over the remaining time). Driving the previous lap
- * faster than its target lowers the next target, and the reverse. The time
- * aimed at is the limit less [LapConfig.marginS], since finishing even a few
- * seconds late disqualifies.
+ * Average-speed pacing, which is what eco-run drivers steer by, following the
+ * team's record sheet (本番用記録表.xlsx): the planned finish (the limit less
+ * [LapConfig.marginS], since finishing even a few seconds late disqualifies)
+ * is split into a checkpoint time at the end of every lap, in proportion to
+ * the distance. Each lap's target is the average speed that reaches the next
+ * checkpoint from where the car actually is, so any gap is made up within the
+ * next lap (the sheet's 次目標速度). [halfTargetKmh] makes it up within the
+ * first half instead (次半周目標速度), the second half then running at the plan.
  *
  * Lap distances come from the regulation distance, not from GNSS: a standing
  * start before the control line makes the first lap shorter by the start ->
@@ -42,28 +43,36 @@ object Pace {
         return d
     }
 
-    /** Average speed (km/h) lap [index] needs, given the lap times before it; null once past the limit. */
-    fun targetKmh(c: LapConfig, laps: List<Double>, index: Int): Double? {
+    /** Planned time (s) at the end of the first [laps] laps: the sheet's 目標タイム. */
+    fun checkpointS(c: LapConfig, laps: Int): Double? {
         val total = c.raceDistanceM ?: return null
-        val limit = plannedS(c) ?: return null
-        if (lapDistanceM(c, index) == null) return null
+        val planned = plannedS(c) ?: return null
         var done = 0.0
-        for (k in 0 until index) done += lapDistanceM(c, k) ?: return null
-        val left = limit - laps.take(index).sum()
-        if (left <= 0) return null
-        return (total - done) / left * 3.6
+        for (k in 0 until laps) done += lapDistanceM(c, k) ?: return null
+        return planned * done / total
+    }
+
+    /** Average speed (km/h) lap [index] needs to reach its checkpoint, given the lap times before it; null once past it. */
+    fun targetKmh(c: LapConfig, laps: List<Double>, index: Int): Double? {
+        val d = lapDistanceM(c, index) ?: return null
+        val left = (checkpointS(c, index + 1) ?: return null) - laps.take(index).sum()
+        return if (left > 0) d / left * 3.6 else null
+    }
+
+    /** Average speed (km/h) for the first half of lap [index] that reaches the plan at its half-way point. */
+    fun halfTargetKmh(c: LapConfig, laps: List<Double>, index: Int): Double? {
+        val d = lapDistanceM(c, index) ?: return null
+        val from = checkpointS(c, index) ?: return null
+        val to = checkpointS(c, index + 1) ?: return null
+        val left = (from + to) / 2 - laps.take(index).sum()
+        return if (left > 0) d / 2 / left * 3.6 else null
     }
 
     /** Average speed (km/h) of a finished lap from its regulation distance. */
     fun lapKmh(c: LapConfig, index: Int, seconds: Double): Double? =
         lapDistanceM(c, index)?.let { if (seconds > 0) it / seconds * 3.6 else null }
 
-    /** Seconds ahead (+) of an even pace to the planned finish (margin included) after the first [count] laps. */
-    fun bankedS(c: LapConfig, laps: List<Double>, count: Int): Double? {
-        val total = c.raceDistanceM ?: return null
-        val limit = plannedS(c) ?: return null
-        var done = 0.0
-        for (k in 0 until count) done += lapDistanceM(c, k) ?: return null
-        return done / total * limit - laps.take(count).sum()
-    }
+    /** Seconds ahead (+) of the checkpoint after the first [count] laps: the sheet's 差. */
+    fun bankedS(c: LapConfig, laps: List<Double>, count: Int): Double? =
+        checkpointS(c, count)?.let { it - laps.take(count).sum() }
 }

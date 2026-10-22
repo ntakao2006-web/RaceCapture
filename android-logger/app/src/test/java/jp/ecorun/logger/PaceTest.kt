@@ -50,6 +50,24 @@ class PaceTest {
         assertEquals(0.0, Pace.bankedS(c, laps, 3)!!, 1e-6)
     }
 
+    /**
+     * The team's record sheet (本番用記録表.xlsx, CN二輪車): 6856.72 m in 3 equal
+     * laps, aiming at 16:20 against the 16:27 limit. After a 5:40 first lap the
+     * sheet asks 2285.57 m / (10:53 - 5:40) for lap 2 (次目標速度, its checkpoint
+     * rounded to the second) and 1142.79 m / (5:27 + 2:43 - 5:40) for its first
+     * half (次半周目標速度). The gap (差) is 5:27 - 5:40.
+     */
+    @Test
+    fun matchesTheRecordSheet() {
+        val c = LapConfig(totalLaps = 3, timeLimitS = limit, raceDistanceM = 6856.72, marginS = limit - 980.0)
+        val laps = listOf(340.0)
+        assertEquals(2285.573 / (653 - 340) * 3.6, Pace.targetKmh(c, laps, 1)!!, 0.05)
+        // The sheet rounds 5:26.67 to 5:27; that 0.3 s is worth 0.06 km/h over a half lap.
+        assertEquals(1142.787 / (327 + 163.33 - 340) * 3.6, Pace.halfTargetKmh(c, laps, 1)!!, 0.1)
+        assertEquals(327.0 - 340, Pace.bankedS(c, laps, 1)!!, 0.5)
+        assertEquals(2285.573 / 326.667 * 3.6, Pace.targetKmh(c, emptyList(), 0)!!, 1e-3)
+    }
+
     @Test
     fun nothingWithoutADistanceOrPastTheLimit() {
         assertNull(Pace.targetKmh(motegi.copy(raceDistanceM = null), emptyList(), 0))
