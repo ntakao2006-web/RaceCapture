@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>エコラン当日手順書</title>
+<!-- ER-5-2 当日用A4手順書。ブラウザで開いて A4・縦・余白「なし」または「最小」で印刷する。
+     下線の空欄は当日までに手で書き込む（URLやroom名は紙に印刷してよい情報だけにする）。 -->
+<style>
+  :root { --ink: #1a1a1a; --sub: #555; --line: #999; --accent: #0e6a87; --warn: #b5453f; --bg: #fff; --box: #f2f6f8; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e; } }
+  :root[data-theme="dark"] { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e; }
+  @page { size: A4 portrait; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 8.4pt/1.42 "Yu Gothic UI", "Meiryo", sans-serif; }
+  .page { max-width: 192mm; margin: 0 auto; padding: 16px; }
+  @media print { .page { padding: 0; } body { background: #fff; color: #000; } }
+  header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 2px; margin-bottom: 5px; }
+  h1 { font-size: 13pt; margin: 0; }
+  header span { color: var(--sub); font-size: 7.6pt; }
+  .cols { columns: 2; column-gap: 6mm; }
+  @media (max-width: 640px) { .cols { columns: 1; } }
+  section { break-inside: avoid; margin-bottom: 5px; }
+  h2 { font-size: 9.4pt; margin: 0 0 2px; padding: 1px 5px; background: var(--accent); color: #fff; border-radius: 2px; }
+  ol, ul { margin: 0; padding-left: 15px; }
+  li { margin: 0 0 1px; }
+  b { color: var(--accent); }
+  .warn { color: var(--warn); font-weight: bold; }
+  .who { color: var(--sub); font-size: 7.6pt; }
+  .fill { display: inline-block; min-width: 34mm; border-bottom: 1px solid var(--line); }
+  .wide { min-width: 62mm; }
+  table { width: 100%; border-collapse: collapse; font-size: 7.9pt; }
+  th, td { border: 1px solid var(--line); padding: 1px 3px; vertical-align: top; text-align: left; }
+  th { background: var(--box); white-space: nowrap; }
+  .box { background: var(--box); padding: 3px 5px; border-radius: 2px; }
+  .check { font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>エコラン全国大会 当日手順書（ロガー・回収）</h1>
+  <span>2026-10-24・25 ／ 迷ったら「記録が残ること」を最優先</span>
+</header>
+<div class="cols">
+
+<section>
+  <h2>0. 3台の構成と連絡先</h2>
+  <table>
+    <tr><th>車</th><th>記録するもの</th><th>room</th></tr>
+    <tr><td><span class="fill" style="min-width:16mm"></span></td><td><b>Ver.2</b>（本命・UNO Q）＋<b>Ver.1</b>（保険）</td><td><span class="fill" style="min-width:18mm"></span></td></tr>
+    <tr><td><span class="fill" style="min-width:16mm"></span></td><td>スマホ（EcoLoggerアプリ）</td><td><span class="fill" style="min-width:18mm"></span></td></tr>
+    <tr><td><span class="fill" style="min-width:16mm"></span></td><td>スマホ（EcoLoggerアプリ）</td><td><span class="fill" style="min-width:18mm"></span></td></tr>
+  </table>
+  <div>ピット画面 主：<span class="fill wide"></span></div>
+  <div>ピット画面 予備：<span class="fill wide"></span></div>
+  <div>困ったら：<span class="fill"></span> ☎ <span class="fill"></span></div>
+</section>
+
+<section>
+  <h2>1. 取り付け（走る前・電源OFFのまま）</h2>
+  <ol>
+    <li><b>SDカード</b>がVer.2・Ver.1の両方に<b>奥まで</b>入っているか。</li>
+    <li>GNSS・LTEアンテナは<b>空が見える</b>向き。コネクタを指で押し込む。</li>
+    <li>Ver.2：UNO Q ← ドック（USB-C）。ドックに<b>電源</b>と<b>USBオーディオ</b>（ドライバーのイヤホン・マイク）。</li>
+    <li>ケースを固定し、走行の振動でケーブルが引っ張られないか手で揺すって確かめる。</li>
+    <li>スマホ組：アプリの<b>電池の最適化を「制限なし」</b>に。モバイルバッテリーをつなぐ。端末の向き：<span class="fill"></span></li>
+  </ol>
+</section>
+
+<section>
+  <h2>2. 電源ON → 記録の確認（毎回）</h2>
+  <p class="box">Ver.2・Ver.1は<b>電源を入れるだけで記録が始まる</b>。ボタン操作は要らない。</p>
+  <ul>
+    <li><b>Ver.2</b>：スマホのテザリングにつないで <b>uno-q.local:8080</b> を開く。
+      上部が <b>「● REC」</b> ならOK。<span class="warn">「● REC（本体のみ）」はSD不調</span>（本体には記録中）→ 電源を入れ直す。</li>
+    <li><b>Ver.1</b>：<b>LOG</b>ランプ点灯＝SD記録中。<b>GPS</b>点灯＝測位済み（点滅は未測位）。<span class="warn">ERR</span>点灯は異常。</li>
+    <li><b>スマホ組</b>：アプリで「記録を始める」。<b>常駐の通知が出ていれば</b>画面を消してよい。</li>
+    <li>ピット画面に3台の位置・速度が出るか確認（出なくても<b>記録は本体に残る</b>）。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>3. コースウォーク（10/24朝・Ver.2のラップ）</h2>
+  <ol>
+    <li>Ver.2を手持ち電源で持ち、スマホのテザリングにつなぐ。スマホでブックマークした<b>コースウォーク画面</b>を開き、「測位OK」になるまで待つ。</li>
+    <li>各ラインの真上に立って止まり「<b>ここを〇〇にする</b>」：<b>コントロール（必須）</b>、スタート・ゴール（別の場所なら）。直前3秒の位置を平均して登録する。</li>
+    <li>規定周回数：<span class="fill" style="min-width:12mm"></span>周のボタンを押す（四輪7周・二輪3周）。</li>
+    <li>スマホ組は、画面下の「QRを表示」をEcoLoggerアプリで読む。全台の「基準」の番号がそろっているか見る。</li>
+    <li><span class="warn">レース開始前に「周回数をリセット」</span>を押す（押さないと前の続きから数える）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>4. 走り終えたら（止める）</h2>
+  <ol>
+    <li><b>Ver.2</b>：Web画面の「<b>記録停止</b>」→ 電源OFF。<br>
+      <span class="who">画面が開けないときは、そのまま電源OFFしてよい（本体の記録は最後の約1秒が欠けるだけ）。</span></li>
+    <li><b>Ver.1</b>：PCをUSBでつなぎ <b>SD_Eject.cmd</b> を実行 → <b>safeToRemove: true</b> が出てから電源OFF。<br>
+      <span class="warn">エラー・タイムアウトなら抜かない</span>（もう一度実行）。</li>
+    <li><b>スマホ組</b>：アプリで「<b>記録を止める</b>」。</li>
+    <li>電源OFFを確認してから<b>SDを抜く</b>。<span class="warn">記録中にSDを抜かない。</span></li>
+  </ol>
+</section>
+
+<section>
+  <h2>5. 回収（ピットのPC・走行ごとに）</h2>
+  <ol>
+    <li>抜いたSD（Ver.1・Ver.2）を<b>カードリーダー</b>でPCへ。2枚同時でよい。</li>
+    <li>UNO QをPCと<b>USBで直結</b>（ドックから外す）。または同じテザリングにつなぐ。</li>
+    <li>スマホをUSBでつなぎ、通知から<b>「ファイル転送」</b>を選ぶ。</li>
+    <li><b>Collect-Logs.cmd</b>（<span class="who">RaceCapture\tools\collect_logs\</span>）をダブルクリック。</li>
+    <li>最後に「<b>新しいログ ○件を回収しました</b>」と出ればOK。<b>drive_logs\日付\runNN_時刻\</b> に入る。<br>
+      <span class="who">元のファイルは消えない。何度実行しても同じものは二度取らない。UNO Qが起動直後に作る「記録中」の1件は取らないのが正常。</span></li>
+    <li>回収できたらSDを戻す（<b>消去・フォーマットはしない</b>）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>6. 困ったとき</h2>
+  <table>
+    <tr><th>症状</th><th>まずやること</th></tr>
+    <tr><td>uno-q.local が開けない</td><td>UNO Qとスマホが同じテザリングか確認。だめならUSBでPCにつなぐ。<b>記録は画面と無関係に続いている</b></td></tr>
+    <tr><td>「REC（本体のみ）」</td><td>電源を入れ直す。直らなくても本体に記録中なので走ってよい</td></tr>
+    <tr><td>ピット画面に出ない</td><td>予備URLへ切り替えて見る。記録には影響しない</td></tr>
+    <tr><td>Ver.1 ERR点灯</td><td>電源入れ直し。Ver.2が記録中なら走行を優先</td></tr>
+    <tr><td>回収で「UNO Qに接続できません」</td><td>USBケーブル・電源を確認して再実行（SD分は回収済み）</td></tr>
+    <tr><td>回収で「スマホのログは見つかりません」</td><td>USBを「ファイル転送」に。だめならエクスプローラーで<b>内部共有ストレージ\Download\EcoLogger</b>をPCへコピー</td></tr>
+    <tr><td>【要確認】と出た</td><td>表示をスマホで撮影してロガー担当へ。SD・本体のファイルは消さずに保管</td></tr>
+  </table>
+</section>
+
+</div>
+</div>
+</body>
+</html>

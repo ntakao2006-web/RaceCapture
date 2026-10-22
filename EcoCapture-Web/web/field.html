@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#161616"><title>コースウォーク | EcoLogger V2</title>
+  <link rel="stylesheet" href="/field.css"><script src="/field.js" defer></script>
+</head>
+<body>
+<header><strong>コースウォーク</strong><span id="link" role="status">接続中…</span></header>
+<main>
+<p id="message" role="alert" hidden></p>
+
+<section class="card" id="gnss-card">
+  <div class="gnss-head"><span id="gnss-badge" class="badge">測位待ち</span><span id="rec-badge" class="badge">記録状態 —</span></div>
+  <dl class="gnss"><div><dt>衛星</dt><dd id="gnss-sats">—</dd></div><div><dt>精度</dt><dd id="gnss-hacc">—</dd></div><div><dt>速度</dt><dd id="gnss-speed">—</dd></div></dl>
+  <p id="gnss-hint" class="hint">ロガーを手に持ち、ラインの真上に立って止まってから押します。押すと直前3秒の位置を平均して登録します。</p>
+</section>
+
+<section class="lines">
+  <article class="card line" data-target="start"><div class="line-head"><h2>スタート</h2><span class="dist" data-dist>—</span></div><p class="state" data-state>未登録</p><p class="hint">登録するとエコラン式（スタートから最初のコントロールまでが1周目）。無ければサーキット式（最初のコントロール通過では数えない）。</p><button class="big" data-here>ここをスタートにする</button></article>
+  <article class="card line" data-target="control"><div class="line-head"><h2>コントロール</h2><span class="dist" data-dist>—</span></div><p class="state" data-state>未登録</p><button class="big primary" data-here>ここをコントロールにする</button></article>
+  <article class="card line" data-target="goal"><div class="line-head"><h2>ゴール</h2><span class="dist" data-dist>—</span></div><p class="state" data-state>未登録</p><button class="big" data-here>ここをゴールにする</button></article>
+</section>
+
+<section class="card">
+  <h2>規定周回数 <span id="total-now" class="now">—</span></h2>
+  <p id="count-mode" class="mode" role="status">数え方：—</p>
+  <div class="choices"><button data-total="7">7周<small>四輪</small></button><button data-total="3">3周<small>二輪・2人乗り</small></button><button data-total="">指定なし</button></div>
+</section>
+
+<section class="card">
+  <h2>周回の記録 <span id="lap-now" class="now">—</span></h2>
+  <p class="hint">ラインを決めて、スタートの直前に一度だけ押します。周回数とラップを0に戻します。</p>
+  <button class="big danger" id="reset">周回数をリセット</button>
+</section>
+
+<section class="card">
+  <h2>スマホ組へラインを渡す</h2>
+  <p class="hint">EcoLoggerアプリの「Ver.2の基準をQRで読み込む」で、この画面のQRを写します。全台の「基準」の番号がここと同じなら同じラインです。</p>
+  <button class="big" id="qr-show">QRを表示</button>
+  <div id="qr" hidden><div id="qr-svg" class="qr"></div><p>基準 <strong id="qr-id" class="qr-id"></strong></p><p id="qr-warn" class="warn"></p></div>
+</section>
+</main>
+</body></html>

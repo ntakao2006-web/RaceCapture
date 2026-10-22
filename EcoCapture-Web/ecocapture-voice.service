@@ -1,0 +1,28 @@
+[Unit]
+Description=EcoLogger V2 driver voice (USB audio, RNNoise, Opus) for Podium relay
+After=sound.target user@1000.service
+Wants=user@1000.service
+
+[Service]
+Type=simple
+User=arduino
+Group=audio
+SupplementaryGroups=audio
+ExecStart=/usr/bin/python3 /opt/ecocapture-voice/voice_agent.py
+# Bluetooth headsets go through arduino's PipeWire (kept running by linger).
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Restart=always
+RestartSec=3
+# The Web container bind-mounts this directory, so it must outlive restarts.
+RuntimeDirectory=ecocapture-voice
+RuntimeDirectoryMode=0770
+RuntimeDirectoryPreserve=yes
+# Which headset was used last, so it is called first after a restart.
+StateDirectory=ecocapture-voice
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

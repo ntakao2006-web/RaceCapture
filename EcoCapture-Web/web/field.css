@@ -1,0 +1,30 @@
+:root{font-family:"Segoe UI","Yu Gothic UI","Hiragino Sans",Meiryo,sans-serif;color:#111;background:#ececec;font-size:17px;--red:#b82428;--ok:#1d6b34;--warn:#8a5a00;--line:#cfcfcf}
+*{box-sizing:border-box}body{margin:0}
+button{font:inherit;touch-action:manipulation;background:#fff;color:inherit;border:2px solid #222;border-radius:6px;padding:.8rem 1rem;font-weight:700;cursor:pointer}
+button:disabled{opacity:.35}button:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+button.primary{background:#111;color:#fff}button.danger{background:var(--red);border-color:var(--red);color:#fff}
+header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:1rem;background:#111;color:#fff;padding:.8rem 16px}
+header strong{font-size:1.15rem}#link{font-size:.85rem;color:#ccc}#link.bad{color:#ff8a8a}
+main{max-width:560px;margin:0 auto;padding:12px 16px 40px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0}
+h2{font-size:1.05rem;margin:0 0 .6rem;display:flex;justify-content:space-between;align-items:baseline;gap:.5rem}
+.now{font-size:.95rem;font-weight:600;color:#444}
+.badge{display:inline-block;font-weight:800;font-size:.9rem;padding:.35rem .6rem;border-radius:4px;background:#ddd;color:#333}
+.badge.ok{background:var(--ok);color:#fff}.badge.warn{background:#f3c64b;color:#3b2a00}.badge.bad{background:var(--red);color:#fff}
+.gnss-head{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.gnss{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin:.8rem 0 .2rem}
+.gnss dt{font-size:.8rem;color:#555}.gnss dd{margin:0;font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums}
+.hint{font-size:.85rem;color:#444;line-height:1.6;margin:.4rem 0 .7rem}
+.line-head{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem}
+.line-head h2{margin:0}.dist{font-size:1.35rem;font-weight:800;font-variant-numeric:tabular-nums}
+.line.registered{border-left:6px solid var(--ok)}.line .state{margin:.3rem 0 .7rem;font-size:.9rem;color:#333}
+.line.just{animation:flash 1.2s ease-out}@keyframes flash{from{background:#d9f2df}to{background:#fff}}
+.big{display:block;width:100%;min-height:3.6rem;font-size:1.1rem}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.choices button{min-height:3.6rem;padding:.4rem}.choices small{display:block;font-size:.72rem;font-weight:500}
+.choices button[aria-pressed=true]{background:#111;color:#fff}
+#message{position:sticky;top:3.2rem;z-index:1;margin:8px 0;padding:.8rem 1rem;border-radius:6px;background:#fff;border:2px solid var(--red);color:var(--red);font-weight:700}
+#message.ok{border-color:var(--ok);color:var(--ok)}
+.qr svg{width:min(300px,100%);height:auto;display:block;margin:.6rem auto 0;background:#fff}
+.qr-id{font-size:1.6rem;letter-spacing:.1em}.warn{color:var(--warn);font-weight:700;font-size:.9rem}
+.mode{font-size:.9rem;font-weight:600;line-height:1.6;margin:.2rem 0 .8rem;padding:.5rem .7rem;border-left:4px solid var(--ok);background:#f6f6f6}.mode.circuit{border-left-color:var(--warn)}

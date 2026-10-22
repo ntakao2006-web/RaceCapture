@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoRun Live Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
+<script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.js"></script>
+<style>
+  html, body, #map { margin: 0; height: 100%; background: #111; }
+  .hud { position: absolute; z-index: 1000; font: 600 14px/1.2 system-ui, sans-serif; color: #fff;
+         background: rgba(0,0,0,.55); border-radius: 6px; padding: 6px 10px; }
+  #speed { left: 10px; bottom: 10px; font-size: 28px; }
+  #speed small { font-size: 13px; font-weight: 400; }
+  #status { right: 10px; bottom: 10px; font-weight: 400; font-size: 12px; }
+  #follow { left: 56px; top: 10px; cursor: pointer; border: 0; }  /* right side is under Grafana's panel menu */
+  #follow.on { background: rgba(255,200,0,.85); color: #000; }
+  #tools { left: 56px; top: 46px; padding: 4px; display: flex; gap: 4px; align-items: center; }
+  #tools button, #tools select { font: 600 12px system-ui, sans-serif; border: 0; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+  #tools button.on { background: #ffd400; }
+  .note-label { background: rgba(0,0,0,.65); color: #fff; border: 0; box-shadow: none; font-weight: 600; }
+  .viewer-label { background: #1e88e5; color: #fff; border: 0; box-shadow: none; font-weight: 600; }
+  .car { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent;
+         border-bottom: 22px solid #ff3b30; filter: drop-shadow(0 0 2px #000); transform-origin: 50% 60%; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="speed" class="hud">-- <small>km/h</small></div>
+<div id="status" class="hud">connecting…</div>
+<button id="follow" class="hud on">追従中</button>
+<div id="tools" class="hud">
+  <button id="draw">描く</button>
+  <select id="color" title="描く色"><option value="#ffd400">黄</option><option value="#ff3b30">赤</option><option value="#34c759">緑</option><option value="#00c7ff">水色</option><option value="#ffffff">白</option></select>
+  <button id="share">📍 自分の位置を共有</button>
+  <button id="app" title="ブラウザを閉じても位置を送り続けるアプリ（OwnTracks）の設定">📱 アプリで共有</button>
+</div>
+<script>
+// Live position from live_bridge.py, drawn smoothly:
+// - samples arrive evenly at ~10 Hz; the car is drawn RENDER_DELAY behind the
+//   newest sample and interpolated between the two around that time each frame;
+// - "follow" pans the map to the car every frame but never touches the zoom,
+//   so the zoom you pick stays. Dragging the map turns follow off.
+const RENDER_DELAY = 150;          // ms behind the newest sample
+const TRAIL_MS = 5 * 60 * 1000;    // trail length
+const params = new URLSearchParams(location.search);
+const room = params.get('room') || 'home-test';
+const zoom = Number(params.get('zoom') || 18);
+
+const map = L.map('map', { zoomControl: true, zoomSnap: 0.25, scrollWheelZoom: 'center',
+                           attributionControl: true }).setView([35.68, 139.76], zoom);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { maxNativeZoom: 19, maxZoom: 22, attribution: 'Imagery &copy; Esri' }).addTo(map);
+// Grafana may create the iframe while its panel is still 0 px high; redraw on resize.
+new ResizeObserver(() => map.invalidateSize({ animate: false })).observe(document.getElementById('map'));
+const trail = L.polyline([], { color: '#ffd400', weight: 3, opacity: .9 }).addTo(map);
+const carIcon = L.divIcon({ className: '', html: '<div class="car"></div>', iconSize: [16, 22], iconAnchor: [8, 13] });
+const car = L.marker([0, 0], { icon: carIcon, interactive: false });
+
+// Samples as {t (sample ms), at (local arrival ms), lat, lon, speed}
+let samples = [];
+let follow = true, placed = false;
+const followBtn = document.getElementById('follow');
+function setFollow(on) {
+  follow = on;
+  followBtn.classList.toggle('on', on);
+  followBtn.textContent = on ? '追従中' : '追従する';
+  map.options.scrollWheelZoom = on ? 'center' : true;
+}
+followBtn.onclick = () => setFollow(!follow);
+map.on('dragstart', () => setFollow(false));
+
+function addSample(s, at) {
+  if (typeof s.Latitude !== 'number' || typeof s.Longitude !== 'number') return;
+  // A new run (logger restarted, demo loop back at the start): don't join it
+  // to the old trail with a straight line or slide the car across.
+  const prev = samples[samples.length - 1];
+  if (prev && (s.t - prev.t > 5000 || s.t < prev.t)) { samples = []; trail.setLatLngs([]); }
+  samples.push({ t: s.t, at, lat: s.Latitude, lon: s.Longitude, speed: s.Speed });
+  trail.addLatLng([s.Latitude, s.Longitude]);
+  const cut = s.t - TRAIL_MS;
+  let drop = 0;
+  while (drop < samples.length && samples[drop].t < cut) drop++;
+  if (drop) {
+    samples = samples.slice(drop);
+    trail.setLatLngs(trail.getLatLngs().slice(drop));
+  }
+}
+
+// ---- Shapes drawn on the map (course notes), saved per room on the server ----
+let sock = null;
+function send(msg) { if (sock && sock.readyState === 1) sock.send(JSON.stringify(msg)); }
+const notes = new Map();  // id -> layer
+const colorSel = document.getElementById('color');
+
+function toFeature(layer) {
+  const props = { color: layer.noteColor, label: layer.noteLabel || '' };
+  if (layer instanceof L.Circle) {
+    const c = layer.getLatLng();
+    return { type: 'Feature', id: layer.noteId, geometry: { type: 'Point', coordinates: [c.lng, c.lat] },
+             properties: { ...props, shape: 'circle', radius: layer.getRadius() } };
+  }
+  return { ...layer.toGeoJSON(), id: layer.noteId, properties: props };
+}
+function fromFeature(f) {
+  const color = f.properties?.color || '#ffd400';
+  let layer;
+  if (f.properties?.shape === 'circle') {
+    const [lng, lat] = f.geometry.coordinates;
+    layer = L.circle([lat, lng], { radius: f.properties.radius, color });
+  } else {
+    layer = L.geoJSON(f, { style: { color, weight: 4 }, pointToLayer: (_f, ll) => L.marker(ll) }).getLayers()[0];
+  }
+  layer.noteId = f.id; layer.noteColor = color; layer.noteLabel = f.properties?.label || '';
+  return layer;
+}
+function watchNote(layer) {
+  if (layer.noteLabel) layer.bindTooltip(layer.noteLabel, { permanent: true, direction: 'top', className: 'note-label' });
+  layer.on('pm:edit pm:dragend', () => send({ type: 'shape.save', feature: toFeature(layer) }));
+}
+function putNote(f) {
+  const old = notes.get(f.id);
+  if (old) old.remove();
+  const layer = fromFeature(f);
+  notes.set(f.id, layer); watchNote(layer); layer.addTo(map);
+}
+function dropNote(id) { const old = notes.get(id); if (old) { old.remove(); notes.delete(id); } }
+
+map.pm.setGlobalOptions({ pathOptions: { color: colorSel.value, weight: 4 } });
+colorSel.onchange = () => map.pm.setGlobalOptions({ pathOptions: { color: colorSel.value, weight: 4 } });
+map.pm.setLang('ja');
+let drawing = false;
+const drawBtn = document.getElementById('draw');
+drawBtn.onclick = () => {
+  drawing = !drawing;
+  drawBtn.classList.toggle('on', drawing);
+  if (drawing) {
+    setFollow(false);
+    map.pm.addControls({ position: 'topright', drawCircleMarker: false, drawText: false, cutPolygon: false, rotateMode: false });
+  } else {
+    map.pm.removeControls(); map.pm.disableDraw(); map.pm.disableGlobalEditMode();
+    map.pm.disableGlobalDragMode(); map.pm.disableGlobalRemovalMode();
+  }
+};
+map.on('pm:create', ({ layer }) => {
+  layer.noteId = Math.random().toString(36).slice(2, 12);
+  layer.noteColor = colorSel.value;
+  layer.noteLabel = (prompt('メモ（例：ブレーキ開始、ピット入口。空でもOK）') || '').slice(0, 40);
+  notes.set(layer.noteId, layer); watchNote(layer);
+  send({ type: 'shape.save', feature: toFeature(layer) });
+});
+map.on('pm:remove', ({ layer }) => {
+  if (!layer.noteId) return;
+  notes.delete(layer.noteId);
+  send({ type: 'shape.delete', id: layer.noteId });
+});
+
+// ---- Viewers who share where they are (opt-in, every few seconds) ----
+const viewersLayer = L.layerGroup().addTo(map);
+let watchId = null, lastSent = 0;
+const shareBtn = document.getElementById('share');
+shareBtn.onclick = () => {
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId); watchId = null;
+    send({ type: 'viewer.stop' });
+    shareBtn.classList.remove('on'); shareBtn.textContent = '📍 自分の位置を共有';
+    return;
+  }
+  if (!navigator.geolocation) { alert('このブラウザは位置情報に対応していません'); return; }
+  let name = '';
+  try { name = localStorage.getItem('ecorun-viewer-name') || ''; } catch {}
+  name = (prompt('地図に出す名前', name) || '').trim().slice(0, 20);
+  if (!name) return;
+  try { localStorage.setItem('ecorun-viewer-name', name); } catch {}
+  watchId = navigator.geolocation.watchPosition((pos) => {
+    if (Date.now() - lastSent < 3000) return;
+    lastSent = Date.now();
+    send({ type: 'viewer.pos', name, lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy });
+  }, (err) => { alert('位置情報を取得できません：' + err.message); shareBtn.onclick(); },
+  { enableHighAccuracy: true, maximumAge: 2000 });
+  shareBtn.classList.add('on'); shareBtn.textContent = '📍 共有中（押すと止める）';
+};
+// The browser stops sending once the page is in the background; OwnTracks keeps going.
+document.getElementById('app').onclick = () =>
+  window.open(`${location.origin}/owntracks/?room=${encodeURIComponent(room)}`, '_blank');
+function showViewers(list) {
+  viewersLayer.clearLayers();
+  for (const v of list) {
+    L.circle([v.lat, v.lon], { radius: Math.min(v.acc, 50), color: '#1e88e5', weight: 1, fillOpacity: .15, interactive: false }).addTo(viewersLayer);
+    L.circleMarker([v.lat, v.lon], { radius: 6, color: '#fff', weight: 2, fillColor: '#1e88e5', fillOpacity: 1 })
+      .bindTooltip((v.app ? '📱' : '') + v.name + (v.age > 15 ? `（${v.age}秒前）` : ''), { permanent: true, direction: 'right', className: 'viewer-label' })
+      .addTo(viewersLayer);
+  }
+}
+
+function connect() {
+  // Works both direct (http://host:3002/map) and behind `tailscale serve` (https://host:8443/live/map).
+  const base = location.pathname.replace(/\/map\/?$/, '');
+  const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = sock = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}`);
+  const status = document.getElementById('status');
+  ws.onopen = () => { status.textContent = `${room}: connected`; };
+  ws.onclose = () => { status.textContent = `${room}: reconnecting…`; setTimeout(connect, 2000); };
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    const now = performance.now();
+    if (msg.shapes) { for (const id of [...notes.keys()]) dropNote(id); msg.shapes.forEach(putNote); }
+    if (msg.shape) { putNote(msg.shape); return; }
+    if (msg.shape_deleted) { dropNote(msg.shape_deleted); return; }
+    if (msg.viewers) { showViewers(msg.viewers); if (!('t' in msg)) return; }
+    if (msg.history) {
+      samples = []; trail.setLatLngs([]);
+      // Spread history arrival times by sample time so interpolation starts at the newest.
+      const last = msg.history.length ? msg.history[msg.history.length - 1].t : 0;
+      for (const s of msg.history) addSample(s, now - (last - s.t));
+      return;
+    }
+    addSample(msg, now);
+  };
+}
+
+function bearing(a, b) {
+  const y = Math.sin((b.lon - a.lon) * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180);
+  const x = Math.cos(a.lat * Math.PI / 180) * Math.sin(b.lat * Math.PI / 180) -
+            Math.sin(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.cos((b.lon - a.lon) * Math.PI / 180);
+  return Math.atan2(y, x) * 180 / Math.PI;
+}
+
+let heading = 0;
+function frame() {
+  requestAnimationFrame(frame);
+  const n = samples.length;
+  if (n === 0) return;
+  // Map "render time" onto the arrival timeline, then interpolate between samples.
+  const rt = performance.now() - RENDER_DELAY;
+  let i = n - 1;
+  while (i > 0 && samples[i - 1].at > rt) i--;
+  const b = samples[i], a = samples[Math.max(0, i - 1)];
+  const span = b.at - a.at;
+  const k = span > 0 ? Math.min(1, Math.max(0, (rt - a.at) / span)) : 1;
+  const pos = { lat: a.lat + (b.lat - a.lat) * k, lon: a.lon + (b.lon - a.lon) * k };
+  if (a !== b && (a.lat !== b.lat || a.lon !== b.lon)) heading = bearing(a, b);
+  car.setLatLng([pos.lat, pos.lon]);
+  car.getElement()?.firstChild && (car.getElement().firstChild.style.transform = `rotate(${heading}deg)`);
+  if (!placed) { car.addTo(map); placed = true; map.setView([pos.lat, pos.lon], zoom, { animate: false }); }
+  if (follow) map.panTo([pos.lat, pos.lon], { animate: false });
+  const sp = a.speed !== undefined && b.speed !== undefined ? a.speed + (b.speed - a.speed) * k : b.speed;
+  document.getElementById('speed').innerHTML = `${sp === undefined ? '--' : sp.toFixed(0)} <small>km/h</small>`;
+}
+connect();
+requestAnimationFrame(frame);
+
+// Typing into the color list or a prompt must not trigger push-to-talk.
+// Embedded next to the talk panel (same origin): Space pressed on the map is
+// push-to-talk too, instead of doing nothing.
+for (const type of ['keydown', 'keyup']) window.addEventListener(type, (e) => {
+  if (e.code !== 'Space' || window.parent === window || e.target.closest?.('select,input,textarea')) return;
+  let talk = null;
+  try { talk = window.parent.document.querySelector('iframe[data-talk]'); } catch { return; }
+  if (!talk || !talk.contentWindow) return;
+  e.preventDefault();
+  talk.contentWindow.dispatchEvent(new KeyboardEvent(type, { code: 'Space', key: ' ', repeat: e.repeat }));
+});
+</script>
+</body>
+</html>

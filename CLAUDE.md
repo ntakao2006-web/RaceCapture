@@ -44,11 +44,16 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `ncec_can_spec.md`：NCEC（本番車両）のCAN通信仕様（ID・バイトマップ・デコード式・OBD2）。実装・共有用の独立ファイル
 - `sensorhub_defi_tap_design.md`：既設Defiの油温・油圧センサーを読むセンサーハブ基板の設計（v2：油温はサーミスタを直接測りデジタルポテンショメータでDefiへ再現、ピン単位の接続表・LCSC品番つき部品表・換算式・校正手順）。使用サーミスタの特性は`datasheet/defi_temp_sensor_rt.csv`
 - `sensorhub_generic_spec.md`：**汎用センサーハブ**（アナログ8ch・デジタル4ch・出力2ch、PIC＋外部CAN数珠繋ぎ）のLintarohさん向け要求仕様。Defi傍受基板とは別物で併用する。**外部CANバス全体のID割り当て表（5章）と、設定をロガー側に置く運用ルール（6章）もここが正**
-- `ecorun_team_systems.md`：エコランチーム（GitHub組織`TMCIT-Ecorun`）の既存システム（フロントパネル・通話試作・ダッシュボード）とEcoLoggerの関係、通話・中継サーバーの構成方針。**チーム側リポジトリは読むだけで変更しない**
+- `ecorun_team_systems.md`：エコランチーム（GitHub組織`TMCIT-Ecorun`）の既存システム（フロントパネル・通話試作・ダッシュボード）とEcoLoggerの関係、通話・中継サーバーの構成方針。**チーム側リポジトリは読むだけで変更しない**（例外：`ecorun-logger-server`はMaruo.Sさんの依頼でブランチ＋PRで変更する。2026-10-14〜）
 - `unoq_video_check_procedure.md`：UNO Qの映像確認（V-1〜V-5）の手順と実測結果。5-6章に走行映像へのプロット焼き込みの模擬試験（試験プログラムは`tools/unoq_overlay_enc/`）
 - `unoq_video_to_shield_sd_study.md`：焼き込み映像をシールド側SDへ保存できるか（E-6）の調査。Linux→STM32の内部SPI、ビットレートと画質の実測、SD側のボトルネック
-- `lintaroh_share_YYYYMMDD.md`：Lintarohさんへの共有メモ。**Lintarohさんは回路担当と同一人物**で、回路・UNO Qのソフト・STM32ファームのすべてを担当している（`hardware_share_*`・`hardware_ans_*`の「回路担当」も同じ人）。最新は`lintaroh_share_20261009_2.md`（稼働中ソースの確定、CAN2のACKとループ監視の導入、**内部リセット後にLinuxとの通信路が戻らない件の相談**、Linux側の監視役`mcu-supervisor.py`、RAMの実際の限界）。その前が`lintaroh_share_20261009.md`（ファーム書き込みでLinux側UARTが固まる件、UNO Q上でしたこと、ソースの食い違い、E-6の結果と相談）と`lintaroh_share_20261009_power.md`（カメラ・モニターの機材構成案、UPSモジュールとの組み合わせで確認したいこと）、`lintaroh_share_20261010_sensorhub.md`（汎用センサーハブの仕様の要点と判断してほしい8項目。本体は`sensorhub_generic_spec.md`）、`lintaroh_share_20261013_oiltemp.md`（エコラン大会向けにユニバーサル基板版ハブで油温を読むための確認事項）
+- `lintaroh_share_YYYYMMDD.md`：Lintarohさんへの共有メモ。**Lintarohさんは回路担当と同一人物**で、回路・UNO Qのソフト・STM32ファームのすべてを担当している（`hardware_share_*`・`hardware_ans_*`の「回路担当」も同じ人）。最新は`lintaroh_share_20261009_2.md`（稼働中ソースの確定、CAN2のACKとループ監視の導入、**内部リセット後にLinuxとの通信路が戻らない件の相談**、Linux側の監視役`mcu-supervisor.py`、RAMの実際の限界）。その前が`lintaroh_share_20261009.md`（ファーム書き込みでLinux側UARTが固まる件、UNO Q上でしたこと、ソースの食い違い、E-6の結果と相談）と`lintaroh_share_20261009_power.md`（カメラ・モニターの機材構成案、UPSモジュールとの組み合わせで確認したいこと）、`lintaroh_share_20261010_sensorhub.md`（汎用センサーハブの仕様の要点と判断してほしい8項目。本体は`sensorhub_generic_spec.md`）、`lintaroh_share_20261013_oiltemp.md`（エコラン大会向けにユニバーサル基板版ハブで油温を読むための確認事項）、`lintaroh_share_20261015_audio.md`（ドライバーの音声を音声基板からUSBオーディオへ変える相談、未送）、`lintaroh_share_20261018_unoq_damage.md`（今のUNO Qの裏面のチップ部品が脱落している件と、内蔵Bluetoothが固まった件、買い替えの相談。未送・写真を貼る欄あり）
+- `maruo_share_YYYYMMDD_*.md`：Maruo.Sさん（チームの通話サーバー`ecorun-logger-server`の作者）への相談。`maruo_share_20261015_discord.md`はピットの通話をDiscordに戻す相談（未送）、`maruo_share_20261017_rock5b.md`は大会用の予備サーバーのお願いと、先輩がPR#1へ入れた実装（`4482ede`）にロガーから合わせるための相談（地図に位置を出す方法・ロガー向け音声。2026-10-18送付済み）
+- `maruo_answer_YYYYMMDD.md`：**Maruo.Sさんからの回答の一次資料**。最新は`maruo_answer_20261018.md`（予備は先輩宅のラックサーバー、分散構成・Grafana不採用の方向、GitHub上の`4482ede`ではロガーの位置・音声がまだ出ないことの確認、こちらの宿題）
 - `lintaroh_answer_YYYYMMDD.md`：**Lintarohさんからの回答の一次資料**（本人がリポジトリへ直接push）。最新は`lintaroh_answer_20261009.md`（ファーム更新手順を共通の`EcoCapture-Web/flash-mcu.sh`へ統一、稼働中ファームの正しいソースは未確定、**STM32のRAMは現状でも映像用リングを足す余地が無い**、E-6の段階的な統合手順と本番採用の判定条件）
+- `enclosure_ecorun_20261024.md`：エコラン大会用の3Dプリント筐体の設計材料（Ver.2・Ver.1の基板寸法と縁の部品位置、STEPの場所、要件、未確定事項）。耐衝撃の考え方は`case_shock_design.md`
+- `ecorun_day_manual_20261024.html`：エコラン大会の当日用A4手順書（取付・記録の確認・コースウォーク・停止・回収・困ったとき）。ブラウザでA4縦に印刷する。回収は`tools/collect_logs/Collect-Logs.cmd`
+- `er12_mpp_soc_harness_bom.md`：EV二輪のMPP充電器からSOCを読む測定用ハーネスの部品表（秋月版・千石版）と結線表（ER-12）
 - `ncec_next_session_checklist.md`：**NCECに実車接続する前に必ず開く**。実車が無いと解けない宿題の一覧
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
 - `firmware/`：ESP32（Seeed Studio XIAO ESP32C3）向けPlatformIO（ESP-IDF）プロジェクト

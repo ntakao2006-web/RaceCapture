@@ -1,0 +1,294 @@
+{
+  "uid": "ecorun-live",
+  "title": "EcoRun Live",
+  "tags": [
+    "ecorun"
+  ],
+  "timezone": "browser",
+  "refresh": "500ms",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "500ms",
+      "1s",
+      "2s",
+      "5s",
+      "10s"
+    ]
+  },
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "name": "room",
+        "label": "Room",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ecorun-vm"
+        },
+        "query": {
+          "query": "label_values(ecorun_Speed, room)",
+          "refId": "room"
+        },
+        "definition": "label_values(ecorun_Speed, room)",
+        "refresh": 2,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Speed (live)",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "queryType": "measurements",
+          "channel": "stream/ecorun/$room",
+          "filter": {
+            "fields": [
+              "Speed"
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "velocitykmh",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Speed$/"
+        },
+        "graphMode": "area",
+        "colorMode": "none"
+      },
+      "interval": "100ms",
+      "maxDataPoints": 3000,
+      "description": "Grafana Live（live_bridge.pyが0.1秒ごとに押し出す）。トークン未設定なら空"
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Last data",
+      "description": "Seconds since the last sample reached the server. Large = link down.",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "time() - timestamp(ecorun_Speed{room=\"$room\"})",
+          "legendFormat": "age",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "none",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 3,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "description": "live_bridge.py の地図ページ。Grafanaと同じアドレス（tailscale serve の :8443、/live）で開いたときに表示される",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 15
+      },
+      "options": {
+        "mode": "html",
+        "content": "<iframe allow=\"geolocation\" src=\"/live/map?room=$room\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Speed",
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ecorun_Speed{room=\"$room\"}",
+          "legendFormat": "Speed"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "velocitykmh",
+          "custom": {
+            "lineWidth": 2,
+            "spanNulls": 2000
+          }
+        },
+        "overrides": []
+      },
+      "interval": "100ms",
+      "maxDataPoints": 3000
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "title": "Talk",
+      "transparent": false,
+      "description": "ecorun-logger-server の通話画面。ダッシュボードのどこでSpaceを押しても通話になる（このパネルのHTMLにあるスクリプトがSpaceを通話画面へ転送する。Grafanaの設定でHTMLの無害化を切っている前提）",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 8,
+        "h": 14
+      },
+      "options": {
+        "mode": "html",
+        "content": "<iframe data-talk src=\"/\" allow=\"microphone; autoplay\" style=\"width:100%;height:100%;border:0;display:block\"></iframe><img src=\"data:,\" alt=\"\" style=\"display:none\" onerror=\"if(!window.__ecoPtt){window.__ecoPtt=1;const typing=t=>t&&t.closest&&t.closest('input,textarea,select,[contenteditable=true]');for(const type of ['keydown','keyup'])window.addEventListener(type,e=>{if(e.code!=='Space'||typing(e.target))return;const f=document.querySelector('iframe[data-talk]');if(!f||!f.contentWindow)return;e.preventDefault();e.stopPropagation();f.contentWindow.dispatchEvent(new KeyboardEvent(type,{code:'Space',key:' ',repeat:e.repeat}));},true);}\">"
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Acceleration",
+      "gridPos": {
+        "x": 8,
+        "y": 15,
+        "w": 16,
+        "h": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ecorun_LongAccel{room=\"$room\"}",
+          "legendFormat": "Long"
+        },
+        {
+          "refId": "B",
+          "expr": "ecorun_LatAccel{room=\"$room\"}",
+          "legendFormat": "Lat"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "spanNulls": 2000
+          }
+        },
+        "overrides": []
+      },
+      "interval": "100ms",
+      "maxDataPoints": 3000
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "All channels (latest)",
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "last_over_time({__name__=~\"ecorun_.+\", room=\"$room\"}[1m])",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "room": true,
+              "db": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

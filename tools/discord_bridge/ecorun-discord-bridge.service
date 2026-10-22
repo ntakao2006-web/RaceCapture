@@ -1,0 +1,18 @@
+[Unit]
+Description=EcoRun: Discord voice channel <-> ecorun-logger-server room (ER-10-8)
+After=network-online.target ecorun-logger-server.service
+Wants=network-online.target
+
+[Service]
+User=ntakao
+WorkingDirectory=/home/ntakao/discord-bridge
+# DISCORD_TOKEN, DISCORD_GUILD_ID, DISCORD_CHANNEL_ID (the token lives only in this file, mode 600)
+EnvironmentFile=/etc/ecorun-discord-bot.env
+Environment=ECORUN_URL=ws://127.0.0.1:3000
+Environment=ECORUN_ROOM=home-test
+ExecStart=/home/ntakao/node22/bin/node bridge.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
