@@ -1,0 +1,52 @@
+{
+  "rows": 216,
+  "elapsed_s": 59.889,
+  "delta": {
+    "mcu_ms": 59821,
+    "bytes": 58424,
+    "i2c_errors": 0,
+    "nmea_ok": 960,
+    "ubx_ok": 60,
+    "nav_count": 60,
+    "pps": 60
+  },
+  "fix_values": [
+    3
+  ],
+  "sats_min": 9,
+  "sats_max": 11,
+  "hacc_mm_min": 2294,
+  "hacc_mm_max": 2356,
+  "last": {
+    "source": "logger-v2-bench-real",
+    "demo": false,
+    "mcu_ms": 371140,
+    "led_run": false,
+    "led_mask": 0,
+    "gnss_ack": true,
+    "imu28": false,
+    "imu29": false,
+    "bytes": 358620,
+    "i2c_errors": 0,
+    "nmea_ok": 5895,
+    "ubx_ok": 364,
+    "nav_count": 363,
+    "nav_age_ms": 568,
+    "itow": 386835000,
+    "fix": 3,
+    "valid": true,
+    "sats": 10,
+    "lat_e7": 355165953,
+    "lon_e7": 1394809848,
+    "height_mm": 79277,
+    "hacc_mm": 2356,
+    "speed_mm_s": 10,
+    "pps": 371,
+    "can1_rxd": 1,
+    "can2": "reset_stat=0x80 loopback_ok=1/32 errors=31 eflg=0x40 int=1",
+    "sd": "cmd0=ff cmd8=ff echo=ffffffff acmd41=ff ready=0 cid= (read-only)",
+    "mon_ver": "ROM SPG 5.10 (7b202e)         000A0000  FWVER=SPG 5.10                PROTVER=34.10                 MOD=MAX-M10M                  GPS;GLO;GAL;BDS               SBAS;QZSS                     ",
+    "nmea": "$GNGLL,3530.99572,N,13928.85909,E,112657.00,A,A*78",
+    "host_elapsed_s": 59.966
+  }
+}

@@ -1,0 +1,34 @@
+Verified: snap 021038102RYN014624 mplab
+18:01:52 - application switch started
+18:01:53 - found Snap, S/N 021038102RYN014624 running mplab firmware
+18:01:53 - using application file C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\snap_uart_setup\firmware\snap_app_cmsis-dap.hex
+
+preparing application write:           
+preparing application write: ▏         
+                                       
+18:01:58 - application being written and verified
+ Application write progress: 5%
+ Application write progress: 10%
+ Application write progress: 15%
+ Application write progress: 20%
+ Application write progress: 25%
+ Application write progress: 30%
+ Application write progress: 35%
+ Application write progress: 40%
+ Application write progress: 45%
+ Application write progress: 50%
+ Application write progress: 55%
+ Application write progress: 60%
+ Application write progress: 65%
+ Application write progress: 70%
+ Application write progress: 75%
+ Application write progress: 80%
+ Application write progress: 85%
+ Application write progress: 90%
+ Application write progress: 95%
+ Application write progress: 100%
+                              
+18:01:59 - application write and verify completed, waiting for Snap ready ..
+18:02:04 - application switch successful
+Verified final mode: cmsisv2
+Snap serial port: COM16 USB VID:PID=04D8:90B1 SER=021038102RYN014624 LOCATION=1-2:x.1

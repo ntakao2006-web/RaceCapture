@@ -1,0 +1,26 @@
+{
+  "refs": [
+    "C12",
+    "C13",
+    "C14",
+    "C6",
+    "C7",
+    "C8"
+  ],
+  "updates": {
+    "MPN": "HVH1020-2R7705-R",
+    "Manufacturer": "Eaton - Electronics Division",
+    "Supplier": "DigiKey",
+    "Supplier_URL": "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394",
+    "DigiKey": "283-HVH1020-2R7705-R-ND",
+    "DigiKey_URL": "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394",
+    "Datasheet": "https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf",
+    "Description": "Polarized electric double layer capacitor",
+    "Rating": "7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm",
+    "Assembly": "90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "4000",
+    "Value": "7F(2.7V)"
+  },
+  "footprint": "logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal"
+}

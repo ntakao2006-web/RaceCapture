@@ -1,0 +1,160 @@
+UART_MONITOR_READY
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0xb (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xda0
+load:0x403cb700,len:0x2f58
+entry 0x403c8900
+I (24) boot: ESP-IDF 6.0.1 2nd stage bootloader
+I (25) boot: compile time Aug 31 2026 03:00:44
+I (25) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (28) boot: efuse block revision: v1.4
+I (31) boot.esp32s3: Boot SPI Speed : 80MHz
+I (35) boot.esp32s3: SPI Mode       : DIO
+I (39) boot.esp32s3: SPI Flash Size : 16MB
+I (43) boot: Enabling RNG early entropy source...
+I (47) boot: Partition Table:
+I (50) boot: ## Label            Usage          Type ST Offset   Length
+I (56) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (63) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (69) boot:  2 factory          factory app      00 00 00010000 00100000
+I (76) boot: End of partition table
+I (79) esp_image: segment 0: paddr=00010020 vaddr=3c040020 size=16a08h ( 92680) map
+I (103) esp_image: segment 1: paddr=00026a30 vaddr=3fc95700 size=039a0h ( 14752) load
+I (106) esp_image: segment 2: paddr=0002a3d8 vaddr=40374000 size=05c40h ( 23616) load
+I (112) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=3b9e4h (244196) map
+I (158) esp_image: segment 4: paddr=0006ba0c vaddr=40379c40 size=0b9e8h ( 47592) load
+I (174) esp_image: segment 5: paddr=000773fc vaddr=50000000 size=00024h (    36) load
+I (182) boot: Loaded app from partition at offset 0x10000
+I (182) boot: Disabling RNG early entropy source...
+I (192) octal_psram: vendor id    : 0x0d (AP)
+I (192) octal_psram: dev id       : 0x02 (generation 3)
+I (192) octal_psram: density      : 0x03 (64 Mbit)
+I (194) octal_psram: good-die     : 0x01 (Pass)
+I (199) octal_psram: Latency      : 0x01 (Fixed)
+I (203) octal_psram: VCC          : 0x01 (3V)
+I (207) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (212) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (217) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (221) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (227) octal_psram: DriveStrength: 0x00 (1/1)
+I (231) MSPI Timing: Enter psram timing tuning
+I (236) esp_psram: Found 8MB PSRAM device
+I (241) esp_psram: Speed: 80MHz
+I (242) cpu_start: Multicore app
+I (671) esp_psram: SPI SRAM memory test OK
+I (679) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (680) cpu_start: Pro cpu start user code
+I (680) cpu_start: cpu freq: 240000000 Hz
+I (681) app_init: Application information:
+I (685) app_init: Project name:     v1_test
+I (689) app_init: App version:      2f0f313-dirty
+I (693) app_init: Compile time:     Aug 31 2026 02:57:41
+I (698) app_init: ELF file SHA256:  7c171ed8f...
+I (703) app_init: ESP-IDF:          6.0.1
+I (707) efuse_init: Min chip rev:     v0.0
+I (710) efuse_init: Max chip rev:     v0.99 
+I (714) efuse_init: Chip rev:         v0.2
+I (718) heap_init: Initializing. RAM available for dynamic allocation:
+I (725) heap_init: At 3FC9EFE0 len 0004A730 (297 KiB): RAM
+I (730) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (735) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (740) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM
+I (746) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (752) spi_flash: detected chip: generic
+I (755) spi_flash: flash io: dio
+W (758) i2c: This driver is an old driver, please migrate your application code to adapt `driver/i2c_master.h`
+I (769) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (775) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (782) main_task: Started on CPU0
+I (785) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (793) main_task: Calling app_main()
+I (796) logger_v1_test: logger_v1 full board test boot
+I (801) logger_v1_test: ESP-IDF 6.0.1; cores=2 rev=2; CPU config/actual=240/240 MHz
+I (808) logger_v1_test: 74HC595 walking-one LED test started (SER=40 CLK=39 LATCH=45)
+I (1116) temperature_sensor: Range [20°C ~ 100°C], error < 2°C
+I (1119) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+W (1120) tusb_desc: No Device descriptor provided, using default.
+W (1126) tusb_desc: No FullSpeed configuration descriptor provided, using default.
+W (1132) tusb_desc: No String descriptors provided, using default.
+I (1138) tusb_desc: 
+┌─────────────────────────────────┐
+│  USB Device Descriptor Summary  │
+├───────────────────┬─────────────┤
+│bDeviceClass       │ 239         │
+├───────────────────┼─────────────┤
+│bDeviceSubClass    │ 2           │
+├───────────────────┼─────────────┤
+│bDeviceProtocol    │ 1           │
+├───────────────────┼─────────────┤
+│bMaxPacketSize0    │ 64          │
+├───────────────────┼─────────────┤
+│idVendor           │ 0x303a      │
+├───────────────────┼─────────────┤
+│idProduct          │ 0x4001      │
+├───────────────────┼─────────────┤
+│bcdDevice          │ 0x100       │
+├───────────────────┼─────────────┤
+│iManufacturer      │ 0x1         │
+├───────────────────┼─────────────┤
+│iProduct           │ 0x2         │
+├───────────────────┼─────────────┤
+│iSerialNumber      │ 0x3         │
+├───────────────────┼─────────────┤
+│bNumConfigurations │ 0x1         │
+└───────────────────┴─────────��I (1318) logger_v1_test: A105 UART0/COM8 also ready for RaceCapture App at 115200 baud
+I (1318) logger_v1_test: PSRAM: total=8388608 free=8380736 largest=8257536 byte(s)
+I (2390) logger_v1_test: PSRAM write/read/verify 8192000 byte(s): PASS (0 error(s))
+I (3216) logger_v1_test: BNO055 I2C ACK at 0x28 (100 kHz)
+I (3218) logger_v1_test: BNO055 I2C PASS: address 0x28, chip ID 0xA0 (SDA=17 SCL=18)
+I (3298) logger_v1_test: CAN1 PASS: TWAI/ATA6561 self reception at 500 kbit/s, id=0x321
+I (3299) logger_v1_test: 74HC595 paused briefly while CAN2 owns shared GPIO39/40
+I (3347) logger_v1_test: CAN2 PASS: MCP25625 SPI/config/internal loopback at 500 kbit/s, id=0x456
+I (3347) logger_v1_test: CAN external test: J4(CAN2) <-> J5(CAN1), 500 kbit/s, 32 frames each direction
+E (3465) logger_v1_test: BNO055 I2C read failed (1 consecutive)
+I (3545) logger_v1_test: CAN EXTERNAL PASS: CAN1->CAN2=32/32 CAN2->CAN1=32/32; all error counters zero
+I (3547) logger_v1_test: 74HC595 walking-one LED test started (SER=40 CLK=39 LATCH=45)
+I (5020) logger_v1_test: GNSS untouched 9600 baud: passive=360 poll-rx=600 MON-VER=PASS
+I (5020) logger_v1_test: GNSS minimal MON-VER: PASS (baud=9600 total rx=960)
+I (5024) logger_v1_test: GNSS MON-VER responded; failure-only GPIO drive harness skipped
+I (6119) logger_v1_test: health cpu=240MHz temp=35.2C max=35.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (8797) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.31/-0.34/9.46 m/s2 Gyro=-0.1/-0.1/0.1 dps temp=32C calib=0x3F sys=1 err=6
+I (9043) logger_v1_test: GNSS NAV-PVT: fix=3 ok=yes SV=10 lat=35.5167549 lon=139.4811097
+I (9043) logger_v1_test: GNSS outdoor antenna position fix within 120 s: PASS (fix=3 SV=10)
+I (9049) logger_v1_test: SD current-net pins CLK=11 CMD=10 D0=12 D1=13 D2=14 D3=21
+W (9131) SD_HOST: input line delay not supported, fallback to 0 delay
+W (9138) SD_HOST: input line delay not supported, fallback to 0 delay
+Name:      
+Type: SDHC
+Speed: 40.00 MHz (limit: 40.00 MHz)
+Size: 29721MB
+CSD: ver=2, sector_size=512, capacity=60868608 read_bl_len=9
+SSR: bus_width=4
+I (11119) logger_v1_test: health cpu=240MHz temp=35.2C max=35.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (14338) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.33/-0.35/9.49 m/s2 Gyro=0.0/0.0/0.1 dps temp=32C calib=0x3F sys=1 err=6
+I (16119) logger_v1_test: health cpu=240MHz temp=35.2C max=35.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (19428) logger_v1_test: SD PASS: 8 MiB write/read/verify/delete; write=1.43 MiB/s read=1.73 MiB/s
+I (19432) logger_v1_test: ================ BOARD TEST SUMMARY ================
+I (19436) logger_v1_test: CPU: 240 MHz, dual-core stress ON, temp 35.2 C (cutoff 85.0 C)
+I (19442) logger_v1_test: PSRAM 8 MiB octal 80 MHz write/read/verify: PASS
+I (19450) logger_v1_test: GNSS UART/MON-VER: PASS (ROM SPG 5.10 (7b202e)         000A0000  FWVER=SPG 5.10         )
+I (19460) logger_v1_test: GNSS antenna/NAV-PVT position fix: PASS (fix=3 SV=10 lat=35.5167549 lon=139.4811097)
+I (19470) logger_v1_test: IMU BNO055 I2C/RaceCapture telemetry: PASS (addr 0x28 chip 0xA0)
+I (19478) logger_v1_test: CAN1 TWAI/transceiver self reception: PASS
+I (19483) logger_v1_test: CAN2 MCP25625 SPI/internal loopback: PASS
+I (19490) logger_v1_test: CAN1 <-> CAN2 external physical bus: PASS
+I (19496) logger_v1_test: SDMMC write/read/verify: PASS at 40 MHz
+I (19502) logger_v1_test: 74HC595 Knight Rider: PASS at boot; RUNNING again after CAN2 SPI release
+I (19510) logger_v1_test: RaceCapture: READY on native USB CDC and A105 UART0/COM8
+I (19518) logger_v1_test: ====================================================
+I (19524) main_task: Returned from app_main()
+I (19871) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.30/-0.34/9.50 m/s2 Gyro=0.0/-0.1/0.0 dps temp=32C calib=0x3F sys=1 err=6
+I (21119) logger_v1_test: health cpu=240MHz temp=35.2C max=35.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (25371) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.33/-0.35/9.49 m/s2 Gyro=0.1/-0.1/-0.1 dps temp=32C calib=0x3F sys=1 err=6
+I (26119) logger_v1_test: health cpu=240MHz temp=35.2C max=35.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (30870) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.33/-0.35/9.50 m/s2 Gyro=0.1/0.1/-0.1 dps temp=32C calib=0x3F sys=1 err=6
+I (31119) logger_v1_test: health cpu=240MHz temp=35.2C max=35.2C stress=ON OTG(vbus=1 role=1 oc_n=1)

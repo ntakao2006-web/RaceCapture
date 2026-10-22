@@ -5,6 +5,11 @@ import unittest
 from rcp_bridge import Source, channel, client
 
 class Samples(unittest.TestCase):
+    def test_open_sensor_masks_temperature_but_keeps_fault_channels(self):
+        s=Source();s.updated=time.monotonic()
+        s.meta=[channel('OilTemp'),channel('OilTempState'),channel('OilTempOpen')]
+        s.frame={'status':{'connected':True},'sample':{'mcu_ms':42,'can_signals':{'OilTemp':None,'OilTempState':1,'OilTempOpen':1}}}
+        self.assertEqual(s.sample()['s']['d'],[1,1,6])
     def test_sparse_masks_cross_32_channels(self):
         s=Source();s.meta=[channel('c'+str(i)) for i in range(65)]
         s.frame={'status':{'connected':True},'sample':{'mcu_ms':42,'values':{'c0':1,'c32':2,'c64':3,'c2':None,'c3':float('nan')}}}

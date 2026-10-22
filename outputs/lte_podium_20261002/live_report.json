@@ -1,0 +1,198 @@
+{
+  "passed": true,
+  "lte": {
+    "at": true,
+    "rf_off": true,
+    "flow_control": true,
+    "tcp_commands": null,
+    "power_off": true,
+    "model": "SIM7070",
+    "capability_names": [],
+    "message": "UART\u3092\u78ba\u8a8d\u3057\u307e\u3057\u305f\u3002TCP\u901a\u4fe1\u306fSIM\u30fbLTE\u30a2\u30f3\u30c6\u30ca\u63a5\u7d9a\u5f8c\u306b\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+    "uart_queries": 20,
+    "watchdog_power_off": true,
+    "uart_overflows": 0,
+    "uart_rx_bytes": 1753,
+    "uart_tx_bytes": 184
+  },
+  "observed_seconds": 32.37220488700041,
+  "receive_hz": 99.65339127380395,
+  "status_observations": 357,
+  "new_hardware_errors": {
+    "imu_errors": 0,
+    "gnss_errors": 0,
+    "dropped": 0,
+    "sd_errors": 0,
+    "sd_queue_dropped": 0
+  },
+  "bridge_errors_delta": 0,
+  "emmc_rows_delta": 3226,
+  "sd_note": "Existing FAT32 partition is full; SD continuation was not tested. Data preserved.",
+  "network_tested": false,
+  "before": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 44,
+    "receive_hz": 100.1,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 2292,
+    "bridge_errors": 22,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17303683072,
+    "sensors": {
+      "imu": "\u6b63\u5e38",
+      "gnss": "\u6e2c\u4f4d\u4e2d",
+      "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+      "sd": "\u8a18\u9332\u6b20\u843d\u3042\u308a",
+      "lte": "LTE\u9001\u4fe1OFF",
+      "camera": "\u672a\u63a5\u7d9a"
+    },
+    "hardware": {
+      "mcu_ms": 32396,
+      "seq": 2301,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 0,
+      "gnss_errors": 0,
+      "gnss_at": 32329,
+      "dropped": 9,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 0,
+      "sd_bytes": 0,
+      "sd_errors": 2,
+      "sd_queue_dropped": 1009,
+      "sd_blocks": 0,
+      "sd_alloc_ms": 0,
+      "completed": 2,
+      "result": "recording",
+      "nav": "04f2a018ea070a01122e1637160000009a52a3350301ea14d11e2353216a2b1535e50100884c01009b02000096020000cdffffffe4ffffff090000003a00000042ef3500a20000004e3549009b0000005c40562f0000000000000000",
+      "lte_power": 0,
+      "lte_overflows": 0
+    },
+    "logging": {
+      "active": true,
+      "name": "LOG_20261001T184600Z_798ec4df.csv",
+      "rows": 2292,
+      "elapsed_s": 22.35362688600071,
+      "error": null
+    },
+    "sd_copy": {
+      "active": false
+    },
+    "podium": {
+      "state": "off",
+      "message": "LTE\u9001\u4fe1OFF",
+      "frames": 0,
+      "bytes": 0,
+      "reconnects": 0,
+      "skipped": 0,
+      "last_sent_age_ms": null,
+      "target_hz": 10,
+      "transport": "SIM7070G TCP / STM32 UART",
+      "configured": false,
+      "enabled": false
+    }
+  },
+  "after": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 107,
+    "receive_hz": 100.3,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 5518,
+    "bridge_errors": 22,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17302024192,
+    "sensors": {
+      "imu": "\u6b63\u5e38",
+      "gnss": "\u6e2c\u4f4d\u4e2d",
+      "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+      "sd": "\u8a18\u9332\u6b20\u843d\u3042\u308a",
+      "lte": "LTE\u9001\u4fe1OFF",
+      "camera": "\u672a\u63a5\u7d9a"
+    },
+    "hardware": {
+      "mcu_ms": 64626,
+      "seq": 5524,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 0,
+      "gnss_errors": 0,
+      "gnss_at": 64586,
+      "dropped": 9,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 0,
+      "sd_bytes": 0,
+      "sd_errors": 2,
+      "sd_queue_dropped": 1009,
+      "sd_blocks": 0,
+      "sd_alloc_ms": 0,
+      "completed": 2,
+      "result": "recording",
+      "nav": "3070a118ea070a01122e373716000000f8f5e70b0301ea153c1f2353336a2b1543e60100964d01008a02000084020000efffffffe3ffffff020000002200000042ef3500940000001de349008c0000005c40562f0000000000000000",
+      "lte_power": 0,
+      "lte_overflows": 0
+    },
+    "logging": {
+      "active": true,
+      "name": "LOG_20261001T184600Z_798ec4df.csv",
+      "rows": 5518,
+      "elapsed_s": 54.71661198700076,
+      "error": null
+    },
+    "sd_copy": {
+      "active": false
+    },
+    "podium": {
+      "state": "off",
+      "message": "LTE\u9001\u4fe1OFF",
+      "frames": 0,
+      "bytes": 0,
+      "reconnects": 0,
+      "skipped": 0,
+      "last_sent_age_ms": null,
+      "target_hz": 10,
+      "transport": "SIM7070G TCP / STM32 UART",
+      "configured": false,
+      "enabled": false
+    }
+  }
+}

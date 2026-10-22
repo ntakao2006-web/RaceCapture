@@ -1,0 +1,315 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-20T23:22:17+0900",
+    "kicad_version": "9.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/dc5d8068-d111-46c7-b5e6-27652641df1c",
+            "violations": [
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR01 ピン 1 [Power input, Line]",
+                            "pos": {
+                                "x": 0.6604,
+                                "y": 0.3302
+                            },
+                            "uuid": "e6f6d9dc-6a1b-4910-8ea7-f310aa08649f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'Sense5'",
+                            "pos": {
+                                "x": 0.508,
+                                "y": 0.7366
+                            },
+                            "uuid": "062701a6-f676-4d99-9df6-8e8fea68627a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'Sense6'",
+                            "pos": {
+                                "x": 0.508,
+                                "y": 0.762
+                            },
+                            "uuid": "9704a4dc-7760-4919-a191-6e7b5b07ad98"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'Sense7'",
+                            "pos": {
+                                "x": 0.508,
+                                "y": 0.7874
+                            },
+                            "uuid": "2dbd60c2-8109-4c9e-91fc-7313411436ac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U3 ピン 26 [RB5, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.8128,
+                                "y": 0.508
+                            },
+                            "uuid": "f2ff6020-41a2-43c5-838a-302c5476e2d4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U3 ピン 11 [RC0/SOSCO, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.8128,
+                                "y": 0.6096
+                            },
+                            "uuid": "ad698696-52e0-445f-9702-d9e11abdbbea"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U3 ピン 12 [RC1/SOSCI, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.8128,
+                                "y": 0.635
+                            },
+                            "uuid": "22bfdc89-4cc3-4983-8401-081fb9511a03"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U3 ピン 13 [RC2, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.8128,
+                                "y": 0.6604
+                            },
+                            "uuid": "1953c5c8-9b81-4bd4-b4ac-764f0b7c9056"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U3 ピン 15 [RC4, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.8128,
+                                "y": 0.7112
+                            },
+                            "uuid": "c864ce00-ab3e-4712-b710-4d25c6602320"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "ピンが接続されていない",
+                    "items": [
+                        {
+                            "description": "Symbol U3 ピン 16 [RC5, Bidirectional, Line]",
+                            "pos": {
+                                "x": 0.8128,
+                                "y": 0.7366
+                            },
+                            "uuid": "28f72f4b-d2f5-461f-9aee-7f149dc7fe8b"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "pin_not_connected"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR07 ピン 1 [Power input, Line]",
+                            "pos": {
+                                "x": 1.5748,
+                                "y": 0.4699
+                            },
+                            "uuid": "6aa7bd9b-88f6-45f8-a2a7-db8ee0ecd38e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'PullUp0'",
+                            "pos": {
+                                "x": 2.2098,
+                                "y": 0.4064
+                            },
+                            "uuid": "020b364d-529a-4a47-93f1-dba65149ce3c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'PullUp1'",
+                            "pos": {
+                                "x": 2.2098,
+                                "y": 0.4318
+                            },
+                            "uuid": "2f666c02-1208-4491-86bc-ab7676ad88ad"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'PullUp2'",
+                            "pos": {
+                                "x": 2.2098,
+                                "y": 0.4572
+                            },
+                            "uuid": "758430b7-d833-4fd6-8924-8eaf59b58909"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'PullUp3'",
+                            "pos": {
+                                "x": 2.2098,
+                                "y": 0.4826
+                            },
+                            "uuid": "c552d356-183f-4b67-a815-f3aab544ec58"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'PullUp4'",
+                            "pos": {
+                                "x": 2.2098,
+                                "y": 0.508
+                            },
+                            "uuid": "e2ac48fa-fd2b-4acb-b8c8-784f96f45dcd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'PullUp5'",
+                            "pos": {
+                                "x": 2.2098,
+                                "y": 0.5334
+                            },
+                            "uuid": "f1d713c8-a2c9-4af8-898f-f8c3c97e3cb8"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'PullUp6'",
+                            "pos": {
+                                "x": 2.2098,
+                                "y": 0.5588
+                            },
+                            "uuid": "acd4213a-b116-49a7-8316-fa6a2721e9fc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'PullUp7'",
+                            "pos": {
+                                "x": 2.2098,
+                                "y": 0.5842
+                            },
+                            "uuid": "30cda9dc-3351-4248-b2f7-4f436f96c10a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "現在の構成にはフットプリント ライブラリ 'logger_v2_custom' が含まれていません。",
+                    "items": [
+                        {
+                            "description": "シンボル J1 [Conn_01x04]",
+                            "pos": {
+                                "x": 1.6256,
+                                "y": 0.4191
+                            },
+                            "uuid": "bae6e84c-0fed-4e01-8a43-8fc2737d6419"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                }
+            ]
+        }
+    ],
+    "source": "SensorHub.kicad_sch"
+}

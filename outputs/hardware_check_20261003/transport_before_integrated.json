@@ -1,0 +1,2726 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "commands": [
+        [
+          "AT",
+          "\u0000\r\nRDY\r\n\r\n+CFUN: 1\r\nAT\r\r\nOK\r\n"
+        ],
+        [
+          "ATE0",
+          "\r\n+CPIN: READY\r\nATE0\r\r\nOK\r\n"
+        ],
+        [
+          "AT+IFC=2,2",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CFUN=0",
+          "\r\nSMS Ready\r\n\r\n+CPIN: NOT READY\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGDCONT=1,\"IP\",\"soracom.io\"",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CFUN=1",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CPIN?",
+          "\r\n+CPIN: READY\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CPIN: READY\r\n\r\nSMS Ready\r\n\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 1\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CPSMS=0",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CEDRXS=0",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CNCFG=0,1,\"soracom.io\",\"sora\",\"sora\",1",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CNACT=0,1",
+          "\r\nOK\r\n\r\n+APP PDP: 0,A"
+        ],
+        [
+          "AT+CNACT?",
+          "CTIVE\r\n\r\n+CNACT: 0,1,\"10.255.59.109\"\r\n+CNACT: 1,0,\"0.0.0.0\"\r\n+CNACT: 2,0,\"0.0.0.0\"\r\n+CNACT: 3,0,\"0.0.0.0\"\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CASSLCFG=0,\"SSL\",0",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CAOPEN=0,0,\"TCP\",\"example.com\",80",
+          "\r\n+CAOPEN: 0,0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CPSI?",
+          "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-7,-80,-59,20\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CADATAIND: 0\r\n\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:50:51 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2344\r\ncf-cache-status: HIT\r\nCF-RAY: a44535619f8ed4bf-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n\r\n+CADATAIND: 0\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:50:53 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2346\r\ncf-cache-status: HIT\r\nCF-RAY: a445356bfdb8d4bf-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CADATAIND: 0\r\n\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:50:55 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2347\r\ncf-cache-status: HIT\r\nCF-RAY: a4453576cca2d4bf-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CAACK=0",
+          "\r\n+CAACK: 186,0\r\n\r\nOK\r\n"
+        ]
+      ],
+      "failed_command": "AT+CPIN?",
+      "connect_seconds": 27.883664680000038,
+      "network": "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-7,-80,-59,20\r\n\r\nOK\r\n",
+      "responses": [
+        "HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:50:51 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2344\r\ncf-cache-status: HIT\r\nCF-RAY: a44535619f8ed4bf-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n",
+        "HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:50:53 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2346\r\ncf-cache-status: HIT\r\nCF-RAY: a445356bfdb8d4bf-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n",
+        "HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:50:55 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2347\r\ncf-cache-status: HIT\r\nCF-RAY: a4453576cca2d4bf-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n"
+      ],
+      "ack": "\r\n+CAACK: 186,0\r\n\r\nOK\r\n",
+      "passed": true
+    },
+    {
+      "attempt": 2,
+      "commands": [
+        [
+          "AT",
+          "\u0000\r\nRDY\r\n\r\n+CFUN: 1\r\n\r\n+CPIN: READY\r\nAT\r\r\nOK\r\n"
+        ],
+        [
+          "ATE0",
+          "ATE0\r\r\nOK\r\n"
+        ],
+        [
+          "AT+IFC=2,2",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CFUN=0",
+          "\r\nSMS Ready\r\n\r\n+CPIN: NOT READY\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGDCONT=1,\"IP\",\"soracom.io\"",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CFUN=1",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CPIN?",
+          "\r\n+CPIN: READY\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n\r\n+CPIN: READY\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\nSMS Ready\r\n\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CGATT?",
+          "\r\n+CGATT: 1\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CPSMS=0",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CEDRXS=0",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CNCFG=0,1,\"soracom.io\",\"sora\",\"sora\",1",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CNACT=0,1",
+          "\r\nOK\r\n\r\n+APP"
+        ],
+        [
+          "AT+CNACT?",
+          " PDP: 0,ACTIVE\r\n\r\n+CNACT: 0,1,\"10.255.59.109\"\r\n+CNACT: 1,0,\"0.0.0.0\"\r\n+CNACT: 2,0,\"0.0.0.0\"\r\n+CNACT: 3,0,\"0.0.0.0\"\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CASSLCFG=0,\"SSL\",0",
+          "\r\nOK\r\n"
+        ],
+        [
+          "AT+CAOPEN=0,0,\"TCP\",\"example.com\",80",
+          "\r\n+CAOPEN: 0,0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CPSI?",
+          "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-7,-76,-55,21\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CADATAIND: 0\r\n\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:51:26 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2378\r\ncf-cache-status: HIT\r\nCF-RAY: a44536378e85deb6-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CADATAIND: 0\r\n\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:51:27 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2380\r\ncf-cache-status: HIT\r\nCF-RAY: a44536428efcdeb6-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CARECV: 0\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CARECV=0,512",
+          "\r\n+CADATAIND: 0\r\n\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:51:29 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2382\r\ncf-cache-status: HIT\r\nCF-RAY: a445364d5f29deb6-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+        ],
+        [
+          "AT+CAACK=0",
+          "\r\n+CAACK: 186,0\r\n\r\nOK\r\n"
+        ]
+      ],
+      "failed_command": "AT+CPIN?",
+      "connect_seconds": 27.014258191999943,
+      "network": "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-7,-76,-55,21\r\n\r\nOK\r\n",
+      "responses": [
+        "HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:51:26 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2378\r\ncf-cache-status: HIT\r\nCF-RAY: a44536378e85deb6-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n",
+        "HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:51:27 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2380\r\ncf-cache-status: HIT\r\nCF-RAY: a44536428efcdeb6-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n",
+        "HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:51:29 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 2382\r\ncf-cache-status: HIT\r\nCF-RAY: a445364d5f29deb6-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n"
+      ],
+      "ack": "\r\n+CAACK: 186,0\r\n\r\nOK\r\n",
+      "passed": true
+    }
+  ],
+  "states": [
+    {
+      "mcu_ms": 222587,
+      "seq": 22058,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 222506,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "dc1c5d1dea070a0210321737170000003932cc1d0301ea0d671c23531e692b156ece0100c235010071040000be03000018000000e7ffffff0c00000023000000ee4d9e01b00000007e0d4300c70000005c40562f0000000000000000",
+      "lte_power": 1,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 223595,
+      "seq": 22159,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 223507,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "c4205d1dea070a0210321837170000008624cc1d0301ea0d651c235320692b1549ce01009d35010078040000c203000014000000090000000100000016000000ee4d9e0108010000ca164300c70000005c40562f0000000000000000",
+      "lte_power": 2,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 224613,
+      "seq": 22261,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 224605,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "10255d1dea070a02103219371700000071f6c1230301ea0d621c235324692b1508ce01005b3501007d040000c30300001d000000f1ffffff0100000020000000ee4d9e01cc00000026204300c70000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 225626,
+      "seq": 22362,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 225601,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "f8285d1dea070a0210321a3717000000b9e8c1230301ea0d5f1c235329692b15ddcd01003035010082040000c5030000dcffffffc5ffffff0700000046000000ee4d9e01eb0000002f294300c70000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 226643,
+      "seq": 22464,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 226599,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "e02c5d1dea070a0210321b3717000000fddac1230301ea0d5c1c23532b692b15b5cd0100083501008a040000ca030000e0ffffffbfffffff0500000048000000ee4d9e01fc00000091324300c70000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 227660,
+      "seq": 22566,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 227596,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "c8305d1dea070a0210321c37170000003fcdc1230301ea0e561c23532f692b156bcd0100be34010098040000d403000007000000cfffffff1100000031000000ee4d9e01ca0000002a3c4300c30000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 228684,
+      "seq": 22668,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 228598,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "b0345d1dea070a0210321d37170000007dbfc1230301ea0e511c23532f692b1538cd01008c340100a7040000df030000e9ffffffe0ffffff0800000027000000ee4d9e01080100009d454300c30000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 229756,
+      "seq": 22775,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 229698,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "fc385d1dea070a0210321e37170000005c91b7290301ea0e4f1c235331692b1506cd01005a340100b8040000eb030000ccffffffe5ffffff010000003b000000ee4d9e010d010000fd4f4300c30000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 230766,
+      "seq": 22876,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 230695,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "e43c5d1dea070a0210321f37170000009983b7290301ea0e4a1c23532f692b15cecc010021340100c5040000f5030000c9ffffffdcffffff0400000042000000ee4d9e01070100008d594300c30000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 231773,
+      "seq": 22977,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 231698,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "cc405d1dea070a021032203717000000d775b7290301ea0e491c235332692b15b6cc01000a340100d404000000040000800000003f000000f1ffffff8f000000ee4d9e0109010000af634300c30000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 232785,
+      "seq": 23078,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 232696,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "b4445d1dea070a0210322137170000001768b7290301ea0e471c235335692b1584cc0100d8330100e20400000a040000d4ffffffcffffffffdffffff42000000ee4d9e01fe000000756d4300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 233796,
+      "seq": 23179,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 233787,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "00495d1dea070a021032223717000000f439ad2f0301ea0d461c235338692b157fcc0100d3330100f304000017040000deffffffe5ffffff080000002c000000ee4d9e011701000047794300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 234806,
+      "seq": 23280,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 234794,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "e84c5d1dea070a021032233717000000312cad2f0301ea0d481c23533e692b159dcc0100f133010003050000240400007b0000001e000000f5ffffff7f000000ee4d9e0112010000c2834300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 235821,
+      "seq": 23382,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 235791,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "d0505d1dea070a021032243717000000731ead2f0301ea0d4f1c235342692b15e6cc01003a3401001005000030040000260000001f000000deffffff31000000ee4d9e01030100009b8e4300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 236883,
+      "seq": 23488,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 236785,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "b8545d1dea070a021032253718000000be10ad2f0301ea0d4f1c235345692b1500cd0100533401001e0500003d0400003300000036000000deffffff4b000000ee4d9e0112010000fe984300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 237956,
+      "seq": 23595,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 237886,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "04595d1dea070a021032263718000000b5e2a2350301ea0d481c235343692b15e1cc0100353401002d0500004b040000fdffffff03000000ebffffff04000000ee4d9e01910000001da34300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 238990,
+      "seq": 23699,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 238885,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "ec5c5d1dea070a02103227371800000012d5a2350301ea0d401c235340692b15b7cc01000a3401003b0500005a040000ceffffff09000000f1ffffff33000000ee4d9e01f40000000cad4300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 240055,
+      "seq": 23805,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 240003,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "38615d1dea070a0210322937180000001addfdff0301ea0d341c23533b692b1566cc0100ba3301004805000069040000fefffffffcfffffff7ffffff04000000ee4d9e01d6000000b5b74300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 241066,
+      "seq": 23906,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 240998,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "20655d1dea070a0210322a371800000081cffdff0301ea0d281c235334692b151acc01006d33010052050000770400002400000039000000f3ffffff44000000ee4d9e010e01000057c14300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 242159,
+      "seq": 24016,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 242087,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "6c695d1dea070a0210322b37180000008fa1f3050301ea0d1a1c23532e692b15bfcb0100123301005f0500008604000015000000fffffffff2ffffff15000000ee4d9e01ea000000d9cc4300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 243172,
+      "seq": 24117,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 243078,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "546d5d1dea070a0210322c3718000000fc93f3050301ea0d0b1c23532a692b1555cb0100a932010069050000910400000a000000e7ffffff000000001b000000ee4d9e01b60000007dd64300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 244243,
+      "seq": 24224,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 244186,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "a0715d1dea070a0210322d37180000000f66e90b0301ea0df31b235321692b15b3ca010006320100710500009d040000730000003e000000f6ffffff82000000ee4d9e0117010000c6e14300cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 245306,
+      "seq": 24330,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 245276,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "ec755d1dea070a0210322e37180000002938df110301ea0eca1b23530e692b157fc90100d330010075050000a50400001a00000002000000040000001a000000ee4d9e01fa000000fdec4300c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 246370,
+      "seq": 24437,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 246276,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "d4795d1dea070a0210322f3718000000a12adf110301ea0ea61b235301692b156fc80100c32f010074050000a804000034000000fcfffffff5ffffff34000000ee4d9e01e500000016f64300c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 247436,
+      "seq": 24543,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 247378,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "207e5d1dea070a021032303718000000c3fcd4170301ea0e681b2353ec682b1551c60100a42d010064050000a40400003a00000004000000efffffff3b000000ee4d9e01f10000007c004400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 248511,
+      "seq": 24651,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 248472,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "6c825d1dea070a021032313718000000eececa1d0301ea0e2f1b2353c4682b15c7c401001b2c0100540500009e04000018000000fdffffffefffffff18000000ee4d9e01d0000000660a4400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 249523,
+      "seq": 24752,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 249475,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "54865d1dea070a0210323237180000007cc1ca1d0301ea0e181b2353b4682b1549c401009d2b010060050000a30400002e00000021000000f4ffffff38000000ee4d9e0133010000fa144400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 250586,
+      "seq": 24858,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 250567,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "a08a5d1dea070a021032333718000000ba93c0230301ea0ef91a2353a2682b1593c30100e62a010066050000a3040000f2ffffffe0fffffff7ffffff22000000ee4d9e01ed000000d8204400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 251608,
+      "seq": 24961,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 251575,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "888e5d1dea070a0210323437180000005786c0230301ea0ec91a235387682b154ac201009d2901006b050000a404000013000000040000000500000014000000ee4d9e0111010000292b4400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 252624,
+      "seq": 25062,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 252576,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "70925d1dea070a021032353718000000fc78c0230301ea0e721a23534e682b15f1bf010045270100560500009a04000007000000f0ffffff1d00000012000000ee4d9e01a0000000fd324400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 253639,
+      "seq": 25164,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 253565,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "58965d1dea070a021032363718000000a86bc0230301ea0e381a235326682b153fbe0100932501003f0500008c0400004c000000120000000a0000004e000000ee4d9e01ef000000db3b4400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 254649,
+      "seq": 25265,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 254572,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "409a5d1dea070a0210323737180000005d5ec0230301ea0e071a235306682b15a1bc0100f423010025050000760400002a000000200000000700000034000000ee4d9e01f00000006b444400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 255715,
+      "seq": 25371,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 255662,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "8c9e5d1dea070a021032383718000000c930b6290301ea0ee1192353ec672b1560bb0100b4220100150500006704000024000000030000000500000024000000ee4d9e01e70000003e4d4400c40000005c40562f0000000000000000",
+      "lte_power": 0,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 256784,
+      "seq": 25478,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 256769,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "d8a25d1dea070a0210323937180000004203ac2f0301ea0ea5192353c7672b1550b90100a3200100fb04000053040000e8ffffff1c0000000800000025000000ee4d9e019b000000d9554400c40000005c40562f0000000000000000",
+      "lte_power": 0,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 257853,
+      "seq": 25585,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 257771,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "c0a65d1dea070a0210323a371700000016f6ab2f0301ea0e82192353af672b15f2b70100461f0100e9040000430400002f000000f2ffffff0100000032000000ee4d9e01de0000008d5e4400c40000005c40562f0000000000000000",
+      "lte_power": 2,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 258919,
+      "seq": 25692,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 258861,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "0cab5d1dea070a0210323b3717000000a4c8a1350301ea0e6519235395672b15cdb60100211e0100d904000036040000dbffffff050000000200000025000000ee4d9e01e90000006c684400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 259974,
+      "seq": 25797,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 259856,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "f4ae5d1dea070a0210330037170000008abba1350301ea0e5c19235384672b1576b60100c91d0100cd0400002a04000007000000fcfffffff9ffffff08000000ee4d9e01b7000000bc704400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 260984,
+      "seq": 25898,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 260974,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "40b35d1dea070a0210330237170000002ac4fcff0301ea0e4b19235370672b15c5b50100181d0100c20400001e04000012000000eeffffffffffffff1a000000ee4d9e01b6000000c4794400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 262000,
+      "seq": 26000,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 261972,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "28b75d1dea070a0210330337170000001db7fcff0301ea0e3b1923535e672b1540b50100931c0100b704000012040000f9ffffff00000000fbffffff07000000ee4d9e01d0000000f3814400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 263064,
+      "seq": 26106,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 263058,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "74bb5d1dea070a021033043717000000c789f2050301ea0e291923534e672b15ccb40100201c0100ac04000005040000fefffffff0fffffff8ffffff10000000ee4d9e0196000000f28a4400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 264122,
+      "seq": 26212,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 264056,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "5cbf5d1dea070a021033053717000000c57cf2050301ea0e1e19235341672b1598b40100eb1b0100a6040000fb030000f6ffffff10000000fbffffff13000000ee4d9e01a4000000af924400c40000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 265184,
+      "seq": 26318,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 265152,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "a8c35d1dea070a0210330637170000007c4fe80b0301ea0d1c19235338672b15ceb40100211c0100a3040000f30300001c0000002a000000f0ffffff33000000ee4d9e01d6000000079c4400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 266252,
+      "seq": 26425,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 266248,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "f4c75d1dea070a0210330737170000003c22de110301ea0e1b1923532c672b1507b501005b1c01009f040000ec0300001400000014000000f0ffffff1d000000ee4d9e01da0000004ba44400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 267324,
+      "seq": 26532,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 267256,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "dccb5d1dea070a0210330837170000005115de110301ea0e131923531d672b15ecb40100401c010098040000e7030000f6ffffff24000000f6ffffff25000000ee4d9e019f00000081ab4400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 268333,
+      "seq": 26633,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 268253,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "c4cf5d1dea070a0210330937170000006c08de110301ea0d0e19235311672b15eab401003d1c010090040000e2030000fcffffff13000000f3ffffff14000000ee4d9e01990000008cb24400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 269353,
+      "seq": 26735,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 269345,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "10d45d1dea070a0210330a371700000045dbd3170301ea0d0b19235305672b15f4b40100471c010088040000db03000033000000d3fffffffbffffff44000000ee4d9e01b80000001dbb4400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 270415,
+      "seq": 26841,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 270349,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "f8d75d1dea070a0210330b37170000006eced3170301ea0d15192353fd662b1561b50100b51c010081040000d50300002800000031000000f3ffffff3f000000ee4d9e01df000000bdc24400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 271431,
+      "seq": 26943,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 271343,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "e0db5d1dea070a0210330c37170000009dc1d3170301ea0d1f192353f5662b15dab501002d1d010075040000cc0300002a000000d5fffffff3ffffff3c000000ee4d9e01a8000000e4c94400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 272445,
+      "seq": 27044,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 272443,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "2ce05d1dea070a0210330d37170000008b94c91d0301ea0d30192353ed662b158cb60100df1d010067040000c30300002400000009000000ecffffff25000000ee4d9e01dd00000018d24400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 273465,
+      "seq": 27146,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 273447,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "14e45d1dea070a0210330e3717000000c887c91d0301ea0d48192353ea662b1575b70100c91e01005d040000be030000fbffffff0a000000ecffffff0b000000ee4d9e017500000058d94400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 274484,
+      "seq": 27248,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 274441,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "fce75d1dea070a0210330f3717000000097bc91d0301ea0d62192353e7662b157db80100d11f010055040000b903000023000000e7ffffffefffffff2b000000ee4d9e01b40000005ae04400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 275501,
+      "seq": 27350,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 275437,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "e4eb5d1dea070a0210331037170000004f6ec91d0301ea0d7b192353e1662b1576b90100ca2001004d040000b50300001e0000000f000000ebffffff21000000ee4d9e01d2000000afe74400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 276516,
+      "seq": 27451,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 276437,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "ccef5d1dea070a0210331137170000009a61c91d0301ea0d99192353df662b15a7ba0100fa21010042040000af0300004d000000d6ffffffe4ffffff57000000ee4d9e01c90000003aef4400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 277534,
+      "seq": 27553,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 277534,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "18f45d1dea070a021033123717000000a834bf230301ea0db6192353d8662b15e4bb01003823010039040000aa030000fdffffffe0fffffff3ffffff20000000ee4d9e0190000000f0f64400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 278604,
+      "seq": 27660,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 278535,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "00f85d1dea070a0210331337170000000028bf230301ea0dd9192353d7662b1559bd0100ad2401002f040000a3030000f9fffffff0ffffffefffffff11000000ee4d9e0187000000b5fd4400cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 279614,
+      "seq": 27761,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 279534,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "e8fb5d1dea070a0210331437170000005d1bbf230301ea0dfb192353da662b15d5be010029260100250400009b0300002600000021000000e3ffffff32000000ee4d9e01d000000003054500cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 280670,
+      "seq": 27867,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 280634,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "34005e1dea070a0210331537170000007deeb4290301ea0d1e1a2353d8662b154ac001009e2701001a04000093030000e6ffffffe4fffffff1ffffff26000000ee4d9e01c7000000f60c4500cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 281685,
+      "seq": 27968,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 281633,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "1c045e1dea070a021033163717000000e4e1b4290301ea0d421a2353d9662b15d8c101002b29010011040000890300001f0000000a000000edffffff21000000ee4d9e01dc0000007c144500cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 282694,
+      "seq": 28069,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 282635,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "04085e1dea070a0210331737170000004fd5b4290301ea0e681a2353dd662b1587c30100da2a0100050400007a0300002d000000feffffffedffffff2d000000ee4d9e01de000000721b4500cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 283756,
+      "seq": 28175,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 283728,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "500c5e1dea070a0210331837170000007ca8aa2f0301ea0e8e1a2353e1662b153dc50100902c0100fa0300006b0300000600000001000000edffffff06000000ee4d9e018c000000d8224500cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 284774,
+      "seq": 28277,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 284735,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "38105e1dea070a021033193717000000ed9baa2f0301ea0db11a2353ea662b15dec60100322e0100f00300005e03000029000000dfffffffeaffffff35000000ee4d9e01ab000000172a4500cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 285843,
+      "seq": 28384,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 285825,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "84145e1dea070a0210331a37170000001c6fa0350301ea0ed71a2353f2662b156fc80100c22f0100e50300004e0300001900000011000000f1ffffff1e000000ee4d9e01c8000000ef304500cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 286913,
+      "seq": 28491,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 286825,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "6c185e1dea070a0210331b37170000008d62a0350301ea0ef71a2353f9662b15b2c9010005310100dc03000042030000a600000039000000e7ffffffaf0000009cc2f701e7000000fd4b3f00cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 287966,
+      "seq": 28596,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 287938,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "b81c5e1dea070a0210331d3717000000c56bfbff0301ea0e171b2353fe662b1506cb01005a320100d403000035030000e6ffffff03000000e9ffffff1a0000009cc2f701b50000006b553f00cf0000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 288995,
+      "seq": 28699,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 288942,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "a0205e1dea070a0210331e3717000000435ffbff0301ea0c301b235301672b15f2cb010045330100ce0300002d030000320000001f000000f1ffffff3b0000009cc2f701ea0000002a5d3f00d30000005c40562f0000000000000000",
+      "lte_power": 3,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 290001,
+      "seq": 28800,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 289944,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "88245e1dea070a0210331f3717000000c652fbff0301ea0d441b235301672b15bccc01000f340100c9030000280300002800000021000000ebffffff340000009cc2f701db000000b3653f00d30000005c40562f0000000000000000",
+      "lte_power": 0,
+      "lte_overflows": 0
+    },
+    {
+      "mcu_ms": 291012,
+      "seq": 28901,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 9,
+      "gnss_errors": 0,
+      "gnss_at": 290942,
+      "dropped": 1319,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        2400,
+        2398
+      ],
+      "can_overflow": [
+        0,
+        2
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 0,
+      "sd_file": 37,
+      "sd_bytes": 559104,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1365,
+      "sd_alloc_ms": 493,
+      "completed": 22,
+      "result": "stopped",
+      "nav": "70285e1dea070a0210332037160000005246fbff0301ea0d561b235302672b155ecd0100b1340100c503000022030000feffffff1c000000f0ffffff1c0000009cc2f70190000000266e3f00d30000005c40562f0000000000000000",
+      "lte_power": 0,
+      "lte_overflows": 0
+    }
+  ]
+}

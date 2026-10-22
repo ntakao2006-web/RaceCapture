@@ -1,0 +1,9 @@
+{
+  "can1_matched": 32,
+  "can1_sent": 32,
+  "can2_matched": 32,
+  "can2_sent": 32,
+  "can2_overflow": 0,
+  "mode": "isolated internal loopback, normal firmware listen-only",
+  "result": "CAN1=32/32 CAN2=32/32 CAN2_overflow=0 CCCR=a0 TEST=90 PSR=708 NBTP=10c01 TXFQS=3 TXBRP=0 IR=201 RX=48c0246,11223300,55667788"
+}

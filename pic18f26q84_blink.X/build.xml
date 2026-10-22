@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="PIC18F26Q84 RA0 Blink" default="build" basedir=".">
+    <target name="build">
+        <exec executable="powershell" failonerror="true">
+            <arg value="-NoProfile"/>
+            <arg value="-ExecutionPolicy"/>
+            <arg value="Bypass"/>
+            <arg value="-File"/>
+            <arg value="build.ps1"/>
+        </exec>
+    </target>
+
+    <target name="program" depends="build">
+        <exec executable="powershell" failonerror="true">
+            <arg value="-NoProfile"/>
+            <arg value="-ExecutionPolicy"/>
+            <arg value="Bypass"/>
+            <arg value="-File"/>
+            <arg value="program.ps1"/>
+        </exec>
+    </target>
+
+    <target name="clean">
+        <delete dir="dist" quiet="true"/>
+    </target>
+</project>

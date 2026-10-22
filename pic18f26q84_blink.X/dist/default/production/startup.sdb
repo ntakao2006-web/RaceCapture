@@ -1,0 +1,5 @@
+[p ASM ]
+[d version 1.1 ]
+[d edition pro ]
+[d chip 18F26Q84 ]
+"1 pic18f26q84_blink.X\dist\default\production\startup.s

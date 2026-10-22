@@ -1,0 +1,117 @@
+[INFO   ] DataStore: Applying db migrations: []
+[INFO   ] DataStore: db migrations complete
+[INFO   ] Datastore: detected/cached 2 laps for session_id 7
+[INFO   ] Datastore: update_laps function took 22.252321243286133 ms
+[INFO   ] Datastore: update_laps_all_sessions function took 23.790597915649414 ms
+[INFO   ] RaceCaptureApp: Current presets loaded
+[INFO   ] RCPAPI: msg_rx_worker exiting
+[INFO   ] RCPAPI: cmd_sequence_worker exiting
+[INFO   ] RCPAPI: shutting down comms
+[INFO   ] RCPAPI: msg_rx_worker starting
+[INFO   ] RCPAPI: cmd_sequence_worker starting
+[INFO   ] RCPAPI: auto_detect_worker starting
+[INFO   ] RCPAPI: Starting auto-detect
+[INFO   ] SocketComm: connection process starting
+[INFO   ] SocketComm: connection thread message writer started
+[INFO   ] SocketComm: Connected to 127.0.0.1
+[INFO   ] DataBusPump: Checking for streaming API support
+[INFO   ] StatusPump: status_worker starting
+[INFO   ] TelemetryManager: on_data_connected: True
+[INFO   ] TelemetryManager: start() telemetry_enabled: False cell_enabled: False
+[WARNING] TelemetryManager: self._should_connect is false, not connecting
+[INFO   ] DashboardView: Initialization
+[INFO   ] DashboardView: on_meta
+[INFO   ] DashboardView: Caching channel metas
+[INFO   ] RaceCaptureApp: No previously logged in user, user can authenticate later
+[INFO   ] GL: OpenGL version <b'3.1 Mesa 25.2.6-1~bpo13+1'>
+[INFO   ] GL: OpenGL vendor <b'freedreno'>
+[INFO   ] GL: OpenGL renderer <b'FD702'>
+[INFO   ] GL: OpenGL parsed version: 3, 1
+[INFO   ] GL: Shading version <b'1.40'>
+{
+  "duration_s": 10.112578850999995,
+  "processes": [
+    {
+      "pid": "540",
+      "cpu_percent": 0.1,
+      "rss_mb": 37.2,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "1175",
+      "cpu_percent": 0.0,
+      "rss_mb": 28.4,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "1304",
+      "cpu_percent": 22.6,
+      "rss_mb": 54.5,
+      "command": "python3 -m uvicorn server:app --host 0.0.0.0 --port 8080 --no-access-log --ws-per-message-deflate false "
+    },
+    {
+      "pid": "1437",
+      "cpu_percent": 0.4,
+      "rss_mb": 54.1,
+      "command": "python3 -m uvicorn public_server:app --host 0.0.0.0 --port 8081 --no-access-log "
+    },
+    {
+      "pid": "1465",
+      "cpu_percent": 9.8,
+      "rss_mb": 26.4,
+      "command": "/usr/bin/python3 /opt/logger-v2-racecapture/rcp_bridge.py "
+    },
+    {
+      "pid": "2095",
+      "cpu_percent": 3.3,
+      "rss_mb": 87.9,
+      "command": "/usr/lib/xorg/Xorg :2 -config /opt/logger-v2-racecapture/xorg.conf -nolisten tcp -noreset -novtswitch -sharevts vt8 -ac "
+    },
+    {
+      "pid": "2261",
+      "cpu_percent": 4.1,
+      "rss_mb": 15.9,
+      "command": "/usr/bin/x11vnc -display :2 -localhost -rfbport 5902 -forever -shared -nopw -noxdamage -quiet -wait 50 "
+    },
+    {
+      "pid": "2264",
+      "cpu_percent": 0.5,
+      "rss_mb": 31.3,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "2265",
+      "cpu_percent": 0.5,
+      "rss_mb": 31.4,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "2266",
+      "cpu_percent": 0.5,
+      "rss_mb": 31.3,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "2267",
+      "cpu_percent": 0.5,
+      "rss_mb": 31.3,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "2269",
+      "cpu_percent": 0.0,
+      "rss_mb": 1.5,
+      "command": "dbus-run-session ./race_capture --conn_type wifi -p 127.0.0.1 "
+    },
+    {
+      "pid": "2286",
+      "cpu_percent": 38.1,
+      "rss_mb": 304.0,
+      "command": "./race_capture --conn_type wifi -p 127.0.0.1 "
+    }
+  ],
+  "sensors_hz": 100.1,
+  "bridge_errors_delta": 0,
+  "sd_errors_delta": 0,
+  "sd_dropped_delta": 0
+}

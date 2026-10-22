@@ -1,0 +1,12 @@
+{
+  "published_commit": "36b7a49d0e2c04e12fa44567aa0481b41807543c",
+  "local_commit": "9f36ca96cbbf510c8c3d5630e95b75d9b5f6e0fd",
+  "files": [
+    "circuit/SensorHub/.gitignore",
+    "circuit/SensorHub/SensorHub.kicad_pcb",
+    "circuit/SensorHub/SensorHub.kicad_pro",
+    "circuit/SensorHub/SensorHub.kicad_sch",
+    "circuit/SensorHub/SensorHub.kicad_sym",
+    "circuit/SensorHub/sym-lib-table"
+  ]
+}

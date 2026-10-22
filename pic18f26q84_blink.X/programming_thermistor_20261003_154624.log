@@ -1,0 +1,50 @@
+
+18F26Q84 Memory Summary:
+    Program space        used  192Ah (  6442) of 10000h bytes   (  9.8%)
+    Data space           used    E4h (   228) of  2000h bytes   (  2.8%)
+    Configuration bits   used     5h (     5) of    12h words   ( 27.8%)
+    EEPROM space         used     0h (     0) of   400h bytes   (  0.0%)
+    ID Location space    used     0h (     0) of    40h bytes   (  0.0%)
+
+Built: C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\dist\default\production\pic18f26q84_blink.X.production.hex
+DFP Version Used : PIC18F-Q_DFP,1.30.487,Microchip
+*****************************************************
+
+Connecting to MPLAB Snap
+Currently loaded versions:
+Application version...........02.04.82
+Boot version..................01.01.55
+PCB version...................2
+Script version................00.10.91
+Script build number...........1213f4c963
+Tool pack version ............3.0.1942
+Target device PIC18F26Q84 found.
+Device Id Revision = 0xa0020000
+Device Id = 0xa300
+*****************************************************
+Calculating memory ranges for operation...
+Erasing...
+The following memory area(s) will be programmed:
+program memory: start address = 0x0, end address = 0x7f
+program memory: start address = 0x2e00, end address = 0x477f
+program memory: start address = 0xff80, end address = 0xffff
+configuration memory
+User Id Memory
+Programming/Verify complete
+SNAP Program Report
+2026-10-03, 15:47:05
+Device Type:PIC18F26Q84
+Program Succeeded.
+snap Verify Report
+2026-10-03, 15:47:05
+Device Type:PIC18F26Q84
+*****************************************************
+The following memory area(s) will be verified:
+program memory: start address = 0x0, end address = 0xffff
+configuration memory
+EEData memory
+User Id Memory
+Verification successful.
+Verify Succeeded.
+Operation Succeeded
+Programming completed successfully.

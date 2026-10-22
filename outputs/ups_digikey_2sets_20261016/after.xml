@@ -1,0 +1,1825 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="E">
+  <design>
+    <source>C:\Users\lintaroh\Documents\RaceCapture\circuit\logger_v2_ups\logger_v2_ups.kicad_sch</source>
+    <date>2026-10-16T15:02:11+0900</date>
+    <tool>Eeschema 9.0.6</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date>mar. 31 mars 2015</date>
+        <source>logger_v2_ups.kicad_sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+        <comment number="5" value=""/>
+        <comment number="6" value=""/>
+        <comment number="7" value=""/>
+        <comment number="8" value=""/>
+        <comment number="9" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="C1">
+      <value>47u</value>
+      <footprint>logger_v2_ups:CP_Elec_6.3x5.9</footprint>
+      <datasheet>https://industrial.panasonic.com/ww/products/pt/os-con/models/25SVPF47M</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">25SVPF47M</field>
+        <field name="Manufacturer">Panasonic Industry</field>
+        <field name="DigiKey">P16513CT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/panasonic-industry/25SVPF47M/4204320</field>
+        <field name="Rating">47uF 25V aluminum solid polymer; ESR 30mohm; ripple 2.8A @100kHz 105C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">48305</field>
+        <field name="Polarity">Pin 1 = +; Pin 2 = -</field>
+        <field name="Footprint">logger_v2_ups:CP_Elec_6.3x5.9</field>
+        <field name="Datasheet">https://industrial.panasonic.com/ww/products/pt/os-con/models/25SVPF47M</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="25SVPF47M"/>
+      <property name="Manufacturer" value="Panasonic Industry"/>
+      <property name="DigiKey" value="P16513CT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/panasonic-industry/25SVPF47M/4204320"/>
+      <property name="Rating" value="47uF 25V aluminum solid polymer; ESR 30mohm; ripple 2.8A @100kHz 105C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="48305"/>
+      <property name="Polarity" value="Pin 1 = +; Pin 2 = -"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a1b8ce2d-f558-4af3-933d-c9193ee10e98</tstamps>
+    </comp>
+    <comp ref="C2">
+      <value>47u</value>
+      <footprint>logger_v2_ups:CP_Elec_6.3x5.9</footprint>
+      <datasheet>https://industrial.panasonic.com/ww/products/pt/os-con/models/25SVPF47M</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">25SVPF47M</field>
+        <field name="Manufacturer">Panasonic Industry</field>
+        <field name="DigiKey">P16513CT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/panasonic-industry/25SVPF47M/4204320</field>
+        <field name="Rating">47uF 25V aluminum solid polymer; ESR 30mohm; ripple 2.8A @100kHz 105C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">48305</field>
+        <field name="Polarity">Pin 1 = +; Pin 2 = -</field>
+        <field name="Footprint">logger_v2_ups:CP_Elec_6.3x5.9</field>
+        <field name="Datasheet">https://industrial.panasonic.com/ww/products/pt/os-con/models/25SVPF47M</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="25SVPF47M"/>
+      <property name="Manufacturer" value="Panasonic Industry"/>
+      <property name="DigiKey" value="P16513CT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/panasonic-industry/25SVPF47M/4204320"/>
+      <property name="Rating" value="47uF 25V aluminum solid polymer; ESR 30mohm; ripple 2.8A @100kHz 105C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="48305"/>
+      <property name="Polarity" value="Pin 1 = +; Pin 2 = -"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>130d1e31-d248-4518-8f2c-776bd58af4c6</tstamps>
+    </comp>
+    <comp ref="C3">
+      <value>22u</value>
+      <footprint>Capacitor_SMD:C_1206_3216Metric</footprint>
+      <datasheet>https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/1080/EMK316BB7226ML-T_SS.pdf</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">EMK316BB7226ML-T</field>
+        <field name="Manufacturer">Taiyo Yuden</field>
+        <field name="DigiKey">587-4319-1-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263</field>
+        <field name="Rating">22uF +/-20%; 16V; X7R MLCC; 3216 (1206); -55..125C; non-polarized</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">78721</field>
+        <field name="Footprint">Capacitor_SMD:C_1206_3216Metric</field>
+        <field name="Datasheet">https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/1080/EMK316BB7226ML-T_SS.pdf</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="EMK316BB7226ML-T"/>
+      <property name="Manufacturer" value="Taiyo Yuden"/>
+      <property name="DigiKey" value="587-4319-1-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263"/>
+      <property name="Rating" value="22uF +/-20%; 16V; X7R MLCC; 3216 (1206); -55..125C; non-polarized"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="78721"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>aa19b0ef-b2a2-4b06-b569-3dd6104aaae8</tstamps>
+    </comp>
+    <comp ref="C4">
+      <value>22u</value>
+      <footprint>Capacitor_SMD:C_1206_3216Metric</footprint>
+      <datasheet>https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/1080/EMK316BB7226ML-T_SS.pdf</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">EMK316BB7226ML-T</field>
+        <field name="Manufacturer">Taiyo Yuden</field>
+        <field name="DigiKey">587-4319-1-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263</field>
+        <field name="Rating">22uF +/-20%; 16V; X7R MLCC; 3216 (1206); -55..125C; non-polarized</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">78721</field>
+        <field name="Footprint">Capacitor_SMD:C_1206_3216Metric</field>
+        <field name="Datasheet">https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/1080/EMK316BB7226ML-T_SS.pdf</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="EMK316BB7226ML-T"/>
+      <property name="Manufacturer" value="Taiyo Yuden"/>
+      <property name="DigiKey" value="587-4319-1-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263"/>
+      <property name="Rating" value="22uF +/-20%; 16V; X7R MLCC; 3216 (1206); -55..125C; non-polarized"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="78721"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4d28a6f4-a333-4e8e-a683-1ea16c8ba039</tstamps>
+    </comp>
+    <comp ref="C5">
+      <value>1u</value>
+      <footprint>logger_v2_ups:C_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/C0805C105K5RACTU</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">C0805C105K5RACTU</field>
+        <field name="Manufacturer">KEMET</field>
+        <field name="DigiKey">399-C0805C105K5RACTUCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/kemet/C0805C105K5RACTU/3317443</field>
+        <field name="Rating">1uF 50V X7R +/-10% MLCC 0805</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">141160</field>
+        <field name="Footprint">logger_v2_ups:C_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/C0805C105K5RACTU</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="C0805C105K5RACTU"/>
+      <property name="Manufacturer" value="KEMET"/>
+      <property name="DigiKey" value="399-C0805C105K5RACTUCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/kemet/C0805C105K5RACTU/3317443"/>
+      <property name="Rating" value="1uF 50V X7R +/-10% MLCC 0805"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="141160"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a83a1a4b-d5ee-4b05-aae9-f3d44a0c7892</tstamps>
+    </comp>
+    <comp ref="C6">
+      <value>7F(2.7V)</value>
+      <footprint>logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</footprint>
+      <datasheet>https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</datasheet>
+      <description>Polarized electric double layer capacitor</description>
+      <fields>
+        <field name="MPN">HVH1020-2R7705-R</field>
+        <field name="Manufacturer">Eaton - Electronics Division</field>
+        <field name="Supplier">DigiKey</field>
+        <field name="Supplier_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Rating">7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm</field>
+        <field name="Polarity">Pin 1 = +; Pin 2 = -</field>
+        <field name="Assembly">90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum</field>
+        <field name="DigiKey">283-HVH1020-2R7705-R-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">4000</field>
+        <field name="Footprint">logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</field>
+        <field name="Datasheet">https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</field>
+        <field name="Description">Polarized electric double layer capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="MPN" value="HVH1020-2R7705-R"/>
+      <property name="Manufacturer" value="Eaton - Electronics Division"/>
+      <property name="Supplier" value="DigiKey"/>
+      <property name="Supplier_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Rating" value="7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm"/>
+      <property name="Polarity" value="Pin 1 = +; Pin 2 = -"/>
+      <property name="Assembly" value="90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum"/>
+      <property name="DigiKey" value="283-HVH1020-2R7705-R-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="4000"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>32943a9f-cae2-4dcd-a21e-75e536e91ac2</tstamps>
+    </comp>
+    <comp ref="C7">
+      <value>7F(2.7V)</value>
+      <footprint>logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</footprint>
+      <datasheet>https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</datasheet>
+      <description>Polarized electric double layer capacitor</description>
+      <fields>
+        <field name="MPN">HVH1020-2R7705-R</field>
+        <field name="Manufacturer">Eaton - Electronics Division</field>
+        <field name="Supplier">DigiKey</field>
+        <field name="Supplier_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Rating">7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm</field>
+        <field name="Polarity">Pin 1 = +; Pin 2 = -</field>
+        <field name="Assembly">90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum</field>
+        <field name="DigiKey">283-HVH1020-2R7705-R-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">4000</field>
+        <field name="Footprint">logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</field>
+        <field name="Datasheet">https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</field>
+        <field name="Description">Polarized electric double layer capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="MPN" value="HVH1020-2R7705-R"/>
+      <property name="Manufacturer" value="Eaton - Electronics Division"/>
+      <property name="Supplier" value="DigiKey"/>
+      <property name="Supplier_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Rating" value="7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm"/>
+      <property name="Polarity" value="Pin 1 = +; Pin 2 = -"/>
+      <property name="Assembly" value="90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum"/>
+      <property name="DigiKey" value="283-HVH1020-2R7705-R-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="4000"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b82a80ab-6fbb-4369-b5e3-50948c1e05b2</tstamps>
+    </comp>
+    <comp ref="C8">
+      <value>7F(2.7V)</value>
+      <footprint>logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</footprint>
+      <datasheet>https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</datasheet>
+      <description>Polarized electric double layer capacitor</description>
+      <fields>
+        <field name="MPN">HVH1020-2R7705-R</field>
+        <field name="Manufacturer">Eaton - Electronics Division</field>
+        <field name="Supplier">DigiKey</field>
+        <field name="Supplier_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Rating">7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm</field>
+        <field name="Polarity">Pin 1 = +; Pin 2 = -</field>
+        <field name="Assembly">90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum</field>
+        <field name="DigiKey">283-HVH1020-2R7705-R-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">4000</field>
+        <field name="Footprint">logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</field>
+        <field name="Datasheet">https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</field>
+        <field name="Description">Polarized electric double layer capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="MPN" value="HVH1020-2R7705-R"/>
+      <property name="Manufacturer" value="Eaton - Electronics Division"/>
+      <property name="Supplier" value="DigiKey"/>
+      <property name="Supplier_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Rating" value="7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm"/>
+      <property name="Polarity" value="Pin 1 = +; Pin 2 = -"/>
+      <property name="Assembly" value="90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum"/>
+      <property name="DigiKey" value="283-HVH1020-2R7705-R-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="4000"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>85ccf21b-840a-44cc-855a-e8305cf68f72</tstamps>
+    </comp>
+    <comp ref="C9">
+      <value>22u</value>
+      <footprint>Capacitor_SMD:C_1206_3216Metric</footprint>
+      <datasheet>https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/1080/EMK316BB7226ML-T_SS.pdf</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">EMK316BB7226ML-T</field>
+        <field name="Manufacturer">Taiyo Yuden</field>
+        <field name="DigiKey">587-4319-1-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263</field>
+        <field name="Rating">22uF +/-20%; 16V; X7R MLCC; 3216 (1206); -55..125C; non-polarized</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">78721</field>
+        <field name="Footprint">Capacitor_SMD:C_1206_3216Metric</field>
+        <field name="Datasheet">https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/1080/EMK316BB7226ML-T_SS.pdf</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="EMK316BB7226ML-T"/>
+      <property name="Manufacturer" value="Taiyo Yuden"/>
+      <property name="DigiKey" value="587-4319-1-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263"/>
+      <property name="Rating" value="22uF +/-20%; 16V; X7R MLCC; 3216 (1206); -55..125C; non-polarized"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="78721"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ce19cc23-f2bb-4445-a6fb-8a6026360f8f</tstamps>
+    </comp>
+    <comp ref="C10">
+      <value>2.2n</value>
+      <footprint>logger_v2_ups:C_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/C0805C222J5GACTU</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">C0805C222J5GACTU</field>
+        <field name="Manufacturer">KEMET</field>
+        <field name="DigiKey">399-C0805C222J5GACTUCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/kemet/C0805C222J5GACTU/2212256</field>
+        <field name="Rating">2.2nF 50V C0G +/-5% MLCC 0805</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">22273</field>
+        <field name="Footprint">logger_v2_ups:C_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/C0805C222J5GACTU</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="C0805C222J5GACTU"/>
+      <property name="Manufacturer" value="KEMET"/>
+      <property name="DigiKey" value="399-C0805C222J5GACTUCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/kemet/C0805C222J5GACTU/2212256"/>
+      <property name="Rating" value="2.2nF 50V C0G +/-5% MLCC 0805"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="22273"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ef25c933-9fca-4616-9585-658735918fd5</tstamps>
+    </comp>
+    <comp ref="C11">
+      <value>0.47u</value>
+      <footprint>logger_v2_ups:C_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/C0805C474K5RACTU</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">C0805C474K5RACTU</field>
+        <field name="Manufacturer">KEMET</field>
+        <field name="DigiKey">399-C0805C474K5RACTUCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/kemet/C0805C474K5RACTU/2212887</field>
+        <field name="Rating">0.47uF 50V X7R +/-10% MLCC 0805</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">115810</field>
+        <field name="Footprint">logger_v2_ups:C_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/C0805C474K5RACTU</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="C0805C474K5RACTU"/>
+      <property name="Manufacturer" value="KEMET"/>
+      <property name="DigiKey" value="399-C0805C474K5RACTUCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/kemet/C0805C474K5RACTU/2212887"/>
+      <property name="Rating" value="0.47uF 50V X7R +/-10% MLCC 0805"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="115810"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>542916a7-0326-4d59-8cdf-346b238596f4</tstamps>
+    </comp>
+    <comp ref="C12">
+      <value>7F(2.7V)</value>
+      <footprint>logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</footprint>
+      <datasheet>https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</datasheet>
+      <description>Polarized electric double layer capacitor</description>
+      <fields>
+        <field name="MPN">HVH1020-2R7705-R</field>
+        <field name="Manufacturer">Eaton - Electronics Division</field>
+        <field name="Supplier">DigiKey</field>
+        <field name="Supplier_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Rating">7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm</field>
+        <field name="Polarity">Pin 1 = +; Pin 2 = -</field>
+        <field name="Assembly">90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum</field>
+        <field name="DigiKey">283-HVH1020-2R7705-R-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">4000</field>
+        <field name="Footprint">logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</field>
+        <field name="Datasheet">https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</field>
+        <field name="Description">Polarized electric double layer capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="MPN" value="HVH1020-2R7705-R"/>
+      <property name="Manufacturer" value="Eaton - Electronics Division"/>
+      <property name="Supplier" value="DigiKey"/>
+      <property name="Supplier_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Rating" value="7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm"/>
+      <property name="Polarity" value="Pin 1 = +; Pin 2 = -"/>
+      <property name="Assembly" value="90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum"/>
+      <property name="DigiKey" value="283-HVH1020-2R7705-R-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="4000"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7a4cda14-178d-48d7-8e16-989d856544c0</tstamps>
+    </comp>
+    <comp ref="C13">
+      <value>7F(2.7V)</value>
+      <footprint>logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</footprint>
+      <datasheet>https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</datasheet>
+      <description>Polarized electric double layer capacitor</description>
+      <fields>
+        <field name="MPN">HVH1020-2R7705-R</field>
+        <field name="Manufacturer">Eaton - Electronics Division</field>
+        <field name="Supplier">DigiKey</field>
+        <field name="Supplier_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Rating">7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm</field>
+        <field name="Polarity">Pin 1 = +; Pin 2 = -</field>
+        <field name="Assembly">90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum</field>
+        <field name="DigiKey">283-HVH1020-2R7705-R-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">4000</field>
+        <field name="Footprint">logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</field>
+        <field name="Datasheet">https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</field>
+        <field name="Description">Polarized electric double layer capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="MPN" value="HVH1020-2R7705-R"/>
+      <property name="Manufacturer" value="Eaton - Electronics Division"/>
+      <property name="Supplier" value="DigiKey"/>
+      <property name="Supplier_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Rating" value="7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm"/>
+      <property name="Polarity" value="Pin 1 = +; Pin 2 = -"/>
+      <property name="Assembly" value="90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum"/>
+      <property name="DigiKey" value="283-HVH1020-2R7705-R-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="4000"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>141bada4-6a2b-43b6-a9aa-14411aa361ad</tstamps>
+    </comp>
+    <comp ref="C14">
+      <value>7F(2.7V)</value>
+      <footprint>logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</footprint>
+      <datasheet>https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</datasheet>
+      <description>Polarized electric double layer capacitor</description>
+      <fields>
+        <field name="MPN">HVH1020-2R7705-R</field>
+        <field name="Manufacturer">Eaton - Electronics Division</field>
+        <field name="Supplier">DigiKey</field>
+        <field name="Supplier_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Rating">7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm</field>
+        <field name="Polarity">Pin 1 = +; Pin 2 = -</field>
+        <field name="Assembly">90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum</field>
+        <field name="DigiKey">283-HVH1020-2R7705-R-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">4000</field>
+        <field name="Footprint">logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal</field>
+        <field name="Datasheet">https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf</field>
+        <field name="Description">Polarized electric double layer capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="MPN" value="HVH1020-2R7705-R"/>
+      <property name="Manufacturer" value="Eaton - Electronics Division"/>
+      <property name="Supplier" value="DigiKey"/>
+      <property name="Supplier_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Rating" value="7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm"/>
+      <property name="Polarity" value="Pin 1 = +; Pin 2 = -"/>
+      <property name="Assembly" value="90deg lead forming; body setback 3mm; pin1 positive; nominal model; allow D10.5 L22 maximum"/>
+      <property name="DigiKey" value="283-HVH1020-2R7705-R-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="4000"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c0e57d89-ba0a-4dc4-b21f-9ed7423c6529</tstamps>
+    </comp>
+    <comp ref="C15">
+      <value>0.1u</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/C0603C104K5RACTU</datasheet>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="MPN">C0603C104K5RACTU</field>
+        <field name="Manufacturer">KEMET</field>
+        <field name="DigiKey">399-C0603C104K5RACTUCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/kemet/C0603C104K5RACTU/1465623</field>
+        <field name="Rating">0.1uF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">4527702</field>
+        <field name="Footprint">Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/C0603C104K5RACTU</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="MPN" value="C0603C104K5RACTU"/>
+      <property name="Manufacturer" value="KEMET"/>
+      <property name="DigiKey" value="399-C0603C104K5RACTUCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/kemet/C0603C104K5RACTU/1465623"/>
+      <property name="Rating" value="0.1uF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="4527702"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>708dfd78-3576-4455-8f39-0a4116621957</tstamps>
+    </comp>
+    <comp ref="C16">
+      <value>10n</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/C0603C103K5RACTU</datasheet>
+      <description>Unpolarized capacitor</description>
+      <fields>
+        <field name="MPN">C0603C103K5RACTU</field>
+        <field name="Manufacturer">KEMET</field>
+        <field name="DigiKey">399-C0603C103K5RACTUCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/kemet/C0603C103K5RACTU/411090</field>
+        <field name="Rating">10nF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">6334222</field>
+        <field name="Footprint">Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/C0603C103K5RACTU</field>
+        <field name="Description">Unpolarized capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="MPN" value="C0603C103K5RACTU"/>
+      <property name="Manufacturer" value="KEMET"/>
+      <property name="DigiKey" value="399-C0603C103K5RACTUCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/kemet/C0603C103K5RACTU/411090"/>
+      <property name="Rating" value="10nF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="6334222"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1036d302-4f71-468a-9f17-90443d4a5645</tstamps>
+    </comp>
+    <comp ref="J1">
+      <value>Digital/PWM</value>
+      <footprint>logger_v2_ups:PinSocket_1x10_P2.54mm_Vertical</footprint>
+      <datasheet>https://www.samtec.com/products/ssw-110-01-t-s</datasheet>
+      <description>Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="MPN">SSW-110-01-T-S</field>
+        <field name="Manufacturer">Samtec</field>
+        <field name="DigiKey">612-SSW-110-01-T-S-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/samtec-inc/SSW-110-01-T-S/1112295</field>
+        <field name="Rating">2.54mm THT female socket; 4.7A per contact; -55..105C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">347</field>
+        <field name="Footprint">logger_v2_ups:PinSocket_1x10_P2.54mm_Vertical</field>
+        <field name="Datasheet">https://www.samtec.com/products/ssw-110-01-t-s</field>
+        <field name="Description">Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x10" description="Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="MPN" value="SSW-110-01-T-S"/>
+      <property name="Manufacturer" value="Samtec"/>
+      <property name="DigiKey" value="612-SSW-110-01-T-S-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/samtec-inc/SSW-110-01-T-S/1112295"/>
+      <property name="Rating" value="2.54mm THT female socket; 4.7A per contact; -55..105C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="347"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00000000-0000-0000-0000-000056d72368</tstamps>
+    </comp>
+    <comp ref="J2">
+      <value>Power</value>
+      <footprint>logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical</footprint>
+      <datasheet>https://www.samtec.com/products/ssw-108-01-t-s</datasheet>
+      <description>Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="MPN">SSW-108-01-T-S</field>
+        <field name="Manufacturer">Samtec</field>
+        <field name="DigiKey">612-SSW-108-01-T-S-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/samtec-inc/SSW-108-01-T-S/1112297</field>
+        <field name="Rating">2.54mm THT female socket; 4.7A per contact; -55..105C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">2406</field>
+        <field name="Footprint">logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical</field>
+        <field name="Datasheet">https://www.samtec.com/products/ssw-108-01-t-s</field>
+        <field name="Description">Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x08" description="Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="MPN" value="SSW-108-01-T-S"/>
+      <property name="Manufacturer" value="Samtec"/>
+      <property name="DigiKey" value="612-SSW-108-01-T-S-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/samtec-inc/SSW-108-01-T-S/1112297"/>
+      <property name="Rating" value="2.54mm THT female socket; 4.7A per contact; -55..105C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="2406"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00000000-0000-0000-0000-000056d71773</tstamps>
+    </comp>
+    <comp ref="J3">
+      <value>Analog</value>
+      <footprint>logger_v2_ups:PinSocket_1x06_P2.54mm_Vertical</footprint>
+      <datasheet>https://www.samtec.com/products/ssw-106-01-t-s</datasheet>
+      <description>Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="MPN">SSW-106-01-T-S</field>
+        <field name="Manufacturer">Samtec</field>
+        <field name="DigiKey">612-SSW-106-01-T-S-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/samtec-inc/SSW-106-01-T-S/1112299</field>
+        <field name="Rating">2.54mm THT female socket; 4.7A per contact; -55..105C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">1910</field>
+        <field name="Footprint">logger_v2_ups:PinSocket_1x06_P2.54mm_Vertical</field>
+        <field name="Datasheet">https://www.samtec.com/products/ssw-106-01-t-s</field>
+        <field name="Description">Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x06" description="Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="MPN" value="SSW-106-01-T-S"/>
+      <property name="Manufacturer" value="Samtec"/>
+      <property name="DigiKey" value="612-SSW-106-01-T-S-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/samtec-inc/SSW-106-01-T-S/1112299"/>
+      <property name="Rating" value="2.54mm THT female socket; 4.7A per contact; -55..105C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="1910"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00000000-0000-0000-0000-000056d72f1c</tstamps>
+    </comp>
+    <comp ref="J4">
+      <value>Digital/PWM</value>
+      <footprint>logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical</footprint>
+      <datasheet>https://www.samtec.com/products/ssw-108-01-t-s</datasheet>
+      <description>Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="MPN">SSW-108-01-T-S</field>
+        <field name="Manufacturer">Samtec</field>
+        <field name="DigiKey">612-SSW-108-01-T-S-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/samtec-inc/SSW-108-01-T-S/1112297</field>
+        <field name="Rating">2.54mm THT female socket; 4.7A per contact; -55..105C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">2406</field>
+        <field name="Footprint">logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical</field>
+        <field name="Datasheet">https://www.samtec.com/products/ssw-108-01-t-s</field>
+        <field name="Description">Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x08" description="Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="MPN" value="SSW-108-01-T-S"/>
+      <property name="Manufacturer" value="Samtec"/>
+      <property name="DigiKey" value="612-SSW-108-01-T-S-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/samtec-inc/SSW-108-01-T-S/1112297"/>
+      <property name="Rating" value="2.54mm THT female socket; 4.7A per contact; -55..105C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="2406"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00000000-0000-0000-0000-000056d734d0</tstamps>
+    </comp>
+    <comp ref="L1">
+      <value>0.47u</value>
+      <footprint>logger_v2_ups:L_Wuerth_HCI-1365</footprint>
+      <datasheet>https://www.we-online.com/components/products/datasheet/744355147.pdf</datasheet>
+      <description>Inductor</description>
+      <fields>
+        <field name="MPN">744355147</field>
+        <field name="Manufacturer">Wurth Elektronik</field>
+        <field name="DigiKey">732-744355147CT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/w%C3%BCrth-elektronik/744355147/1638527</field>
+        <field name="Rating">0.47uH +/-20%; Ir 30A; Isat10% 25A; Isat30% 50A; DCR 0.67mohm; 13x12.8x6.5mm</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">5892</field>
+        <field name="Footprint">logger_v2_ups:L_Wuerth_HCI-1365</field>
+        <field name="Datasheet">https://www.we-online.com/components/products/datasheet/744355147.pdf</field>
+        <field name="Description">Inductor</field>
+      </fields>
+      <libsource lib="Device" part="L" description="Inductor"/>
+      <property name="MPN" value="744355147"/>
+      <property name="Manufacturer" value="Wurth Elektronik"/>
+      <property name="DigiKey" value="732-744355147CT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/w%C3%BCrth-elektronik/744355147/1638527"/>
+      <property name="Rating" value="0.47uH +/-20%; Ir 30A; Isat10% 25A; Isat30% 50A; DCR 0.67mohm; 13x12.8x6.5mm"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="5892"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="inductor choke coil reactor magnetic"/>
+      <property name="ki_fp_filters" value="Choke_* *Coil* Inductor_* L_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7cf9e166-ee06-48c9-9b74-e0bdaccc2ef7</tstamps>
+    </comp>
+    <comp ref="Q1">
+      <value>2N7002K</value>
+      <footprint>Package_TO_SOT_SMD:SOT-23</footprint>
+      <datasheet>https://www.diodes.com/assets/Datasheets/ds30896.pdf</datasheet>
+      <description>0.38A Id, 60V Vds, N-Channel MOSFET, SOT-23</description>
+      <fields>
+        <field name="MPN">2N7002K-7-W</field>
+        <field name="Manufacturer">Diodes Incorporated</field>
+        <field name="DigiKey">31-2N7002K-7-WCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/diodes-incorporated/2N7002K-7-W/27803631</field>
+        <field name="Rating">N-channel MOSFET; 60V VDS; 380mA at VGS=10V; SOT-23</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">5766</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23</field>
+        <field name="Datasheet">https://www.diodes.com/assets/Datasheets/ds30896.pdf</field>
+        <field name="Description">0.38A Id, 60V Vds, N-Channel MOSFET, SOT-23</field>
+      </fields>
+      <libsource lib="Transistor_FET" part="2N7002K" description="0.38A Id, 60V Vds, N-Channel MOSFET, SOT-23"/>
+      <property name="MPN" value="2N7002K-7-W"/>
+      <property name="Manufacturer" value="Diodes Incorporated"/>
+      <property name="DigiKey" value="31-2N7002K-7-WCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/diodes-incorporated/2N7002K-7-W/27803631"/>
+      <property name="Rating" value="N-channel MOSFET; 60V VDS; 380mA at VGS=10V; SOT-23"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="5766"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="N-Channel MOSFET"/>
+      <property name="ki_fp_filters" value="SOT?23*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9c1b80e4-acc5-44bf-8feb-0273d66c7032</tstamps>
+    </comp>
+    <comp ref="Q2">
+      <value>2N7002K</value>
+      <footprint>Package_TO_SOT_SMD:SOT-23</footprint>
+      <datasheet>https://www.diodes.com/assets/Datasheets/ds30896.pdf</datasheet>
+      <description>0.38A Id, 60V Vds, N-Channel MOSFET, SOT-23</description>
+      <fields>
+        <field name="MPN">2N7002K-7-W</field>
+        <field name="Manufacturer">Diodes Incorporated</field>
+        <field name="DigiKey">31-2N7002K-7-WCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/diodes-incorporated/2N7002K-7-W/27803631</field>
+        <field name="Rating">N-channel MOSFET; 60V VDS; 380mA at VGS=10V; SOT-23</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">5766</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23</field>
+        <field name="Datasheet">https://www.diodes.com/assets/Datasheets/ds30896.pdf</field>
+        <field name="Description">0.38A Id, 60V Vds, N-Channel MOSFET, SOT-23</field>
+      </fields>
+      <libsource lib="Transistor_FET" part="2N7002K" description="0.38A Id, 60V Vds, N-Channel MOSFET, SOT-23"/>
+      <property name="MPN" value="2N7002K-7-W"/>
+      <property name="Manufacturer" value="Diodes Incorporated"/>
+      <property name="DigiKey" value="31-2N7002K-7-WCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/diodes-incorporated/2N7002K-7-W/27803631"/>
+      <property name="Rating" value="N-channel MOSFET; 60V VDS; 380mA at VGS=10V; SOT-23"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="5766"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="N-Channel MOSFET"/>
+      <property name="ki_fp_filters" value="SOT?23*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>3c3f92ce-1942-4351-b978-0c8b113f1576</tstamps>
+    </comp>
+    <comp ref="R1">
+      <value>30.1k</value>
+      <footprint>logger_v2_ups:R_0805_2012Metric</footprint>
+      <datasheet>https://industrial.panasonic.com/cdbs/www-data/pdf/RDA0000/AOA0000C304.pdf</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">ERJ-6ENF3012V</field>
+        <field name="Manufacturer">Panasonic Industry</field>
+        <field name="DigiKey">P30.1KCCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-6ENF3012V/111568</field>
+        <field name="Rating">0805; 30.1kOhm; +/-1%; 0.125W</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">93300</field>
+        <field name="Footprint">logger_v2_ups:R_0805_2012Metric</field>
+        <field name="Datasheet">https://industrial.panasonic.com/cdbs/www-data/pdf/RDA0000/AOA0000C304.pdf</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="ERJ-6ENF3012V"/>
+      <property name="Manufacturer" value="Panasonic Industry"/>
+      <property name="DigiKey" value="P30.1KCCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-6ENF3012V/111568"/>
+      <property name="Rating" value="0805; 30.1kOhm; +/-1%; 0.125W"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="93300"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9315fdb1-50ca-4b0f-bbfb-68fa0d6a9fe1</tstamps>
+    </comp>
+    <comp ref="R2">
+      <value>12.1k</value>
+      <footprint>logger_v2_ups:R_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K1L</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0805FR-0712K1L</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-12.1KCRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K1L/730517</field>
+        <field name="Rating">0805; 12.1kOhm; +/-1%; 0.125W</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">1138</field>
+        <field name="Footprint">logger_v2_ups:R_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K1L</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0805FR-0712K1L"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-12.1KCRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K1L/730517"/>
+      <property name="Rating" value="0805; 12.1kOhm; +/-1%; 0.125W"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="1138"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>bbfdbff4-dec0-4baf-8e4a-5c6e99b66032</tstamps>
+    </comp>
+    <comp ref="R3">
+      <value>332k</value>
+      <footprint>logger_v2_ups:R_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07332KL</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0805FR-07332KL</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-332KCRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07332KL/727869</field>
+        <field name="Rating">0805; 332kOhm; +/-1%; 0.125W</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">9171</field>
+        <field name="Footprint">logger_v2_ups:R_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07332KL</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0805FR-07332KL"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-332KCRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07332KL/727869"/>
+      <property name="Rating" value="0805; 332kOhm; +/-1%; 0.125W"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="9171"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>cdb32058-7d6b-4b28-bfa4-07e68b0e57c5</tstamps>
+    </comp>
+    <comp ref="R4">
+      <value>1k</value>
+      <footprint>logger_v2_ups:R_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-071KL</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0805FR-071KL</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-1.00KCRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071KL/727444</field>
+        <field name="Rating">0805 0.125W +/-1%; 150V working voltage; -55..155C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">871750</field>
+        <field name="Footprint">logger_v2_ups:R_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-071KL</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0805FR-071KL"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-1.00KCRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071KL/727444"/>
+      <property name="Rating" value="0805 0.125W +/-1%; 150V working voltage; -55..155C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="871750"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5dd8ab2f-8c5f-4519-9d4d-ca86055be74d</tstamps>
+    </comp>
+    <comp ref="R5">
+      <value>12.4k</value>
+      <footprint>logger_v2_ups:R_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K4L</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0805FR-0712K4L</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-12.4KCRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K4L/727572</field>
+        <field name="Rating">0805; 12.4kOhm; +/-1%; 0.125W</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">21359</field>
+        <field name="Footprint">logger_v2_ups:R_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K4L</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0805FR-0712K4L"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-12.4KCRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K4L/727572"/>
+      <property name="Rating" value="0805; 12.4kOhm; +/-1%; 0.125W"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="21359"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b3788c56-3597-4e21-8ea4-80b195ac529b</tstamps>
+    </comp>
+    <comp ref="R6">
+      <value>1k</value>
+      <footprint>logger_v2_ups:R_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-071KL</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0805FR-071KL</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-1.00KCRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071KL/727444</field>
+        <field name="Rating">0805 0.125W +/-1%; 150V working voltage; -55..155C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">871750</field>
+        <field name="Footprint">logger_v2_ups:R_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-071KL</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0805FR-071KL"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-1.00KCRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071KL/727444"/>
+      <property name="Rating" value="0805 0.125W +/-1%; 150V working voltage; -55..155C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="871750"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d2a94055-2e8d-416e-9825-d06a05489c2e</tstamps>
+    </comp>
+    <comp ref="R7">
+      <value>49.9k</value>
+      <footprint>logger_v2_ups:R_0805_2012Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0749K9L</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0805FR-0749K9L</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-49.9KCRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0749K9L/730932</field>
+        <field name="Rating">0805; 49.9kOhm; +/-1%; 0.125W</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">910370</field>
+        <field name="Footprint">logger_v2_ups:R_0805_2012Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0749K9L</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0805FR-0749K9L"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-49.9KCRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0749K9L/730932"/>
+      <property name="Rating" value="0805; 49.9kOhm; +/-1%; 0.125W"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="910370"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>40a761d3-c0ba-40d2-a338-2636be5a6ef8</tstamps>
+    </comp>
+    <comp ref="R8">
+      <value>25.5k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-0725K5L</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0603FR-0725K5L</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-25.5KHRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0725K5L/727088</field>
+        <field name="Rating">0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">31790</field>
+        <field name="Footprint">Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-0725K5L</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0603FR-0725K5L"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-25.5KHRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0725K5L/727088"/>
+      <property name="Rating" value="0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="31790"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a27b3441-2f6a-47fc-bf88-e03aca6e4097</tstamps>
+    </comp>
+    <comp ref="R9">
+      <value>2.74M</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M74L</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0603FR-072M74L</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">13-RC0603FR-072M74LCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M74L/12707882</field>
+        <field name="Rating">0603; 2.74MOhm; +/-1%; 0.1W</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">7807</field>
+        <field name="Footprint">Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M74L</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0603FR-072M74L"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="13-RC0603FR-072M74LCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M74L/12707882"/>
+      <property name="Rating" value="0603; 2.74MOhm; +/-1%; 0.1W"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="7807"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b5001b74-f477-4e11-8c1b-b6f6fa941433</tstamps>
+    </comp>
+    <comp ref="R10">
+      <value>100k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0603FR-07100KL</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-100KHRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889</field>
+        <field name="Rating">0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">184950</field>
+        <field name="Footprint">Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0603FR-07100KL"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-100KHRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889"/>
+      <property name="Rating" value="0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="184950"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6d7831dd-b6ae-4bdf-be95-6c1e8d8af05a</tstamps>
+    </comp>
+    <comp ref="R11">
+      <value>1M</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-071ML</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0603FR-071ML</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-1.00MHRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844</field>
+        <field name="Rating">0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">2123457</field>
+        <field name="Footprint">Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-071ML</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0603FR-071ML"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-1.00MHRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844"/>
+      <property name="Rating" value="0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="2123457"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d8dafca1-3199-4cc2-a1da-36c3217a593f</tstamps>
+    </comp>
+    <comp ref="R12">
+      <value>1.00M</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-071ML</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0603FR-071ML</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-1.00MHRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844</field>
+        <field name="Rating">0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">2123457</field>
+        <field name="Footprint">Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-071ML</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0603FR-071ML"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-1.00MHRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844"/>
+      <property name="Rating" value="0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="2123457"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0cd093b9-69e5-4f03-8660-6afbe42f5611</tstamps>
+    </comp>
+    <comp ref="R13">
+      <value>100k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0603FR-07100KL</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">311-100KHRCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889</field>
+        <field name="Rating">0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C</field>
+        <field name="Stock_checked">2026-10-09</field>
+        <field name="Stock_snapshot">184950</field>
+        <field name="Footprint">Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0603FR-07100KL"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="311-100KHRCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889"/>
+      <property name="Rating" value="0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C"/>
+      <property name="Stock_checked" value="2026-10-09"/>
+      <property name="Stock_snapshot" value="184950"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f0c6ecdc-780f-41bc-b634-845c70cd4448</tstamps>
+    </comp>
+    <comp ref="R14">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://industrial.panasonic.com/cdbs/www-data/pdf/RDA0000/AOA0000C304.pdf</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">ERJ-3EKF1002V</field>
+        <field name="Manufacturer">Panasonic Industry</field>
+        <field name="DigiKey">P10.0KHCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-3EKF1002V/198102</field>
+        <field name="Rating">0603; 10kOhm; +/-1%; 0.1W</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">2135987</field>
+        <field name="Footprint">Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://industrial.panasonic.com/cdbs/www-data/pdf/RDA0000/AOA0000C304.pdf</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="ERJ-3EKF1002V"/>
+      <property name="Manufacturer" value="Panasonic Industry"/>
+      <property name="DigiKey" value="P10.0KHCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-3EKF1002V/198102"/>
+      <property name="Rating" value="0603; 10kOhm; +/-1%; 0.1W"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="2135987"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a679be68-e511-420c-a90f-0e91b22fad6f</tstamps>
+    </comp>
+    <comp ref="R15">
+      <value>2.37M</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M37L</datasheet>
+      <description>Resistor, small US symbol</description>
+      <fields>
+        <field name="MPN">RC0603FR-072M37L</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="DigiKey">13-RC0603FR-072M37LCT-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M37L/5918308</field>
+        <field name="Rating">0603; 2.37MOhm; +/-1%; 0.1W</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">7582</field>
+        <field name="Footprint">Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M37L</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <libsource lib="Device" part="R_Small_US" description="Resistor, small US symbol"/>
+      <property name="MPN" value="RC0603FR-072M37L"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="DigiKey" value="13-RC0603FR-072M37LCT-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M37L/5918308"/>
+      <property name="Rating" value="0603; 2.37MOhm; +/-1%; 0.1W"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="7582"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="r resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>73a8a4cd-f771-440a-b1c6-6c05a9884b65</tstamps>
+    </comp>
+    <comp ref="U1">
+      <value>MAX38890AATE+</value>
+      <footprint>logger_v2_ups:TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm</footprint>
+      <datasheet>https://www.analog.com/media/en/technical-documentation/data-sheets/max38890.pdf</datasheet>
+      <description>5A reversible buck/boost supercapacitor backup regulator</description>
+      <fields>
+        <field name="Manufacturer">Analog Devices / Maxim Integrated</field>
+        <field name="MPN">MAX38890AATE+</field>
+        <field name="DigiKey">505-MAX38890AATE+-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/ja/products/detail/analog-devices-inc-maxim-integrated/MAX38890AATE/18693138</field>
+        <field name="Rating">VSYS 2.5..5.5V; peak inductor current 1..5A; -40..125C</field>
+        <field name="Stock_checked">2026-10-07</field>
+        <field name="Stock_snapshot">2405</field>
+        <field name="Footprint">logger_v2_ups:TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm</field>
+        <field name="Datasheet">https://www.analog.com/media/en/technical-documentation/data-sheets/max38890.pdf</field>
+        <field name="Description">5A reversible buck/boost supercapacitor backup regulator</field>
+      </fields>
+      <libsource lib="logger_v2_ups" part="MAX38890AATE+" description="2.5V to 5.5V, 5A reversible buck/boost supercapacitor backup regulator; T1633+5C"/>
+      <property name="Manufacturer" value="Analog Devices / Maxim Integrated"/>
+      <property name="MPN" value="MAX38890AATE+"/>
+      <property name="DigiKey" value="505-MAX38890AATE+-ND"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/ja/products/detail/analog-devices-inc-maxim-integrated/MAX38890AATE/18693138"/>
+      <property name="Rating" value="VSYS 2.5..5.5V; peak inductor current 1..5A; -40..125C"/>
+      <property name="Stock_checked" value="2026-10-07"/>
+      <property name="Stock_snapshot" value="2405"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="supercapacitor backup reversible buck boost UPS"/>
+      <property name="ki_fp_filters" value="TQFN*16*3x3mm*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>28c4ebc5-fa6f-433f-89be-c1215112d6af</tstamps>
+    </comp>
+    <comp ref="U2">
+      <value>LTC1440IMS8#TRPBF</value>
+      <footprint>Package_SO:MSOP-8_3x3mm_P0.65mm</footprint>
+      <datasheet>https://www.analog.com/media/en/technical-documentation/data-sheets/144012fd.pdf</datasheet>
+      <description>Ultralow power comparator with 1.182V reference and adjustable hysteresis; 8-pin MSOP, 2V to 11V supply</description>
+      <fields>
+        <field name="Manufacturer">Analog Devices</field>
+        <field name="MPN">LTC1440IMS8#TRPBF</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/analog-devices-inc/LTC1440IMS8-TRPBF/1621572</field>
+        <field name="DigiKey">LTC1440IMS8#TRPBFCT-ND</field>
+        <field name="Stock_checked">2026-10-16</field>
+        <field name="Stock_snapshot">348</field>
+        <field name="Rating">Comparator with 1.182V reference; MSOP-8 3x3mm P0.65mm; 2..11V supply</field>
+        <field name="Footprint">Package_SO:MSOP-8_3x3mm_P0.65mm</field>
+        <field name="Datasheet">https://www.analog.com/media/en/technical-documentation/data-sheets/144012fd.pdf</field>
+        <field name="Description">Ultralow power comparator with 1.182V reference and adjustable hysteresis; 8-pin MSOP, 2V to 11V supply</field>
+      </fields>
+      <libsource lib="logger_v2_ups" part="LTC1440IMS8#TRPBF" description="Ultralow power comparator with 1.182V reference and adjustable hysteresis; 8-pin MSOP, 2V to 11V supply"/>
+      <property name="Manufacturer" value="Analog Devices"/>
+      <property name="MPN" value="LTC1440IMS8#TRPBF"/>
+      <property name="DigiKey_URL" value="https://www.digikey.jp/en/products/detail/analog-devices-inc/LTC1440IMS8-TRPBF/1621572"/>
+      <property name="DigiKey" value="LTC1440IMS8#TRPBFCT-ND"/>
+      <property name="Stock_checked" value="2026-10-16"/>
+      <property name="Stock_snapshot" value="348"/>
+      <property name="Rating" value="Comparator with 1.182V reference; MSOP-8 3x3mm P0.65mm; 2..11V supply"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v2_ups.kicad_sch"/>
+      <property name="ki_keywords" value="comparator voltage reference hysteresis low power"/>
+      <property name="ki_fp_filters" value="MSOP*8*3x3mm*P0.65mm*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>705ddc73-8b22-4ec5-bc50-92118062f012</tstamps>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector_Generic" part="Conn_01x06">
+      <description>Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x06</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x08">
+      <description>Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x08</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x10">
+      <description>Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x10</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C">
+      <description>Unpolarized capacitor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Unpolarized capacitor</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C_Small">
+      <description>Unpolarized capacitor, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="L">
+      <description>Inductor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Choke_*</fp>
+        <fp>*Coil*</fp>
+        <fp>Inductor_*</fp>
+        <fp>L_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">L</field>
+        <field name="Value">L</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Inductor</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R_Small_US">
+      <description>Resistor, small US symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R_Small_US</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor, small US symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Transistor_FET" part="2N7002K">
+      <description>0.38A Id, 60V Vds, N-Channel MOSFET, SOT-23</description>
+      <docs>https://www.diodes.com/assets/Datasheets/ds30896.pdf</docs>
+      <footprints>
+        <fp>SOT?23*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">Q</field>
+        <field name="Value">2N7002K</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23</field>
+        <field name="Datasheet">https://www.diodes.com/assets/Datasheets/ds30896.pdf</field>
+        <field name="Description">0.38A Id, 60V Vds, N-Channel MOSFET, SOT-23</field>
+      </fields>
+      <pins>
+        <pin num="1" name="G" type="input"/>
+        <pin num="2" name="S" type="passive"/>
+        <pin num="3" name="D" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="logger_v2_ups" part="LTC1440IMS8#TRPBF">
+      <description>Ultralow power comparator with 1.182V reference and adjustable hysteresis; 8-pin MSOP, 2V to 11V supply</description>
+      <docs>https://www.analog.com/media/en/technical-documentation/data-sheets/144012fd.pdf</docs>
+      <footprints>
+        <fp>MSOP*8*3x3mm*P0.65mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">LTC1440IMS8#TRPBF</field>
+        <field name="Footprint">Package_SO:MSOP-8_3x3mm_P0.65mm</field>
+        <field name="Datasheet">https://www.analog.com/media/en/technical-documentation/data-sheets/144012fd.pdf</field>
+        <field name="Description">Ultralow power comparator with 1.182V reference and adjustable hysteresis; 8-pin MSOP, 2V to 11V supply</field>
+        <field name="Manufacturer">Analog Devices</field>
+        <field name="MPN">LTC1440IMS8#TRPBF</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/en/products/detail/analog-devices-inc/LTC1440IMS8-TRPBF/1621572</field>
+      </fields>
+      <pins>
+        <pin num="1" name="GND" type="power_in"/>
+        <pin num="2" name="V-" type="power_in"/>
+        <pin num="3" name="IN+" type="input"/>
+        <pin num="4" name="IN-" type="input"/>
+        <pin num="5" name="HYST" type="input"/>
+        <pin num="6" name="REF" type="output"/>
+        <pin num="7" name="V+" type="power_in"/>
+        <pin num="8" name="OUT" type="output"/>
+      </pins>
+    </libpart>
+    <libpart lib="logger_v2_ups" part="MAX38890AATE+">
+      <description>2.5V to 5.5V, 5A reversible buck/boost supercapacitor backup regulator; T1633+5C</description>
+      <docs>https://www.analog.com/media/en/technical-documentation/data-sheets/max38890.pdf</docs>
+      <footprints>
+        <fp>TQFN*16*3x3mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">MAX38890AATE+</field>
+        <field name="Footprint">logger_v2_ups:TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm</field>
+        <field name="Datasheet">https://www.analog.com/media/en/technical-documentation/data-sheets/max38890.pdf</field>
+        <field name="Description">2.5V to 5.5V, 5A reversible buck/boost supercapacitor backup regulator; T1633+5C</field>
+        <field name="Manufacturer">Analog Devices / Maxim Integrated</field>
+        <field name="MPN">MAX38890AATE+</field>
+        <field name="DigiKey">505-MAX38890AATE+-ND</field>
+        <field name="DigiKey_URL">https://www.digikey.jp/ja/products/detail/analog-devices-inc-maxim-integrated/MAX38890AATE/18693138</field>
+      </fields>
+      <pins>
+        <pin num="1" name="ENC" type="input"/>
+        <pin num="2" name="ENB" type="input"/>
+        <pin num="3" name="RDY" type="open_collector"/>
+        <pin num="4" name="BKB" type="open_collector"/>
+        <pin num="5" name="CAP" type="passive"/>
+        <pin num="6" name="LX" type="passive"/>
+        <pin num="7" name="LX" type="passive"/>
+        <pin num="8" name="LX" type="passive"/>
+        <pin num="9" name="FBCR" type="input"/>
+        <pin num="10" name="FBCH" type="input"/>
+        <pin num="11" name="FBS" type="input"/>
+        <pin num="12" name="ISET" type="passive"/>
+        <pin num="13" name="SYS" type="power_in"/>
+        <pin num="14" name="SYS" type="power_in"/>
+        <pin num="15" name="PGND" type="power_in"/>
+        <pin num="16" name="PGND" type="power_in"/>
+        <pin num="17" name="GND" type="power_in"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector_Generic">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Connector_Generic.kicad_sym</uri>
+    </library>
+    <library logical="Device">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Device.kicad_sym</uri>
+    </library>
+    <library logical="Transistor_FET">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Transistor_FET.kicad_sym</uri>
+    </library>
+    <library logical="logger_v2_ups">
+      <uri>C:\Users\lintaroh\Documents\RaceCapture\circuit\logger_v2_ups/logger_v2_ups.kicad_sym</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="+3V3" class="Default">
+      <node ref="J2" pin="4" pinfunction="Pin_4" pintype="passive"/>
+    </net>
+    <net code="2" name="+5V" class="Default">
+      <node ref="C1" pin="1" pintype="passive"/>
+      <node ref="C15" pin="1" pintype="passive"/>
+      <node ref="C2" pin="1" pintype="passive"/>
+      <node ref="C3" pin="1" pintype="passive"/>
+      <node ref="C4" pin="1" pintype="passive"/>
+      <node ref="C5" pin="1" pintype="passive"/>
+      <node ref="J2" pin="5" pinfunction="Pin_5" pintype="passive"/>
+      <node ref="R1" pin="1" pintype="passive"/>
+      <node ref="R13" pin="1" pintype="passive"/>
+      <node ref="R9" pin="1" pintype="passive"/>
+      <node ref="U1" pin="13" pinfunction="SYS" pintype="power_in"/>
+      <node ref="U1" pin="14" pinfunction="SYS" pintype="power_in"/>
+      <node ref="U1" pin="2" pinfunction="ENB" pintype="input"/>
+      <node ref="U2" pin="7" pinfunction="V+" pintype="power_in"/>
+    </net>
+    <net code="3" name="+CAP" class="Default">
+      <node ref="C6" pin="1" pintype="passive"/>
+      <node ref="C7" pin="1" pintype="passive"/>
+      <node ref="C8" pin="1" pintype="passive"/>
+      <node ref="C9" pin="1" pintype="passive"/>
+      <node ref="L1" pin="2" pinfunction="2" pintype="passive"/>
+      <node ref="R3" pin="1" pintype="passive"/>
+      <node ref="R4" pin="1" pintype="passive"/>
+      <node ref="U1" pin="5" pinfunction="CAP" pintype="passive"/>
+    </net>
+    <net code="4" name="/*3" class="Default">
+      <node ref="J4" pin="5" pinfunction="Pin_5" pintype="passive"/>
+    </net>
+    <net code="5" name="/*5" class="Default">
+      <node ref="J4" pin="3" pinfunction="Pin_3" pintype="passive"/>
+    </net>
+    <net code="6" name="/*6" class="Default">
+      <node ref="J4" pin="2" pinfunction="Pin_2" pintype="passive"/>
+    </net>
+    <net code="7" name="/*9" class="Default">
+      <node ref="J1" pin="9" pinfunction="Pin_9" pintype="passive"/>
+    </net>
+    <net code="8" name="/*10" class="Default">
+      <node ref="J1" pin="8" pinfunction="Pin_8" pintype="passive"/>
+    </net>
+    <net code="9" name="/*11" class="Default">
+      <node ref="J1" pin="7" pinfunction="Pin_7" pintype="passive"/>
+    </net>
+    <net code="10" name="/2" class="Default">
+      <node ref="J4" pin="6" pinfunction="Pin_6" pintype="passive"/>
+    </net>
+    <net code="11" name="/4" class="Default">
+      <node ref="J4" pin="4" pinfunction="Pin_4" pintype="passive"/>
+    </net>
+    <net code="12" name="/7" class="Default">
+      <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    </net>
+    <net code="13" name="/8" class="Default">
+      <node ref="J1" pin="10" pinfunction="Pin_10" pintype="passive"/>
+    </net>
+    <net code="14" name="/12" class="Default">
+      <node ref="J1" pin="6" pinfunction="Pin_6" pintype="passive"/>
+    </net>
+    <net code="15" name="/13" class="Default">
+      <node ref="J1" pin="5" pinfunction="Pin_5" pintype="passive"/>
+    </net>
+    <net code="16" name="/A0" class="Default">
+      <node ref="J3" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    </net>
+    <net code="17" name="/A1" class="Default">
+      <node ref="J3" pin="2" pinfunction="Pin_2" pintype="passive"/>
+    </net>
+    <net code="18" name="/A2" class="Default">
+      <node ref="J3" pin="3" pinfunction="Pin_3" pintype="passive"/>
+    </net>
+    <net code="19" name="/A3" class="Default">
+      <node ref="J3" pin="4" pinfunction="Pin_4" pintype="passive"/>
+    </net>
+    <net code="20" name="/AREF" class="Default">
+      <node ref="J1" pin="3" pinfunction="Pin_3" pintype="passive"/>
+    </net>
+    <net code="21" name="/IOREF" class="Default">
+      <node ref="J2" pin="2" pinfunction="Pin_2" pintype="passive"/>
+    </net>
+    <net code="22" name="/LX" class="Default">
+      <node ref="L1" pin="1" pinfunction="1" pintype="passive"/>
+      <node ref="U1" pin="6" pinfunction="LX" pintype="passive"/>
+      <node ref="U1" pin="7" pinfunction="LX" pintype="passive"/>
+      <node ref="U1" pin="8" pinfunction="LX" pintype="passive"/>
+    </net>
+    <net code="23" name="/RX/0" class="Default">
+      <node ref="J4" pin="8" pinfunction="Pin_8" pintype="passive"/>
+    </net>
+    <net code="24" name="/SCL/A5" class="Default">
+      <node ref="J3" pin="6" pinfunction="Pin_6" pintype="passive"/>
+    </net>
+    <net code="25" name="/SDA/A4" class="Default">
+      <node ref="J3" pin="5" pinfunction="Pin_5" pintype="passive"/>
+    </net>
+    <net code="26" name="/TX/1" class="Default">
+      <node ref="J4" pin="7" pinfunction="Pin_7" pintype="passive"/>
+    </net>
+    <net code="27" name="/~{RESET}" class="Default">
+      <node ref="J2" pin="3" pinfunction="Pin_3" pintype="passive"/>
+    </net>
+    <net code="28" name="CAP-MID" class="Default">
+      <node ref="C12" pin="1" pintype="passive"/>
+      <node ref="C13" pin="1" pintype="passive"/>
+      <node ref="C14" pin="1" pintype="passive"/>
+      <node ref="C6" pin="2" pintype="passive"/>
+      <node ref="C7" pin="2" pintype="passive"/>
+      <node ref="C8" pin="2" pintype="passive"/>
+      <node ref="R4" pin="2" pintype="passive"/>
+      <node ref="R6" pin="1" pintype="passive"/>
+    </net>
+    <net code="29" name="GND" class="Default">
+      <node ref="C1" pin="2" pintype="passive"/>
+      <node ref="C10" pin="2" pintype="passive"/>
+      <node ref="C11" pin="2" pintype="passive"/>
+      <node ref="C12" pin="2" pintype="passive"/>
+      <node ref="C13" pin="2" pintype="passive"/>
+      <node ref="C14" pin="2" pintype="passive"/>
+      <node ref="C15" pin="2" pintype="passive"/>
+      <node ref="C16" pin="2" pintype="passive"/>
+      <node ref="C2" pin="2" pintype="passive"/>
+      <node ref="C3" pin="2" pintype="passive"/>
+      <node ref="C4" pin="2" pintype="passive"/>
+      <node ref="C5" pin="2" pintype="passive"/>
+      <node ref="C9" pin="2" pintype="passive"/>
+      <node ref="J1" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="J2" pin="6" pinfunction="Pin_6" pintype="passive"/>
+      <node ref="J2" pin="7" pinfunction="Pin_7" pintype="passive"/>
+      <node ref="Q1" pin="2" pinfunction="S" pintype="passive"/>
+      <node ref="Q2" pin="2" pinfunction="S" pintype="passive"/>
+      <node ref="R10" pin="2" pintype="passive"/>
+      <node ref="R11" pin="2" pintype="passive"/>
+      <node ref="R12" pin="2" pintype="passive"/>
+      <node ref="R15" pin="2" pintype="passive"/>
+      <node ref="R2" pin="2" pintype="passive"/>
+      <node ref="R6" pin="2" pintype="passive"/>
+      <node ref="R7" pin="2" pintype="passive"/>
+      <node ref="U1" pin="15" pinfunction="PGND" pintype="power_in"/>
+      <node ref="U1" pin="16" pinfunction="PGND" pintype="power_in"/>
+      <node ref="U1" pin="17" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="1" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="2" pinfunction="V-" pintype="power_in"/>
+    </net>
+    <net code="30" name="Net-(Q1-D)" class="Default">
+      <node ref="Q1" pin="3" pinfunction="D" pintype="passive"/>
+      <node ref="R8" pin="2" pintype="passive"/>
+    </net>
+    <net code="31" name="Net-(Q1-G)" class="Default">
+      <node ref="Q1" pin="1" pinfunction="G" pintype="input"/>
+      <node ref="Q2" pin="1" pinfunction="G" pintype="input"/>
+      <node ref="R11" pin="1" pintype="passive"/>
+      <node ref="U2" pin="8" pinfunction="OUT" pintype="output"/>
+    </net>
+    <net code="32" name="Net-(Q2-D)" class="Default">
+      <node ref="Q2" pin="3" pinfunction="D" pintype="passive"/>
+      <node ref="R13" pin="2" pintype="passive"/>
+      <node ref="U1" pin="1" pinfunction="ENC" pintype="input"/>
+    </net>
+    <net code="33" name="Net-(U1-FBCH)" class="Default">
+      <node ref="C10" pin="1" pintype="passive"/>
+      <node ref="R5" pin="2" pintype="passive"/>
+      <node ref="R7" pin="1" pintype="passive"/>
+      <node ref="U1" pin="10" pinfunction="FBCH" pintype="input"/>
+    </net>
+    <net code="34" name="Net-(U1-FBCR)" class="Default">
+      <node ref="C11" pin="1" pintype="passive"/>
+      <node ref="R3" pin="2" pintype="passive"/>
+      <node ref="R5" pin="1" pintype="passive"/>
+      <node ref="U1" pin="9" pinfunction="FBCR" pintype="input"/>
+    </net>
+    <net code="35" name="Net-(U1-FBS)" class="Default">
+      <node ref="R1" pin="2" pintype="passive"/>
+      <node ref="R2" pin="1" pintype="passive"/>
+      <node ref="U1" pin="11" pinfunction="FBS" pintype="input"/>
+    </net>
+    <net code="36" name="Net-(U1-ISET)" class="Default">
+      <node ref="R10" pin="1" pintype="passive"/>
+      <node ref="R8" pin="1" pintype="passive"/>
+      <node ref="U1" pin="12" pinfunction="ISET" pintype="passive"/>
+    </net>
+    <net code="37" name="Net-(U2-HYST)" class="Default">
+      <node ref="R14" pin="2" pintype="passive"/>
+      <node ref="R15" pin="1" pintype="passive"/>
+      <node ref="U2" pin="5" pinfunction="HYST" pintype="input"/>
+    </net>
+    <net code="38" name="Net-(U2-IN+)" class="Default">
+      <node ref="C16" pin="1" pintype="passive"/>
+      <node ref="R14" pin="1" pintype="passive"/>
+      <node ref="U2" pin="3" pinfunction="IN+" pintype="input"/>
+      <node ref="U2" pin="6" pinfunction="REF" pintype="output"/>
+    </net>
+    <net code="39" name="Net-(U2-IN-)" class="Default">
+      <node ref="R12" pin="1" pintype="passive"/>
+      <node ref="R9" pin="2" pintype="passive"/>
+      <node ref="U2" pin="4" pinfunction="IN-" pintype="input"/>
+    </net>
+    <net code="40" name="VCC" class="Default">
+      <node ref="J2" pin="8" pinfunction="Pin_8" pintype="passive"/>
+    </net>
+    <net code="41" name="unconnected-(J1-Pin_1-Pad1)" class="Default">
+      <node ref="J1" pin="1" pinfunction="Pin_1" pintype="passive+no_connect"/>
+    </net>
+    <net code="42" name="unconnected-(J1-Pin_2-Pad2)" class="Default">
+      <node ref="J1" pin="2" pinfunction="Pin_2" pintype="passive+no_connect"/>
+    </net>
+    <net code="43" name="unconnected-(J2-Pin_1-Pad1)" class="Default">
+      <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive+no_connect"/>
+    </net>
+    <net code="44" name="unconnected-(U1-BKB-Pad4)" class="Default">
+      <node ref="U1" pin="4" pinfunction="BKB" pintype="open_collector+no_connect"/>
+    </net>
+    <net code="45" name="unconnected-(U1-RDY-Pad3)" class="Default">
+      <node ref="U1" pin="3" pinfunction="RDY" pintype="open_collector+no_connect"/>
+    </net>
+  </nets>
+</export>

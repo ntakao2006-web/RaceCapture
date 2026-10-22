@@ -12,6 +12,7 @@ if ($LASTEXITCODE -ne 0) { throw 'EcoCaptureへのUSB転送を開始できませ
 
 $base = 'http://127.0.0.1:8080'
 $status = Invoke-RestMethod "$base/api/status" -TimeoutSec 5
+$wasRecording = $status.logging.active
 if ($status.logging.active) {
     Invoke-RestMethod "$base/api/log/stop" -Method Post -TimeoutSec 10 | Out-Null
 }
@@ -30,6 +31,7 @@ $signals += [pscustomobject]@{
     scale = 0.01
     offset = 0.0
     bit_mask = $null
+    conversion = 'sensorhub_oiltemp'
 }
 $config.signals = $signals
 $body = $config | ConvertTo-Json -Depth 10
@@ -37,3 +39,7 @@ $result = Invoke-RestMethod "$base/api/config" -Method Post -ContentType 'applic
 
 Write-Host 'RaceCapture channel configured: OilTemp, CAN2, ID 0x600, int16 LE, 0.01 C/bit'
 $result | ConvertTo-Json -Depth 10
+if ($wasRecording) {
+    Invoke-RestMethod "$base/api/log/start" -Method Post -TimeoutSec 30 | Out-Null
+    Write-Host 'Recording resumed.'
+}

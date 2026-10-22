@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-19",
+  "firmware": "v7",
+  "can_tx_pin": "RB2 / pin23 (existing wire retained)",
+  "can_rx_pin": "RB3 / pin24",
+  "adc_pin": "RC3 / pin14 / Sense0",
+  "can_fifo_base": "0x2600",
+  "connected": true,
+  "can2_mode": 0,
+  "can2_rx": 953,
+  "can2_frames_in_5s": 49,
+  "can2_overflow": 0,
+  "bridge_error_increase": 0,
+  "drop_increase": 0,
+  "oiltemp": null,
+  "state": {
+    "code": 1,
+    "label": "オープン"
+  },
+  "open": 1,
+  "recording": true,
+  "sd_logging": 1
+}

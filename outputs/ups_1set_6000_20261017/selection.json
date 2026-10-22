@@ -1,0 +1,1125 @@
+{
+  "date": "2026-10-17",
+  "DigiKey": [
+    {
+      "References": "C1, C2",
+      "Quantity": 2,
+      "Value": "47u",
+      "Manufacturer": "Panasonic Industry",
+      "MPN": "25SVPF47M",
+      "Footprint": "logger_v2_ups:CP_Elec_6.3x5.9",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "P16513CT-ND",
+      "Rating": "47uF 25V aluminum solid polymer; ESR 30mohm; ripple 2.8A @100kHz 105C",
+      "Stock": 47706,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/panasonic-industry/25SVPF47M/4204320",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/panasonic-industry/25SVPF47M/4204320",
+      "Notes": "",
+      "Design_MPN": "25SVPF47M",
+      "Required": 2,
+      "Order_Quantity": 2,
+      "Unit_Price": 280,
+      "Price_Tiers": [
+        [
+          1,
+          280
+        ],
+        [
+          10,
+          181.3
+        ],
+        [
+          50,
+          139.94
+        ],
+        [
+          100,
+          126.86
+        ],
+        [
+          500,
+          104.33
+        ],
+        [
+          1000,
+          92.894
+        ]
+      ],
+      "Spare": 0,
+      "Line_Total": 560
+    },
+    {
+      "References": "C3, C4, C9",
+      "Quantity": 3,
+      "Value": "22u",
+      "Manufacturer": "Taiyo Yuden",
+      "MPN": "EMK316BB7226ML-T",
+      "Footprint": "Capacitor_SMD:C_1206_3216Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "587-4319-1-ND",
+      "Rating": "22uF +/-20%; 16V; X7R MLCC; 3216 (1206); -55..125C; non-polarized",
+      "Stock": 71149,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263",
+      "Notes": "",
+      "Design_MPN": "EMK316BB7226ML-T",
+      "Required": 3,
+      "Order_Quantity": 3,
+      "Unit_Price": 111,
+      "Price_Tiers": [
+        [
+          1,
+          111
+        ],
+        [
+          10,
+          68.9
+        ],
+        [
+          50,
+          52.18
+        ],
+        [
+          100,
+          47.06
+        ],
+        [
+          500,
+          38.414
+        ]
+      ],
+      "Spare": 0,
+      "Line_Total": 333
+    },
+    {
+      "References": "C5",
+      "Quantity": 1,
+      "Value": "1u",
+      "Manufacturer": "Murata Electronics",
+      "MPN": "GCM21BR71H105KA03L",
+      "Footprint": "logger_v2_ups:C_0805_2012Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "490-10675-1-ND",
+      "Rating": "1uF 50V X7R +/-10% MLCC 0805",
+      "Stock": 58620,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/murata-electronics/GCM21BR71H105KA03L/4903984",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/murata-electronics/GCM21BR71H105KA03L/4903984",
+      "Notes": "秋月115331は秋葉原店頭在庫0のためDigiKeyへ。同じ1µF・50V・X7R・±10%・0805。カットテープ価格41円。",
+      "Order_Quantity": 2,
+      "Design_MPN": "C0805C105K5RACTU",
+      "Required": 1,
+      "Unit_Price": 41,
+      "Price_Tiers": [
+        [
+          1,
+          41
+        ],
+        [
+          10,
+          23.7
+        ],
+        [
+          50,
+          17.02
+        ]
+      ],
+      "Spare": 1,
+      "Line_Total": 82
+    },
+    {
+      "References": "C6, C7, C8, C12, C13, C14",
+      "Quantity": 6,
+      "Value": "7F(2.7V)",
+      "Manufacturer": "Eaton - Electronics Division",
+      "MPN": "HVH1020-2R7705-R",
+      "Footprint": "logger_v2_ups:Eaton_HVH1020-2R7705-R_D10_L20_P5_Horizontal",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "283-HVH1020-2R7705-R-ND",
+      "Rating": "7F +/-20%; 2.7V; ESR DC max113mohm / 1kHz max75mohm; -40..70C; D10(+0.5) L20(+/-2) P5(+/-0.5)mm",
+      "Stock": 4000,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394",
+      "Stock_Source": "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394",
+      "Notes": "価格優先で7F採用。旧10F比で公称エネルギー70%。横置き・90度リード曲げ、実機保持時間未検証。",
+      "Design_MPN": "HVH1020-2R7705-R",
+      "Required": 6,
+      "Order_Quantity": 6,
+      "Unit_Price": 211,
+      "Price_Tiers": [
+        [
+          1,
+          211
+        ],
+        [
+          10,
+          137.8
+        ],
+        [
+          50,
+          108.64
+        ],
+        [
+          250,
+          90.112
+        ],
+        [
+          500,
+          84.384
+        ],
+        [
+          1000,
+          79.673
+        ]
+      ],
+      "Spare": 0,
+      "Line_Total": 1266
+    },
+    {
+      "References": "C10",
+      "Quantity": 1,
+      "Value": "2.2n",
+      "Manufacturer": "TDK",
+      "MPN": "C2012C0G1H222J085AA",
+      "Footprint": "logger_v2_ups:C_0805_2012Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "445-1332-1-ND",
+      "Rating": "2.2nF 50V C0G +/-5% MLCC 0805",
+      "Stock": 142798,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/ja/products/detail/tdk-corporation/C2012C0G1H222J085AA/513859",
+      "Stock_Source": "https://www.digikey.jp/ja/products/detail/tdk-corporation/C2012C0G1H222J085AA/513859",
+      "Notes": "同じ2.2nF・50V・C0G・±5%・0805の購入代替。NRND（新規設計非推奨）だが在庫あり。",
+      "Design_MPN": "C0805C222J5GACTU",
+      "Required": 1,
+      "Order_Quantity": 2,
+      "Unit_Price": 28,
+      "Price_Tiers": [
+        [
+          1,
+          28
+        ],
+        [
+          10,
+          16
+        ]
+      ],
+      "Spare": 1,
+      "Line_Total": 56
+    },
+    {
+      "References": "C16",
+      "Quantity": 1,
+      "Value": "10n",
+      "Manufacturer": "KEMET",
+      "MPN": "C0603C103K5RACTU",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "399-C0603C103K5RACTUCT-ND",
+      "Rating": "10nF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)",
+      "Stock": 6159561,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/kemet/C0603C103K5RACTU/411090",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/kemet/C0603C103K5RACTU/411090",
+      "Notes": "",
+      "Design_MPN": "C0603C103K5RACTU",
+      "Required": 1,
+      "Order_Quantity": 2,
+      "Unit_Price": 20,
+      "Price_Tiers": [
+        [
+          1,
+          20
+        ],
+        [
+          10,
+          11.1
+        ],
+        [
+          50,
+          7.6
+        ],
+        [
+          100,
+          6.55
+        ],
+        [
+          500,
+          4.776
+        ]
+      ],
+      "Spare": 1,
+      "Line_Total": 40
+    },
+    {
+      "References": "L1",
+      "Quantity": 1,
+      "Value": "0.47u",
+      "Manufacturer": "Wurth Elektronik",
+      "MPN": "744355147",
+      "Footprint": "logger_v2_ups:L_Wuerth_HCI-1365",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "732-744355147CT-ND",
+      "Rating": "0.47uH +/-20%; Ir 30A; Isat10% 25A; Isat30% 50A; DCR 0.67mohm; 13x12.8x6.5mm",
+      "Stock": 5837,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/w%C3%BCrth-elektronik/744355147/1638527",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/w%C3%BCrth-elektronik/744355147/1638527",
+      "Notes": "",
+      "Design_MPN": "744355147",
+      "Required": 1,
+      "Order_Quantity": 1,
+      "Unit_Price": 570,
+      "Price_Tiers": [
+        [
+          1,
+          570
+        ],
+        [
+          10,
+          558.1
+        ]
+      ],
+      "Spare": 0,
+      "Line_Total": 570
+    },
+    {
+      "References": "R1",
+      "Quantity": 1,
+      "Value": "30.1k",
+      "Manufacturer": "Panasonic Industry",
+      "MPN": "ERJ-6ENF3012V",
+      "Footprint": "logger_v2_ups:R_0805_2012Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "P30.1KCCT-ND",
+      "Rating": "0805; 30.1kOhm; +/-1%; 0.125W",
+      "Stock": 92300,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-6ENF3012V/111568",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-6ENF3012V/111568",
+      "Notes": "抵抗値変更",
+      "Design_MPN": "ERJ-6ENF3012V",
+      "Required": 1,
+      "Order_Quantity": 2,
+      "Unit_Price": 20,
+      "Price_Tiers": [
+        [
+          1,
+          20
+        ],
+        [
+          10,
+          9.5
+        ],
+        [
+          25,
+          7.32
+        ],
+        [
+          50,
+          6.08
+        ],
+        [
+          100,
+          5.12
+        ]
+      ],
+      "Spare": 1,
+      "Line_Total": 40
+    },
+    {
+      "References": "R2",
+      "Quantity": 1,
+      "Value": "12.1k",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0805FR-0712K1L",
+      "Footprint": "logger_v2_ups:R_0805_2012Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "311-12.1KCRCT-ND",
+      "Rating": "0805; 12.1kOhm; +/-1%; 0.125W",
+      "Stock": 1138,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K1L/730517",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K1L/730517",
+      "Notes": "抵抗値変更",
+      "Design_MPN": "RC0805FR-0712K1L",
+      "Required": 1,
+      "Order_Quantity": 10,
+      "Unit_Price": 5.6,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          5.6
+        ],
+        [
+          25,
+          4.2
+        ],
+        [
+          50,
+          3.4
+        ],
+        [
+          100,
+          2.8
+        ],
+        [
+          250,
+          2.2
+        ],
+        [
+          500,
+          1.86
+        ],
+        [
+          1000,
+          1.593
+        ]
+      ],
+      "Spare": 9,
+      "Line_Total": 56
+    },
+    {
+      "References": "R3",
+      "Quantity": 1,
+      "Value": "332k",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0805FR-07332KL",
+      "Footprint": "logger_v2_ups:R_0805_2012Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "311-332KCRCT-ND",
+      "Rating": "0805; 332kOhm; +/-1%; 0.125W",
+      "Stock": 9171,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07332KL/727869",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07332KL/727869",
+      "Notes": "抵抗値変更",
+      "Design_MPN": "RC0805FR-07332KL",
+      "Required": 1,
+      "Order_Quantity": 10,
+      "Unit_Price": 5.6,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          5.6
+        ],
+        [
+          25,
+          4.2
+        ],
+        [
+          50,
+          3.4
+        ],
+        [
+          100,
+          2.8
+        ],
+        [
+          250,
+          2.2
+        ],
+        [
+          500,
+          1.86
+        ],
+        [
+          1000,
+          1.593
+        ]
+      ],
+      "Spare": 9,
+      "Line_Total": 56
+    },
+    {
+      "References": "R5",
+      "Quantity": 1,
+      "Value": "12.4k",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0805FR-0712K4L",
+      "Footprint": "logger_v2_ups:R_0805_2012Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "311-12.4KCRCT-ND",
+      "Rating": "0805; 12.4kOhm; +/-1%; 0.125W",
+      "Stock": 16359,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K4L/727572",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K4L/727572",
+      "Notes": "抵抗値変更",
+      "Design_MPN": "RC0805FR-0712K4L",
+      "Required": 1,
+      "Order_Quantity": 10,
+      "Unit_Price": 5.6,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          5.6
+        ],
+        [
+          25,
+          4.2
+        ],
+        [
+          50,
+          3.4
+        ],
+        [
+          100,
+          2.8
+        ]
+      ],
+      "Spare": 9,
+      "Line_Total": 56
+    },
+    {
+      "References": "R7",
+      "Quantity": 1,
+      "Value": "49.9k",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0805FR-0749K9L",
+      "Footprint": "logger_v2_ups:R_0805_2012Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "311-49.9KCRCT-ND",
+      "Rating": "0805; 49.9kOhm; +/-1%; 0.125W",
+      "Stock": 898110,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0749K9L/730932",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0749K9L/730932",
+      "Notes": "抵抗値変更",
+      "Design_MPN": "RC0805FR-0749K9L",
+      "Required": 1,
+      "Order_Quantity": 10,
+      "Unit_Price": 5.6,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          5.6
+        ],
+        [
+          25,
+          4.2
+        ],
+        [
+          50,
+          3.4
+        ],
+        [
+          100,
+          2.8
+        ],
+        [
+          250,
+          2.2
+        ],
+        [
+          500,
+          1.86
+        ],
+        [
+          1000,
+          1.593
+        ]
+      ],
+      "Spare": 9,
+      "Line_Total": 56
+    },
+    {
+      "References": "R8",
+      "Quantity": 1,
+      "Value": "25.5k",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0603FR-0725K5L",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "311-25.5KHRCT-ND",
+      "Rating": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+      "Stock": 110999,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0725K5L/727088",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0725K5L/727088",
+      "Notes": "",
+      "Design_MPN": "RC0603FR-0725K5L",
+      "Required": 1,
+      "Order_Quantity": 10,
+      "Unit_Price": 4.1,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          4.1
+        ],
+        [
+          25,
+          3.08
+        ],
+        [
+          50,
+          2.46
+        ],
+        [
+          100,
+          2
+        ],
+        [
+          250,
+          1.54
+        ],
+        [
+          500,
+          1.28
+        ],
+        [
+          1000,
+          1.082
+        ]
+      ],
+      "Spare": 9,
+      "Line_Total": 41
+    },
+    {
+      "References": "R9",
+      "Quantity": 1,
+      "Value": "2.74M",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0603FR-072M74L",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "13-RC0603FR-072M74LCT-ND",
+      "Rating": "0603; 2.74MOhm; +/-1%; 0.1W",
+      "Stock": 7807,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M74L/12707882",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M74L/12707882",
+      "Notes": "抵抗値変更",
+      "Design_MPN": "RC0603FR-072M74L",
+      "Required": 1,
+      "Order_Quantity": 10,
+      "Unit_Price": 4.1,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          4.1
+        ],
+        [
+          25,
+          3.08
+        ],
+        [
+          50,
+          2.46
+        ],
+        [
+          100,
+          2
+        ]
+      ],
+      "Spare": 9,
+      "Line_Total": 41
+    },
+    {
+      "References": "R10, R13",
+      "Quantity": 2,
+      "Value": "100k",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0603FR-10100KL",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "13-RC0603FR-10100KLCT-ND",
+      "Rating": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+      "Stock": 133013,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-10100KL/13694231",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-10100KL/13694231",
+      "Notes": "元の-07包装は欠品。同じ100kΩ・1%・0603・0.1Wの-10包装をカットテープ購入。",
+      "Design_MPN": "RC0603FR-07100KL",
+      "Required": 2,
+      "Order_Quantity": 10,
+      "Unit_Price": 4.1,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          4.1
+        ],
+        [
+          25,
+          3.08
+        ],
+        [
+          50,
+          2.46
+        ],
+        [
+          100,
+          2
+        ]
+      ],
+      "Spare": 8,
+      "Line_Total": 41
+    },
+    {
+      "References": "R11, R12",
+      "Quantity": 2,
+      "Value": "1M",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0603FR-071ML",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "311-1.00MHRCT-ND",
+      "Rating": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+      "Stock": 2031100,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844",
+      "Notes": "",
+      "Design_MPN": "RC0603FR-071ML",
+      "Required": 2,
+      "Order_Quantity": 10,
+      "Unit_Price": 4.1,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          4.1
+        ],
+        [
+          25,
+          3.08
+        ],
+        [
+          50,
+          2.46
+        ],
+        [
+          100,
+          2
+        ],
+        [
+          250,
+          1.54
+        ],
+        [
+          500,
+          1.28
+        ],
+        [
+          1000,
+          1.082
+        ]
+      ],
+      "Spare": 8,
+      "Line_Total": 41
+    },
+    {
+      "References": "R14",
+      "Quantity": 1,
+      "Value": "10k",
+      "Manufacturer": "Panasonic Industry",
+      "MPN": "ERJ-3EKF1002V",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "P10.0KHCT-ND",
+      "Rating": "0603; 10kOhm; +/-1%; 0.1W",
+      "Stock": 2135987,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-3EKF1002V/198102",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-3EKF1002V/198102",
+      "Notes": "誤登録の100kΩ品を修正",
+      "Design_MPN": "ERJ-3EKF1002V",
+      "Required": 1,
+      "Order_Quantity": 3,
+      "Unit_Price": 16,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          6.4
+        ],
+        [
+          25,
+          4.72
+        ],
+        [
+          50,
+          3.86
+        ],
+        [
+          100,
+          3.19
+        ],
+        [
+          250,
+          2.528
+        ],
+        [
+          500,
+          2.15
+        ],
+        [
+          1000,
+          1.851
+        ]
+      ],
+      "Spare": 2,
+      "Line_Total": 48
+    },
+    {
+      "References": "R15",
+      "Quantity": 1,
+      "Value": "2.37M",
+      "Manufacturer": "YAGEO",
+      "MPN": "RC0603FR-072M37L",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "13-RC0603FR-072M37LCT-ND",
+      "Rating": "0603; 2.37MOhm; +/-1%; 0.1W",
+      "Stock": 7582,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M37L/5918308",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M37L/5918308",
+      "Notes": "誤登録の100kΩ品を修正",
+      "Design_MPN": "RC0603FR-072M37L",
+      "Required": 1,
+      "Order_Quantity": 10,
+      "Unit_Price": 4.1,
+      "Price_Tiers": [
+        [
+          1,
+          16
+        ],
+        [
+          10,
+          4.1
+        ],
+        [
+          25,
+          3.08
+        ],
+        [
+          50,
+          2.46
+        ],
+        [
+          100,
+          2
+        ]
+      ],
+      "Spare": 9,
+      "Line_Total": 41
+    },
+    {
+      "References": "U1",
+      "Quantity": 1,
+      "Value": "MAX38890AATE+",
+      "Manufacturer": "Analog Devices / Maxim Integrated",
+      "MPN": "MAX38890AATE+",
+      "Footprint": "logger_v2_ups:TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "505-MAX38890AATE+-ND",
+      "Rating": "VSYS 2.5..5.5V; peak inductor current 1..5A; -40..125C",
+      "Stock": 2405,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/ja/products/detail/analog-devices-inc-maxim-integrated/MAX38890AATE/18693138",
+      "Stock_Source": "https://www.digikey.jp/ja/products/detail/analog-devices-inc-maxim-integrated/MAX38890AATE/18693138",
+      "Notes": "",
+      "Design_MPN": "MAX38890AATE+",
+      "Required": 1,
+      "Order_Quantity": 1,
+      "Unit_Price": 1412,
+      "Price_Tiers": [
+        [
+          1,
+          1412
+        ],
+        [
+          10,
+          1095.9
+        ],
+        [
+          25,
+          1016.64
+        ],
+        [
+          100,
+          929.51
+        ],
+        [
+          250,
+          887.98
+        ],
+        [
+          624,
+          855.90865
+        ]
+      ],
+      "Spare": 0,
+      "Line_Total": 1412
+    },
+    {
+      "References": "U2",
+      "Quantity": 1,
+      "Value": "LTC1440IMS8#TRPBF",
+      "Manufacturer": "Analog Devices",
+      "MPN": "LTC1440IMS8#TRPBF",
+      "Footprint": "Package_SO:MSOP-8_3x3mm_P0.65mm",
+      "Supplier": "DigiKey",
+      "Supplier_Part_Number": "LTC1440IMS8#TRPBFCT-ND",
+      "Rating": "Comparator with 1.182V reference; MSOP-8 3x3mm P0.65mm; 2..11V supply",
+      "Stock": 348,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://www.digikey.jp/en/products/detail/analog-devices-inc/LTC1440IMS8-TRPBF/1621572",
+      "Stock_Source": "https://www.digikey.jp/en/products/detail/analog-devices-inc/LTC1440IMS8-TRPBF/1621572",
+      "Notes": "DigiKey注文番号を補完",
+      "Design_MPN": "LTC1440IMS8#TRPBF",
+      "Required": 1,
+      "Order_Quantity": 1,
+      "Unit_Price": 1178,
+      "Price_Tiers": [
+        [
+          1,
+          1178
+        ],
+        [
+          10,
+          908.5
+        ]
+      ],
+      "Spare": 0,
+      "Line_Total": 1178
+    }
+  ],
+  "Akizuki": [
+    {
+      "References": "J1",
+      "Quantity": 1,
+      "Value": "Digital/PWM",
+      "Manufacturer": "Chang Enn",
+      "MPN": "FH-1x10SG/RH",
+      "Footprint": "logger_v2_ups:PinSocket_1x10_P2.54mm_Vertical",
+      "Supplier": "秋月店頭",
+      "Supplier_Part_Number": "103786",
+      "Rating": "2.54mm・高さ8.5mm・接点3A。旧Samtecは4.7A。",
+      "Stock": 85,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://akizukidenshi.com/catalog/g/g103786/",
+      "Stock_Source": "https://akizukidenshi.com/catalog/g/g103786/",
+      "Notes": "2.54mm・高さ8.5mm・接点3A。旧Samtecは4.7A。",
+      "Spare": 0,
+      "Order_Quantity": 1,
+      "Design_MPN": "SSW-110-01-T-S",
+      "Label": "10P メスピンソケット",
+      "Required": 1,
+      "Pack_Size": 1,
+      "Order_Units": 1,
+      "Unit_Price": 40,
+      "Line_Total": 40,
+      "Stock_Unit": "個",
+      "Shelf": "1F 13番 下段引出"
+    },
+    {
+      "References": "J2, J4",
+      "Quantity": 2,
+      "Value": "Power / Digital/PWM",
+      "Manufacturer": "Chang Enn",
+      "MPN": "FH-1x8SG/RH",
+      "Footprint": "logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical",
+      "Supplier": "秋月店頭",
+      "Supplier_Part_Number": "103785",
+      "Rating": "2.54mm・高さ8.5mm・接点3A。旧Samtecは4.7A。",
+      "Stock": 35,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://akizukidenshi.com/catalog/g/g103785/",
+      "Stock_Source": "https://akizukidenshi.com/catalog/g/g103785/",
+      "Notes": "2.54mm・高さ8.5mm・接点3A。旧Samtecは4.7A。",
+      "Spare": 0,
+      "Order_Quantity": 2,
+      "Design_MPN": "SSW-108-01-T-S",
+      "Label": "8P メスピンソケット",
+      "Required": 2,
+      "Pack_Size": 1,
+      "Order_Units": 2,
+      "Unit_Price": 30,
+      "Line_Total": 60,
+      "Stock_Unit": "個",
+      "Shelf": "1F 13番 下段引出"
+    },
+    {
+      "References": "J3",
+      "Quantity": 1,
+      "Value": "Analog",
+      "Manufacturer": "Chang Enn",
+      "MPN": "FH-1x6SG/RH",
+      "Footprint": "logger_v2_ups:PinSocket_1x06_P2.54mm_Vertical",
+      "Supplier": "秋月店頭",
+      "Supplier_Part_Number": "103784",
+      "Rating": "2.54mm・高さ8.5mm・接点3A。旧Samtecは4.7A。",
+      "Stock": 53,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://akizukidenshi.com/catalog/g/g103784/",
+      "Stock_Source": "https://akizukidenshi.com/catalog/g/g103784/",
+      "Notes": "2.54mm・高さ8.5mm・接点3A。旧Samtecは4.7A。",
+      "Spare": 0,
+      "Order_Quantity": 1,
+      "Design_MPN": "SSW-106-01-T-S",
+      "Label": "6P メスピンソケット",
+      "Required": 1,
+      "Pack_Size": 1,
+      "Order_Units": 1,
+      "Unit_Price": 25,
+      "Line_Total": 25,
+      "Stock_Unit": "個",
+      "Shelf": "1F 13番 下段引出"
+    },
+    {
+      "References": "Q1, Q2",
+      "Quantity": 2,
+      "Value": "2N7002K",
+      "Manufacturer": "PANJIT",
+      "MPN": "2N7002K",
+      "Footprint": "Package_TO_SOT_SMD:SOT-23",
+      "Supplier": "秋月店頭",
+      "Supplier_Part_Number": "104256",
+      "Rating": "PANJIT製、60V/300mA、SOT-23、1=G/2=S/3=D。制御用の代替。",
+      "Stock": 3,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://akizukidenshi.com/catalog/g/g104256/",
+      "Stock_Source": "https://akizukidenshi.com/catalog/g/g104256/",
+      "Notes": "PANJIT製、60V/300mA、SOT-23、1=G/2=S/3=D。制御用の代替。",
+      "Spare": 38,
+      "Order_Quantity": 40,
+      "Design_MPN": "2N7002K-7-W",
+      "Label": "Nch MOSFET",
+      "Required": 2,
+      "Pack_Size": 40,
+      "Order_Units": 1,
+      "Unit_Price": 200,
+      "Line_Total": 200,
+      "Stock_Unit": "袋",
+      "Shelf": "1F 36番 2段目"
+    },
+    {
+      "References": "C11",
+      "Quantity": 1,
+      "Value": "0.47u",
+      "Manufacturer": "Murata Electronics",
+      "MPN": "GRM21BR71H474KA88L",
+      "Footprint": "logger_v2_ups:C_0805_2012Metric",
+      "Supplier": "秋月店頭",
+      "Supplier_Part_Number": "117142",
+      "Rating": "Murata製、0805 (2012)、±10%。元品と同じ容量・耐圧・温度特性。",
+      "Stock": 3,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://akizukidenshi.com/catalog/g/g117142/",
+      "Stock_Source": "https://akizukidenshi.com/catalog/g/g117142/",
+      "Notes": "Murata製、0805 (2012)、±10%。元品と同じ容量・耐圧・温度特性。",
+      "Spare": 19,
+      "Order_Quantity": 20,
+      "Design_MPN": "C0805C474K5RACTU",
+      "Label": "0.47µF 50V X7R",
+      "Required": 1,
+      "Pack_Size": 20,
+      "Order_Units": 1,
+      "Unit_Price": 170,
+      "Line_Total": 170,
+      "Stock_Unit": "袋",
+      "Shelf": "1F 35番 4段目"
+    },
+    {
+      "References": "C15",
+      "Quantity": 1,
+      "Value": "0.1u",
+      "Manufacturer": "Murata Electronics",
+      "MPN": "GRM188R72A104KA35D",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Supplier": "秋月店頭",
+      "Supplier_Part_Number": "114559",
+      "Rating": "Murata製、0603 (1608)、±10%。元の50V品から耐圧を上げた代替。",
+      "Stock": 5,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://akizukidenshi.com/catalog/g/g114559/",
+      "Stock_Source": "https://akizukidenshi.com/catalog/g/g114559/",
+      "Notes": "Murata製、0603 (1608)、±10%。元の50V品から耐圧を上げた代替。",
+      "Spare": 19,
+      "Order_Quantity": 20,
+      "Design_MPN": "C0603C104K5RACTU",
+      "Label": "0.1µF 100V X7R",
+      "Required": 1,
+      "Pack_Size": 20,
+      "Order_Units": 1,
+      "Unit_Price": 150,
+      "Line_Total": 150,
+      "Stock_Unit": "袋",
+      "Shelf": "1F 35番 3段目"
+    },
+    {
+      "References": "R4, R6",
+      "Quantity": 2,
+      "Value": "1k",
+      "Manufacturer": "Susumu",
+      "MPN": "RG2012N-102-B-T5",
+      "Footprint": "logger_v2_ups:R_0805_2012Metric",
+      "Supplier": "秋月店頭",
+      "Supplier_Part_Number": "111796",
+      "Rating": "Susumu製、0805 (2012)。元の1%品より高精度、電力は同じ。",
+      "Stock": 24,
+      "Stock_Checked": "2026-10-17",
+      "URL": "https://akizukidenshi.com/catalog/g/g111796/",
+      "Stock_Source": "https://akizukidenshi.com/catalog/g/g111796/",
+      "Notes": "Susumu製、0805 (2012)。元の1%品より高精度、電力は同じ。",
+      "Spare": 3,
+      "Order_Quantity": 5,
+      "Design_MPN": "RC0805FR-071KL",
+      "Label": "1kΩ 0.1% 1/8W",
+      "Required": 2,
+      "Pack_Size": 5,
+      "Order_Units": 1,
+      "Unit_Price": 100,
+      "Line_Total": 100,
+      "Stock_Unit": "袋",
+      "Shelf": "1F 15番 下段引出"
+    }
+  ],
+  "totals": {
+    "required": 40,
+    "order": 204,
+    "spare": 164,
+    "digikey_ex_tax": 6014,
+    "digikey_incl_tax_estimate": 6615,
+    "akizuki_incl_tax": 745,
+    "combined_estimate": 7360
+  }
+}

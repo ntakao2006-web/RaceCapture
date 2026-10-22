@@ -1,0 +1,153 @@
+{
+  "tests": [
+    {
+      "baud": 115200,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 39370,
+        "completed": 28,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 30500,
+        "i2c_errors": 95,
+        "uart_bytes": 29,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 9600,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 41004,
+        "completed": 30,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 32100,
+        "i2c_errors": 95,
+        "uart_bytes": 30,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 19200,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 42622,
+        "completed": 32,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 33700,
+        "i2c_errors": 95,
+        "uart_bytes": 31,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 38400,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 44238,
+        "completed": 34,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 35300,
+        "i2c_errors": 95,
+        "uart_bytes": 32,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 57600,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 45853,
+        "completed": 36,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 36900,
+        "i2c_errors": 95,
+        "uart_bytes": 33,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 230400,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 47490,
+        "completed": 38,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 38600,
+        "i2c_errors": 95,
+        "uart_bytes": 34,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 460800,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 49102,
+        "completed": 40,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 40200,
+        "i2c_errors": 95,
+        "uart_bytes": 35,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 921600,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 50720,
+        "completed": 42,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 41800,
+        "i2c_errors": 95,
+        "uart_bytes": 36,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 2000000,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 52337,
+        "completed": 44,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 43400,
+        "i2c_errors": 95,
+        "uart_bytes": 37,
+        "result": "UART command sent"
+      }
+    }
+  ],
+  "external_uart": "USART1 PB6/PB7 verified from installed core device tree",
+  "on": {
+    "mcu_ms": 27690,
+    "completed": 26,
+    "lte_power": true,
+    "cts": 0,
+    "gnss_bytes": 18800,
+    "i2c_errors": 95,
+    "uart_bytes": 28,
+    "result": "LTE power enable + PWRKEY pulse completed"
+  },
+  "boot_hex": "",
+  "rts_high_rx_hex": "00",
+  "left_off": {
+    "mcu_ms": 54613,
+    "completed": 48,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 45700,
+    "i2c_errors": 95,
+    "uart_bytes": 38,
+    "result": "LTE power disabled"
+  }
+}

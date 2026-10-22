@@ -1,0 +1,9 @@
+
+18F26Q84 Memory Summary:
+    Program space        used  1C7Ah (  7290) of 10000h bytes   ( 11.1%)
+    Data space           used    D8h (   216) of  2000h bytes   (  2.6%)
+    Configuration bits   used     5h (     5) of    12h words   ( 27.8%)
+    EEPROM space         used     0h (     0) of   400h bytes   (  0.0%)
+    ID Location space    used     0h (     0) of    40h bytes   (  0.0%)
+
+Built: C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\dist\default\production\pic18f26q84_blink.X.production.hex

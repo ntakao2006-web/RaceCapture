@@ -1,0 +1,83 @@
+{
+  "device": "EcoLogger V2",
+  "version": "0.2.0",
+  "demo": false,
+  "source": "logger-v2-hardware",
+  "connected": true,
+  "age_ms": 9,
+  "receive_hz": 99.9,
+  "mcu_generation_hz": 100,
+  "poll_target_hz": 20,
+  "received": 87533,
+  "bridge_errors": 0,
+  "mcu_resets": 0,
+  "error": null,
+  "config_error": null,
+  "storage": "internal-emmc",
+  "storage_free_bytes": 17189703680,
+  "sensors": {
+    "imu": "正常",
+    "gnss": "測位中",
+    "can": "CAN1 0 / CAN2 0 フレーム（受信専用）",
+    "sd": "記録中 EL000030.BIN",
+    "lte": "LTE送信OFF",
+    "camera": "未接続"
+  },
+  "hardware": {
+    "mcu_ms": 893844,
+    "seq": 89251,
+    "imu_address": 40,
+    "imu_errors": 0,
+    "imu_irq": 23,
+    "gnss_errors": 0,
+    "gnss_at": 893844,
+    "dropped": 997,
+    "can1_ready": 1,
+    "can2_mode": 3,
+    "can_counts": [
+      0,
+      0
+    ],
+    "can_overflow": [
+      0,
+      0
+    ],
+    "sd_ready": 1,
+    "sd_mounted": 1,
+    "sd_logging": 1,
+    "sd_file": 30,
+    "sd_bytes": 612352,
+    "sd_errors": 0,
+    "sd_queue_dropped": 0,
+    "sd_blocks": 17580,
+    "sd_alloc_ms": 404,
+    "completed": 2,
+    "result": "CAN listen-only configured",
+    "nav": "04364e1dea070a0210220637150000005ed1a9350301ea0e461c2353eb682b1520d90100734001006d020000420200000b00000007000000f7ffffff0d000000a71c57008a00000001ed4000bb0000005c40562f0000000000000000",
+    "lte_power": 0,
+    "lte_overflows": 0
+  },
+  "logging": {
+    "active": false,
+    "name": null,
+    "rows": 0,
+    "elapsed_s": 0,
+    "error": null
+  },
+  "sd_copy": {
+    "active": false
+  },
+  "podium": {
+    "state": "off",
+    "message": "LTE送信OFF",
+    "frames": 0,
+    "bytes": 0,
+    "reconnects": 0,
+    "skipped": 0,
+    "last_sent_age_ms": null,
+    "target_hz": 10,
+    "transport": "SIM7070G TCP / STM32 UART",
+    "configured": false,
+    "enabled": false
+  }
+}

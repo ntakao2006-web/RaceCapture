@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "source": {
+    "name": "LOG_20261001T154613Z_acef703b.csv",
+    "size": 39531,
+    "modified_utc": "2026-10-01T15:46:14.707601+00:00",
+    "active": false,
+    "demo": false
+  },
+  "copy": {
+    "active": false,
+    "name": "LOG_20261001T154613Z_acef703b.csv",
+    "written_sectors": 89,
+    "error": null,
+    "verified": true,
+    "read_sectors": 8022,
+    "sd_path": "/ECOLOG/LOG_20261001T154613Z_acef703b.csv"
+  },
+  "existing_logger_entries_unchanged": true,
+  "existing_files": 36
+}

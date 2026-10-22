@@ -1,0 +1,26 @@
+{
+  "method": "individual read-only factory keys after physical reset",
+  "keys": [
+    {
+      "key": "0x40a40001",
+      "frame": "b562068b0c00010400000100a44000b0710bb382",
+      "value": 192000000
+    },
+    {
+      "key": "0x40a40003",
+      "frame": "b562068b0c00010400000300a44000b0710bb592",
+      "value": 192000000
+    },
+    {
+      "key": "0x40a40005",
+      "frame": "b562068b0c00010400000500a44000b0710bb7a2",
+      "value": 192000000
+    },
+    {
+      "key": "0x40a4000a",
+      "frame": "b562068b0c00010400000a00a44000d8b80525ca",
+      "value": 96000000
+    }
+  ],
+  "verified": true
+}

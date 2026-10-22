@@ -1,0 +1,53 @@
+{
+  "changed_nets": {
+    "/PullUpCLK": {
+      "before": [
+        [
+          "U2",
+          "11"
+        ],
+        [
+          "U3",
+          "23"
+        ]
+      ],
+      "after": [
+        [
+          "U2",
+          "11"
+        ],
+        [
+          "U3",
+          "21"
+        ]
+      ]
+    },
+    "Net-(U1-TXD)": {
+      "before": [
+        [
+          "U1",
+          "1"
+        ],
+        [
+          "U3",
+          "21"
+        ]
+      ],
+      "after": [
+        [
+          "U1",
+          "1"
+        ],
+        [
+          "U3",
+          "23"
+        ]
+      ]
+    }
+  },
+  "unchanged_nets": 50,
+  "erc_before": 20,
+  "erc_after": 20,
+  "new_erc_issues": 0,
+  "render_reviewed": true
+}

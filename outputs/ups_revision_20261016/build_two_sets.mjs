@@ -1,0 +1,30 @@
+import fs from 'node:fs/promises';
+import {Workbook,SpreadsheetFile,FileBlob} from '@oai/artifact-tool';
+const dir=new URL('.',import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,'$1');
+const rows=JSON.parse(await fs.readFile(`${dir}/bom_data.json`,'utf8'));
+const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(`${dir}/UNO_Q_UPS_BOM.xlsx`));
+const s=wb.worksheets.getItem('BOM');
+s.getRange('A2').values=[['UNO Q UPS 部品表（2セット分）']];
+s.getRange('A3').values=[['2基板分・予備なし / 2026-10-16 / 80個・27品種']];
+s.getRange('A4').values=[['DigiKey 68個、秋月 12個。数量は2セット合計。在庫は前回確認時の表示値です。']];
+s.getRange('B7').values=[['2セット数量']];
+s.getRange('B8:B34').values=rows.map(r=>[r.Quantity*2]);
+s.getRange('B7').format.wrapText=true;
+s.getRange('A7:N7').format.rowHeight=32;
+wb.recalculate();
+if(s.getRange('B35').values[0][0]!==80)throw Error('Total mismatch');
+for(let i=0;i<rows.length;i++)if(s.getRange(`B${i+8}`).values[0][0]!==rows[i].Quantity*2)throw Error('Row mismatch');
+console.log((await wb.inspect({kind:'match',searchTerm:'#REF!|#DIV/0!|#VALUE!|#NAME\\?|#NUM!',options:{useRegex:true,maxResults:20},summary:'Error scan'})).ndjson);
+for(const [name,range] of [['two_sets_top','A1:I20'],['two_sets_bottom','A21:I35']]){
+ const img=await wb.render({sheetName:'BOM',range,scale:1,format:'png'});
+ await fs.writeFile(`${dir}/${name}.png`,new Uint8Array(await img.arrayBuffer()));
+}
+await(await SpreadsheetFile.exportXlsx(wb)).save(`${dir}/UNO_Q_UPS_BOM_2sets.xlsx`);
+const cell=v=>'"'+String(v??'').replaceAll('"','""')+'"';
+const csv=data=>'\ufeff'+data.map(r=>r.map(cell).join(',')).join('\r\n')+'\r\n';
+const dk=rows.filter(r=>r.Supplier==='DigiKey');
+if(dk.reduce((n,r)=>n+r.Quantity*2,0)!==68)throw Error('DigiKey total');
+await fs.writeFile(`${dir}/DigiKey_upload_2sets.csv`,csv([['DigiKey Part Number','Quantity','Customer Reference'],...dk.map(r=>[r.Supplier_Part_Number,r.Quantity*2,r.References])]));
+const keys=Object.keys(rows[0]);
+await fs.writeFile(`${dir}/BOM_full_2sets.csv`,csv([keys,...rows.map(r=>keys.map(k=>k==='Quantity'?r.Quantity*2:r[k]))]));
+console.log('Saved 2-set BOM: 80 parts, DigiKey 68, Akizuki 12.');

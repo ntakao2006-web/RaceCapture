@@ -563,7 +563,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "manufacturing_20260907/gerbers/",
+      "plot": "garber/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "logger_v2.step",

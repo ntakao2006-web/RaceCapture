@@ -1,0 +1,239 @@
+UPS footprint selection - 2026-10-07 JST
+All 32 physical components assigned. Wires, positions, cached symbols and PCB untouched.
+R3 4.37M -> 4.32M; R7 3.58M -> 3.57M (user approved).
+Nominal VCAP max: 5.003006 -> 4.952906V; ready: 4.007223 -> 3.967095V; VSYS backup: 4.750413 -> 4.740496V.
+C>=22uF (except supercaps): aluminum solid polymer electrolytic, not MLCC.
+All capacitor footprints use pad1=positive. Original nonpolar schematic graphics are retained.
+MAX38890 datasheet specifies ceramic capacitors; user-requested polymer replacements are selected, but regulator transient/ripple performance has not been bench validated.
+Stock counts are page snapshots, not reservations.
+HP-2R7-J106UY LR: D10 L25 P5 version, source Akizuki current linked drawing. Older D12.5 variants need another footprint.
+Horizontal capacitor: leads formed 90deg, 3mm body setback, 1mm finished drill, 2mm pads, body clearance for D/L tolerances. The horizontal 3D model is a nominal envelope, not a vendor model.
+Header graphics/footprint type kept as female sockets per existing schematic/PCB. Samtec SSW-1xx-01-T-S selected.
+
+C1  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C2  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C3  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C4  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C5  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C6  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C7  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C8  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C9  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C10  HP-2R7-J106UY LR
+10F 2.7V; horizontal D10xL25mm P5mm; pin1 positive
+Akizuki
+https://akizukidenshi.com/catalog/g/g104251/
+logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal
+Stock snapshot: not required by user
+
+C11  875105359003
+22uF 16V aluminum solid polymer; ESR <=40mohm; ripple 2.2A @100kHz 105C
+732-6418-1-ND
+https://www.digikey.jp/en/products/detail/w%C3%BCrth-elektronik/875105359003/5147582
+logger_v2_ups:CP_Elec_5x5.8
+Stock snapshot: 824
+
+C12  C0805C474K5RACTU
+0.47uF 50V X7R +/-10% MLCC 0805
+399-C0805C474K5RACTUCT-ND
+https://www.digikey.jp/en/products/detail/kemet/C0805C474K5RACTU/2212887
+logger_v2_ups:C_0805_2012Metric
+Stock snapshot: 115810
+
+C13  C0805C222J5GACTU
+2.2nF 50V C0G +/-5% MLCC 0805
+399-C0805C222J5GACTUCT-ND
+https://www.digikey.jp/en/products/detail/kemet/C0805C222J5GACTU/2212256
+logger_v2_ups:C_0805_2012Metric
+Stock snapshot: 22273
+
+C14  25SVPF47M
+47uF 25V aluminum solid polymer; ESR 30mohm; ripple 2.8A @100kHz 105C
+P16513CT-ND
+https://www.digikey.jp/en/products/detail/panasonic-industry/25SVPF47M/4204320
+logger_v2_ups:CP_Elec_6.3x5.9
+Stock snapshot: 48305
+
+C15  25SVPF47M
+47uF 25V aluminum solid polymer; ESR 30mohm; ripple 2.8A @100kHz 105C
+P16513CT-ND
+https://www.digikey.jp/en/products/detail/panasonic-industry/25SVPF47M/4204320
+logger_v2_ups:CP_Elec_6.3x5.9
+Stock snapshot: 48305
+
+C16  875105359003
+22uF 16V aluminum solid polymer; ESR <=40mohm; ripple 2.2A @100kHz 105C
+732-6418-1-ND
+https://www.digikey.jp/en/products/detail/w%C3%BCrth-elektronik/875105359003/5147582
+logger_v2_ups:CP_Elec_5x5.8
+Stock snapshot: 824
+
+C17  875105359003
+22uF 16V aluminum solid polymer; ESR <=40mohm; ripple 2.2A @100kHz 105C
+732-6418-1-ND
+https://www.digikey.jp/en/products/detail/w%C3%BCrth-elektronik/875105359003/5147582
+logger_v2_ups:CP_Elec_5x5.8
+Stock snapshot: 824
+
+C18  C0805C105K5RACTU
+1uF 50V X7R +/-10% MLCC 0805
+399-C0805C105K5RACTUCT-ND
+https://www.digikey.jp/en/products/detail/kemet/C0805C105K5RACTU/3317443
+logger_v2_ups:C_0805_2012Metric
+Stock snapshot: 141160
+
+J1  SSW-108-01-T-S
+2.54mm THT female socket; 4.7A per contact; -55..105C
+612-SSW-108-01-T-S-ND
+https://www.digikey.jp/en/products/detail/samtec-inc/SSW-108-01-T-S/1112297
+logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical
+Stock snapshot: 2406
+
+J2  SSW-106-01-T-S
+2.54mm THT female socket; 4.7A per contact; -55..105C
+612-SSW-106-01-T-S-ND
+https://www.digikey.jp/en/products/detail/samtec-inc/SSW-106-01-T-S/1112299
+logger_v2_ups:PinSocket_1x06_P2.54mm_Vertical
+Stock snapshot: 1910
+
+J3  SSW-110-01-T-S
+2.54mm THT female socket; 4.7A per contact; -55..105C
+612-SSW-110-01-T-S-ND
+https://www.digikey.jp/en/products/detail/samtec-inc/SSW-110-01-T-S/1112295
+logger_v2_ups:PinSocket_1x10_P2.54mm_Vertical
+Stock snapshot: 347
+
+J4  SSW-108-01-T-S
+2.54mm THT female socket; 4.7A per contact; -55..105C
+612-SSW-108-01-T-S-ND
+https://www.digikey.jp/en/products/detail/samtec-inc/SSW-108-01-T-S/1112297
+logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical
+Stock snapshot: 2406
+
+L1  744355147
+0.47uH +/-20%; Ir 30A; Isat10% 25A; Isat30% 50A; DCR 0.67mohm; 13x12.8x6.5mm
+732-744355147CT-ND
+https://www.digikey.jp/en/products/detail/w%C3%BCrth-elektronik/744355147/1638527
+logger_v2_ups:L_Wuerth_HCI-1365
+Stock snapshot: 5892
+
+R1  RC0805FR-071KL
+0805 0.125W +/-1%; 150V working voltage; -55..155C
+311-1.00KCRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071KL/727444
+logger_v2_ups:R_0805_2012Metric
+Stock snapshot: 871750
+
+R2  RC0805FR-071KL
+0805 0.125W +/-1%; 150V working voltage; -55..155C
+311-1.00KCRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071KL/727444
+logger_v2_ups:R_0805_2012Metric
+Stock snapshot: 871750
+
+R3  RC0805FR-074M32L
+0805 0.125W +/-1%; 150V working voltage; -55..155C
+311-4.32MCRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0805FR-074M32L/727918
+logger_v2_ups:R_0805_2012Metric
+Stock snapshot: 8008
+
+R4  RC0805FR-07124KL
+0805 0.125W +/-1%; 150V working voltage; -55..155C
+311-124KCRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07124KL/727580
+logger_v2_ups:R_0805_2012Metric
+Stock snapshot: 45153
+
+R5  RC0805FR-07499KL
+0805 0.125W +/-1%; 150V working voltage; -55..155C
+311-499KCRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07499KL/727987
+logger_v2_ups:R_0805_2012Metric
+Stock snapshot: 380730
+
+R6  RC0805FR-0736KL
+0805 0.125W +/-1%; 150V working voltage; -55..155C
+311-36.0KCRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0736KL/727883
+logger_v2_ups:R_0805_2012Metric
+Stock snapshot: 43211
+
+R7  RC0805FR-073M57L
+0805 0.125W +/-1%; 150V working voltage; -55..155C
+311-3.57MCRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0805FR-073M57L/727826
+logger_v2_ups:R_0805_2012Metric
+Stock snapshot: 24495
+
+R8  RC0805FR-071M21L
+0805 0.125W +/-1%; 150V working voltage; -55..155C
+311-1.21MCRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071M21L/727470
+logger_v2_ups:R_0805_2012Metric
+Stock snapshot: 7042
+
+U1  MAX38890AATE+
+VSYS 2.5..5.5V; peak inductor current 1..5A; -40..125C
+505-MAX38890AATE+-ND
+https://www.digikey.jp/ja/products/detail/analog-devices-inc-maxim-integrated/MAX38890AATE/18693138
+logger_v2_ups:TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm
+Stock snapshot: 2405
+Verification complete: all 32 footprints load with the expected pads; all model paths resolve; full netlist connectivity matches before selection; original PCB is byte-identical.
+MAX38890 3D model is a nominal T1633+5C envelope; the horizontal supercapacitor uses a nominal STEP model. Both are locally stored.
+footprint_preview.png is a temporary representative model gallery, not the project PCB layout.
+Resistor power margin: worst case 5.5V across either 1k balance resistor =30.25mW, below selected 125mW rating; other selected resistors dissipate less.

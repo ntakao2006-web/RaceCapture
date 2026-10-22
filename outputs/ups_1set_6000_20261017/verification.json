@@ -1,0 +1,15 @@
+{
+  "required": 40,
+  "order": 204,
+  "spare": 164,
+  "digikey_ex_tax": 6014,
+  "digikey_incl_tax_estimate": 6615,
+  "akizuki_incl_tax": 745,
+  "combined_estimate": 7360,
+  "schematic_references": 40,
+  "schematic_MPN_and_footprints_reconciled": true,
+  "price_tiers_verified": true,
+  "exported_formula_cache_verified": true,
+  "csv_verified": true,
+  "akihabara_stock_sufficient_at_check": true
+}

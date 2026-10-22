@@ -1,0 +1,142 @@
+{
+  "can": {
+    "frames": 14400,
+    "expected": 14400,
+    "matched": 14400,
+    "missing": 0,
+    "bad": 0,
+    "duplicates": 0,
+    "rates": [
+      125000,
+      250000,
+      500000,
+      1000000
+    ],
+    "rounds": 12,
+    "overflow_delta": [
+      0,
+      0
+    ]
+  },
+  "duration_s": 167.366,
+  "imu_hz": 99.99641504248174,
+  "errors_delta": {
+    "imu_errors": 0,
+    "gnss_errors": 0,
+    "dropped": 0,
+    "sd_errors": 0,
+    "sd_queue_dropped": 0,
+    "lte_overflows": 0
+  },
+  "gnss": {
+    "fixes": [
+      3
+    ],
+    "valid_all": true,
+    "sats_min": 14,
+    "sats_max": 16,
+    "hacc_min_m": 0.769,
+    "hacc_max_m": 0.898
+  },
+  "sd_geometry": {
+    "partition_start": 2048,
+    "sectors": 31114240,
+    "bytes": 15930490880,
+    "cluster_bytes": 32768,
+    "fat_copies": 2,
+    "boot_backup_equal": true,
+    "first_fat_sector_equal": true
+  },
+  "sd_verified": [
+    {
+      "file": {
+        "index": 42,
+        "cluster": 1315,
+        "size": 1048576,
+        "active": false
+      },
+      "crc_sequence_ok": true,
+      "record_counts": {
+        "1": 10562,
+        "2": 1058,
+        "3": 9106
+      },
+      "can_count": 9106,
+      "first_ms": 4141,
+      "last_ms": 109756
+    },
+    {
+      "file": {
+        "index": 43,
+        "cluster": 1347,
+        "size": 908800,
+        "active": false
+      },
+      "crc_sequence_ok": true,
+      "record_counts": {
+        "1": 9158,
+        "3": 5294,
+        "2": 917
+      },
+      "can_count": 5294,
+      "first_ms": 109763,
+      "last_ms": 201329
+    }
+  ],
+  "sd_matches_live_can": true,
+  "lte": [
+    {
+      "attempt": 1,
+      "passed": true,
+      "connect_seconds": 29.272849400999803,
+      "error": null,
+      "last_command": "AT+CAACK=0",
+      "radio": "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-8,-83,-62,16\r\n\r\nOK\r\n",
+      "http_responses": 3
+    },
+    {
+      "attempt": 2,
+      "passed": true,
+      "connect_seconds": 28.180051884000022,
+      "error": null,
+      "last_command": "AT+CAACK=0",
+      "radio": "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-11,-77,-53,19\r\n\r\nOK\r\n",
+      "http_responses": 3
+    },
+    {
+      "attempt": 3,
+      "passed": true,
+      "connect_seconds": 30.344500444000005,
+      "error": null,
+      "last_command": "AT+CAACK=0",
+      "radio": "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-9,-78,-55,19\r\n\r\nOK\r\n",
+      "http_responses": 3
+    },
+    {
+      "attempt": 4,
+      "passed": true,
+      "connect_seconds": 29.25349727999992,
+      "error": null,
+      "last_command": "AT+CAACK=0",
+      "radio": "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-7,-78,-57,20\r\n\r\nOK\r\n",
+      "http_responses": 3
+    },
+    {
+      "attempt": 5,
+      "passed": true,
+      "connect_seconds": 27.977164941999945,
+      "error": null,
+      "last_command": "AT+CAACK=0",
+      "radio": "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-8,-76,-52,19\r\n\r\nOK\r\n",
+      "http_responses": 3
+    }
+  ],
+  "independent": {
+    "mcu_ms": 15019,
+    "seq": 1502,
+    "sd_blocks": 300,
+    "sd_errors": 0,
+    "sd_queue_dropped": 0,
+    "dropped": 1465
+  }
+}

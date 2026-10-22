@@ -1,0 +1,11 @@
+{
+  "rows": 3717,
+  "can_frames": 0,
+  "csv": "/home/arduino/ecocapture-v2-data/bench-20261001/production/EL000038.csv",
+  "passed": true,
+  "imu_hz": 99.99192745472648,
+  "max_gap_ms": 29,
+  "blocks": 733,
+  "crc_verified": true,
+  "gnss_records": 372
+}

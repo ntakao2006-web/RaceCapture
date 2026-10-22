@@ -1,0 +1,192 @@
+UART_MONITOR_READY
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0xb (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xda0
+load:0x403cb700,len:0x2f58
+entry 0x403c8900
+I (24) boot: ESP-IDF 6.0.1 2nd stage bootloader
+I (25) boot: compile time Aug 31 2026 03:00:44
+I (25) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (28) boot: efuse block revision: v1.4
+I (31) boot.esp32s3: Boot SPI Speed : 80MHz
+I (35) boot.esp32s3: SPI Mode       : DIO
+I (39) boot.esp32s3: SPI Flash Size : 16MB
+I (43) boot: Enabling RNG early entropy source...
+I (47) boot: Partition Table:
+I (50) boot: ## Label            Usage          Type ST Offset   Length
+I (56) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (63) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (69) boot:  2 factory          factory app      00 00 00010000 00100000
+I (76) boot: End of partition table
+I (79) esp_image: segment 0: paddr=00010020 vaddr=3c040020 size=16394h ( 91028) map
+I (103) esp_image: segment 1: paddr=000263bc vaddr=3fc95000 size=03980h ( 14720) load
+I (106) esp_image: segment 2: paddr=00029d44 vaddr=40374000 size=062d4h ( 25300) load
+I (112) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=39d38h (236856) map
+I (157) esp_image: segment 4: paddr=00069d60 vaddr=4037a2d4 size=0ad1ch ( 44316) load
+I (172) esp_image: segment 5: paddr=00074a84 vaddr=50000000 size=00024h (    36) load
+I (179) boot: Loaded app from partition at offset 0x10000
+I (179) boot: Disabling RNG early entropy source...
+I (190) octal_psram: vendor id    : 0x0d (AP)
+I (190) octal_psram: dev id       : 0x02 (generation 3)
+I (190) octal_psram: density      : 0x03 (64 Mbit)
+I (192) octal_psram: good-die     : 0x01 (Pass)
+I (196) octal_psram: Latency      : 0x01 (Fixed)
+I (201) octal_psram: VCC          : 0x01 (3V)
+I (205) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (210) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (214) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (219) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (224) octal_psram: DriveStrength: 0x00 (1/1)
+I (228) MSPI Timing: Enter psram timing tuning
+I (233) esp_psram: Found 8MB PSRAM device
+I (236) esp_psram: Speed: 80MHz
+I (241) cpu_start: Multicore app
+I (668) esp_psram: SPI SRAM memory test OK
+I (676) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (677) cpu_start: Pro cpu start user code
+I (677) cpu_start: cpu freq: 240000000 Hz
+I (679) app_init: Application information:
+I (683) app_init: Project name:     v1_test
+I (687) app_init: App version:      2f0f313-dirty
+I (691) app_init: Compile time:     Aug 31 2026 02:57:41
+I (696) app_init: ELF file SHA256:  0bd57eaff...
+I (700) app_init: ESP-IDF:          6.0.1
+I (704) efuse_init: Min chip rev:     v0.0
+I (708) efuse_init: Max chip rev:     v0.99 
+I (712) efuse_init: Chip rev:         v0.2
+I (716) heap_init: Initializing. RAM available for dynamic allocation:
+I (722) heap_init: At 3FC9E8B0 len 0004AE60 (299 KiB): RAM
+I (727) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (732) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (737) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM
+I (743) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (750) spi_flash: detected chip: generic
+I (753) spi_flash: flash io: dio
+I (756) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (762) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (769) main_task: Started on CPU0
+I (772) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (780) main_task: Calling app_main()
+I (783) logger_v1_test: logger_v1 full board test boot
+I (788) logger_v1_test: ESP-IDF 6.0.1; cores=2 rev=2; CPU config/actual=240/240 MHz
+I (795) logger_v1_test: 74HC595 walking-one LED test started (SER=40 CLK=39 LATCH=45)
+I (1103) temperature_sensor: Range [20°C ~ 100°C], error < 2°C
+I (1106) logger_v1_test: health cpu=240MHz temp=29.2C max=29.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+W (1107) tusb_desc: No Device descriptor provided, using default.
+W (1113) tusb_desc: No FullSpeed configuration descriptor provided, using default.
+W (1119) tusb_desc: No String descriptors provided, using default.
+I (1125) tusb_desc: 
+┌─────────────────────────────────┐
+│  USB Device Descriptor Summary  │
+├───────────────────┬─────────────┤
+│bDeviceClass       │ 239         │
+├───────────────────┼─────────────┤
+│bDeviceSubClass    │ 2           │
+├───────────────────┼─────────────┤
+│bDeviceProtocol    │ 1           │
+├───────────────────┼─────────────┤
+│bMaxPacketSize0    │ 64          │
+├───────────────────┼─────────────┤
+│idVendor           │ 0x303a      │
+├───────────────────┼─────────────┤
+│idProduct          │ 0x4001      │
+├───────────────────┼─────────────┤
+│bcdDevice          │ 0x100       │
+├───────────────────┼─────────────┤
+│iManufacturer      │ 0x1         │
+├───────────────────┼─────────────┤
+│iProduct           │ 0x2         │
+├───────────────────┼─────────────┤
+│iSerialNumber      │ 0x3         │
+├───────────────────┼─────────────┤
+│bNumConfigurations │ 0x1         │
+└───────────────────┴─────────��I (1305) logger_v1_test: A105 UART0/COM8 also ready for RaceCapture App at 115200 baud
+I (1305) logger_v1_test: PSRAM: total=8388608 free=8380736 largest=8257536 byte(s)
+I (2379) logger_v1_test: PSRAM write/read/verify 8192000 byte(s): PASS (0 error(s))
+I (2409) logger_v1_test: IMU GPIO18 UART-TX net static drive while BNO RESET Low: PASS (low=0 high=1)
+I (2412) logger_v1_test: IMU UART2 internal loopback: PASS
+W (3369) logger_v1_test: BNO055 UART chip-ID attempt 1/5 failed (got 0x00)
+W (3726) logger_v1_test: BNO055 UART chip-ID attempt 2/5 failed (got 0x00)
+W (4079) logger_v1_test: BNO055 UART chip-ID attempt 3/5 failed (got 0x00)
+W (4436) logger_v1_test: BNO055 UART chip-ID attempt 4/5 failed (got 0x00)
+W (4793) logger_v1_test: BNO055 UART chip-ID attempt 5/5 failed (got 0x00)
+E (4994) logger_v1_test: BNO055 UART no valid chip ID (got 0x00, RX=GPIO17 level=1, TX=GPIO18 level=1)
+I (4996) logger_v1_test: CAN1 PASS: TWAI/ATA6561 self reception at 500 kbit/s, id=0x321
+I (5000) logger_v1_test: 74HC595 paused briefly while CAN2 owns shared GPIO39/40
+I (5052) logger_v1_test: CAN2 PASS: MCP25625 SPI/config/internal loopback at 500 kbit/s, id=0x456
+I (5052) logger_v1_test: CAN external test: J4(CAN2) <-> J5(CAN1), 500 kbit/s, 32 frames each direction
+I (5260) logger_v1_test: CAN EXTERNAL PASS: CAN1->CAN2=32/32 CAN2->CAN1=32/32; all error counters zero
+I (5262) logger_v1_test: 74HC595 walking-one LED test started (SER=40 CLK=39 LATCH=45)
+I (6106) logger_v1_test: health cpu=240MHz temp=32.2C max=32.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (6510) logger_v1_test: GNSS untouched 9600 baud: passive=120 poll-rx=354 MON-VER=PASS
+I (6510) logger_v1_test: GNSS minimal MON-VER: PASS (baud=9600 total rx=474)
+I (6514) logger_v1_test: GNSS MON-VER responded; failure-only GPIO drive harness skipped
+I (7034) logger_v1_test: GNSS NAV-PVT: fix=3 ok=yes SV=6 lat=35.5165881 lon=139.4811067
+I (7034) logger_v1_test: GNSS outdoor antenna position fix within 120 s: PASS (fix=3 SV=6)
+I (7040) logger_v1_test: SD current-net pins CLK=11 CMD=10 D0=12 D1=13 D2=14 D3=21
+W (7121) SD_HOST: input line delay not supported, fallback to 0 delay
+W (7126) SD_HOST: input line delay not supported, fallback to 0 delay
+Name:      
+Type: SDHC
+Speed: 40.00 MHz (limit: 40.00 MHz)
+Size: 29721MB
+CSD: ver=2, sector_size=512, capacity=60868608 read_bl_len=9
+SSR: bus_width=4
+I (11106) logger_v1_test: health cpu=240MHz temp=32.2C max=32.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (16106) logger_v1_test: health cpu=240MHz temp=32.2C max=32.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (17044) logger_v1_test: SD PASS: 8 MiB write/read/verify/delete; write=1.52 MiB/s read=1.76 MiB/s
+I (17046) logger_v1_test: ================ BOARD TEST SUMMARY ================
+I (17050) logger_v1_test: CPU: 240 MHz, dual-core stress ON, temp 32.2 C (cutoff 85.0 C)
+I (17056) logger_v1_test: PSRAM 8 MiB octal 80 MHz write/read/verify: PASS
+I (17064) logger_v1_test: GNSS UART/MON-VER: PASS (ROM SPG 5.10 (7b202e)         000A0000  FWVER=SPG 5.10         )
+I (17074) logger_v1_test: GNSS antenna/NAV-PVT position fix: PASS (fix=3 SV=6 lat=35.5165881 lon=139.4811067)
+I (17084) logger_v1_test: IMU BNO055 UART/RaceCapture telemetry: FAIL (chip 0x00)
+I (17090) logger_v1_test: CAN1 TWAI/transceiver self reception: PASS
+I (17096) logger_v1_test: CAN2 MCP25625 SPI/internal loopback: PASS
+I (17102) logger_v1_test: CAN1 <-> CAN2 external physical bus: PASS
+I (17108) logger_v1_test: SDMMC write/read/verify: PASS at 40 MHz
+I (17114) logger_v1_test: 74HC595 Knight Rider: PASS at boot; RUNNING again after CAN2 SPI release
+I (17124) logger_v1_test: RaceCapture: READY on native USB CDC and A105 UART0/COM8
+I (17130) logger_v1_test: ====================================================
+I (17138) main_task: Returned from app_main()
+I (21106) logger_v1_test: health cpu=240MHz temp=32.2C max=32.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (26106) logger_v1_test: health cpu=240MHz temp=32.2C max=32.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (31106) logger_v1_test: health cpu=240MHz temp=32.2C max=32.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (36106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (41106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (45547) logger_v1_test: RCP command: getVer
+I (46106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (46299) logger_v1_test: RCP command: getCapabilities
+I (47049) logger_v1_test: RCP command: getMeta
+I (47800) logger_v1_test: RCP command: s
+I (51106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (56106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (61106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (66106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (71106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (76106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (81106) logger_v1_test: health cpu=240MHz temp=33.2C max=33.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (86106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (91106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (96106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (101106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (106106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (111106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (116106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (121106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (126106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (131106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (136106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (141106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (146106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (151106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (156106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (161106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (166106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (171106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (176106) logger_v1_test: health cpu=240MHz temp=34.2C max=34.2C stress=ON OTG(vbus=1 role=1 oc_n=1)

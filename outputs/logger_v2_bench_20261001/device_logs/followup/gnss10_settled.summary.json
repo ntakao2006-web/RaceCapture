@@ -1,0 +1,32 @@
+{
+  "samples": 599,
+  "elapsed_s": 56.467999999999996,
+  "measured_hz": 10.59006871148261,
+  "itow_interval_ms": {
+    "100": 598
+  },
+  "sats_min": 15,
+  "sats_max": 16,
+  "hacc_min_mm": 554,
+  "hacc_max_mm": 576,
+  "valid_fix_samples": 599,
+  "last": {
+    "host_s": 59.915,
+    "itow": 391181800,
+    "fix": 3,
+    "valid": true,
+    "sats": 15,
+    "hacc_mm": 556
+  },
+  "state": {
+    "mcu_ms": 202088,
+    "completed": 24,
+    "lte_power": true,
+    "cts": 0,
+    "gnss_bytes": 194674,
+    "i2c_errors": 0,
+    "queue_overruns": 644,
+    "uart_bytes": 1,
+    "result": "LTE power enable + PWRKEY pulse completed"
+  }
+}

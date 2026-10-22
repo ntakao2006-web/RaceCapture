@@ -1,0 +1,13 @@
+{
+  "name": "codex-start-mplab-once",
+  "displayName": "Codex Start MPLAB Once",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ]
+}

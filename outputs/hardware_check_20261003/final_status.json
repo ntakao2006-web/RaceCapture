@@ -1,0 +1,83 @@
+{
+  "device": "EcoLogger V2",
+  "version": "0.2.0",
+  "demo": false,
+  "source": "logger-v2-hardware",
+  "connected": true,
+  "age_ms": 88,
+  "receive_hz": 61.5,
+  "mcu_generation_hz": 100,
+  "poll_target_hz": 20,
+  "received": 68991,
+  "bridge_errors": 0,
+  "mcu_resets": 0,
+  "error": null,
+  "config_error": null,
+  "storage": "internal-emmc",
+  "storage_free_bytes": 17155207168,
+  "sensors": {
+    "imu": "\u6b63\u5e38",
+    "gnss": "\u6e2c\u4f4d\u4e2d",
+    "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+    "sd": "\u8a8d\u8b58\u6e08\u307f",
+    "lte": "LTE\u9001\u4fe1OFF",
+    "camera": "\u672a\u63a5\u7d9a"
+  },
+  "hardware": {
+    "mcu_ms": 706297,
+    "seq": 70415,
+    "imu_address": 40,
+    "imu_errors": 0,
+    "imu_irq": 1,
+    "gnss_errors": 0,
+    "gnss_at": 706296,
+    "dropped": 1324,
+    "can1_ready": 1,
+    "can2_mode": 3,
+    "can_counts": [
+      0,
+      0
+    ],
+    "can_overflow": [
+      0,
+      0
+    ],
+    "sd_ready": 1,
+    "sd_mounted": 1,
+    "sd_logging": 0,
+    "sd_file": 50,
+    "sd_bytes": 774144,
+    "sd_errors": 0,
+    "sd_queue_dropped": 0,
+    "sd_blocks": 13800,
+    "sd_alloc_ms": 559,
+    "completed": 8,
+    "result": "[{\"index\":49,\"cluster\":1539,\"size\":1048576,\"active\":false},{\"index\":50,\"cluster\":1571,\"size\":774144,\"active\":false}]",
+    "nav": "b4017d1dea070a0211190d3717000000d7f8b6290301ea0db91d2353fb672b1512e40100664b0100bf04000071030000acffffffc5ffffff09000000670000007ccf3200ea000000c2e93f00be0000005c40562f0000000000000000",
+    "lte_power": 0,
+    "lte_overflows": 0
+  },
+  "logging": {
+    "active": false,
+    "name": "LOG_20261002T171909Z_7235bf5a.csv",
+    "rows": 36004,
+    "elapsed_s": 0,
+    "error": null
+  },
+  "sd_copy": {
+    "active": false
+  },
+  "podium": {
+    "state": "off",
+    "message": "LTE\u9001\u4fe1OFF",
+    "frames": 0,
+    "bytes": 0,
+    "reconnects": 0,
+    "skipped": 0,
+    "last_sent_age_ms": null,
+    "target_hz": 10,
+    "transport": "SIM7070G TCP / STM32 UART",
+    "configured": false,
+    "enabled": false
+  }
+}

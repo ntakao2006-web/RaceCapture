@@ -1,0 +1,18 @@
+[
+  [
+    "gnss_100k.jsonl",
+    true
+  ],
+  [
+    "gnss_100k.summary.json",
+    true
+  ],
+  [
+    "gnss_400k.jsonl",
+    true
+  ],
+  [
+    "gnss_400k.summary.json",
+    true
+  ]
+]

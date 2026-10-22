@@ -1,0 +1,23 @@
+{
+  "changed_components": [
+    "C15",
+    "C16",
+    "R8",
+    "R9",
+    "R10",
+    "R11",
+    "R12"
+  ],
+  "changed_existing_files": [
+    "logger_v2_ups.kicad_sch"
+  ],
+  "outside_target_instances_byte_identical": true,
+  "values_and_references_unchanged": true,
+  "pcb_unchanged": true,
+  "net_connections_unchanged": true,
+  "all_12_resistor_values_match_MPN": true,
+  "all_KEMET_capacitor_values_match_MPN": true,
+  "changed_footprints_load_and_have_pads_1_2": true,
+  "checked_resistors": 12,
+  "checked_KEMET_capacitors": 5
+}

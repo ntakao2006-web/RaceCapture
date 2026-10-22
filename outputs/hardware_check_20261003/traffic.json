@@ -1,0 +1,29 @@
+{
+  "groups": [
+    {
+      "run": "manual TCP retry",
+      "requests": 3,
+      "rx_http_bytes": 957
+    },
+    {
+      "run": "transport.json",
+      "requests": 6,
+      "rx_http_bytes": 1914
+    },
+    {
+      "run": "can_sd_third.json",
+      "requests": 3,
+      "rx_http_bytes": 957
+    },
+    {
+      "run": "can_sd.json",
+      "requests": 15,
+      "rx_http_bytes": 4785
+    }
+  ],
+  "head_requests": 27,
+  "tx_http_bytes": 1674,
+  "rx_http_bytes": 8613,
+  "application_total_bytes": 10287,
+  "scope": "HTTP application payload only; excludes DNS, TCP/IP headers, retransmissions, carrier accounting, and any unlogged traffic. No HTTP bodies or sensor telemetry transmitted."
+}

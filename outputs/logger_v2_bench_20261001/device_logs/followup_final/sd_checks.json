@@ -1,0 +1,44 @@
+{
+  "init": "cmd0=01 cmd8=01 acmd41=00 ocr_rc=00 ready=1 sdhc=1 cid=035344535531364780702a3525008ac9 csd=400e00325b59000076b27f800a404013",
+  "capacity_bytes": 15931539456,
+  "partitions": [
+    {
+      "type": 12,
+      "lba": 2048,
+      "sectors": 524288
+    },
+    {
+      "type": 0,
+      "lba": 0,
+      "sectors": 0
+    },
+    {
+      "type": 0,
+      "lba": 0,
+      "sectors": 0
+    },
+    {
+      "type": 0,
+      "lba": 0,
+      "sectors": 0
+    }
+  ],
+  "filesystem": {
+    "type": "FAT32",
+    "partition_lba": 2048,
+    "total_sectors": 524288,
+    "sectors_per_cluster": 1,
+    "data_clusters": 507904,
+    "fat_copies": 2
+  },
+  "root_directory_read": true,
+  "root_entries_in_first_sector": 2,
+  "scratch": {
+    "cluster": null,
+    "sector": 526344,
+    "location": "unpartitioned area",
+    "original_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+    "backup": "/data/bench-20261001/sd_scratch_sector_526344_backup.bin"
+  },
+  "restore_error": "timed out"
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "bank": "0x25",
+    "beginaddr": "0x2500",
+    "endaddr": "0x2600",
+    "regionid": "gpr37"
+  },
+  {
+    "bank": "0x26",
+    "beginaddr": "0x2600",
+    "endaddr": "0x2700",
+    "regionid": "gpr38"
+  },
+  {
+    "bank": "0x27",
+    "beginaddr": "0x2700",
+    "endaddr": "0x2800",
+    "regionid": "gpr39"
+  },
+  {
+    "bank": "0x28",
+    "beginaddr": "0x2800",
+    "endaddr": "0x2900",
+    "regionid": "gpr40"
+  },
+  {
+    "bank": "0x29",
+    "beginaddr": "0x2900",
+    "endaddr": "0x2A00",
+    "regionid": "gpr41"
+  },
+  {
+    "bank": "0x2A",
+    "beginaddr": "0x2A00",
+    "endaddr": "0x2B00",
+    "regionid": "gpr42"
+  },
+  {
+    "bank": "0x2B",
+    "beginaddr": "0x2B00",
+    "endaddr": "0x2C00",
+    "regionid": "gpr43"
+  },
+  {
+    "bank": "0x2C",
+    "beginaddr": "0x2C00",
+    "endaddr": "0x2D00",
+    "regionid": "gpr44"
+  },
+  {
+    "bank": "0x2D",
+    "beginaddr": "0x2D00",
+    "endaddr": "0x2E00",
+    "regionid": "gpr45"
+  }
+]

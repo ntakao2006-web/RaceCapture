@@ -1,0 +1,105 @@
+{
+  "tests": [
+    {
+      "baud": 115200,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 348278,
+        "completed": 26,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 319284,
+        "i2c_errors": 0,
+        "queue_overruns": 2196,
+        "uart_bytes": 5,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 9600,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 349903,
+        "completed": 28,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 320884,
+        "i2c_errors": 0,
+        "queue_overruns": 2196,
+        "uart_bytes": 5,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 19200,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 351548,
+        "completed": 30,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 322584,
+        "i2c_errors": 0,
+        "queue_overruns": 2196,
+        "uart_bytes": 5,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 38400,
+      "rx_hex": "",
+      "state": {
+        "mcu_ms": 353166,
+        "completed": 32,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 324184,
+        "i2c_errors": 0,
+        "queue_overruns": 2196,
+        "uart_bytes": 5,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "baud": 57600,
+      "rx_hex": "41540d0d0a4f4b0d0a",
+      "state": {
+        "mcu_ms": 354793,
+        "completed": 34,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 325784,
+        "i2c_errors": 0,
+        "queue_overruns": 2196,
+        "uart_bytes": 14,
+        "result": "UART command sent"
+      }
+    }
+  ],
+  "external_uart": "USART1 PB6/PB7 verified from installed core device tree",
+  "on": {
+    "mcu_ms": 336639,
+    "completed": 24,
+    "lte_power": true,
+    "cts": 0,
+    "gnss_bytes": 307684,
+    "i2c_errors": 0,
+    "queue_overruns": 2196,
+    "uart_bytes": 5,
+    "result": "LTE power enable + PWRKEY pulse completed"
+  },
+  "boot_hex": "",
+  "cfun0_hex": "41542b4346554e3d300d0d0a4f4b0d0a",
+  "rts_high_rx_hex": "",
+  "left_off": {
+    "mcu_ms": 359205,
+    "completed": 39,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 330184,
+    "i2c_errors": 0,
+    "queue_overruns": 2196,
+    "uart_bytes": 30,
+    "result": "LTE power disabled"
+  }
+}

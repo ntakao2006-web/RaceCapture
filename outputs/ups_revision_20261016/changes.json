@@ -1,0 +1,696 @@
+[
+  {
+    "file": "kicad_sch",
+    "ref": "R3",
+    "fields": {
+      "Value": {
+        "before": "4.32M",
+        "after": "332k"
+      },
+      "MPN": {
+        "before": "RC0805FR-074M32L",
+        "after": "RC0805FR-07332KL"
+      },
+      "DigiKey": {
+        "before": "311-4.32MCRCT-ND",
+        "after": "311-332KCRCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-074M32L/727918",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07332KL/727869"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 332kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "8008",
+        "after": "9171"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-074M32L",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07332KL"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_sch",
+    "ref": "R2",
+    "fields": {
+      "Value": {
+        "before": "1.21M",
+        "after": "12.1k"
+      },
+      "MPN": {
+        "before": "RC0805FR-071M21L",
+        "after": "RC0805FR-0712K1L"
+      },
+      "DigiKey": {
+        "before": "311-1.21MCRCT-ND",
+        "after": "311-12.1KCRCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071M21L/727470",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K1L/730517"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 12.1kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "7042",
+        "after": "1138"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-071M21L",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K1L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_sch",
+    "ref": "R9",
+    "fields": {
+      "Value": {
+        "before": "3.09M",
+        "after": "2.74M"
+      },
+      "MPN": {
+        "before": "RC0603FR-073M09L",
+        "after": "RC0603FR-072M74L"
+      },
+      "DigiKey": {
+        "before": "13-RC0603FR-073M09LCT-ND",
+        "after": "13-RC0603FR-072M74LCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-073M09L/5918330",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M74L/12707882"
+      },
+      "Rating": {
+        "before": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+        "after": "0603; 2.74MOhm; +/-1%; 0.1W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-09",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "6056",
+        "after": "7807"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-073M09L",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M74L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_sch",
+    "ref": "R5",
+    "fields": {
+      "Value": {
+        "before": "124k",
+        "after": "12.4k"
+      },
+      "MPN": {
+        "before": "RC0805FR-07124KL",
+        "after": "RC0805FR-0712K4L"
+      },
+      "DigiKey": {
+        "before": "311-124KCRCT-ND",
+        "after": "311-12.4KCRCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07124KL/727580",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K4L/727572"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 12.4kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "45153",
+        "after": "21359"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07124KL",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K4L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_sch",
+    "ref": "R14",
+    "fields": {
+      "MPN": {
+        "before": "RC0603FR-07100KL",
+        "after": "ERJ-3EKF1002V"
+      },
+      "Manufacturer": {
+        "before": "YAGEO",
+        "after": "Panasonic Industry"
+      },
+      "DigiKey": {
+        "before": "311-100KHRCT-ND",
+        "after": "P10.0KHCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889",
+        "after": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-3EKF1002V/198102"
+      },
+      "Rating": {
+        "before": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+        "after": "0603; 10kOhm; +/-1%; 0.1W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-09",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "184950",
+        "after": "2135987"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL",
+        "after": "https://industrial.panasonic.com/ww/products/pt/general-purpose-chip-resistors/models/ERJ-3EKF1002V"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_sch",
+    "ref": "R1",
+    "fields": {
+      "Value": {
+        "before": "3.57M",
+        "after": "30.1k"
+      },
+      "MPN": {
+        "before": "RC0805FR-073M57L",
+        "after": "ERJ-6ENF3012V"
+      },
+      "Manufacturer": {
+        "before": "YAGEO",
+        "after": "Panasonic Industry"
+      },
+      "DigiKey": {
+        "before": "311-3.57MCRCT-ND",
+        "after": "P30.1KCCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-073M57L/727826",
+        "after": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-6ENF3012V/111568"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 30.1kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "24495",
+        "after": "93300"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-073M57L",
+        "after": "https://industrial.panasonic.com/ww/products/pt/general-purpose-chip-resistors/models/ERJ-6ENF3012V"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_sch",
+    "ref": "R15",
+    "fields": {
+      "MPN": {
+        "before": "RC0603FR-07100KL",
+        "after": "RC0603FR-072M37L"
+      },
+      "DigiKey": {
+        "before": "311-100KHRCT-ND",
+        "after": "13-RC0603FR-072M37LCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M37L/5918308"
+      },
+      "Rating": {
+        "before": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+        "after": "0603; 2.37MOhm; +/-1%; 0.1W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-09",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "184950",
+        "after": "7582"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M37L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_sch",
+    "ref": "U2",
+    "fields": {
+      "DigiKey": {
+        "before": null,
+        "after": "LTC1440IMS8#TRPBFCT-ND"
+      },
+      "Stock_checked": {
+        "before": null,
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": null,
+        "after": "348"
+      },
+      "Rating": {
+        "before": null,
+        "after": "Comparator with 1.182V reference; MSOP-8 3x3mm P0.65mm; 2..11V supply"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_sch",
+    "ref": "R7",
+    "fields": {
+      "Value": {
+        "before": "499k",
+        "after": "49.9k"
+      },
+      "MPN": {
+        "before": "RC0805FR-07499KL",
+        "after": "RC0805FR-0749K9L"
+      },
+      "DigiKey": {
+        "before": "311-499KCRCT-ND",
+        "after": "311-49.9KCRCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07499KL/727987",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0749K9L/730932"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 49.9kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "380730",
+        "after": "910370"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07499KL",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0749K9L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "R2",
+    "fields": {
+      "Value": {
+        "before": "1.21M",
+        "after": "12.1k"
+      },
+      "MPN": {
+        "before": "RC0805FR-071M21L",
+        "after": "RC0805FR-0712K1L"
+      },
+      "DigiKey": {
+        "before": "311-1.21MCRCT-ND",
+        "after": "311-12.1KCRCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-071M21L/727470",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K1L/730517"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 12.1kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "7042",
+        "after": "1138"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-071M21L",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K1L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "R1",
+    "fields": {
+      "Value": {
+        "before": "3.57M",
+        "after": "30.1k"
+      },
+      "MPN": {
+        "before": "RC0805FR-073M57L",
+        "after": "ERJ-6ENF3012V"
+      },
+      "Manufacturer": {
+        "before": "YAGEO",
+        "after": "Panasonic Industry"
+      },
+      "DigiKey": {
+        "before": "311-3.57MCRCT-ND",
+        "after": "P30.1KCCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-073M57L/727826",
+        "after": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-6ENF3012V/111568"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 30.1kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "24495",
+        "after": "93300"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-073M57L",
+        "after": "https://industrial.panasonic.com/ww/products/pt/general-purpose-chip-resistors/models/ERJ-6ENF3012V"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "R7",
+    "fields": {
+      "Value": {
+        "before": "499k",
+        "after": "49.9k"
+      },
+      "MPN": {
+        "before": "RC0805FR-07499KL",
+        "after": "RC0805FR-0749K9L"
+      },
+      "DigiKey": {
+        "before": "311-499KCRCT-ND",
+        "after": "311-49.9KCRCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07499KL/727987",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0749K9L/730932"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 49.9kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "380730",
+        "after": "910370"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07499KL",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0749K9L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "R9",
+    "fields": {
+      "Value": {
+        "before": "3.09M",
+        "after": "2.74M"
+      },
+      "MPN": {
+        "before": "RC0603FR-073M09L",
+        "after": "RC0603FR-072M74L"
+      },
+      "DigiKey": {
+        "before": "13-RC0603FR-073M09LCT-ND",
+        "after": "13-RC0603FR-072M74LCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-073M09L/5918330",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M74L/12707882"
+      },
+      "Rating": {
+        "before": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+        "after": "0603; 2.74MOhm; +/-1%; 0.1W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-09",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "6056",
+        "after": "7807"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-073M09L",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M74L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "R5",
+    "fields": {
+      "Value": {
+        "before": "124k",
+        "after": "12.4k"
+      },
+      "MPN": {
+        "before": "RC0805FR-07124KL",
+        "after": "RC0805FR-0712K4L"
+      },
+      "DigiKey": {
+        "before": "311-124KCRCT-ND",
+        "after": "311-12.4KCRCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07124KL/727580",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K4L/727572"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 12.4kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "45153",
+        "after": "21359"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07124KL",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K4L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "R15",
+    "fields": {
+      "MPN": {
+        "before": "RC0603FR-07100KL",
+        "after": "RC0603FR-072M37L"
+      },
+      "DigiKey": {
+        "before": "311-100KHRCT-ND",
+        "after": "13-RC0603FR-072M37LCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M37L/5918308"
+      },
+      "Rating": {
+        "before": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+        "after": "0603; 2.37MOhm; +/-1%; 0.1W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-09",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "184950",
+        "after": "7582"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M37L"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "U2",
+    "fields": {
+      "DigiKey": {
+        "before": null,
+        "after": "LTC1440IMS8#TRPBFCT-ND"
+      },
+      "Stock_checked": {
+        "before": null,
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": null,
+        "after": "348"
+      },
+      "Rating": {
+        "before": null,
+        "after": "Comparator with 1.182V reference; MSOP-8 3x3mm P0.65mm; 2..11V supply"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "R3",
+    "fields": {
+      "Value": {
+        "before": "4.32M",
+        "after": "332k"
+      },
+      "MPN": {
+        "before": "RC0805FR-074M32L",
+        "after": "RC0805FR-07332KL"
+      },
+      "DigiKey": {
+        "before": "311-4.32MCRCT-ND",
+        "after": "311-332KCRCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-074M32L/727918",
+        "after": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07332KL/727869"
+      },
+      "Rating": {
+        "before": "0805 0.125W +/-1%; 150V working voltage; -55..155C",
+        "after": "0805; 332kOhm; +/-1%; 0.125W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-07",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "8008",
+        "after": "9171"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-074M32L",
+        "after": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07332KL"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "R14",
+    "fields": {
+      "MPN": {
+        "before": "RC0603FR-07100KL",
+        "after": "ERJ-3EKF1002V"
+      },
+      "Manufacturer": {
+        "before": "YAGEO",
+        "after": "Panasonic Industry"
+      },
+      "DigiKey": {
+        "before": "311-100KHRCT-ND",
+        "after": "P10.0KHCT-ND"
+      },
+      "DigiKey_URL": {
+        "before": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889",
+        "after": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-3EKF1002V/198102"
+      },
+      "Rating": {
+        "before": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+        "after": "0603; 10kOhm; +/-1%; 0.1W"
+      },
+      "Stock_checked": {
+        "before": "2026-10-09",
+        "after": "2026-10-16"
+      },
+      "Stock_snapshot": {
+        "before": "184950",
+        "after": "2135987"
+      },
+      "Datasheet": {
+        "before": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL",
+        "after": "https://industrial.panasonic.com/ww/products/pt/general-purpose-chip-resistors/models/ERJ-3EKF1002V"
+      }
+    },
+    "footprint_alias_aligned": false
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "J4",
+    "fields": {},
+    "footprint_alias_aligned": true
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "J1",
+    "fields": {},
+    "footprint_alias_aligned": true
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "J3",
+    "fields": {},
+    "footprint_alias_aligned": true
+  },
+  {
+    "file": "kicad_pcb",
+    "ref": "J2",
+    "fields": {},
+    "footprint_alias_aligned": true
+  }
+]

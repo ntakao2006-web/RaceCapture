@@ -1,0 +1,446 @@
+{
+  "duration_s": 30.05,
+  "samples": 280,
+  "unique_mcu_timestamps": 277,
+  "channels": 50,
+  "metadata": [
+    {
+      "nm": "Speed",
+      "ut": "km/h",
+      "min": 0,
+      "max": 250,
+      "prec": 1,
+      "sr": 10
+    },
+    {
+      "nm": "GPSSpeed",
+      "ut": "km/h",
+      "min": 0,
+      "max": 250,
+      "prec": 1,
+      "sr": 10
+    },
+    {
+      "nm": "RPM",
+      "ut": "rpm",
+      "min": 0,
+      "max": 10000,
+      "prec": 0,
+      "sr": 10
+    },
+    {
+      "nm": "Throttle",
+      "ut": "%",
+      "min": 0,
+      "max": 100,
+      "prec": 1,
+      "sr": 10
+    },
+    {
+      "nm": "BatteryVolt",
+      "ut": "V",
+      "min": 0,
+      "max": 20,
+      "prec": 2,
+      "sr": 10
+    },
+    {
+      "nm": "Lat",
+      "ut": "deg",
+      "min": -90,
+      "max": 90,
+      "prec": 7,
+      "sr": 10
+    },
+    {
+      "nm": "Lon",
+      "ut": "deg",
+      "min": -180,
+      "max": 180,
+      "prec": 7,
+      "sr": 10
+    },
+    {
+      "nm": "Altitude",
+      "ut": "m",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "Yaw",
+      "ut": "deg",
+      "min": 0,
+      "max": 360,
+      "prec": 2,
+      "sr": 10
+    },
+    {
+      "nm": "GPSFix",
+      "ut": "",
+      "min": 0,
+      "max": 5,
+      "prec": 0,
+      "sr": 10
+    },
+    {
+      "nm": "GPSSats",
+      "ut": "",
+      "min": 0,
+      "max": 60,
+      "prec": 0,
+      "sr": 10
+    },
+    {
+      "nm": "GNSSHz",
+      "ut": "Hz",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "AccelX",
+      "ut": "m/s2",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "AccelY",
+      "ut": "m/s2",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "AccelZ",
+      "ut": "m/s2",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "GyroX",
+      "ut": "deg/s",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "GyroY",
+      "ut": "deg/s",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "GyroZ",
+      "ut": "deg/s",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "Roll",
+      "ut": "deg",
+      "min": -180,
+      "max": 180,
+      "prec": 2,
+      "sr": 10
+    },
+    {
+      "nm": "Pitch",
+      "ut": "deg",
+      "min": -180,
+      "max": 180,
+      "prec": 2,
+      "sr": 10
+    },
+    {
+      "nm": "LongAccel",
+      "ut": "g",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "LatAccel",
+      "ut": "g",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "VertAccel",
+      "ut": "g",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "Distance",
+      "ut": "km",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "WaterTemp",
+      "ut": "C",
+      "min": -40,
+      "max": 150,
+      "prec": 1,
+      "sr": 10
+    },
+    {
+      "nm": "WheelFrontA",
+      "ut": "km/h",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "WheelFrontB",
+      "ut": "km/h",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "WheelRearA",
+      "ut": "km/h",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "WheelRearB",
+      "ut": "km/h",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "WaterTempBackup",
+      "ut": "C",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "IntakeTemp",
+      "ut": "C",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "FuelLevelRaw",
+      "ut": "%",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "ClutchDisengaged",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "IMUTemp",
+      "ut": "C",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "CalSystem",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "CalGyro",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "CalAccel",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "CalMag",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "QuatW",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "QuatX",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "QuatY",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "QuatZ",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "GPSHAcc",
+      "ut": "m",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "CAN1Rx",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "CAN2Rx",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "SDErrors",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "SDDropped",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "SDLogging",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "BridgeErrors",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    },
+    {
+      "nm": "IMUErrors",
+      "ut": "",
+      "min": -1000,
+      "max": 1000,
+      "prec": 3,
+      "sr": 10
+    }
+  ],
+  "last_values": {
+    "GPSFix": 0,
+    "GPSSats": 0,
+    "GNSSHz": 10.0,
+    "AccelX": -1.57,
+    "AccelY": -3.84,
+    "AccelZ": 8.87,
+    "GyroX": -0.5625,
+    "GyroY": 0.25,
+    "GyroZ": 0.0,
+    "Roll": -9.6875,
+    "Pitch": -23.625,
+    "LongAccel": 0.007138013490845498,
+    "LatAccel": 0.0020394324259558564,
+    "VertAccel": 0.0010197162129779282,
+    "IMUTemp": 34,
+    "CalSystem": 0,
+    "CalGyro": 3,
+    "CalAccel": 1,
+    "CalMag": 0,
+    "QuatW": 0.9754638671875,
+    "QuatX": -0.20257568359375,
+    "QuatY": 0.08636474609375,
+    "QuatZ": 0.0008544921875,
+    "CAN1Rx": 0,
+    "CAN2Rx": 0,
+    "SDErrors": 0,
+    "SDDropped": 0,
+    "SDLogging": 1,
+    "BridgeErrors": 0,
+    "IMUErrors": 0
+  },
+  "bridge_errors_delta": 0,
+  "sd_errors_delta": 0,
+  "sd_dropped_delta": 0,
+  "sd_blocks_delta": 592,
+  "connected": true,
+  "source": "logger-v2-hardware"
+}

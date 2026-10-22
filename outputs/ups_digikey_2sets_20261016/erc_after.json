@@ -1,0 +1,443 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-16T15:02:13+0900",
+    "kicad_version": "9.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55",
+            "violations": [
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'IOREF'",
+                            "pos": {
+                                "x": 0.3175,
+                                "y": 0.3683
+                            },
+                            "uuid": "de819ae4-b245-474b-a426-865ba877b8a2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR01 ピン 1 [Power input, Line]",
+                            "pos": {
+                                "x": 0.3937,
+                                "y": 0.2921
+                            },
+                            "uuid": "6bd03990-0c6f-47aa-a191-9be4dd5032ee"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '~{RESET}'",
+                            "pos": {
+                                "x": 0.3175,
+                                "y": 0.3937
+                            },
+                            "uuid": "49585dba-cfa7-4813-841e-9d900d43ecf4"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR02 ピン 1 [Power input, Line]",
+                            "pos": {
+                                "x": 0.4191,
+                                "y": 0.2921
+                            },
+                            "uuid": "fdd33dcf-399e-4ac6-99f5-9ccff615cf55"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR03 ピン 1 [Power input, Line]",
+                            "pos": {
+                                "x": 0.4445,
+                                "y": 0.2921
+                            },
+                            "uuid": "25f7f7e2-1fc6-41d8-a14b-2d2742e98c50"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "電源入力ピンが電源出力ピンによって駆動されていない",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR04 ピン 1 [Power input, Line]",
+                            "pos": {
+                                "x": 0.4445,
+                                "y": 0.5461
+                            },
+                            "uuid": "87fd47b6-2ebb-4b03-a4f0-be8b5717bf68"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "power_pin_not_driven"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'A0'",
+                            "pos": {
+                                "x": 0.3429,
+                                "y": 0.6223
+                            },
+                            "uuid": "ba02dc27-26a3-4648-b0aa-06b6dcaf001f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'A1'",
+                            "pos": {
+                                "x": 0.3429,
+                                "y": 0.6477
+                            },
+                            "uuid": "acc9991b-1bdd-4544-9a08-4037937485cb"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'A2'",
+                            "pos": {
+                                "x": 0.3429,
+                                "y": 0.6731
+                            },
+                            "uuid": "09251fd4-af37-4d86-8951-1faaac710ffa"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'A3'",
+                            "pos": {
+                                "x": 0.3429,
+                                "y": 0.6985
+                            },
+                            "uuid": "2c60ab74-0590-423b-8921-6f3212a358d2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'SDA/A4'",
+                            "pos": {
+                                "x": 0.3429,
+                                "y": 0.7239
+                            },
+                            "uuid": "e7ce99b8-ca22-4c56-9e55-39d32c709f3c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'SCL/A5'",
+                            "pos": {
+                                "x": 0.3429,
+                                "y": 0.7493
+                            },
+                            "uuid": "ea5aa60b-a25e-41a1-9e06-c7b6f957567f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'AREF'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.3429
+                            },
+                            "uuid": "bbf52cf8-6d97-4499-a9ee-3657cebcdabf"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '13'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.3937
+                            },
+                            "uuid": "35bc5b35-b7b2-44d5-bbed-557f428649b2"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '12'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.4191
+                            },
+                            "uuid": "3ffaa3b1-1d78-4c7b-bdf9-f1a8019c92fd"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '*11'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.4445
+                            },
+                            "uuid": "9ad5a781-2469-4c8f-8abf-a1c3586f7cb7"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '*10'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.4699
+                            },
+                            "uuid": "54be04e4-fffa-4f7f-8a5f-d0de81314e8f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '*9'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.4953
+                            },
+                            "uuid": "ccb58899-a82d-403c-b30b-ee351d622e9c"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '8'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.5207
+                            },
+                            "uuid": "89b0e564-e7aa-4224-80c9-3f0614fede8f"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '7'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.6223
+                            },
+                            "uuid": "873d2c88-519e-482f-a3ed-2484e5f9417e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '*6'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.6477
+                            },
+                            "uuid": "c775d4e8-c37b-4e73-90c1-1c8d36333aac"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '*5'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.6731
+                            },
+                            "uuid": "d9a65242-9c26-45cd-9a55-3e69f0d77784"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '4'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.6985
+                            },
+                            "uuid": "0d8cfe6d-11bf-42b9-9752-f9a5a76bce7e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '*3'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.7239
+                            },
+                            "uuid": "9cccf5f9-68a4-4e61-b418-6185dd6a5f9a"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル '2'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.7493
+                            },
+                            "uuid": "23f0c933-49f0-4410-a8db-8b017f48dadc"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'TX/1'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.7747
+                            },
+                            "uuid": "ae2c9582-b445-44bd-b371-7fc74f6cf852"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "ラベルがどこにも接続されていない",
+                    "items": [
+                        {
+                            "description": "ラベル 'RX/0'",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.8001
+                            },
+                            "uuid": "01ea9310-cf66-436b-9b89-1a2f4237b59e"
+                        }
+                    ],
+                    "severity": "error",
+                    "type": "label_dangling"
+                },
+                {
+                    "description": "VCC と Vin は、ともに同じ配線に接続されています; VCC をネットリスト用ラベルとして選択しました",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR01 ピン 1 [Power input, Line]",
+                            "pos": {
+                                "x": 0.3937,
+                                "y": 0.2921
+                            },
+                            "uuid": "6bd03990-0c6f-47aa-a191-9be4dd5032ee"
+                        },
+                        {
+                            "description": "ラベル 'Vin'",
+                            "pos": {
+                                "x": 0.3937,
+                                "y": 0.2921
+                            },
+                            "uuid": "c348793d-eec0-4f33-9b91-2cae8b4224a4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "multiple_net_names"
+                }
+            ]
+        }
+    ],
+    "source": "logger_v2_ups.kicad_sch"
+}

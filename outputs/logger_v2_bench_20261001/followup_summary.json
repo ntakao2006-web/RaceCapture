@@ -1,0 +1,390 @@
+{
+  "gnss": {
+    "otp_applied_once": true,
+    "clock_readback": {
+      "method": "Read-only factory keys after UBX-CFG-RST hardware-immediate reset; no BBR erase",
+      "keys": [
+        {
+          "key": "0x40a40001",
+          "frame": "b562068b0c00010400000100a44000b0710bb382",
+          "value": 192000000
+        },
+        {
+          "key": "0x40a40003",
+          "frame": "b562068b0c00010400000300a44000b0710bb592",
+          "value": 192000000
+        },
+        {
+          "key": "0x40a40005",
+          "frame": "b562068b0c00010400000500a44000b0710bb7a2",
+          "value": 192000000
+        },
+        {
+          "key": "0x40a4000a",
+          "frame": "b562068b0c00010400000a00a44000d8b80525ca",
+          "value": 96000000
+        }
+      ],
+      "verified": true
+    },
+    "final_capture": {
+      "samples": 200,
+      "elapsed_s": 19.862000000000002,
+      "measured_hz": 10.019132010875037,
+      "itow_interval_ms": {
+        "100": 199
+      },
+      "sats_min": 16,
+      "sats_max": 16,
+      "hacc_min_mm": 624,
+      "hacc_max_mm": 642,
+      "valid_fix_samples": 200,
+      "last": {
+        "host_s": 19.986,
+        "itow": 391422600,
+        "fix": 3,
+        "valid": true,
+        "sats": 16,
+        "hacc_mm": 642
+      },
+      "state": {
+        "mcu_ms": 119907,
+        "completed": 19,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 111502,
+        "i2c_errors": 0,
+        "queue_overruns": 242,
+        "uart_bytes": 1,
+        "result": "GNSS sent"
+      },
+      "rate_from_gnss_itow_hz": 10.0
+    },
+    "final_ram_readback": {
+      "ram_readback": {
+        "0x30210001": 100,
+        "0x30210002": 1,
+        "0x10720001": 1,
+        "0x10720002": 0,
+        "0x20910006": 1,
+        "0x1031001f": 1,
+        "0x10310021": 1,
+        "0x10310022": 1,
+        "0x10310025": 1,
+        "0x1031000d": 0,
+        "0x1031000f": 1
+      },
+      "read_retries": [
+        "0x10310022"
+      ],
+      "nav_sat_poll": "No response; NAV-PVT used satellite count available in continuous capture",
+      "nav_sat": {
+        "channels": 0,
+        "with_signal": 0,
+        "used": 0,
+        "used_by_system": {},
+        "satellites": []
+      }
+    },
+    "configuration_after_usb_power_cycle": {
+      "ram_readback": {
+        "0x30210001": 100,
+        "0x30210002": 1,
+        "0x10720001": 1,
+        "0x10720002": 0,
+        "0x20910006": 1,
+        "0x1031001f": 1,
+        "0x10310021": 1,
+        "0x10310022": 1,
+        "0x10310025": 1,
+        "0x1031000d": 0,
+        "0x1031000f": 1
+      },
+      "nav_sat_poll": "No response; NAV-PVT used satellite count available in continuous capture",
+      "nav_sat": {
+        "channels": 0,
+        "with_signal": 0,
+        "used": 0,
+        "used_by_system": {},
+        "satellites": []
+      }
+    }
+  },
+  "sd": {
+    "read_checks": {
+      "init": "cmd0=01 cmd8=01 acmd41=00 ocr_rc=00 ready=1 sdhc=1 cid=035344535531364780702a3525008ac9 csd=400e00325b59000076b27f800a404013",
+      "capacity_bytes": 15931539456,
+      "partitions": [
+        {
+          "type": 12,
+          "lba": 2048,
+          "sectors": 524288
+        },
+        {
+          "type": 0,
+          "lba": 0,
+          "sectors": 0
+        },
+        {
+          "type": 0,
+          "lba": 0,
+          "sectors": 0
+        },
+        {
+          "type": 0,
+          "lba": 0,
+          "sectors": 0
+        }
+      ],
+      "filesystem": {
+        "type": "FAT32",
+        "partition_lba": 2048,
+        "total_sectors": 524288,
+        "sectors_per_cluster": 1,
+        "data_clusters": 507904,
+        "fat_copies": 2
+      },
+      "root_directory_read": true,
+      "root_entries_in_first_sector": 2,
+      "scratch": {
+        "cluster": null,
+        "sector": 526344,
+        "location": "unpartitioned area",
+        "original_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+        "backup": "/data/bench-20261001/sd_scratch_sector_526344_backup.bin"
+      },
+      "restore_error": "timed out",
+      "restore_error_superseded_by_successful_recovery": true
+    },
+    "write_and_restore": {
+      "init": "cmd0=01 cmd8=01 acmd41=00 ocr_rc=00 ready=1 sdhc=1 cid=035344535531364780702a3525008ac9 csd=400e00325b59000076b27f800a404013",
+      "before_matches_backup": true,
+      "test_write": "write_token=0xe5 accepted=1 busy_done=1",
+      "test_readback_matches": true,
+      "restore_write": "write_token=0xe5 accepted=1 busy_done=1",
+      "original_restored": true
+    }
+  },
+  "lte": {
+    "tests": [
+      {
+        "baud": 115200,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 39370,
+          "completed": 28,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 30500,
+          "i2c_errors": 95,
+          "uart_bytes": 29,
+          "result": "UART command sent"
+        }
+      },
+      {
+        "baud": 9600,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 41004,
+          "completed": 30,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 32100,
+          "i2c_errors": 95,
+          "uart_bytes": 30,
+          "result": "UART command sent"
+        }
+      },
+      {
+        "baud": 19200,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 42622,
+          "completed": 32,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 33700,
+          "i2c_errors": 95,
+          "uart_bytes": 31,
+          "result": "UART command sent"
+        }
+      },
+      {
+        "baud": 38400,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 44238,
+          "completed": 34,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 35300,
+          "i2c_errors": 95,
+          "uart_bytes": 32,
+          "result": "UART command sent"
+        }
+      },
+      {
+        "baud": 57600,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 45853,
+          "completed": 36,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 36900,
+          "i2c_errors": 95,
+          "uart_bytes": 33,
+          "result": "UART command sent"
+        }
+      },
+      {
+        "baud": 230400,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 47490,
+          "completed": 38,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 38600,
+          "i2c_errors": 95,
+          "uart_bytes": 34,
+          "result": "UART command sent"
+        }
+      },
+      {
+        "baud": 460800,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 49102,
+          "completed": 40,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 40200,
+          "i2c_errors": 95,
+          "uart_bytes": 35,
+          "result": "UART command sent"
+        }
+      },
+      {
+        "baud": 921600,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 50720,
+          "completed": 42,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 41800,
+          "i2c_errors": 95,
+          "uart_bytes": 36,
+          "result": "UART command sent"
+        }
+      },
+      {
+        "baud": 2000000,
+        "rx_hex": "",
+        "state": {
+          "mcu_ms": 52337,
+          "completed": 44,
+          "lte_power": true,
+          "cts": 0,
+          "gnss_bytes": 43400,
+          "i2c_errors": 95,
+          "uart_bytes": 37,
+          "result": "UART command sent"
+        }
+      }
+    ],
+    "external_uart": "USART1 PB6/PB7 verified from installed core device tree",
+    "on": {
+      "mcu_ms": 27690,
+      "completed": 26,
+      "lte_power": true,
+      "cts": 0,
+      "gnss_bytes": 18800,
+      "i2c_errors": 95,
+      "uart_bytes": 28,
+      "result": "LTE power enable + PWRKEY pulse completed"
+    },
+    "boot_hex": "",
+    "rts_high_rx_hex": "00",
+    "left_off": {
+      "mcu_ms": 54613,
+      "completed": 48,
+      "lte_power": false,
+      "cts": 0,
+      "gnss_bytes": 45700,
+      "i2c_errors": 95,
+      "uart_bytes": 38,
+      "result": "LTE power disabled"
+    },
+    "user_voltage_on": {
+      "C7_V": 0,
+      "C5_V": 0,
+      "R1_V": 3.3,
+      "C2_V": 4.7
+    },
+    "diagnosis": "TVS removal cleared the 3.8 V rail near-short. Buck supply, modem 1.8 V output, UART up to 2 Mbps with bounded AT replies, RTS gating, shutdown and reboot now pass. Failed removed TVS versus solder bridge not independently isolated. TVS remains absent.",
+    "user_unpowered_resistance_C7_ohm": 0.07,
+    "tvs_removed_user_report": {
+      "rail_resistance_reported": "0.2 MH ohm, interpreted provisionally as 0.2 Mohm (~200 kohm)",
+      "short_location": "TVS component or solder around TVS implicated; removed component not independently measured",
+      "retest": "USB reconnected; 3.796 V buck output measured, UART/boot diagnosis continuing"
+    },
+    "after_tvs_removal": {
+      "user_C7_V": 3.796,
+      "user_C5_V": 1.799,
+      "module_CBC_mV": 3802,
+      "model": "SIMCOM_SIM7070",
+      "revision": "1951B14SIM7070",
+      "initial_auto_baud": 0,
+      "working_initial_mcu_baud": 57600,
+      "baud_tests": [
+        {
+          "baud": 921600,
+          "ok": 5,
+          "attempts": 5
+        },
+        {
+          "baud": 2000000,
+          "ok": 5,
+          "attempts": 5
+        }
+      ],
+      "rts_hold": {
+        "held_response": "",
+        "released_response": "\r\nOK\r\n",
+        "gated_as_expected": true
+      },
+      "cts_observation": "Read low/ready during commands; no independent forced CTS transition test",
+      "sim_response": "SIM failure under CFUN=0 with no SIM installed; SIM reader cannot be accepted without SIM",
+      "normal_powerdown": "\r\nNORMAL POWER DOWN\r\n\u0000",
+      "second_boot_at": "AT\r\r\nOK\r\n",
+      "radio_network_tested": false,
+      "left_off": true,
+      "detail_file": "device_logs/followup_final/lte_after_tvs_removal.json"
+    }
+  },
+  "led": {
+    "user_confirmed_all_eight": true
+  },
+  "can1": {
+    "gpio_transceiver_feedback": "32/32 recessive and 32/32 dominant",
+    "can_frames_tested": false
+  },
+  "can2": {
+    "previous_loopback_matches": "32/32",
+    "overflow_flag": "0x40",
+    "latest_automatic_rx_release_test": "1/32; explicit flag release retest pending",
+    "termination_excluded_for_internal_loopback": true,
+    "explicit_rx_flag_release": {
+      "matches": 32,
+      "attempts": 32,
+      "overflow_iterations": 32,
+      "eflg_after_software_clear": 0,
+      "tec": 0,
+      "rec": 0
+    },
+    "overflow_cause": "Not termination in internal loopback; still asserted during each iteration, not a clean CAN receive acceptance."
+  },
+  "firmware_left": "logger_v2_live_check, 64428-byte compact image. GNSS four_10 at boot, LEDs all ON, LTE OFF. Runtime UART 57600. Diagnostic firmware, not SD logging or ecologger.read production telemetry."
+}

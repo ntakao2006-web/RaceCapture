@@ -4,6 +4,27 @@ import math
 from collections import deque
 from models import CHANNELS
 
+OILTEMP_STATES = {0:'正常', 1:'オープン', 2:'短絡', 3:'データ異常', 4:'通信途絶'}
+
+def oiltemp_packet(raw):
+    """Legacy PIC 0x600: int16 centi-C, uint16 ADC, uint32 ohms, all LE.
+
+    -32768 is reserved for a fault, never a temperature. Check the full
+    fault signature so a truncated/corrupt frame cannot become a valid value.
+    """
+    if len(raw) != 8:
+        return None, 3
+    temp, adc, resistance = struct.unpack('<hHI', raw)
+    if temp == -32768:
+        if 4091 <= adc <= 4095 and resistance == 0xffffffff:
+            return None, 1
+        if adc <= 4 and resistance == 0:
+            return None, 2
+        return None, 3
+    if not 4 < adc < 4091 or not 0 < resistance < 0xffffffff:
+        return None, 3
+    return temp * .01, 0
+
 class HardwareDecoder:
     def __init__(self):
         self.distance=0.0
@@ -12,12 +33,13 @@ class HardwareDecoder:
         self.gnss_hz=None
         self.gnss_intervals=deque(maxlen=20)
         self.can_values={}
+        self.can_states={}
         self.last_ms=None
         self.last_can=[]
 
     def decode(self, status, batch, config):
         if self.last_ms is not None and status['mcu_ms'] < self.last_ms:
-            self.can_values.clear();self.distance=0;self.last_itow=None
+            self.can_values.clear();self.can_states.clear();self.distance=0;self.last_itow=None
             self.seen_itow=None;self.gnss_hz=None;self.gnss_intervals.clear()
         self.last_ms=status['mcu_ms']
         self.last_can=batch.get('can',[])
@@ -26,6 +48,13 @@ class HardwareDecoder:
             raw=bytes.fromhex(data)
             for sig in config.signals:
                 if sig.channel!=channel or sig.can_id!=can_id or sig.extended!=bool(extended):continue
+                if sig.conversion == 'sensorhub_oiltemp':
+                    value, code = oiltemp_packet(raw)
+                    for table, item in ((self.can_values,value),(self.can_states,code)):
+                        history = table.setdefault(sig.name,deque())
+                        history.append((stamp,item))
+                        while history and (stamp-history[0][0])%2**32>1500:history.popleft()
+                    continue
                 width=int(sig.data_type.lstrip('uint'))//8
                 if len(raw)<sig.byte_offset+width:continue
                 value=int.from_bytes(raw[sig.byte_offset:sig.byte_offset+width],sig.endian,signed=sig.data_type.startswith('int'))
@@ -77,7 +106,16 @@ class HardwareDecoder:
                 for i,name in enumerate(('GyroX','GyroY','GyroZ')):v[name]=x[6+i]/16
                 v.update(Roll=x[10]/16,Pitch=x[11]/16,LongAccel=x[16]/980.665,LatAccel=x[17]/980.665,VertAccel=x[18]/980.665)
             decoded={name:next((value for at,value in reversed(history) if (stamp-at)%2**32<=1000),None) for name,history in self.can_values.items()}
+            can_states={}
+            for sig in config.signals:
+                if sig.conversion != 'sensorhub_oiltemp':continue
+                code=next((value for at,value in reversed(self.can_states.get(sig.name,())) if (stamp-at)%2**32<=1000),4)
+                can_states[sig.name]={'code':code,'label':OILTEMP_STATES[code]}
+                decoded.setdefault(sig.name,None)
+                if code != 0:decoded[sig.name]=None
+                decoded[sig.name+'State']=code
+                decoded[sig.name+'Open']=int(code==1) if code in (0,1,2) else None
             for name,value in decoded.items():
                 if name in v:v[name]=value
-            samples.append({'schema':1,'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':stamp,'values':v,'can_signals':decoded,'gnss_utc':gnss_utc,'gnss_itow_ms':itow,'imu_raw':data,'imu_calibration':({'system':raw[45]>>6,'gyro':raw[45]>>4&3,'accel':raw[45]>>2&3,'mag':raw[45]&3} if imu_ok else None),'imu_temperature_C':(raw[44] if raw[44]<128 else raw[44]-256) if imu_ok else None,'quaternion':[q/16384 for q in x[12:16]] if imu_ok else None,'gnss_hacc_m':struct.unpack_from('<I',nav,40)[0]/1000 if fix else None})
+            samples.append({'schema':1,'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':stamp,'values':v,'can_signals':decoded,'can_states':can_states,'gnss_utc':gnss_utc,'gnss_itow_ms':itow,'imu_raw':data,'imu_calibration':({'system':raw[45]>>6,'gyro':raw[45]>>4&3,'accel':raw[45]>>2&3,'mag':raw[45]&3} if imu_ok else None),'imu_temperature_C':(raw[44] if raw[44]<128 else raw[44]-256) if imu_ok else None,'quaternion':[q/16384 for q in x[12:16]] if imu_ok else None,'gnss_hacc_m':struct.unpack_from('<I',nav,40)[0]/1000 if fix else None})
         return samples,{'imu':'正常' if status['imu_address'] else '未検出','gnss':'測位中' if fix else '測位待ち' if valid_nav else '未受信','can':f"CAN1 {status['can_counts'][0]} フレーム（受信専用） / CAN2 センサーハブ {status['can_counts'][1]} フレーム",'sd':'未検出' if not status['sd_ready'] else '記録欠落あり' if status.get('sd_queue_dropped') else 'FAT32を認識できません' if status.get('sd_mounted') is False or status.get('sd_mounted')==0 else f"記録中 EL{status.get('sd_file',0):06}.BIN" if status.get('sd_logging') else '保存エラー' if status.get('sd_errors') else '認識済み' if status['sd_ready'] else '未検出','lte':'電源OFF / SIM・アンテナ未接続','camera':'未接続'}

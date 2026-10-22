@@ -1,0 +1,71 @@
+{
+  "tests": [
+    {
+      "command": "AT",
+      "response": "",
+      "state": {
+        "mcu_ms": 140878,
+        "completed": 4,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 111385,
+        "i2c_errors": 0,
+        "queue_overruns": 872,
+        "uart_bytes": 2,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "",
+      "state": {
+        "mcu_ms": 145971,
+        "completed": 5,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 116485,
+        "i2c_errors": 0,
+        "queue_overruns": 872,
+        "uart_bytes": 2,
+        "result": "UART command sent"
+      }
+    }
+  ],
+  "hardware_condition": "TVS D3 removed after user reported rail resistance rose from 0.07 ohm to about 0.2 Mohm",
+  "radio_policy": "SIM/antenna absent; CFUN=0 requested immediately after first AT response",
+  "before": {
+    "mcu_ms": 132560,
+    "completed": 0,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 103085,
+    "i2c_errors": 0,
+    "queue_overruns": 868,
+    "uart_bytes": 1,
+    "result": "idle"
+  },
+  "power_on": {
+    "mcu_ms": 134204,
+    "completed": 3,
+    "lte_power": true,
+    "cts": 0,
+    "gnss_bytes": 104685,
+    "i2c_errors": 0,
+    "queue_overruns": 872,
+    "uart_bytes": 2,
+    "result": "LTE power enable + PWRKEY pulse completed"
+  },
+  "boot_uart": "\u0000\u0000",
+  "error": "No AT acknowledgement at 115200",
+  "left_off": {
+    "mcu_ms": 146017,
+    "completed": 6,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 116485,
+    "i2c_errors": 0,
+    "queue_overruns": 872,
+    "uart_bytes": 2,
+    "result": "LTE power disabled"
+  }
+}

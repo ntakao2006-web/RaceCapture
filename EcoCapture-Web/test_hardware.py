@@ -4,6 +4,37 @@ from hardware import HardwareDecoder
 from models import Configuration,Signal,validate_sample
 from sd_storage import SDStorage
 class HardwareTests(unittest.TestCase):
+ def oil_config(self):
+  return Configuration(signals=[Signal(name='OilTemp',unit='°C',channel=2,can_id=0x600,byte_offset=0,data_type='int16',scale=.01,conversion='sensorhub_oiltemp')])
+ def oil_sample(self,decoder,packets,stamp=2000):
+  batch={'rows':[[1,stamp,'']],'can':[[at,2,0x600,0,0,data] for at,data in packets]}
+  state=self.state();state['mcu_ms']=stamp
+  return decoder.decode(state,batch,self.oil_config())[0][0]
+ def test_pic_oiltemp_open_invalidates_prior_temperature_and_recovers(self):
+  decoder=HardwareDecoder();valid=struct.pack('<hHI',2365,2065,10172).hex();opened=struct.pack('<hHI',-32768,4094,0xffffffff).hex()
+  sample=self.oil_sample(decoder,[(1990,valid),(2010,opened)],2000)
+  self.assertAlmostEqual(sample['can_signals']['OilTemp'],23.65)
+  sample=self.oil_sample(decoder,[],2020)
+  self.assertIsNone(sample['can_signals']['OilTemp']);self.assertEqual(sample['can_signals']['OilTempOpen'],1)
+  self.assertEqual(sample['can_states']['OilTemp'],{'code':1,'label':'オープン'})
+  sample=self.oil_sample(decoder,[(2030,valid)],2040)
+  self.assertAlmostEqual(sample['can_signals']['OilTemp'],23.65);self.assertEqual(sample['can_signals']['OilTempState'],0)
+ def test_pic_oiltemp_short_bad_frame_timeout_and_mcu_reset(self):
+  decoder=HardwareDecoder()
+  sample=self.oil_sample(decoder,[(1990,struct.pack('<hHI',-32768,0,0).hex())])
+  self.assertEqual(sample['can_states']['OilTemp']['code'],2);self.assertIsNone(sample['can_signals']['OilTemp'])
+  for payload in ('0080',struct.pack('<hHI',-32768,2048,0xffffffff).hex(),struct.pack('<hHI',2500,4095,10000).hex()):
+   sample=self.oil_sample(decoder,[(2010,payload)],2020)
+   self.assertEqual(sample['can_states']['OilTemp']['code'],3);self.assertIsNone(sample['can_signals']['OilTemp'])
+  sample=self.oil_sample(decoder,[],3020)
+  self.assertEqual(sample['can_states']['OilTemp']['code'],4);self.assertIsNone(sample['can_signals']['OilTempOpen'])
+  sample=self.oil_sample(decoder,[],10)
+  self.assertEqual(sample['can_states']['OilTemp']['code'],4)
+ def test_pic_oiltemp_layout_and_channel_name_validation(self):
+  oil=self.oil_config().signals[0]
+  for bad in ({'channel':1},{'scale':1},{'data_type':'uint16'},{'byte_offset':1},{'endian':'big'}):
+   with self.assertRaises(ValueError):Signal(**{**oil.model_dump(),**bad})
+  with self.assertRaises(ValueError):Configuration(signals=[oil,Signal(name='OilTempOpen',can_id=0x123)])
  def test_gnss_cadence_does_not_halve_when_status_skips_one_solution(self):
   decoder=HardwareDecoder();state=self.state();nav=bytearray(92);nav[20]=3;nav[21]=1
   for itow,expected in [(1000,None),(1100,10),(1300,10),(1500,10)]:

@@ -1,0 +1,9 @@
+[INFO   ] GL: OpenGL version <b'3.1 Mesa 25.2.6-1~bpo13+1'>
+[INFO   ] GL: OpenGL vendor <b'freedreno'>
+[INFO   ] GL: OpenGL renderer <b'FD702'>
+[INFO   ] GL: OpenGL parsed version: 3, 1
+[INFO   ] GL: Shading version <b'1.40'>
+Deprecated Kivy lang template syntax used "[BetterAccordionItemTitle@Label]". Templates will be removed in a future version
+[INFO   ] RcpConfig: Config version 2.17.0 Loaded
+disabled
+NRestarts=0

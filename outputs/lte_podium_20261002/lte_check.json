@@ -1,0 +1,15 @@
+{
+  "at": true,
+  "rf_off": true,
+  "flow_control": true,
+  "tcp_commands": null,
+  "power_off": true,
+  "model": "SIM7070",
+  "capability_names": [],
+  "message": "UARTを確認しました。TCP通信はSIM・LTEアンテナ接続後に確認してください。",
+  "uart_queries": 20,
+  "watchdog_power_off": true,
+  "uart_overflows": 0,
+  "uart_rx_bytes": 1753,
+  "uart_tx_bytes": 184
+}

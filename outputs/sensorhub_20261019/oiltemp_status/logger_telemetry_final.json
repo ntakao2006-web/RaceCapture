@@ -1,0 +1,181 @@
+{
+  "type": "telemetry",
+  "status": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 60,
+    "receive_hz": 99.6,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 91029,
+    "bridge_errors": 0,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 7829647360,
+    "sensors": {
+      "imu": "正常",
+      "gnss": "測位待ち",
+      "can": "CAN1 0 フレーム（受信専用） / CAN2 センサーハブ 0 フレーム",
+      "sd": "記録中 EL002951.BIN",
+      "lte": "Wi-FiまたはPodiumへの接続に失敗。再接続を待っています。",
+      "camera": "未接続"
+    },
+    "hardware": {
+      "mcu_ms": 1518962,
+      "seq": 151586,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 68,
+      "gnss_errors": 0,
+      "gnss_at": 1518879,
+      "dropped": 192,
+      "can1_ready": 1,
+      "can2_mode": 0,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 1,
+      "sd_file": 2951,
+      "sd_bytes": 850944,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 29746,
+      "sd_alloc_ms": 642,
+      "completed": 5,
+      "result": "SD_BUSY_RECORDING",
+      "nav": "6ca31800e5070307001a36f0ffffffff0027b9290000240000000000000000000000000098bdffffffffffff009486df0000000000000000000000000000000000000000204e000080a812010f2700005c40562f0000000000000000",
+      "lte_power": 0,
+      "lte_overflows": 0
+    },
+    "logging": {
+      "active": true,
+      "name": "LOG_20261018T215712Z_836aed65.csv",
+      "rows": 90979,
+      "elapsed_s": 912.682716996,
+      "error": null,
+      "sd_warning": null
+    },
+    "sd_copy": {
+      "active": false
+    },
+    "podium": {
+      "state": "retry",
+      "message": "Wi-FiまたはPodiumへの接続に失敗。再接続を待っています。",
+      "frames": 0,
+      "bytes": 0,
+      "reconnects": 29,
+      "skipped": 0,
+      "last_sent_age_ms": null,
+      "voice": "off",
+      "voice_packets": 0,
+      "voice_bytes": 0,
+      "voice_dropped": 0,
+      "voice_pauses": 0,
+      "voice_reason": null,
+      "voice_sent": 0,
+      "voice_talking": false,
+      "voice_agent": null,
+      "last_failure_stage": "podium_tcp_connect",
+      "last_failure_type": "OSError",
+      "last_failure_operation": "connect",
+      "last_failure_reason": "Socket open failed",
+      "target_hz": 10,
+      "link": "wifi",
+      "active_link": "wifi",
+      "destination": "podium",
+      "transport": "Linux TCP (Wi-Fi)",
+      "configured": true,
+      "enabled": true,
+      "target": {
+        "kind": "podium",
+        "host": "telemetry.podium.live",
+        "index": 0,
+        "count": 1
+      }
+    }
+  },
+  "sample": {
+    "schema": 1,
+    "source": "logger-v2-hardware",
+    "demo": false,
+    "seq": 151591,
+    "mcu_ms": 1519012,
+    "values": {
+      "Speed": null,
+      "GPSSpeed": null,
+      "RPM": null,
+      "Throttle": null,
+      "BatteryVolt": null,
+      "Lat": null,
+      "Lon": null,
+      "Altitude": null,
+      "Yaw": null,
+      "GPSFix": 0,
+      "GPSSats": 0,
+      "GNSSHz": 10.0,
+      "AccelX": 0.96,
+      "AccelY": -9.78,
+      "AccelZ": 0.35,
+      "GyroX": -0.0625,
+      "GyroY": 0.0,
+      "GyroZ": 0.0625,
+      "Roll": 5.375,
+      "Pitch": -87.9375,
+      "LongAccel": 0.004078864851911713,
+      "LatAccel": -0.0020394324259558564,
+      "VertAccel": 0.0,
+      "Distance": null,
+      "WaterTemp": null
+    },
+    "can_signals": {
+      "OilTemp": null,
+      "OilTempState": 4,
+      "OilTempOpen": null
+    },
+    "can_states": {
+      "OilTemp": {
+        "code": 4,
+        "label": "通信途絶"
+      }
+    },
+    "gnss_utc": null,
+    "gnss_itow_ms": 1614700,
+    "imu_raw": "60002efc2300b8fc4c002100ffff000001001112560081fa0d173ae6362422d80400feff00005c0031fc22002330",
+    "imu_calibration": {
+      "system": 0,
+      "gyro": 3,
+      "accel": 0,
+      "mag": 0
+    },
+    "imu_temperature_C": 35,
+    "quaternion": [
+      0.36016845703125,
+      -0.4027099609375,
+      0.5657958984375,
+      -0.6229248046875
+    ],
+    "gnss_hacc_m": null,
+    "host_utc": "2026-10-19T07:12:24.810574+09:00",
+    "lap": {
+      "LapCount": 3,
+      "CurrentLap": 4,
+      "LapTime": 5.76025,
+      "BestLap": 1.605,
+      "ElapsedTime": null,
+      "RaceTime": null,
+      "LapsLeft": null
+    }
+  }
+}

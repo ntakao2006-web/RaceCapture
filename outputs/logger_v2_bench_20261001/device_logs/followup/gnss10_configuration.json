@@ -1,0 +1,28 @@
+{
+  "profile": "four_10",
+  "systems": "GPS+Galileo+BeiDou B1C+GLONASS, QZSS/SBAS enabled",
+  "configuration_layer": "RAM, reapplied by final firmware on boot",
+  "signals_readback": {
+    "0x1031001f": 1,
+    "0x10310001": 1,
+    "0x10310021": 1,
+    "0x10310007": 1,
+    "0x10310022": 1,
+    "0x1031000d": 0,
+    "0x1031000f": 1,
+    "0x10310025": 1,
+    "0x10310018": 1,
+    "0x10310024": 1,
+    "0x10310012": 1,
+    "0x10310020": 1,
+    "0x10310005": 1
+  },
+  "rates_readback": {
+    "0x10720001": 1,
+    "0x10720002": 0,
+    "0x20910006": 1,
+    "0x30210001": 100,
+    "0x30210002": 1,
+    "0x20110021": 4
+  }
+}

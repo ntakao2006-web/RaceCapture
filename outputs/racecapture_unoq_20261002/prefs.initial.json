@@ -1,0 +1,57 @@
+{
+  "alerts": {},
+  "analysis": {},
+  "dashboard": {},
+  "dashboard_bar": {},
+  "general_prefs": {
+    "analysis_preferences": {
+      "selected_analysis_channels": "Speed",
+      "selected_sessions_laps": "{\"sessions\":{}}"
+    },
+    "dashboard_preferences": {
+      "alerts_dwell_time": "2",
+      "alerts_minimize_time": "5",
+      "bottom_gauge_bar_enabled": "1",
+      "camera_preferences": "{'0': '', '1': ''}",
+      "last_channel_meta": "{}",
+      "last_dash_screen": "5x_gauge_view",
+      "pitstoptimer_alert_speed": "25",
+      "pitstoptimer_enabled": "1",
+      "pitstoptimer_exit_speed": "55",
+      "pitstoptimer_trigger_speed": "5",
+      "pittocaralerts_enabled": "1",
+      "pittocaralerts_timeout": "60",
+      "remote_dash_nav_enabled": "1"
+    },
+    "help": {},
+    "preferences": {
+      "config_file_dir": "/home/arduino/Documents",
+      "conn_type": "USB",
+      "dbc_file_dir": "/home/arduino/Documents",
+      "display_orientation": "Any",
+      "distance_units": "miles",
+      "export_file_dir": "/home/arduino/Documents",
+      "firmware_dir": "/home/arduino/Documents",
+      "full_screen_mode": "0",
+      "global_help": "True",
+      "import_datalog_dir": "/home/arduino/Documents",
+      "import_image_dir": "/home/arduino/Documents",
+      "import_video_dir": "/home/arduino/Documents",
+      "last_known_device": "127.0.0.1",
+      "preset_file_dir": "/home/arduino/Documents",
+      "record_session": "1",
+      "send_telemetry": "0",
+      "show_laptimes": "1",
+      "startup_screen": "Home Page",
+      "temperature_units": "Fahrenheit"
+    },
+    "setup": {
+      "setup_enabled": "1"
+    },
+    "track_detection": {
+      "last_selected_track_id": "0",
+      "last_selected_track_timestamp": "0",
+      "user_cancelled_location": "0,0"
+    }
+  }
+}

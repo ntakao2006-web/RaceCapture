@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-19",
+  "schematic_sha256": "38E444C0D34F06A30F4A4C307D943FD223C3B9A5FA1BDD29C8716BE65AD016D4",
+  "source_sha256": "12C32894759A5CFBE52E7AD051DB1DE692D5F3EF7E70552FDA5C12EC0AEB2AA0",
+  "firmware_sha256": "16511FFCAAC36A56034ACD212293033A5337557C1C4F66A112696F73056CD987",
+  "input": "J3.1 / Sense0 / RC3 / ANC3 / PIC pin 14",
+  "pullup_ohms": 10000,
+  "pullup_components": "R1 20k || R2 20k",
+  "can_tx": "RB0 / PIC pin 21",
+  "can_rx": "RB3 / PIC pin 24",
+  "programmed": true,
+  "verified": true,
+  "snap_final_mode": "cmsisv2 / COM16",
+  "observed_open_adc_min": 4093,
+  "observed_open_adc_max": 4095,
+  "voltage_interpretation": "Near VDD. Absolute supply voltage was not measured.",
+  "can_receive_verified": false,
+  "logger": "UNO Q 3263089125 intermittently offline/absent via ADB",
+  "temperature_with_sensor_verified": false
+}

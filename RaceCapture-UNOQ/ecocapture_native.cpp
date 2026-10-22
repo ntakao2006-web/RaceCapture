@@ -501,7 +501,7 @@ private:
     }
     void add_signal_row(const json& s=json::object()) {
         if(!signal_list_) return;
-        GtkWidget* row=gtk_grid_new(); gtk_style_context_add_class(gtk_widget_get_style_context(row),"card"); gtk_grid_set_column_spacing(GTK_GRID(row),7);gtk_grid_set_row_spacing(GTK_GRID(row),4);
+        GtkWidget* row=gtk_grid_new(); g_object_set_data_full(G_OBJECT(row),"signal-json",g_strdup(s.dump().c_str()),g_free); gtk_style_context_add_class(gtk_widget_get_style_context(row),"card"); gtk_grid_set_column_spacing(GTK_GRID(row),7);gtk_grid_set_row_spacing(GTK_GRID(row),4);
         auto put=[&](const char* title,GtkWidget* w,int col,int r){GtkWidget* box=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);gtk_box_pack_start(GTK_BOX(box),label(title,"metric-name"),FALSE,FALSE,0);gtk_box_pack_start(GTK_BOX(box),w,FALSE,FALSE,0);gtk_grid_attach(GTK_GRID(row),box,col,r,1,1);};
         put("CAN",field_combo(row,"channel",{{"1","CAN1"},{"2","CAN2"}},std::to_string(s.value("channel",1))),0,0);
         put("信号名",field_entry(row,"name",text_value(s,"name",""),13),1,0); put("単位",field_entry(row,"unit",text_value(s,"unit",""),7),2,0);
@@ -518,7 +518,7 @@ private:
     static void add_signal(GtkButton*,gpointer data){App* s=static_cast<App*>(data);GList* children=gtk_container_get_children(GTK_CONTAINER(s->signal_list_));int n=g_list_length(children);g_list_free(children);if(n<64)s->add_signal_row();else gtk_label_set_text(GTK_LABEL(s->settings_action_),"信号は64個までです");}
     json collect_signals() {
         json result=json::array(); GList* children=gtk_container_get_children(GTK_CONTAINER(signal_list_));
-        for(GList* it=children;it;it=it->next){GtkWidget* row=GTK_WIDGET(it->data);auto entry=[&](const char* k){return std::string(gtk_entry_get_text(GTK_ENTRY(g_object_get_data(G_OBJECT(row),k))));};auto combo=[&](const char* k){const char* v=gtk_combo_box_get_active_id(GTK_COMBO_BOX(g_object_get_data(G_OBJECT(row),k)));return std::string(v?v:"");};try{json s={{"channel",std::stoi(combo("channel"))},{"name",entry("name")},{"unit",entry("unit")},{"can_id",std::stoi(entry("can_id"),nullptr,16)},{"extended",combo("extended")=="true"},{"byte_offset",std::stoi(entry("byte_offset"))},{"data_type",combo("data_type")},{"endian",combo("endian")},{"scale",std::stod(entry("scale"))},{"offset",std::stod(entry("offset"))}};std::string mask=entry("bit_mask");s["bit_mask"]=mask.empty()?json(nullptr):json(std::stoi(mask));result.push_back(s);}catch(...){}}
+        for(GList* it=children;it;it=it->next){GtkWidget* row=GTK_WIDGET(it->data);auto entry=[&](const char* k){return std::string(gtk_entry_get_text(GTK_ENTRY(g_object_get_data(G_OBJECT(row),k))));};auto combo=[&](const char* k){const char* v=gtk_combo_box_get_active_id(GTK_COMBO_BOX(g_object_get_data(G_OBJECT(row),k)));return std::string(v?v:"");};try{json s={{"channel",std::stoi(combo("channel"))},{"name",entry("name")},{"unit",entry("unit")},{"can_id",std::stoi(entry("can_id"),nullptr,16)},{"extended",combo("extended")=="true"},{"byte_offset",std::stoi(entry("byte_offset"))},{"data_type",combo("data_type")},{"endian",combo("endian")},{"scale",std::stod(entry("scale"))},{"offset",std::stod(entry("offset"))}};std::string mask=entry("bit_mask");s["bit_mask"]=mask.empty()?json(nullptr):json(std::stoi(mask));const char* saved=static_cast<const char*>(g_object_get_data(G_OBJECT(row),"signal-json"));if(saved){json prior=json::parse(saved);for(const char* field:{"conversion","pullup_ohm","ntc_points"})if(prior.contains(field))s[field]=prior[field];}result.push_back(s);}catch(...){}}
         g_list_free(children); return result;
     }
 
@@ -800,27 +800,41 @@ private:
     void render(const Update& u) {
         if (!u.error.empty()) {
             gtk_label_set_text(GTK_LABEL(rec_), ("EcoLogger V2    未接続: " + u.error).c_str());
+            set("OilTemp", "通信途絶");
+            auto oil=sensor_values_.find("OilTemp");
+            if(oil!=sensor_values_.end())gtk_label_set_text(GTK_LABEL(oil->second),"通信途絶");
             return;
         }
         const json telemetry = u.telemetry.is_object() ? u.telemetry : json::object();
         const json sample = telemetry.contains("sample") && telemetry["sample"].is_object()
             ? telemetry["sample"] : json::object();
-        const json v = sample.contains("values") && sample["values"].is_object()
+        json v = sample.contains("values") && sample["values"].is_object()
             ? sample["values"] : json::object();
+        json decoded=sample.value("can_signals",json::object());
+        for(auto it=decoded.begin();it!=decoded.end();++it)v[it.key()]=it.value();
+        json states=sample.value("can_states",json::object());
+        auto signal_text=[&](const std::string& name,int digits,const std::string& unit){
+            if(states.contains(name)){
+                if(!u.status.value("connected",false))return std::string("通信途絶");
+                if(states[name].value("code",4)!=0)return text_value(states[name],"label","通信途絶");
+            }
+            return number(v,name.c_str(),digits,unit.c_str());
+        };
+
         if(sensor_grid_&&!u.podium.is_null())for(const auto& ch:u.podium.value("channels",json::array())){
             std::string key=text_value(ch,"name","");if(key.empty()||sensor_values_.count(key))continue;
             int n=static_cast<int>(sensor_values_.size());GtkWidget* title=wrapped_label(text_value(ch,"label",key).c_str(),"body"),*value=label("—","body");
             g_object_set_data_full(G_OBJECT(value),"unit",g_strdup(text_value(ch,"unit","").c_str()),g_free);
             gtk_grid_attach(GTK_GRID(sensor_grid_),title,(n%2)*2,n/2,1,1);gtk_grid_attach(GTK_GRID(sensor_grid_),value,(n%2)*2+1,n/2,1,1);sensor_values_[key]=value;
         }
-        for(auto& item:sensor_values_){auto unit=static_cast<const char*>(g_object_get_data(G_OBJECT(item.second),"unit"));gtk_label_set_text(GTK_LABEL(item.second),number(v,item.first.c_str(),(item.first=="Lat"||item.first=="Lon")?6:2,unit?unit:"").c_str());}
+        for(auto& item:sensor_values_){auto unit=static_cast<const char*>(g_object_get_data(G_OBJECT(item.second),"unit"));gtk_label_set_text(GTK_LABEL(item.second),signal_text(item.first,(item.first=="Lat"||item.first=="Lon")?6:2,unit?unit:"").c_str());}
         if(sensor_grid_)gtk_widget_show_all(sensor_grid_);
         set("Speed", number(v,"Speed",0,"km/h")); set("RPM", number(v,"RPM",0,"rpm"));
         set("Throttle", number(v,"Throttle",1,"%")); set("WaterTemp", number(v,"WaterTemp",1,"°C"));
         set("dash.Throttle", "スロットル " + number(v,"Throttle",1,"%"));
         if(throttle_bar_){double maximum=config_cache_.is_object()&&config_cache_.value("profile",std::string("no-can"))=="ncec-2005-mt"?8000.0:6000.0;gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(throttle_bar_),v.contains("RPM")&&v["RPM"].is_number()?std::max(0.0,std::min(1.0,v["RPM"].get<double>()/maximum)):0.0);}
         if(dash_seq_){std::string seq=sample.contains("seq")&&sample["seq"].is_number_integer()?std::to_string(sample["seq"].get<long long>()):"--";gtk_label_set_text(GTK_LABEL(dash_seq_),("SPEED                                      SEQ "+seq).c_str());}
-        set("OilTemp", number(v,"OilTemp",1,"°C")); set("BatteryVolt", number(v,"BatteryVolt",2,"V"));
+        set("OilTemp", signal_text("OilTemp",1,"°C")); set("BatteryVolt", number(v,"BatteryVolt",2,"V"));
         set("GPSSpeed", number(v,"GPSSpeed",1,"km/h")); set("GPSFix", integer(v.value("GPSFix",json())));
         set("GPSSats", integer(v.value("GPSSats",json()))); set("Distance", number(v,"Distance",2,"km"));
         set("LongAccel", number(v,"LongAccel",2,"G")); set("LatAccel", number(v,"LatAccel",2,"G"));
@@ -852,7 +866,7 @@ private:
         json cal=sample.contains("imu_calibration")&&sample["imu_calibration"].is_object()?sample["imu_calibration"]:json::object();
         set("CalSystem", integer(cal.value("system",json())," / 3")); set("CalGyro", integer(cal.value("gyro",json())," / 3")); set("CalAccel", integer(cal.value("accel",json())," / 3"));
         if(calibration_info_){std::ostringstream ci;ci<<"IMU校正（0〜3）：system "<<integer(cal.value("system",json()))<<" / gyro "<<integer(cal.value("gyro",json()))<<" / accel "<<integer(cal.value("accel",json()))<<" / mag "<<integer(cal.value("mag",json()));gtk_label_set_text(GTK_LABEL(calibration_info_),ci.str().c_str());}
-        if(can_live_&&config_cache_.is_object()){std::ostringstream live;json decoded=sample.value("can_signals",json::object());for(const auto& signal:config_cache_.value("signals",json::array())){std::string name=text_value(signal,"name","");live<<name<<"  ";if(decoded.contains(name)&&decoded[name].is_number())live<<std::fixed<<std::setprecision(2)<<decoded[name].get<double>();else live<<"--";live<<" "<<text_value(signal,"unit","")<<"    ";}gtk_label_set_text(GTK_LABEL(can_live_),live.str().empty()?"CANライブ値：信号定義なし":live.str().c_str());}
+        if(can_live_&&config_cache_.is_object()){std::ostringstream live;json decoded=sample.value("can_signals",json::object());for(const auto& signal:config_cache_.value("signals",json::array())){std::string name=text_value(signal,"name","");live<<name<<"  ";live<<signal_text(name,2,text_value(signal,"unit",""))<<"    ";}gtk_label_set_text(GTK_LABEL(can_live_),live.str().empty()?"CANライブ値：信号定義なし":live.str().c_str());}
 
         const json st = u.status.is_object() ? u.status : json::object();
         double hz=st.value("receive_hz",0.0);

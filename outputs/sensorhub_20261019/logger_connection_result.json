@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-19",
+  "logger_serial": "3263089125",
+  "adb_state": "device",
+  "connected": true,
+  "receive_hz": 97.4,
+  "samples_in_interval": 509,
+  "mcu_reset_observed": false,
+  "bridge_error_increase": 0,
+  "dropped_increase": 0,
+  "can2_mode": 0,
+  "can2_received": 0,
+  "can2_overflow": 0,
+  "sensorhub_state": "Sense0 open, ADC 4093..4095; no 0x600 temperature frames by design",
+  "oiltemp_signal_registered": false,
+  "changes": "USB TCP forwarding only; no logger firmware/config changes"
+}

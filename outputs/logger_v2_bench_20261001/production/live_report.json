@@ -1,0 +1,158 @@
+{
+  "passed": true,
+  "csv": "LOG_20261001T164016Z_1c02d510.csv",
+  "csv_rows": 3529,
+  "recorded_hz": 99.99149732165631,
+  "websocket_unique_samples": 293,
+  "without_test_browser_rows": 504,
+  "imu_calibration": {
+    "system": 0,
+    "gyro": 3,
+    "accel": 0,
+    "mag": 0
+  },
+  "before": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 34,
+    "receive_hz": 95.7,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 17088,
+    "bridge_errors": 0,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17552703488,
+    "sensors": {
+      "imu": "\u6b63\u5e38",
+      "gnss": "\u6e2c\u4f4d\u4e2d",
+      "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+      "sd": "\u8a18\u9332\u4e2d EL000027.BIN",
+      "lte": "\u96fb\u6e90OFF / SIM\u30fb\u30a2\u30f3\u30c6\u30ca\u672a\u63a5\u7d9a",
+      "camera": "\u672a\u63a5\u7d9a"
+    },
+    "hardware": {
+      "mcu_ms": 1394544,
+      "seq": 138580,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 53,
+      "gnss_errors": 0,
+      "gnss_at": 1394453,
+      "dropped": 4578,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 1,
+      "sd_file": 27,
+      "sd_bytes": 93184,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 23898,
+      "sd_alloc_ms": 1043,
+      "completed": 748,
+      "result": "recording",
+      "nav": "a47a2d18ea070a0110280f37160000008cf5b6290301ea0d121f235363692b15dfde0100334601006502000062020000daffffffc8ffffff0500000043000000cd262d00bb0000003ad04300b50000005c40562f0000000000000000"
+    },
+    "logging": {
+      "active": false,
+      "name": "LOG_20261001T164005Z_c1c76f3a.csv",
+      "rows": 981,
+      "elapsed_s": 0,
+      "error": null
+    },
+    "sd_copy": {
+      "active": false,
+      "operation": "read",
+      "name": "EL000026.BIN",
+      "read_sectors": 732,
+      "error": null
+    }
+  },
+  "after": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 31,
+    "receive_hz": 99.4,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 20612,
+    "bridge_errors": 0,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17550807040,
+    "sensors": {
+      "imu": "\u6b63\u5e38",
+      "gnss": "\u6e2c\u4f4d\u4e2d",
+      "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+      "sd": "\u8a18\u9332\u4e2d EL000028.BIN",
+      "lte": "\u96fb\u6e90OFF / SIM\u30fb\u30a2\u30f3\u30c6\u30ca\u672a\u63a5\u7d9a",
+      "camera": "\u672a\u63a5\u7d9a"
+    },
+    "hardware": {
+      "mcu_ms": 1429908,
+      "seq": 142111,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 53,
+      "gnss_errors": 0,
+      "gnss_at": 1429900,
+      "dropped": 4578,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 1,
+      "sd_file": 28,
+      "sd_bytes": 348160,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 24579,
+      "sd_alloc_ms": 712,
+      "completed": 750,
+      "result": "recording",
+      "nav": "50052e18ea070a0110283337160000003349e70b0301ea0d4c1f2353d4682b1561ee0100b4550100c8020000d20200000700000016000000e8ffffff17000000cd262d0092000000e0cc4400bb0000005c40562f0000000000000000"
+    },
+    "logging": {
+      "active": true,
+      "name": "LOG_20261001T164016Z_1c02d510.csv",
+      "rows": 3524,
+      "elapsed_s": 35.288466568999866,
+      "error": null
+    },
+    "sd_copy": {
+      "active": false,
+      "operation": "read",
+      "name": "EL000026.BIN",
+      "read_sectors": 732,
+      "error": null
+    }
+  }
+}

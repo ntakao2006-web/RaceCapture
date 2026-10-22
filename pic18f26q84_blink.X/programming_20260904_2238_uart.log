@@ -1,0 +1,391 @@
+22:37:57.392: [debug]: @opentelemetry/api: @opentelemetry/api: Registered a global for diag v1.9.1.
+22:37:57.394: [info]:  @opentelemetry/api: Failed to read JSON config file: 
+22:37:57.394: [info]:  @opentelemetry/api: Missing or invalid JSON config file: 
+22:37:57.397: [info]:  @opentelemetry/api: Failed to read JSON config file: 
+22:37:57.397: [info]:  @opentelemetry/api: Missing or invalid JSON config file: 
+22:37:57.398: [debug]: @opentelemetry/api:  found resource.
+22:37:57.399: [debug]: @opentelemetry/api:  found resource.
+22:37:57.399: [debug]: @opentelemetry/api:  found resource.
+22:37:57.399: [debug]: @opentelemetry/api:  found resource.
+22:37:57.421: [debug]: @opentelemetry/api:  found resource.
+22:37:57.456: [info]:  [MPLAB Pack Service] PackManager initial local pack folder C:\Users\lintaroh\.mchp_packs\ and remote pack repository https://packs.download.microchip.com/index.idx.gz
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Logger'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Insights'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Pack Service'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Device Service'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Tool Service'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Toolchain Service'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Project Service'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Provider Service'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Template Service'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'scripting-service'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Diagnostics'
+22:37:57.457: [info]:  [MPLAB Services] Adding service 'Dependency Service'
+22:37:57.830: [info]:  [MPLAB Services] Initializing service 'Logger'
+22:37:57.830: [info]:  [MPLAB Services] Initializing service 'Insights'
+22:37:57.830: [info]:  [MPLAB Services] Initializing service 'Pack Service'
+22:37:57.830: [info]:  [MPLAB Pack Service] Initializing pack information
+22:37:57.830: [info]:  [MPLAB Pack Service] Using default public pack repository
+22:37:57.831: [info]:  [MPLAB Services] Initializing service 'Device Service'
+22:37:57.831: [info]:  [MPLAB Device Service] DeviceService: Retrieved initialized PackService
+22:37:57.831: [debug]: [MPLAB Device Service] Created a new DeviceManager
+22:37:57.831: [info]:  [MPLAB Device Service] DeviceService: Initialized DeviceManager
+22:37:57.831: [info]:  [MPLAB Services] Initializing service 'Tool Service'
+22:37:57.831: [info]:  [MPLAB Tool Service] ToolService: Retrieved initialized PackService
+22:37:57.831: [info]:  [MPLAB Services] Initializing service 'Toolchain Service'
+22:37:57.832: [info]:  [MPLAB Services] Initializing service 'Project Service'
+22:37:57.832: [debug]: [MPLAB Project Service] Listening to workspace changes
+22:37:57.833: [info]:  [MPLAB Project Service] Scanner: Looking for project files in pic18f26q84_blink.X
+22:37:57.842: [info]:  [MPLAB Services] Initializing service 'Provider Service'
+22:37:57.843: [info]:  [MPLAB Services] Initializing service 'Template Service'
+22:37:57.844: [info]:  [MPLAB Services] Initializing service 'scripting-service'
+22:37:57.844: [info]:  [MPLAB Services] Initializing service 'Diagnostics'
+22:37:57.845: [info]:  [MPLAB Services] Initializing service 'Dependency Service'
+22:37:57.845: [info]:  [MPLAB Services] Insights initialized
+22:37:57.845: [info]:  [MPLAB Services] Device Service initialized
+22:37:57.845: [info]:  [MPLAB Services] Tool Service initialized
+22:37:57.846: [info]:  [MPLAB Services] Toolchain Service initialized
+22:37:57.846: [info]:  [MPLAB Services] Provider Service initialized
+22:37:57.846: [info]:  [MPLAB Services] Template Service initialized
+22:37:57.846: [info]:  [MPLAB Services] scripting-service initialized
+22:37:57.846: [info]:  [MPLAB Services] Diagnostics initialized
+22:37:57.846: [info]:  [MPLAB Services] Dependency Service initialized
+22:37:57.846: [info]:  [MPLAB Services] Logger initialized
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Insights'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Device Service'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Tool Service'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Toolchain Service'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Provider Service'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Template Service'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'scripting-service'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Diagnostics'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Dependency Service'
+22:37:57.846: [info]:  [MPLAB Services] Done initializing service 'Logger'
+22:37:57.846: [warning]: [MPLAB Project Service] Toolchains plugin not available: Error: Extension not found microchip.toolchains. Toolchain providers may not be available. Please ensure the toolchains extension is installed and enabled.
+22:37:58.085: [debug]: [MPLAB Pack Service] MPLAB local pack folder exists: C:\Users\lintaroh\.mchp_packs\
+22:37:58.345: [debug]: [MPLAB Pack Service] .clangd file exists: C:\Users\lintaroh\.mchp_packs\.clangd
+22:37:58.345: [debug]: [MPLAB Pack Service] Parsing etag info from: C:\Users\lintaroh\.mchp_packs\
+22:37:58.737: [debug]: [MPLAB Project Service] 
+                       Project Summary:
+                         No projects found
+22:37:58.737: [info]:  [MPLAB Services] Project Service initialized
+22:37:58.737: [info]:  [MPLAB Services] Done initializing service 'Project Service'
+22:37:59.294: [debug]: [MPLAB Pack Service] Found legacy etag file.
+22:37:59.458: [debug]: [MPLAB Pack Service] Current Etag: "74a64c84beaebb7faeb99847fdfff042"
+22:37:59.458: [debug]: [MPLAB Pack Service] Legacy etag: "74a64c84beaebb7faeb99847fdfff042"
+22:37:59.462: [debug]: [MPLAB Pack Service] Reading cache from disk.
+22:38:00.253: [info]:  [MPLAB Pack Service] Pack Service Init time: 2423 ms
+22:38:00.253: [info]:  [MPLAB Pack Service] Done parsing available packs. Found 3771 devices.
+22:38:00.254: [info]:  [MPLAB Services] Pack Service initialized
+22:38:00.254: [info]:  [MPLAB Services] Done initializing service 'Pack Service'
+22:38:00.254: [info]:  ***********************************************
+22:38:00.254: [info]:  List of all installed MPLAB extensions:
+22:38:00.254: [info]:  ***********************************************
+22:38:00.256: [info]:  Debug Adapter for MPLAB 2.0.2
+22:38:00.256: [info]:  Services for MPLAB 2.3.1
+22:38:00.256: [info]:  Platform for MPLAB 2.0.2
+22:38:00.256: [info]:  ***********************************************
+22:38:00.256: [info]:  List of all installed third party extensions:
+22:38:00.256: [info]:  ***********************************************
+22:38:00.257: [info]:  JS/TS Chat Features 0.0.4
+22:38:00.257: [info]:  Windows バッチ言語の基礎 10.0.0
+22:38:00.257: [info]:  Clojure の基本言語サポート 10.0.0
+22:38:00.257: [info]:  CoffeeScript の基本言語サポート 10.0.0
+22:38:00.257: [info]:  設定の編集機能 10.0.0
+22:38:00.257: [info]:  GitHub Copilot 0.64.1
+22:38:00.257: [info]:  C/C++ の基本言語サポート 10.0.0
+22:38:00.257: [info]:  C# の基本言語サポート 10.0.0
+22:38:00.257: [info]:  CSS の基本言語サポート 10.0.0
+22:38:00.257: [info]:  CSS 言語機能 10.0.0
+22:38:00.257: [info]:  Dart の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Node デバッグの自動アタッチ 10.0.0
+22:38:00.257: [info]:  サーバーの準備完了アクション 10.0.0
+22:38:00.257: [info]:  差分言語の基本 10.0.0
+22:38:00.257: [info]:  Docker ファイルの基本言語サポート 10.0.0
+22:38:00.257: [info]:  Dotenv 言語の基本 10.0.0
+22:38:00.257: [info]:  Emmet 10.0.0
+22:38:00.257: [info]:  拡張機能の作成 10.0.0
+22:38:00.257: [info]:  F# の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Git 10.0.0
+22:38:00.257: [info]:  Git ベース 10.0.0
+22:38:00.257: [info]:  GitHub 0.0.1
+22:38:00.257: [info]:  GitHub 認証 0.0.2
+22:38:00.257: [info]:  Go 言語の基礎 10.0.0
+22:38:00.257: [info]:  Groovy の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Grunt support for VS Code 10.0.0
+22:38:00.257: [info]:  VSCode の Gulp サポート 10.0.0
+22:38:00.257: [info]:  Handlebars の基本言語サポート 10.0.0
+22:38:00.257: [info]:  HLSL の基本言語サポート 10.0.0
+22:38:00.257: [info]:  HTML の基本言語サポート 10.0.0
+22:38:00.257: [info]:  HTML 言語機能 10.0.0
+22:38:00.257: [info]:  Ini の基本言語サポート 10.0.0
+22:38:00.257: [info]:  .ipynb のサポート 10.0.0
+22:38:00.257: [info]:  VS Code の Jake サポート 10.0.0
+22:38:00.257: [info]:  Java の基本言語サポート 10.0.0
+22:38:00.257: [info]:  JavaScript の基本言語サポート 10.0.0
+22:38:00.257: [info]:  JSON の基本言語サポート 10.0.0
+22:38:00.257: [info]:  JSON 言語機能 10.0.0
+22:38:00.257: [info]:  Julia 言語の基本 10.0.0
+22:38:00.257: [info]:  LaTeX 言語の基本 10.0.0
+22:38:00.257: [info]:  Less の基本言語サポート 10.0.0
+22:38:00.257: [info]:  ログ 10.0.0
+22:38:00.257: [info]:  Lua の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Make の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Markdown の基本言語サポート 30.0.0
+22:38:00.257: [info]:  Markdown 言語機能 10.0.0
+22:38:00.257: [info]:  Markdown 数式 10.0.0
+22:38:00.257: [info]:  メディア プレビュー 10.0.0
+22:38:00.257: [info]:  マージの競合 10.0.0
+22:38:00.257: [info]:  Mermaid Markdown 機能 10.0.0
+22:38:00.257: [info]:  Microsoft アカウント 0.0.1
+22:38:00.257: [info]:  JavaScript Debugger 1.117.0
+22:38:00.257: [info]:  JavaScript Debugger Companion Extension 1.1.3
+22:38:00.257: [info]:  Table Visualizer for JavaScript Profiles 1.0.11
+22:38:00.257: [info]:  ビルトイン ノートブック出力レンダラー 10.0.0
+22:38:00.257: [info]:  VS Code の npm サポート 10.0.0
+22:38:00.257: [info]:  Objective-C の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Perl の基本言語サポート 10.0.0
+22:38:00.257: [info]:  PHP の基本言語サポート 10.0.0
+22:38:00.257: [info]:  PHP 言語機能 10.0.0
+22:38:00.257: [info]:  Powershell の基本言語サポート 10.0.0
+22:38:00.257: [info]:  プロンプト言語の基本 10.0.0
+22:38:00.257: [info]:  Pug の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Python の基本言語サポート 10.0.0
+22:38:00.257: [info]:  R の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Razor の基本言語サポート 10.0.0
+22:38:00.257: [info]:  参照検索ビュー 10.0.0
+22:38:00.257: [info]:  reStructuredText Language Basics 10.0.0
+22:38:00.257: [info]:  Ruby の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Rust の基本言語サポート 10.0.0
+22:38:00.257: [info]:  SCSS の基本言語サポート 10.0.0
+22:38:00.257: [info]:  検索結果 10.0.0
+22:38:00.257: [info]:  Shaderlab の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Shell Script の基本言語サポート 10.0.0
+22:38:00.257: [info]:  シンプル ブラウザー 10.0.0
+22:38:00.257: [info]:  SQL の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Swift の基本言語サポート 10.0.0
+22:38:00.257: [info]:  VS Code のターミナルの候補 1.0.1
+22:38:00.257: [info]:  Abyss テーマ 10.0.0
+22:38:00.257: [info]:  既定のテーマ 10.0.0
+22:38:00.257: [info]:  Kimbie Dark テーマ 10.0.0
+22:38:00.257: [info]:  VS Code Modern File Icons 1.0.0
+22:38:00.257: [info]:  Monokai テーマ 10.0.0
+22:38:00.257: [info]:  Monokai Dimmed テーマ 10.0.0
+22:38:00.257: [info]:  Quiet Light テーマ 10.0.0
+22:38:00.257: [info]:  Red テーマ 10.0.0
+22:38:00.257: [info]:  Seti File Icon テーマ 10.0.0
+22:38:00.257: [info]:  Solarized Dark テーマ 10.0.0
+22:38:00.257: [info]:  Solarized Light テーマ 10.0.0
+22:38:00.257: [info]:  Tomorrow Night Blue テーマ 10.0.0
+22:38:00.257: [info]:  ローカル トンネル ポート 転送 10.0.0
+22:38:00.257: [info]:  TypeScript 言語の基礎 10.0.0
+22:38:00.257: [info]:  JavaScript と TypeScript の言語機能 10.0.0
+22:38:00.257: [info]:  Visual Basic の基本言語サポート 10.0.0
+22:38:00.257: [info]:  XML の基本言語サポート 10.0.0
+22:38:00.257: [info]:  YAML の基本言語サポート 10.0.0
+22:38:00.257: [info]:  Motorola (AS) 68k Assembly 1.2.2
+22:38:00.257: [info]:  pdf 0.0.6
+22:38:00.257: [info]:  Cortex-Debug 1.12.1
+22:38:00.257: [info]:  debug-tracker-vscode 0.0.15
+22:38:00.257: [info]:  MemoryView 0.0.29
+22:38:00.257: [info]:  Peripheral Viewer 1.6.3
+22:38:00.257: [info]:  RTOS Views 0.0.16
+22:38:00.257: [info]:  Japanese Language Pack for Visual Studio Code 1.131.2026090407
+22:38:00.257: [info]:  Python Debugger 2026.6.0
+22:38:00.257: [info]:  Python 2026.4.0
+22:38:00.257: [info]:  Pylance 2026.3.1
+22:38:00.257: [info]:  Python Environments 1.36.0
+22:38:00.257: [info]:  WSL 0.104.3
+22:38:00.257: [info]:  WASI based WebAssembly Execution Engine 1.0.2
+22:38:00.257: [info]:  Verilog-HDL/SystemVerilog 1.29.0
+22:38:00.257: [info]:  MicroPico 4.3.4
+22:38:00.257: [info]:  Raspberry Pi Pico 0.22.0
+22:38:00.257: [info]:  multi-command 1.6.0
+22:38:00.257: [info]:  vscode-pdf 1.2.2
+22:38:00.257: [info]:  Codex Start MPLAB Once 0.0.1
+22:38:00.257: [info]:  [MPLAB Services] Core services are ready, 12 ok, 0 failed
+22:38:02.767: [debug]: [MPLAB Pack Service] Downloading pack index file
+22:38:02.844: [debug]: [MPLAB Pack Service] Cache-control metadata: fetchedAt=1788520875096, maxAge=3600s, url=https://packs.download.microchip.com/index.idx.gz
+22:38:02.845: [debug]: [MPLAB Pack Service] Index age: 8207.7s, max-age: 3600s — STALE (will fetch)
+22:38:02.846: [debug]: [MPLAB Pack Service] Initiating download to temp location: 'C:\Users\lintaroh\AppData\Local\Temp\mplab-JCsg1w'
+22:38:02.887: [info]:  [MPLAB Core Debug Adapter] Extension eclipse-cdt.memory-inspector is not installed...
+22:38:02.889: [info]:  [MPLAB Platforms] Checking for USB driver by statting C:\Program Files\Microchip\mplabcomm\3.53.00
+22:38:02.890: [info]:  [MPLAB Platforms] Using normal RCP release
+22:38:02.904: [debug]: [MPLAB Pack Service] Resource https://packs.download.microchip.com/index.idx.gz has not changed based on ETag="74a64c84beaebb7faeb99847fdfff042"
+22:38:02.904: [debug]: [MPLAB Pack Service] The remote ETag is: "74a64c84beaebb7faeb99847fdfff042"
+22:38:02.904: [debug]: [MPLAB Pack Service] Acquiring metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:02.924: [debug]: [MPLAB Pack Service] Acquired metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:02.931: [debug]: [MPLAB Pack Service] Released metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:02.931: [debug]: [MPLAB Pack Service] Acquiring metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:02.935: [debug]: [MPLAB Pack Service] Acquired metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:02.936: [debug]: [MPLAB Pack Service] Parsing local pack index file
+22:38:03.314: [info]:  [MPLAB Platforms] Using RCP path: C:\Users\lintaroh\.mplab\app-finder\apps\mplab_backend\0.4.956\mplab_backend\bin\mplab_backend64.exe
+22:38:03.314: [info]:  [MPLAB Platforms] Using Java Home: C:\Users\lintaroh\.mplab\app-finder\apps\zulu-jre-21\v21.0.12\zulu21.52.15-ca-jre21.0.12-win_x64
+22:38:03.315: [info]:  [MPLAB Platforms] Using system Pack Repository: C:\Users\lintaroh\.mchp_packs\
+22:38:03.404: [info]:  [MPLAB Platforms] Starting RCP platform C:\Users\lintaroh\.mplab\app-finder\apps\mplab_backend\0.4.956\mplab_backend\bin\mplab_backend64.exe
+22:38:03.405: [info]:  [MPLAB Platforms] Starting RCP connection listener...
+22:38:03.407: [info]:  [MPLAB Platforms] RCP controller listening for connections
+22:38:03.408: [info]:  [MPLAB Platforms] Launching platform now.
+22:38:03.411: [info]:  [MPLAB Platforms] Launching platform process with arguments:
+22:38:03.411: [info]:  [MPLAB Platforms] --jdkhome
+22:38:03.411: [info]:  [MPLAB Platforms] C:\Users\lintaroh\.mplab\app-finder\apps\zulu-jre-21\v21.0.12\zulu21.52.15-ca-jre21.0.12-win_x64
+22:38:03.411: [info]:  [MPLAB Platforms] --nosplash
+22:38:03.411: [info]:  [MPLAB Platforms] --nogui
+22:38:03.411: [info]:  [MPLAB Platforms] -J-Dcontroller.mode=connect
+22:38:03.411: [info]:  [MPLAB Platforms] -J-Dcontroller.host=127.0.0.1
+22:38:03.411: [info]:  [MPLAB Platforms] -J-Dcontroller.port=52408
+22:38:03.411: [info]:  [MPLAB Platforms] -J-D.level=900
+22:38:03.411: [info]:  [MPLAB Platforms] -J-XX:+UseShenandoahGC
+22:38:03.411: [info]:  [MPLAB Platforms] -J-XX:ShenandoahGCHeuristics=compact
+22:38:03.411: [info]:  [MPLAB Platforms] -J-Dload.elf.symbols.on.demand=true
+22:38:03.411: [info]:  [MPLAB Platforms] -J-Dmplab.xplained.database.file=KitDatabase.xml
+22:38:03.411: [info]:  [MPLAB Platforms] --locale
+22:38:03.411: [info]:  [MPLAB Platforms] ja
+22:38:03.411: [info]:  [MPLAB Platforms] --cachedir
+22:38:03.411: [info]:  [MPLAB Platforms] c:\Users\lintaroh\AppData\Roaming\Code\User\workspaceStorage\34d55d21324165fc61ed04e9ff7c1327\microchip.mplab-extensions-platforms\mplab-backend\0.4.956\userdir\var\cache
+22:38:03.411: [info]:  [MPLAB Platforms] --userdir
+22:38:03.411: [info]:  [MPLAB Platforms] c:\Users\lintaroh\AppData\Roaming\Code\User\workspaceStorage\34d55d21324165fc61ed04e9ff7c1327\microchip.mplab-extensions-platforms\mplab-backend\0.4.956\userdir
+22:38:03.411: [info]:  [MPLAB Platforms] -J-Dpackslib.packsfolder=C:\Users\lintaroh\.mchp_packs\
+22:38:03.411: [info]:  [MPLAB Platforms] -J-Dpackslib.userpacksfolder=C:\Users\lintaroh\.mchp_packs\
+22:38:03.411: [info]:  [MPLAB Platforms] -J-XX:+HeapDumpOnOutOfMemoryError
+22:38:03.411: [info]:  [MPLAB Platforms] -J-XX:HeapDumpPath=c:\Users\lintaroh\AppData\Roaming\Code\User\globalStorage\microchip.mplab-extensions-platforms\mplab-platform-jvm-crashes\heapdump-196b2c20-dcd2-42bd-8222-2eb4747257de.hprof
+22:38:03.411: [info]:  [MPLAB Platforms] -J-XX:ErrorFile=c:\Users\lintaroh\AppData\Roaming\Code\User\globalStorage\microchip.mplab-extensions-platforms\mplab-platform-jvm-crashes\java_error-196b2c20-dcd2-42bd-8222-2eb4747257de.log
+22:38:03.431: [info]:  [MPLAB Platforms] Platform process launched (pid: 6948)
+22:38:11.166: [info]:  [MPLAB Platforms] RCP connection established
+22:38:11.168: [info]:  [MPLAB Platforms] Protocol engine channel socket open
+22:38:11.169: [info]:  [MPLAB Platforms] Protocol engine sending message {"type":"command","token":"0","service":"tool","name":"get-known-tools"}
+22:38:17.350: [debug]: [MPLAB Pack Service] Updating main pack reference for rfPIC12F675H from Microchip.MCVxxxx_DFP to Microchip.PIC12-16Cxxx_DFP
+22:38:31.929: [debug]: [MPLAB Pack Service] Pack SAMR35_DFP version 2.0.19 has an empty release date. Defaulting to initial release date.
+22:38:33.899: [debug]: [MPLAB Pack Service] Updating main pack reference for dsPIC33CK32MP102 from Microchip.dsPIC33CH-MP_DFP to Microchip.dsPIC33CK-MP_DFP
+22:38:33.901: [debug]: [MPLAB Pack Service] Updating main pack reference for dsPIC33CK32MP103 from Microchip.dsPIC33CH-MP_DFP to Microchip.dsPIC33CK-MP_DFP
+22:38:33.904: [debug]: [MPLAB Pack Service] Updating main pack reference for dsPIC33CK32MP105 from Microchip.dsPIC33CH-MP_DFP to Microchip.dsPIC33CK-MP_DFP
+22:38:34.013: [debug]: [MPLAB Pack Service] Updating main pack reference for dsPIC33CK64MP102 from Microchip.dsPIC33CH-MP_DFP to Microchip.dsPIC33CK-MP_DFP
+22:38:34.016: [debug]: [MPLAB Pack Service] Updating main pack reference for dsPIC33CK64MP103 from Microchip.dsPIC33CH-MP_DFP to Microchip.dsPIC33CK-MP_DFP
+22:38:34.019: [debug]: [MPLAB Pack Service] Updating main pack reference for dsPIC33CK64MP105 from Microchip.dsPIC33CH-MP_DFP to Microchip.dsPIC33CK-MP_DFP
+22:38:36.151: [debug]: [MPLAB Pack Service] Completed parsing index file. Total devices available from index: 3771
+22:38:36.199: [debug]: [MPLAB Pack Service] Done parsing local pack index file
+22:38:36.201: [debug]: [MPLAB Pack Service] Released metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:36.249: [debug]: [MPLAB Pack Service] Acquiring metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:36.253: [debug]: [MPLAB Pack Service] Acquired metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:36.296: [debug]: [MPLAB Pack Service] Updating version key
+22:38:36.460: [debug]: [MPLAB Pack Service] Released metadata lock for: C:\Users\lintaroh\.mchp_packs\
+22:38:38.753: [debug]: [MPLAB Platforms] Protocol engine received message {"type":"result","token":"0","args":{"tools":[{"id":"j32","name":"J-32","vendorIds":[],"productIds":[]},{"id":"SKDEPIC24F1PlatformTool","name":"SKDE PIC24F 1","vendorIds":[1240],"productIds":[33025]},{"id":"DB32pkob4Tool","name":"DB32","vendorIds":[1240],"productIds":[36938,36939,36940,36941,36942]},{"id":"ri4hybrid","name":"ICE 4","vendorIds":[1240],"productIds":[36896,36895,36899,36900,8594,8595,8596]},{"id":"ICD5Tool","name":"ICD 5","vendorIds":[1240],"productIds":[36919,36920,36927]},{"id":"samice","name":"SEGGER SAM-ICE","vendorIds":[],"productIds":[]},{"id":"SKDEPIC24HSENSORPlatformTool","name":"SKDE PIC24H SENSOR","vendorIds":[1240],"productIds":[33027]},{"id":"PK5Tool","name":"PICkit 5","vendorIds":[1240],"productIds":[36918,36917]},{"id":"ICD4Tool","name":"ICD 4","vendorIds":[1240],"productIds":[36885]},{"id":"DB32Tool","name":"DB32","vendorIds":[1240],"productIds":[36928,36929,36930,36931,36932]},{"id":"mEdbgTool","name":"mEDBG","vendorIds":[1003],"productIds":[8517,12276]},{"id":"AtmelIceTool","name":"Atmel-ICE","vendorIds":[1003],"productIds":[8513,8514]},{"id":"PM3PlatformTool","name":"PM3","vendorIds":[1240],"productIds":[40961]},{"id":"DB32NanoTool","name":"DB32","vendorIds":[1240],"productIds":[36933,36934,36935,36936,36937]},{"id":"pickitbasic","name":"PICkit Basic","vendorIds":[1240],"productIds":[36948,36949,36950,36951]},{"id":"EdbgTool","name":"EDBG","vendorIds":[1003],"productIds":[8465,8535,8553,8554,8506]},{"id":"MICROSTICKPlatformTool","name":"MICROSTICK","vendorIds":[1240],"productIds":[33030]},{"id":"SKDEPIC32PlatformTool","name":"SKDE PIC32","vendorIds":[1240],"productIds":[224,225]},{"id":"nEdbgTool","name":"PKOB nano","vendorIds":[1003],"productIds":[8559,8562,8563,8564,8565,12224]},{"id":"pkob4hybrid","name":"Curiosity/Starter Kits (PKOB4)","vendorIds":[1240],"productIds":[33034,33033,8580,33035,33036]},{"id":"pm5","name":"PM5","vendorIds":[1240],"productIds":[36922]},{"id":"PowerDebuggerTool","name":"Power Debugger","vendorIds":[1003],"productIds":[8516,8518]},{"id":"MCHVPlatformTool","name":"MCHV","vendorIds":[1240],"productIds":[33028]},{"id":"SKDE33AUDIOPlatformTool","name":"SKDE 33 AUDIO","vendorIds":[1240],"productIds":[33024]},{"id":"SKDEPIC18FJPlatformTool","name":"SKDE PIC18FJ","vendorIds":[1240],"productIds":[33029]},{"id":"JTAGICE3Tool","name":"JTAGICE3","vendorIds":[1003],"productIds":[8512]},{"id":"pk4hybrid","name":"PICkit 4","vendorIds":[1240],"productIds":[36882,36887,8567,36891]},{"id":"Simulator","name":"Simulator","vendorIds":[],"productIds":[]},{"id":"jlink","name":"J-Link","vendorIds":[],"productIds":[]},{"id":"SKDEMemoryPlatformTool","name":"SKDE Memory","vendorIds":[1240],"productIds":[33026]},{"id":"snap","name":"Snap","vendorIds":[1240],"productIds":[36888,36889,36892,8576]}]}}
+22:38:38.753: [info]:  [MPLAB Core Debug Adapter] Mapping tool name Snap to id snap
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: ICD4Tool -> version 3
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: ICD5Tool -> version 3
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: ri4hybrid -> version 5
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: pk4hybrid -> version 3
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: PK5Tool -> version 3
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: pkob4hybrid -> version 2
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: pm5 -> version 0
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: pm5 -> version 0
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: pm5 -> version 0
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: snap -> version 3
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: pickitbasic -> version 2
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: JTAGICE3Tool -> version 1
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: AtmelIceTool -> version 1
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: PowerDebuggerTool -> version 1
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: EdbgTool -> version 1
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: mEdbgTool -> version 1
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: nEdbgTool -> version 1
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: DB32Tool -> version 1
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: Simulator -> version 1
+22:38:38.793: [debug]: [MPLAB Tool Service] mplabinfo-reader: Tool compatibility constraint: TestTool -> version 1
+22:38:38.793: [info]:  [MPLAB Tool Service] mplabinfo-reader: Loaded 18 tool compatibility constraint(s) from mplabinfo.jar
+22:38:38.793: [info]:  [MPLAB Tool Service] ToolService: Filtering "snap" releases to major version "3" (from mplabinfo.jar)
+22:38:38.794: [info]:  [MPLAB Core Debug Adapter] Tool pack snap 3.0.1942 is already installed and latest
+22:38:38.795: [info]:  [MPLAB Device Service] Retrieving device from pack data: PIC18F26Q84-PIC18F-Q_DFP-Microchip-1.30.487
+22:38:38.796: [debug]: [MPLAB Device Service] Parsing data for device: PIC18F26Q84-PIC18F-Q_DFP-Microchip-1.30.487
+22:38:38.797: [info]:  [MPLAB Device Service] Retrieved device from cache: PIC18F26Q84-PIC18F-Q_DFP-Microchip-1.30.487
+22:38:38.797: [debug]: [MPLAB Device Service] Parsing data for device from cache: PIC18F26Q84-PIC18F-Q_DFP-Microchip-1.30.487
+22:38:38.797: [info]:  [MPLAB Platforms] Protocol engine sending message {"type":"command","token":"1","service":"mdb-core","name":"is-running"}
+22:38:38.851: [debug]: [MPLAB Platforms] Protocol engine received message {"type":"result","token":"1","args":{"running":false}}
+22:38:38.851: [info]:  [MPLAB Platforms] Protocol engine sending message {"type":"command","token":"2","service":"mdb-core","name":"start"}
+22:38:38.886: [debug]: [MPLAB Platforms] Protocol engine received message {"type":"result","token":"2","args":{"success":true,"port":52486}}
+22:38:39.097: [info]:  [MPLAB Core Debug Adapter] Session is starting
+22:38:39.161: [info]:  [MPLAB Core Debug Adapter] -> backend: { seq: 1, type: 'request', command: 'initialize', arguments: { adapterID: 'mplab-core-da', clientID: 'vscode', clientName: 'Visual Studio Code', columnsStartAt1: true, linesStartAt1: true, locale: 'ja', pathFormat: 'path', supportsANSIStyling: true, supportsArgsCanBeInterpretedByShell: true, supportsInvalidatedEvent: true, supportsMemoryEvent: true, supportsMemoryReferences: true, supportsProgressReporting: true, supportsRunInTerminalRequest: true, supportsStartDebuggingRequest: true, supportsVariablePaging: true, supportsVariableType: true } }
+22:38:39.377: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 1, type: 'response', request_seq: 1, success: true, command: 'initialize', body: { breakpointModes: [ { appliesTo: [ 'instruction', 'source', 'data' ], description: 'A breakpoint using the on chip debug system', label: 'Hardware', mode: 'hwbp' }, { appliesTo: [ 'instruction', 'source' ], description: 'A breakpoint that replaces the original instruction with a break instruction', label: 'Software', mode: 'swbp' } ], supportedChecksumAlgorithms: [ 'MD5', 'SHA1', 'SHA256', 'timestamp' ], supportsANSIStyling: true, supportsBreakpointLocationsRequest: true, supportsCancelRequest: true, supportsClipboardContext: false, supportsCompletionsRequest: false, supportsConditionalBreakpoints: false, supportsConfigurationDoneRequest: true, supportsDataBreakpoints: true, supportsDelayedStackTraceLoading: false, supportsDisassembleRequest: true, supportsEvaluateForHovers: true, supportsExceptionFilterOptions: false, supportsExceptionInfoRequest: true, supportsExceptionOptions: false, supportsFunctionBreakpoints: true, supportsGotoTargetsRequest: true, supportsHitConditionalBreakpoints: true, supportsInstructionBreakpoints: true, supportsLoadedSourcesRequest: true, supportsLogPoints: true, supportsMchpReset: true, supportsModulesRequest: true, supportsReadMemoryRequest: true, supportsRestartFrame: false, supportsRestartRequest: true, supportsSetExpression: true, supportsSetVariable: true, supportsSingleThreadExecutionRequests: false, supportsStepBack: false, supportsStepInTargetsRequest: false, supportsSteppingGranularity: true, supportsTerminateRequest: false, supportsTerminateThreadsRequest: false, supportSuspendDebuggee: false, supportsValueFormattingOptions: true, supportsWriteMemoryRequest: true, supportTerminateDebuggee: true } }
+22:38:39.411: [info]:  [MPLAB Core Debug Adapter] -> backend: { seq: 2, type: 'request', command: 'launch', arguments: { type: 'mplab-core-da', __configurationTarget: 6, __sessionId: '332ddad1-dc0d-40d5-9a8c-9aad0e3ab2a8', debugServer: 52486, device: 'PIC18F26Q84', interface: 'icsp', mdfpPath: 'C:\\Users\\lintaroh\\.mchp_packs\\Microchip\\PIC18F-Q_DFP\\1.30.487\\xc8', name: 'PIC18F26Q84 Lチカを書き込む', noDebug: true, packName: 'PIC18F-Q_DFP', packVendor: 'Microchip', packVersion: '1.30.487', program: 'C:\\Users\\lintaroh\\Documents\\RaceCapture\\pic18f26q84_blink.X/dist/default/production/pic18f26q84_blink.X.production.elf', request: 'launch', serial: '021038102RYN014624', tool: 'Snap' } }
+22:38:39.473: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 2, type: 'event', event: 'progressStart', body: { cancellable: true, progressId: 'f34c793a-3dc6-4cf4-adc6-91a1d1a7033e', requestId: 2, title: 'Launching' } }
+22:38:39.474: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 3, type: 'event', event: 'progressUpdate', body: { message: 'Starting debugger', percentage: 10, progressId: 'f34c793a-3dc6-4cf4-adc6-91a1d1a7033e' } }
+22:38:43.147: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 4, type: 'event', event: 'progressUpdate', body: { message: 'Loading pic18f26q84_blink.X.production.elf', percentage: 10, progressId: 'f34c793a-3dc6-4cf4-adc6-91a1d1a7033e' } }
+22:38:43.859: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 5, type: 'event', event: 'output', body: { category: 'stdout', output: 'Loading code from C:\\Users\\lintaroh\\Documents\\RaceCapture\\pic18f26q84_blink.X/dist/default/production/pic18f26q84_blink.X.production.elf...\n' } }
+22:38:43.934: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 6, type: 'event', event: 'module', body: { module: { dateTimeStamp: '2026-09-04T10:37:25+0900', id: 'C:\\Users\\lintaroh\\Documents\\RaceCapture\\pic18f26q84_blink.X/dist/default/production/pic18f26q84_blink.X.production.elf', isUserCode: true, name: 'pic18f26q84_blink.X.production.elf', path: 'C:\\Users\\lintaroh\\Documents\\RaceCapture\\pic18f26q84_blink.X/dist/default/production/pic18f26q84_blink.X.production.elf' }, reason: 'new' } }
+22:38:43.941: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 7, type: 'event', event: 'process', body: { isLocalProcess: false, name: 'C:\\Users\\lintaroh\\Documents\\RaceCapture\\pic18f26q84_blink.X/dist/default/production/pic18f26q84_blink.X.production.elf', pointerSize: 8, startMethod: 'launch' } }
+22:38:43.955: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 8, type: 'event', event: 'capabilities', body: { capabilities: { supportsBreakpointLocationsRequest: false, supportsCompletionsRequest: false, supportsDataBreakpoints: false, supportsEvaluateForHovers: false, supportsExceptionInfoRequest: false, supportsFunctionBreakpoints: false, supportsGotoTargetsRequest: false, supportsHitConditionalBreakpoints: false, supportsInstructionBreakpoints: false, supportsLogPoints: false, supportsSetExpression: false, supportsSetVariable: false, supportsSteppingGranularity: false } } }
+22:38:43.956: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 9, type: 'event', event: 'progressUpdate', body: { message: 'Connecting to debugger', percentage: 25, progressId: 'f34c793a-3dc6-4cf4-adc6-91a1d1a7033e' } }
+22:38:45.348: [warning]: [MPLAB Platforms] [net.openhft.chronicle.hash.impl.util.CanonicalRandomAccessFiles] File locking is disabled or not supported on this platform (Windows 11). Make sure you are not running ChronicleMapBuilder::*recover* methods when other processes or threads have the mapped file open!
+                         
+22:38:46.214: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 10, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\n' } }
+22:38:46.216: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 11, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\n' } }
+22:38:49.388: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 12, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '' } }
+22:38:49.391: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 13, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: ' \n' } }
+22:38:49.392: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 14, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\n' } }
+22:38:49.392: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 15, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '*****************************************************\n' } }
+22:38:49.393: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 16, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\n' } }
+22:38:49.396: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 17, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: ' \n' } }
+22:38:49.397: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 18, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '' } }
+22:38:49.516: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 19, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\nConnecting to MPLAB Snap\n' } }
+22:38:49.517: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 20, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\n' } }
+22:38:49.517: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 21, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Currently loaded versions:\n' } }
+22:38:49.519: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 22, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Application version...........02.04.82\n' } }
+22:38:49.521: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 23, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Boot version..................01.01.55\n' } }
+22:38:49.521: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 24, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'PCB version...................2\n' } }
+22:38:49.522: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 25, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Script version................00.10.91\n' } }
+22:38:49.523: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 26, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Script build number...........1213f4c963\n' } }
+22:38:49.524: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 27, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Tool pack version ............3.0.1942\n' } }
+22:38:49.689: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 28, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Target device PIC18F26Q84 found.\n' } }
+22:38:49.691: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 29, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Device Id Revision = 0xa0020000\n' } }
+22:38:49.693: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 30, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Device Id = 0xa300\n' } }
+22:38:49.699: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 31, type: 'event', event: 'initialized' }
+22:38:49.704: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 32, type: 'event', event: 'progressUpdate', body: { message: 'Configuring', percentage: 20, progressId: 'f34c793a-3dc6-4cf4-adc6-91a1d1a7033e' } }
+22:38:49.705: [info]:  [MPLAB Core Debug Adapter] -> backend: { seq: 3, type: 'request', command: 'configurationDone' }
+22:38:49.734: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 33, type: 'response', request_seq: 3, success: true, command: 'configurationDone' }
+22:38:49.735: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 34, type: 'event', event: 'progressUpdate', body: { message: 'Programming', percentage: 35, progressId: 'f34c793a-3dc6-4cf4-adc6-91a1d1a7033e' } }
+22:38:49.736: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 35, type: 'event', event: 'output', body: { category: 'console', group: 'startCollapsed', output: 'Programming' } }
+22:38:49.736: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 36, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '' } }
+22:38:49.737: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 37, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '' } }
+22:38:49.737: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 38, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\n' } }
+22:38:49.738: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 39, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Calculating memory ranges for operation...\n' } }
+22:38:49.739: [info]:  [MPLAB Core Debug Adapter] -> backend: { seq: 4, type: 'request', command: 'threads' }
+22:38:49.792: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 40, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\n' } }
+22:38:49.798: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 41, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Erasing...\n' } }
+22:38:49.828: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 42, type: 'response', request_seq: 4, success: true, command: 'threads', body: { threads: [ { id: 0, name: 'Main thread' } ] } }
+22:38:49.885: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 43, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '\n' } }
+22:38:49.886: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 44, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'The following memory area(s) will be programmed:\n' } }
+22:38:49.886: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 45, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'program memory: start address = 0x0, end address = 0x7f\nprogram memory: start address = 0x2e00, end address = 0x31ff\nprogram memory: start address = 0xff80, end address = 0xffff\nconfiguration memory\nUser Id Memory\n\n' } }
+22:38:50.286: [warning]: [MPLAB Platforms] com.microchip.mplab.mdbcore.common.debug.exceptions.MDBCommonExceptionTrapLogger - Stack Trace Log:
+                         This Logger Called From: com.microchip.mplab.mdbcore.loader.util.MemoryLoadHistory::getLoadedRanges at line: 225
+                         Originating Exception: java.lang.UnsupportedOperationException
+                         
+                         Originating Exception Message: Memory object for requested MemoryModel parameter: com.microchip.mplab.mdbcore.memory.memorytypes.PeripheralMemory does not exist.
+                         
+                         java.lang.UnsupportedOperationException: Memory object for requested MemoryModel parameter: com.microchip.mplab.mdbcore.memory.memorytypes.PeripheralMemory does not exist.
+                         at com.microchip.mplab.mdbcore.loader.util.MemoryLoadHistory.lambda$getLoadedRanges$3(MemoryLoadHistory.java:206)
+                         at java.base/java.util.Optional.orElseThrow(Unknown Source)
+                         at com.microchip.mplab.mdbcore.loader.util.MemoryLoadHistory.getLoadedRanges(MemoryLoadHistory.java:205)
+                         at com.microchip.mplab.mdbcore.RI4Tool.MemoryHandler.getLoadedRanges(MemoryHandler.java:357)
+                         at com.microchip.mplab.mdbcore.RI4Tool.ProgramHandler.handleDebugAccessLevelsAgnostically(ProgramHandler.java:1218)
+                         at com.microchip.mplab.mdbcore.RI4Tool.ProgramHandler.ProgramDevice(ProgramHandler.java:994)
+                         at com.microchip.mplab.mdbcore.RI4Tool.RI4ToolBase.ProgramTarget(RI4ToolBase.java:678)
+                         at com.microchip.mplab.mdbcore.pk4hybrid.Pk4HybridTooImpl.ProgramTarget(Pk4HybridTooImpl.java:100)
+                         at com.microchip.mplab.mdbcore.debugger.MCDebugger.Program(MCDebugger.java:1883)
+                         at com.microchip.mplab.backend.mdbcore.debugger.Debugger.program(Debugger.java:416)
+                         at com.microchip.mplab.backend.mdbcore.handlers.LaunchRequestHandler.runLaunchSequence(LaunchRequestHandler.java:88)
+                         at com.microchip.mplab.backend.mdbcore.handlers.LaunchRequestHandler.lambda$handle$0(LaunchRequestHandler.java:277)
+                         at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(Unknown Source)
+                         at java.base/java.util.concurrent.ThreadPerTaskExecutor$TaskRunner.run(Unknown Source)
+                         at java.base/java.lang.VirtualThread.run(Unknown Source)
+                         
+22:38:50.609: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 46, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: 'Programming/Verify complete\n' } }
+22:38:50.617: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 47, type: 'event', event: 'output', body: { category: 'console', group: 'end' } }
+22:38:50.618: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 48, type: 'event', event: 'output', body: { category: 'stdout', channelName: 'Snap-mplab-backend', output: '' } }
+22:38:50.737: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 49, type: 'event', event: 'terminated' }
+22:38:50.744: [info]:  [MPLAB Core Debug Adapter] -> backend: { seq: 5, type: 'request', command: 'disconnect', arguments: { restart: false, terminateDebuggee: false } }
+22:38:50.767: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 50, type: 'event', event: 'progressEnd', body: { progressId: 'f34c793a-3dc6-4cf4-adc6-91a1d1a7033e' } }
+22:38:50.768: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 51, type: 'response', request_seq: 2, success: true, command: 'launch' }
+22:38:50.770: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 52, type: 'event', event: 'terminated' }
+22:38:50.771: [info]:  [MPLAB Core Debug Adapter] <- backend: { seq: 53, type: 'response', request_seq: 5, success: true, command: 'disconnect' }
+22:38:50.806: [info]:  [MPLAB Core Debug Adapter] Session is stopping
+22:40:50.824: [error]: [MPLAB Core Debug Adapter] Protocol error: read ECONNRESET
+22:40:50.826: [error]: [MPLAB Core Debug Adapter] Protocol error: connection closed

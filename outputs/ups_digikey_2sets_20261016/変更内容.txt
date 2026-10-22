@@ -1,0 +1,41 @@
+UNO Q UPS：DigiKey統一・2セット＋少量予備（2026-10-16）
+
+最新の購入用ファイル
+UNO_Q_UPS_DigiKey_2sets_spares.xlsx
+DigiKey_upload_2sets_spares.csv
+BOM_full_2sets_spares.csv
+前回の outputs/ups_revision_20261016 のBOMは変更前の記録です。
+
+数量：必要80個、予備38個、合計118個／27品種。購入先は全品DigiKey。
+予備：抵抗12品種×2、MLCC6品種×2、MOSFET1品種×2。
+スーパーキャパシタ、IC、インダクタ、コネクタ、ポリマーコンデンサは予備なし。
+CSVのQuantityは発注数量。フルBOMのQuantityは1セットの実装数、Required_2setsは2セット必要数、Spareは予備、Order_Quantityは発注数。
+
+C6/C7/C8/C12/C13/C14をEaton HVH1020-2R7705-Rへ変更。
+DigiKey注文番号：283-HVH1020-2R7705-R-ND。
+7F±20%、2.7V、DC ESR最大113mΩ、1kHz ESR最大75mΩ。
+本体φ10(+0.5)×20(±2)mm、端子間隔5±0.5mm、線径0.6±0.05mm。
+元の10Fに対して公称容量・同一電圧での蓄積エネルギーは70%。
+2直列×3並列の公称容量は15F→10.5F、初期容量下限8.4F。
+電圧設定、配線、パッド座標・穴径・極性は維持。穴列から本体まで3mm、横置きにリード成形。
+専用フットプリントは最大外形をコートヤードへ反映。簡略公称STEPモデルを新規作成（メーカー支給モデルではない）。
+
+価格比較：送料別、消費税10%で概算。税計算の丸めは購入画面に従う。
+採用7F品：10個以上の単価137.80円税抜、12個1818.96円税込。在庫表示4000個。
+比較10F品Eaton HVH1025-2R7106-R：171.50円税抜、12個2263.80円税込。
+元の秋月KAMCAP HP-2R7-J106UY LR：200円税込、12個2400円税込。
+採用案は元の秋月品より約581円安価。全BOMの購入総額は未集計。
+4F品HVH0820-2R7405-Rも比較したが端子間隔3.5mmで、今回の5mmパッドに直接合わないため不採用。
+KEMET SCSFP1005M2R7YC000は本体長さ最大32mmで既存横置きスペースからはみ出すため不採用。
+
+検証：回路図／基板／BOMの型番・注文番号・フットプリント整合、接続不変、CSV118個、Excel再計算・保存値一致。
+基板DRC：違反0、未配線0、回路図との不整合0。
+回路図ERC：既存28件（エラー27・警告1）、今回の追加なし。
+実機保持時間、UNO Q電源接続・シャットダウン完了は未検証。
+KiCadで旧内容を開いている場合は、保存せずディスクから開き直してください。
+
+参照
+https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394
+https://www.digikey.jp/en/products/detail/eaton-electronics-division/HVH1025-2R7106-R/28140105
+https://akizukidenshi.com/catalog/g/g104251
+https://www.eaton.com/content/dam/eaton/products/electronic-components/resources/data-sheet/eaton-hvh-supercapacitors-cylindrical-cells-high-density-data-sheet-elx1538-en.pdf

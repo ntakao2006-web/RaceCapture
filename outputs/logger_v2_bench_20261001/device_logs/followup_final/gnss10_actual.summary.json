@@ -1,0 +1,31 @@
+{
+  "samples": 650,
+  "elapsed_s": 64.894,
+  "measured_hz": 10.000924584707368,
+  "itow_interval_ms": {
+    "100": 649
+  },
+  "sats_min": 0,
+  "sats_max": 5,
+  "last": {
+    "host_s": 64.927,
+    "itow": 389821500,
+    "fix": 3,
+    "valid": false,
+    "sats": 5,
+    "hacc_mm": 124902,
+    "lat_e7": 355172250,
+    "lon_e7": 1394827044
+  },
+  "valid_fix_samples": 0,
+  "state": {
+    "mcu_ms": 299688,
+    "completed": 34,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 247210,
+    "i2c_errors": 164,
+    "uart_bytes": 2,
+    "result": "GNSS sent"
+  }
+}

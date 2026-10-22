@@ -70,18 +70,20 @@ function update(frame) {
   $('profile-label').textContent=config?.profile==='ncec-2005-mt'?'NCEC 2005 MT / NOPRO':vehicle?'車両表示':'車載CAN接続なし';
   const lap=frame.sample?.lap||{};
   $('lap-count').textContent=Number.isFinite(lap.LapCount)?String(lap.LapCount):'—';
-  $('lap-elapsed').textContent=lapClock(lap.ElapsedTime);$('lap-last').textContent=lapClock(lap.LapTime);$('lap-best').textContent=lapClock(lap.BestLap);
-  $('lap-hint').textContent=lap.LapCount===undefined||lap.LapCount===null?'ラップ計測は未設定です（Settings → ラップ計測）':lap.CurrentLap===0?'ライン通過を待っています（最初の通過から1周目）':'';
+  $('lap-elapsed').textContent=lapClock(lap.ElapsedTime);$('lap-last').textContent=lapClock(lap.LapTime);$('lap-best').textContent=lapClock(lap.BestLap);$('lap-left').textContent=Number.isFinite(lap.LapsLeft)?String(lap.LapsLeft):'—';$('lap-race').textContent=lapClock(lap.RaceTime);
+  $('lap-hint').textContent=lap.LapCount===undefined||lap.LapCount===null?'ラップ計測は未設定です（Settings → ラップ計測）':lap.CurrentLap===0?'スタート（またはライン通過）を待っています':lap.LapCount>0&&lap.CurrentLap===lap.LapCount&&lap.ElapsedTime===null?'ゴールしました':lap.LapsLeft===1?'最終周：周回が終わったらゴールへ':'';
   $('connection').textContent=s.connected?'● MCU受信中':'MCU通信待ち / 値は無効';
   $('device-name').textContent=s.device; $('rate').textContent=`受信 ${format(s.receive_hz,1)} Hz`;
   $('sample-seq').textContent=`SEQ ${frame.sample?.seq ?? '—'}`;
   $('storage-free').textContent=`（空き ${format(s.storage_free_bytes/1073741824,2)} GiB）`;
   $('hardware-status').replaceChildren(...Object.entries(s.sensors||{}).map(([k,v])=>{const span=document.createElement('span');span.textContent=`${k.toUpperCase()} ${v}`;return span;}));
   if($('imu-calibration'))$('imu-calibration').textContent=frame.sample?.imu_calibration?'IMU校正（0〜3）：'+Object.entries(frame.sample.imu_calibration).map(([k,v])=>`${k} ${v}`).join(' / '):'IMU校正：受信待ち';
-  const tiles=(config?.signals||[]).slice(0,8);$('signal-tiles').hidden=!tiles.length;
-  $('signal-tiles').replaceChildren(...tiles.map(signal=>{const a=document.createElement('article'),label=document.createElement('span'),value=document.createElement('strong'),unit=document.createElement('small');label.textContent=signal.name;value.textContent=format(frame.sample?.can_signals?.[signal.name],signal.conversion==='ntc'?1:2);unit.textContent=signal.unit;a.append(label,value,unit);return a;}));
-  $('can-live').replaceChildren(...(config?.signals||[]).map(signal=>{const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=signal.name;dd.textContent=`${format(frame.sample?.can_signals?.[signal.name],2)} ${signal.unit}`;row.append(dt,dd);return row;}));
-  const log=s.logging; $('rec-badge').textContent=log.active?'● REC':'○ STANDBY'; $('rec-badge').classList.toggle('recording',log.active);
+  const tiles=[...(config?.signals||[])].sort((a,b)=>(b.conversion==='sensorhub_oiltemp')-(a.conversion==='sensorhub_oiltemp')).slice(0,8);$('signal-tiles').hidden=!tiles.length;
+  const signalFault=signal=>signal.conversion==='sensorhub_oiltemp'?(s.connected?(frame.sample?.can_states?.[signal.name]?.code===0?'':frame.sample?.can_states?.[signal.name]?.label||'通信途絶'):'通信途絶'):'';
+  $('signal-tiles').replaceChildren(...tiles.map(signal=>{const a=document.createElement('article'),label=document.createElement('span'),value=document.createElement('strong'),unit=document.createElement('small'),fault=signalFault(signal);label.textContent=signal.name;value.textContent=fault||format(frame.sample?.can_signals?.[signal.name],1);unit.textContent=fault?'':signal.unit;a.append(label,value,unit);return a;}));
+  $('can-live').replaceChildren(...(config?.signals||[]).map(signal=>{const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=signal.name;dd.textContent=signalFault(signal)||`${format(frame.sample?.can_signals?.[signal.name],2)} ${signal.unit}`;row.append(dt,dd);return row;}));
+  const log=s.logging; $('rec-badge').textContent=log.active?(log.sd_warning?'● REC（本体のみ）':'● REC'):'○ STANDBY';
+  $('rec-warning').textContent=log.sd_warning||''; $('rec-warning').hidden=!log.sd_warning; $('rec-badge').classList.toggle('recording',log.active);
   $('rec-time').textContent=elapsed(log.elapsed_s); $('rec-rows').textContent=`${log.rows.toLocaleString()} samples`;
   $('start-log').disabled=log.active||!s.connected; $('stop-log').disabled=!log.active; $('save-config').disabled=log.active;
   $('footer-status').textContent=`受信 ${s.received.toLocaleString()} 件 · ${s.age_ms??'—'} ms · 内蔵eMMC`;
@@ -169,9 +171,9 @@ async function solveLog(log){
 }
 function signalRow(signal={channel:1,name:'',unit:'',can_id:256,extended:false,byte_offset:0,data_type:'uint16',endian:'little',scale:1,offset:0}){
   const row=document.createElement('div');row.className='signal-row';
-  const fields=[['channel','CAN系統',['1','2']],['name','信号名'],['unit','単位'],['can_id','CAN ID（16進）'],['extended','ID形式',['標準','拡張']],['byte_offset','バイト位置'],['data_type','データ型',['uint8','int8','uint16','int16','uint32','int32']],['endian','バイト順',['little','big']],['scale','倍率'],['offset','オフセット'],['bit_mask','ビットマスク（省略可）'],['conversion','換算',['linear','ntc']],['pullup_ohm','プルアップ抵抗Ω（サーミスタ）'],['ntc_points','校正値 温度℃:抵抗Ω（サーミスタ）']];
+  const fields=[['channel','CAN系統',['1','2']],['name','信号名'],['unit','単位'],['can_id','CAN ID（16進）'],['extended','ID形式',['標準','拡張']],['byte_offset','バイト位置'],['data_type','データ型',['uint8','int8','uint16','int16','uint32','int32']],['endian','バイト順',['little','big']],['scale','倍率'],['offset','オフセット'],['bit_mask','ビットマスク（省略可）'],['conversion','換算',['linear','ntc','sensorhub_oiltemp']],['pullup_ohm','プルアップ抵抗Ω（サーミスタ）'],['ntc_points','校正値 温度℃:抵抗Ω（サーミスタ）']];
   for(const [key,label,options] of fields){const l=document.createElement('label');l.textContent=label;let input;
-    if(options){input=document.createElement('select');options.forEach((v,i)=>{const o=document.createElement('option');o.value=key==='extended'?String(Boolean(i)):v;o.textContent=key==='conversion'?(v==='ntc'?'サーミスタ（比率→℃）':'直線（倍率・オフセット）'):v;input.append(o);});input.value=String(signal[key]??(key==='channel'?1:options[0]));input.required=true;}
+    if(options){input=document.createElement('select');options.forEach((v,i)=>{const o=document.createElement('option');o.value=key==='extended'?String(Boolean(i)):v;o.textContent=key==='conversion'?(v==='ntc'?'サーミスタ（比率→℃）':v==='sensorhub_oiltemp'?'PIC油温（断線検出付き）':'直線（倍率・オフセット）'):v;input.append(o);});input.value=String(signal[key]??(key==='channel'?1:options[0]));input.required=true;}
     else{input=document.createElement('input');input.value=key==='can_id'?signal[key].toString(16).toUpperCase():key==='ntc_points'?(signal.ntc_points||[]).map(([t,r])=>`${t}:${r}`).join(', '):(signal[key]??'');
       if(key==='ntc_points')input.placeholder='例 20:12000, 60:2500, 100:680';
       if(['channel','scale','offset','byte_offset','bit_mask','pullup_ohm'].includes(key)){input.type='number';input.step=key==='byte_offset'?'1':'any';if(key==='byte_offset'){input.min='0';input.max='7';}}

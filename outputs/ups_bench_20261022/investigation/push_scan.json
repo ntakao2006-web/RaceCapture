@@ -1,0 +1,161 @@
+{
+  "count": 809,
+  "total_mb": 180.383479,
+  "groups_mb": {
+    "-": 0.0,
+    ".gitignore": 0.0,
+    "EcoCapture-Web": 0.05,
+    "MPLABXLog.xml": 0.0,
+    "RaceCapture-UNOQ": 0.13,
+    "circuit": 24.21,
+    "firmware": 0.05,
+    "outputs": 79.47,
+    "pic18f26q84_blink.X": 56.66,
+    "queuelogs": 0.02,
+    "v1_test": 19.79
+  },
+  "largest": [
+    [
+      53516781,
+      "pic18f26q84_blink.X/ipecmd_diag_20260830.log"
+    ],
+    [
+      17868739,
+      "outputs/hardware_check_20261003/LOG_20261002T171909Z_7235bf5a.csv"
+    ],
+    [
+      16522566,
+      "outputs/sensorhub_20261019/oiltemp_status/PIC18F26Q84.pdf"
+    ],
+    [
+      8118634,
+      "v1_test/drivers/CP210x_VCP_Windows.zip"
+    ],
+    [
+      5492504,
+      "v1_test/drivers/CP210x_VCP_Windows/CP210x_VCP_Windows/CP210xVCPInstaller_Win7_v5.40.24.exe"
+    ],
+    [
+      3077120,
+      "outputs/lte_podium_20261002/web.update.tar"
+    ],
+    [
+      2612439,
+      "outputs/ups_bench_20261022/investigation/uno-q.pdf"
+    ],
+    [
+      2230784,
+      "outputs/lte_podium_20261002/web.before.tar"
+    ],
+    [
+      2169205,
+      "circuit/logger_v2_ups/logger_v2_ups.step"
+    ],
+    [
+      2077641,
+      "circuit/logger_v1/tmp/u13_photo_crop.png"
+    ]
+  ],
+  "credential_candidates": [
+    {
+      "path": "outputs/lte_podium_20261002/web.before.tar::./test_device_agent.py",
+      "line": 21,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.before.tar::./test_device_agent.py",
+      "line": 28,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.before.tar::./test_device_agent.py",
+      "line": 32,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.before.tar::./test_device_agent.py",
+      "line": 32,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.update.tar::./test_device_agent.py",
+      "line": 21,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.update.tar::./test_device_agent.py",
+      "line": 28,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.update.tar::./test_device_agent.py",
+      "line": 32,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.update.tar::./test_device_agent.py",
+      "line": 32,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.update.tar::./test_podium.py",
+      "line": 26,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.update.tar::./test_podium.py",
+      "line": 31,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.update.tar::./test_server.py",
+      "line": 86,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/lte_podium_20261002/web.update.tar::./vendor/fs/ftpfs.py",
+      "line": 373,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/racecapture_unoq_20261002/ecocapture-before-racecapture-20261002.tgz::EcoCapture-Web/test_server.py",
+      "line": 86,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/racecapture_unoq_20261002/ecocapture-before-racecapture-20261002.tgz::EcoCapture-Web/vendor/fs/ftpfs.py",
+      "line": 373,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/racecapture_unoq_20261002/ecocapture-before-racecapture-20261002.tgz::EcoCapture-Web/test_device_agent.py",
+      "line": 21,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/racecapture_unoq_20261002/ecocapture-before-racecapture-20261002.tgz::EcoCapture-Web/test_device_agent.py",
+      "line": 28,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/racecapture_unoq_20261002/ecocapture-before-racecapture-20261002.tgz::EcoCapture-Web/test_device_agent.py",
+      "line": 32,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/racecapture_unoq_20261002/ecocapture-before-racecapture-20261002.tgz::EcoCapture-Web/test_device_agent.py",
+      "line": 32,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/racecapture_unoq_20261002/ecocapture-before-racecapture-20261002.tgz::EcoCapture-Web/test_podium.py",
+      "line": 26,
+      "kind": "credential_assignment"
+    },
+    {
+      "path": "outputs/racecapture_unoq_20261002/ecocapture-before-racecapture-20261002.tgz::EcoCapture-Web/test_podium.py",
+      "line": 31,
+      "kind": "credential_assignment"
+    }
+  ]
+}

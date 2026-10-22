@@ -1,0 +1,32 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "43856C83F84E3B4A679109CB25134F917244ACF75F3EA809BDFE50E16BD1696F",
+    "Path": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\firmware\\ecologger_v2\\logger_impl.h"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "8E9DEC15F5BD33EABCBE787C8115516B0B31B98C01AF0F133ED43505E0ABA314",
+    "Path": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\firmware\\ecologger_v2\\sd_logger.h"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "CE9389FEE0AC53BAA4E73F0FE4FF007D0ED8D9A83A9AD3FDF9BBCE2A6F886FC4",
+    "Path": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\EcoCapture-Web\\server.py"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "34B52652AB1EC1087FF0B2A3C69F8CE4C5B2A7C4F670F73ABD6086F56B08AA71",
+    "Path": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\EcoCapture-Web\\telemetry_bridge.py"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "1CADD0247A59E7E009167270EC46E349B1632672D2613A3B3B022564AC37BE17",
+    "Path": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\EcoCapture-Web\\sd_storage.py"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "9E1C46ED909FC8FAC241F9047BC90B43BF937EB0AEC2CAE87F2CC3188771A3FC",
+    "Path": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\EcoCapture-Web\\web\\app.js"
+  }
+]

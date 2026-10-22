@@ -1,0 +1,12 @@
+THERM adc=1520 r_ohm=5903 temp_c=39.06 can_0x600=sent
+THERM adc=1516 r_ohm=5878 temp_c=39.19 can_0x600=sent
+THERM adc=1521 r_ohm=5909 temp_c=39.03 can_0x600=sent
+THERM adc=1520 r_ohm=5903 temp_c=39.06 can_0x600=sent
+THERM adc=1515 r_ohm=5872 temp_c=39.22 can_0x600=sent
+THERM adc=1520 r_ohm=5903 temp_c=39.06 can_0x600=sent
+THERM adc=1521 r_ohm=5909 temp_c=39.03 can_0x600=sent
+THERM adc=1516 r_ohm=5878 temp_c=39.19 can_0x600=sent
+THERM adc=1516 r_ohm=5878 temp_c=39.19 can_0x600=sent
+THERM adc=1520 r_ohm=5903 temp_c=39.06 can_0x600=sent
+THERM adc=1520 r_ohm=5903 temp_c=39.06 can_0x600=sent
+SUMMARY port=COM16 samples=11 temp_mean_c=39.10 temp_min_c=39.03 temp_max_c=39.22 adc_last=1520 r_ohm_last=5903 can_last=sent

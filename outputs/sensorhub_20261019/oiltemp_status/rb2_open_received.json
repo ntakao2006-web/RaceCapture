@@ -1,0 +1,12 @@
+{
+  "can2": 248,
+  "state": {
+    "code": 1,
+    "label": "オープン"
+  },
+  "signals": {
+    "OilTemp": null,
+    "OilTempState": 1,
+    "OilTempOpen": 1
+  }
+}

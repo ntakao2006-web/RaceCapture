@@ -1,0 +1,404 @@
+{
+    "dashboard_f4beab04-d2fb-11ea-b330-60a44c5f184c": {
+  "gauges": [
+    {
+      "config": {
+        "Channel": {
+          "channel": "BestLap",
+          "overrides": {
+            "BestLap": {
+              "max_value": 0,
+              "min_value": 0,
+              "precision": 4,
+              "base_color": [
+                1,
+                0.09999999999999998,
+                0.775,
+                1.0
+              ],
+              "autoselect_color": false
+            }
+          }
+        },
+        "Settings": {
+          "visual_settings": {
+            "show_outline": true,
+            "outline_color": [
+              0.4823529411764706,
+              0.12156862745098039,
+              0.6352941176470588,
+              1.0
+            ],
+            "assets_md5_hash": {
+              "background": ""
+            },
+            "background_color": [
+              0.4823529411764706,
+              0.12156862745098039,
+              0.6352941176470588,
+              0.19607843137254902
+            ],
+            "corner_radius_pct": 0.46,
+            "show_channel_name": true,
+            "show_channel_unit": false,
+            "channel_alert_element": "background",
+            "channel_labels_colors": [
+              [
+                0.8784313725490196,
+                0.8784313725490196,
+                0.8784313725490196,
+                1.0
+              ],
+              [
+                0.8784313725490196,
+                0.8784313725490196,
+                0.8784313725490196,
+                1.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "channel_name_position": "bottom",
+            "channel_unit_position": "top",
+            "gauge_grouping_layout": [
+              1,
+              4
+            ],
+            "outline_thickness_pct": 0.09,
+            "background_encoded_image": "",
+            "channel_labels_font_size_pct": [
+              0.56,
+              0.16,
+              0.0
+            ]
+          }
+        },
+        "Gauge Type": {
+          "gauge": "Digital"
+        },
+        "Text Values": {
+        }
+      },
+      "center_x": 0.185546875,
+      "center_y": 0.40225261464199524,
+      "size_hint_x": 0.37109375,
+      "size_hint_y": 0.24135156878519715
+    },
+    {
+      "config": {
+        "Channel": {
+          "channel": "CurrentLap"
+        },
+        "Settings": {
+          "visual_settings": {
+            "show_outline": true,
+            "outline_color": [
+              0.8784313725490196,
+              0.8784313725490196,
+              0.8784313725490196,
+              1.0
+            ],
+            "assets_md5_hash": {
+              "background": ""
+            },
+            "background_color": [
+              0.8784313725490196,
+              0.8784313725490196,
+              0.8784313725490196,
+              0.19607843137254902
+            ],
+            "corner_radius_pct": 0.46,
+            "show_channel_name": true,
+            "show_channel_unit": false,
+            "channel_alert_element": "background",
+            "channel_labels_colors": [
+              [
+                0.8784313725490196,
+                0.8784313725490196,
+                0.8784313725490196,
+                1.0
+              ],
+              [
+                0.8784313725490196,
+                0.8784313725490196,
+                0.8784313725490196,
+                1.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "channel_name_position": "bottom",
+            "channel_unit_position": "top",
+            "gauge_grouping_layout": [
+              1,
+              4
+            ],
+            "outline_thickness_pct": 0.09,
+            "background_encoded_image": "",
+            "channel_labels_font_size_pct": [
+              0.56,
+              0.16,
+              0.0
+            ]
+          }
+        },
+        "Gauge Type": {
+          "gauge": "Digital"
+        },
+        "Text Values": {
+        }
+      },
+      "center_x": 0.498046875,
+      "center_y": 0.3821399839098954,
+      "size_hint_x": 0.21484375,
+      "size_hint_y": 0.20112630732099762
+    },
+    {
+      "config": {
+        "Channel": {
+          "channel": "PredTime",
+          "overrides": {
+            "PredTime": {
+              "max_value": 0,
+              "min_value": 0,
+              "precision": 4,
+              "base_color": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ],
+              "autoselect_color": false
+            }
+          }
+        },
+        "Settings": {
+        },
+        "Gauge Type": {
+          "gauge": "Lap Time"
+        },
+        "Text Values": {
+        }
+      },
+      "center_x": 0.498046875,
+      "center_y": 0.6436041834271924,
+      "size_hint_x": 0.52734375,
+      "size_hint_y": 0.3218020917135962
+    },
+    {
+      "config": {
+        "Gauge Type": {
+          "gauge": "Time Delta"
+        }
+      },
+      "center_x": 0.498046875,
+      "center_y": 0.8793242156074014,
+      "size_hint_x": 0.99609375,
+      "size_hint_y": 0.24135156878519715
+    },
+    {
+      "config": {
+        "Channel": {
+          "channel": "LapTime",
+          "overrides": {
+            "LapTime": {
+              "max_value": 0,
+              "min_value": 0,
+              "precision": 4,
+              "base_color": [
+                0.9,
+                0.675,
+                0.0,
+                1.0
+              ],
+              "autoselect_color": false
+            }
+          }
+        },
+        "Settings": {
+          "visual_settings": {
+            "show_outline": true,
+            "outline_color": [
+              1.0,
+              0.6274509803921569,
+              0.0,
+              1.0
+            ],
+            "assets_md5_hash": {
+              "background": ""
+            },
+            "background_color": [
+              1.0,
+              0.6274509803921569,
+              0.0,
+              0.19607843137254902
+            ],
+            "corner_radius_pct": 0.46,
+            "show_channel_name": true,
+            "show_channel_unit": false,
+            "channel_alert_element": "background",
+            "channel_labels_colors": [
+              [
+                0.8784313725490196,
+                0.8784313725490196,
+                0.8784313725490196,
+                1.0
+              ],
+              [
+                0.8784313725490196,
+                0.8784313725490196,
+                0.8784313725490196,
+                1.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "channel_name_position": "bottom",
+            "channel_unit_position": "top",
+            "gauge_grouping_layout": [
+              1,
+              4
+            ],
+            "outline_thickness_pct": 0.09,
+            "background_encoded_image": "",
+            "channel_labels_font_size_pct": [
+              0.56,
+              0.16,
+              0.0
+            ]
+          }
+        },
+        "Gauge Type": {
+          "gauge": "Digital"
+        },
+        "Text Values": {
+        }
+      },
+      "center_x": 0.810546875,
+      "center_y": 0.40225261464199524,
+      "size_hint_x": 0.37109375,
+      "size_hint_y": 0.24135156878519715
+    },
+    {
+      "config": {
+        "Channel": {
+          "channel": "SessionTime",
+          "overrides": {
+            "SessionTime": {
+              "max_value": 0,
+              "min_value": 0,
+              "precision": 4,
+              "base_color": [
+                0.0,
+                0.15,
+                0.6,
+                1.0
+              ],
+              "autoselect_color": false
+            }
+          }
+        },
+        "Settings": {
+          "visual_settings": {
+            "show_outline": true,
+            "outline_color": [
+              0.09803921568627451,
+              0.4627450980392157,
+              0.8235294117647058,
+              1.0
+            ],
+            "assets_md5_hash": {
+              "background": ""
+            },
+            "background_color": [
+              0.09803921568627451,
+              0.4627450980392157,
+              0.8235294117647058,
+              0.19607843137254902
+            ],
+            "corner_radius_pct": 0.46,
+            "show_channel_name": true,
+            "show_channel_unit": false,
+            "channel_alert_element": "background",
+            "channel_labels_colors": [
+              [
+                0.8784313725490196,
+                0.8784313725490196,
+                0.8784313725490196,
+                1.0
+              ],
+              [
+                0.8784313725490196,
+                0.8784313725490196,
+                0.8784313725490196,
+                1.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "channel_name_position": "bottom",
+            "channel_unit_position": "top",
+            "gauge_grouping_layout": [
+              1,
+              4
+            ],
+            "outline_thickness_pct": 0.09,
+            "background_encoded_image": "",
+            "channel_labels_font_size_pct": [
+              0.56,
+              0.16,
+              0.0
+            ]
+          }
+        },
+        "Gauge Type": {
+          "gauge": "Digital"
+        },
+        "Text Values": {
+        }
+      },
+      "center_x": 0.498046875,
+      "center_y": 0.14078841512469834,
+      "size_hint_x": 0.64453125,
+      "size_hint_y": 0.28157683024939667
+    }
+  ],
+  "locked": true,
+  "dash_name": "Predictive Timer",
+  "dash_type": "freeform"
+},
+    "dashboard_fd02a892-d2fb-11ea-b330-60a44c5f184c": {
+      "dash_name": "Raw Channels",
+      "dash_type": "freeform",
+      "gauges": [
+        {
+          "center_x": 0.5,
+          "center_y": 0.5,
+          "config": {
+            "Gauge Type": {
+              "gauge": "Raw Channels"
+            }
+          },
+          "size_hint_x": 1,
+          "size_hint_y": 1
+        }
+      ],
+      "locked": true
+    }
+  }

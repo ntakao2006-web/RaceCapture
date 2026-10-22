@@ -1,0 +1,21 @@
+{
+  "total_tests_passed": 25,
+  "device_deployed": false,
+  "tests": {
+    "source_comparison": 1,
+    "diagnostics": 2,
+    "supervisor": 9,
+    "image_audit": 2,
+    "flash_and_recovery": 8,
+    "bridge_patch": 3
+  },
+  "date": "2026-10-13",
+  "official_bridge_source_sha256": "592771966a1b4eb559fd29e2f95ca552236b0f5465f650198fbbdaaf21dea1c6",
+  "powershell_bom": true,
+  "powershell_syntax": true,
+  "device_accessed": false,
+  "uart_root_cause_confirmed": false,
+  "firmware_rebuilt": false,
+  "official_bridge_source": "https://raw.githubusercontent.com/arduino-libraries/Arduino_RouterBridge/0.3.0/src/bridge.h",
+  "shell_syntax_files": 4
+}

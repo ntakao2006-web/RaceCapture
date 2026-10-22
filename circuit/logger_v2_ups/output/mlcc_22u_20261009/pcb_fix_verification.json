@@ -1,0 +1,13 @@
+{
+  "references": [
+    "C3",
+    "C4",
+    "C9"
+  ],
+  "schematic_and_pcb_updated": true,
+  "outside_three_footprints_byte_identical": true,
+  "outside_three_schematic_instances_byte_identical": true,
+  "positions_angles_pad_nets_pad_uuids_preserved": true,
+  "pcb_native_load_pass": true,
+  "backup": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\circuit\\logger_v2_ups\\logger_v2_ups-backups\\before_mlcc_sch_pcb_fix_20261009_35d250"
+}

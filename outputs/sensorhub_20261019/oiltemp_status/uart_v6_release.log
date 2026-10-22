@@ -1,0 +1,10 @@
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9728 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=0 qsize=1 qcfg=96 qenable=128 diag1u=129 diag1t=0 txpps=70 rxpps=11 tris=254 ansel=246
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9728 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=0 qsize=1 qcfg=96 qenable=128 diag1u=129 diag1t=0 txpps=70 rxpps=11 tris=254 ansel=246
+THERM adc=4095 status=OPEN_OR_OVER_RANGE can_0x600=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9728 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=0 qsize=1 qcfg=96 qenable=128 diag1u=129 diag1t=0 txpps=70 rxpps=11 tris=254 ansel=246
+THERM adc=4095 status=OPEN_OR_OVER_RANGE can_0x600=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9728 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=0 qsize=1 qcfg=96 qenable=128 diag1u=129 diag1t=0 txpps=70 rxpps=11 tris=254 ansel=246
+THERM adc=4095 status=OPEN_OR_OVER_RANGE can_0x600=queued
+FAULT_SUMMARY port=COM16 reports=5 open=5 short=0 adc_min=4094 adc_max=4095 status_last=OPEN_OR_OVER_RANGE

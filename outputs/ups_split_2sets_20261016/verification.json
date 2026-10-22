@@ -1,0 +1,12 @@
+{
+  "schematic_references": 40,
+  "required_parts": 80,
+  "DigiKey_lines": 22,
+  "DigiKey_order_pieces": 192,
+  "Akizuki_lines": 5,
+  "Akizuki_order_pieces": 58,
+  "Akizuki_tax_included_yen": 550,
+  "spare_pieces": 170,
+  "schematic_MPN_and_footprint_reconciled": true,
+  "exported_formula_cache_verified": true
+}

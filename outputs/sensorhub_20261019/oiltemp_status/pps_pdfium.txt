@@ -1,0 +1,78 @@
+360
+ PIC18F26/46/56Q84
+PPS - Peripheral Pin Select Module
+ Data Sheet
+© 2020-2024 Microchip Technology Inc. and its
+subsidiaries
+DS40002259D - 361
+...........continued
+Peripheral PPS Input
+Register
+Default Pin
+Selection at
+POR
+Register Reset
+Value at POR
+Available Input Port
+28-Pin Devices 40-Pin Devices 48-Pin Devices
+ADC Conversion
+Trigger
+ADACTPPS RB4 'b001 100 — B C — B — D — — B — D — —
+SPI1 Clock SPI1SCKPPS RC3 'b010 011 — B C — B C — — — B C — — —
+SPI1 Data SPI1SDIPPS RC4 'b010 100 — B C — B C — — — B C — — —
+SPI1 Client Select SPI1SSPPS RA5 'b000 101 A — C A — — D — A — — D — —
+SPI2 Clock SPI2SCKPPS RB3 'b001 011 — B C — B — D — — B — D — —
+SPI2 Data SPI2SDIPPS RB2 'b001 010 — B C — B — D — — B — D — —
+SPI2 Client Select SPI2SSPPS RA4 'b000 100 A — C A — — D — A — — D — —
+I2C1 Clock I2C1SCLPPS(1) RC3 'b010 011 — B C — B C — — — B C — — —
+I2C1 Data I2C1SDAPPS(1) RC4 'b010 100 — B C — B C — — — B C — — —
+UART1 Receive U1RXPPS RC7 'b010 111 — B C — B C — — — — C — — F
+UART1 Clear to Send U1CTSPPS RC6 'b010 110 — B C — B C — — — — C — — F
+UART2 Receive U2RXPPS RB7 'b001 111 — B C — B — D — — B — D — —
+UART2 Clear to Send U2CTSPPS RB6 'b001 110 — B C — B — D — — B — D — —
+UART3 Receive U3RXPPS RA7 'b000 111 A B — A B — — — A — — — — F
+UART3 Clear to Send U3CTSPPS RA6 'b000 110 A B — A B — — — A — — — — F
+UART4 Receive U4RXPPS RB5 'b001 101 — B C — B — D — — B — D — —
+UART4 Clear to Send U4CTSPPS RB4 'b001 100 — B C — B — D — — B — D — —
+UART5 Receive U5RXPPS RA5 'b000 101 A — C A — C — — A — — — — F
+UART5 Clear to Send U5CTSPPS RA4 'b000 100 A — C A — C — — A — — — — F
+CAN Receive CANRXPPS RB3 'b001 011 — B C — B — D — — B — D — —
+Note: 
+1. Bidirectional pin. The corresponding output must select the same pin.
+21.3 PPS Outputs
+Each digital peripheral has a dedicated Pin Rxy Output Source Selection (RxyPPS) register with which
+the pin output source is selected. With few exceptions, the port TRIS control associated with that pin
+retains control over the pin output driver. Peripherals that control the pin output driver as part of
+the peripheral operation will override the TRIS control as needed. The I2C module is an example of
+such a peripheral.
+Important: The notation ‘Rxy’ is a placeholder for the pin identifier. The ‘x’ holds
+the place of the PORT letter and the ‘y’ holds the place of the bit number. For
+example, Rxy = RA0 for the RA0PPS register.
+The table below shows the output codes for each peripheral, as well as the available Port selections.
+Table 21-2. PPS Output Selection Table
+RxyPPS Output Source
+Available Output Ports
+28-Pin Devices 40-Pin Devices 48-Pin Devices
+0x46 CANTX — B C — B — D — — B — D — —
+0x45 ADGRDB A — C A — C — — A — — — — F
+0x44 ADGRDA A — C A — C — — A — — — — F
+0x43 DSM1 A — C A — — D — A — — D — —
+0x42 CLKR — B C — B C — — — B — — E —
+366
+ PIC18F26/46/56Q84
+PPS - Peripheral Pin Select Module
+ Data Sheet
+© 2020-2024 Microchip Technology Inc. and its
+subsidiaries
+DS40002259D - 367
+21.8.2 RxyPPS
+Name:  RxyPPS
+Pin Rxy Output Source Selection Register
+Bit  7 6 5 4 3 2 1 0
+RxyPPS[5:0]
+Access  R/W R/W R/W R/W R/W R/W
+Reset  0 0 0 0 0 0
+Bits 5:0 – RxyPPS[5:0] Pin Rxy Output Source Selection
+See the PPS Output Selection Table for the list of RxyPPS Output Source codes
+Reset States: POR = 0000000
+All other Resets = uuuuuuu

@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "file": "EL000038.BIN",
+  "records": 372,
+  "nominal_period_ms": 100,
+  "period_ms_min": 99,
+  "period_ms_max": 101,
+  "period_counts": {
+    "100": 369,
+    "99": 1,
+    "101": 1
+  },
+  "recorded_hz": 10.0,
+  "fix_3d_records": 372,
+  "used_satellites_min": 17,
+  "used_satellites_max": 20,
+  "antenna": "passive antenna outdoors",
+  "calibration": "deferred by user"
+}

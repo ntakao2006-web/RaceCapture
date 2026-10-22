@@ -1,0 +1,158 @@
+[
+  {
+    "index": 1,
+    "cluster": 371372,
+    "size": 443392,
+    "active": false
+  },
+  {
+    "index": 2,
+    "cluster": 379564,
+    "size": 104960,
+    "active": false
+  },
+  {
+    "index": 3,
+    "cluster": 387756,
+    "size": 3672064,
+    "active": false
+  },
+  {
+    "index": 4,
+    "cluster": 395948,
+    "size": 4153856,
+    "active": false
+  },
+  {
+    "index": 5,
+    "cluster": 404140,
+    "size": 250880,
+    "active": false
+  },
+  {
+    "index": 6,
+    "cluster": 412332,
+    "size": 4194304,
+    "active": false
+  },
+  {
+    "index": 7,
+    "cluster": 420524,
+    "size": 3476480,
+    "active": false
+  },
+  {
+    "index": 8,
+    "cluster": 428716,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 9,
+    "cluster": 430764,
+    "size": 74752,
+    "active": false
+  },
+  {
+    "index": 10,
+    "cluster": 432812,
+    "size": 18432,
+    "active": false
+  },
+  {
+    "index": 11,
+    "cluster": 434861,
+    "size": 347648,
+    "active": false
+  },
+  {
+    "index": 12,
+    "cluster": 436909,
+    "size": 6656,
+    "active": false
+  },
+  {
+    "index": 13,
+    "cluster": 438957,
+    "size": 373760,
+    "active": false
+  },
+  {
+    "index": 14,
+    "cluster": 441005,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 15,
+    "cluster": 443053,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 16,
+    "cluster": 445101,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 17,
+    "cluster": 447149,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 18,
+    "cluster": 449197,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 19,
+    "cluster": 451245,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 20,
+    "cluster": 453293,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 21,
+    "cluster": 455341,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 22,
+    "cluster": 457389,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 23,
+    "cluster": 459437,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 24,
+    "cluster": 461485,
+    "size": 1048576,
+    "active": false
+  },
+  {
+    "index": 25,
+    "cluster": 463533,
+    "size": 233472,
+    "active": false
+  },
+  {
+    "index": 26,
+    "cluster": 465581,
+    "size": 374784,
+    "active": false
+  }
+]

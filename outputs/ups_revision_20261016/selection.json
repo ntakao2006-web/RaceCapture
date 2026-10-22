@@ -1,0 +1,96 @@
+{
+  "R1": {
+    "Value": "30.1k",
+    "MPN": "ERJ-6ENF3012V",
+    "Manufacturer": "Panasonic Industry",
+    "DigiKey": "P30.1KCCT-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-6ENF3012V/111568",
+    "Rating": "0805; 30.1kOhm; +/-1%; 0.125W",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "93300",
+    "Datasheet": "https://industrial.panasonic.com/cdbs/www-data/pdf/RDA0000/AOA0000C304.pdf"
+  },
+  "R2": {
+    "Value": "12.1k",
+    "MPN": "RC0805FR-0712K1L",
+    "Manufacturer": "YAGEO",
+    "DigiKey": "311-12.1KCRCT-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K1L/730517",
+    "Rating": "0805; 12.1kOhm; +/-1%; 0.125W",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "1138",
+    "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K1L"
+  },
+  "R3": {
+    "Value": "332k",
+    "MPN": "RC0805FR-07332KL",
+    "Manufacturer": "YAGEO",
+    "DigiKey": "311-332KCRCT-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-07332KL/727869",
+    "Rating": "0805; 332kOhm; +/-1%; 0.125W",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "9171",
+    "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-07332KL"
+  },
+  "R5": {
+    "Value": "12.4k",
+    "MPN": "RC0805FR-0712K4L",
+    "Manufacturer": "YAGEO",
+    "DigiKey": "311-12.4KCRCT-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0712K4L/727572",
+    "Rating": "0805; 12.4kOhm; +/-1%; 0.125W",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "21359",
+    "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0712K4L"
+  },
+  "R7": {
+    "Value": "49.9k",
+    "MPN": "RC0805FR-0749K9L",
+    "Manufacturer": "YAGEO",
+    "DigiKey": "311-49.9KCRCT-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0805FR-0749K9L/730932",
+    "Rating": "0805; 49.9kOhm; +/-1%; 0.125W",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "910370",
+    "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-0749K9L"
+  },
+  "R9": {
+    "Value": "2.74M",
+    "MPN": "RC0603FR-072M74L",
+    "Manufacturer": "YAGEO",
+    "DigiKey": "13-RC0603FR-072M74LCT-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M74L/12707882",
+    "Rating": "0603; 2.74MOhm; +/-1%; 0.1W",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "7807",
+    "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M74L"
+  },
+  "R14": {
+    "Value": "10k",
+    "MPN": "ERJ-3EKF1002V",
+    "Manufacturer": "Panasonic Industry",
+    "DigiKey": "P10.0KHCT-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/panasonic-industry/ERJ-3EKF1002V/198102",
+    "Rating": "0603; 10kOhm; +/-1%; 0.1W",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "2135987",
+    "Datasheet": "https://industrial.panasonic.com/cdbs/www-data/pdf/RDA0000/AOA0000C304.pdf"
+  },
+  "R15": {
+    "Value": "2.37M",
+    "MPN": "RC0603FR-072M37L",
+    "Manufacturer": "YAGEO",
+    "DigiKey": "13-RC0603FR-072M37LCT-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-072M37L/5918308",
+    "Rating": "0603; 2.37MOhm; +/-1%; 0.1W",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "7582",
+    "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-072M37L"
+  },
+  "U2": {
+    "DigiKey": "LTC1440IMS8#TRPBFCT-ND",
+    "Stock_checked": "2026-10-16",
+    "Stock_snapshot": "348",
+    "Rating": "Comparator with 1.182V reference; MSOP-8 3x3mm P0.65mm; 2..11V supply"
+  }
+}

@@ -1,0 +1,264 @@
+{
+  "steps": [
+    {
+      "command": "AT",
+      "ok": true,
+      "response": "\u0000\r\nRDY\r\n\r\n+CFUN: 1\r\n\r\n+CPIN: READY\r\n\r\nSMS Ready\r\nAT\r\r\nOK\r\n"
+    },
+    {
+      "command": "ATE0",
+      "ok": true,
+      "response": "ATE0\r\r\nOK\r\n"
+    },
+    {
+      "command": "AT+IFC=2,2",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CMEE=2",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CGATT?",
+      "ok": true,
+      "response": "\r\n+CGATT: 1\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CPIN?",
+      "ok": true,
+      "response": "\r\n+CPIN: READY\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CPSMS=0",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CEDRXS=0",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CPSI?",
+      "ok": true,
+      "response": "\r\n+CPSI: LTE CAT-M1,Online,440-10,0x1212,50291473,255,EUTRAN-BAND19,6075,4,4,-7,-83,-62,17\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CNACT?",
+      "ok": true,
+      "response": "\r\n+CNACT: 0,0,\"0.0.0.0\"\r\n+CNACT: 1,0,\"0.0.0.0\"\r\n+CNACT: 2,0,\"0.0.0.0\"\r\n+CNACT: 3,0,\"0.0.0.0\"\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CNCFG=0,1,\"soracom.io\",\"sora\",\"sora\",1",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CNACT=0,1",
+      "ok": true,
+      "response": "\r\nOK\r\n\r\n+APP PDP: 0,ACTIVE\r\n"
+    },
+    {
+      "command": "AT+CNACT?",
+      "ok": true,
+      "response": "\r\n+CNACT: 0,1,\"10.255.59.109\"\r\n+CNACT: 1,0,\"0.0.0.0\"\r\n+CNACT: 2,0,\"0.0.0.0\"\r\n+CNACT: 3,0,\"0.0.0.0\"\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CACLOSE=0",
+      "ok": false,
+      "response": "Modem rejected operation \r\n+CME ERROR: operation not allowed\r\n"
+    },
+    {
+      "command": "AT+CASSLCFG=0,\"SSL\",0",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CAOPEN=0,0,\"TCP\",\"example.com\",80",
+      "ok": true,
+      "response": "\r\n+CAOPEN: 0,0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CARECV=0,512",
+      "ok": true,
+      "response": "\r\n+CADATAIND: 0\r\n\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:37:49 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 1562\r\ncf-cache-status: HIT\r\nCF-RAY: a44522488f5e9d95-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CAACK=0",
+      "ok": true,
+      "response": "\r\n+CAACK: 62,0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CASTATE?",
+      "ok": true,
+      "response": "\r\n+CASTATE: 0,1\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CACLOSE=0",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CACLOSE=0",
+      "ok": false,
+      "response": "Modem rejected operation \r\n+CME ERROR: operation not allowed\r\n"
+    },
+    {
+      "command": "AT+CASSLCFG=0,\"SSL\",0",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CAOPEN=0,0,\"TCP\",\"104.20.23.154\",80",
+      "ok": true,
+      "response": "\r\n+CAOPEN: 0,0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CARECV=0,512",
+      "ok": true,
+      "response": "\r\n+CADATAIND: 0\r\n\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:37:52 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 1565\r\ncf-cache-status: HIT\r\nCF-RAY: a445225a9b1538ec-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CAACK=0",
+      "ok": true,
+      "response": "\r\n+CAACK: 62,0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CASTATE?",
+      "ok": true,
+      "response": "\r\n+CASTATE: 0,1\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CACLOSE=0",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CACLOSE=0",
+      "ok": false,
+      "response": "Modem rejected operation \r\n+CME ERROR: operation not allowed\r\n"
+    },
+    {
+      "command": "AT+CASSLCFG=0,\"SSL\",0",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CAOPEN=0,0,\"TCP\",\"example.com\",80",
+      "ok": true,
+      "response": "\r\n+CAOPEN: 0,0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CARECV=0,512",
+      "ok": true,
+      "response": "\r\n+CADATAIND: 0\r\n\r\n+CARECV: 319,HTTP/1.1 200 OK\r\nDate: Fri, 02 Oct 2026 16:37:55 GMT\r\nContent-Type: text/html; charset=utf-8\r\nConnection: keep-alive\r\nServer: cloudflare\r\nLast-Modified: Fri, 02 Oct 2026 16:11:02 GMT\r\nAllow: GET, HEAD\r\nAccept-Ranges: bytes\r\nAge: 1567\r\ncf-cache-status: HIT\r\nCF-RAY: a445226c89ab12bb-NRT\r\nalt-svc: h3=\":443\"; ma=86400\r\n\r\n\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CAACK=0",
+      "ok": true,
+      "response": "\r\n+CAACK: 62,0\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CASTATE?",
+      "ok": true,
+      "response": "\r\n+CASTATE: 0,1\r\n\r\nOK\r\n"
+    },
+    {
+      "command": "AT+CACLOSE=0",
+      "ok": true,
+      "response": "\r\nOK\r\n"
+    }
+  ],
+  "http_received": true,
+  "hardware_final": {
+    "mcu_ms": 1124067,
+    "seq": 112273,
+    "imu_address": 40,
+    "imu_errors": 0,
+    "imu_irq": 27,
+    "gnss_errors": 0,
+    "gnss_at": 1124067,
+    "dropped": 15364,
+    "can1_ready": 1,
+    "can2_mode": 3,
+    "can_counts": [
+      0,
+      0
+    ],
+    "can_overflow": [
+      0,
+      0
+    ],
+    "sd_ready": 1,
+    "sd_mounted": 1,
+    "sd_logging": 1,
+    "sd_file": 32,
+    "sd_bytes": 827392,
+    "sd_errors": 0,
+    "sd_queue_dropped": 0,
+    "sd_blocks": 22096,
+    "sd_alloc_ms": 203,
+    "completed": 2,
+    "result": "CAN listen-only configured",
+    "nav": "68ba511dea070a021025393717000000b81bdf170301ea0e411d235364672b15fce501004f4d0100390300003c03000013000000e8ffffffedffffff1f000000d6a5630076000000bcca3e00ac0000005c40562f0000000000000000",
+    "lte_power": 3,
+    "lte_overflows": 0
+  }
+}

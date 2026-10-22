@@ -1,0 +1,52 @@
+{
+  "counts": {
+    "source": 98,
+    "owned": 16,
+    "dnp": 3,
+    "purchase": 79,
+    "ready": 79,
+    "external": 0,
+    "hold": 0
+  },
+  "totals": [
+    79,
+    110,
+    189
+  ],
+  "readyLines": 31,
+  "holdLines": 0,
+  "sourceHashes": {
+    "logger_v2.kicad_sch": "bf381efaa520fa27ad0dd8ad0b517a88ca5ede47cdad4e1a8bad1705c9cf5237",
+    "logger_v2.kicad_pcb": "ef5f44d13b0e24804fa0e82f83cb36667a83ef89c1f2a61b2c012179218c5b3f"
+  },
+  "manufacturerSources": [
+    [
+      "D1/D4",
+      "https://www.st.com/resource/en/datasheet/esdcan24-2bly.pdf"
+    ],
+    [
+      "U9/U10",
+      "https://www.st.com/resource/en/datasheet/usblc6-4sc6y.pdf"
+    ],
+    [
+      "Y1",
+      "https://abracon.com/Support/PackageDrawing/Resonators/ABM8.PDF"
+    ],
+    [
+      "Q1",
+      "https://www.onsemi.com/pdf/datasheet/2n7002e-d.pdf"
+    ],
+    [
+      "LED",
+      "https://optoelectronics.liteon.com/upload/download/DS22-2000-073/LTST-C170KGKT.PDF"
+    ],
+    [
+      "D2",
+      "https://www.littelfuse.com/assetdocs/littelfuse_tvs_diode_array_aq3045_datasheet.pdf?assetguid=42516203-4330-4a77-a157-9b013cf634c9"
+    ],
+    [
+      "D3",
+      "https://www.mccsemi.com/pdf/Products/CSPSBHC4V5LB(CSP1006-2).pdf"
+    ]
+  ]
+}

@@ -1,0 +1,601 @@
+{
+  "tests": [
+    {
+      "command": "AT",
+      "response": "AT\r\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 430514,
+        "completed": 45,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 401584,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 41,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CFUN=0",
+      "response": "AT+CFUN=0\r\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 430726,
+        "completed": 46,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 401784,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 57,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "ATE0",
+      "response": "ATE0\r\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 430835,
+        "completed": 47,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 401984,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 68,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CMEE=2",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 430943,
+        "completed": 48,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 402084,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 74,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "ATI",
+      "response": "\r\nR1951.04\r\n\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 431070,
+        "completed": 49,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 402184,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 92,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+GMM",
+      "response": "\r\nSIMCOM_SIM7070\r\n\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 431182,
+        "completed": 50,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 402284,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 116,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CGMR",
+      "response": "\r\nRevision:1951B14SIM7070\r\n\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 431298,
+        "completed": 51,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 402384,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 149,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CFUN?",
+      "response": "\r\n+CFUN: 0\r\n\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 431411,
+        "completed": 52,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 402484,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 167,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CPIN?",
+      "response": "\r\n+CME ERROR: SIM failure\r\n",
+      "state": {
+        "mcu_ms": 431522,
+        "completed": 53,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 402584,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 194,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CBC",
+      "response": "\r\n+CBC: 0,61,3802\r\n\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 431639,
+        "completed": 54,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 402784,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 219,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IPR?",
+      "response": "\r\n+IPR: 0\r\n\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 431753,
+        "completed": 55,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 402884,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 236,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IPR=?",
+      "response": "\r\n+IPR: (),(0,300,600,1200,2400,4800,9600,14400,19200,38400,57600,115200,230400,460800,921600,1000000,1200000,1500000,2000000,3000000,4000000)\r\n\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 431990,
+        "completed": 56,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 403084,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 386,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IFC?",
+      "response": "\r\n+IFC: 0,0\r\n\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 432100,
+        "completed": 57,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 403184,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 405,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IFC=2,2",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 432213,
+        "completed": 58,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 403284,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 411,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IFC=0,0",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 433763,
+        "completed": 62,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 404884,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 423,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IPR=921600",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 434020,
+        "completed": 63,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 405084,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 429,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 434198,
+        "completed": 65,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 405284,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 435,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 434306,
+        "completed": 66,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 405384,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 441,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 434415,
+        "completed": 67,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 405484,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 447,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 434523,
+        "completed": 68,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 405584,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 453,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 434633,
+        "completed": 69,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 405784,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 459,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IPR=57600",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 434908,
+        "completed": 70,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 405984,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 465,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 435082,
+        "completed": 72,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 406184,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 471,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IPR=2000000",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 435358,
+        "completed": 73,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 406484,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 477,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 435512,
+        "completed": 75,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 406584,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 483,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 435621,
+        "completed": 76,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 406684,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 489,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 435727,
+        "completed": 77,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 406884,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 495,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 435836,
+        "completed": 78,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 406984,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 501,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 435944,
+        "completed": 79,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 407084,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 507,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+IPR=57600",
+      "response": "\r\nOK\n",
+      "state": {
+        "mcu_ms": 439071,
+        "completed": 80,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 410184,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 512,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 439246,
+        "completed": 82,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 410384,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 518,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CPOWD=1",
+      "response": "\r\nNORMAL POWER DOWN\r\n\u0000",
+      "state": {
+        "mcu_ms": 442357,
+        "completed": 83,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 413484,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 540,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "AT\r\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 447610,
+        "completed": 86,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 418784,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 591,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CFUN=0",
+      "response": "AT+CFUN=0\r\r\nOK\r\n",
+      "state": {
+        "mcu_ms": 447804,
+        "completed": 87,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 418884,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 607,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT+CPOWD=1",
+      "response": "AT+CPOWD=1\r\r\nNORMAL POWER DOWN\r\n\u0000",
+      "state": {
+        "mcu_ms": 450935,
+        "completed": 88,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 422084,
+        "i2c_errors": 0,
+        "queue_overruns": 2698,
+        "uart_bytes": 640,
+        "result": "UART command sent"
+      }
+    }
+  ],
+  "hardware_condition": "TVS D3 removed after user reported rail resistance rose from 0.07 ohm to about 0.2 Mohm",
+  "radio_policy": "SIM/antenna absent; CFUN=0 requested immediately after first AT response",
+  "before": {
+    "mcu_ms": 425087,
+    "completed": 41,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 396184,
+    "i2c_errors": 0,
+    "queue_overruns": 2694,
+    "uart_bytes": 31,
+    "result": "UART baud set"
+  },
+  "power_on": {
+    "mcu_ms": 426748,
+    "completed": 44,
+    "lte_power": true,
+    "cts": 0,
+    "gnss_bytes": 397884,
+    "i2c_errors": 0,
+    "queue_overruns": 2698,
+    "uart_bytes": 32,
+    "result": "LTE power enable + PWRKEY pulse completed"
+  },
+  "boot_uart": "\u0000\u0000",
+  "baud_mapping": {
+    "mcu_configured": 57600,
+    "module_reported": 0,
+    "inferred_ratio": 1
+  },
+  "rts_hold": {
+    "held_response": "",
+    "released_response": "\r\nOK\r\n",
+    "gated_as_expected": true
+  },
+  "baud_tests": [
+    {
+      "baud": 921600,
+      "ok": 5,
+      "attempts": 5
+    },
+    {
+      "baud": 2000000,
+      "ok": 5,
+      "attempts": 5
+    }
+  ],
+  "normal_powerdown": "\r\nNORMAL POWER DOWN\r\n\u0000",
+  "power_off": {
+    "mcu_ms": 442406,
+    "completed": 84,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 413484,
+    "i2c_errors": 0,
+    "queue_overruns": 2698,
+    "uart_bytes": 540,
+    "result": "LTE power disabled"
+  },
+  "off_uart": "",
+  "second_boot_at": "AT\r\r\nOK\r\n",
+  "left_off": {
+    "mcu_ms": 451031,
+    "completed": 90,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 422184,
+    "i2c_errors": 0,
+    "queue_overruns": 2698,
+    "uart_bytes": 640,
+    "result": "LTE power disabled"
+  }
+}

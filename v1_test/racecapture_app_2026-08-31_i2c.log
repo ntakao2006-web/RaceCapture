@@ -1,0 +1,60 @@
+I (86119) logger_v1_test: health cpu=240MHz temp=36.2C max=36.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (86130) logger_v1_test: RCP command: getStatus
+I (86282) logger_v1_test: RCP command: s
+I (86655) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.31/-0.34/9.48 m/s2 Gyro=0.1/-0.1/0.1 dps temp=32C calib=0x3F sys=5 err=9
+I (87131) logger_v1_test: RCP command: getStatus
+I (87282) logger_v1_test: RCP command: s
+I (88131) logger_v1_test: RCP command: getStatus
+I (88283) logger_v1_test: RCP command: s
+I (89131) logger_v1_test: RCP command: getStatus
+I (89283) logger_v1_test: RCP command: s
+I (90131) logger_v1_test: RCP command: getStatus
+I (90284) logger_v1_test: RCP command: s
+I (91119) logger_v1_test: health cpu=240MHz temp=35.2C max=36.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (91132) logger_v1_test: RCP command: getStatus
+I (91284) logger_v1_test: RCP command: s
+I (92132) logger_v1_test: RCP command: getStatus
+I (92212) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.31/-0.34/9.49 m/s2 Gyro=-0.1/0.1/0.2 dps temp=32C calib=0x3F sys=5 err=9
+I (92285) logger_v1_test: RCP command: s
+I (93132) logger_v1_test: RCP command: getStatus
+I (93285) logger_v1_test: RCP command: s
+I (94132) logger_v1_test: RCP command: getStatus
+I (94285) logger_v1_test: RCP command: s
+I (95133) logger_v1_test: RCP command: getStatus
+I (95286) logger_v1_test: RCP command: s
+I (96119) logger_v1_test: health cpu=240MHz temp=36.2C max=36.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (96134) logger_v1_test: RCP command: getStatus
+I (96286) logger_v1_test: RCP command: s
+I (97134) logger_v1_test: RCP command: getStatus
+I (97286) logger_v1_test: RCP command: s
+I (97766) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.32/-0.34/9.52 m/s2 Gyro=-0.1/0.1/-0.1 dps temp=32C calib=0x3F sys=5 err=9
+I (98134) logger_v1_test: RCP command: getStatus
+I (98287) logger_v1_test: RCP command: s
+I (99134) logger_v1_test: RCP command: getStatus
+I (99287) logger_v1_test: RCP command: s
+I (100135) logger_v1_test: RCP command: getStatus
+I (100288) logger_v1_test: RCP command: s
+I (101119) logger_v1_test: health cpu=240MHz temp=36.2C max=36.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (101135) logger_v1_test: RCP command: getStatus
+I (101288) logger_v1_test: RCP command: s
+I (102135) logger_v1_test: RCP command: getStatus
+I (102289) logger_v1_test: RCP command: s
+I (103136) logger_v1_test: RCP command: getStatus
+I (103289) logger_v1_test: RCP command: s
+I (103324) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.30/-0.34/9.45 m/s2 Gyro=-0.1/-0.1/0.1 dps temp=32C calib=0x3F sys=5 err=9
+I (104137) logger_v1_test: RCP command: getStatus
+I (104290) logger_v1_test: RCP command: s
+I (105137) logger_v1_test: RCP command: getStatus
+I (105291) logger_v1_test: RCP command: s
+I (106119) logger_v1_test: health cpu=240MHz temp=36.2C max=36.2C stress=ON OTG(vbus=1 role=1 oc_n=1)
+I (106139) logger_v1_test: RCP command: getStatus
+I (106292) logger_v1_test: RCP command: s
+I (107139) logger_v1_test: RCP command: getStatus
+I (107292) logger_v1_test: RCP command: s
+I (108139) logger_v1_test: RCP command: getStatus
+I (108292) logger_v1_test: RCP command: s
+I (108880) logger_v1_test: IMU I2C chip=0xA0 Euler(H/R/P)=359.9/-1.9/-2.1 deg Accel=-0.30/-0.36/9.46 m/s2 Gyro=0.1/0.1/0.1 dps temp=32C calib=0x3F sys=5 err=9
+I (109140) logger_v1_test: RCP command: getStatus
+I (109293) logger_v1_test: RCP command: s
+I (110140) logger_v1_test: RCP command: getStatus
+I (110293) logger_v1_test: RCP command: s

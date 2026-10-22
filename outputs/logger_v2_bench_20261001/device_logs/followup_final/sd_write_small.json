@@ -1,0 +1,8 @@
+{
+  "init": "cmd0=01 cmd8=01 acmd41=00 ocr_rc=00 ready=1 sdhc=1 cid=035344535531364780702a3525008ac9 csd=400e00325b59000076b27f800a404013",
+  "before_matches_backup": true,
+  "test_write": "write_token=0xe5 accepted=1 busy_done=1",
+  "test_readback_matches": true,
+  "restore_write": "write_token=0xe5 accepted=1 busy_done=1",
+  "original_restored": true
+}

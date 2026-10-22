@@ -1,0 +1,63 @@
+UPS selective component reconciliation - 2026-10-09 JST
+Updated only R8,R9,R10,R11,R12,C15,C16.
+Schematic values, reference designators, positions, wires, cached library symbols, other component properties and PCB untouched.
+1608 metric = 0603 imperial. KiCad default resistor/capacitor footprints assigned.
+DigiKey stock snapshots are observed catalog quantities, not reservations.
+Existing consistent 0805 components retained per requested edit boundary.
+Q1 already uses the named 2N7002K symbol and matching SOT-23 footprint; no change.
+
+C15  0.1u
+C0805C474K5RACTU -> C0603C104K5RACTU
+logger_v2_ups:C_0805_2012Metric -> Capacitor_SMD:C_0603_1608Metric
+399-C0603C104K5RACTUCT-ND
+https://www.digikey.jp/en/products/detail/kemet/C0603C104K5RACTU/1465623
+0.1uF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)
+Stock: 4527702
+
+C16  10n
+ -> C0603C103K5RACTU
+ -> Capacitor_SMD:C_0603_1608Metric
+399-C0603C103K5RACTUCT-ND
+https://www.digikey.jp/en/products/detail/kemet/C0603C103K5RACTU/411090
+10nF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)
+Stock: 6334222
+
+R8  25.5k
+RC0805FR-074M32L -> RC0603FR-0725K5L
+logger_v2_ups:R_0805_2012Metric -> Resistor_SMD:R_0603_1608Metric
+311-25.5KHRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0725K5L/727088
+0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C
+Stock: 31790
+
+R9  3.09M
+RC0805FR-074M32L -> RC0603FR-073M09L
+logger_v2_ups:R_0805_2012Metric -> Resistor_SMD:R_0603_1608Metric
+13-RC0603FR-073M09LCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0603FR-073M09L/5918330
+0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C
+Stock: 6056
+
+R10  100k
+RC0805FR-0736KL -> RC0603FR-07100KL
+logger_v2_ups:R_0805_2012Metric -> Resistor_SMD:R_0603_1608Metric
+311-100KHRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889
+0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C
+Stock: 184950
+
+R11  1M
+RC0805FR-074M32L -> RC0603FR-071ML
+logger_v2_ups:R_0805_2012Metric -> Resistor_SMD:R_0603_1608Metric
+311-1.00MHRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844
+0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C
+Stock: 2123457
+
+R12  1.00M
+RC0805FR-074M32L -> RC0603FR-071ML
+logger_v2_ups:R_0805_2012Metric -> Resistor_SMD:R_0603_1608Metric
+311-1.00MHRCT-ND
+https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844
+0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C
+Stock: 2123457

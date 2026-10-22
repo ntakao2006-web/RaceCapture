@@ -1,0 +1,10 @@
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+THERM adc=4094 status=OPEN_OR_OVER_RANGE can_0x600=queued
+FAULT_SUMMARY port=COM16 reports=9 open=9 short=0 adc_min=4094 adc_max=4094 status_last=OPEN_OR_OVER_RANGE

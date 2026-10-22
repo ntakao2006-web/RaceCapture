@@ -1,0 +1,45 @@
+{
+  "schema": "ecologger-v2-source-v1",
+  "files": {
+    "build.sh": {
+      "bytes": 4731,
+      "sha256_raw": "3c0c1cfbe812ef8b17d1a65545dc23446a853d95ea1b2399b0abcbc714dc07f9",
+      "sha256_lf": "3c0c1cfbe812ef8b17d1a65545dc23446a853d95ea1b2399b0abcbc714dc07f9"
+    },
+    "compact_symbols.py": {
+      "bytes": 2723,
+      "sha256_raw": "9b7ccc5a0baf90ba4f3ef1e36ba3e58e315b213675ae60e2ede41999d818268a",
+      "sha256_lf": "9b7ccc5a0baf90ba4f3ef1e36ba3e58e315b213675ae60e2ede41999d818268a"
+    },
+    "ecologger_v2.ino": {
+      "bytes": 25,
+      "sha256_raw": "c14282b940c244c271d9c9f53176ee0aa4518b0d92f8715c8dd8086a7046eac2",
+      "sha256_lf": "c14282b940c244c271d9c9f53176ee0aa4518b0d92f8715c8dd8086a7046eac2"
+    },
+    "logger_impl.h": {
+      "bytes": 17896,
+      "sha256_raw": "662e5caedb41dfa156c4424e497669b3a7c5a59bf65b7933a8467e18966e5af1",
+      "sha256_lf": "a3178d452f3906a350d4c5dbbba9bbf1f4a65e85a1d64bdaf295f6e8f5692c7a"
+    },
+    "lte_uart.h": {
+      "bytes": 3230,
+      "sha256_raw": "974d02abd15fb71ec753fa485cc01af33b135eba27894fcc22cfa66fd0738c47",
+      "sha256_lf": "dcc8eff08431a8c89305176f5d749a2059fb6b8fc43ea7387fee52ddadd772ce"
+    },
+    "rpc_frame.h": {
+      "bytes": 2241,
+      "sha256_raw": "1ddbc98917117bd7f0f991ae17b145d823e94d542868d31fec3b0f3040cdc9ba",
+      "sha256_lf": "1ddbc98917117bd7f0f991ae17b145d823e94d542868d31fec3b0f3040cdc9ba"
+    },
+    "sd_format.h": {
+      "bytes": 2945,
+      "sha256_raw": "3513e16b152b70da222eaca303ece64bef5c81b2455386d103e0cdedba0a3b78",
+      "sha256_lf": "3513e16b152b70da222eaca303ece64bef5c81b2455386d103e0cdedba0a3b78"
+    },
+    "sd_logger.h": {
+      "bytes": 10337,
+      "sha256_raw": "ebae23abc730f2379383ecd4d64b0498da45e7d7e0a755fd68e5ff846130bab2",
+      "sha256_lf": "b712a0a28ed8b03f6132b6a292259fa7fcd17988bcaec8512f0c68d8bee6990a"
+    }
+  }
+}

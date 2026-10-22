@@ -1,0 +1,29 @@
+{
+  "kicad_sch_only_cap_properties_outlines_model_changed": true,
+  "kicad_pcb_only_cap_properties_outlines_model_changed": true,
+  "netlist_connectivity_unchanged": true,
+  "ERC": {
+    "existing": 28,
+    "new": 0
+  },
+  "DRC": {
+    "violations": 0,
+    "unconnected": 0,
+    "schematic_parity": 0
+  },
+  "schematic_pcb_metadata_parity": true,
+  "BOM": {
+    "lines": 27,
+    "required": 80,
+    "spares": 38,
+    "order": 118,
+    "all_DigiKey": true,
+    "exported_csv_xlsx_verified": true
+  },
+  "cap_bank": {
+    "nominal_F": 10.5,
+    "minimum_initial_F": 8.4,
+    "nominal_energy_ratio_vs_previous": 0.7,
+    "hold_time_hardware_verified": false
+  }
+}

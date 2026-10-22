@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PIC18F26Q84 UARTテストを書き込む",
+      "type": "mplab-core-da",
+      "request": "launch",
+      "program": "${workspaceFolder}/dist/default/production/pic18f26q84_blink.X.production.elf",
+      "device": "PIC18F26Q84",
+      "tool": "Snap",
+      "serial": "021038102RYN014624",
+      "interface": "ICSP",
+      "packVendor": "Microchip",
+      "packName": "PIC18F-Q_DFP",
+      "packVersion": "1.30.487",
+      "noDebug": true
+    }
+  ]
+}

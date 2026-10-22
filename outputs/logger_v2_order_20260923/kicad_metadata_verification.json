@@ -1,0 +1,4291 @@
+{
+  "logger_v2.kicad_sch": {
+    "updated_components": 79,
+    "metadata_only_verified": true,
+    "before_sha256": "bf381efaa520fa27ad0dd8ad0b517a88ca5ede47cdad4e1a8bad1705c9cf5237",
+    "after_sha256": "ec1383b513fa9aac80ca46bb35b67069bb513107a562c5336f2ceccab35c99f2",
+    "changes": [
+      {
+        "ref": "C27",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R23",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R22",
+        "before": {
+          "MPN": "RC0603J47K",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129458",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129458/",
+          "Specification": null,
+          "SelectionNote": "リール販売",
+          "LCSC": "C25819",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D7",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "U4",
+        "before": {
+          "MPN": "MCP25625T-E/SS",
+          "Manufacturer": "Microchip",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "112663",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g112663/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C184944",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": ""
+        },
+        "after": {
+          "MPN": "MCP25625T-E/SS",
+          "Manufacturer": "Microchip Technology",
+          "Supplier": "DigiKey",
+          "SupplierCode": "MCP25625T-E/SSCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/microchip-technology/MCP25625T-E-SS/4860100",
+          "Specification": "CANコントローラ＋トランシーバ; SSOP-28 / 幅5.3mm",
+          "SelectionNote": "指定品維持。/SSパッケージ。高価なため予備なし。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C1",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "J9",
+        "before": {
+          "MPN": "43045-0400",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.molex.com/en-us/products/part-detail/430450400",
+          "Specification": null,
+          "SelectionNote": "既存ケーブルとの嵌合を維持する例外",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400"
+        },
+        "after": {
+          "MPN": "43045-0400",
+          "Manufacturer": "Molex",
+          "Supplier": "DigiKey",
+          "SupplierCode": "WM1814-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/molex/0430450400/252527",
+          "Specification": "Micro-Fit 3.0 基板側4極; 2×2 / 3.0mm 横向きTHT",
+          "SelectionNote": "43045-0400と同じ品番の表記違い。指定どおり2個だけ。ケーブル側・圧着端子は含めない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400"
+        }
+      },
+      {
+        "ref": "R29",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "L2",
+        "before": {
+          "MPN": "LQW18AN27NJ00D",
+          "Manufacturer": "Murata",
+          "Supplier": "DigiKey",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.digikey.jp/ja/products/detail/murata-electronics/LQW18AN27NJ00D/584382",
+          "Specification": "27nH RF wirewound, 440mA, DCR 0.21ohm max, SRF 3.7GHz min",
+          "SelectionNote": "Same MPN and nominal footprint as LoggerV1 L1.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://pim.murata.com/asset/pim4/inductor/JELF243A-0024_PDF_INDUCTOR"
+        },
+        "after": {
+          "MPN": "LQW18AN27NJ00D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-1174-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/LQW18AN27NJ00D/584382",
+          "Specification": "27nH RF巻線インダクタ; 0603 / 1608",
+          "SelectionNote": "指定品維持。440mA、SRF3.7GHz以上。一般電源用インダクタには置換しない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://pim.murata.com/asset/pim4/inductor/JELF243A-0024_PDF_INDUCTOR"
+        }
+      },
+      {
+        "ref": "D5",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D6",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R30",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C15",
+        "before": {
+          "MPN": "C2012X7R1H105KT000N",
+          "Manufacturer": "TDK",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "115331",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g115331/",
+          "Specification": "1uF 50V X7R, 0805 (2012 metric)",
+          "SelectionNote": "Same footprint as V1 1uF. V1 does not specify an exact MPN.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "C2012X7R1H105K085AC",
+          "Manufacturer": "TDK",
+          "Supplier": "DigiKey",
+          "SupplierCode": "445-14539-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/tdk-corporation/C2012X7R1H105K085AC/3951775",
+          "Specification": "1µF ±10% X7R 50V; 0805 / 2012",
+          "SelectionNote": "同サイズ・同容量・同耐圧。高さ最大1.0mm。新規設計非推奨品だが在庫表示あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "J11",
+        "before": {
+          "MPN": "2452796-1",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://jp.rs-online.com/web/p/memory-card-connectors/2868822",
+          "Specification": null,
+          "SelectionNote": "ユーザー指定RS 286-8822、維持",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.te.com/en/product-2452796-1.html"
+        },
+        "after": {
+          "MPN": "2452796-1",
+          "Manufacturer": "TE Connectivity",
+          "Supplier": "DigiKey",
+          "SupplierCode": "343-2452796-1CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/te-connectivity-linx/2452796-1/21284797",
+          "Specification": "nanoSIM ヒンジ式ソケット; TE専用フットプリント",
+          "SelectionNote": "SDとは別部品。現行指定品維持。マーケットプレイス品ではなくDigiKey直販CTを指定。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.te.com/en/product-2452796-1.html"
+        }
+      },
+      {
+        "ref": "C12",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "R26",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R14",
+        "before": {
+          "MPN": "RC0603J120R",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130332",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130332/",
+          "Specification": null,
+          "SelectionNote": "リール販売。CAN終端定格は別途確認、現在の1608を維持",
+          "LCSC": "C22787",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-07120RL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-120HRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07120RL/726920",
+          "Specification": "120Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "現行DNP=noのため含む。接続するCANバスの終端配置に従って実装する。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C6",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C21",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R11",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRT0603-BY-1003ELF",
+          "Manufacturer": "Bourns",
+          "Supplier": "DigiKey",
+          "SupplierCode": "CRT0603-BY-1003ELFCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/bourns-inc/CRT0603-BY-1003ELF/1775045",
+          "Specification": "100kΩ ±0.1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・100kΩ・0.1%・0.1W。R11の帰還精度を優先し同一品へ統一。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C11",
+        "before": {
+          "MPN": "GRM188B11H103KA01",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "113387",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g113387/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "RF給電バイパス。B特性、-25～85℃",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A103KA01D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-GRM188R72A103KA01DCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A103KA01D/3845635",
+          "Specification": "10nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行Value=0.01u。耐圧は元の50V以上。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R8",
+        "before": {
+          "MPN": "RC0603J47K",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129458",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129458/",
+          "Specification": null,
+          "SelectionNote": "リール販売",
+          "LCSC": "C25819",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C10",
+        "before": {
+          "MPN": "CC0603N150J500",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "113312",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g113312/",
+          "Specification": "18pF C0G 50V 5%; 20MHz CL12pF crystal",
+          "SelectionNote": "",
+          "LCSC": "C1647",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CC0603JRNPO9BN150",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1060-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/CC0603JRNPO9BN150/302794",
+          "Specification": "15pF ±5% C0G 50V; 0603 / 1608",
+          "SelectionNote": "Value=15pを採用。古いSpecificationの18pF/CL12pFは不採用。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D4",
+        "before": {
+          "MPN": "PEC3824C2A-AU_R1_000A1",
+          "Manufacturer": "onsemi",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129497",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129497/",
+          "Specification": null,
+          "SelectionNote": "CAN用24V双方向TVS、1/2=bus、3=GND",
+          "LCSC": "C14486",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf"
+        },
+        "after": {
+          "MPN": "ESDCAN24-2BLY",
+          "Manufacturer": "STMicroelectronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "497-13262-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stmicroelectronics/ESDCAN24-2BLY/3661760",
+          "Specification": "CAN用 双方向2線 TVS 24V; SOT-23-3",
+          "SelectionNote": "PEC3824C2A-AUの代替。1/2=CAN、3=GND。24V、Vbr最低27V、容量最大30pF。クランプ特性は元品と完全同一ではない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.st.com/resource/en/datasheet/esdcan24-2bly.pdf"
+        }
+      },
+      {
+        "ref": "C24",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C23",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R28",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R24",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R4",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "U2",
+        "before": {
+          "MPN": "AP63301WU-7",
+          "Manufacturer": null,
+          "Supplier": "DigiKey",
+          "SupplierCode": "31-AP63301WU-7CT-ND",
+          "SupplierURL": "https://www.digikey.jp/ja/products/detail/diodes-incorporated/AP63301WU-7/10491607",
+          "Specification": null,
+          "SelectionNote": "0.95mm pitch, no exposed pad; DigiKey stock confirmed 2026-09-22",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.diodes.com/assets/Datasheets/AP63300-AP63301.pdf"
+        },
+        "after": {
+          "MPN": "AP63301WU-7",
+          "Manufacturer": "Diodes Incorporated",
+          "Supplier": "DigiKey",
+          "SupplierCode": "31-AP63301WU-7CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/diodes-incorporated/AP63301WU-7/10491607",
+          "Specification": "3A 降圧DC/DC; TSOT26",
+          "SelectionNote": "指定品維持。AP63300/固定電圧版と混同しない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.diodes.com/assets/Datasheets/AP63300-AP63301.pdf"
+        }
+      },
+      {
+        "ref": "D11",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R25",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R17",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRCW060322R0FKEA",
+          "Manufacturer": "Vishay Dale",
+          "Supplier": "DigiKey",
+          "SupplierCode": "541-22.0HCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/vishay-dale/CRCW060322R0FKEA/1179617",
+          "Specification": "22Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・22Ω・1%・0.1Wを維持。在庫表示のあるVishay品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D2",
+        "before": {
+          "MPN": "PESD5V0F1BL-Q",
+          "Manufacturer": "Nexperia",
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.nexperia.com/product/PESD5V0F1BL-Q",
+          "Specification": null,
+          "SelectionNote": "RF用双方向TVS、VRWM5.5V、Ctyp0.4pF / max0.55pF",
+          "LCSC": "C45961",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://assets.nexperia.com/documents/data-sheet/PESD5V0F1BL.pdf"
+        },
+        "after": {
+          "MPN": "AQ3045-01ETG",
+          "Manufacturer": "Littelfuse",
+          "Supplier": "DigiKey",
+          "SupplierCode": "F9321CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/littelfuse-inc/AQ3045-01ETG/6347831",
+          "Specification": "RF用 双方向TVS 5.3V / 0.35pF; SOD882 / 1.0×0.6mm",
+          "SelectionNote": "GNSSアンテナESD用の機能代替。SOD882・端子ピッチ0.65mm、現PCBの0.4×0.7mmパッドに端子が重なる。容量typ0.35/max0.5pF（元0.4/0.55）、双方向。VRWM5.3V（元5.5）、Vc最大12V@1A（元11V@1A）で全特性同一ではない。3A・ESD±30kV。DigiKey直販82,168個表示。RF/ESD実機試験未実施。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.littelfuse.com/assetdocs/littelfuse_tvs_diode_array_aq3045_datasheet.pdf?assetguid=42516203-4330-4a77-a157-9b013cf634c9"
+        }
+      },
+      {
+        "ref": "R18",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRCW060322R0FKEA",
+          "Manufacturer": "Vishay Dale",
+          "Supplier": "DigiKey",
+          "SupplierCode": "541-22.0HCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/vishay-dale/CRCW060322R0FKEA/1179617",
+          "Specification": "22Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・22Ω・1%・0.1Wを維持。在庫表示のあるVishay品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C25",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C13",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "C5",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C2",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "R31",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C26",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "U6",
+        "before": {
+          "MPN": "SIM7070G",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://en.simcom.com/product/SIM7070G.html",
+          "Specification": null,
+          "SelectionNote": "指定部品、秋月制約の対象外",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://en.simcom.com/product/SIM7070G.html"
+        },
+        "after": {
+          "MPN": "SIM7070G",
+          "Manufacturer": "SIMCom",
+          "Supplier": "DigiKey",
+          "SupplierCode": "3781-SIM7070G-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/simcom-wireless-solutions-limited/SIM7070G/15841451",
+          "Specification": "LTE Cat-M/NB-IoTモジュール; LCC-68 / 24×24mm",
+          "SelectionNote": "指定の裸モジュール。開発ボードではない。高価なため予備なし。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://en.simcom.com/product/SIM7070G.html"
+        }
+      },
+      {
+        "ref": "R16",
+        "before": {
+          "MPN": "RC0603J120R",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130332",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130332/",
+          "Specification": null,
+          "SelectionNote": "リール販売。CAN終端定格は別途確認、現在の1608を維持",
+          "LCSC": "C22787",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-07120RL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-120HRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07120RL/726920",
+          "Specification": "120Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "現行DNP=noのため含む。接続するCANバスの終端配置に従って実装する。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D10",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C4",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C19",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C8",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "R10",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-07374KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-374KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07374KL/727189",
+          "Specification": "374kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "電源帰還上側。Value=374kを採用。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C17",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R20",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603JR-070RL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-0.0GRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603JR-070RL/726675",
+          "Specification": "0Ω ジャンパ 0.1W; 0603 / 1608",
+          "SelectionNote": "現行Value=0Ω。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "Q1",
+        "before": {
+          "MPN": "2N7002",
+          "Manufacturer": null,
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "103919",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g103919/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF"
+        },
+        "after": {
+          "MPN": "2N7002ET1G",
+          "Manufacturer": "onsemi",
+          "Supplier": "DigiKey",
+          "SupplierCode": "2N7002ET1GOSCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/onsemi/2N7002ET1G/1792136",
+          "Specification": "Nch MOSFET 60V; SOT-23",
+          "SelectionNote": "2N7002相当。1=G、2=S、3=Dで基板と一致。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.onsemi.com/pdf/datasheet/2n7002e-d.pdf"
+        }
+      },
+      {
+        "ref": "D1",
+        "before": {
+          "MPN": "PEC3824C2A-AU_R1_000A1",
+          "Manufacturer": "onsemi",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129497",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129497/",
+          "Specification": null,
+          "SelectionNote": "CAN用24V双方向TVS、1/2=bus、3=GND",
+          "LCSC": "C14486",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf"
+        },
+        "after": {
+          "MPN": "ESDCAN24-2BLY",
+          "Manufacturer": "STMicroelectronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "497-13262-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stmicroelectronics/ESDCAN24-2BLY/3661760",
+          "Specification": "CAN用 双方向2線 TVS 24V; SOT-23-3",
+          "SelectionNote": "PEC3824C2A-AUの代替。1/2=CAN、3=GND。24V、Vbr最低27V、容量最大30pF。クランプ特性は元品と完全同一ではない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.st.com/resource/en/datasheet/esdcan24-2bly.pdf"
+        }
+      },
+      {
+        "ref": "R15",
+        "before": {
+          "MPN": "CRCW251227R0JNEG",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.vishay.com/docs/20035/dcrcwe3.pdf",
+          "Specification": "27ohm 5% 1W; verify antenna supply under load",
+          "SelectionNote": "27Ω 5% 1W、短絡時最悪約0.468W。基板温度・放熱を確認",
+          "LCSC": "C25478",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://www.vishay.com/docs/20035/dcrcwe3.pdf"
+        },
+        "after": {
+          "MPN": "RMCF2512JT27R0",
+          "Manufacturer": "Stackpole Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "RMCF2512JT27R0CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stackpole-electronics-inc/RMCF2512JT27R0/4425469",
+          "Specification": "27Ω ±5% 1W; 2512 / 6332",
+          "SelectionNote": "2512・27Ω・5%・1Wを維持。同サイズのStackpole品へ置換。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C7",
+        "before": {
+          "MPN": "6SVPC330M",
+          "Manufacturer": "Panasonic",
+          "Supplier": "DigiKey",
+          "SupplierCode": "P16611CT-ND",
+          "SupplierURL": "https://www.digikey.jp/ja/products/detail/panasonic-industry/6SVPC330M/4204943",
+          "Specification": "330uF 6.3V conductive polymer aluminum, ESR 17mOhm, D6.3 x H5.9mm",
+          "SelectionNote": "OS-CON SVPC; pad 1 positive +3V8, pad 2 negative GND. Generic dimension-matched 3D model.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://industrial.panasonic.com/cdbs/www-data/pdf/AAB8000/AAB8000C258.pdf"
+        },
+        "after": {
+          "MPN": "6SVPC330M",
+          "Manufacturer": "Panasonic Industry",
+          "Supplier": "DigiKey",
+          "SupplierCode": "P16611CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/panasonic-industry/6SVPC330M/4204943",
+          "Specification": "330µF 6.3V ポリマー; φ6.3 × H5.9mm",
+          "SelectionNote": "指定品維持。ESR17mΩ、極性あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://industrial.panasonic.com/cdbs/www-data/pdf/AAB8000/AAB8000C258.pdf"
+        }
+      },
+      {
+        "ref": "D9",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C20",
+        "before": {
+          "MPN": "C2012X7R1H105KT000N",
+          "Manufacturer": "TDK",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "115331",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g115331/",
+          "Specification": "1uF 50V X7R, 0805 (2012 metric)",
+          "SelectionNote": "Same footprint as V1 1uF. V1 does not specify an exact MPN.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "J6",
+        "before": {
+          "MPN": "43045-0400",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.molex.com/en-us/products/part-detail/430450400",
+          "Specification": null,
+          "SelectionNote": "既存ケーブルとの嵌合を維持する例外",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400"
+        },
+        "after": {
+          "MPN": "43045-0400",
+          "Manufacturer": "Molex",
+          "Supplier": "DigiKey",
+          "SupplierCode": "WM1814-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/molex/0430450400/252527",
+          "Specification": "Micro-Fit 3.0 基板側4極; 2×2 / 3.0mm 横向きTHT",
+          "SelectionNote": "43045-0400と同じ品番の表記違い。指定どおり2個だけ。ケーブル側・圧着端子は含めない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400"
+        }
+      },
+      {
+        "ref": "R6",
+        "before": {
+          "MPN": "RC0603J47K",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129458",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129458/",
+          "Specification": null,
+          "SelectionNote": "リール販売",
+          "LCSC": "C25819",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C3",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "D8",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "U3",
+        "before": {
+          "MPN": "TXU0204PWR",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.ti.com/product/TXU0204",
+          "Specification": null,
+          "SelectionNote": "2Mbps UART 1.8/3.3V変換用。旧案の2個目は購入数量から除く",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.ti.com/lit/ds/symlink/txu0204.pdf"
+        },
+        "after": {
+          "MPN": "TXU0204PWR",
+          "Manufacturer": "Texas Instruments",
+          "Supplier": "DigiKey",
+          "SupplierCode": "296-TXU0204PWRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/texas-instruments/TXU0204PWR/14641512",
+          "Specification": "4bit レベル変換; TSSOP-14 / P0.65",
+          "SelectionNote": "指定品維持。PWパッケージ。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.ti.com/lit/ds/symlink/txu0204.pdf"
+        }
+      },
+      {
+        "ref": "U10",
+        "before": {
+          "MPN": "USBLC6-4SC6",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.st.com/en/protection-devices/usblc6-4.html",
+          "Specification": null,
+          "SelectionNote": "SIM/SD用低容量ESD。秋月適合品未確認、維持",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4.pdf"
+        },
+        "after": {
+          "MPN": "USBLC6-4SC6Y",
+          "Manufacturer": "STMicroelectronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "497-11883-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stmicroelectronics/USBLC6-4SC6Y/2756524",
+          "Specification": "4線ESD保護; SOT-23-6",
+          "SelectionNote": "USBLC6-4SC6の車載グレード品。同じ4線・SOT23-6・ピン配置。2=GND、5=VBUS、1/3/4/6=I/O。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4sc6y.pdf"
+        }
+      },
+      {
+        "ref": "R1",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRT0603-BY-1003ELF",
+          "Manufacturer": "Bourns",
+          "Supplier": "DigiKey",
+          "SupplierCode": "CRT0603-BY-1003ELFCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/bourns-inc/CRT0603-BY-1003ELF/1775045",
+          "Specification": "100kΩ ±0.1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・100kΩ・0.1%・0.1W。R11の帰還精度を優先し同一品へ統一。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R5",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRT0603-BY-1003ELF",
+          "Manufacturer": "Bourns",
+          "Supplier": "DigiKey",
+          "SupplierCode": "CRT0603-BY-1003ELFCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/bourns-inc/CRT0603-BY-1003ELF/1775045",
+          "Specification": "100kΩ ±0.1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・100kΩ・0.1%・0.1W。R11の帰還精度を優先し同一品へ統一。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "Y1",
+        "before": {
+          "MPN": "20M10PB/XT324-10/80",
+          "Manufacturer": "YXC",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130244",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130244/",
+          "Specification": null,
+          "SelectionNote": "C2/C3=15pF; stray 2.5pF仮定、発振余裕と周波数を実機確認",
+          "LCSC": "C18213008",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://www.lcsc.com/product-detail/C18213008.html"
+        },
+        "after": {
+          "MPN": "ABM8-20.000MHZ-10-B1U-T",
+          "Manufacturer": "Abracon",
+          "Supplier": "DigiKey",
+          "SupplierCode": "535-14973-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/abracon-llc/ABM8-20-000MHZ-10-B1U-T/9997881",
+          "Specification": "水晶 20MHz / CL10pF; 3225 / 4端子",
+          "SelectionNote": "同寸法3.2×2.5mm、CL10pF。1/3=水晶、2/4=GND。発振余裕は実機で確認。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://abracon.com/Support/PackageDrawing/Resonators/ABM8.PDF"
+        }
+      },
+      {
+        "ref": "L1",
+        "before": {
+          "MPN": "DFE252012P-2R2M=P2",
+          "Manufacturer": "Murata",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-10649-1-ND",
+          "SupplierURL": "https://www.digikey.com/en/products/detail/murata-electronics/DFE252012P-2R2M-P2/5272072",
+          "Specification": "2.2uH +/-20%, 2.2A temperature-rise current, 3.0A at 30% L drop, 84mOhm max, 2.5x2.0x1.2mm",
+          "SelectionNote": "User selected 2520. Verify temperature and startup/overload current; not qualified for full 3A output. Dimension-matched generic 3D, not manufacturer model.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.murata.com/~/media/webrenewal/products/inductor/chip/tokoproducts/wirewoundmetalalloychiptype/m_dfe252012p.ashx"
+        },
+        "after": {
+          "MPN": "DFE252012F-2R2M=P2",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-13055-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/DFE252012F-2R2M-P2/5812591",
+          "Specification": "2.2µH ±20% 電源インダクタ; 2.5×2.0×1.2mm",
+          "SelectionNote": "旧490-10649-1-NDがユーザーのカートで規制表示のためFシリーズへ差替え。2.2µH±20%、外形・高さ・推奨ランド（内側1.2/外側2.8/幅2.0mm）は元品と一致。Irms2.3A / Isat3.3A / DCR82mΩ最大（元2.2A/3.0A/84mΩ）。DigiKey直販190,191個、1個税別42円の表示を2026-09-23確認。3個＝実装1＋予備2。ユーザーカートでの規制解除は未確認。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.murata.com/~/media/webrenewal/products/inductor/chip/tokoproducts/wirewoundmetalalloychiptype/m_dfe252012f.ashx"
+        }
+      },
+      {
+        "ref": "D12",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C14",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R27",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R19",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRCW060322R0FKEA",
+          "Manufacturer": "Vishay Dale",
+          "Supplier": "DigiKey",
+          "SupplierCode": "541-22.0HCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/vishay-dale/CRCW060322R0FKEA/1179617",
+          "Specification": "22Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・22Ω・1%・0.1Wを維持。在庫表示のあるVishay品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "U9",
+        "before": {
+          "MPN": "USBLC6-4SC6",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.st.com/en/protection-devices/usblc6-4.html",
+          "Specification": null,
+          "SelectionNote": "SIM/SD用低容量ESD。秋月適合品未確認、維持",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4.pdf"
+        },
+        "after": {
+          "MPN": "USBLC6-4SC6Y",
+          "Manufacturer": "STMicroelectronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "497-11883-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stmicroelectronics/USBLC6-4SC6Y/2756524",
+          "Specification": "4線ESD保護; SOT-23-6",
+          "SelectionNote": "USBLC6-4SC6の車載グレード品。同じ4線・SOT23-6・ピン配置。2=GND、5=VBUS、1/3/4/6=I/O。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4sc6y.pdf"
+        }
+      },
+      {
+        "ref": "C22",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "U7",
+        "before": {
+          "MPN": "ATA6561-GAQW-N",
+          "Manufacturer": "Microchip",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130008",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130008/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C2929602",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf"
+        },
+        "after": {
+          "MPN": "ATA6561-GAQW-N",
+          "Manufacturer": "Microchip Technology",
+          "Supplier": "DigiKey",
+          "SupplierCode": "ATA6561-GAQW-NCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/microchip-technology/ATA6561-GAQW-N/9453105",
+          "Specification": "CANトランシーバ; SOIC-8 / 幅3.9mm",
+          "SelectionNote": "指定品維持。VDFN版を選ばない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf"
+        }
+      },
+      {
+        "ref": "C9",
+        "before": {
+          "MPN": "CC0603N150J500",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "113312",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g113312/",
+          "Specification": "18pF C0G 50V 5%; 20MHz CL12pF crystal",
+          "SelectionNote": "",
+          "LCSC": "C1647",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CC0603JRNPO9BN150",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1060-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/CC0603JRNPO9BN150/302794",
+          "Specification": "15pF ±5% C0G 50V; 0603 / 1608",
+          "SelectionNote": "Value=15pを採用。古いSpecificationの18pF/CL12pFは不採用。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C28",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "U8",
+        "before": {
+          "MPN": "TC74HC595AF",
+          "Manufacturer": "Nexperia",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "110077",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g110077/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C5947",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "https://akizukidenshi.com/goodsaffix/TC74HC595AP_datasheet_ja_20140301.pdf"
+        },
+        "after": {
+          "MPN": "TC74HC595AF(EL,F)",
+          "Manufacturer": "Toshiba",
+          "Supplier": "DigiKey",
+          "SupplierCode": "264-TC74HC595AF(EL,F)CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/toshiba-semiconductor-and-storage/TC74HC595AF-EL-F/6679568",
+          "Specification": "8bit シフトレジスタ; SOP-16 / 幅5.3mm",
+          "SelectionNote": "指定AFのSOP16を維持。一般的な幅3.9mm SOICの74HC595は合わない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D3",
+        "before": {
+          "MPN": null,
+          "Manufacturer": null,
+          "Supplier": null,
+          "SupplierCode": null,
+          "SupplierURL": null,
+          "Specification": null,
+          "SelectionNote": null,
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://cdn.semikey.com/upload/pdfs/59/58/5958b6a05c58e8fad55bac421952aaf3.pdf"
+        },
+        "after": {
+          "MPN": "CSPSBHC4V5LB-TP",
+          "Manufacturer": "MCC",
+          "Supplier": "DigiKey",
+          "SupplierCode": "353-CSPSBHC4V5LB-TPCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/mcc-micro-commercial-components/CSPSBHC4V5LB-TP/22557216",
+          "Specification": "LTE電源 双方向TVS 4.5V; CSP1006-2 / 1.0×0.6mm",
+          "SelectionNote": "3.8V電源ESD用の機能代替。4.5V双方向、端子ピッチ0.65mm・長さ0.20～0.30/幅0.45～0.55mmで現PCBの0.4×0.6mmパッドに実装可能。Vc最大8.5V@50A/10.5V@100A（元12V@25A）、100A/900W。容量最大300pF、Tj上限125℃。元品のVhold最低4.6Vに対し本品は保証値記載なし、1Aクランプも保証値なし。全特性同一ではなく、実機サージ後復帰は未検証。DigiKey地域ページに10,002個表示。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.mccsemi.com/pdf/Products/CSPSBHC4V5LB(CSP1006-2).pdf"
+        }
+      },
+      {
+        "ref": "R32",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R21",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603JR-070RL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-0.0GRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603JR-070RL/726675",
+          "Specification": "0Ω ジャンパ 0.1W; 0603 / 1608",
+          "SelectionNote": "現行Value=0Ω。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      }
+    ]
+  },
+  "logger_v2.kicad_pcb": {
+    "updated_components": 79,
+    "metadata_only_verified": true,
+    "before_sha256": "ef5f44d13b0e24804fa0e82f83cb36667a83ef89c1f2a61b2c012179218c5b3f",
+    "after_sha256": "fbcfab2e3492b0936a430d264826482131fd55989fe21f79d11bcd56e681595e",
+    "changes": [
+      {
+        "ref": "C1",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "J11",
+        "before": {
+          "MPN": "2452796-1",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://jp.rs-online.com/web/p/memory-card-connectors/2868822",
+          "Specification": null,
+          "SelectionNote": "ユーザー指定RS 286-8822、維持",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.te.com/en/product-2452796-1.html"
+        },
+        "after": {
+          "MPN": "2452796-1",
+          "Manufacturer": "TE Connectivity",
+          "Supplier": "DigiKey",
+          "SupplierCode": "343-2452796-1CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/te-connectivity-linx/2452796-1/21284797",
+          "Specification": "nanoSIM ヒンジ式ソケット; TE専用フットプリント",
+          "SelectionNote": "SDとは別部品。現行指定品維持。マーケットプレイス品ではなくDigiKey直販CTを指定。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.te.com/en/product-2452796-1.html"
+        }
+      },
+      {
+        "ref": "C11",
+        "before": {
+          "MPN": "GRM188B11H103KA01",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "113387",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g113387/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "RF給電バイパス。B特性、-25～85℃",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A103KA01D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-GRM188R72A103KA01DCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A103KA01D/3845635",
+          "Specification": "10nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行Value=0.01u。耐圧は元の50V以上。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "Y1",
+        "before": {
+          "MPN": "20M10PB/XT324-10/80",
+          "Manufacturer": "YXC",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130244",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130244/",
+          "Specification": null,
+          "SelectionNote": "C2/C3=15pF; stray 2.5pF仮定、発振余裕と周波数を実機確認",
+          "LCSC": "C18213008",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://www.lcsc.com/product-detail/C18213008.html"
+        },
+        "after": {
+          "MPN": "ABM8-20.000MHZ-10-B1U-T",
+          "Manufacturer": "Abracon",
+          "Supplier": "DigiKey",
+          "SupplierCode": "535-14973-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/abracon-llc/ABM8-20-000MHZ-10-B1U-T/9997881",
+          "Specification": "水晶 20MHz / CL10pF; 3225 / 4端子",
+          "SelectionNote": "同寸法3.2×2.5mm、CL10pF。1/3=水晶、2/4=GND。発振余裕は実機で確認。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://abracon.com/Support/PackageDrawing/Resonators/ABM8.PDF"
+        }
+      },
+      {
+        "ref": "D3",
+        "before": {
+          "MPN": null,
+          "Manufacturer": null,
+          "Supplier": null,
+          "SupplierCode": null,
+          "SupplierURL": null,
+          "Specification": null,
+          "SelectionNote": null,
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://cdn.semikey.com/upload/pdfs/59/58/5958b6a05c58e8fad55bac421952aaf3.pdf"
+        },
+        "after": {
+          "MPN": "CSPSBHC4V5LB-TP",
+          "Manufacturer": "MCC",
+          "Supplier": "DigiKey",
+          "SupplierCode": "353-CSPSBHC4V5LB-TPCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/mcc-micro-commercial-components/CSPSBHC4V5LB-TP/22557216",
+          "Specification": "LTE電源 双方向TVS 4.5V; CSP1006-2 / 1.0×0.6mm",
+          "SelectionNote": "3.8V電源ESD用の機能代替。4.5V双方向、端子ピッチ0.65mm・長さ0.20～0.30/幅0.45～0.55mmで現PCBの0.4×0.6mmパッドに実装可能。Vc最大8.5V@50A/10.5V@100A（元12V@25A）、100A/900W。容量最大300pF、Tj上限125℃。元品のVhold最低4.6Vに対し本品は保証値記載なし、1Aクランプも保証値なし。全特性同一ではなく、実機サージ後復帰は未検証。DigiKey地域ページに10,002個表示。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.mccsemi.com/pdf/Products/CSPSBHC4V5LB(CSP1006-2).pdf"
+        }
+      },
+      {
+        "ref": "C17",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C7",
+        "before": {
+          "MPN": "6SVPC330M",
+          "Manufacturer": "Panasonic",
+          "Supplier": "DigiKey",
+          "SupplierCode": "P16611CT-ND",
+          "SupplierURL": "https://www.digikey.jp/ja/products/detail/panasonic-industry/6SVPC330M/4204943",
+          "Specification": "330uF 6.3V conductive polymer aluminum, ESR 17mOhm, D6.3 x H5.9mm",
+          "SelectionNote": "OS-CON SVPC; pad 1 positive +3V8, pad 2 negative GND. Generic dimension-matched 3D model.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://industrial.panasonic.com/cdbs/www-data/pdf/AAB8000/AAB8000C258.pdf"
+        },
+        "after": {
+          "MPN": "6SVPC330M",
+          "Manufacturer": "Panasonic Industry",
+          "Supplier": "DigiKey",
+          "SupplierCode": "P16611CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/panasonic-industry/6SVPC330M/4204943",
+          "Specification": "330µF 6.3V ポリマー; φ6.3 × H5.9mm",
+          "SelectionNote": "指定品維持。ESR17mΩ、極性あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://industrial.panasonic.com/cdbs/www-data/pdf/AAB8000/AAB8000C258.pdf"
+        }
+      },
+      {
+        "ref": "R17",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRCW060322R0FKEA",
+          "Manufacturer": "Vishay Dale",
+          "Supplier": "DigiKey",
+          "SupplierCode": "541-22.0HCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/vishay-dale/CRCW060322R0FKEA/1179617",
+          "Specification": "22Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・22Ω・1%・0.1Wを維持。在庫表示のあるVishay品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "U10",
+        "before": {
+          "MPN": "USBLC6-4SC6",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.st.com/en/protection-devices/usblc6-4.html",
+          "Specification": null,
+          "SelectionNote": "SIM/SD用低容量ESD。秋月適合品未確認、維持",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4.pdf"
+        },
+        "after": {
+          "MPN": "USBLC6-4SC6Y",
+          "Manufacturer": "STMicroelectronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "497-11883-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stmicroelectronics/USBLC6-4SC6Y/2756524",
+          "Specification": "4線ESD保護; SOT-23-6",
+          "SelectionNote": "USBLC6-4SC6の車載グレード品。同じ4線・SOT23-6・ピン配置。2=GND、5=VBUS、1/3/4/6=I/O。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4sc6y.pdf"
+        }
+      },
+      {
+        "ref": "D2",
+        "before": {
+          "MPN": "PESD5V0F1BL-Q",
+          "Manufacturer": "Nexperia",
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.nexperia.com/product/PESD5V0F1BL-Q",
+          "Specification": null,
+          "SelectionNote": "RF用双方向TVS、VRWM5.5V、Ctyp0.4pF / max0.55pF",
+          "LCSC": "C45961",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://assets.nexperia.com/documents/data-sheet/PESD5V0F1BL.pdf"
+        },
+        "after": {
+          "MPN": "AQ3045-01ETG",
+          "Manufacturer": "Littelfuse",
+          "Supplier": "DigiKey",
+          "SupplierCode": "F9321CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/littelfuse-inc/AQ3045-01ETG/6347831",
+          "Specification": "RF用 双方向TVS 5.3V / 0.35pF; SOD882 / 1.0×0.6mm",
+          "SelectionNote": "GNSSアンテナESD用の機能代替。SOD882・端子ピッチ0.65mm、現PCBの0.4×0.7mmパッドに端子が重なる。容量typ0.35/max0.5pF（元0.4/0.55）、双方向。VRWM5.3V（元5.5）、Vc最大12V@1A（元11V@1A）で全特性同一ではない。3A・ESD±30kV。DigiKey直販82,168個表示。RF/ESD実機試験未実施。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.littelfuse.com/assetdocs/littelfuse_tvs_diode_array_aq3045_datasheet.pdf?assetguid=42516203-4330-4a77-a157-9b013cf634c9"
+        }
+      },
+      {
+        "ref": "U8",
+        "before": {
+          "MPN": "TC74HC595AF",
+          "Manufacturer": "Nexperia",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "110077",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g110077/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C5947",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "https://akizukidenshi.com/goodsaffix/TC74HC595AP_datasheet_ja_20140301.pdf"
+        },
+        "after": {
+          "MPN": "TC74HC595AF(EL,F)",
+          "Manufacturer": "Toshiba",
+          "Supplier": "DigiKey",
+          "SupplierCode": "264-TC74HC595AF(EL,F)CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/toshiba-semiconductor-and-storage/TC74HC595AF-EL-F/6679568",
+          "Specification": "8bit シフトレジスタ; SOP-16 / 幅5.3mm",
+          "SelectionNote": "指定AFのSOP16を維持。一般的な幅3.9mm SOICの74HC595は合わない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "L1",
+        "before": {
+          "MPN": "DFE252012P-2R2M=P2",
+          "Manufacturer": "Murata",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-10649-1-ND",
+          "SupplierURL": "https://www.digikey.com/en/products/detail/murata-electronics/DFE252012P-2R2M-P2/5272072",
+          "Specification": "2.2uH +/-20%, 2.2A temperature-rise current, 3.0A at 30% L drop, 84mOhm max, 2.5x2.0x1.2mm",
+          "SelectionNote": "User selected 2520. Verify temperature and startup/overload current; not qualified for full 3A output. Dimension-matched generic 3D, not manufacturer model.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.murata.com/~/media/webrenewal/products/inductor/chip/tokoproducts/wirewoundmetalalloychiptype/m_dfe252012p.ashx"
+        },
+        "after": {
+          "MPN": "DFE252012F-2R2M=P2",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-13055-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/DFE252012F-2R2M-P2/5812591",
+          "Specification": "2.2µH ±20% 電源インダクタ; 2.5×2.0×1.2mm",
+          "SelectionNote": "旧490-10649-1-NDがユーザーのカートで規制表示のためFシリーズへ差替え。2.2µH±20%、外形・高さ・推奨ランド（内側1.2/外側2.8/幅2.0mm）は元品と一致。Irms2.3A / Isat3.3A / DCR82mΩ最大（元2.2A/3.0A/84mΩ）。DigiKey直販190,191個、1個税別42円の表示を2026-09-23確認。3個＝実装1＋予備2。ユーザーカートでの規制解除は未確認。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.murata.com/~/media/webrenewal/products/inductor/chip/tokoproducts/wirewoundmetalalloychiptype/m_dfe252012f.ashx"
+        }
+      },
+      {
+        "ref": "D7",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "U4",
+        "before": {
+          "MPN": "MCP25625T-E/SS",
+          "Manufacturer": "Microchip",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "112663",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g112663/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C184944",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": ""
+        },
+        "after": {
+          "MPN": "MCP25625T-E/SS",
+          "Manufacturer": "Microchip Technology",
+          "Supplier": "DigiKey",
+          "SupplierCode": "MCP25625T-E/SSCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/microchip-technology/MCP25625T-E-SS/4860100",
+          "Specification": "CANコントローラ＋トランシーバ; SSOP-28 / 幅5.3mm",
+          "SelectionNote": "指定品維持。/SSパッケージ。高価なため予備なし。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R1",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRT0603-BY-1003ELF",
+          "Manufacturer": "Bourns",
+          "Supplier": "DigiKey",
+          "SupplierCode": "CRT0603-BY-1003ELFCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/bourns-inc/CRT0603-BY-1003ELF/1775045",
+          "Specification": "100kΩ ±0.1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・100kΩ・0.1%・0.1W。R11の帰還精度を優先し同一品へ統一。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C2",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "C10",
+        "before": {
+          "MPN": "CC0603N150J500",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "113312",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g113312/",
+          "Specification": "18pF C0G 50V 5%; 20MHz CL12pF crystal",
+          "SelectionNote": "",
+          "LCSC": "C1647",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CC0603JRNPO9BN150",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1060-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/CC0603JRNPO9BN150/302794",
+          "Specification": "15pF ±5% C0G 50V; 0603 / 1608",
+          "SelectionNote": "Value=15pを採用。古いSpecificationの18pF/CL12pFは不採用。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "J6",
+        "before": {
+          "MPN": "43045-0400",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.molex.com/en-us/products/part-detail/430450400",
+          "Specification": null,
+          "SelectionNote": "既存ケーブルとの嵌合を維持する例外",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400"
+        },
+        "after": {
+          "MPN": "43045-0400",
+          "Manufacturer": "Molex",
+          "Supplier": "DigiKey",
+          "SupplierCode": "WM1814-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/molex/0430450400/252527",
+          "Specification": "Micro-Fit 3.0 基板側4極; 2×2 / 3.0mm 横向きTHT",
+          "SelectionNote": "43045-0400と同じ品番の表記違い。指定どおり2個だけ。ケーブル側・圧着端子は含めない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400"
+        }
+      },
+      {
+        "ref": "U3",
+        "before": {
+          "MPN": "TXU0204PWR",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.ti.com/product/TXU0204",
+          "Specification": null,
+          "SelectionNote": "2Mbps UART 1.8/3.3V変換用。旧案の2個目は購入数量から除く",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.ti.com/lit/ds/symlink/txu0204.pdf"
+        },
+        "after": {
+          "MPN": "TXU0204PWR",
+          "Manufacturer": "Texas Instruments",
+          "Supplier": "DigiKey",
+          "SupplierCode": "296-TXU0204PWRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/texas-instruments/TXU0204PWR/14641512",
+          "Specification": "4bit レベル変換; TSSOP-14 / P0.65",
+          "SelectionNote": "指定品維持。PWパッケージ。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.ti.com/lit/ds/symlink/txu0204.pdf"
+        }
+      },
+      {
+        "ref": "U6",
+        "before": {
+          "MPN": "SIM7070G",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://en.simcom.com/product/SIM7070G.html",
+          "Specification": null,
+          "SelectionNote": "指定部品、秋月制約の対象外",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://en.simcom.com/product/SIM7070G.html"
+        },
+        "after": {
+          "MPN": "SIM7070G",
+          "Manufacturer": "SIMCom",
+          "Supplier": "DigiKey",
+          "SupplierCode": "3781-SIM7070G-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/simcom-wireless-solutions-limited/SIM7070G/15841451",
+          "Specification": "LTE Cat-M/NB-IoTモジュール; LCC-68 / 24×24mm",
+          "SelectionNote": "指定の裸モジュール。開発ボードではない。高価なため予備なし。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://en.simcom.com/product/SIM7070G.html"
+        }
+      },
+      {
+        "ref": "R8",
+        "before": {
+          "MPN": "RC0603J47K",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129458",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129458/",
+          "Specification": null,
+          "SelectionNote": "リール販売",
+          "LCSC": "C25819",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R31",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "U2",
+        "before": {
+          "MPN": "AP63301WU-7",
+          "Manufacturer": null,
+          "Supplier": "DigiKey",
+          "SupplierCode": "31-AP63301WU-7CT-ND",
+          "SupplierURL": "https://www.digikey.jp/ja/products/detail/diodes-incorporated/AP63301WU-7/10491607",
+          "Specification": null,
+          "SelectionNote": "0.95mm pitch, no exposed pad; DigiKey stock confirmed 2026-09-22",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.diodes.com/assets/Datasheets/AP63300-AP63301.pdf"
+        },
+        "after": {
+          "MPN": "AP63301WU-7",
+          "Manufacturer": "Diodes Incorporated",
+          "Supplier": "DigiKey",
+          "SupplierCode": "31-AP63301WU-7CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/diodes-incorporated/AP63301WU-7/10491607",
+          "Specification": "3A 降圧DC/DC; TSOT26",
+          "SelectionNote": "指定品維持。AP63300/固定電圧版と混同しない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.diodes.com/assets/Datasheets/AP63300-AP63301.pdf"
+        }
+      },
+      {
+        "ref": "U9",
+        "before": {
+          "MPN": "USBLC6-4SC6",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.st.com/en/protection-devices/usblc6-4.html",
+          "Specification": null,
+          "SelectionNote": "SIM/SD用低容量ESD。秋月適合品未確認、維持",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4.pdf"
+        },
+        "after": {
+          "MPN": "USBLC6-4SC6Y",
+          "Manufacturer": "STMicroelectronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "497-11883-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stmicroelectronics/USBLC6-4SC6Y/2756524",
+          "Specification": "4線ESD保護; SOT-23-6",
+          "SelectionNote": "USBLC6-4SC6の車載グレード品。同じ4線・SOT23-6・ピン配置。2=GND、5=VBUS、1/3/4/6=I/O。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.st.com/resource/en/datasheet/usblc6-4sc6y.pdf"
+        }
+      },
+      {
+        "ref": "D11",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C5",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "Q1",
+        "before": {
+          "MPN": "2N7002",
+          "Manufacturer": null,
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "103919",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g103919/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF"
+        },
+        "after": {
+          "MPN": "2N7002ET1G",
+          "Manufacturer": "onsemi",
+          "Supplier": "DigiKey",
+          "SupplierCode": "2N7002ET1GOSCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/onsemi/2N7002ET1G/1792136",
+          "Specification": "Nch MOSFET 60V; SOT-23",
+          "SelectionNote": "2N7002相当。1=G、2=S、3=Dで基板と一致。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.onsemi.com/pdf/datasheet/2n7002e-d.pdf"
+        }
+      },
+      {
+        "ref": "C6",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R14",
+        "before": {
+          "MPN": "RC0603J120R",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130332",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130332/",
+          "Specification": null,
+          "SelectionNote": "リール販売。CAN終端定格は別途確認、現在の1608を維持",
+          "LCSC": "C22787",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-07120RL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-120HRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07120RL/726920",
+          "Specification": "120Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "現行DNP=noのため含む。接続するCANバスの終端配置に従って実装する。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R20",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603JR-070RL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-0.0GRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603JR-070RL/726675",
+          "Specification": "0Ω ジャンパ 0.1W; 0603 / 1608",
+          "SelectionNote": "現行Value=0Ω。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C24",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R5",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRT0603-BY-1003ELF",
+          "Manufacturer": "Bourns",
+          "Supplier": "DigiKey",
+          "SupplierCode": "CRT0603-BY-1003ELFCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/bourns-inc/CRT0603-BY-1003ELF/1775045",
+          "Specification": "100kΩ ±0.1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・100kΩ・0.1%・0.1W。R11の帰還精度を優先し同一品へ統一。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R32",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "L2",
+        "before": {
+          "MPN": "LQW18AN27NJ00D",
+          "Manufacturer": "Murata",
+          "Supplier": "DigiKey",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.digikey.jp/ja/products/detail/murata-electronics/LQW18AN27NJ00D/584382",
+          "Specification": "27nH RF wirewound, 440mA, DCR 0.21ohm max, SRF 3.7GHz min",
+          "SelectionNote": "Same MPN and nominal footprint as LoggerV1 L1.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://pim.murata.com/asset/pim4/inductor/JELF243A-0024_PDF_INDUCTOR"
+        },
+        "after": {
+          "MPN": "LQW18AN27NJ00D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-1174-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/LQW18AN27NJ00D/584382",
+          "Specification": "27nH RF巻線インダクタ; 0603 / 1608",
+          "SelectionNote": "指定品維持。440mA、SRF3.7GHz以上。一般電源用インダクタには置換しない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://pim.murata.com/asset/pim4/inductor/JELF243A-0024_PDF_INDUCTOR"
+        }
+      },
+      {
+        "ref": "R18",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRCW060322R0FKEA",
+          "Manufacturer": "Vishay Dale",
+          "Supplier": "DigiKey",
+          "SupplierCode": "541-22.0HCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/vishay-dale/CRCW060322R0FKEA/1179617",
+          "Specification": "22Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・22Ω・1%・0.1Wを維持。在庫表示のあるVishay品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C9",
+        "before": {
+          "MPN": "CC0603N150J500",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "113312",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g113312/",
+          "Specification": "18pF C0G 50V 5%; 20MHz CL12pF crystal",
+          "SelectionNote": "",
+          "LCSC": "C1647",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CC0603JRNPO9BN150",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1060-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/CC0603JRNPO9BN150/302794",
+          "Specification": "15pF ±5% C0G 50V; 0603 / 1608",
+          "SelectionNote": "Value=15pを採用。古いSpecificationの18pF/CL12pFは不採用。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R4",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R11",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRT0603-BY-1003ELF",
+          "Manufacturer": "Bourns",
+          "Supplier": "DigiKey",
+          "SupplierCode": "CRT0603-BY-1003ELFCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/bourns-inc/CRT0603-BY-1003ELF/1775045",
+          "Specification": "100kΩ ±0.1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・100kΩ・0.1%・0.1W。R11の帰還精度を優先し同一品へ統一。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C28",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "C4",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C22",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R19",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CRCW060322R0FKEA",
+          "Manufacturer": "Vishay Dale",
+          "Supplier": "DigiKey",
+          "SupplierCode": "541-22.0HCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/vishay-dale/CRCW060322R0FKEA/1179617",
+          "Specification": "22Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "0603・22Ω・1%・0.1Wを維持。在庫表示のあるVishay品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D4",
+        "before": {
+          "MPN": "PEC3824C2A-AU_R1_000A1",
+          "Manufacturer": "onsemi",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129497",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129497/",
+          "Specification": null,
+          "SelectionNote": "CAN用24V双方向TVS、1/2=bus、3=GND",
+          "LCSC": "C14486",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf"
+        },
+        "after": {
+          "MPN": "ESDCAN24-2BLY",
+          "Manufacturer": "STMicroelectronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "497-13262-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stmicroelectronics/ESDCAN24-2BLY/3661760",
+          "Specification": "CAN用 双方向2線 TVS 24V; SOT-23-3",
+          "SelectionNote": "PEC3824C2A-AUの代替。1/2=CAN、3=GND。24V、Vbr最低27V、容量最大30pF。クランプ特性は元品と完全同一ではない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.st.com/resource/en/datasheet/esdcan24-2bly.pdf"
+        }
+      },
+      {
+        "ref": "J9",
+        "before": {
+          "MPN": "43045-0400",
+          "Manufacturer": null,
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.molex.com/en-us/products/part-detail/430450400",
+          "Specification": null,
+          "SelectionNote": "既存ケーブルとの嵌合を維持する例外",
+          "LCSC": null,
+          "JLCPCB_Class": null,
+          "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400"
+        },
+        "after": {
+          "MPN": "43045-0400",
+          "Manufacturer": "Molex",
+          "Supplier": "DigiKey",
+          "SupplierCode": "WM1814-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/molex/0430450400/252527",
+          "Specification": "Micro-Fit 3.0 基板側4極; 2×2 / 3.0mm 横向きTHT",
+          "SelectionNote": "43045-0400と同じ品番の表記違い。指定どおり2個だけ。ケーブル側・圧着端子は含めない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.molex.com/en-us/products/part-detail/0430450400"
+        }
+      },
+      {
+        "ref": "C25",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "U7",
+        "before": {
+          "MPN": "ATA6561-GAQW-N",
+          "Manufacturer": "Microchip",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130008",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130008/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C2929602",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf"
+        },
+        "after": {
+          "MPN": "ATA6561-GAQW-N",
+          "Manufacturer": "Microchip Technology",
+          "Supplier": "DigiKey",
+          "SupplierCode": "ATA6561-GAQW-NCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/microchip-technology/ATA6561-GAQW-N/9453105",
+          "Specification": "CANトランシーバ; SOIC-8 / 幅3.9mm",
+          "SelectionNote": "指定品維持。VDFN版を選ばない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://ww1.microchip.com/downloads/en/DeviceDoc/ATA6560-ATA6561-High-Speed-CAN-Transceiver-DS20005991A.pdf"
+        }
+      },
+      {
+        "ref": "D5",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D10",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R6",
+        "before": {
+          "MPN": "RC0603J47K",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129458",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129458/",
+          "Specification": null,
+          "SelectionNote": "リール販売",
+          "LCSC": "C25819",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C23",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R22",
+        "before": {
+          "MPN": "RC0603J47K",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129458",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129458/",
+          "Specification": null,
+          "SelectionNote": "リール販売",
+          "LCSC": "C25819",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-0747KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-47.0KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0747KL/727253",
+          "Specification": "47kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "同サイズの1%品。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "D1",
+        "before": {
+          "MPN": "PEC3824C2A-AU_R1_000A1",
+          "Manufacturer": "onsemi",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "129497",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g129497/",
+          "Specification": null,
+          "SelectionNote": "CAN用24V双方向TVS、1/2=bus、3=GND",
+          "LCSC": "C14486",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://www.onsemi.com/pdf/datasheet/nup2105l-d.pdf"
+        },
+        "after": {
+          "MPN": "ESDCAN24-2BLY",
+          "Manufacturer": "STMicroelectronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "497-13262-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stmicroelectronics/ESDCAN24-2BLY/3661760",
+          "Specification": "CAN用 双方向2線 TVS 24V; SOT-23-3",
+          "SelectionNote": "PEC3824C2A-AUの代替。1/2=CAN、3=GND。24V、Vbr最低27V、容量最大30pF。クランプ特性は元品と完全同一ではない。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://www.st.com/resource/en/datasheet/esdcan24-2bly.pdf"
+        }
+      },
+      {
+        "ref": "D8",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R21",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603JR-070RL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-0.0GRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603JR-070RL/726675",
+          "Specification": "0Ω ジャンパ 0.1W; 0603 / 1608",
+          "SelectionNote": "現行Value=0Ω。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R10",
+        "before": {
+          "MPN": "RK73B1JTTD103J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130355",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130355/",
+          "Specification": null,
+          "SelectionNote": "",
+          "LCSC": "C25804",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-07374KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-374KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07374KL/727189",
+          "Specification": "374kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "電源帰還上側。Value=374kを採用。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R16",
+        "before": {
+          "MPN": "RC0603J120R",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130332",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130332/",
+          "Specification": null,
+          "SelectionNote": "リール販売。CAN終端定格は別途確認、現在の1608を維持",
+          "LCSC": "C22787",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-07120RL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-120HRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07120RL/726920",
+          "Specification": "120Ω ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "現行DNP=noのため含む。接続するCANバスの終端配置に従って実装する。 少量価格の段差も考慮して10個。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R15",
+        "before": {
+          "MPN": "CRCW251227R0JNEG",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "他社調達",
+          "SupplierCode": "",
+          "SupplierURL": "https://www.vishay.com/docs/20035/dcrcwe3.pdf",
+          "Specification": "27ohm 5% 1W; verify antenna supply under load",
+          "SelectionNote": "27Ω 5% 1W、短絡時最悪約0.468W。基板温度・放熱を確認",
+          "LCSC": "C25478",
+          "JLCPCB_Class": "Extended",
+          "Datasheet": "https://www.vishay.com/docs/20035/dcrcwe3.pdf"
+        },
+        "after": {
+          "MPN": "RMCF2512JT27R0",
+          "Manufacturer": "Stackpole Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "RMCF2512JT27R0CT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/stackpole-electronics-inc/RMCF2512JT27R0/4425469",
+          "Specification": "27Ω ±5% 1W; 2512 / 6332",
+          "SelectionNote": "2512・27Ω・5%・1Wを維持。同サイズのStackpole品へ置換。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C21",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "D9",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C3",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "D6",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C19",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C27",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "D12",
+        "before": {
+          "MPN": "OSG80805C1C",
+          "Manufacturer": "Hubei KENTO Elec",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "106421",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g106421/",
+          "Specification": null,
+          "SelectionNote": "黄緑570nm、2012、VF typ 2V",
+          "LCSC": "C2297",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "LTST-C170KGKT",
+          "Manufacturer": "Lite-On",
+          "Supplier": "DigiKey",
+          "SupplierCode": "160-1414-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/liteon/LTST-C170KGKT/386776",
+          "Specification": "緑LED 571nm / Vf約2V; 0805 / 2012",
+          "SelectionNote": "同0805、1=カソード、2=アノード。元品と発光色・明るさに差あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R25",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R27",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R23",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R29",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C15",
+        "before": {
+          "MPN": "C2012X7R1H105KT000N",
+          "Manufacturer": "TDK",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "115331",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g115331/",
+          "Specification": "1uF 50V X7R, 0805 (2012 metric)",
+          "SelectionNote": "Same footprint as V1 1uF. V1 does not specify an exact MPN.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "C2012X7R1H105K085AC",
+          "Manufacturer": "TDK",
+          "Supplier": "DigiKey",
+          "SupplierCode": "445-14539-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/tdk-corporation/C2012X7R1H105K085AC/3951775",
+          "Specification": "1µF ±10% X7R 50V; 0805 / 2012",
+          "SelectionNote": "同サイズ・同容量・同耐圧。高さ最大1.0mm。新規設計非推奨品だが在庫表示あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R28",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "R30",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C20",
+        "before": {
+          "MPN": "C2012X7R1H105KT000N",
+          "Manufacturer": "TDK",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "115331",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g115331/",
+          "Specification": "1uF 50V X7R, 0805 (2012 metric)",
+          "SelectionNote": "Same footprint as V1 1uF. V1 does not specify an exact MPN.",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "R24",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C12",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "C13",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      },
+      {
+        "ref": "C14",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "C26",
+        "before": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Yageo",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "114559",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g114559/",
+          "Specification": "100nF X7R 50V 0603",
+          "SelectionNote": "",
+          "LCSC": "C14663",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "GRM188R72A104KA35D",
+          "Manufacturer": "Murata Electronics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "490-3285-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/murata-electronics/GRM188R72A104KA35D/702826",
+          "Specification": "100nF ±10% X7R 100V; 0603 / 1608",
+          "SelectionNote": "現行MPNを維持。C21～C27も現行Value=0.1u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "~"
+        }
+      },
+      {
+        "ref": "R26",
+        "before": {
+          "MPN": "RK73B1JTTD102J",
+          "Manufacturer": "UNI-ROYAL",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "130351",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g130351/",
+          "Specification": null,
+          "SelectionNote": "LED電流 約1.3mA @3.3V、VF=2V",
+          "LCSC": "C23228",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "RC0603FR-071KL",
+          "Manufacturer": "Yageo",
+          "Supplier": "DigiKey",
+          "SupplierCode": "311-1.00KHRCT-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071KL/729790",
+          "Specification": "1kΩ ±1% 0.1W; 0603 / 1608",
+          "SelectionNote": "Value基準。古いMPNに10kΩ表記が残る箇所あり。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": ""
+        }
+      },
+      {
+        "ref": "C8",
+        "before": {
+          "MPN": "GRM21BR71A106KE51",
+          "Manufacturer": "Samsung",
+          "Supplier": "秋月電子通商",
+          "SupplierCode": "117593",
+          "SupplierURL": "https://akizukidenshi.com/catalog/g/g117593/",
+          "Specification": "10uF X5R 25V 0805",
+          "SelectionNote": "",
+          "LCSC": "C15850",
+          "JLCPCB_Class": "Basic",
+          "Datasheet": "~"
+        },
+        "after": {
+          "MPN": "CL21B106KPQNFNE",
+          "Manufacturer": "Samsung Electro-Mechanics",
+          "Supplier": "DigiKey",
+          "SupplierCode": "1276-2934-1-ND",
+          "SupplierURL": "https://www.digikey.jp/en/products/detail/samsung-electro-mechanics/CL21B106KPQNFNE/3891020",
+          "Specification": "10µF ±10% X7R 10V; 0805 / 2012",
+          "SelectionNote": "旧445-6857-1-NDが注文画面で入荷待ちのため差替え。Samsung製10µF±10%・10V・X7R、2.00×1.25mm、高さ最大1.40mm。同じ0805ランドに実装可能。DigiKey製品ページの直販在庫65,218個、CT10個284円（税別）表示を2026-09-23確認。実装7＋予備3。C20は現行Value=10u。",
+          "LCSC": "",
+          "JLCPCB_Class": "",
+          "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/8939/SpecSheet_CL21B106KPQNFN_20260623.pdf"
+        }
+      }
+    ]
+  },
+  "footprint_libraries_unchanged": 83,
+  "backup": "C:\\Users\\lintaroh\\Documents\\RaceCapture\\outputs\\logger_v2_order_20260923\\kicad_metadata_backup_20260923_215408",
+  "native_kicad_checks": {
+    "schematic_netlist_export": "PASS",
+    "pcb_load_98_footprints": "PASS",
+    "exported_mpn_and_supplier_code_79": "PASS"
+  }
+}

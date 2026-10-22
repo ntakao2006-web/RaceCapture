@@ -1,0 +1,93 @@
+{
+  "duration_s": 10.091684528000002,
+  "processes": [
+    {
+      "pid": "520",
+      "cpu_percent": 12.0,
+      "rss_mb": 87.5,
+      "command": "/usr/lib/xorg/Xorg :2 -config /opt/logger-v2-racecapture/xorg.conf -nolisten tcp -noreset -novtswitch -sharevts vt8 -ac "
+    },
+    {
+      "pid": "521",
+      "cpu_percent": 11.3,
+      "rss_mb": 19.3,
+      "command": "/usr/bin/x11vnc -display :2 -localhost -rfbport 5902 -forever -shared -nopw -noxdamage -quiet -wait 10 -defer 10 "
+    },
+    {
+      "pid": "522",
+      "cpu_percent": 0.0,
+      "rss_mb": 37.0,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "911",
+      "cpu_percent": 0.4,
+      "rss_mb": 31.4,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "935",
+      "cpu_percent": 0.5,
+      "rss_mb": 31.2,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "936",
+      "cpu_percent": 0.5,
+      "rss_mb": 31.2,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "941",
+      "cpu_percent": 0.5,
+      "rss_mb": 31.3,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "1026",
+      "cpu_percent": 0.0,
+      "rss_mb": 28.5,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "1028",
+      "cpu_percent": 1.0,
+      "rss_mb": 31.3,
+      "command": "/usr/bin/python3 /usr/bin/websockify --web=/opt/logger-v2-racecapture/web 127.0.0.1:6080 127.0.0.1:5902 "
+    },
+    {
+      "pid": "1168",
+      "cpu_percent": 24.1,
+      "rss_mb": 54.2,
+      "command": "python3 -m uvicorn server:app --host 0.0.0.0 --port 8080 --no-access-log --ws-per-message-deflate false "
+    },
+    {
+      "pid": "1302",
+      "cpu_percent": 0.4,
+      "rss_mb": 54.2,
+      "command": "python3 -m uvicorn public_server:app --host 0.0.0.0 --port 8081 --no-access-log "
+    },
+    {
+      "pid": "1329",
+      "cpu_percent": 13.2,
+      "rss_mb": 26.2,
+      "command": "/usr/bin/python3 /opt/logger-v2-racecapture/rcp_bridge.py "
+    },
+    {
+      "pid": "1342",
+      "cpu_percent": 0.0,
+      "rss_mb": 1.5,
+      "command": "dbus-run-session ./race_capture --conn_type wifi -p 127.0.0.1 "
+    },
+    {
+      "pid": "1346",
+      "cpu_percent": 19.7,
+      "rss_mb": 298.0,
+      "command": "./race_capture --conn_type wifi -p 127.0.0.1 "
+    }
+  ],
+  "sensors_hz": 99.7,
+  "bridge_errors_delta": 0,
+  "sd_errors_delta": 0,
+  "sd_dropped_delta": 0
+}

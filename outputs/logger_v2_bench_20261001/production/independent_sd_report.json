@@ -1,0 +1,146 @@
+{
+  "passed": true,
+  "without_web_seconds": 30,
+  "before": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 27,
+    "receive_hz": 100.3,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 89008,
+    "bridge_errors": 0,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17534541824,
+    "sensors": {
+      "imu": "\u6b63\u5e38",
+      "gnss": "\u6e2c\u4f4d\u4e2d",
+      "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+      "sd": "\u8a18\u9332\u4e2d EL000038.BIN",
+      "lte": "\u96fb\u6e90OFF / SIM\u30fb\u30a2\u30f3\u30c6\u30ca\u672a\u63a5\u7d9a",
+      "camera": "\u672a\u63a5\u7d9a"
+    },
+    "hardware": {
+      "mcu_ms": 970922,
+      "seq": 96054,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 1,
+      "gnss_errors": 0,
+      "gnss_at": 970845,
+      "dropped": 755,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 1,
+      "sd_file": 38,
+      "sd_bytes": 3072,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 960,
+      "sd_alloc_ms": 670,
+      "completed": 3152,
+      "result": "recording",
+      "nav": "506d5718ea070a01111a043715000000cc03a92f0301ea13301d2353c1672b15bdee01001156010069020000480200002500000022000000fcffffff32000000ba67bb019e00000088873f00a10000005c40562f0000000000000000"
+    },
+    "logging": {
+      "active": true,
+      "name": "LOG_20261001T172603Z_eef61282.csv",
+      "rows": 116,
+      "elapsed_s": 1.1770367959998111,
+      "error": null
+    },
+    "sd_copy": {
+      "active": false,
+      "name": "LOG_20261001T154613Z_acef703b.csv",
+      "written_sectors": 89,
+      "error": null,
+      "verified": true,
+      "read_sectors": 8022,
+      "sd_path": "/ECOLOG/LOG_20261001T154613Z_acef703b.csv"
+    }
+  },
+  "after": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 55,
+    "receive_hz": 160.1,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 125,
+    "bridge_errors": 0,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17534451712,
+    "sensors": {
+      "imu": "\u6b63\u5e38",
+      "gnss": "\u6e2c\u4f4d\u4e2d",
+      "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+      "sd": "\u8a18\u9332\u4e2d EL000038.BIN",
+      "lte": "\u96fb\u6e90OFF / SIM\u30fb\u30a2\u30f3\u30c6\u30ca\u672a\u63a5\u7d9a",
+      "camera": "\u672a\u63a5\u7d9a"
+    },
+    "hardware": {
+      "mcu_ms": 1006887,
+      "seq": 99650,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 1,
+      "gnss_errors": 0,
+      "gnss_at": 1006807,
+      "dropped": 4199,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 1,
+      "sd_file": 38,
+      "sd_bytes": 372736,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 1682,
+      "sd_alloc_ms": 670,
+      "completed": 3154,
+      "result": "recording",
+      "nav": "f0f95718ea070a01111a283715000000d949b62f0301ea13c41e23539d692b1538e501008b4c0100ea01000031020000e3fffffffcffffffffffffff1e000000ba67bb019d00000054654000a10000005c40562f0000000000000000"
+    },
+    "logging": {
+      "active": true,
+      "name": "LOG_20261001T172640Z_e0d73aeb.csv",
+      "rows": 125,
+      "elapsed_s": 0.6860759289993439,
+      "error": null
+    },
+    "sd_copy": {
+      "active": false
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "gnss_records": 1975,
+  "gnss_itow_deltas_ms": {
+    "100": 1972,
+    "99": 1,
+    "101": 1
+  },
+  "imu_records": 19720,
+  "imu_elapsed_s": 197.188,
+  "imu_max_gap_ms": 47
+}

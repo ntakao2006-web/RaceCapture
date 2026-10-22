@@ -18,7 +18,7 @@ class Signal(BaseModel):
     bit_mask: int | None = Field(default=None, ge=1, le=255)
     # 'ntc': the scaled value is the ADC ratio V/Vref (0..1) of an NTC thermistor
     # below a pull-up to the same reference (sensor hub analog frame bytes 2-3).
-    conversion: Literal["linear", "ntc"] = "linear"
+    conversion: Literal["linear", "ntc", "sensorhub_oiltemp"] = "linear"
     pullup_ohm: float | None = Field(default=None, gt=0, le=1e7)
     ntc_points: list[tuple[float, float]] = Field(default_factory=list, max_length=16)  # (°C, Ω)
 
@@ -31,6 +31,11 @@ class Signal(BaseModel):
             raise ValueError("信号が8バイトを超えています")
         if self.bit_mask is not None and self.data_type != 'uint8':
             raise ValueError('ビットマスクはuint8のみ対応します')
+        if self.conversion == 'sensorhub_oiltemp':
+            if (self.channel != 2 or self.extended or self.byte_offset != 0
+                    or self.data_type != 'int16' or self.endian != 'little'
+                    or self.scale != .01 or self.offset != 0 or self.bit_mask is not None):
+                raise ValueError('PIC油温はCAN2・標準ID・先頭int16 LE・倍率0.01で設定してください')
         if self.conversion == "ntc":
             points = sorted(self.ntc_points)
             if self.pullup_ohm is None or len(points) < 2:
@@ -66,6 +71,10 @@ class Configuration(BaseModel):
     def unique_names(self):
         if len({s.name for s in self.signals}) != len(self.signals):
             raise ValueError("信号名が重複しています")
+        names = {s.name for s in self.signals}
+        for sig in self.signals:
+            if sig.conversion == 'sensorhub_oiltemp' and names & {sig.name+'State', sig.name+'Open'}:
+                raise ValueError('油温の自動状態チャンネル名と重複しています')
         return self
 
 CHANNELS = {
@@ -85,7 +94,8 @@ CHANNELS = {
 LAP_CHANNELS = {
     "LapCount": ("完了周回数", ""), "CurrentLap": ("走行中の周", ""),
     "LapTime": ("前回ラップ", "Min"), "BestLap": ("ベストラップ", "Min"),
-    "ElapsedTime": ("現在ラップ経過", "Min")
+    "ElapsedTime": ("現在ラップ経過", "Min"),
+    "RaceTime": ("スタートからの経過", "Min"), "LapsLeft": ("残り周回数", "")
 }
 
 def validate_sample(value):

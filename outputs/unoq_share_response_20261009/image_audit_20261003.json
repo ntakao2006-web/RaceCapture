@@ -1,0 +1,72 @@
+{
+  "image_bytes": 58088,
+  "image_sha256": "045b3d3bbc4fe848a1795c50bec99c8b8258ce94c937f6c91d1dc3ca69319134",
+  "partition_bytes": 65536,
+  "partition_remaining_bytes": 7448,
+  "static_allocated_bytes": 124597,
+  "llext_heap_bytes_reference": 131072,
+  "heap_remaining_before_loader_overhead_bytes": 6475,
+  "sections": [
+    {
+      "name": ".text",
+      "bytes": 33124,
+      "alignment": 8,
+      "zero_fill": false
+    },
+    {
+      "name": ".rodata",
+      "bytes": 2676,
+      "alignment": 4,
+      "zero_fill": false
+    },
+    {
+      "name": ".data",
+      "bytes": 21,
+      "alignment": 4,
+      "zero_fill": false
+    },
+    {
+      "name": "._k_mutex.static.lteLock_",
+      "bytes": 20,
+      "alignment": 4,
+      "zero_fill": false
+    },
+    {
+      "name": "._k_mutex.static.spiLock_",
+      "bytes": 20,
+      "alignment": 4,
+      "zero_fill": false
+    },
+    {
+      "name": "._k_mutex.static.lock_",
+      "bytes": 20,
+      "alignment": 4,
+      "zero_fill": false
+    },
+    {
+      "name": ".bss",
+      "bytes": 88696,
+      "alignment": 8,
+      "zero_fill": true
+    },
+    {
+      "name": ".exported_sym",
+      "bytes": 8,
+      "alignment": 4,
+      "zero_fill": false
+    },
+    {
+      "name": ".init_array",
+      "bytes": 8,
+      "alignment": 4,
+      "zero_fill": false
+    },
+    {
+      "name": ".fini_array",
+      "bytes": 4,
+      "alignment": 4,
+      "zero_fill": false
+    }
+  ],
+  "scope": "Static sections only; loader overhead and runtime heap growth are not included."
+}

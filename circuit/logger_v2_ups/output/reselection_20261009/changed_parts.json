@@ -1,0 +1,128 @@
+[
+  {
+    "Reference": "C15",
+    "Value": "0.1u",
+    "Reason": "schematic value does not match former MPN",
+    "Before_MPN": "C0805C474K5RACTU",
+    "Before_Footprint": "logger_v2_ups:C_0805_2012Metric",
+    "After": {
+      "MPN": "C0603C104K5RACTU",
+      "Manufacturer": "KEMET",
+      "DigiKey": "399-C0603C104K5RACTUCT-ND",
+      "DigiKey_URL": "https://www.digikey.jp/en/products/detail/kemet/C0603C104K5RACTU/1465623",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Rating": "0.1uF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)",
+      "Stock_checked": "2026-10-09",
+      "Stock_snapshot": "4527702",
+      "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/C0603C104K5RACTU"
+    }
+  },
+  {
+    "Reference": "C16",
+    "Value": "10n",
+    "Reason": "missing MPN and footprint",
+    "Before_MPN": "",
+    "Before_Footprint": "",
+    "After": {
+      "MPN": "C0603C103K5RACTU",
+      "Manufacturer": "KEMET",
+      "DigiKey": "399-C0603C103K5RACTUCT-ND",
+      "DigiKey_URL": "https://www.digikey.jp/en/products/detail/kemet/C0603C103K5RACTU/411090",
+      "Footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "Rating": "10nF; 50V; X7R MLCC; +/-10%; 0603 (1608 metric)",
+      "Stock_checked": "2026-10-09",
+      "Stock_snapshot": "6334222",
+      "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/C0603C103K5RACTU"
+    }
+  },
+  {
+    "Reference": "R8",
+    "Value": "25.5k",
+    "Reason": "schematic value does not match former MPN",
+    "Before_MPN": "RC0805FR-074M32L",
+    "Before_Footprint": "logger_v2_ups:R_0805_2012Metric",
+    "After": {
+      "MPN": "RC0603FR-0725K5L",
+      "Manufacturer": "YAGEO",
+      "DigiKey": "311-25.5KHRCT-ND",
+      "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-0725K5L/727088",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Rating": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+      "Stock_checked": "2026-10-09",
+      "Stock_snapshot": "31790",
+      "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-0725K5L"
+    }
+  },
+  {
+    "Reference": "R9",
+    "Value": "3.09M",
+    "Reason": "schematic value does not match former MPN",
+    "Before_MPN": "RC0805FR-074M32L",
+    "Before_Footprint": "logger_v2_ups:R_0805_2012Metric",
+    "After": {
+      "MPN": "RC0603FR-073M09L",
+      "Manufacturer": "YAGEO",
+      "DigiKey": "13-RC0603FR-073M09LCT-ND",
+      "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-073M09L/5918330",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Rating": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+      "Stock_checked": "2026-10-09",
+      "Stock_snapshot": "6056",
+      "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-073M09L"
+    }
+  },
+  {
+    "Reference": "R10",
+    "Value": "100k",
+    "Reason": "schematic value does not match former MPN",
+    "Before_MPN": "RC0805FR-0736KL",
+    "Before_Footprint": "logger_v2_ups:R_0805_2012Metric",
+    "After": {
+      "MPN": "RC0603FR-07100KL",
+      "Manufacturer": "YAGEO",
+      "DigiKey": "311-100KHRCT-ND",
+      "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-07100KL/726889",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Rating": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+      "Stock_checked": "2026-10-09",
+      "Stock_snapshot": "184950",
+      "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100KL"
+    }
+  },
+  {
+    "Reference": "R11",
+    "Value": "1M",
+    "Reason": "schematic value does not match former MPN",
+    "Before_MPN": "RC0805FR-074M32L",
+    "Before_Footprint": "logger_v2_ups:R_0805_2012Metric",
+    "After": {
+      "MPN": "RC0603FR-071ML",
+      "Manufacturer": "YAGEO",
+      "DigiKey": "311-1.00MHRCT-ND",
+      "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Rating": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+      "Stock_checked": "2026-10-09",
+      "Stock_snapshot": "2123457",
+      "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-071ML"
+    }
+  },
+  {
+    "Reference": "R12",
+    "Value": "1.00M",
+    "Reason": "schematic value does not match former MPN",
+    "Before_MPN": "RC0805FR-074M32L",
+    "Before_Footprint": "logger_v2_ups:R_0805_2012Metric",
+    "After": {
+      "MPN": "RC0603FR-071ML",
+      "Manufacturer": "YAGEO",
+      "DigiKey": "311-1.00MHRCT-ND",
+      "DigiKey_URL": "https://www.digikey.jp/en/products/detail/yageo/RC0603FR-071ML/726844",
+      "Footprint": "Resistor_SMD:R_0603_1608Metric",
+      "Rating": "0603 (1608 metric); 0.1W; +/-1%; 75V maximum working voltage; -55..155C",
+      "Stock_checked": "2026-10-09",
+      "Stock_snapshot": "2123457",
+      "Datasheet": "https://yageogroup.com/component-documentation/download/specsheet/RC0603FR-071ML"
+    }
+  }
+]

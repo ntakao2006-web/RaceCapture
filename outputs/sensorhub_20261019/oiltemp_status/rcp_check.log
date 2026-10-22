@@ -1,0 +1,2 @@
+OilTemp RCP metadata: [{'nm': 'OilTemp', 'ut': 'C', 'min': -40, 'max': 180, 'prec': 1, 'sr': 10}, {'nm': 'OilTempState', 'ut': '', 'min': 0, 'max': 4, 'prec': 0, 'sr': 10}, {'nm': 'OilTempOpen', 'ut': '', 'min': 0, 'max': 1, 'prec': 0, 'sr': 10}]
+OilTemp RCP live: {'OilTemp': None, 'OilTempState': 4, 'OilTempOpen': None}

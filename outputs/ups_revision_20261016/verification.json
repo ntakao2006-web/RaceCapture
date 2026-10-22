@@ -1,0 +1,22 @@
+{
+  "kicad_sch_only_authorized_properties_changed": true,
+  "kicad_pcb_only_authorized_properties_changed": true,
+  "netlist_connectivity_unchanged": true,
+  "erc_unchanged": {
+    "errors": 27,
+    "warnings": 1,
+    "new": 0
+  },
+  "schematic_pcb_value_mpn_footprint_parity": true,
+  "header_local_library_pad_geometry_matches": true,
+  "BOM": {
+    "positions": 40,
+    "lines": 27,
+    "digikey_positions": 34,
+    "akizuki_positions": 6
+  },
+  "hashes": {
+    "logger_v2_ups.kicad_sch": "e6e966d477ec804156dabe60ffdccc0ab70894751b6711e6debe8435bbcd491d",
+    "logger_v2_ups.kicad_pcb": "b9b1c623cb867dc06086e3f9c864862d47efa1032406992d09cca03c1525b390"
+  }
+}

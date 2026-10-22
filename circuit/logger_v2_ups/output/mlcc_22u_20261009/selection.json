@@ -1,0 +1,22 @@
+{
+  "references": [
+    "C3",
+    "C4",
+    "C9"
+  ],
+  "selection": {
+    "MPN": "EMK316BB7226ML-T",
+    "Manufacturer": "Taiyo Yuden",
+    "DigiKey": "587-4319-1-ND",
+    "DigiKey_URL": "https://www.digikey.jp/en/products/detail/taiyo-yuden/EMK316BB7226ML-T/5361263",
+    "Datasheet": "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/1080/EMK316BB7226ML-T_SS.pdf",
+    "Footprint": "Capacitor_SMD:C_1206_3216Metric",
+    "Rating": "22uF +/-20%; 16V; X7R MLCC; 3216 (1206); -55..125C; non-polarized",
+    "Stock_checked": "2026-10-09",
+    "Stock_snapshot": "78721"
+  },
+  "scope": "C3/C4/C9 sourcing fields and footprint assignment changed in schematic; corresponding PCB footprints replaced with default 3216 MLCC while preserving centers, orientations, pad nets and UUIDs. All other schematic and PCB contents unchanged.",
+  "characteristics_from_manufacturer_graph": "Approximate 5V DC-bias capacitance change -35 to -40% (~13-14uF at nominal 22uF). Impedance minimum around 1-2MHz; ESR order of a few milliohms near MHz. Graph is typical reference data, not guaranteed values.",
+  "rf_scope": "Power-supply decoupling/bulk capacitor. Not a claim of RF matching/resonant suitability; impedance rises above self resonance. RF-band performance requires the intended frequency and actual layout.",
+  "polarity": "Removed obsolete positive/negative polarity metadata; MLCC is non-polarized."
+}

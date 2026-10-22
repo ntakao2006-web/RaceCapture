@@ -1,0 +1,163 @@
+{
+  "passed": true,
+  "before": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 3,
+    "receive_hz": 99.8,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 22486,
+    "bridge_errors": 0,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17549824000,
+    "sensors": {
+      "imu": "\u6b63\u5e38",
+      "gnss": "\u6e2c\u4f4d\u4e2d",
+      "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+      "sd": "\u8a18\u9332\u4e2d EL000029.BIN",
+      "lte": "\u96fb\u6e90OFF / SIM\u30fb\u30a2\u30f3\u30c6\u30ca\u672a\u63a5\u7d9a",
+      "camera": "\u672a\u63a5\u7d9a"
+    },
+    "hardware": {
+      "mcu_ms": 1448655,
+      "seq": 143979,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 54,
+      "gnss_errors": 0,
+      "gnss_at": 1448578,
+      "dropped": 4578,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 1,
+      "sd_file": 29,
+      "sd_bytes": 177664,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 24929,
+      "sd_alloc_ms": 723,
+      "completed": 752,
+      "result": "recording",
+      "nav": "5c4e2e18ea070a011029093716000000f03e9f350301ea0e7a1f2353be682b1587f00100da570100d5020000dd020000020000000e000000f5ffffff0e000000cd262d0088000000df564500b00000005c40562f0000000000000000"
+    },
+    "logging": {
+      "active": true,
+      "name": "LOG_20261001T164051Z_cf094218.csv",
+      "rows": 1820,
+      "elapsed_s": 18.209258711000075,
+      "error": null
+    },
+    "sd_copy": {
+      "active": false,
+      "operation": "read",
+      "name": "EL000026.BIN",
+      "read_sectors": 732,
+      "error": null
+    }
+  },
+  "after": {
+    "device": "EcoLogger V2",
+    "version": "0.2.0",
+    "demo": false,
+    "source": "logger-v2-hardware",
+    "connected": true,
+    "age_ms": 21,
+    "receive_hz": 100.0,
+    "mcu_generation_hz": 100,
+    "poll_target_hz": 20,
+    "received": 31359,
+    "bridge_errors": 0,
+    "mcu_resets": 0,
+    "error": null,
+    "config_error": null,
+    "storage": "internal-emmc",
+    "storage_free_bytes": 17545138176,
+    "sensors": {
+      "imu": "\u6b63\u5e38",
+      "gnss": "\u6e2c\u4f4d\u4e2d",
+      "can": "CAN1 0 / CAN2 0 \u30d5\u30ec\u30fc\u30e0\uff08\u53d7\u4fe1\u5c02\u7528\uff09",
+      "sd": "\u8a18\u9332\u4e2d EL000030.BIN",
+      "lte": "\u96fb\u6e90OFF / SIM\u30fb\u30a2\u30f3\u30c6\u30ca\u672a\u63a5\u7d9a",
+      "camera": "\u672a\u63a5\u7d9a"
+    },
+    "hardware": {
+      "mcu_ms": 1537405,
+      "seq": 152854,
+      "imu_address": 40,
+      "imu_errors": 0,
+      "imu_irq": 55,
+      "gnss_errors": 0,
+      "gnss_at": 1537354,
+      "dropped": 4578,
+      "can1_ready": 1,
+      "can2_mode": 3,
+      "can_counts": [
+        0,
+        0
+      ],
+      "can_overflow": [
+        0,
+        0
+      ],
+      "sd_ready": 1,
+      "sd_mounted": 1,
+      "sd_logging": 1,
+      "sd_file": 30,
+      "sd_bytes": 10240,
+      "sd_errors": 0,
+      "sd_queue_dropped": 0,
+      "sd_blocks": 26650,
+      "sd_alloc_ms": 698,
+      "completed": 752,
+      "result": "recording",
+      "nav": "a0a92f18ea070a01102a26371600000074f6b22f0301ea10991e2353cd682b1558f00100ab5701006e020000a90200004d0000001b000000fdffffff520000008f033a00c9000000d34d4600960000005c40562f0000000000000000"
+    },
+    "logging": {
+      "active": true,
+      "name": "LOG_20261001T164051Z_cf094218.csv",
+      "rows": 10693,
+      "elapsed_s": 107.08619007400011,
+      "error": null
+    },
+    "sd_copy": {
+      "active": false,
+      "operation": "read",
+      "name": "EL000026.BIN",
+      "read_sectors": 732,
+      "error": null
+    }
+  },
+  "files": [
+    {
+      "index": 29,
+      "cluster": 471726,
+      "size": 1048576,
+      "active": false
+    },
+    {
+      "index": 30,
+      "cluster": 473774,
+      "size": 12800,
+      "active": false
+    }
+  ],
+  "boundary_gap_ms": 10,
+  "crc_verified_boundary_blocks": 8
+}

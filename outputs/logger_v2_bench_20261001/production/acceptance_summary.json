@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-02",
+  "scope": "USB logger: physical IMU, outdoor MAX-M10M, SD and eMMC; classic CAN internal tests",
+  "passed": true,
+  "reports": {
+    "independent_sd_report.json": true,
+    "rollover_report.json": true,
+    "sd_copy_report.json": true,
+    "gnss_outdoor_report.json": true,
+    "sd_decode_report.json": true,
+    "sd_write_report.json": true,
+    "live_report.json": true,
+    "boot_report.json": true
+  },
+  "firmware_bytes": 64172,
+  "firmware_sha256": "F23CB16A08B1C7A9CCD22B381EF3D828DC5F74892BA7D41C0AD6E81C11C98844",
+  "software_tests_passed": 37,
+  "calibration": "Deferred by user",
+  "remaining": [
+    "LTE network/PPP not implemented; SIM and antennas absent",
+    "CAN FD not implemented; actual vehicle CAN/load not tested",
+    "Only the existing 256 MiB FAT32 partition of the 16 GB card is used",
+    "Replacement for removed LTE TVS and mounted-sensor calibration remain"
+  ]
+}

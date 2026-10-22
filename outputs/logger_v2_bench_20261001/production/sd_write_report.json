@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "identical_write_only": true,
+  "sector": 526335,
+  "upload_bytes_per_request": 16,
+  "repetitions": 3,
+  "sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560"
+}

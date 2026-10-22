@@ -24,3 +24,26 @@ drive_logs/
 
 # UNO Q update tools (adb, cloudflared, transfer tarballs)
 other/uno_q_tools/
+
+# Reinstallable development dependencies and local build caches
+node_modules/
+.pio/
+v1_test/.tools/
+v1_test/managed_components/
+
+# Downloaded third-party installers
+v1_test/tools/RaceCapture_2.19.0_Setup.exe
+outputs/racecapture_unoq_20261002/racecapture_linux_raspberrypi_2.19.0.deb
+
+# Temporary credentials used for local UPS bench monitoring
+outputs/ups_bench_20261022/monitor_key
+outputs/ups_bench_20261022/monitor_key.pub
+outputs/ups_bench_20261022/wifi_key
+outputs/ups_bench_20261022/wifi_key.pub
+outputs/ups_bench_20261022/authorized_entry
+outputs/ups_bench_20261022/known_hosts
+outputs/ups_bench_20261022/investigation/git_add.log
+outputs/ups_bench_20261022/investigation/diff_check.log
+
+# Editor locks and local KiCad session state
+*.lck

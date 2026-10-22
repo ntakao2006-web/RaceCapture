@@ -1,0 +1,65 @@
+{
+  "tests": [
+    {
+      "command": "AT",
+      "response": "",
+      "state": {
+        "mcu_ms": 53098,
+        "completed": 8,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 45197,
+        "i2c_errors": 38,
+        "uart_bytes": 2,
+        "result": "UART command sent"
+      }
+    },
+    {
+      "command": "AT",
+      "response": "",
+      "state": {
+        "mcu_ms": 58174,
+        "completed": 9,
+        "lte_power": true,
+        "cts": 0,
+        "gnss_bytes": 49372,
+        "i2c_errors": 38,
+        "uart_bytes": 2,
+        "result": "UART command sent"
+      }
+    }
+  ],
+  "radio_policy": "SIM/antenna absent; CFUN=0 requested immediately after first AT response",
+  "before": {
+    "mcu_ms": 45346,
+    "completed": 4,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 38363,
+    "i2c_errors": 35,
+    "uart_bytes": 1,
+    "result": "GNSS sent"
+  },
+  "power_on": {
+    "mcu_ms": 46956,
+    "completed": 7,
+    "lte_power": true,
+    "cts": 0,
+    "gnss_bytes": 40077,
+    "i2c_errors": 38,
+    "uart_bytes": 2,
+    "result": "LTE power enable + PWRKEY pulse completed"
+  },
+  "boot_uart": "\u0000\u0000",
+  "error": "No AT acknowledgement at 115200",
+  "left_off": {
+    "mcu_ms": 58220,
+    "completed": 10,
+    "lte_power": false,
+    "cts": 0,
+    "gnss_bytes": 49372,
+    "i2c_errors": 38,
+    "uart_bytes": 2,
+    "result": "LTE power disabled"
+  }
+}

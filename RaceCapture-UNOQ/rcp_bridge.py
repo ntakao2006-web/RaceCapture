@@ -25,7 +25,8 @@ def channel(name, unit='', low=-1000, high=1000, precision=3):
         'Lat': (-90, 90, 7), 'Lon': (-180, 180, 7), 'GPSFix': (0, 5, 0),
         'GPSSats': (0, 60, 0), 'Roll': (-180, 180, 2), 'Pitch': (-180, 180, 2),
         'Yaw': (0, 360, 2), 'Throttle': (0, 100, 1), 'WaterTemp': (-40, 150, 1),
-        'BatteryVolt': (0, 20, 2)}
+        'BatteryVolt': (0, 20, 2), 'OilTemp': (-40, 180, 1),
+        'OilTempState': (0, 4, 0), 'OilTempOpen': (0, 1, 0)}
     low, high, precision = ranges.get(name, (low, high, precision))
     unit = {'°': 'deg', '°/s': 'deg/s', 'm/s²': 'm/s2', '°C': 'C'}.get(unit, unit)
     return dict(nm=name, ut=unit, min=low, max=high, prec=precision, sr=10)
@@ -56,6 +57,12 @@ class Source:
                         if sig['name'] not in names:
                             meta.append(channel(sig['name'], sig['unit']))
                             names.add(sig['name'])
+                        if sig.get('conversion') == 'sensorhub_oiltemp':
+                            for suffix in ('State','Open'):
+                                name=sig['name']+suffix
+                                if name not in names:
+                                    meta.append(channel(name, precision=0))
+                                    names.add(name)
                     meta.extend(channel(n, u) for n, u in EXTRA if n not in names)
                     self.config, self.meta, self.last_config = config, meta, started
                 frame = await asyncio.to_thread(api, '/api/telemetry')

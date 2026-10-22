@@ -1,0 +1,23 @@
+{
+  "ram_readback": {
+    "0x30210001": 100,
+    "0x30210002": 1,
+    "0x10720001": 1,
+    "0x10720002": 0,
+    "0x20910006": 1,
+    "0x1031001f": 1,
+    "0x10310021": 1,
+    "0x10310022": 1,
+    "0x10310025": 1,
+    "0x1031000d": 0,
+    "0x1031000f": 1
+  },
+  "nav_sat_poll": "No response; NAV-PVT used satellite count available in continuous capture",
+  "nav_sat": {
+    "channels": 0,
+    "with_signal": 0,
+    "used": 0,
+    "used_by_system": {},
+    "satellites": []
+  }
+}

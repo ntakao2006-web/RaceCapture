@@ -1,0 +1,28 @@
+Linux uno-q 6.16.7-g0dd6551ae96b #1 SMP PREEMPT Wed Dec 10 14:36:39 UTC 2025 aarch64 GNU/Linux
+super-speed
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/mmcblk0p68  9.8G  4.8G  4.6G  52% /
+/dev/mmcblk0p69   18G  654M   17G   4% /home/arduino
+               total        used        free      shared  buff/cache   available
+Mem:            3669        1164        1308         210        1582        2505
+Swap:           1834           0        1834
+/sys/class/thermal/thermal_zone0/temp
+41200
+/sys/class/thermal/thermal_zone1/temp
+40900
+/sys/class/thermal/thermal_zone2/temp
+39000
+/sys/class/thermal/thermal_zone3/temp
+43700
+/sys/class/thermal/thermal_zone4/temp
+44600
+/sys/class/thermal/thermal_zone5/temp
+39000
+/sys/class/thermal/thermal_zone6/temp
+40600
+/sys/class/thermal/thermal_zone7/temp
+39300
+/sys/class/thermal/thermal_zone8/temp
+40600
+/sys/class/thermal/thermal_zone9/temp
+39600

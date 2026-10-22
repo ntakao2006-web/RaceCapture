@@ -1,0 +1,11 @@
+{
+  "firmware/ecologger_v2/lte_uart.h": "974d02abd15fb71ec753fa485cc01af33b135eba27894fcc22cfa66fd0738c47",
+  "EcoCapture-Web/server.py": "664e21c35181f4566015c4de1dde61ea2f8a0a8b8ee31f70adb8de63029bc2f2",
+  "EcoCapture-Web/web/app.js": "bd78655f76cf840f4a69aead680000be08b953bf97e7727d936fadac81a7197c",
+  "firmware/ecologger_v2/compact_symbols.py": "9b7ccc5a0baf90ba4f3ef1e36ba3e58e315b213675ae60e2ede41999d818268a",
+  "EcoCapture-Web/web/style.css": "1206f4a5e9dab6e6effccdc7977918d4819f0bd2c1c4f824495066a1a013a69f",
+  "firmware/ecologger_v2/logger_impl.h": "5f6ebacf30906868ddc201d7dcc56246de0a0bdba0a909b5b85372bd08fed6f6",
+  "EcoCapture-Web/sim7070.py": "4563c43e518ccc63e6a1a0c19a45b12482044ac5e92ca5428fdd05423bd2c538",
+  "EcoCapture-Web/podium.py": "976f51b516a80b3124576284a122ff2c031de22ceda67cae9e864d592540ed1d",
+  "EcoCapture-Web/web/podium.js": "917125deff71b3586da2f158e988c93248493f5288da79fa286a4e376ea4ee2d"
+}

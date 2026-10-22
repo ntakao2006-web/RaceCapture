@@ -1,0 +1,273 @@
+{
+  "physical_components": 32,
+  "all_footprints_load": true,
+  "all_pad_numbers_match": true,
+  "all_model_paths_resolve": true,
+  "nets_unchanged": true,
+  "pcb_unchanged": true,
+  "components": {
+    "C1": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C2": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C3": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C4": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C5": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C6": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C7": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C8": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C9": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C10": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:HP-2R7-J106UY_LR_D10_L25_P5_Horizontal"
+    },
+    "C11": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:CP_Elec_5x5.8"
+    },
+    "C16": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:CP_Elec_5x5.8"
+    },
+    "C17": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:CP_Elec_5x5.8"
+    },
+    "C14": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:CP_Elec_6.3x5.9"
+    },
+    "C15": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:CP_Elec_6.3x5.9"
+    },
+    "C12": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:C_0805_2012Metric"
+    },
+    "C13": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:C_0805_2012Metric"
+    },
+    "C18": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:C_0805_2012Metric"
+    },
+    "R1": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:R_0805_2012Metric"
+    },
+    "R2": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:R_0805_2012Metric"
+    },
+    "R3": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:R_0805_2012Metric"
+    },
+    "R4": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:R_0805_2012Metric"
+    },
+    "R5": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:R_0805_2012Metric"
+    },
+    "R6": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:R_0805_2012Metric"
+    },
+    "R7": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:R_0805_2012Metric"
+    },
+    "R8": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:R_0805_2012Metric"
+    },
+    "L1": {
+      "pads": [
+        "1",
+        "2"
+      ],
+      "Footprint": "logger_v2_ups:L_Wuerth_HCI-1365"
+    },
+    "J1": {
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "Footprint": "logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical"
+    },
+    "J4": {
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "Footprint": "logger_v2_ups:PinSocket_1x08_P2.54mm_Vertical"
+    },
+    "J2": {
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "Footprint": "logger_v2_ups:PinSocket_1x06_P2.54mm_Vertical"
+    },
+    "J3": {
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "Footprint": "logger_v2_ups:PinSocket_1x10_P2.54mm_Vertical"
+    },
+    "U1": {
+      "pads": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17"
+      ],
+      "Footprint": "logger_v2_ups:TQFN-16-1EP_3x3mm_P0.5mm_EP1.23x1.23mm"
+    }
+  }
+}

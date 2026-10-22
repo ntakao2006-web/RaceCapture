@@ -1,0 +1,7 @@
+python= C:\Users\lintaroh\AppData\Local\Microchip\snap-uart-tools\Scripts\python.exe
+prefix= C:\Users\lintaroh\AppData\Local\Microchip\snap-uart-tools
+package= C:\Users\lintaroh\AppData\Local\Microchip\snap-uart-tools\Lib\site-packages\pycmsisdapswitcher\__init__.py
+matched= COM16 USB VID:PID=04D8:90B1 SER=021038102RYN014624 LOCATION=1-2:x.1
+PORT_OPEN_OK COM16 {'baudrate': 115200, 'bytesize': 8, 'parity': 'N', 'stopbits': 1, 'xonxoff': False, 'dsrdtr': False, 'rtscts': False, 'timeout': 0.3, 'write_timeout': 1, 'inter_byte_timeout': None}
+READ_BYTES= 0 HEX= 
+PORT_CLOSED_OK

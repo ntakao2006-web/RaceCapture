@@ -1,0 +1,26 @@
+{
+  "firmware_sha256": "1c8067bcd0fe3f5652ae3ab42e392dc7ec70756afc6b42b84dc4f57cda5677c6",
+  "live_hz": 99.65339127380395,
+  "test_suites": {
+    "bridge": 4,
+    "device": 5,
+    "sd_decode": 3,
+    "podium": 13,
+    "hardware": 5,
+    "ncec": 8,
+    "public": 4,
+    "server": 10
+  },
+  "git_fetch": "failed: SSH host key and HTTPS authentication",
+  "lte_default": "off",
+  "prepared": true,
+  "live_passed": true,
+  "firmware_bytes": 56104,
+  "remaining": [
+    "SIM/LTE antenna/APN/Podium key",
+    "real PDP/TCP/Podium and sustained 10 Hz verification",
+    "existing SD partition full"
+  ],
+  "network_tested": false,
+  "software_tests_passed": 52
+}
