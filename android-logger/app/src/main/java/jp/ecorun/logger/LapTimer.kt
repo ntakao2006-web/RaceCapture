@@ -11,8 +11,13 @@ import kotlin.math.sin
  * loggers count laps the same way: a control line passed every lap, plus an
  * optional standing-start line and a goal line crossed once after the required
  * laps. See lap.py for the reasoning behind each rule. Differences:
- * - Fixes up to 1.5 s apart count as consecutive (phones give ~1 Hz, sometimes
- *   a little slower; the Ver.2 receiver gives 10 Hz).
+ * - A phone's fix can be 10-25 m off (its own reported accuracy), and a few
+ *   poor fixes in a row are common. So a line is taken as crossed within its
+ *   half width plus that accuracy, and fixes too poor to use (over 25 m) are
+ *   skipped rather than breaking the track: the last good fix and the next one
+ *   up to 10 s later still count as consecutive. Both were seen missing a start
+ *   line on the 2026-10-22 test ride (24 m off the centre at 18 m accuracy;
+ *   and 25-47 m accuracy for the 7 s around a crossing 10 m off the centre).
  * - Persistence is left to the caller ([onChange]).
  */
 data class Gate(val lat: Double, val lon: Double, val bearing: Double? = null, val widthM: Double = 30.0)
@@ -69,7 +74,7 @@ data class LapValues(
 
 private const val EARTH_M_PER_DEG = 111320.0
 private const val MAX_HACC_M = 25.0
-private const val MAX_FIX_GAP_MS = 1500L
+private const val MAX_FIX_GAP_MS = 10_000L
 private const val LEARN_MIN_KMH = 5.0
 private const val KEEP_INSIDE = 600
 
@@ -106,12 +111,12 @@ private class Watch(val rearm: Boolean = true) {
     }
 
     /** Returns crossing time (or null) and a learned bearing (or null). */
-    fun step(g: Gate, previous: Fix, current: Fix): Pair<Long?, Double?> {
+    fun step(g: Gate, previous: Fix, current: Fix, slack: Double = 0.0): Pair<Long?, Double?> {
         val a = offset(g, previous); val b = offset(g, current)
         if (!armed) return null to null
         val half = g.widthM / 2
         if (g.bearing != null) {
-            val at = lineCrossing(g.bearing, half, a, b)
+            val at = lineCrossing(g.bearing, half + slack, a, b)
             if (at != null && rearm) armed = false
             return at to null
         }
@@ -218,7 +223,8 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
 
     fun update(fix: Fix, nowMonoMs: Long) {
         if (fix.accM != null && fix.accM > MAX_HACC_M) {
-            previous = null // keep each line's disarm: a poor fix must not re-arm it
+            // Skipped, but the last good fix stays: the next good one bridges the gap.
+            // Nor may a poor fix re-arm a line.
             watches.values.forEach { it.inside = ArrayList() }
             return
         }
@@ -232,10 +238,11 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
             return
         }
         val lapBefore = state.lapStartMs
+        val slack = minOf(MAX_HACC_M, maxOf(prev.accM ?: 0.0, fix.accM ?: 0.0))
         var learnedAny = false
         for (t in listOf("start", "control", "goal")) {
             val g = config.gate(t) ?: continue
-            val (at, learned) = watches.getValue(t).step(g, prev, fix)
+            val (at, learned) = watches.getValue(t).step(g, prev, fix, slack)
             if (learned != null) { config = config.withGate(t, g.copy(bearing = learned)); learnedAny = true }
             if (at != null) when (t) { "start" -> started(at); "control" -> crossed(at); else -> finished(at) }
         }

@@ -71,7 +71,7 @@ class LapTimerTest {
     @Test
     fun fixesTooFarApartAreNotJoined() {
         val lt = timer(LapConfig(control = north))
-        lt.feed(fix(0.0, -5.0), fix(2.0, 5.0))
+        lt.feed(fix(0.0, -5.0), fix(12.0, 5.0))
         assertNull(lt.state.lapStartMs)
     }
 
@@ -80,6 +80,29 @@ class LapTimerTest {
         val lt = timer(LapConfig(control = north))
         lt.feed(fix(0.0, -5.0), fix(1.0, 5.0, acc = 40.0))
         assertNull(lt.state.lapStartMs)
+    }
+
+    /** 2026-10-22 test ride: 25-47 m fixes for the 7 s around the crossing; the good fixes either side still make it. */
+    @Test
+    fun poorFixesAroundTheLineAreBridged() {
+        val lt = timer(LapConfig(control = north))
+        lt.feed(fix(0.0, -20.0), fix(1.0, -12.0, acc = 47.0), fix(3.0, -2.0, acc = 28.0), fix(5.0, 6.0, acc = 36.0),
+            fix(7.0, 18.0, acc = 20.0))
+        // Only the 0 s (-20 m) and 7 s (+18 m) fixes are good enough: the crossing is between them.
+        assertEquals(7.0 * 20 / 38, (lt.state.lapStartMs!! - 1_800_000_000_000L) / 1000.0, 0.01)
+    }
+
+    /** 2026-10-22 test ride: a start line crossed 24 m off its centre (30 m wide) at 18 m accuracy. */
+    @Test
+    fun lineToleranceGrowsWithTheFixAccuracy() {
+        fun offCentre(acc: Double): Long? {
+            val lt = timer(LapConfig(control = north))
+            val east = 24.0 / (111320.0 * Math.cos(Math.toRadians(lat0)))
+            lt.feed(*listOf(fix(0.0, -5.0, acc = acc), fix(1.0, 5.0, acc = acc)).map { it.copy(lon = lon0 + east) }.toTypedArray())
+            return lt.state.lapStartMs
+        }
+        assertNull(offCentre(4.0))
+        assertEquals(1_800_000_000_500L, offCentre(18.0))
     }
 
     @Test
