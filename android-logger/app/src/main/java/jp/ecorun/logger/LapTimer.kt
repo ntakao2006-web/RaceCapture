@@ -25,6 +25,13 @@ import kotlin.math.sin
  *   lap 1; otherwise the clock starts at the control
  *   line, and is moved back to such a departure if one follows (the car went
  *   through the control line on its way to the grid).
+ * - Race-day safety nets (2026-10-22 review): a line crossed after 15 min with
+ *   no lap event starts a new race (laps left over from practice must not
+ *   swallow the race); a lap about k times the planned length is k laps with
+ *   the control line missed in between; on the final lap the control line
+ *   after a missed goal (or with no goal line) ends the race; and a race
+ *   started at the control line (start missed) may finish one lap early,
+ *   since that first control pass was most likely the end of lap 1.
  * - Persistence is left to the caller ([onChange]).
  */
 data class Gate(val lat: Double, val lon: Double, val bearing: Double? = null, val widthM: Double = 30.0)
@@ -72,6 +79,10 @@ data class LapState(
      * null (the start line itself, or no start line configured).
      */
     var startFallback: String? = null,
+    /** "control" when the race ended at the control line because the goal line was missed, else null. */
+    var finishFallback: String? = null,
+    /** When [lapDistM] started counting: the lap start, or the first fix after the app restarted mid-lap (not saved). */
+    var distFromMs: Long? = null,
 )
 
 /** One GNSS fix: GNSS UTC, position, horizontal accuracy, speed (km/h), heading. */
@@ -82,8 +93,10 @@ data class Fix(val utcMs: Long, val lat: Double, val lon: Double,
 data class LapValues(
     val count: Int, val current: Int, val lastS: Double?, val bestS: Double?, val elapsedS: Double?,
     val raceS: Double?, val lapsLeft: Int?, val finished: Boolean,
-    val lapDistM: Double = 0.0,
+    /** This lap's running average (km/h) over the part tracked so far, null for its first 5 s. */
+    val avgKmh: Double? = null,
     val startFallback: String? = null,
+    val finishFallback: String? = null,
 )
 
 private const val EARTH_M_PER_DEG = 111320.0
@@ -95,6 +108,10 @@ private const val KEEP_INSIDE = 600
 private const val DEPART_NEAR_M = 60.0
 private const val STOPPED_KMH = 3.0
 private const val MOVING_KMH = 5.0
+/** No lap event for this long, then a line crossing: a new race (the old laps were practice). */
+private const val STALE_MS = 15 * 60_000L
+/** A lap this many times its planned length (or, without one, the median lap) hides missed control lines. */
+private const val MISSED_LAP_FACTOR = 1.6
 
 private data class P(val t: Long, val x: Double, val y: Double)
 
@@ -138,7 +155,7 @@ private class Watch(val rearm: Boolean = true) {
             if (at != null && rearm) armed = false
             return at to null
         }
-        if (hypot(b.x, b.y) <= half) {
+        if (hypot(b.x, b.y) <= half + slack) {
             if (inside.isEmpty()) inside.add(a)
             inside.add(b)
             while (inside.size > KEEP_INSIDE) inside.removeAt(0)
@@ -178,11 +195,24 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
     fun configure(c: LapConfig) { config = c; forgetMotion(); onChange(this) }
 
     fun reset() {
-        state.count = 0; state.lastS = null; state.bestS = null; state.lapStartMs = null
-        state.raceStartMs = null; state.raceEndMs = null; state.finished = false; state.laps.clear(); state.lapDistM = 0.0; state.distScale = 1.0
-        state.startFallback = null; stoppedNearStartMs = null; departMs = null; nearestStartM = null
+        clearLaps()
+        stoppedNearStartMs = null; departMs = null; nearestStartM = null
         forgetMotion(); onChange(this)
     }
+
+    /** Back to before the start; the line watches and a departure being tracked are kept. */
+    private fun clearLaps() {
+        state.count = 0; state.lastS = null; state.bestS = null; state.lapStartMs = null
+        state.raceStartMs = null; state.raceEndMs = null; state.finished = false; state.laps.clear(); state.lapDistM = 0.0; state.distScale = 1.0
+        state.startFallback = null; state.finishFallback = null; state.distFromMs = null
+    }
+
+    private fun lastEventMs() = listOfNotNull(state.raceEndMs, state.lapStartMs, state.raceStartMs).maxOrNull()
+
+    /** Laps or a race exist, and nothing has happened for [STALE_MS] before [at]. */
+    private fun stale(at: Long) = lastEventMs()?.let { at - it > STALE_MS } ?: false
+
+    private fun newRaceIfStale(at: Long) { if (stale(at)) clearLaps() }
 
     private fun forgetMotion() { previous = null; watches.values.forEach { it.reset() } }
 
@@ -202,10 +232,12 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
         return if (s.finished) {
             LapValues(s.count, s.count, s.lastS, s.bestS, null,
                 s.raceStartMs?.let { (s.raceEndMs!! - it) / 1000.0 }, total?.let { maxOf(0, it - s.count) }, true,
-                startFallback = s.startFallback)
+                startFallback = s.startFallback, finishFallback = s.finishFallback)
         } else {
+            val tracked = since(s.distFromMs)
             LapValues(s.count, if (s.lapStartMs != null) s.count + 1 else 0, s.lastS, s.bestS, since(s.lapStartMs),
-                since(s.raceStartMs), total?.let { maxOf(0, it - s.count) }, false, s.lapDistM * s.distScale, s.startFallback)
+                since(s.raceStartMs), total?.let { maxOf(0, it - s.count) }, false,
+                tracked?.let { if (it >= 5) s.lapDistM * s.distScale / it * 3.6 else null }, s.startFallback)
         }
     }
 
@@ -213,12 +245,14 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
         val lap = (at - state.lapStartMs!!) / 1000.0
         state.count++; state.lastS = lap
         state.bestS = state.bestS?.let { minOf(it, lap) } ?: lap
-        val ratio = Pace.lapDistanceM(config, state.laps.size)?.let { if (state.lapDistM > 0) it / state.lapDistM else null }
+        val whole = state.distFromMs == state.lapStartMs // not resumed part way after a restart
+        val ratio = Pace.lapDistanceM(config, state.laps.size)?.let { if (whole && state.lapDistM > 0) it / state.lapDistM else null }
         if (ratio != null && ratio in 0.85..1.15) state.distScale = ratio
         state.laps.add(lap)
     }
 
     private fun started(at: Long) {
+        newRaceIfStale(at)
         if (state.finished || state.count > 0) return
         state.raceStartMs = at; state.lapStartMs = at // a later forward crossing (re-start) replaces it
         state.startFallback = null
@@ -226,6 +260,7 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
     }
 
     private fun crossed(at: Long) {
+        newRaceIfStale(at)
         if (state.finished) return
         if (config.start != null && state.raceStartMs == null) return startFromControl(at)
         // Started at the control line on the way to the grid, then left the grid with the start line missed again.
@@ -240,10 +275,36 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
         } else {
             val lap = (at - start) / 1000.0
             if (lap < config.minLapS) return
-            if (lap <= config.maxLapS) recordLap(at)
+            if (lap <= config.maxLapS) {
+                // Control lines missed in between: share the time out evenly over the laps it held.
+                val k = lapsIn(lap)
+                for (i in 1..k) {
+                    if (i > 1) state.distFromMs = null // the distance belonged to all of them
+                    val end = start + (at - start) * i / k
+                    recordLap(end)
+                    state.lapStartMs = end
+                }
+            }
             state.lapStartMs = at
+            val total = config.totalLaps
+            if (total != null && state.count >= total) {
+                // The final lap ended at the control line: the goal line was missed, or there is none.
+                state.finished = true; state.raceEndMs = at; state.lapStartMs = null
+                if (config.goal != null) state.finishFallback = "control"
+            }
         }
         onChange(this)
+    }
+
+    /** How many laps a control-to-control time of [lap] s holds (1 unless control lines were missed). */
+    private fun lapsIn(lap: Double): Int {
+        val index = state.laps.size
+        val planned = Pace.checkpointS(config, index + 1)?.let { end -> Pace.checkpointS(config, index)?.let { end - it } }
+        val expected = planned ?: state.laps.sorted().let { if (it.isEmpty()) null else it[it.size / 2] } ?: return 1
+        if (lap < MISSED_LAP_FACTOR * expected) return 1
+        var k = Math.round(lap / expected).toInt().coerceAtLeast(2)
+        config.totalLaps?.let { k = k.coerceAtMost(maxOf(1, it - state.count)) }
+        return k
     }
 
     /** The start line was missed: start from a departure near it (lap 1 ends here), else from this control crossing. */
@@ -263,7 +324,8 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
     private fun watchDeparture(fix: Fix) {
         val g = config.start ?: return
         val speed = fix.speedKmh ?: return
-        if (state.finished || state.count > 0 || (state.raceStartMs != null && state.startFallback == null)) return
+        val racing = state.finished || state.count > 0 || (state.raceStartMs != null && state.startFallback == null)
+        if (racing && !stale(fix.utcMs)) return
         val p = offset(g, fix)
         val d = hypot(p.x, p.y)
         if (speed < STOPPED_KMH && d <= DEPART_NEAR_M) stoppedNearStartMs = fix.utcMs
@@ -274,10 +336,13 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
     }
 
     private fun finished(at: Long) {
+        newRaceIfStale(at)
         val start = state.lapStartMs ?: return
         if (state.finished) return
         val total = config.totalLaps
-        if (total != null && state.count < total - 1) return
+        // Started at the control line (start missed): that pass was most likely the end of lap 1, one lap uncounted.
+        val uncounted = if (state.startFallback == "control") 1 else 0
+        if (total != null && state.count < total - 1 - uncounted) return
         if ((at - start) / 1000.0 >= config.minLapS) recordLap(at)
         state.finished = true; state.raceEndMs = at; state.lapStartMs = null
         onChange(this)
@@ -317,8 +382,10 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
     private fun addDistance(prev: Fix, fix: Fix, lapBefore: Long?) {
         val start = state.lapStartMs ?: return
         if (state.finished) return
-        if (start != lapBefore) state.lapDistM = 0.0
-        val from = maxOf(start, prev.utcMs)
+        if (start != lapBefore) { state.lapDistM = 0.0; state.distFromMs = start }
+        // Resumed part way through the lap (the app restarted): average over what is tracked from here.
+        if (state.distFromMs == null) { state.lapDistM = 0.0; state.distFromMs = prev.utcMs }
+        val from = maxOf(state.distFromMs!!, prev.utcMs)
         if (from >= fix.utcMs) return
         val a = prev.speedKmh; val b = fix.speedKmh
         val mps = if (a != null && b != null) (a + b) / 2 / 3.6 else {

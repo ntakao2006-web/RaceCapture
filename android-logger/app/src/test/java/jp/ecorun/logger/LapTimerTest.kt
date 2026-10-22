@@ -105,6 +105,78 @@ class LapTimerTest {
         assertEquals(1_800_000_000_500L, offCentre(18.0))
     }
 
+    /** Laps left over from practice: a crossing 20 min later starts a new race instead of carrying on. */
+    @Test
+    fun staleLapsStartANewRace() {
+        val lt = timer(LapConfig(control = north))
+        lt.pass(0.0); lt.pass(60.0)
+        assertEquals(1, lt.state.count)
+        lt.pass(60.0 + 20 * 60)
+        assertEquals(0, lt.state.count)
+        assertEquals(1_800_000_000_000L + (60 + 20 * 60) * 1000L, lt.state.raceStartMs)
+    }
+
+    /** One control pass missed: a double-length lap is two laps, so the count and the goal stay right. */
+    @Test
+    fun missedControlLineIsSplitIntoTwoLaps() {
+        val lt = timer(LapConfig(control = north, totalLaps = 5))
+        lt.pass(0.0); lt.pass(60.0); lt.pass(121.0)
+        lt.pass(241.0)
+        assertEquals(4, lt.state.count)
+        assertEquals(listOf(60.0, 61.0, 60.0, 60.0), lt.state.laps.map { Math.round(it * 10) / 10.0 })
+    }
+
+    /** The goal line missed on the final lap: the control line just after it ends the race. */
+    @Test
+    fun missedGoalEndsAtTheNextControlPass() {
+        val neverGoal = Gate(lat0 + 300 / mPerDegLat, lon0, bearing = 180.0)
+        val lt = timer(LapConfig(control = north, goal = neverGoal, totalLaps = 3))
+        lt.pass(0.0); lt.pass(60.0); lt.pass(120.0)
+        assertFalse(lt.state.finished)
+        lt.pass(180.0)
+        assertTrue(lt.state.finished)
+        assertEquals(3, lt.state.count)
+        assertEquals("control", lt.state.finishFallback)
+    }
+
+    @Test
+    fun withoutAGoalLineTheLastControlPassEndsTheRace() {
+        val lt = timer(LapConfig(control = north, totalLaps = 2))
+        lt.pass(0.0); lt.pass(60.0); lt.pass(120.0)
+        assertTrue(lt.state.finished)
+        assertEquals(2, lt.state.count)
+        assertNull(lt.state.finishFallback)
+    }
+
+    /** Started at the control line (start missed): that pass ended lap 1, so the goal counts one lap early. */
+    @Test
+    fun controlLineStartMayFinishOneLapEarly() {
+        val goal = Gate(lat0 + 300 / mPerDegLat, lon0, bearing = 0.0)
+        val lt = timer(LapConfig(control = north, start = missedStart, goal = goal, totalLaps = 3))
+        lt.pass(0.0); lt.pass(60.0)
+        lt.feed(fix(89.5, 295.0), fix(90.5, 305.0))
+        assertTrue(lt.state.finished)
+        assertEquals(2, lt.state.count)
+    }
+
+    /** After the app restarts part way through a lap, the running average covers only what was tracked since. */
+    @Test
+    fun runningAverageAfterARestartCoversTheTrackedPart() {
+        val base = 1_800_000_000_000L
+        val lt = LapTimer(LapConfig(control = north), LapState(lapStartMs = base, raceStartMs = base))
+        for (t in 100..110) lt.update(fix(t.toDouble(), 1000.0 + (t - 100) * 10.0, kmh = 36.0), base + t * 1000L)
+        assertEquals(36.0, lt.values(base + 110_000L).avgKmh!!, 0.5)
+    }
+
+    /** A line without a heading (entered as coordinates) also widens by the fix accuracy. */
+    @Test
+    fun lineWithoutHeadingAlsoAllowsForTheAccuracy() {
+        val lt = timer(LapConfig(control = north.copy(bearing = null)))
+        val east = 20.0 / (111320.0 * Math.cos(Math.toRadians(lat0)))
+        lt.feed(*listOf(-30.0, -10.0, 0.0, 10.0, 40.0).mapIndexed { i, n -> fix(i.toDouble(), n, acc = 10.0).copy(lon = lon0 + east) }.toTypedArray())
+        assertTrue(lt.state.lapStartMs != null)
+    }
+
     /** A start line 200 m before the control that never registers (it faces the other way). */
     private val missedStart = Gate(lat0 - 200 / mPerDegLat, lon0, bearing = 180.0)
 

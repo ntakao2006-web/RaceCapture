@@ -107,9 +107,10 @@ class DashboardView(context: Context) : View(context) {
             else -> (if (total != null) "${v.current} / $total" else "${v.current}") to (v.lapsLeft?.let { "残り${it}周" } ?: "")
         }
         // A missed start line (LapTimer started the race another way) is shown in place of the sub-line.
-        val fallback = when (v?.startFallback) {
-            "depart" -> "スタート未検出：停車から推定"
-            "control" -> "スタート未検出：コントロールから"
+        val fallback = when {
+            v?.finishFallback == "control" -> "ゴール未検出：コントロールで終了"
+            v?.startFallback == "depart" -> "スタート未検出：停車から推定"
+            v?.startFallback == "control" -> "スタート未検出：コントロールから"
             else -> null
         }
         tileBox(c, gx, top, gw, gh, listOf("周回", d.classCode, d.reference).filter { it.isNotEmpty() }.joinToString("　"), lapValue,
@@ -156,8 +157,7 @@ class DashboardView(context: Context) : View(context) {
         }
         tileBox(c, x, y, w, h, "この周の目標 平均km/h", target?.let { "%.1f".format(it) } ?: "—", targetSub, white, targetSubColor)
 
-        val elapsed = v?.elapsedS
-        val avg = if (running && elapsed != null && elapsed >= 5) v!!.lapDistM / elapsed * 3.6 else null
+        val avg = if (running) v!!.avgKmh else null
         val (avgSub, avgColor) = when {
             avg == null -> (if (running) "計測中" else if (v?.finished == true) "ゴール" else "スタート前") to white
             target == null -> "" to white

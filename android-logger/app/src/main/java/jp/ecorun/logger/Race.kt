@@ -86,6 +86,8 @@ object Race {
         ownLines()
         val f = lastFix ?: return false
         if (System.currentTimeMillis() - f.utcMs > 5000) return false
+        // A line taken from a poor fix would be off by as much: wait for the phone to settle.
+        if ((f.accM ?: Double.MAX_VALUE) > HERE_MAX_ACC_M) return false
         timer?.setHere(target, f); true
     }
 
@@ -110,7 +112,7 @@ object Race {
             .put("lapStart", s.lapStartMs ?: JSONObject.NULL).put("raceStart", s.raceStartMs ?: JSONObject.NULL)
             .put("raceEnd", s.raceEndMs ?: JSONObject.NULL).put("finished", s.finished)
             .put("laps", JSONArray(s.laps)).put("lapDist", s.lapDistM).put("distScale", s.distScale)
-            .put("startFallback", s.startFallback ?: JSONObject.NULL)
+            .put("startFallback", s.startFallback ?: JSONObject.NULL).put("finishFallback", s.finishFallback ?: JSONObject.NULL)
         prefs.edit().putString("race", json.toString()).apply()
     }
 
@@ -125,13 +127,16 @@ object Race {
         val state = LapState(o.optInt("count"), o.doubleOrNull("last"), o.doubleOrNull("best"),
             o.longOrNull("lapStart"), o.longOrNull("raceStart"), o.longOrNull("raceEnd"), o.optBoolean("finished"),
             MutableList(laps?.length() ?: 0) { laps!!.getDouble(it) }, o.optDouble("lapDist", 0.0), o.optDouble("distScale", 1.0),
-            if (o.isNull("startFallback")) null else o.getString("startFallback"))
+            if (o.isNull("startFallback")) null else o.getString("startFallback"),
+            if (o.isNull("finishFallback")) null else o.getString("finishFallback"))
         return config to state
     }
 
     /** Honda EMC 2026, two-wheel classes: 3 laps in 16:27.36 (see [RaceClass]). */
     const val DEFAULT_LIMIT_S = 16 * 60 + 27.36
     const val DEFAULT_DISTANCE_M = 6856.72
+    /** "Set the line here" takes no fix less accurate than this (m). */
+    const val HERE_MAX_ACC_M = 10.0
 
     /**
      * Rough lines for the national final (Motegi oval), picked by the user on

@@ -233,7 +233,8 @@ class SettingsActivity : Activity() {
         buttons.addView(button("現在地にする") {
             if (!Status.running) { toast("記録を始めてから押してください"); return@button }
             confirm("${name}を今いる位置に変えます。よいですか？") {
-                if (Race.setHere(target)) { toast("現在地をラインにしました"); build() } else toast("測位できていません")
+                if (Race.setHere(target)) { toast("現在地をラインにしました"); build() }
+                else toast("測位できていないか、精度が%.0fmより悪いです（空が開けた所で少し待つ）".format(Race.HERE_MAX_ACC_M))
             }
         })
         buttons.addView(button("入れた座標にする") {
