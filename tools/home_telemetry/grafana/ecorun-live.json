@@ -817,7 +817,7 @@
       "gridPos": {
         "x": 0,
         "y": 10,
-        "w": 12,
+        "w": 14,
         "h": 14
       },
       "options": {
@@ -826,38 +826,20 @@
       }
     },
     {
-      "id": 14,
-      "type": "timeseries",
-      "title": "速度",
+      "type": "text",
+      "title": "G（前後・左右）",
       "gridPos": {
-        "x": 12,
+        "x": 14,
         "y": 10,
-        "w": 12,
+        "w": 10,
         "h": 14
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "ecorun-vm"
+      "description": "上が加速、下が減速、左右が横G。点が今、線が直近3秒。外側の輪が0.5G",
+      "options": {
+        "mode": "html",
+        "content": "<iframe src=\"/live/gg?room=$room\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
       },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "ecorun_Speed{room=\"$room\"}",
-          "legendFormat": "Speed"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "velocitykmh",
-          "custom": {
-            "lineWidth": 2,
-            "spanNulls": 2000
-          }
-        },
-        "overrides": []
-      },
-      "interval": "100ms",
-      "maxDataPoints": 3000
+      "id": 14
     },
     {
       "type": "table",
@@ -982,7 +964,7 @@
     {
       "id": 16,
       "type": "timeseries",
-      "title": "加速度",
+      "title": "速度の推移",
       "gridPos": {
         "x": 0,
         "y": 33,
@@ -996,19 +978,15 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "ecorun_LongAccel{room=\"$room\"}",
-          "legendFormat": "Long"
-        },
-        {
-          "refId": "B",
-          "expr": "ecorun_LatAccel{room=\"$room\"}",
-          "legendFormat": "Lat"
+          "expr": "ecorun_Speed{room=\"$room\"}",
+          "legendFormat": "Speed"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "velocitykmh",
           "custom": {
+            "lineWidth": 2,
             "spanNulls": 2000
           }
         },

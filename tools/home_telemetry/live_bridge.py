@@ -408,8 +408,9 @@ class Bridge:
         path, _, query = request.path.partition('?')
         if path == '/ws':
             return None  # continue with the WebSocket handshake
-        if path in ('/map', '/map/'):
-            with open(os.path.join(HERE, 'map.html'), 'rb') as f:
+        pages = {'/map': 'map.html', '/gg': 'gg.html'}   # gg: the G-G circle (2026-10-23)
+        if path.rstrip('/') in pages:
+            with open(os.path.join(HERE, pages[path.rstrip('/')]), 'rb') as f:
                 body = f.read()
             return Response(HTTPStatus.OK, 'OK', Headers({
                 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store',

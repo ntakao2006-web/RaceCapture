@@ -4,7 +4,8 @@
 
 Top: lap, race time, time left, average speeds, speed. Middle: map and speed graph.
 Then the line passes for the timing sheet (start / control / goal times, from
-live_bridge.py's Pace). Bottom: acceleration and every channel. The map panel keeps
+live_bridge.py's Pace), a low speed graph and every channel. The map and the G-G
+circle (gg.html, also served by live_bridge.py) sit side by side. The map panel keeps
 its HTML from the previous ecorun-live.json. No talk panel and no best lap
 (2026-10-23: the pit talks on Discord, and eco-run is not about the fastest lap).
 """
@@ -80,7 +81,6 @@ def build(old):
     map_panel = find('text', '/live/map')
     live_speed = find('stat', 'stream/ecorun/')
     speed_graph = find('timeseries', 'ecorun_Speed{')
-    accel = find('timeseries', 'ecorun_LongAccel')
     table = find('table', '__name__=~')
 
     panels = []
@@ -120,9 +120,14 @@ def build(old):
              color_mode='background', no_value='受信なし', description='最後にロガーのデータが届いてからの秒数'),
     ]
     y += 4
-    # --- middle: map and speed ----------------------------------------------
-    panels.append(dict(map_panel, title='', gridPos=pos(0, y, 12, 14)))
-    panels.append(dict(speed_graph, title='速度', gridPos=pos(12, y, 12, 14)))
+    # --- middle: map and the G-G circle (replaced the acceleration time series,
+    # 2026-10-23: direction matters, and motorsport people read the circle) --------
+    panels.append(dict(map_panel, title='', gridPos=pos(0, y, 14, 14)))
+    panels.append({'type': 'text', 'title': 'G（前後・左右）', 'gridPos': pos(14, y, 10, 14),
+                   'description': '上が加速、下が減速、左右が横G。点が今、線が直近3秒。外側の輪が0.5G',
+                   'options': {'mode': 'html', 'content':
+                               '<iframe src="/live/gg?room=$room" '
+                               'style="width:100%;height:100%;border:0;display:block"></iframe>'}})
     y += 14
     # --- line passes for the timing sheet, and talk --------------------------
     passes = {
@@ -149,8 +154,8 @@ def build(old):
     }
     panels.append(passes)
     y += 9
-    # --- bottom: detail --------------------------------------------------------
-    panels.append(dict(accel, title='加速度', gridPos=pos(0, y, 24, 6)))
+    # --- bottom: speed over time (smaller than before: the number is on top) and detail
+    panels.append(dict(speed_graph, title='速度の推移', gridPos=pos(0, y, 24, 6)))
     y += 6
     panels.append(dict(table, title='全チャンネル（最新）', gridPos=pos(0, y, 24, 7)))
 

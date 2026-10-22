@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>G-G</title>
+<!--
+  G-G (friction circle) for the pit, embedded in Grafana (2026-10-23). Same live feed as
+  map.html: live_bridge.py's /ws?room=<room>, about 10 samples/s with LongAccel/LatAccel (g).
+  Up = accelerating, down = braking, right = LatAccel > 0 (?flip=1 swaps left and right).
+  ?max=<g> sets the outer ring (default 0.5 g: eco-run cars rarely pass 0.3 g).
+-->
+<style>
+  :root { color-scheme: dark; --bg: transparent; --ink: #d8d9da; --dim: #9fa1a8; --ring: #4a4d55; --dot: #f2cc0c; --trail: 242, 204, 12; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 13px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  #wrap { position: absolute; inset: 0; display: flex; }
+  canvas { flex: 1; min-width: 0; }
+  #read { position: absolute; left: 8px; bottom: 6px; font-variant-numeric: tabular-nums; }
+  #read { font-size: 14px; }
+  #read b { font-size: 18px; }
+  #status { position: absolute; right: 8px; bottom: 6px; color: var(--dim); font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="read">前後 <b id="lon">—</b>　左右 <b id="lat">—</b>　合成 <b id="tot">—</b></div>
+<div id="status">接続中…</div>
+<script>
+const params = new URLSearchParams(location.search);
+const room = params.get('room') || 'home-test';
+const MAX = Math.max(0.1, parseFloat(params.get('max')) || 0.5);
+const FLIP = params.get('flip') === '1' ? -1 : 1;
+const TRAIL_MS = 3000;
+const SMOOTH = 0.35;   // exponential smoothing per sample (~0.3 s at 10/s): IMU jitter hid the shape
+let smooth = null;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let points = [];   // {at, x: lateral g, y: longitudinal g}
+
+function add(s, at) {
+  if (typeof s.LongAccel !== 'number' || typeof s.LatAccel !== 'number') return;
+  const raw = { x: s.LatAccel * FLIP, y: s.LongAccel };
+  smooth = smooth ? { x: smooth.x + (raw.x - smooth.x) * SMOOTH, y: smooth.y + (raw.y - smooth.y) * SMOOTH } : raw;
+  points.push({ at, x: smooth.x, y: smooth.y });
+  const sign = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
+  document.getElementById('lon').textContent = sign(s.LongAccel) + ' G';
+  document.getElementById('lat').textContent = sign(s.LatAccel * FLIP) + ' G';
+  document.getElementById('tot').textContent = Math.hypot(s.LongAccel, s.LatAccel).toFixed(2) + ' G';
+}
+
+function draw() {
+  requestAnimationFrame(draw);
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const cx = w / 2, cy = (h - 26) / 2 + 2, r = Math.max(10, Math.min(w - 40, h - 26) / 2 - 20);
+  const css = getComputedStyle(document.documentElement);
+  // rings every 0.1 g, the outer one labelled
+  ctx.lineWidth = 1;
+  const step = MAX <= 0.6 ? 0.1 : 0.25;
+  for (let g = step; g <= MAX + 1e-9; g += step) {
+    ctx.strokeStyle = css.getPropertyValue('--ring');
+    ctx.beginPath(); ctx.arc(cx, cy, r * g / MAX, 0, 2 * Math.PI); ctx.stroke();
+    ctx.fillStyle = css.getPropertyValue('--dim'); ctx.font = '12px system-ui';
+    ctx.fillText(g.toFixed(g < 1 && step < 0.25 ? 1 : 2) + 'G', cx + r * g / MAX * 0.707 + 2, cy - r * g / MAX * 0.707 - 2);
+  }
+  ctx.strokeStyle = css.getPropertyValue('--ring');
+  ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
+  ctx.fillStyle = css.getPropertyValue('--ink'); ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('加速', cx, cy - r - 5); ctx.fillText('減速', cx, cy + r + 16);
+  ctx.textAlign = 'left'; ctx.fillText('右', cx + r + 4, cy + 4);
+  ctx.textAlign = 'right'; ctx.fillText('左', cx - r - 4, cy + 4);
+  ctx.textAlign = 'left';
+  // trail of the last few seconds, fading, then the current point
+  const now = performance.now();
+  points = points.filter((p) => now - p.at < TRAIL_MS);
+  const clamp = (v) => Math.max(-MAX * 1.1, Math.min(MAX * 1.1, v));
+  const trail = css.getPropertyValue('--trail');
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1], b = points[i];
+    ctx.strokeStyle = `rgba(${trail}, ${0.6 * (1 - (now - b.at) / TRAIL_MS)})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + r * clamp(a.x) / MAX, cy - r * clamp(a.y) / MAX);
+    ctx.lineTo(cx + r * clamp(b.x) / MAX, cy - r * clamp(b.y) / MAX);
+    ctx.stroke();
+  }
+  const last = points[points.length - 1];
+  if (last) {
+    ctx.fillStyle = css.getPropertyValue('--dot');
+    ctx.beginPath(); ctx.arc(cx + r * clamp(last.x) / MAX, cy - r * clamp(last.y) / MAX, 6, 0, 2 * Math.PI); ctx.fill();
+  }
+}
+
+function connect() {
+  // Works direct (http://host:3002/gg) and behind the public path (/live/gg), like map.html.
+  const base = location.pathname.replace(/\/gg\/?$/, '');
+  const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}`);
+  const status = document.getElementById('status');
+  ws.onopen = () => { status.textContent = room; };
+  ws.onclose = () => { status.textContent = `${room}: 再接続中…`; setTimeout(connect, 2000); };
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    const now = performance.now();
+    if (msg.history) {
+      const h = msg.history, last = h.length ? h[h.length - 1].t : 0;
+      points = []; smooth = null;
+      for (const s of h) if (last - s.t < TRAIL_MS) add(s, now - (last - s.t));
+      return;
+    }
+    if ('t' in msg) add(msg, now);
+  };
+}
+connect();
+draw();
+</script>
+</body>
+</html>
