@@ -5,7 +5,7 @@
     "ecorun"
   ],
   "timezone": "browser",
-  "refresh": "500ms",
+  "refresh": "2s",
   "time": {
     "from": "now-5m",
     "to": "now"

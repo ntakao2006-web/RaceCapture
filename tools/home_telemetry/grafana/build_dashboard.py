@@ -163,6 +163,10 @@ def build(old):
         p['id'] = i
     dash = {k: v for k, v in old.items() if k != 'panels'}
     dash['panels'] = panels
+    # 2 s, not 500 ms (2026-10-23): ~15 queries per refresh, and on a phone's link a
+    # round trip over 500 ms cancelled the previous one ("context canceled"), so panels
+    # sat loading. Speed (Grafana Live), the map and the G-G circle are pushed anyway.
+    dash['refresh'] = '2s'
     variables = [v for v in old['templating']['list'] if v['name'] != 'limit_min']
     variables.append({'name': 'limit_min', 'label': '規定時間（分）', 'type': 'textbox', 'query': '0',
                       'current': {'text': '0', 'value': '0'},
