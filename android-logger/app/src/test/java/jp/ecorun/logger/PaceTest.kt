@@ -68,6 +68,22 @@ class PaceTest {
         assertEquals(2285.573 / 326.667 * 3.6, Pace.targetKmh(c, emptyList(), 0)!!, 1e-3)
     }
 
+    /**
+     * Last year's Super Cub run at Motegi (GPX, 2025-10-12): crossing the rough
+     * Motegi lines at start +0, control +297.1 s and +636.0 s, goal +960.9 s.
+     * The GPS path between the crossings was 2091 / 2375 / 2275 m, within 2 %
+     * of the lap distances here (the first lap short by the start -> control
+     * gap). On those distances the three laps were an even 25.6-25.8 km/h,
+     * where equal thirds of 6856.72 m would make them 27.7 / 24.3 / 25.3.
+     */
+    @Test
+    fun lastYearsSuperCubWasAnEvenPace() {
+        val laps = listOf(297.1, 338.9, 324.9)
+        val kmh = laps.mapIndexed { k, s -> Pace.lapKmh(motegi, k, s)!! }
+        assertEquals(0.0, kmh.max() - kmh.min(), 0.3)
+        assertEquals(25.7, kmh.average(), 0.15)
+    }
+
     @Test
     fun nothingWithoutADistanceOrPastTheLimit() {
         assertNull(Pace.targetKmh(motegi.copy(raceDistanceM = null), emptyList(), 0))
