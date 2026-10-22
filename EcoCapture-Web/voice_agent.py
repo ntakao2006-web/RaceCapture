@@ -18,8 +18,8 @@ card. Bluetooth goes through PipeWire. Its microphone (HFP) is only used on a
 USB Bluetooth adapter: the UNO Q's built-in WCN3990 sends call audio to its PCM
 pins, never to Linux (measured 2026-10-17: 1,888 SCO packets out, 0 back), so
 with the built-in radio the headset is ears only (A2DP) and the USB microphone
-stays in use. USB devices are found by ALSA card name, so a re-plugged or reset
-dock comes back on its own.
+stays in use. Any USB audio device is used, whatever its name (the race earphones
+need not be the bench ones), and a re-plugged or reset dock comes back on its own.
 """
 import collections
 import ctypes
@@ -36,7 +36,11 @@ from pathlib import Path
 
 import numpy as np
 
-CARD = os.environ.get('ECOVOICE_CARD', 'Pro')
+# ALSA card name to prefer; otherwise the first USB audio device with a microphone
+# (and a speaker, for the USB route) is used. The bench lavalier was "Pro", the
+# USB-C earphone adapter of 2026-10-22 is "Audio": a fixed name missed it.
+CARD = os.environ.get('ECOVOICE_CARD', '')
+ASOUND = Path('/proc/asound')
 SOCKET_DIR = Path(os.environ.get('ECOVOICE_DIR', '/run/ecocapture-voice'))
 RNNOISE = os.environ.get('ECOVOICE_RNNOISE', '/opt/ecocapture-voice/librnnoise_old.so')
 VOLUME = os.environ.get('ECOVOICE_VOLUME', '80%')   # 40 % (the device default) was inaudible on 2026-10-17
@@ -66,17 +70,25 @@ PW_ENV = {**os.environ, 'XDG_RUNTIME_DIR': os.environ.get('XDG_RUNTIME_DIR', f'/
 log = logging.getLogger('voice')
 
 
-def card_present(name=CARD):
-    try:
-        return re.search(r'\[' + re.escape(name) + r'\s*\]', Path('/proc/asound/cards').read_text()) is not None
-    except OSError:
-        return False
+def usb_card(playback=True):
+    """ALSA name of the USB audio device to use, or None."""
+    found = []
+    for card in sorted(ASOUND.glob('card[0-9]*'), key=lambda p: int(p.name[4:])):
+        try:
+            name = (card / 'id').read_text().strip()
+        except OSError:
+            continue
+        if (card / 'usbid').exists() and any(card.glob('pcm*c')) and (not playback or any(card.glob('pcm*p'))):
+            found.append(name)
+    return CARD if CARD in found else found[0] if found else None
 
 
 def set_volume(route):
     if route['speaker'][0] == 'alsa':
-        subprocess.run(['amixer', '-q', '-c', CARD, 'set', 'Speaker', VOLUME, 'unmute'],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        for control in ('Speaker', 'PCM', 'Headphone'):   # what the volume is called differs per device
+            if subprocess.run(['amixer', '-q', '-c', route['speaker'][1], 'set', control, VOLUME, 'unmute'],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode == 0:
+                break
     else:   # Bluetooth came up at 40-50 % here, which was inaudible (2026-10-17)
         subprocess.run(['wpctl', 'set-volume', str(route['speaker_id']), '1.0'], env=PW_ENV,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
@@ -118,7 +130,8 @@ def bluetooth_route(objects):
         source = next((n for n in nodes if str(n['info']['props'].get('media.class', '')).startswith('Audio/Source')), None)
         if sink is None:
             continue
-        mic = ('pw', source['info']['props']['node.name']) if hfp and source else ('alsa', CARD) if card_present() else None
+        card = None if hfp and source else usb_card(playback=False)
+        mic = ('pw', source['info']['props']['node.name']) if hfp and source else ('alsa', card) if card else None
         return {'kind': 'bluetooth-hfp' if hfp else 'bluetooth-a2dp', 'name': props.get('device.description', 'Bluetooth'),
                 'address': str(props.get('api.bluez5.address', '')).upper(),
                 'speaker': ('pw', sink['info']['props']['node.name']), 'speaker_id': sink['id'], 'mic': mic}, None
@@ -135,8 +148,9 @@ def choose_route():
         route, _ = bluetooth_route(pipewire_objects())
     if route:
         return route
-    if card_present():
-        return {'kind': 'usb', 'name': CARD, 'speaker': ('alsa', CARD), 'speaker_id': None, 'mic': ('alsa', CARD)}
+    card = usb_card()
+    if card:
+        return {'kind': 'usb', 'name': card, 'speaker': ('alsa', card), 'speaker_id': None, 'mic': ('alsa', card)}
     return None
 
 
@@ -312,7 +326,7 @@ class Agent:
 
     def status(self):
         route = self.route or {}
-        return {**self.stats, 'card': CARD, 'card_present': card_present(), 'route': route.get('kind'),
+        return {**self.stats, 'card': usb_card(playback=False), 'card_present': usb_card(playback=False) is not None, 'route': route.get('kind'),
                 'device': route.get('name'), 'mic': bool(route.get('mic'))}
 
     def router(self):
@@ -448,7 +462,7 @@ class Agent:
         threading.Thread(target=self.router, daemon=True).start()
         threading.Thread(target=self.player, daemon=True).start()
         threading.Thread(target=self.capture, daemon=True).start()
-        log.info('voice agent ready on %s (card %s)', self.path, CARD)
+        log.info('voice agent ready on %s (USB card %s)', self.path, usb_card(playback=False))
         while True:
             data = self.sock.recv(4096)
             if data[:1] == b'P' and len(data) > 1:

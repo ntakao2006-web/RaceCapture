@@ -9,8 +9,17 @@ if [ ! -d "$RN" ]; then
   git clone -q https://github.com/xiph/rnnoise.git "$RN"
 fi
 git -C "$RN" checkout -q v0.1.1
-gcc -O2 -fPIC -shared -I"$RN/include" -I"$RN/src" -o /tmp/librnnoise_old.so \
-  "$RN/src/denoise.c" "$RN/src/rnn.c" "$RN/src/rnn_data.c" "$RN/src/pitch.c" "$RN/src/kiss_fft.c" "$RN/src/celt_lpc.c" -lm
+BUILD='gcc -O2 -fPIC -shared -I"$RN/include" -I"$RN/src" -o "$OUT/librnnoise_old.so" \
+  "$RN/src/denoise.c" "$RN/src/rnn.c" "$RN/src/rnn_data.c" "$RN/src/pitch.c" "$RN/src/kiss_fft.c" "$RN/src/celt_lpc.c" -lm'
+if command -v gcc >/dev/null; then
+  RN="$RN" OUT=/tmp sh -c "$BUILD"
+else
+  # The board from 2026-10-21 has no gcc, and its libc6-dev was already gone from the mirror
+  # (installing it would upgrade libc itself). Build in a throwaway Debian container instead;
+  # trixie has the same glibc 2.41 as the board.
+  docker run --rm -v "$RN:/rn:ro" -v /tmp:/out -e RN=/rn -e OUT=/out debian:trixie-slim sh -c \
+    "apt-get update -q >/dev/null && apt-get install -y -q gcc libc6-dev >/dev/null && $BUILD && chown $(id -u):$(id -g) /out/librnnoise_old.so"
+fi
 # Bluetooth headsets: PipeWire must run without anyone logged in (linger, below)
 # and must not keep Bluetooth for a local seat nor grab the USB card.
 install -D -m 644 wireplumber-ecologger-bluetooth.conf /home/arduino/.config/wireplumber/wireplumber.conf.d/80-ecologger-bluetooth.conf
