@@ -4,8 +4,9 @@
 
 Top: lap, race time, time left, average speeds, speed. Middle: map and speed graph.
 Then the line passes for the timing sheet (start / control / goal times, from
-live_bridge.py's Pace) and the talk page. Bottom: acceleration and every channel.
-The map and talk panels keep their HTML from the previous ecorun-live.json.
+live_bridge.py's Pace). Bottom: acceleration and every channel. The map panel keeps
+its HTML from the previous ecorun-live.json. No talk panel and no best lap
+(2026-10-23: the pit talks on Discord, and eco-run is not about the fastest lap).
 """
 import json
 from pathlib import Path
@@ -56,13 +57,15 @@ def pos(x, y, w, h):
 
 
 def build(old):
-    old_panels = {p.get('title'): p for p in old['panels']}
-    map_panel = next(p for p in old['panels'] if p['type'] == 'text' and '/live/map' in p['options']['content'])
-    talk_panel = old_panels['Talk']
-    live_speed = old_panels['Speed (live)']
-    accel = old_panels['Acceleration']
-    table = old_panels['All channels (latest)']
-    speed_graph = old_panels['Speed']
+    # Panels carried over are found by what they show, not by title, so the
+    # builder runs again on its own output.
+    def find(kind, text):
+        return next(p for p in old['panels'] if p['type'] == kind and text in json.dumps(p, ensure_ascii=False))
+    map_panel = find('text', '/live/map')
+    live_speed = find('stat', 'stream/ecorun/')
+    speed_graph = find('timeseries', 'ecorun_Speed{')
+    accel = find('timeseries', 'ecorun_LongAccel')
+    table = find('table', '__name__=~')
 
     panels = []
     y = 0
@@ -87,10 +90,9 @@ def build(old):
     y += 6
     # --- second row: lap times and whether the data is good ------------------
     panels += [
-        stat('前回ラップ', [target(last('LapTime', 60))], pos(0, y, 5, 4), unit='dthms'),
-        stat('ベストラップ', [target(last('BestLap', 60))], pos(5, y, 4, 4), unit='dthms'),
-        stat('この周の経過', [target(last('ElapsedTime', 60))], pos(9, y, 4, 4), unit='dthms'),
-        stat('GPS衛星数', [target(last('GPSSats'))], pos(13, y, 4, 4), decimals=0,
+        stat('前回ラップ', [target(last('LapTime', 60))], pos(0, y, 6, 4), unit='dthms'),
+        stat('この周の経過', [target(last('ElapsedTime', 60))], pos(6, y, 6, 4), unit='dthms'),
+        stat('GPS衛星数', [target(last('GPSSats'))], pos(12, y, 5, 4), decimals=0,
              thresholds=[{'color': 'red', 'value': None}, {'color': 'orange', 'value': 6}, {'color': 'green', 'value': 10}],
              color_mode='value'),
         stat('最終受信', [target(f'time() - timestamp(ecorun_Speed{{{ROOM}}})')], pos(17, y, 7, 4), unit='s', decimals=1,
@@ -104,7 +106,7 @@ def build(old):
     y += 14
     # --- line passes for the timing sheet, and talk --------------------------
     passes = {
-        'type': 'table', 'title': '通過時刻（スタート・コントロール・ゴール）', 'gridPos': pos(0, y, 14, 12), 'datasource': VM,
+        'type': 'table', 'title': '通過時刻（スタート・コントロール・ゴール）', 'gridPos': pos(0, y, 24, 12), 'datasource': VM,
         'description': 'ロガーが判定した各ラインの通過時刻。live_bridge.pyが周回の切り替わりから出す。'
                        '「レース」はスタート時刻（同じ部屋で何度か走ったときの区別）',
         'targets': [target(f'last_over_time(ecorun_lap_at{{{ROOM}}}[24h])', 'A', fmt='table')],
@@ -126,7 +128,6 @@ def build(old):
         'options': {'showHeader': True, 'cellHeight': 'sm'},
     }
     panels.append(passes)
-    panels.append(dict(talk_panel, title='通話', gridPos=pos(14, y, 10, 12)))
     y += 12
     # --- bottom: detail --------------------------------------------------------
     panels.append(dict(accel, title='加速度', gridPos=pos(0, y, 24, 9)))

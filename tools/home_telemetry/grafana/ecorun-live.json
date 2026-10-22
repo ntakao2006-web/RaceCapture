@@ -390,7 +390,7 @@
       "gridPos": {
         "x": 0,
         "y": 6,
-        "w": 5,
+        "w": 6,
         "h": 4
       },
       "datasource": {
@@ -433,58 +433,11 @@
     },
     {
       "type": "stat",
-      "title": "ベストラップ",
-      "gridPos": {
-        "x": 5,
-        "y": 6,
-        "w": 4,
-        "h": 4
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "ecorun-vm"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "ecorun-vm"
-          },
-          "expr": "round(last_over_time(ecorun_BestLap{room=\"$room\"}[10m]) * 60)",
-          "instant": true,
-          "range": false
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "noValue": "—",
-          "unit": "dthms"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "graphMode": "none",
-        "colorMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "description": "",
-      "id": 8
-    },
-    {
-      "type": "stat",
       "title": "この周の経過",
       "gridPos": {
-        "x": 9,
+        "x": 6,
         "y": 6,
-        "w": 4,
+        "w": 6,
         "h": 4
       },
       "datasource": {
@@ -523,15 +476,15 @@
         "justifyMode": "center"
       },
       "description": "",
-      "id": 9
+      "id": 8
     },
     {
       "type": "stat",
       "title": "GPS衛星数",
       "gridPos": {
-        "x": 13,
+        "x": 12,
         "y": 6,
-        "w": 4,
+        "w": 5,
         "h": 4
       },
       "datasource": {
@@ -590,7 +543,7 @@
         "justifyMode": "center"
       },
       "description": "",
-      "id": 10
+      "id": 9
     },
     {
       "type": "stat",
@@ -658,10 +611,10 @@
         "justifyMode": "center"
       },
       "description": "最後にロガーのデータが届いてからの秒数",
-      "id": 11
+      "id": 10
     },
     {
-      "id": 12,
+      "id": 11,
       "type": "text",
       "title": "",
       "transparent": true,
@@ -678,7 +631,7 @@
       }
     },
     {
-      "id": 13,
+      "id": 12,
       "type": "timeseries",
       "title": "速度",
       "gridPos": {
@@ -717,7 +670,7 @@
       "gridPos": {
         "x": 0,
         "y": 24,
-        "w": 14,
+        "w": 24,
         "h": 12
       },
       "datasource": {
@@ -829,27 +782,10 @@
         "showHeader": true,
         "cellHeight": "sm"
       },
-      "id": 14
+      "id": 13
     },
     {
-      "id": 15,
-      "type": "text",
-      "title": "通話",
-      "transparent": false,
-      "description": "ecorun-logger-server の通話画面。ダッシュボードのどこでSpaceを押しても通話になる（このパネルのHTMLにあるスクリプトがSpaceを通話画面へ転送する。Grafanaの設定でHTMLの無害化を切っている前提）",
-      "gridPos": {
-        "x": 14,
-        "y": 24,
-        "w": 10,
-        "h": 12
-      },
-      "options": {
-        "mode": "html",
-        "content": "<iframe data-talk src=\"/\" allow=\"microphone; autoplay\" style=\"width:100%;height:100%;border:0;display:block\"></iframe><img src=\"data:,\" alt=\"\" style=\"display:none\" onerror=\"if(!window.__ecoPtt){window.__ecoPtt=1;const typing=t=>t&&t.closest&&t.closest('input,textarea,select,[contenteditable=true]');for(const type of ['keydown','keyup'])window.addEventListener(type,e=>{if(e.code!=='Space'||typing(e.target))return;const f=document.querySelector('iframe[data-talk]');if(!f||!f.contentWindow)return;e.preventDefault();e.stopPropagation();f.contentWindow.dispatchEvent(new KeyboardEvent(type,{code:'Space',key:' ',repeat:e.repeat}));},true);}\">"
-      }
-    },
-    {
-      "id": 16,
+      "id": 14,
       "type": "timeseries",
       "title": "加速度",
       "gridPos": {
@@ -887,7 +823,7 @@
       "maxDataPoints": 3000
     },
     {
-      "id": 17,
+      "id": 15,
       "type": "table",
       "title": "全チャンネル（最新）",
       "gridPos": {
