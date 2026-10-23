@@ -7,7 +7,8 @@
 <!--
   G-G (friction circle) for the pit, embedded in Grafana (2026-10-23). Same live feed as
   map.html: live_bridge.py's /ws?room=<room>, about 10 samples/s with LongAccel/LatAccel (g).
-  Up = accelerating, down = braking, right = LatAccel > 0 (?flip=1 swaps left and right).
+  Down = accelerating, up = braking (as the driver is pushed: user's choice 2026-10-23),
+  right = LatAccel > 0 (?flip=1 swaps left and right). The number still reads + for accelerating.
   ?max=<g> sets the outer ring (default 0.5 g: eco-run cars rarely pass 0.3 g).
 -->
 <style>
@@ -40,7 +41,7 @@ let points = [];   // {at, x: lateral g, y: longitudinal g}
 
 function add(s, at) {
   if (typeof s.LongAccel !== 'number' || typeof s.LatAccel !== 'number') return;
-  const raw = { x: s.LatAccel * FLIP, y: s.LongAccel };
+  const raw = { x: s.LatAccel * FLIP, y: -s.LongAccel };   // y up = braking
   smooth = smooth ? { x: smooth.x + (raw.x - smooth.x) * SMOOTH, y: smooth.y + (raw.y - smooth.y) * SMOOTH } : raw;
   points.push({ at, x: smooth.x, y: smooth.y });
   const sign = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
@@ -72,7 +73,7 @@ function draw() {
   ctx.strokeStyle = css.getPropertyValue('--ring');
   ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
   ctx.fillStyle = css.getPropertyValue('--ink'); ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'center';
-  ctx.fillText('加速', cx, cy - r - 5); ctx.fillText('減速', cx, cy + r + 16);
+  ctx.fillText('減速', cx, cy - r - 5); ctx.fillText('加速', cx, cy + r + 16);
   ctx.textAlign = 'left'; ctx.fillText('右', cx + r + 4, cy + 4);
   ctx.textAlign = 'right'; ctx.fillText('左', cx - r - 4, cy + 4);
   ctx.textAlign = 'left';
