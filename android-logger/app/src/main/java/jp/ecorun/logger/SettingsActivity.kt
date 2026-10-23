@@ -112,12 +112,12 @@ class SettingsActivity : Activity() {
         val car = field("車の名前（記録ファイル名・サーバーでの表示名）", settings.carName, "例：car2", !running)
         val primary = field("主サーバーのURL", settings.primaryUrl, "wss://…/ws/audio/<room>", !running)
         val backup = field("予備サーバーのURL", settings.backupUrl, "空欄なら予備なし", !running)
-        // The key is never shown again once saved: the field starts empty and a blank save keeps it.
+        // Shown as typed so a misread key can be spotted (the user's call: the key is not that secret).
         val hasKey = settings.podiumKey.isNotEmpty()
-        val key = field("Podiumのストリーミングキー（サーバーが30秒応答しないときだけPodiumへ直接送る）", "",
-            if (hasKey) "保存済み（空欄のままなら変えない）" else "未設定（空欄なら直接は送らない）", !running,
-            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
-        note("キーはこのスマホのアプリの中だけに保存し、画面には出さない。サーバーが応答している間はサーバーがPodiumへ送るので、直接は送らない（同じキーで2か所から送ると重なるため）")
+        val key = field("Podiumのストリーミングキー（サーバーが30秒応答しないときだけPodiumへ直接送る）", settings.podiumKey,
+            "未設定（空欄なら直接は送らない）", !running,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+        note("キーはこのスマホのアプリの中に保存する。サーバーが応答している間はサーバーがPodiumへ送るので、直接は送らない（同じキーで2か所から送ると重なるため）")
         if (hasKey && !running) column.addView(button("Podiumのキーを消す") {
             confirm("保存したPodiumのキーを消します。サーバーが止まったときにPodiumへ直接送らなくなります。よいですか？") {
                 settings.podiumKey = ""; toast("キーを消しました"); build()
@@ -156,7 +156,7 @@ class SettingsActivity : Activity() {
         column.addView(button("車・サーバー・大会の設定を保存") {
             if (!running) {
                 settings.carName = car.text.toString(); settings.primaryUrl = primary.text.toString(); settings.backupUrl = backup.text.toString()
-                key.text.toString().trim().takeIf { it.isNotEmpty() }?.let { settings.podiumKey = it }
+                settings.podiumKey = key.text.toString()
             }
             val total = laps.text.toString().trim().toIntOrNull()
             val lim = parseClock(limit.text.toString())

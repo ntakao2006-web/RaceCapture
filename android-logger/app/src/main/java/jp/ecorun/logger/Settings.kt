@@ -19,7 +19,7 @@ class Settings(context: Context) {
     /**
      * Podium streaming key, only for sending straight to Podium when no relay
      * server answers ([PodiumDirect]). Kept in this app's private storage and
-     * never shown again once saved.
+     * shown in the settings so a mistyped key can be spotted.
      */
     var podiumKey: String
         get() = prefs.getString("podiumKey", "") ?: ""
