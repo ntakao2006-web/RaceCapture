@@ -95,7 +95,8 @@ LAP_CHANNELS = {
     "LapCount": ("完了周回数", ""), "CurrentLap": ("走行中の周", ""),
     "LapTime": ("前回ラップ", "Min"), "BestLap": ("ベストラップ", "Min"),
     "ElapsedTime": ("現在ラップ経過", "Min"),
-    "RaceTime": ("スタートからの経過", "Min"), "LapsLeft": ("残り周回数", "")
+    "RaceTime": ("スタートからの経過", "Min"), "LapsLeft": ("残り周回数", ""),
+    "TimeLimit": ("規定時間", "Sec"), "Margin": ("余裕", "Sec")
 }
 
 def validate_sample(value):

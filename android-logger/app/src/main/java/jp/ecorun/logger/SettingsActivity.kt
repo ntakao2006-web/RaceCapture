@@ -147,11 +147,13 @@ class SettingsActivity : Activity() {
         if (running) note(if (Status.fromLogger) "いまはロガーの位置を使っています" else "いまはスマホのGNSSです：" +
             (if (settings.loggerConfigured) LoggerFeed.reason() + LoggerFeed.error.takeIf { it.isNotEmpty() }?.let { "（$it）" }.orEmpty() else "ロガー未設定"))
         if (settings.loggerConfigured) {
-            note("走行前（周回の計測が始まる前）は、ロガーにつながるとロガーのラインを自動で読み込み、このアプリの規定周回数をロガーへ書き込む。" +
+            note("走行前（周回の計測が始まる前）は、ロガーにつながるとロガーのラインを自動で読み込み、このアプリの規定周回数・規定時間・余裕をロガーへ書き込む（ピットのGrafanaはロガーの値を表示する）。" +
                 "「ラップをリセット」はロガーの周回もリセットする。計測が始まったら、どちらも変えない")
             if (LoggerFeed.fresh()) note("ロガーの周回：" + (LoggerFeed.lapCount?.let { "${it}周" } ?: "—") +
                 (LoggerFeed.lapsLeft?.let { "　残り${it}周" } ?: "") + (LoggerFeed.totalLaps?.let { "　規定${it}周" } ?: "　規定周回数なし") +
-                (if (LoggerFeed.lapFinished) "　ゴール済み" else "") + "　基準${LoggerFeed.lineId ?: "なし"}")
+                (if (LoggerFeed.lapFinished) "　ゴール済み" else "") + "　基準${LoggerFeed.lineId ?: "なし"}" +
+                (LoggerFeed.timeLimitS?.let { "　規定時間" + DashboardView.clock(it, false) } ?: "　規定時間なし") +
+                (LoggerFeed.marginS?.let { "　余裕%.0f秒".format(it) } ?: ""))
             if (LoggerFeed.syncNote.isNotEmpty()) note("最後の同期：" + LoggerFeed.syncNote)
         }
 

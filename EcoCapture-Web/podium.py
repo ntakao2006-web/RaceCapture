@@ -29,7 +29,8 @@ RANGES = {'Lat':(-90,90),'Lon':(-180,180),'Altitude':(-500,9000),
           'GPSSats':(0,64),'RPM':(0,10000),'Throttle':(0,100),'WaterTemp':(-40,150),
           'BatteryVolt':(0,20),'OilTemp':(-40,200),'LapCount':(0,10000),'CurrentLap':(0,10000),
           'LapTime':(0,60),'BestLap':(0,60),'ElapsedTime':(0,60),
-          'RaceTime':(0,600),'LapsLeft':(0,1000),'GPSAcc':(0,1000),'OilTempState':(0,4)}
+          'RaceTime':(0,600),'LapsLeft':(0,1000),'GPSAcc':(0,1000),'OilTempState':(0,4),
+          'TimeLimit':(0,86400),'Margin':(0,3600)}
 
 # wss://host[:port]/ws/audio/<room>. The character set also keeps the host safe
 # inside AT command quotes.
@@ -178,7 +179,12 @@ def utc_milliseconds(sample):
 
 PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0,
              'LapCount':0,'CurrentLap':0,'LapTime':4,'BestLap':4,'ElapsedTime':4,
-             'RaceTime':4,'LapsLeft':0,'GPSAcc':1,'OilTempState':0}
+             'RaceTime':4,'LapsLeft':0,'GPSAcc':1,'OilTempState':0,'TimeLimit':2,'Margin':1}
+# Settings that do not change during a race (2026-10-24) go out once every SPARSE_EVERY
+# samples (10 s at 10 Hz) or when they change, masked out in between: the LTE link
+# carries telemetry first. The pit's Grafana holds the last value.
+SPARSE={'TimeLimit','Margin'}
+SPARSE_EVERY=100
 
 # Auth values confirmed against next-generation Podium on 2026-10-04: these are
 # what the official RaceCapture app 2.19.0 sends. The older
@@ -186,7 +192,7 @@ PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0
 AUTH = {'apiVer':1.1,'device':'RC_APP (RCPMK3)','ver':'2.19.0 (2.16.1)','sn':'C3PROTO01'}
 
 class Encoder:
-    def __init__(self,channels,tick=0):self.channels=channels;self.tick=tick
+    def __init__(self,channels,tick=0):self.channels=channels;self.tick=tick;self.rows=0;self.sent={}
     def auth(self,key):return line({'cmd':{'auth':{'deviceId':key,**AUTH}}})
     def meta_list(self):
         # Podium recognizes position by its canonical channel names, not our
@@ -212,11 +218,15 @@ class Encoder:
             if ch.name=='Interval':value=sample.get('mcu_ms')
             if ch.name=='Speed' and value is None:value=sample.get('values',{}).get('GPSSpeed')
             if ch.name=='GPSAcc':value=sample.get('gnss_hacc_m')
+            if ch.name in SPARSE:
+                if value==self.sent.get(ch.name) and self.rows%SPARSE_EVERY:value=None
+                else:self.sent[ch.name]=value
             if type(value) in (int,float) and math.isfinite(value):
                 # Podium shows 'prec' decimals anyway; dropping the rest shortens
                 # the LTE stream, which is limited by bytes through the MCU RPC.
                 prec=PRECISION.get(ch.name,2)
                 values.append(int(round(value)) if prec==0 else round(value,prec));masks[i//32]|=1<<(i%32)
+        self.rows+=1
         return values+masks
 
 class AuthenticationError(Exception):pass

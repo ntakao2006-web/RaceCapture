@@ -73,6 +73,10 @@ class LapLine(BaseModel):
     start: Gate | None = None
     goal: Gate | None = None
     total_laps: int | None = Field(default=None, ge=1, le=1000)
+    # Time limit and the margin the driver aims to finish ahead of it (2026-10-24): the
+    # dash phone writes them with total_laps, and they go out so the pit only reads them.
+    time_limit_s: float | None = Field(default=None, gt=0, le=86400)
+    margin_s: float | None = Field(default=None, ge=0, le=3600)
     set_at: str | None = None  # when the lines last changed (GNSS time, JST), shown with the QR code
 
     @model_validator(mode='after')
@@ -274,8 +278,9 @@ class LapTimer:
         self.last_here = {'target': target, 'fixes': count, 'spread_m': None if spread is None else round(spread, 2)}
 
     def values(self):
+        race_options = {'TimeLimit': self.line.time_limit_s, 'Margin': self.line.margin_s}
         if not self.line.enabled:
-            return dict.fromkeys(LAP_CHANNELS)
+            return {**dict.fromkeys(LAP_CHANNELS), **race_options}
         s = self.state
         now_ms = self.latest_utc[0] + (time.monotonic() - self.latest_utc[1]) * 1000 if self.latest_utc else None
         since = lambda start: None if start is None or now_ms is None else max(0.0, (now_ms - start) / 1000)
@@ -289,7 +294,8 @@ class LapTimer:
         total = self.line.total_laps
         return {'LapCount': s['count'], 'CurrentLap': current,
                 'LapTime': minutes(s['last_s']), 'BestLap': minutes(s['best_s']), 'ElapsedTime': minutes(elapsed),
-                'RaceTime': minutes(race), 'LapsLeft': None if total is None else max(0, total - s['count'])}
+                'RaceTime': minutes(race), 'LapsLeft': None if total is None else max(0, total - s['count']),
+                **race_options}
 
     def record_lap(self, at_ms):
         s = self.state

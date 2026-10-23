@@ -80,6 +80,11 @@ class FieldTests(unittest.TestCase):
         self.assertTrue(frame['line_code'].startswith('ECOLINES1|c='))
         self.assertTrue(frame['line_code'].endswith('id=' + frame['line_id']))
         self.assertEqual(frame['total_laps'], 3)
+        self.assertIsNone(frame['time_limit_s'])
+        self.client.post('/api/field/total', json={'time_limit_s': 2360.11, 'margin_s': 30}, headers=self.key).raise_for_status()
+        with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
+            frame = ws.receive_json()
+        self.assertEqual((frame['total_laps'], frame['time_limit_s'], frame['margin_s']), (3, 2360.11, 30))
         self.assertEqual(frame['lap']['laps_left'], 3)
         self.runtime.connected = False
         with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
@@ -117,6 +122,14 @@ class FieldTests(unittest.TestCase):
         d = self.client.post('/api/field/total', json={'total_laps': None}, headers=self.key).json()
         self.assertIsNone(d['line']['total_laps'])
         self.assertEqual(self.client.post('/api/field/total', json={'total_laps': 0}, headers=self.key).status_code, 400)
+        d = self.client.post('/api/field/total', json={'total_laps': 7, 'time_limit_s': 987.36, 'margin_s': 30}, headers=self.key).json()
+        self.assertEqual((d['line']['total_laps'], d['line']['time_limit_s'], d['line']['margin_s']), (7, 987.36, 30))
+        self.assertEqual((d['values']['TimeLimit'], d['values']['Margin']), (987.36, 30))
+        d = self.client.post('/api/field/total', json={'margin_s': 0}, headers=self.key).json()
+        self.assertEqual((d['line']['total_laps'], d['line']['time_limit_s'], d['line']['margin_s']), (7, 987.36, 0))
+        for bad in ({'time_limit_s': 0}, {'margin_s': -1}, {'time_limit_s': 'x'}):
+            self.assertEqual(self.client.post('/api/field/total', json=bad, headers=self.key).status_code, 400)
+        self.client.post('/api/field/total', json={'total_laps': None, 'time_limit_s': None, 'margin_s': None}, headers=self.key).raise_for_status()
         self.assertEqual(self.client.post('/api/field/here', json={'target': 'pit'}, headers=self.key).status_code, 400)
         code = self.client.get('/api/field/code', headers=self.key).json()
         self.assertIn('<svg', code['svg'])

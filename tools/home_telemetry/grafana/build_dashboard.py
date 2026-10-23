@@ -25,23 +25,6 @@ def last(metric, scale=None):
     return f'round({expr} * {scale})' if scale else expr
 
 
-def seconds(var, bare_unit):
-    """MetricsQL that reads a textbox as a time: 39:20.11, 39分20秒11, 39m20s, 30秒, or a bare
-    number in bare_unit seconds (60: minutes for the time limit, 1: seconds for the margin).
-
-    Grafana pastes the text in as a label and VictoriaMetrics' label_replace / label_value
-    pull the numbers out, so the pit types the time the way the rules print it (2026-10-24).
-    """
-    sep = '(?::|：|分|m)'
-    x = f'label_set(vector(0), "t", "${var}", "m", "0", "s", "0", "c", "0")'
-    x = f'label_replace({x}, "{"m" if bare_unit == 60 else "s"}", "$1", "t", " *([0-9.]+) *")'
-    x = f'label_replace({x}, "m", "$1", "t", " *([0-9]+) *{sep}.*")'
-    x = f'label_replace({x}, "s", "$1", "t", " *[0-9]+ *{sep} *([0-9.]+).*")'
-    x = f'label_replace({x}, "s", "$1", "t", " *([0-9.]+) *(?:秒|s).*")'
-    x = f'label_replace({x}, "c", "0.$1", "t", ".*(?:秒|s) *([0-9]+) *")'   # 39分20秒11: hundredths
-    return f'(label_value({x}, "m") * 60 + label_value({x}, "s") + label_value({x}, "c"))'
-
-
 def target(expr, ref='A', legend=None, instant=True, fmt=None):
     t = {'refId': ref, 'datasource': VM, 'expr': expr, 'instant': instant, 'range': not instant}
     if legend:
@@ -100,8 +83,11 @@ def build(old):
     speed_graph = find('timeseries', 'ecorun_Speed{')
     table = find('table', '__name__=~')
 
-    limit, margin = f'scalar({seconds("limit", 60)})', f'scalar({seconds("margin", 1)})'
-    left = f'({last("RaceTime", -60)} + {limit})'
+    # The time limit and margin come from the logger (the dash phone writes them before the
+    # start, 2026-10-24); the pit only reads them, so the two can never disagree.
+    limit, margin = last('TimeLimit'), last('Margin')
+    # Before the start there is no RaceTime: count it as 0 so the whole limit shows.
+    left = f'({limit} - ({last("RaceTime", 60)} or {limit} * 0))'
 
     panels = []
     y = 0
@@ -111,13 +97,13 @@ def build(old):
              pos(0, y, 5, 6), decimals=0, description='走行中の周（スタートから最初のコントロールまでが1周目）と残り周回（規定周回数を入れたとき）'),
         stat('経過時間', [target(last('RaceTime', 60))], pos(5, y, 4, 6), unit='dthms',
              description='スタートからの経過（ゴール後はレース時間で止まる）'),
-        stat('残り時間', [target(f'({left} - {margin}) and on() (vector({limit}) > 0) and on() (vector({margin}) > 0)', 'A', '目標まで'),
-                          target(f'{left} and on() (vector({limit}) > 0)', 'B', '規定まで')],
-             pos(9, y, 4, 6), unit='dthms', no_value='規定時間を上で入力',
+        stat('残り時間', [target(f'({left} - {margin}) and ({margin} > 0)', 'A', '目標まで'),
+                          target(left, 'B', '規定まで')],
+             pos(9, y, 4, 6), unit='dthms', no_value='ロガーに規定時間なし',
              thresholds=[{'color': 'red', 'value': None}, {'color': 'orange', 'value': 300}, {'color': 'green', 'value': 900}],
              color_mode='value',
-             description='規定まで＝上の「規定時間」−経過時間。目標まで＝さらに「余裕」だけ早くゴールする時刻まで'
-                         '（ドライバーのアプリと同じ考え方。余裕0なら出さない）。5分を切ると赤'),
+             description='規定まで＝規定時間−経過時間。目標まで＝さらに余裕だけ早くゴールする時刻まで（余裕0なら出さない）。'
+                         '規定時間と余裕はドライバーのアプリで設定し、走行前にロガーへ書き込まれたもの。5分を切ると赤'),
         stat('平均速度（スタートから）', [target(last('RaceAvgSpeed'))], pos(13, y, 4, 6), unit='velocitykmh', decimals=1,
              description='自宅サーバーで速度を時間で積算して出した値（live_bridge.py）'),
         stat('この周の平均 ／ 前の周', [target(last('LapAvgSpeed'), 'A', 'この周'), target(last('LastLapAvgSpeed'), 'B', '前の周')],
@@ -190,13 +176,8 @@ def build(old):
     # round trip over 500 ms cancelled the previous one ("context canceled"), so panels
     # sat loading. Speed (Grafana Live), the map and the G-G circle are pushed anyway.
     dash['refresh'] = '2s'
+    # The hand-typed time limit (limit_min, then limit and margin) is gone: the logger has it.
     variables = [v for v in old['templating']['list'] if v['name'] not in ('limit_min', 'limit', 'margin')]
-    variables.append({'name': 'limit', 'label': '規定時間（分:秒）', 'type': 'textbox', 'query': '0',
-                      'current': {'text': '0', 'value': '0'},
-                      'description': '39:20.11・39分20秒11・39（分だけ）のどれでも入る。0なら残り時間を出さない'})
-    variables.append({'name': 'margin', 'label': '余裕（秒）', 'type': 'textbox', 'query': '30',
-                      'current': {'text': '30', 'value': '30'},
-                      'description': '規定時間よりこれだけ早くゴールする目標。30・1:30・1分30秒のどれでも入る。0なら目標を出さない'})
     dash['templating'] = {'list': variables}
     return dash
 

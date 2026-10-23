@@ -118,13 +118,15 @@ def create_app(runtime, token):
 
     @app.post('/api/field/total')
     async def total(request: Request):
-        value = (await body_of(request)).get('total_laps')
+        # The race options from the dash phone; a field left out of the body keeps its value.
+        body = await body_of(request)
+        values = {k: body[k] for k in ('total_laps', 'time_limit_s', 'margin_s') if k in body}
         try:
-            runtime.laps.configure(LapLine.model_validate({**runtime.laps.line.model_dump(), 'total_laps': value}))
+            runtime.laps.configure(LapLine.model_validate({**runtime.laps.line.model_dump(), **values}))
         except ValueError:
-            raise HTTPException(400, '規定周回数を確認してください。')
+            raise HTTPException(400, '規定周回数・規定時間・余裕を確認してください。')
         except OSError:
-            raise HTTPException(507, '規定周回数を保存できませんでした。')
+            raise HTTPException(507, '規定周回数・規定時間・余裕を保存できませんでした。')
         return runtime.laps.public()
 
     @app.post('/api/field/reset')
@@ -180,6 +182,7 @@ def live_frame(runtime):
             # The lines (the same text as the QR code) and the logger's own lap count, so the
             # phone can follow the lines before the start and show where the logger stands.
             'line_id': code_id, 'line_code': code, 'total_laps': line.total_laps,
+            'time_limit_s': line.time_limit_s, 'margin_s': line.margin_s,
             'lap': {'count': state['count'], 'laps_left': lap['LapsLeft'], 'finished': state['finished'],
                     'running': state['lap_start_ms'] is not None or state['race_start_ms'] is not None}}
 

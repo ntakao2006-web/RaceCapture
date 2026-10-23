@@ -28,7 +28,7 @@ class ProtocolTests(unittest.TestCase):
         encoder=Encoder(sensors(PodiumConfig(),Configuration()))
         meta=json.loads(encoder.meta())['s']['meta']
         names={'Lat':'Latitude','Lon':'Longitude'}
-        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed','GPSAcc']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime','RaceTime','LapsLeft'])
+        self.assertEqual([c['nm'] for c in meta],['Interval','Utc']+[names.get(n,n) for n in PodiumConfig().channels]+['Speed','GPSAcc']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime','RaceTime','LapsLeft','TimeLimit','Margin'])
         self.assertEqual(meta[2]['ut'],'deg');self.assertEqual(meta[2]['prec'],6)
         data={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35},'password':'secret','imu_raw':'private','can_frames':['private']}
         self.assertNotIn('private',encoder.sample(data).decode())
@@ -38,7 +38,7 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'values':{}})),{'s':{'d':[0,0,0],'t':0}})
     def test_required_context_and_gnss_utc_milliseconds(self):
         encoder=Encoder(sensors(PodiumConfig(channels=['RPM']),Configuration()))
-        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed','GPSAcc']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime','RaceTime','LapsLeft'])
+        self.assertEqual([c['nm'] for c in json.loads(encoder.meta())['s']['meta']],['Interval','Utc','RPM','Latitude','Longitude','Speed','GPSAcc']+['LapCount','CurrentLap','LapTime','BestLap','ElapsedTime','RaceTime','LapsLeft','TimeLimit','Margin'])
         sample={'source':'logger-v2-hardware','demo':False,'values':{'Lat':35.123456789,'Lon':139.123456789,'GPSSpeed':12.5},'gnss_utc':'1970-01-01T00:00:01Z','gnss_itow_ms':1234}
         self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[1234,35.123457,139.123457,12.5,58])
         sample['gnss_utc']='bad';sample['values']={}
@@ -48,7 +48,7 @@ class ProtocolTests(unittest.TestCase):
         self.assertIn('GPSAcc',cub);self.assertFalse([n for n in cub if n.startswith('OilTemp')])
         car=Configuration(signals=[Signal(name='OilTemp',unit='°C',channel=2,can_id=0x600,byte_offset=0,data_type='int16',scale=.01,conversion='sensorhub_oiltemp')])
         encoder=Encoder(sensors(PodiumConfig(),car));names=[c.name for c in encoder.channels]
-        self.assertEqual(names[-9:-7],['OilTemp','OilTempState'])
+        self.assertEqual(names[-11:-9],['OilTemp','OilTempState'])
         sample={'source':'logger-v2-hardware','demo':False,'values':{},'gnss_hacc_m':1.234,
                 'can_signals':{'OilTemp':87.456,'OilTempState':0}}
         d=json.loads(encoder.sample(sample))['s']['d']
@@ -61,6 +61,16 @@ class ProtocolTests(unittest.TestCase):
         d=json.loads(encoder.sample(sample))['s']['d']
         self.assertEqual(d[:2],[3,1.5]);self.assertEqual(d[2],1<<names.index('LapCount')|1<<names.index('LapTime'))
         self.assertEqual(json.loads(encoder.meta())['s']['meta'][names.index('LapTime')]['ut'],'Min')
+    def test_race_options_go_out_every_ten_seconds_or_on_change(self):
+        encoder=Encoder(sensors(PodiumConfig(channels=['GPSSats']),Configuration()))
+        names=[c.name for c in encoder.channels]
+        sample={'source':'logger-v2-hardware','demo':False,'values':{},'lap':{'TimeLimit':2360.11,'Margin':30.0}}
+        bits=1<<names.index('TimeLimit')|1<<names.index('Margin')
+        self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[2360.11,30.0,bits])
+        for _ in range(99):self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[0])
+        self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[2360.11,30.0,bits])
+        sample['lap']['Margin']=45.0
+        self.assertEqual(json.loads(encoder.sample(sample))['s']['d'],[45.0,1<<names.index('Margin')])
     def test_sample_counter_and_interval(self):
         encoder=Encoder([Sensor('Interval','ms',0,0),Sensor('V','',0,1)])
         first=json.loads(encoder.sample({'source':'logger-v2-hardware','demo':False,'mcu_ms':12300,'values':{'V':1}}))['s']

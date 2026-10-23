@@ -37,28 +37,6 @@
         "definition": "label_values(ecorun_Speed, room)",
         "refresh": 2,
         "sort": 1
-      },
-      {
-        "name": "limit",
-        "label": "規定時間（分:秒）",
-        "type": "textbox",
-        "query": "0",
-        "current": {
-          "text": "0",
-          "value": "0"
-        },
-        "description": "39:20.11・39分20秒11・39（分だけ）のどれでも入る。0なら残り時間を出さない"
-      },
-      {
-        "name": "margin",
-        "label": "余裕（秒）",
-        "type": "textbox",
-        "query": "30",
-        "current": {
-          "text": "30",
-          "value": "30"
-        },
-        "description": "規定時間よりこれだけ早くゴールする目標。30・1:30・1分30秒のどれでも入る。0なら目標を出さない"
       }
     ]
   },
@@ -189,7 +167,7 @@
             "type": "prometheus",
             "uid": "ecorun-vm"
           },
-          "expr": "((round(last_over_time(ecorun_RaceTime{room=\"$room\"}[10m]) * -60) + scalar((label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"m\") * 60 + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"s\") + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"c\")))) - scalar((label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$margin\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"m\") * 60 + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$margin\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"s\") + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$margin\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"c\")))) and on() (vector(scalar((label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"m\") * 60 + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"s\") + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"c\")))) > 0) and on() (vector(scalar((label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$margin\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"m\") * 60 + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$margin\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"s\") + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$margin\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"c\")))) > 0)",
+          "expr": "((last_over_time(ecorun_TimeLimit{room=\"$room\"}[10m]) - (round(last_over_time(ecorun_RaceTime{room=\"$room\"}[10m]) * 60) or last_over_time(ecorun_TimeLimit{room=\"$room\"}[10m]) * 0)) - last_over_time(ecorun_Margin{room=\"$room\"}[10m])) and (last_over_time(ecorun_Margin{room=\"$room\"}[10m]) > 0)",
           "instant": true,
           "range": false,
           "legendFormat": "目標まで"
@@ -200,7 +178,7 @@
             "type": "prometheus",
             "uid": "ecorun-vm"
           },
-          "expr": "(round(last_over_time(ecorun_RaceTime{room=\"$room\"}[10m]) * -60) + scalar((label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"m\") * 60 + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"s\") + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"c\")))) and on() (vector(scalar((label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"m\") * 60 + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"s\") + label_value(label_replace(label_replace(label_replace(label_replace(label_replace(label_set(vector(0), \"t\", \"$limit\", \"m\", \"0\", \"s\", \"0\", \"c\", \"0\"), \"m\", \"$1\", \"t\", \" *([0-9.]+) *\"), \"m\", \"$1\", \"t\", \" *([0-9]+) *(?::|：|分|m).*\"), \"s\", \"$1\", \"t\", \" *[0-9]+ *(?::|：|分|m) *([0-9.]+).*\"), \"s\", \"$1\", \"t\", \" *([0-9.]+) *(?:秒|s).*\"), \"c\", \"0.$1\", \"t\", \".*(?:秒|s) *([0-9]+) *\"), \"c\")))) > 0)",
+          "expr": "(last_over_time(ecorun_TimeLimit{room=\"$room\"}[10m]) - (round(last_over_time(ecorun_RaceTime{room=\"$room\"}[10m]) * 60) or last_over_time(ecorun_TimeLimit{room=\"$room\"}[10m]) * 0))",
           "instant": true,
           "range": false,
           "legendFormat": "規定まで"
@@ -208,7 +186,7 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "noValue": "規定時間を上で入力",
+          "noValue": "ロガーに規定時間なし",
           "unit": "dthms",
           "thresholds": {
             "mode": "absolute",
@@ -245,7 +223,7 @@
         "textMode": "value_and_name",
         "justifyMode": "center"
       },
-      "description": "規定まで＝上の「規定時間」−経過時間。目標まで＝さらに「余裕」だけ早くゴールする時刻まで（ドライバーのアプリと同じ考え方。余裕0なら出さない）。5分を切ると赤",
+      "description": "規定まで＝規定時間−経過時間。目標まで＝さらに余裕だけ早くゴールする時刻まで（余裕0なら出さない）。規定時間と余裕はドライバーのアプリで設定し、走行前にロガーへ書き込まれたもの。5分を切ると赤",
       "id": 3
     },
     {
