@@ -205,7 +205,8 @@ class LapTimer:
     @staticmethod
     def empty_state():
         return {'count': 0, 'last_s': None, 'best_s': None, 'lap_start_ms': None, 'laps': [],
-                'race_start_ms': None, 'race_end_ms': None, 'finished': False}
+                'race_start_ms': None, 'race_end_ms': None, 'finished': False,
+                'learned': []}  # lines whose heading was learned on a pass (not typed in): the reset forgets them
 
     def save(self):
         temp = self.path.with_suffix('.tmp')
@@ -230,11 +231,18 @@ class LapTimer:
         if gates(line) != gates(self.line) and self.latest_utc is not None:
             stamp = datetime.fromtimestamp(self.latest_utc[0] / 1000, JST).strftime('%Y-%m-%dT%H:%M+09:00')
             line = line.model_copy(update={'set_at': stamp})
+        # A heading stays "learned" only while that line is left as it was.
+        self.state['learned'] = [t for t in self.state.get('learned', []) if line.gate(t) is not None and line.gate(t) == self.line.gate(t)]
         self.line = line; self.error = None
         self.forget_motion()
         self.save()
 
     def reset(self):
+        # Headings learned before the race (course walk, driving to the grid, maybe the wrong
+        # way round) are forgotten: the race's own passes teach them again (2026-10-24).
+        for target in self.state.get('learned', []):
+            if self.line.gate(target) is not None:
+                self.learn(target, None)
         self.state = self.empty_state()
         self.forget_motion()
         self.save()
@@ -370,12 +378,21 @@ class LapTimer:
                 watch.inside = []
             return self.values()
         learned_any = False
+        s = self.state
+        # Eco-run: before the start the control and goal passes count for nothing, so they
+        # teach no heading either (a car driven to the grid the wrong way must not set it).
+        before_start = self.line.start is not None and s['race_start_ms'] is None
         for target, event in (('start', self.started), ('control', self.crossed), ('goal', self.finished)):
             gate = self.line.gate(target)
             if gate is None:
                 continue
+            # Until the first lap is in, every pass of the start line (re)starts the race, so
+            # it takes its heading afresh each time: the standing start is the last word.
+            relearn = gate.bearing is None or 'start' in s.get('learned', [])
+            if target == 'start' and s['count'] == 0 and not s['finished'] and relearn:
+                gate = gate.model_copy(update={'bearing': None})
             at, learned = self.watches[target].step(gate, previous, self.previous, values.get('GPSSpeed'), values.get('Yaw'))
-            if learned is not None:
+            if learned is not None and not (before_start and target != 'start'):
                 self.learn(target, learned); learned_any = True
             if at is not None:
                 event(at)
@@ -384,6 +401,10 @@ class LapTimer:
         return self.values()
 
     def learn(self, target, bearing):
+        """Sets a heading learned on a pass (None: forgets it)."""
+        learned = self.state.setdefault('learned', [])
+        if bearing is not None and target not in learned:
+            learned.append(target)
         if target == 'control':
             self.line = self.line.model_copy(update={'bearing': bearing})
         else:

@@ -312,4 +312,49 @@ class LapTimerTest {
         assertEquals(960.0, (lt.state.raceEndMs!! - lt.state.raceStartMs!!) / 1000.0, 0.01)
         assertEquals(listOf(313.0, 333.0, 314.0), lt.state.laps.map { Math.round(it).toDouble() })
     }
+
+    /**
+     * 2026-10-24: the Ver.2 logger writes the heading it learns on a pass into its lines, and
+     * the phone takes those lines in the middle of a pass. Same places, other headings: the
+     * pass under way is kept; lines that moved start afresh.
+     */
+    @Test
+    fun takingLinesThatOnlyGainedAHeadingKeepsThePassUnderWay() {
+        val lt = timer(LapConfig(control = north))
+        lt.feed(fix(-0.5, -5.0))
+        val learned = LapConfig(control = north.copy(bearing = 1.5))
+        assertTrue(lt.samePlaces(learned))
+        lt.configure(learned, keepMotion = lt.samePlaces(learned))
+        lt.feed(fix(0.5, 5.0), fix(1.5, 40.0))
+        assertEquals(1_800_000_000_000L, lt.state.lapStartMs)
+
+        val moved = LapConfig(control = north.copy(lat = lat0 + 100 / mPerDegLat))
+        assertFalse(lt.samePlaces(moved))
+        assertFalse(lt.samePlaces(LapConfig(control = north, start = north)))
+    }
+
+    /** Same rules as the Ver.2 logger (test_lap.py): headings learned before the race cannot go wrong. */
+    @Test
+    fun learnedHeadingsCannotBeTaughtTheWrongWayBeforeTheRace() {
+        val startAt = -500.0
+        val lt = timer(LapConfig(control = north.copy(bearing = null), start = Gate(lat0 + startAt / mPerDegLat, lon0, null, 30.0),
+            totalLaps = 3, minLapS = 10.0))
+        fun south(t: Double, at: Double) = lt.feed(fix(t, at + 40, yaw = 180.0), fix(t + 1, at + 5, yaw = 180.0),
+            fix(t + 2, at - 5, yaw = 180.0), fix(t + 3, at - 40, yaw = 180.0))
+        fun northward(t: Double, at: Double) = lt.feed(fix(t, at - 40), fix(t + 1, at - 5), fix(t + 2, at + 5), fix(t + 3, at + 40))
+        south(0.0, 0.0)                  // to the grid the wrong way over the control line
+        assertNull(lt.config.control!!.bearing)
+        south(100.0, startAt)            // ... and over the start line the wrong way
+        assertEquals(180.0, lt.config.start!!.bearing!!, 0.01)
+        northward(200.0, startAt)        // the standing start takes the heading afresh
+        assertEquals(0.0, lt.config.start!!.bearing!!, 0.01)
+        northward(500.0, 0.0)            // the first control pass of the race teaches it and counts lap 1
+        assertEquals(0.0, lt.config.control!!.bearing!!, 0.01)
+        assertEquals(1, lt.state.count)
+        assertEquals(setOf("control", "start"), lt.state.learned)
+        lt.reset()                       // the reset forgets learned headings
+        assertNull(lt.config.control!!.bearing); assertNull(lt.config.start!!.bearing)
+        val typed = timer(LapConfig(control = north)); typed.pass(0.0); typed.reset()
+        assertEquals(0.0, typed.config.control!!.bearing!!, 0.0)
+    }
 }

@@ -83,6 +83,8 @@ data class LapState(
     var finishFallback: String? = null,
     /** When [lapDistM] started counting: the lap start, or the first fix after the app restarted mid-lap (not saved). */
     var distFromMs: Long? = null,
+    /** Lines whose heading was learned on a pass (not typed in or taken from Ver.2): the reset forgets them. */
+    val learned: MutableSet<String> = mutableSetOf(),
 )
 
 /** One GNSS fix: GNSS UTC, position, horizontal accuracy, speed (km/h), heading. */
@@ -192,9 +194,27 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
     private var departMs: Long? = null
     private var nearestStartM: Double? = null
 
-    fun configure(c: LapConfig) { config = c; forgetMotion(); onChange(this) }
+    /**
+     * [keepMotion]: the lines stay where they were (only headings changed, e.g. the Ver.2 logger
+     * wrote in the heading it learned on a pass), so a pass under way must not be forgotten.
+     */
+    fun configure(c: LapConfig, keepMotion: Boolean = false) {
+        // A heading stays "learned" only while that line is left as it was.
+        state.learned.retainAll { t -> c.gate(t) != null && c.gate(t) == config.gate(t) }
+        config = c; if (!keepMotion) forgetMotion(); onChange(this)
+    }
+
+    /** [c] has the same line positions and widths as now, whatever the headings. */
+    fun samePlaces(c: LapConfig): Boolean = TARGETS.all { t ->
+        val a = config.gate(t); val b = c.gate(t)
+        if (a == null || b == null) a == b else a.lat == b.lat && a.lon == b.lon && a.widthM == b.widthM
+    }
 
     fun reset() {
+        // Headings learned before the race (course walk, driving to the grid, maybe the wrong
+        // way round) are forgotten: the race's own passes teach them again (2026-10-24).
+        for (t in state.learned) config.gate(t)?.let { config = config.withGate(t, it.copy(bearing = null)) }
+        state.learned.clear()
         clearLaps()
         stoppedNearStartMs = null; departMs = null; nearestStartM = null
         forgetMotion(); onChange(this)
@@ -368,10 +388,17 @@ class LapTimer(config: LapConfig = LapConfig(), val state: LapState = LapState()
         val lapBefore = state.lapStartMs
         val slack = minOf(MAX_HACC_M, maxOf(prev.accM ?: 0.0, fix.accM ?: 0.0))
         var learnedAny = false
+        // Eco-run: before the start, control and goal passes teach no heading (a car driven to
+        // the grid the wrong way must not set it); same rules as the Ver.2 logger (lap.py).
+        val beforeStart = config.start != null && state.raceStartMs == null
         for (t in listOf("start", "control", "goal")) {
             val g = config.gate(t) ?: continue
-            val (at, learned) = watches.getValue(t).step(g, prev, fix, slack)
-            if (learned != null) { config = config.withGate(t, g.copy(bearing = learned)); learnedAny = true }
+            // Until the first lap is in, every pass of the start line takes its heading afresh.
+            val relearn = t == "start" && state.count == 0 && !state.finished && (g.bearing == null || "start" in state.learned)
+            val (at, learned) = watches.getValue(t).step(if (relearn) g.copy(bearing = null) else g, prev, fix, slack)
+            if (learned != null && !(beforeStart && t != "start")) {
+                config = config.withGate(t, g.copy(bearing = learned)); state.learned.add(t); learnedAny = true
+            }
             if (at != null) when (t) { "start" -> started(at); "control" -> crossed(at); else -> finished(at) }
         }
         addDistance(prev, fix, lapBefore)

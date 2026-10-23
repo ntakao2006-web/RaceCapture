@@ -62,7 +62,7 @@ object Race {
     fun importReference(text: String): Ref = synchronized(lock) {
         val t = timer ?: throw LineCode.Invalid("まだ準備できていません")
         val r = LineCode.parse(text, t.config)
-        t.configure(r.config)
+        t.configure(r.config, keepMotion = t.samePlaces(r.config))
         val ref = Ref(r.id, r.at, r.source)
         reference = ref; locked = true; saveLock()
         ref
@@ -121,6 +121,7 @@ object Race {
             .put("raceEnd", s.raceEndMs ?: JSONObject.NULL).put("finished", s.finished)
             .put("laps", JSONArray(s.laps)).put("lapDist", s.lapDistM).put("distScale", s.distScale)
             .put("startFallback", s.startFallback ?: JSONObject.NULL).put("finishFallback", s.finishFallback ?: JSONObject.NULL)
+            .put("learned", JSONArray(s.learned.toList()))
         prefs.edit().putString("race", json.toString()).apply()
     }
 
@@ -136,7 +137,8 @@ object Race {
             o.longOrNull("lapStart"), o.longOrNull("raceStart"), o.longOrNull("raceEnd"), o.optBoolean("finished"),
             MutableList(laps?.length() ?: 0) { laps!!.getDouble(it) }, o.optDouble("lapDist", 0.0), o.optDouble("distScale", 1.0),
             if (o.isNull("startFallback")) null else o.getString("startFallback"),
-            if (o.isNull("finishFallback")) null else o.getString("finishFallback"))
+            if (o.isNull("finishFallback")) null else o.getString("finishFallback"),
+            learned = o.optJSONArray("learned")?.let { a -> MutableList(a.length()) { a.getString(it) }.toMutableSet() } ?: mutableSetOf())
         return config to state
     }
 

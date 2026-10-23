@@ -199,12 +199,16 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
             LoggerFeed.lapFinished = lap.optBoolean("finished")
             LoggerFeed.lapRunning = lap.optBoolean("running")
         }
-        follow(if (j.isNull("line_code")) null else j.optString("line_code"), now)
+        // The fix first, then the lines: the logger learns a heading as it passes a line and
+        // sends the new lines with that very fix, so the pass must reach the lap timer before
+        // the lines are taken (2026-10-24: taking them first lost the start and the control).
         val utc = num("utc")?.toLong(); val lat = num("lat"); val lon = num("lon")
-        if (utc == null || lat == null || lon == null || LoggerFeed.fix == 0 || utc == lastUtc) return
-        lastUtc = utc
-        LoggerFeed.lastFixAt = now
-        Race.onFix(Fix(utc, lat, lon, LoggerFeed.accuracyM, LoggerFeed.speedKmh, num("yaw")))
+        if (utc != null && lat != null && lon != null && LoggerFeed.fix != 0 && utc != lastUtc) {
+            lastUtc = utc
+            LoggerFeed.lastFixAt = now
+            Race.onFix(Fix(utc, lat, lon, LoggerFeed.accuracyM, LoggerFeed.speedKmh, num("yaw")))
+        }
+        follow(if (j.isNull("line_code")) null else j.optString("line_code"), now)
     }
 
     /**
@@ -216,7 +220,8 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
      */
     private fun follow(code: String?, now: Long) {
         if (Race.timingStarted()) return
-        if (code != null && LoggerFeed.lineId != null && LoggerFeed.lineId != Race.reference?.id) {
+        // Once the logger is timing a race its lines only change by learned headings: leave them.
+        if (code != null && !LoggerFeed.lapRunning && LoggerFeed.lineId != null && LoggerFeed.lineId != Race.reference?.id) {
             try {
                 val r = Race.importReference(code)
                 LoggerFeed.syncNote = "ロガーのライン（基準${r.id}）を読み込みました"

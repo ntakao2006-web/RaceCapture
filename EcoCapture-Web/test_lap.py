@@ -140,6 +140,36 @@ class LapTests(unittest.TestCase):
         self.assertEqual(t.values()['CurrentLap'], 1)
         self.assertEqual(json.loads((self.root / 'lap.json').read_text())['line']['start']['bearing'], 0.0)
 
+    def test_learned_headings_cannot_be_taught_the_wrong_way_before_the_race(self):
+        # 2026-10-24: lines registered without headings (learned on a pass), as at the course walk.
+        def pass_south(timer, cross_ms, north_m):
+            timer.update(fix(cross_ms - 1000, north_m + 200, yaw=180.0))
+            for t in range(cross_ms - 300, cross_ms + 400, 100):
+                timer.update(fix(t, north_m - (t - cross_ms) / 100.0, yaw=180.0))
+            timer.update(fix(cross_ms + 1000, north_m - 40, yaw=180.0))  # out of the line's circle
+        def pass_north_out(timer, cross_ms, north_m):
+            pass_north(timer, cross_ms, north_m)
+            timer.update(fix(cross_ms + 1000, north_m + 40))
+        unknown = lambda g: {**g, 'bearing': None}
+        t = self.timer(bearing=None, start=unknown(gate(-500)), goal=unknown(gate(0, east_m=300)), total_laps=3)
+        pass_south(t, 5_000, 0)          # to the grid the wrong way over the control line
+        self.assertIsNone(t.line.bearing)  # A: no heading from a pass that counts for nothing
+        pass_south(t, 20_000, -500)      # ... and over the start line the wrong way
+        self.assertAlmostEqual(t.line.start.bearing, 180.0)
+        pass_north_out(t, 60_000, -500)  # B: the standing start takes the heading afresh
+        self.assertAlmostEqual(t.line.start.bearing, 0.0)
+        self.assertEqual(t.state['race_start_ms'] % 1_000_000, 60_000)
+        pass_north_out(t, 400_000, 0)    # the first control pass of the race teaches it and counts lap 1
+        self.assertAlmostEqual(t.line.bearing, 0.0)
+        self.assertEqual(t.values()['LapCount'], 1)
+        self.assertEqual(sorted(t.state['learned']), ['control', 'start'])
+        t.reset()                        # C: the reset forgets learned headings
+        self.assertIsNone(t.line.bearing); self.assertIsNone(t.line.start.bearing)
+        self.assertEqual(t.state['learned'], [])
+        typed = self.emc()               # typed-in headings stay through a reset
+        pass_north(typed, 60_000, -500); typed.reset()
+        self.assertEqual((typed.line.bearing, typed.line.start.bearing), (0.0, 0.0))
+
     def test_restart_before_first_lap_resets_the_clock(self):
         t = self.emc()
         pass_north(t, 10_000, -500); pass_north(t, 200_000, -500)
