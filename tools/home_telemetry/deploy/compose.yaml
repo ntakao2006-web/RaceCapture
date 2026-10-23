@@ -47,6 +47,7 @@ services:
     build:
       context: ..                    # tools/home_telemetry（live_bridge.py・map.html・gg.html）
       dockerfile: deploy/bridge.Dockerfile
+    image: ecorun-telemetry-bridge:local
     command:
       - --dir=/telemetry
       - --vm-url=http://victoria-metrics:8428/write
@@ -64,6 +65,22 @@ services:
       - victoria-metrics
       - grafana
     restart: unless-stopped
+
+  # 5Bの ecorun-demo-replay と同じ：2026-10-04の大黒埠頭→品川（約18分）を room home-test へ繰り返し流す。
+  # 5Bでも普段は止めて（disabled）あるので、ここも既定では起動しない。
+  #   docker compose --profile demo up -d demo-replay   /   docker compose stop demo-replay
+  # 走行ログのCSVは位置情報を含むのでGitには無い（別途受け渡し）
+  demo-replay:
+    profiles: [demo]
+    image: ecorun-telemetry-bridge:local
+    entrypoint: ["python", "-u", "replay_sender.py"]
+    command:
+      - /demo/replay.csv
+      - ws://127.0.0.1:${SERVER_PORT:-3000}/ws/audio/home-test
+    network_mode: host                    # ホストの127.0.0.1にいるecorun-logger-serverへ直接
+    volumes:
+      - ${DEMO_CSV:-./demo/replay_daikoku_shinagawa.csv}:/demo/replay.csv:ro
+    restart: always                       # 5Bは1周ごとに終了→10秒後にsystemdが再起動
 
 volumes:
   vm-data:

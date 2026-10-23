@@ -6,9 +6,9 @@ DiscordのDMにそのまま貼る想定。本体は`server_deploy_grafana_x86.md
 ---
 
 お疲れ様です！
-自宅のROCK 5Bで使っているピット用の画面（Grafanaの「EcoRun Live」と、中に埋め込んでいる地図・G-G）を、
-先輩のラックサーバーでも**5Bと同じ見た目・同じ動き**で立てられるように一式まとめました。
-主サーバーを先輩のサーバーにするときに使ってください。
+主サーバー（先輩のラックサーバー）も、Grafanaを含めて自宅のROCK 5Bと**まったく同じ構成**にしたいので、
+ピット用の画面（Grafanaの「EcoRun Live」と、中に埋め込んでいる地図・G-G）を立てるための一式をまとめました。
+5Bの設定ファイル・起動オプション・Grafanaの中身（DB）まで確認して、同じになるように写してあります。
 
 - 手順書（画面の構成・10/18以降の変更点・5Bの設定との対応表・手順）
   https://github.com/ntakao2006-web/RaceCapture/blob/master/server_deploy_grafana_x86.md
@@ -20,7 +20,8 @@ DiscordのDMにそのまま貼る想定。本体は`server_deploy_grafana_x86.md
 1. **サーバー本体の変更は要りません。** 今の`latest`（397facf）が`ECORUN_TELEMETRY_DIR`に書くJSON Linesを読むだけです（5Bも今そのイメージで動いています）
 2. 足すのはVictoriaMetrics・Grafana・ブリッジ（Python）の3つで、`tools/home_telemetry/deploy/`で`docker compose up -d --build`すれば立ちます。Grafanaの設定・データソース・VictoriaMetricsの起動オプションは5Bの実物から写しました
 3. 外からは今の公開URLに`/grafana`と`/live`の2つのパスを足すだけです（Funnelなら`tailscale funnel --bg --set-path=/grafana …`を2回。手順書6-4）
-4. 速度パネルだけGrafanaのサービスアカウントのトークンが要ります（無くても他は動きます。手順書6-3）
+4. Grafanaの中で手で作るのは、速度パネル用のサービスアカウント`live-bridge`（Editor）とそのトークンだけです（5Bもこれだけ。手順書6-3）
+5. 5Bに入っているデモ再生（普段は止めている）も、`--profile demo`で同じように動かせます。過去のグラフのデータも移せます（手順書6-5。どちらも任意）
 
 確認させてください。
 
