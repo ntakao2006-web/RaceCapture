@@ -211,7 +211,8 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
      * Before the lap timing starts, the logger is the reference: its lines replace the
      * phone's when they differ, and the phone's required laps, time limit and margin (tied
      * to the class) go to the logger, which sends them on to the pit's Grafana (2026-10-24:
-     * the pit only reads them). Once timing has started nothing changes either way.
+     * the pit only reads them). The time limit and margin come from the rules, so they go
+     * only while the race settings are locked. Once timing has started nothing changes either way.
      */
     private fun follow(code: String?, now: Long) {
         if (Race.timingStarted()) return
@@ -224,14 +225,17 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
             }
         }
         val c = Race.config()
-        val laps = c.totalLaps; val limit = c.timeLimitS; val margin = c.marginS
+        val locked = Race.classLocked
+        val laps = c.totalLaps; val limit = c.timeLimitS.takeIf { locked }; val margin = c.marginS.takeIf { locked }
         fun differs(a: Double?, b: Double?) = a != null && (b == null || Math.abs(a - b) > 0.005)
         val changed = (laps != null && laps != LoggerFeed.totalLaps) || differs(limit, LoggerFeed.timeLimitS) || differs(margin, LoggerFeed.marginS)
         if (changed && LoggerFeed.lapCount == 0 && !LoggerFeed.lapRunning && now - lastTotalAt > 5000) {
             lastTotalAt = now
-            val body = JSONObject().put("margin_s", margin)
-            laps?.let { body.put("total_laps", it) }; limit?.let { body.put("time_limit_s", it) }
-            val what = listOfNotNull(laps?.let { "${it}周" }, limit?.let { "規定時間" + DashboardView.clock(it, false) }, "余裕${"%.0f".format(margin)}秒").joinToString("・")
+            val body = JSONObject()
+            laps?.let { body.put("total_laps", it) }; limit?.let { body.put("time_limit_s", it) }; margin?.let { body.put("margin_s", it) }
+            val what = listOfNotNull(laps?.let { "${it}周" }, limit?.let { "規定時間" + DashboardView.clock(it, false) },
+                margin?.let { "余裕${"%.0f".format(it)}秒" }).joinToString("・") +
+                (if (locked) "" else "（大会の設定がロックされていないので、規定時間・余裕は書き込んでいません）")
             send("/api/field/total", body) { ok, msg ->
                 LoggerFeed.syncNote = if (ok) "ロガーを${what}にしました" else "ロガーの規定周回数・規定時間・余裕を変えられません：$msg"
             }

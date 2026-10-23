@@ -129,6 +129,12 @@ class FieldTests(unittest.TestCase):
         self.assertEqual((d['line']['total_laps'], d['line']['time_limit_s'], d['line']['margin_s']), (7, 987.36, 0))
         for bad in ({'time_limit_s': 0}, {'margin_s': -1}, {'time_limit_s': 'x'}):
             self.assertEqual(self.client.post('/api/field/total', json=bad, headers=self.key).status_code, 400)
+        self.runtime.laps.state['count'] = 1
+        self.assertEqual(self.client.post('/api/field/total', json={'time_limit_s': 2360.11}, headers=self.key).status_code, 409)
+        self.assertEqual(self.client.post('/api/field/total', json={'margin_s': 45}, headers=self.key).status_code, 409)
+        same = {'total_laps': 7, 'time_limit_s': 987.36, 'margin_s': 0}  # the same values again are fine
+        self.client.post('/api/field/total', json=same, headers=self.key).raise_for_status()
+        self.runtime.laps.state['count'] = 0
         self.client.post('/api/field/total', json={'total_laps': None, 'time_limit_s': None, 'margin_s': None}, headers=self.key).raise_for_status()
         self.assertEqual(self.client.post('/api/field/here', json={'target': 'pit'}, headers=self.key).status_code, 400)
         code = self.client.get('/api/field/code', headers=self.key).json()

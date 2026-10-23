@@ -121,6 +121,12 @@ def create_app(runtime, token):
         # The race options from the dash phone; a field left out of the body keeps its value.
         body = await body_of(request)
         values = {k: body[k] for k in ('total_laps', 'time_limit_s', 'margin_s') if k in body}
+        # The time limit comes from the rules: once timing has started it stays as it was
+        # until the laps are reset (2026-10-24, user's request).
+        line, state = runtime.laps.line, runtime.laps.state
+        started = state['count'] > 0 or state['lap_start_ms'] is not None or state['race_start_ms'] is not None
+        if started and any(k in values and values[k] != getattr(line, k) for k in ('time_limit_s', 'margin_s')):
+            raise HTTPException(409, '計測が始まっているので、規定時間・余裕は変えられません。変えるときはラップをリセットしてください。')
         try:
             runtime.laps.configure(LapLine.model_validate({**runtime.laps.line.model_dump(), **values}))
         except ValueError:
