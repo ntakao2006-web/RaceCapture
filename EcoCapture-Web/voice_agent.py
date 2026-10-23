@@ -399,6 +399,23 @@ class Gate:
         return [clean]
 
 
+def stop_recorder(proc, timeout=2.0):
+    """End a recorder whose pipe nobody reads any more. Our end is closed first:
+    arecord retries a write that SIGTERM interrupts, so with a full pipe
+    terminate() + wait() alone waits forever (2026-10-23: the microphone was
+    dead for 2 hours after the first uplink pause)."""
+    for stop in (proc.stdout.close, proc.terminate):
+        try:
+            stop()
+        except OSError:
+            pass
+    try:
+        proc.wait(timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+
+
 class Agent:
     def __init__(self, directory=SOCKET_DIR):
         self.path = directory / 'agent.sock'
@@ -559,8 +576,7 @@ class Agent:
                 if gate.talking:
                     self.tell(b'T0')
                 self.stats.update(capturing=False, talking=False)
-                proc.terminate()
-                proc.wait()
+                stop_recorder(proc)
             time.sleep(0.5)
 
     def send_packet(self, pcm):

@@ -1,6 +1,9 @@
 """Device choice of voice_agent.py (runs on the UNO Q host: python3 test_voice_agent.py)."""
 import json
+import subprocess
+import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -161,6 +164,21 @@ class ReconnectTests(unittest.TestCase):
             self.assertEqual(va.recent_headsets(), [A, B])
             (Path(root) / 'recent.json').write_text('not json')
             self.assertEqual(va.recent_headsets(), [])
+
+
+class RecorderTests(unittest.TestCase):
+    def test_a_recorder_stuck_on_a_full_pipe_is_stopped(self):
+        # Like arecord: shrugs off SIGTERM and keeps writing into a pipe nobody reads.
+        child = ('import signal, sys\n'
+                 'signal.signal(signal.SIGTERM, signal.SIG_IGN)\n'
+                 'while True:\n'
+                 '    sys.stdout.buffer.write(bytes(4096)); sys.stdout.buffer.flush()\n')
+        proc = subprocess.Popen([sys.executable, '-c', child], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        time.sleep(0.5)   # the pipe is full now
+        started = time.monotonic()
+        va.stop_recorder(proc, timeout=1.0)
+        self.assertIsNotNone(proc.returncode)
+        self.assertLess(time.monotonic() - started, 3)
 
 
 if __name__ == '__main__':
