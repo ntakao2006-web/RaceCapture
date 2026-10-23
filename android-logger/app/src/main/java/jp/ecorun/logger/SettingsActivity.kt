@@ -146,6 +146,14 @@ class SettingsActivity : Activity() {
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
         if (running) note(if (Status.fromLogger) "いまはロガーの位置を使っています" else "いまはスマホのGNSSです：" +
             (if (settings.loggerConfigured) LoggerFeed.reason() + LoggerFeed.error.takeIf { it.isNotEmpty() }?.let { "（$it）" }.orEmpty() else "ロガー未設定"))
+        if (settings.loggerConfigured) {
+            note("走行前（周回の計測が始まる前）は、ロガーにつながるとロガーのラインを自動で読み込み、このアプリの規定周回数をロガーへ書き込む。" +
+                "「ラップをリセット」はロガーの周回もリセットする。計測が始まったら、どちらも変えない")
+            if (LoggerFeed.fresh()) note("ロガーの周回：" + (LoggerFeed.lapCount?.let { "${it}周" } ?: "—") +
+                (LoggerFeed.lapsLeft?.let { "　残り${it}周" } ?: "") + (LoggerFeed.totalLaps?.let { "　規定${it}周" } ?: "　規定周回数なし") +
+                (if (LoggerFeed.lapFinished) "　ゴール済み" else "") + "　基準${LoggerFeed.lineId ?: "なし"}")
+            if (LoggerFeed.syncNote.isNotEmpty()) note("最後の同期：" + LoggerFeed.syncNote)
+        }
 
         section("大会")
         val klass = RaceClass.ensure(this)
@@ -241,9 +249,24 @@ class SettingsActivity : Activity() {
         if (v?.finished == true) note("ゴール済み")
         column.addView(button("ラップをリセット（本番の前に必ず）") {
             AlertDialog.Builder(this).setMessage("周回の記録を消して、スタート前に戻します。ラインと大会の設定（クラス・余裕など）もロックします。よいですか？")
-                .setPositiveButton("リセット") { _, _ -> Race.reset(); build() }
+                .setPositiveButton("リセット") { _, _ -> Race.reset(); build(); resetLogger() }
                 .setNegativeButton("やめる", null).show()
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
+    }
+
+    /** The phone's lap reset also resets the Ver.2 logger's laps (over its Wi-Fi), and says whether it did. */
+    private fun resetLogger() {
+        if (!settings.loggerConfigured) return
+        val link = LoggerLink.current
+        val result = { ok: Boolean, msg: String ->
+            LoggerFeed.syncNote = if (ok) "ロガーの周回もリセットしました" else "ロガーの周回はリセットできていません（$msg）"
+            AlertDialog.Builder(this).setMessage("アプリの周回をリセットしました。\n" + LoggerFeed.syncNote +
+                if (ok) "" else "\nロガーにつないでからもう一度リセットするか、コースウォーク画面で「周回数をリセット」を押してください。")
+                .setPositiveButton("OK", null).show()
+            build()
+        }
+        if (link == null) result(false, "記録を始めていないのでロガーにつないでいません")
+        else link.resetLogger { ok, msg -> runOnUiThread { if (!isFinishing) result(ok, msg) } }
     }
 
     private fun line(target: String, name: String, locked: Boolean) {

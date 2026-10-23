@@ -12,7 +12,7 @@
   :root[data-theme="dark"] { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e; }
   @page { size: A4 portrait; margin: 9mm; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 8.4pt/1.42 "Yu Gothic UI", "Meiryo", sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 8.2pt/1.42 "Yu Gothic UI", "Meiryo", sans-serif; }
   .page { max-width: 192mm; margin: 0 auto; padding: 16px; }
   @media print { .page { padding: 0; } body { background: #fff; color: #000; } }
   header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 2px; margin-bottom: 5px; }
@@ -87,10 +87,10 @@
   <ol>
     <li>Ver.2を手持ち電源で持ち、スマホをWi-Fi <b>EcoLogger-majesta</b> につなぐ（「インターネットなし」と出てもそのまま）。ブックマークした<b>コースウォーク画面</b>を開き、「測位OK」になるまで待つ。</li>
     <li><span class="who">（ロガー担当）</span>PCも EcoLogger-majesta につなぎ <b>Start-RadioWalk.cmd</b>（<span class="who">tools\lte_antenna\</span>）→「電波の記録を始めました」。LTEの電波を位置つきで記録（30分で自動停止）。</li>
-    <li>各ラインの真上に立って止まり「<b>ここを〇〇にする</b>」：<b>コントロール（必須）</b>、スタート・ゴール（別の場所なら）。直前3秒の位置を平均して登録する。</li>
+    <li>各ラインの真上に立って止まり「<b>ここを〇〇にする</b>」：<b>コントロール（必須）</b>、スタート・ゴール（別の場所なら）。直前3秒の位置を平均して登録する。<br><span class="warn">（ロガー担当）USBの管理画面で各ラインの<b>向きを数字で固定</b></span>（西側直線は約150°。空欄だと最初に通った向きを覚え、逆向きなら本番で数えない）。</li>
     <li>規定周回数：<span class="fill" style="min-width:12mm"></span>周のボタンを押す（四輪7周・二輪3周）。</li>
-    <li><b>表示用スマホとスマホ組</b>は、画面下の「QRを表示」をEcoLoggerアプリで読む。全台の「基準」の番号がそろっているか見る。</li>
-    <li><span class="warn">レース開始前に「周回数をリセット」</span>を押す（Ver.2の画面とEcoLoggerの両方。押さないと前の続きから数える）。</li>
+    <li><b>表示用スマホ</b>はロガーにつながっていれば<b>ラインと規定周回数が自動でそろう</b>。<b>スマホ組</b>は画面下の「QRを表示」をEcoLoggerアプリで読む。全台の「基準」の番号がそろっているか見る。</li>
+    <li><span class="warn">レース開始前に「周回数をリセット」</span>を押す（表示用スマホの「ラップをリセット」でロガーも一緒にリセットされる。「ロガーの周回もリセットしました」と出なければ、コースウォーク画面でも押す。スマホ組は各アプリで。押さないと前の続きから数える）。</li>
     <li><span class="who">（ロガー担当）</span>歩き終えたら <b>Fetch-RadioWalk.cmd</b> →「止めて回収しました」（<span class="who">drive_logs\日付\radio_walk\</span>）。</li>
   </ol>
 </section>
@@ -126,7 +126,6 @@
     <tr><td>表示用スマホに赤い帯「ロガー未接続」</td><td><b>走ってよい</b>（スマホのGNSSで周回・速度を続ける。精度は落ちる）。ピットで：ロガーの電源→起動後2分待つ→アプリを止めて始め直す。帯の（ ）内が理由。ロガーが戻れば自動で緑の「ロガー」に戻る</td></tr>
     <tr><td>「デバイスに接続」が出た／「見つかりません」</td><td>「接続」を押す。見つからなければロガーの電源と、起動から2分たったかを確認</td></tr>
     <tr><td>「ロガー未接続」で（Binding…EPERM）</td><td>スマホのVPN（Tailscale等）をOFFにするか、VPNアプリでEcoLoggerを除外</td></tr>
-    <tr><td>「ラインがロガー（基準…）と違います」</td><td>コースウォーク画面のQRをEcoLoggerで読み直す</td></tr>
     <tr><td>コースウォーク画面が開けない</td><td>スマホのWi-FiがEcoLogger-majestaか確認。だめならUSBでPCにつなぐ。<b>記録は画面と無関係に続いている</b></td></tr>
     <tr><td>「本体のみ」</td><td>電源を入れ直す。直らなくても本体に記録中なので走ってよい</td></tr>
     <tr><td>ピット画面に出ない</td><td>記録には影響しない。Ver.2の起動から最初の送信まで約1分40秒かかる</td></tr>

@@ -43,6 +43,14 @@ object Race {
     /** Between the start and the goal: the driver screen then guards the settings button. */
     fun racing(): Boolean = synchronized(lock) { timer?.state?.let { it.raceStartMs != null && !it.finished } ?: false }
 
+    /**
+     * Lap timing has begun (started, counting or finished) since the last reset. Until then the
+     * lines and the required laps follow the Ver.2 logger ([LoggerLink]); after it nothing does.
+     */
+    fun timingStarted(): Boolean = synchronized(lock) {
+        timer?.state?.let { it.raceStartMs != null || it.lapStartMs != null || it.count > 0 || it.finished } ?: false
+    }
+
     /** The Ver.2 reference the lines came from (QR), or null for lines set on this phone. */
     data class Ref(val id: String, val at: String, val source: String)
 

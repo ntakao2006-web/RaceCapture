@@ -117,7 +117,9 @@ class MainActivity : Activity() {
             relay = Status.relay, relayConnected = Status.relayConnected,
             batteryPct = if (level >= 0) level * 100 / scale else null, charging = plugged,
             lap = Race.values(), config = Race.config(), laps = Race.laps(),
-            classCode = settings.raceClass?.code ?: "",
+            category = listOfNotNull(settings.raceClass?.code, if (Race.config().start != null) "エコラン式" else "サーキット式").joinToString("・"),
+            logger = loggerLaps(settings),
+            loggerDiffers = loggerLaps(settings) != null && LoggerFeed.lapCount != Race.values()?.count,
             reference = Race.reference?.id?.let { "基準$it" } ?: "基準なし",
             source = if (!settings.loggerConfigured) null else if (running && Status.fromLogger) "ロガー" else "スマホ",
             warning = warning(running, now),
@@ -125,6 +127,11 @@ class MainActivity : Activity() {
         ui.removeCallbacksAndMessages(null)
         ui.postDelayed({ refresh() }, 200)
     }
+
+    /** The logger's own lap count while its frames arrive, for comparing with the phone's. */
+    private fun loggerLaps(settings: Settings): String? =
+        if (!settings.loggerConfigured || !Status.running || !LoggerFeed.fresh()) null
+        else "ロガー " + (LoggerFeed.lapCount?.let { "${it}周" } ?: "—")
 
     private fun warning(running: Boolean, now: Long): String? = when {
         running && Status.fileName == null -> "記録できていません：" + Status.logError.take(60)

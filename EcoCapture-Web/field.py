@@ -169,12 +169,19 @@ def live_frame(runtime):
     sample = runtime.sample if status['connected'] else None
     values = (sample or {}).get('values', {})
     line = runtime.laps.line
+    code, code_id = line_code(line) if line.enabled else (None, None)
+    state = runtime.laps.state
+    lap = runtime.laps.values()
     return {'connected': status['connected'], 'utc': utc_milliseconds(sample or {}),
             'lat': values.get('Lat'), 'lon': values.get('Lon'), 'speed': values.get('GPSSpeed'),
             'yaw': values.get('Yaw'), 'fix': values.get('GPSFix'), 'sats': values.get('GPSSats'),
             'hacc_m': (sample or {}).get('gnss_hacc_m'),
             'rec': bool(status['logging'].get('active')),
-            'line_id': line_code(line)[1] if line.enabled else None}
+            # The lines (the same text as the QR code) and the logger's own lap count, so the
+            # phone can follow the lines before the start and show where the logger stands.
+            'line_id': code_id, 'line_code': code, 'total_laps': line.total_laps,
+            'lap': {'count': state['count'], 'laps_left': lap['LapsLeft'], 'finished': state['finished'],
+                    'running': state['lap_start_ms'] is not None or state['race_start_ms'] is not None}}
 
 
 class FieldServer(uvicorn.Server):

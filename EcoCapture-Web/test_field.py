@@ -71,6 +71,16 @@ class FieldTests(unittest.TestCase):
         self.assertAlmostEqual(frame['hacc_m'], 0.6)
         self.assertTrue(frame['rec'])
         self.assertIsNone(frame['line_id'])
+        self.assertIsNone(frame['line_code'])
+        self.assertEqual(frame['lap'], {'count': 0, 'laps_left': None, 'finished': False, 'running': False})
+        self.client.post('/api/field/here', json={'target': 'control'}, headers=self.key).raise_for_status()
+        self.client.post('/api/field/total', json={'total_laps': 3}, headers=self.key).raise_for_status()
+        with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
+            frame = ws.receive_json()
+        self.assertTrue(frame['line_code'].startswith('ECOLINES1|c='))
+        self.assertTrue(frame['line_code'].endswith('id=' + frame['line_id']))
+        self.assertEqual(frame['total_laps'], 3)
+        self.assertEqual(frame['lap']['laps_left'], 3)
         self.runtime.connected = False
         with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
             frame = ws.receive_json()

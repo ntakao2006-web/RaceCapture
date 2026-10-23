@@ -27,10 +27,14 @@ data class Dash(
     val config: LapConfig = LapConfig(),
     val laps: List<Double> = emptyList(),
     val warning: String? = null,
-    val classCode: String = "",
+    /** Class and how laps are counted, e.g. "CN二輪・サーキット式". */
+    val category: String = "",
     val reference: String = "",
     /** Where the position comes from when a Ver.2 logger is set up: "ロガー" or "スマホ"; null without one. */
     val source: String? = null,
+    /** The Ver.2 logger's own lap count ("ロガー 2周"), null when not connected; [loggerDiffers] when it is not the phone's. */
+    val logger: String? = null,
+    val loggerDiffers: Boolean = false,
 )
 
 /**
@@ -116,8 +120,9 @@ class DashboardView(context: Context) : View(context) {
             v?.startFallback == "control" -> "スタート未検出：コントロールから"
             else -> null
         }
-        tileBox(c, gx, top, gw, gh, listOf("周回", d.classCode, d.reference).filter { it.isNotEmpty() }.joinToString("　"), lapValue,
-            fallback ?: lapSub, white, if (fallback != null) yellow else label)
+        val sub = listOfNotNull(fallback ?: lapSub.ifEmpty { null }, d.logger).joinToString("　")
+        tileBox(c, gx, top, gw, gh, listOf(d.category.ifEmpty { "周回" }, d.reference).filter { it.isNotEmpty() }.joinToString("　"), lapValue,
+            sub, white, if (fallback != null || d.loggerDiffers) yellow else label)
 
         // Race clock.
         val limit = cfg.timeLimitS

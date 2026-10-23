@@ -8,8 +8,10 @@ import android.net.NetworkRequest
 import android.net.wifi.WifiNetworkSpecifier
 import android.os.Handler
 import android.os.SystemClock
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -31,6 +33,17 @@ object LoggerFeed {
     @Volatile var rec = false
     @Volatile var lineId: String? = null
     @Volatile var error = ""
+    // The logger's own lap timer (lap.py), shown next to the phone's for comparison.
+    @Volatile var lapCount: Int? = null
+    @Volatile var lapsLeft: Int? = null
+    @Volatile var lapFinished = false
+    @Volatile var lapRunning = false
+    @Volatile var totalLaps: Int? = null
+    /** What the last sync (lines, required laps, reset) did, for the settings screen. */
+    @Volatile var syncNote = ""
+
+    /** The logger's frames are fresh enough to show its lap count. */
+    fun fresh(now: Long = SystemClock.elapsedRealtime()) = configured && socket && now - lastFrameAt < STALE_MS
 
     /** The logger's position is fresh: it feeds the lap timer and the phone's own GNSS waits. */
     fun live(now: Long = SystemClock.elapsedRealtime()) = configured && now - lastFixAt < STALE_MS
@@ -45,7 +58,8 @@ object LoggerFeed {
     }
 
     fun reset() { wifi = false; socket = false; lastFrameAt = 0; lastFixAt = 0; mcu = false; fix = 0; sats = 0
-        accuracyM = null; speedKmh = null; rec = false; lineId = null; error = "" }
+        accuracyM = null; speedKmh = null; rec = false; lineId = null; error = ""
+        lapCount = null; lapsLeft = null; lapFinished = false; lapRunning = false; totalLaps = null }
 
     /** Logger fixes come at 10 Hz; two seconds without one and the phone takes over. */
     const val STALE_MS = 2000L
@@ -81,11 +95,13 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
     fun start() {
         LoggerFeed.reset()
         LoggerFeed.configured = true
+        current = this
         request()
     }
 
     fun stop() {
         stopped = true
+        if (current === this) current = null
         close()
         if (requested) try { cm.unregisterNetworkCallback(callback) } catch (_: IllegalArgumentException) {}
         requested = false
@@ -171,10 +187,69 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
         LoggerFeed.speedKmh = num("speed")
         LoggerFeed.rec = j.optBoolean("rec")
         LoggerFeed.lineId = if (j.isNull("line_id")) null else j.optString("line_id")
+        LoggerFeed.totalLaps = num("total_laps")?.toInt()
+        j.optJSONObject("lap")?.let { lap ->
+            LoggerFeed.lapCount = if (lap.isNull("count")) null else lap.optInt("count")
+            LoggerFeed.lapsLeft = if (lap.isNull("laps_left")) null else lap.optInt("laps_left")
+            LoggerFeed.lapFinished = lap.optBoolean("finished")
+            LoggerFeed.lapRunning = lap.optBoolean("running")
+        }
+        follow(if (j.isNull("line_code")) null else j.optString("line_code"), now)
         val utc = num("utc")?.toLong(); val lat = num("lat"); val lon = num("lon")
         if (utc == null || lat == null || lon == null || LoggerFeed.fix == 0 || utc == lastUtc) return
         lastUtc = utc
         LoggerFeed.lastFixAt = now
         Race.onFix(Fix(utc, lat, lon, LoggerFeed.accuracyM, LoggerFeed.speedKmh, num("yaw")))
+    }
+
+    /**
+     * Before the lap timing starts, the logger is the reference: its lines replace the
+     * phone's when they differ, and the phone's required laps (tied to the class's time
+     * and distance) go to the logger. Once timing has started nothing changes either way.
+     */
+    private fun follow(code: String?, now: Long) {
+        if (Race.timingStarted()) return
+        if (code != null && LoggerFeed.lineId != null && LoggerFeed.lineId != Race.reference?.id) {
+            try {
+                val r = Race.importReference(code)
+                LoggerFeed.syncNote = "ロガーのライン（基準${r.id}）を読み込みました"
+            } catch (e: LineCode.Invalid) {
+                LoggerFeed.syncNote = "ロガーのラインを読めません：${e.message}"
+            }
+        }
+        val laps = Race.config().totalLaps
+        if (laps != null && laps != LoggerFeed.totalLaps && LoggerFeed.lapCount == 0 && !LoggerFeed.lapRunning && now - lastTotalAt > 5000) {
+            lastTotalAt = now
+            send("/api/field/total", JSONObject().put("total_laps", laps)) { ok, msg ->
+                LoggerFeed.syncNote = if (ok) "ロガーの規定周回数を${laps}周にしました" else "ロガーの規定周回数を変えられません：$msg"
+            }
+        }
+    }
+    private var lastTotalAt = 0L
+
+    /** The lap reset on the phone resets the logger's laps too ([done] runs on [handler]'s thread). */
+    fun resetLogger(done: (Boolean, String) -> Unit) = handler.post {
+        send("/api/field/reset", JSONObject()) { ok, msg -> done(ok, msg) }
+    }
+
+    /** POST to the logger's course-walk API over its Wi-Fi; [done] gets (ok, message) on [handler]'s thread. */
+    private fun send(path: String, body: JSONObject, done: (Boolean, String) -> Unit) {
+        val c = client
+        if (c == null || !LoggerFeed.socket) { done(false, "ロガーにつながっていません"); return }
+        val request = Request.Builder().url("http://$host:8082$path")
+            .header("X-Field-Key", key).header("X-EcoCapture", "1")
+            .post(body.toString().toRequestBody("application/json".toMediaType())).build()
+        c.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: java.io.IOException) { handler.post { done(false, e.toString().take(80)) } }
+            override fun onResponse(call: okhttp3.Call, response: Response) {
+                val code = response.code; response.close()
+                handler.post { done(code == 200, if (code == 200) "" else "HTTP $code") }
+            }
+        })
+    }
+
+    companion object {
+        /** The running link (set by the service), for the reset button on the settings screen. */
+        @Volatile var current: LoggerLink? = null
     }
 }
