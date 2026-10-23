@@ -324,6 +324,8 @@ Maruo.Sさんの追加依頼（ER-7-7）と重なるものは、まず自宅の�
 - **2026-10-23夜 大会ではロガーの音声を使わない（ユーザー判断）**。UNO Qの送信設定で`voice_receive`・`voice_send`をOFF（送信回線は「LTEだけ」のまま）、音声の常駐`ecocapture-voice`を停止・無効化（大会後に戻すときは`systemctl enable --now ecocapture-voice`）。通話はスマホのDiscord（ER-11-17）
   - 自宅サーバー：room `majesta`の**Podiumキーを外した**（DBの控え`~/ecorun.sqlite3.bak-20261023-before-majesta-key`）。サーバーは送るたびにキーを読むので新しい送信は止まり、残っていたPodiumとの接続は再起動で消える。ほかのroomにキーは無い
   - 自宅サーバーの片付け：一時コード（`discord diag`）を外してソースを`b3e3442`（BotのPCM修正`bb47be9`＋テレメトリをロガーへ送り返さない修正）と同じにし、releaseビルド済み（一時コードの控え`~/discord_voice.rs.diag-20261023`）。`RUST_LOG`から`songbird=debug`を外した（設定の控え`/etc/ecorun-logger-server.env.20261023-before-race`）。**Discord BotをOFF**：drop-in `discord.conf`を`/etc/ecorun-logger-server.discord.conf.disabled-20261023`へ移した（戻すときは元の場所へ戻して`daemon-reload`）。**いずれもサービスの再起動で効く（再起動はユーザーが手で行う）**。PR #11へのpush・先輩への報告は未実施
+  - **22:00にユーザーが再起動し、効いていることを確認**：新しいバイナリ（一時コードなし）で稼働、`RUST_LOG=ecorun_logger_server=info`、drop-inなし・Discordのトークンが環境に無い、サーバーから外への接続はゼロ（Discord・Podiumとも接続なし）。majestaのテレメトリは保存ファイル→ブリッジ→VictoriaMetricsへ約5秒遅れで届いている（直近60秒で210点）
+  - 気づいたこと（大会後に回す）：先輩版のサーバーは、ロガーから届いた行を数値に直すとき**全チャンネルぶんの並び（チャンネル数＋有効フラグ）を前提にしている**が、Ver.2の`podium.py`はPodium本来の詰めた形式（有効なチャンネルの値だけ＋有効フラグ。meta 33チャンネルに対し1行30要素）で送るので、`skipping Podium sample without usable metadata…`の警告を1行ごと（約5件/秒）に出して捨てている。影響は先輩側の変換経路（`telemetry_bridge`の`podium`）だけで、自前の地図・Grafana（保存ファイルをブリッジが読む）とPodiumへの中継には影響しない。PR #11の報告に入れる
   - 自宅サーバーのSDバックアップ（`ecorun-backup-telemetry`）が10/23 3:20から止まっている原因：**SDカード（mmcblk1）への書き込みがカーネル内で返ってこない**（`rsync`が`mmc_blk_rw_wait`で止まったまま）。プロセスを止めても戻らない。本番データはeMMC側なので通話・テレメトリには影響しない。大会後にSDの抜き差しかサーバーの再起動で確かめる
 
 ## ER-11 スマホ組の2台用のAndroidロガーアプリ（2026-10-18起票）
