@@ -125,6 +125,28 @@ class SettingsActivity : Activity() {
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
         if (running) note("記録中は変えられません（止めてから変えてください）")
 
+        section("Ver.2ロガーの位置を使う（車のダッシュ用）")
+        note("ロガーのWi-Fi（インターネットなし）にこのアプリだけがつなぎ、ロガーの位置で周回・速度を出す。スマホのほかのアプリ（Discord）はLTEのまま。" +
+            "ロガーから2秒届かなければスマホのGNSSに切り替え、画面に「ロガー未接続」を出す。Wi-Fi名が空なら使わない")
+        val lSsid = field("ロガーのWi-Fi名", settings.loggerSsid, "空欄ならロガーを使わない", !running, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
+        val lPass = field("ロガーのWi-Fiのパスワード", settings.loggerPass, "", !running,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+        val lKey = field("コースウォーク画面の合言葉（URLの k= の後ろ。URLごと貼ってもよい）", settings.loggerKey, "", !running,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+        val lHost = field("ロガーのアドレス", settings.loggerHost, "空欄なら ${Settings.DEFAULT_LOGGER_HOST}", !running)
+        if (!running) column.addView(button("ロガーの設定を保存") {
+            var key = lKey.text.toString().trim(); var host = lHost.text.toString().trim()
+            // A pasted course-walk URL (http://<host>:8082/?k=<key>) gives both.
+            Regex("""^https?://([^/:?]+)(?::\d+)?/?\?(?:.*&)?k=([^&\s]+)""").find(key)?.let { m ->
+                key = m.groupValues[2]; if (host.isEmpty()) host = m.groupValues[1]
+            }
+            settings.loggerSsid = lSsid.text.toString(); settings.loggerPass = lPass.text.toString()
+            settings.loggerKey = key; settings.loggerHost = host
+            toast(if (settings.loggerConfigured) "保存しました（記録を始めるとロガーへつなぎます）" else "保存しました（ロガーは使いません）"); build()
+        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
+        if (running) note(if (Status.fromLogger) "いまはロガーの位置を使っています" else "いまはスマホのGNSSです：" +
+            (if (settings.loggerConfigured) LoggerFeed.reason() + LoggerFeed.error.takeIf { it.isNotEmpty() }?.let { "（$it）" }.orEmpty() else "ロガー未設定"))
+
         section("大会")
         val klass = RaceClass.ensure(this)
         val classLocked = Race.classLocked

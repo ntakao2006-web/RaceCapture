@@ -25,6 +25,7 @@ object Status {
     @Volatile var sats = 0
     @Volatile var accuracyM: Double? = null
     @Volatile var speedKmh: Double? = null
+    @Volatile var fromLogger = false      // fix/sats/accuracy/speed are the Ver.2 logger's (LoggerFeed)
     @Volatile var relay: String? = null   // null: no server configured
     @Volatile var relayConnected = false
     @Volatile var relayError = ""
@@ -42,6 +43,7 @@ class LoggerService : Service() {
     private var relay: RelayClient? = null
     private var direct: PodiumDirect? = null
     private var podiumKey = ""
+    private var link: LoggerLink? = null
     /** When the relay was last seen not connected (null while it is), for the fallback to Podium. */
     private var serverDownSince: Long? = null
     private var wakeLock: PowerManager.WakeLock? = null
@@ -73,6 +75,9 @@ class LoggerService : Service() {
             relay = if (settings.urls.isEmpty()) null
                     else RelayClient(settings.urls, settings.carName.ifEmpty { "android" }, handler).also { it.start() }
             podiumKey = settings.podiumKey
+            link = if (!settings.loggerConfigured) null
+                   else LoggerLink(this, settings.loggerSsid, settings.loggerPass, settings.loggerHostOrDefault,
+                                   settings.loggerKey, handler).also { it.start() }
             startedAt = SystemClock.elapsedRealtime()
             nextTick = SystemClock.uptimeMillis()
             Status.startedAt = startedAt
@@ -118,10 +123,17 @@ class LoggerService : Service() {
         Status.rows = rows
         Status.fileName = log?.fileName
         Status.logError = logError
-        Status.fix = row["GPSFix"]?.toInt() ?: 0
-        Status.sats = row["GPSSats"]?.toInt() ?: 0
-        Status.accuracyM = row["Accuracy"]
-        Status.speedKmh = row["GPSSpeed"]
+        // The screen shows the source the lap timer is using: the logger while its fixes arrive.
+        Status.fromLogger = LoggerFeed.live()
+        if (Status.fromLogger) {
+            Status.fix = LoggerFeed.fix; Status.sats = LoggerFeed.sats
+            Status.accuracyM = LoggerFeed.accuracyM; Status.speedKmh = LoggerFeed.speedKmh
+        } else {
+            Status.fix = row["GPSFix"]?.toInt() ?: 0
+            Status.sats = row["GPSSats"]?.toInt() ?: 0
+            Status.accuracyM = row["Accuracy"]
+            Status.speedKmh = row["GPSSpeed"]
+        }
         val r = relay; val d = direct
         Status.relay = when {
             r?.connected == true -> r.state
@@ -137,6 +149,7 @@ class LoggerService : Service() {
         handler.removeCallbacksAndMessages(null)
         handler.post {
             hub.stop()
+            link?.stop()
             relay?.stop()
             direct?.stop()
             try { log?.close() } catch (_: Exception) {}

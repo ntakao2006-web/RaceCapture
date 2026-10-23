@@ -57,6 +57,26 @@ class FieldTests(unittest.TestCase):
         self.assertEqual(self.client.post('/api/field/reset', headers={'X-Field-Key': self.token}).status_code, 403)
         self.assertEqual(self.client.post('/api/field/reset', headers=self.key).status_code, 200)
 
+    def test_live_stream_needs_the_key_and_sends_the_fix(self):
+        from starlette.websockets import WebSocketDisconnect
+        with self.assertRaises(WebSocketDisconnect):
+            with self.client.websocket_connect('/api/field/live?k=wrong-key!') as ws:
+                ws.receive_text()
+        self.runtime.feed(fix(1500, 10.0, speed=31.0, hacc=0.6))
+        with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
+            frame = ws.receive_json()
+        self.assertTrue(frame['connected'])
+        self.assertEqual(frame['utc'], 1792800001500)
+        self.assertAlmostEqual(frame['speed'], 31.0)
+        self.assertAlmostEqual(frame['hacc_m'], 0.6)
+        self.assertTrue(frame['rec'])
+        self.assertIsNone(frame['line_id'])
+        self.runtime.connected = False
+        with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
+            frame = ws.receive_json()
+        self.assertFalse(frame['connected'])
+        self.assertIsNone(frame['lat'])
+
     def test_page_is_served_without_admin_routes(self):
         page = self.client.get('/')
         self.assertEqual(page.status_code, 200)

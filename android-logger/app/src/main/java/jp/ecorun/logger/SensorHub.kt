@@ -58,7 +58,8 @@ class SensorHub(context: Context, private val handler: Handler) : SensorEventLis
 
     override fun onLocationChanged(l: Location) {
         synchronized(lock) { location = l }
-        Race.onFix(Fix(l.time, l.latitude, l.longitude,
+        // While the Ver.2 logger's fixes arrive (LoggerLink), they alone feed the lap timer.
+        if (!LoggerFeed.live()) Race.onFix(Fix(l.time, l.latitude, l.longitude,
             if (l.hasAccuracy()) l.accuracy.toDouble() else null,
             if (l.hasSpeed()) l.speed * 3.6 else null,
             if (l.hasBearing()) l.bearing.toDouble() else null))

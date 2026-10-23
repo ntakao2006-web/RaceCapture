@@ -25,6 +25,25 @@ class Settings(context: Context) {
         get() = prefs.getString("podiumKey", "") ?: ""
         set(v) = prefs.edit().putString("podiumKey", v.trim()).apply()
 
+    /**
+     * The Ver.2 logger as the car's position source ([LoggerLink]): its Wi-Fi
+     * access point, its address there and the course-walk key (field_token).
+     */
+    var loggerSsid: String
+        get() = prefs.getString("loggerSsid", "") ?: ""
+        set(v) = prefs.edit().putString("loggerSsid", v.trim()).apply()
+    var loggerPass: String
+        get() = prefs.getString("loggerPass", "") ?: ""
+        set(v) = prefs.edit().putString("loggerPass", v.trim()).apply()
+    var loggerHost: String
+        get() = prefs.getString("loggerHost", "") ?: ""
+        set(v) = prefs.edit().putString("loggerHost", v.trim()).apply()
+    var loggerKey: String
+        get() = prefs.getString("loggerKey", "") ?: ""
+        set(v) = prefs.edit().putString("loggerKey", v.trim()).apply()
+    val loggerConfigured: Boolean get() = loggerSsid.isNotEmpty() && loggerKey.isNotEmpty()
+    val loggerHostOrDefault: String get() = loggerHost.ifEmpty { DEFAULT_LOGGER_HOST }
+
     val urls: List<String> get() = listOf(primaryUrl, backupUrl).filter { it.startsWith("ws://") || it.startsWith("wss://") }
 
     /** Keep the screen on whenever the driver screen is open, not only while recording. */
@@ -50,6 +69,8 @@ class Settings(context: Context) {
 
     companion object {
         const val DEFAULT_MARGIN_S = 30.0
+        /** The logger's own address on its access point (NetworkManager's shared mode). */
+        const val DEFAULT_LOGGER_HOST = "10.42.0.1"
     }
 }
 

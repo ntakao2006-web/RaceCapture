@@ -119,6 +119,7 @@ class MainActivity : Activity() {
             lap = Race.values(), config = Race.config(), laps = Race.laps(),
             classCode = settings.raceClass?.code ?: "",
             reference = Race.reference?.id?.let { "基準$it" } ?: "基準なし",
+            source = if (!settings.loggerConfigured) null else if (running && Status.fromLogger) "ロガー" else "スマホ",
             warning = warning(running, now),
         )
         ui.removeCallbacksAndMessages(null)
@@ -127,7 +128,11 @@ class MainActivity : Activity() {
 
     private fun warning(running: Boolean, now: Long): String? = when {
         running && Status.fileName == null -> "記録できていません：" + Status.logError.take(60)
+        running && Settings(this).loggerConfigured && !Status.fromLogger ->
+            "ロガー未接続：スマホのGNSSで計測中（" + LoggerFeed.reason() + "）"
         running && now - noFixSince > 5000 -> "GNSSが測位できていません（空が見える所へ）"
+        running && LoggerFeed.lineId != null && LoggerFeed.lineId != Race.reference?.id ->
+            "ラインがロガー（基準${LoggerFeed.lineId}）と違います：設定でQRを読み直す"
         !running && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ->
             "位置情報の許可がまだです（記録を始めると聞かれます）"
         !running && !getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName) ->

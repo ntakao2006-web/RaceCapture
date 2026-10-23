@@ -29,6 +29,8 @@ data class Dash(
     val warning: String? = null,
     val classCode: String = "",
     val reference: String = "",
+    /** Where the position comes from when a Ver.2 logger is set up: "ロガー" or "スマホ"; null without one. */
+    val source: String? = null,
 )
 
 /**
@@ -66,9 +68,10 @@ class DashboardView(context: Context) : View(context) {
         val chipW = (w - pad * 5) / 4
         val rec = if (d.running) (if (d.recordingOk) "● " + clock(d.recSeconds.toDouble(), false) else "記録できていません") else "停止中"
         chip(c, pad, pad, chipW, stripH, "記録", rec, if (!d.running) grey else if (d.recordingOk) red else red)
-        val gnssColor = when { d.fix == 0 -> red; d.fix == 2 || (d.accuracyM ?: 99.0) > 10 -> yellow; else -> green }
-        val gnss = if (d.fix == 0) "測位なし" else "${if (d.fix == 3) "3D" else "2D"} ${d.sats}衛星" + (d.accuracyM?.let { " ±%.0fm".format(it) } ?: "")
-        chip(c, pad * 2 + chipW, pad, chipW, stripH, "GNSS", if (d.running) gnss else "—", if (d.running) gnssColor else grey)
+        // On the phone's own GNSS while a logger is set up, never green: the logger is missing.
+        val gnssColor = when { d.fix == 0 -> red; d.source == "スマホ" || d.fix == 2 || (d.accuracyM ?: 99.0) > 10 -> yellow; else -> green }
+        val gnss = if (d.fix == 0) "測位なし" else "${if (d.fix == 3) "3D" else "2D"} ${d.sats}衛星" + (d.accuracyM?.let { (if (it < 10) " ±%.1fm" else " ±%.0fm").format(it) } ?: "")
+        chip(c, pad * 2 + chipW, pad, chipW, stripH, d.source ?: "GNSS", if (d.running) gnss else "—", if (d.running) gnssColor else grey)
         val relayColor = when { d.relay == null -> grey; !d.relayConnected -> red; d.relay == "主" -> green; else -> yellow }
         chip(c, pad * 3 + chipW * 2, pad, chipW, stripH, "送信", if (!d.running) "—" else d.relay ?: "なし", if (d.running) relayColor else grey)
         val bat = d.batteryPct

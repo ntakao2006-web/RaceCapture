@@ -10,19 +10,23 @@ Every API call needs the key from `field_token` in the data directory. The
 admin UI shows the URL with the key as a QR code; the phone page keeps the key
 in its URL and in localStorage.
 """
+import asyncio
 import hmac
+import json
 import os
 import secrets
 from contextlib import contextmanager
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 
-from lap import LapLine, line_qr
+from lap import LapLine, line_code, line_qr
+from podium import utc_milliseconds
 
 FIELD_PORT = int(os.environ.get('ECOCAPTURE_FIELD_PORT', 8082))
+LIVE_PERIOD_S = 0.1
 MDNS_NAME = os.environ.get('ECOCAPTURE_MDNS_NAME', 'uno-q.local')
 WEB = Path(__file__).parent / 'web'
 PAGES = {'/': ('field.html', 'text/html'), '/field.js': ('field.js', 'text/javascript'),
@@ -138,7 +142,39 @@ def create_app(runtime, token):
             raise HTTPException(409, 'コントロールラインを先に登録してください。')
         return line_qr(line)
 
+    @app.websocket('/api/field/live')
+    async def live(ws: WebSocket):
+        # The car's dash phone (android-logger LoggerLink.kt) on this Wi-Fi. The
+        # http middleware does not run for WebSockets, so the key is checked here.
+        key = ws.headers.get('x-field-key') or ws.query_params.get('k') or ''
+        if not hmac.compare_digest(key.encode(), token.encode()):
+            await ws.close(code=1008)
+            return
+        await ws.accept()
+        try:
+            while True:
+                await asyncio.wait_for(ws.send_text(json.dumps(live_frame(runtime))), timeout=2)
+                await asyncio.sleep(LIVE_PERIOD_S)
+        except (WebSocketDisconnect, RuntimeError, asyncio.TimeoutError, OSError):
+            pass
+
     return app
+
+
+def live_frame(runtime):
+    """Position for the dash phone's own lap timer, plus what its status bar shows.
+    utc is the receiver's time of the fix (None until it has one), so the phone
+    can tell a new fix from the same one sent again."""
+    status = runtime.status()
+    sample = runtime.sample if status['connected'] else None
+    values = (sample or {}).get('values', {})
+    line = runtime.laps.line
+    return {'connected': status['connected'], 'utc': utc_milliseconds(sample or {}),
+            'lat': values.get('Lat'), 'lon': values.get('Lon'), 'speed': values.get('GPSSpeed'),
+            'yaw': values.get('Yaw'), 'fix': values.get('GPSFix'), 'sats': values.get('GPSSats'),
+            'hacc_m': (sample or {}).get('gnss_hacc_m'),
+            'rec': bool(status['logging'].get('active')),
+            'line_id': line_code(line)[1] if line.enabled else None}
 
 
 class FieldServer(uvicorn.Server):
@@ -163,4 +199,4 @@ async def serve(server):
 def make_server(runtime, root):
     app = create_app(runtime, load_token(root))
     return FieldServer(uvicorn.Config(app, host='0.0.0.0', port=FIELD_PORT, log_level='warning',
-                                      access_log=False, ws='none', lifespan='off'))
+                                      access_log=False, ws='auto', lifespan='off'))  # ws: /api/field/live
