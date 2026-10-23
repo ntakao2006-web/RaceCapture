@@ -1,0 +1,12 @@
+# 5Bの /etc/grafana/provisioning/datasources/ecorun-vm.yaml と同じ（urlだけコンテナ名に）。
+# ダッシュボードが uid: ecorun-vm で参照しているので、uidは変えない
+apiVersion: 1
+datasources:
+  - name: EcoRun VictoriaMetrics
+    uid: ecorun-vm
+    type: prometheus
+    access: proxy
+    url: http://victoria-metrics:8428
+    isDefault: true
+    jsonData:
+      timeInterval: 100ms

@@ -1,0 +1,71 @@
+# 自宅サーバー（ROCK 5B）のGrafana・地図ページ一式を、別のLinuxサーバーで同じに動かすためのDocker Compose。
+# 2026-10-24時点の5Bの実際の設定（systemdで直接動かしている）を、そのままコンテナへ写したもの。
+# ecorun-logger-server本体はここに含めない（既に動いているものの「隣」に足す）。
+# 手順・5Bの設定との対応表は RaceCaptureリポジトリの server_deploy_grafana_x86.md を参照。
+#
+#   cp .env.example .env   # 中身を書き換える
+#   docker compose up -d --build
+name: ecorun-telemetry
+
+services:
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.154.0
+    command:
+      - -storageDataPath=/storage
+      - -retentionPeriod=5y
+      - -httpListenAddr=:8428
+      - -search.latencyOffset=0s        # 書いた点をすぐ検索できるように（既定30秒だとグラフが遅れる）
+      - -dedup.minScrapeInterval=1ms    # 同じ時刻の重複だけを落とす（0.1秒間隔の点は残す）
+    volumes:
+      - vm-data:/storage
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.2.3
+    environment:
+      # ここから下は5Bの /etc/systemd/system/grafana-server.service.d/*.conf と同じ
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 500ms
+      GF_AUTH_ANONYMOUS_ENABLED: "true"        # URLを知っていれば誰でも閲覧できる
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer        # 匿名は閲覧のみ
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/ecorun-live.json
+      GF_PANELS_DISABLE_SANITIZE_HTML: "true"   # 地図・G-Gのパネルがiframeを使うため
+      GF_SERVER_ROOT_URL: https://${PUBLIC_HOST}/grafana/   # 前段で /grafana を削って渡す前提（SERVE_FROM_SUB_PATHは使わない）
+      GF_SERVER_ENABLE_GZIP: "true"             # スマホ回線で初回の読み込みが約20秒→約7秒
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}   # 初回起動時だけ効く
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../grafana:/etc/grafana/dashboards:ro   # ecorun-live.json（build_dashboard.pyが作る）
+    depends_on:
+      - victoria-metrics
+    restart: unless-stopped
+
+  bridge:
+    build:
+      context: ..                    # tools/home_telemetry（live_bridge.py・map.html・gg.html）
+      dockerfile: deploy/bridge.Dockerfile
+    command:
+      - --dir=/telemetry
+      - --vm-url=http://victoria-metrics:8428/write
+      - --grafana-url=http://grafana:3000/api/live/push/ecorun
+      - --grafana-token-file=/run/secrets/grafana-token
+      - --listen=0.0.0.0:3002
+      - --db=/data/map.db
+    ports:
+      - "127.0.0.1:${BRIDGE_PORT:-3002}:3002"
+    volumes:
+      - ${TELEMETRY_DIR}:/telemetry:ro   # ecorun-logger-serverのECORUN_TELEMETRY_DIR（読むだけ）
+      - bridge-data:/data                # 地図に描いた図形
+      - ./secrets:/run/secrets:ro        # grafana-token（無くても動く。速度パネルだけ空）
+    depends_on:
+      - victoria-metrics
+      - grafana
+    restart: unless-stopped
+
+volumes:
+  vm-data:
+  grafana-data:
+  bridge-data:

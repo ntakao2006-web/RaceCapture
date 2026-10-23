@@ -1,0 +1,8 @@
+# 5Bの /etc/grafana/provisioning/dashboards/ecorun.yaml と同じ（pathだけコンテナ内の場所に）。
+# 画面で編集しても保存できない。直すときは build_dashboard.py → ecorun-live.json を直す
+apiVersion: 1
+providers:
+  - name: ecorun
+    type: file
+    options:
+      path: /etc/grafana/dashboards
