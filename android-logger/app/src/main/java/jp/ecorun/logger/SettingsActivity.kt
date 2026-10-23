@@ -112,6 +112,17 @@ class SettingsActivity : Activity() {
         val car = field("車の名前（記録ファイル名・サーバーでの表示名）", settings.carName, "例：car2", !running)
         val primary = field("主サーバーのURL", settings.primaryUrl, "wss://…/ws/audio/<room>", !running)
         val backup = field("予備サーバーのURL", settings.backupUrl, "空欄なら予備なし", !running)
+        // The key is never shown again once saved: the field starts empty and a blank save keeps it.
+        val hasKey = settings.podiumKey.isNotEmpty()
+        val key = field("Podiumのストリーミングキー（サーバーが30秒応答しないときだけPodiumへ直接送る）", "",
+            if (hasKey) "保存済み（空欄のままなら変えない）" else "未設定（空欄なら直接は送らない）", !running,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
+        note("キーはこのスマホのアプリの中だけに保存し、画面には出さない。サーバーが応答している間はサーバーがPodiumへ送るので、直接は送らない（同じキーで2か所から送ると重なるため）")
+        if (hasKey && !running) column.addView(button("Podiumのキーを消す") {
+            confirm("保存したPodiumのキーを消します。サーバーが止まったときにPodiumへ直接送らなくなります。よいですか？") {
+                settings.podiumKey = ""; toast("キーを消しました"); build()
+            }
+        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
         if (running) note("記録中は変えられません（止めてから変えてください）")
 
         section("大会")
@@ -145,6 +156,7 @@ class SettingsActivity : Activity() {
         column.addView(button("車・サーバー・大会の設定を保存") {
             if (!running) {
                 settings.carName = car.text.toString(); settings.primaryUrl = primary.text.toString(); settings.backupUrl = backup.text.toString()
+                key.text.toString().trim().takeIf { it.isNotEmpty() }?.let { settings.podiumKey = it }
             }
             val total = laps.text.toString().trim().toIntOrNull()
             val lim = parseClock(limit.text.toString())

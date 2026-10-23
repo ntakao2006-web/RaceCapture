@@ -49,9 +49,20 @@ object PodiumEncoder {
     fun hello(clientId: String): String =
         """{"type":"hello","client_id":${quote(clientId)},"protocol":2,"role":"logger","audio_formats":[]}"""
 
-    fun meta(): String = CHANNELS.joinToString(",", """{"type":"podium.meta","meta":[""", "]}") {
+    fun meta(): String = CHANNELS.joinToString(",", """{"type":"podium.meta","meta":[""", "]}") { metaEntry(it) }
+
+    private fun metaEntry(it: Channel) =
         """{"nm":${quote(it.name)},"ut":${quote(it.unit)},"sr":10,"min":${number(it.min, 0)},"max":${number(it.max, 0)},"prec":${it.prec}}"""
-    }
+
+    // Straight to Podium ([PodiumDirect]), the same lines EcoCapture-Web/podium.py sends.
+    // The auth values are the official RaceCapture app 2.19.0's, confirmed on 2026-10-04.
+    fun directAuth(key: String): String =
+        """{"cmd":{"auth":{"deviceId":${quote(key)},"apiVer":1.1,"device":"RC_APP (RCPMK3)","ver":"2.19.0 (2.16.1)","sn":"C3PROTO01"}}}"""
+
+    fun directMeta(): String = CHANNELS.joinToString(",", """{"s":{"meta":[""", "]}}") { metaEntry(it) }
+
+    /** [row] from [row]; [t] counts up from 0 per connection (Podium echoes it as `lt`). */
+    fun directSample(row: String, t: Long): String = """{"s":{"d":$row,"t":$t}}"""
 
     /** One row as a JSON array: present values in channel order, then the bitmasks. */
     fun row(values: Map<String, Double?>): String {

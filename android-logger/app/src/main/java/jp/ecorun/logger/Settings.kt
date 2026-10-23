@@ -16,6 +16,15 @@ class Settings(context: Context) {
         get() = prefs.getString("car", "") ?: ""
         set(v) = prefs.edit().putString("car", v.trim()).apply()
 
+    /**
+     * Podium streaming key, only for sending straight to Podium when no relay
+     * server answers ([PodiumDirect]). Kept in this app's private storage and
+     * never shown again once saved.
+     */
+    var podiumKey: String
+        get() = prefs.getString("podiumKey", "") ?: ""
+        set(v) = prefs.edit().putString("podiumKey", v.trim()).apply()
+
     val urls: List<String> get() = listOf(primaryUrl, backupUrl).filter { it.startsWith("ws://") || it.startsWith("wss://") }
 
     /** Keep the screen on whenever the driver screen is open, not only while recording. */

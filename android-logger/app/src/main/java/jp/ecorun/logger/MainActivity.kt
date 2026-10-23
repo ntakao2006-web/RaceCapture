@@ -132,7 +132,8 @@ class MainActivity : Activity() {
             "位置情報の許可がまだです（記録を始めると聞かれます）"
         !running && !getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName) ->
             "電池の最適化が有効です：設定 → 点検 から外してください"
-        !running && Settings(this).urls.isEmpty() -> "サーバーが未設定です（記録だけします）"
+        !running && Settings(this).urls.isEmpty() ->
+            if (Settings(this).podiumKey.isNotEmpty()) "サーバーが未設定です（Podiumへ直接送ります）" else "サーバーが未設定です（記録だけします）"
         else -> null
     }
 
