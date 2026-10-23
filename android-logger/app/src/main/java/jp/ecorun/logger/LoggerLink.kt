@@ -92,7 +92,9 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(n: Network) { handler.post { if (!stopped) { network = n; LoggerFeed.wifi = true; LoggerFeed.error = ""; open() } } }
         override fun onLost(n: Network) { handler.post { if (network == n) { network = null; LoggerFeed.wifi = false; close(); rerequest(3000) } } }
-        override fun onUnavailable() { handler.post { LoggerFeed.error = "ロガーのWi-Fiが見つかりません"; requested = false; rerequest(10_000) } }
+        // Also after "キャンセル" on the system's connect dialog: drop the request (if the system
+        // has not) before asking again, or the same callback is refused as already registered.
+        override fun onUnavailable() { handler.post { LoggerFeed.error = "ロガーのWi-Fiが見つかりません"; rerequest(10_000) } }
     }
 
     fun start() {
