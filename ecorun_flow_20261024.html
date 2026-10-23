@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>エコラン大会の流れ</title>
+<!-- 大会全体の時系列（出発前〜帰宅後）。チームで共有する。元は ecorun_final_plan_20261023.md。
+     ロガーの細かい操作は ecorun_day_manual_20261024.html、困ったときは ecologger_troubleshooting.html。
+     ブラウザで開いて A4・縦で印刷する。URL・合言葉は書かない。 -->
+<style>
+  :root { --ink: #1a1a1a; --sub: #555; --line: #999; --accent: #0e6a87; --warn: #b5453f; --bg: #fff; --box: #f2f6f8; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e; } }
+  :root[data-theme="dark"] { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e; }
+  @page { size: A4 portrait; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 8.6pt/1.45 "Yu Gothic UI", "Meiryo", sans-serif; }
+  .page { max-width: 192mm; margin: 0 auto; padding: 16px; }
+  @media print { .page { padding: 0; } body { background: #fff; color: #000; } }
+  header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 2px; margin-bottom: 6px; gap: 8px; flex-wrap: wrap; }
+  h1 { font-size: 13pt; margin: 0; }
+  header span { color: var(--sub); font-size: 7.6pt; }
+  section { break-inside: avoid; margin-bottom: 6px; }
+  h2 { font-size: 9.6pt; margin: 0 0 3px; padding: 1px 5px; background: var(--accent); color: #fff; border-radius: 2px; }
+  ol, ul { margin: 0; padding-left: 15px; }
+  li { margin: 0 0 1px; }
+  b { color: var(--accent); }
+  .warn { color: var(--warn); font-weight: bold; }
+  .who { color: var(--sub); font-size: 7.8pt; }
+  .fill { display: inline-block; min-width: 30mm; border-bottom: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; font-size: 8.2pt; }
+  th, td { border: 1px solid var(--line); padding: 2px 4px; vertical-align: top; text-align: left; }
+  th { background: var(--box); white-space: nowrap; }
+  td.t { white-space: nowrap; font-weight: bold; }
+  .box { background: var(--box); padding: 4px 6px; border-radius: 2px; margin-bottom: 4px; }
+  .prio { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+  .prio span { border: 1px solid var(--accent); border-radius: 2px; padding: 0 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>エコラン全国大会 全体の流れ（出発前〜帰宅後）</h1>
+  <span>2026-10-24（土）・25（日） ／ ロガーの操作は「当日手順書」、困ったら「困ったときの手順集」</span>
+</header>
+
+<div class="box">
+  <b>迷ったときの優先順位</b>（下のものが上のものを危うくするなら、下を切る）
+  <div class="prio"><span>① 記録が残る</span><span>② ピットで見える</span><span>③ ラップが正しい</span><span>④ 音声</span><span>⑤ 油温</span></div>
+  <div class="who" style="margin-top:2px">ソフトは出発前に固める。土日に変えてよいのは設定だけ（ラインの登録・周回数・音声のON/OFF）。現地でソフトは直さない。</div>
+</div>
+
+<section>
+  <h2>役割（当日までに名前を入れる）</h2>
+  <table>
+    <tr><th>役割</th><th>やること</th><th>担当</th></tr>
+    <tr><td>ロガー担当</td><td>Ver.2の起動・設定・コースウォークでのライン登録・電波の記録・回収</td><td><span class="fill"></span></td></tr>
+    <tr><td>ピット画面</td><td>走行中にピットの画面（地図・Grafana）を見る。止まったら予備の画面へ</td><td><span class="fill"></span></td></tr>
+    <tr><td>周回のリセット</td><td>グリッドで、Ver.2とスマホ2台の周回数をリセットする</td><td><span class="fill"></span></td></tr>
+    <tr><td>回収</td><td>走行ごとに<b>Collect-Logs.cmd</b>でログを集め、USBメモリにも保存</td><td><span class="fill"></span></td></tr>
+    <tr><td>記録表</td><td>紙の記録表に周回・時間を書く（ロガーの周回がおかしいときの正）</td><td><span class="fill"></span></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>出発前（10/23）</h2>
+  <ol>
+    <li><b>試験</b>：本番の設定・電源・機材で、電源ON→記録（3回）、SD無しで起動、記録中の電源断→回収、3台同時にサーバーへ、予備サーバーへの切替、音声、ラインのQR、振動、長時間運転。<span class="who">通らなかったものは、決めておいた代わり（下の表）で行く。</span></li>
+    <li><b>本番の設定を入れる</b>：送信は<b>「LTEだけ」</b>、送信先は中継サーバー（主・予備）＋保険のPodium、規定周回数、最短ラップ10秒、もてぎのおおよその3本のライン。設定の控えをPCへ。</li>
+    <li><b>手順書を印刷</b>：当日手順書を3部（ピット・車両担当・予備）、この紙、記録表。</li>
+    <li><b>持ち物</b>：Ver.2一式（UNO Q・ドック・アンテナ・ケース・<b>バッテリー2個</b>）、予備のSD・ケーブル、PC（回収用）・カードリーダー・USBメモリ、スマホ組2台、テザリング用スマホ、固定具（面ファスナー・結束バンド・テープ）。</li>
+    <li>自宅サーバーが動いていることを確かめ、<b>留守中は触らない</b>。全バッテリーを満充電。</li>
+  </ol>
+  <table style="margin-top:3px">
+    <tr><th>試験が通らなかったら</th><th>当日の扱い</th></tr>
+    <tr><td>音声</td><td>「受ける」「送る」の両方をOFF（記録・ピット画面は変わらない）</td></tr>
+    <tr><td>予備サーバーへの切替</td><td>予備を外し、主だけにする</td></tr>
+    <tr><td>油温（センサーハブ）</td><td>今回は使わない</td></tr>
+    <tr><td>スマホの画面オフ送信</td><td>画面を点けたままにする</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>10/24（土）前日</h2>
+  <table>
+    <tr><th>時刻</th><th>やること</th><th>確かめること</th></tr>
+    <tr><td class="t">5:45</td><td>Ver.2を手持ちの電源で起動し、テザリングにつなぐ（測位まで数分）</td><td>コースウォーク画面で「測位OK」</td></tr>
+    <tr><td class="t">6:00〜7:45</td><td><b>コースウォーク</b>（会場に入れるのはここだけ）：スタート・コントロール・ゴールの真上で止まって登録、規定周回数を押す。<b>電波の記録</b>も同時に取る</td><td>3本とも登録され、事前のおおよその位置から数十mもずれていない</td></tr>
+    <tr><td class="t">直後</td><td>スマホ2台にラインのQRを読ませる（二輪は規定周回数3）</td><td>3台の「基準」の番号がそろう。番号を書く：<span class="fill" style="min-width:18mm"></span></td></tr>
+    <tr><td class="t">走行があれば</td><td>本番と同じ取り付け・操作で1回通す（電源ON→REC→ピット画面→走行→止める→回収）</td><td>周回数が実際と合う。ピット画面が止まらない。回収したCSVが開ける</td></tr>
+    <tr><td class="t">走行が無ければ</td><td>パドックで車に付け、止まったまま同じことを通す</td><td>同上（周回以外）</td></tr>
+    <tr><td class="t">夕方</td><td>ログを<b>2か所</b>に保存（PCとUSBメモリ）。全バッテリーを充電。役割の確認</td><td>—</td></tr>
+    <tr><td class="t">夜</td><td>日曜の「行く／切る」を決める（音声・Ver.1・スマホの画面オフ）。<b>以後は設定を変えない</b></td><td>—</td></tr>
+  </table>
+  <div class="who" style="margin-top:2px">ラインを登録し直したら、スマホにもQRを読ませ直す（基準の番号が変わる）。</div>
+</section>
+
+<section>
+  <h2>10/25（日）本番</h2>
+  <table>
+    <tr><th>いつ</th><th>やること</th><th>確かめること</th></tr>
+    <tr><td class="t">出走30分前</td><td>満充電のバッテリーでVer.2・スマホ組を起動</td><td>「● REC」、3D測位、ピット画面に3台</td></tr>
+    <tr><td class="t">グリッド</td><td><span class="warn">周回数をリセット</span>（Ver.2のコースウォーク画面・スマホのアプリ）</td><td>周回0、規定周回数（7／3）、基準の番号が土曜と同じ</td></tr>
+    <tr><td class="t">走行中</td><td>ピットは画面を見るだけ。<b>ロガーには触らない</b></td><td>止まったら予備の画面へ。記録は本体に残っている</td></tr>
+    <tr><td class="t">ゴール後</td><td>触ってよくなってから「記録停止」→電源OFF（Ver.1は<b>SD_Eject.cmd</b>）</td><td>—</td></tr>
+    <tr><td class="t">すぐ</td><td><b>回収</b>（Collect-Logs.cmd）→USBメモリにも保存</td><td>「新しいログ○件を回収しました」。周回数・時間を公式結果と照らしてメモ</td></tr>
+    <tr><td class="t">片付け前</td><td>SDを戻す（<span class="warn">消去・フォーマットしない</span>）。本体の記録も帰るまで消さない</td><td>—</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>現地で困ったら（線引き）</h2>
+  <ul>
+    <li><b>記録が始まらない</b>：電源を入れ直す（1回）→ SDを抜いて起動（本体だけに記録）→ それでもだめならVer.1とスマホ組に任せる。</li>
+    <li><b>ピット画面に出ない</b>：予備の画面を見る。出なくても記録は残るので走行を優先。</li>
+    <li><b>音声が聞こえない・雑音</b>：「受ける」「送る」をOFF。テレメトリには影響しない。</li>
+    <li><b>周回がおかしい</b>：その場で直さない。紙の記録表を正にし、走行後にCSVの軌跡から数え直す。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>帰ってから</h2>
+  <ol>
+    <li>ログを<b>drive_logs\</b>とUSBメモリの2か所に残したまま、SD・本体の記録はしばらく消さない。</li>
+    <li>コースウォークの電波の記録（<b>drive_logs\日付\radio_walk\</b>）を地図で見て、コース上の弱い場所を確かめる。</li>
+    <li>うまくいかなかったこと・その場で決めたことを、ロガー担当へ伝える（次の大会の手順に入れる）。</li>
+  </ol>
+</section>
+
+</div>
+</body>
+</html>

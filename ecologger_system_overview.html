@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoLoggerの全体像</title>
+<!-- チームメンバー向けの説明資料：大会（2026-10-24・25）時点の機材・サーバー・データの流れ。
+     詳しい経緯は ARCHITECTURE.md・ecorun_team_systems.md・task_ecorun_20261024_breakdown.md。
+     ブラウザで開いて A4・縦で印刷する。URL・合言葉・キーは書かない。 -->
+<style>
+  :root { --ink: #1a1a1a; --sub: #555; --line: #999; --accent: #0e6a87; --warn: #b5453f; --bg: #fff; --box: #f2f6f8;
+          --car: #e7f1f5; --net: #fdf3e2; --pit: #eaf4ea; --spare: #f3eef7; --edge: #444; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e;
+          --car: #1d2b31; --net: #2f2718; --pit: #1e2b1e; --spare: #2a2330; --edge: #bbb; } }
+  :root[data-theme="dark"] { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e;
+          --car: #1d2b31; --net: #2f2718; --pit: #1e2b1e; --spare: #2a2330; --edge: #bbb; }
+  @page { size: A4 portrait; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 8.6pt/1.45 "Yu Gothic UI", "Meiryo", sans-serif; }
+  .page { max-width: 192mm; margin: 0 auto; padding: 16px; }
+  @media print { .page { padding: 0; } body { background: #fff; color: #000; } }
+  header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 2px; margin-bottom: 6px; gap: 8px; flex-wrap: wrap; }
+  h1 { font-size: 13pt; margin: 0; }
+  header span { color: var(--sub); font-size: 7.6pt; }
+  section { break-inside: avoid; margin-bottom: 6px; }
+  h2 { font-size: 9.6pt; margin: 0 0 3px; padding: 1px 5px; background: var(--accent); color: #fff; border-radius: 2px; }
+  ul, ol { margin: 0; padding-left: 15px; }
+  li { margin: 0 0 1px; }
+  b { color: var(--accent); }
+  .who { color: var(--sub); font-size: 7.8pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.2pt; }
+  th, td { border: 1px solid var(--line); padding: 2px 4px; vertical-align: top; text-align: left; }
+  th { background: var(--box); white-space: nowrap; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { fill: var(--ink); font-family: "Yu Gothic UI", "Meiryo", sans-serif; }
+  svg .lbl { font-size: 11px; font-weight: bold; }
+  svg .sm { font-size: 9.5px; fill: var(--sub); }
+  svg .edge { font-size: 9.5px; fill: var(--accent); }
+  svg .car { fill: var(--car); stroke: var(--line); }
+  svg .net { fill: var(--net); stroke: var(--line); }
+  svg .pit { fill: var(--pit); stroke: var(--line); }
+  svg .spare { fill: var(--spare); stroke: var(--line); stroke-dasharray: 4 3; }
+  svg .zone { fill: none; stroke: var(--line); stroke-dasharray: 2 3; }
+  svg .zt { font-size: 10px; fill: var(--sub); font-weight: bold; }
+  svg path, svg line { stroke: var(--edge); stroke-width: 1.3; fill: none; }
+  svg .dash { stroke-dasharray: 5 3; }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 7.8pt; color: var(--sub); margin-top: 2px; }
+  .sw { display: inline-block; width: 10px; height: 10px; border: 1px solid var(--line); vertical-align: -1px; margin-right: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>EcoLoggerの全体像（エコラン大会 2026-10 時点）</h1>
+  <span>車で測る → LTEでサーバーへ → ピットで見る・話す ／ 記録は必ず車の中に残る</span>
+</header>
+
+<section>
+  <h2>つながり</h2>
+  <svg viewBox="0 0 720 430" role="img" aria-label="EcoLoggerの機材とサーバーのつながり">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--edge);stroke:none"/></marker></defs>
+
+    <!-- zones -->
+    <rect class="zone" x="4" y="4" width="262" height="420" rx="6"/><text class="zt" x="14" y="20">車（3台）</text>
+    <rect class="zone" x="282" y="4" width="200" height="420" rx="6"/><text class="zt" x="292" y="20">インターネット</text>
+    <rect class="zone" x="498" y="4" width="218" height="420" rx="6"/><text class="zt" x="508" y="20">ピット・回収</text>
+
+    <!-- Ver.2 -->
+    <rect class="car" x="16" y="30" width="238" height="170" rx="5"/>
+    <text class="lbl" x="26" y="48">Ver.2（本命）Arduino UNO Q</text>
+    <text class="sm" x="26" y="64">STM32側：GNSS 10Hz・IMU 100Hz・CAN×2</text>
+    <text class="sm" x="26" y="77">　→ microSDに記録（電源ONで自動開始）</text>
+    <text class="sm" x="26" y="93">Linux側：EcoCapture-Web</text>
+    <text class="sm" x="26" y="106">　→ 本体(eMMC)にもCSVを記録（SDと別に）</text>
+    <text class="sm" x="26" y="119">　→ ラップ判定（3本のライン）</text>
+    <text class="sm" x="26" y="132">　→ 音声：USBマイク・イヤホン</text>
+    <text class="sm" x="26" y="148">LTEモデム SIM7070G（SORACOM・LTE-M）</text>
+    <text class="sm" x="26" y="164">センサーハブ（油温・使える場合）→ CAN2</text>
+    <text class="sm" x="26" y="180">電源：バッテリー → ドック → USB-C</text>
+    <text class="sm" x="26" y="193">管理画面は本体の中だけ（USBのPCから）</text>
+
+    <!-- course walk phone -->
+    <rect class="car" x="16" y="226" width="238" height="58" rx="5"/>
+    <text class="lbl" x="26" y="244">コースウォークのスマホ</text>
+    <text class="sm" x="26" y="260">テザリングでVer.2につなぎ、ラインを登録</text>
+    <text class="sm" x="26" y="274">（位置はVer.2のGNSSで取る）</text>
+
+    <!-- phones -->
+    <rect class="car" x="16" y="296" width="238" height="58" rx="5"/>
+    <text class="lbl" x="26" y="314">スマホ組（2台）EcoLoggerアプリ</text>
+    <text class="sm" x="26" y="330">スマホのGNSS・加速度で記録・送信</text>
+    <text class="sm" x="26" y="344">ラインはVer.2からQRで受け取る</text>
+
+    <!-- Ver.1 -->
+    <rect class="spare" x="16" y="366" width="238" height="50" rx="5"/>
+    <text class="lbl" x="26" y="384">Ver.1（保険）ESP32</text>
+    <text class="sm" x="26" y="400">SDに記録するだけ。終了はSD_Eject.cmd</text>
+
+    <!-- relay server -->
+    <rect class="net" x="294" y="62" width="176" height="110" rx="5"/>
+    <text class="lbl" x="304" y="80">中継サーバー</text>
+    <text class="sm" x="304" y="95">ecorun-logger-server</text>
+    <text class="sm" x="304" y="110">主・予備を順に試す</text>
+    <text class="sm" x="304" y="125">（自宅のROCK 5B／先輩宅）</text>
+    <text class="sm" x="304" y="140">受けた値を保存し、</text>
+    <text class="sm" x="304" y="153">ピットの画面とPodiumへ配る</text>
+
+    <!-- podium -->
+    <rect class="spare" x="294" y="212" width="176" height="52" rx="5"/>
+    <text class="lbl" x="304" y="230">Podium（保険）</text>
+    <text class="sm" x="304" y="246">サーバーに全部つながらない</text>
+    <text class="sm" x="304" y="258">ときだけ車から直接</text>
+
+    <!-- discord -->
+    <rect class="net" x="294" y="290" width="176" height="62" rx="5"/>
+    <text class="lbl" x="304" y="308">Discord（音声）</text>
+    <text class="sm" x="304" y="324">中継Botがサーバーの音声と</text>
+    <text class="sm" x="304" y="337">ボイスチャンネルをつなぐ</text>
+
+    <!-- pit screens -->
+    <rect class="pit" x="510" y="62" width="194" height="96" rx="5"/>
+    <text class="lbl" x="520" y="80">ピットの画面（ブラウザ）</text>
+    <text class="sm" x="520" y="96">地図：3台の位置・ライン</text>
+    <text class="sm" x="520" y="110">Grafana：周回・経過/残り時間・</text>
+    <text class="sm" x="520" y="123">速度・通過時刻・加速度など</text>
+    <text class="sm" x="520" y="139">止まったら予備の画面へ</text>
+
+    <rect class="pit" x="510" y="290" width="194" height="62" rx="5"/>
+    <text class="lbl" x="520" y="308">ピットの通話</text>
+    <text class="sm" x="520" y="324">Discordで話す（ピット同士も）</text>
+    <text class="sm" x="520" y="337">ドライバーへはBot経由で届く</text>
+
+    <rect class="pit" x="510" y="364" width="194" height="52" rx="5"/>
+    <text class="lbl" x="520" y="382">回収用PC</text>
+    <text class="sm" x="520" y="398">Collect-Logs.cmd：SD・本体・</text>
+    <text class="sm" x="520" y="410">スマホのログを走行ごとに集める</text>
+
+    <!-- edges -->
+    <path d="M254,100 L294,100" marker-end="url(#a)"/>
+    <text class="edge" x="258" y="94">LTE</text>
+    <path class="dash" d="M254,150 C278,150 278,232 294,232" marker-end="url(#a)"/>
+    <path d="M254,188 C282,188 280,318 294,318" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text class="edge" x="258" y="182">声（LTE・サーバー経由）</text>
+    <path d="M254,325 C286,325 270,160 294,160" marker-end="url(#a)"/>
+    <text class="edge" x="258" y="340">LTE</text>
+    <path d="M470,110 L510,110" marker-end="url(#a)"/>
+    <path class="dash" d="M382,172 L382,212" marker-end="url(#a)"/>
+    <text class="edge" x="386" y="196">中継</text>
+    <path d="M470,321 L510,321" marker-start="url(#a)" marker-end="url(#a)"/>
+    <path class="dash" d="M254,404 L496,404 C503,404 503,392 510,392" marker-end="url(#a)"/>
+    <text class="edge" x="300" y="398">USB・カードリーダー（走行後）</text>
+    <path d="M110,226 L110,200" marker-start="url(#a)" marker-end="url(#a)"/>
+    <text class="edge" x="116" y="217">Wi-Fi（テザリング）</text>
+  </svg>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--car)"></i>車・現地の機材</span>
+    <span><i class="sw" style="background:var(--net)"></i>インターネット上</span>
+    <span><i class="sw" style="background:var(--pit)"></i>ピット</span>
+    <span><i class="sw" style="background:var(--spare);border-style:dashed"></i>保険（ふだんは使わない）</span>
+    <span>点線の矢印：必要なときだけ</span>
+  </div>
+</section>
+
+<section>
+  <h2>覚えておくこと</h2>
+  <ul>
+    <li><b>記録は車の中で完結する</b>。Ver.2はmicroSDと本体(eMMC)の2か所、Ver.1とスマホもそれぞれ本体に記録する。LTE・サーバー・ピット画面が止まっても、記録は止まらない。</li>
+    <li><b>ピット画面は「見るためのもの」</b>。車 → LTE → 中継サーバー → ブラウザ、と届くので、<b>数秒（多いと10秒近く）遅れる</b>。トンネルや山陰で一時的に途切れても、自動でつなぎ直す。</li>
+    <li><b>電源ONから最初にピットに出るまで約1分半〜2分</b>（UNO Qの起動とLTEの接続）。その間は電源を抜かない。</li>
+    <li><b>ラップの基準はVer.2の1か所</b>。コースウォークでVer.2に3本のライン（スタート・コントロール・ゴール）を登録し、スマホ2台はQRで同じラインを受け取る。</li>
+    <li><b>音声は記録・テレメトリより下</b>。LTEが混んだら音声が先に止まる作り。音声を切ってもピット画面は変わらない。</li>
+    <li><b>通信量</b>：Ver.2のテレメトリで1時間あたり約4MB。SIMは上限を超えると従量課金（止まらない）。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>どこに何があるか</h2>
+  <table>
+    <tr><th>もの</th><th>中身</th><th>置き場所・担当</th></tr>
+    <tr><td>Ver.2のソフト</td><td>EcoCapture-Web（設定・記録・ラップ・送信・音声）、STM32ファーム</td><td>リポジトリの<b>EcoCapture-Web\</b>、<b>firmware\ecologger_v2\</b>。STM32と回路はLintarohさん</td></tr>
+    <tr><td>スマホのアプリ</td><td>EcoLogger（Android）</td><td><b>android-logger\</b></td></tr>
+    <tr><td>中継サーバー</td><td>ecorun-logger-server（チームのリポジトリ）</td><td>作者はMaruo.Sさん。自宅のROCK 5Bにも同じものが動いている</td></tr>
+    <tr><td>ピット画面</td><td>Grafana・地図ページ・Discord Bot</td><td>自宅のROCK 5B（<b>tools\home_telemetry\</b>ほか）</td></tr>
+    <tr><td>回収したログ</td><td>走行ごとのCSV・SDの元データ・スマホのログ・電波の記録</td><td>PCの<b>drive_logs\日付\</b>（位置を含むのでGitには入れない）</td></tr>
+    <tr><td>手順書</td><td>当日手順書・全体の流れ・困ったときの手順集</td><td>リポジトリ直下のHTML（A4で印刷）</td></tr>
+  </table>
+</section>
+
+</div>
+</body>
+</html>

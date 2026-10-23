@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>困ったときの手順集</title>
+<!-- ロガー担当（Ver.2を触れる人）向け。当日手順書の「困ったとき」より踏み込んだ対処と、UNO Qを入れ替えたときの手順。
+     根拠：EcoCapture-Web/README.md・LTE_PODIUM.md・flash-mcu.sh・setup-root.sh・memory の運用記録。
+     ブラウザで開いて A4・縦で印刷する（2ページ）。URL・合言葉・パスワードは書かない。 -->
+<style>
+  :root { --ink: #1a1a1a; --sub: #555; --line: #999; --accent: #0e6a87; --warn: #b5453f; --bg: #fff; --box: #f2f6f8; --code: #eef0f2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e; --code: #262b2f; } }
+  :root[data-theme="dark"] { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #6cc0dc; --warn: #f08a84; --bg: #161616; --box: #222a2e; --code: #262b2f; }
+  @page { size: A4 portrait; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 8.4pt/1.45 "Yu Gothic UI", "Meiryo", sans-serif; }
+  .page { max-width: 192mm; margin: 0 auto; padding: 16px; }
+  @media print { .page { padding: 0; } body { background: #fff; color: #000; } }
+  header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 2px; margin-bottom: 6px; gap: 8px; flex-wrap: wrap; }
+  h1 { font-size: 13pt; margin: 0; }
+  header span { color: var(--sub); font-size: 7.6pt; }
+  section { break-inside: avoid; margin-bottom: 6px; }
+  h2 { font-size: 9.6pt; margin: 0 0 3px; padding: 1px 5px; background: var(--accent); color: #fff; border-radius: 2px; }
+  h3 { font-size: 8.8pt; margin: 4px 0 1px; color: var(--accent); }
+  ol, ul { margin: 0; padding-left: 15px; }
+  li { margin: 0 0 1px; }
+  b { color: var(--accent); }
+  .warn { color: var(--warn); font-weight: bold; }
+  .who { color: var(--sub); font-size: 7.6pt; }
+  code { font: 7.8pt/1.35 Consolas, "MS Gothic", monospace; background: var(--code); padding: 0 2px; border-radius: 2px; word-break: break-all; }
+  table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+  th, td { border: 1px solid var(--line); padding: 2px 4px; vertical-align: top; text-align: left; }
+  th { background: var(--box); white-space: nowrap; }
+  td:first-child { width: 27%; }
+  .box { background: var(--box); padding: 4px 6px; border-radius: 2px; margin-bottom: 4px; }
+  .break { break-before: page; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>EcoLogger 困ったときの手順集（ロガー担当向け）</h1>
+  <span>Ver.2（UNO Q）が中心 ／ チームメンバーは当日手順書の6章だけでよい</span>
+</header>
+
+<div class="box">
+  <b>大原則</b>：記録は電源ONで勝手に始まり、画面・LTE・サーバーとは関係なく続く。<b>迷ったら触らずに走らせる</b>。
+  現地でソフトは直さない。直すのは設定と、電源の入れ直しまで。<span class="warn">SDの消去・フォーマット、本体ログの削除はしない。</span>
+</div>
+
+<section>
+  <h2>1. UNO Qに入る</h2>
+  <table>
+    <tr><th>経路</th><th>やり方</th><th>注意</th></tr>
+    <tr><td>USB（adb）</td><td>UNO QのUSB-CをPCへ<b>直接</b>。<code>%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe shell</code><br>管理画面は<b>Open-EcoCapture-Web.ps1</b>（EcoCapture-Web\）で <code>127.0.0.1:8080</code></td><td><span class="warn">ドック経由だとadbは使えない</span>。USBが唯一の電源なら、抜くと電源も切れる</td></tr>
+    <tr><td>テザリング（ssh）</td><td>PCとUNO Qを同じテザリングにつなぎ <code>ssh unoq</code></td><td>学校などのWi-Fiでは<code>uno-q.local</code>が引けないことがある</td></tr>
+    <tr><td>スマホ</td><td>コースウォーク画面（ラインの登録・周回数）だけ</td><td>管理画面はスマホからは開けない作り（安全のため）</td></tr>
+  </table>
+  <div class="who">以下の<code>~/</code>や<code>curl</code>・<code>docker</code>で始まるコマンドは、UNO Qの中（adb shell／ssh）で打つ。</div>
+</section>
+
+<section>
+  <h2>2. 症状ごとの対処</h2>
+  <table>
+    <tr><th>症状</th><th>まずやること → だめなら</th></tr>
+    <tr><td>記録が始まらない（RECが出ない）</td><td>電源を完全に抜いて入れ直す（1回）→ SDを抜いて起動（本体だけに記録）→ それでもだめならVer.1・スマホ組に任せる</td></tr>
+    <tr><td>「● REC（本体のみ）」</td><td>SDが認識されていない。電源を入れ直す。直らなくても本体(eMMC)に記録中なので走ってよい</td></tr>
+    <tr><td>管理画面の値が止まる・「MCU未接続」</td><td><b>30秒待つ</b>（監視役が自動で「Web停止→ルーター再起動→STM32リセット→Web起動」をする）。戻らなければ <code>sh ~/EcoCapture-Web/flash-mcu.sh --recover</code>。それでもだめならLinuxごと電源の入れ直し</td></tr>
+    <tr><td>管理画面が開かない（MCUは動いている）</td><td><code>docker restart ecocapture-web</code>。原因を見るなら <code>docker logs --tail 50 ecocapture-web</code></td></tr>
+    <tr><td>ピット画面に出ない</td><td>①電源ONから2分待ったか ②送信設定が「LTEだけ」・送信ONか（管理画面のLTE / Podium）③送信の記録 <code>curl -s 127.0.0.1:8080/api/podium/events</code> の最後の<code>reason</code>を見る ④予備の画面・Podiumで出ているか。<b>記録には影響しない</b></td></tr>
+    <tr><td>LTEにつながらない（<code>Network registration timeout</code>）</td><td>トンネル・建物の中など電波が弱い所では登録に2分以上かかることがある。自動で再試行するので待つ。アンテナのコネクタを押し込む。続くならSIMの残高・SORACOMの状態を見る</td></tr>
+    <tr><td>送信が途切れる（<code>Relay not responding</code>など）</td><td>自動でつなぎ直す（数十秒〜1分強）。何度も続くなら、サーバー側（自宅のROCK 5B／先輩のサーバー）が動いているか確かめる</td></tr>
+    <tr><td>声が聞こえない・雑音・途切れる</td><td>管理画面で「受ける」「送る」をOFF。LTEが混むと音声は自動で止まる作り（テレメトリ優先）なので、それ自体は異常ではない</td></tr>
+    <tr><td>周回がおかしい</td><td>その場で直さない。紙の記録表を正にし、走行後にCSVの軌跡から数え直す。ラインを登録し直したら、スマホにQRを読ませ直す</td></tr>
+    <tr><td>測位しない</td><td>GNSSアンテナが空を向いているか、コネクタ。起動直後は数分かかる。屋内・車庫の中では測位しない</td></tr>
+    <tr><td>回収で「UNO Qに接続できません」</td><td>ドックを外してUSBで直結し、再実行（SD分は回収済み）</td></tr>
+    <tr><td>Ver.1 ERR点灯</td><td>電源の入れ直し。終了は必ず<b>SD_Eject.cmd</b>→<code>safeToRemove: true</code>を見てから電源OFF</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>3. やってはいけないこと</h2>
+  <ul>
+    <li><span class="warn">STM32のファームを<code>flash-mcu.sh</code>以外で書き込まない</span>。ルーターが動いたまま書くとLinux側の通信路（ttyHS1）が固まり、Linuxの再起動まで戻らない。</li>
+    <li><span class="warn">記録中にSDを抜かない</span>。電源OFFを確かめてから抜く。</li>
+    <li>GPIOの<code>gpioget</code>をSTM32の制御線（BOOT0・NRST・RDY）に使わない（出力が入力に切り替わってしまう）。</li>
+    <li>試していない設定（Wi-Fi⇔LTEの「自動」、試験で通っていないサーバーのURL）を本番で入れない。</li>
+  </ul>
+</section>
+
+<section class="break">
+  <h2>4. 状態を見るコマンド（UNO Qの中で）</h2>
+  <table>
+    <tr><th>見たいもの</th><th>コマンド</th></tr>
+    <tr><td>MCU・SD・IMU・GNSS</td><td><code>curl -s 127.0.0.1:8080/api/status</code>（<code>connected</code>・<code>sd_logging</code>・<code>gnss_errors</code>）</td></tr>
+    <tr><td>送信の状態・電波</td><td><code>curl -s 127.0.0.1:8080/api/podium</code>（<code>state</code>・<code>frames</code>・<code>reconnects</code>・<code>radio</code>のRSRP/SINR）</td></tr>
+    <tr><td>接続・切断の履歴</td><td><code>curl -s 127.0.0.1:8080/api/podium/events</code>（接続までの段階ごとの秒数・切れた理由）</td></tr>
+    <tr><td>サービス</td><td><code>systemctl is-active arduino-router ecocapture-mcu-supervisor</code> ／ <code>docker ps</code></td></tr>
+    <tr><td>アンテナ・置き場所の比較</td><td><code>python3 ~/antenna_compare/antenna_compare.py &lt;名前&gt; 180</code>（3分。RSRP -100dBm前後・SINR 10dB以上なら良好）</td></tr>
+  </table>
+  <div class="who">電波の目安（自宅の屋内、2026-10-22）：RSRP -100〜-104dBm、SINR 13〜15dB。4種類のアンテナに差は無く、つながる基地局で8dBほど変わった。</div>
+</section>
+
+<section>
+  <h2>5. UNO Qを入れ替えるとき（2026-10-21に実際に行った手順）</h2>
+  <ol>
+    <li><b>古い方から写す</b>（古い方が起動するなら）：<code>ecologger_v2</code>・<code>ecologger_v2_libraries</code>（MsgPackなど）・稼働中のファーム（<code>ecologger_v2_wdog_20261009.bin</code>）・<code>EcoCapture-Web</code>・データの設定（<code>ecocapture-v2-data</code>の<code>config.json</code>・<code>lap.json</code>・<code>field_token</code>・<code>maps</code>・<code>private</code>。<b>logsは不要</b>）・<code>rnnoise_v011</code>・<code>audio_check</code>。PC経由で <code>tar</code> → <code>adb pull</code> → <code>adb push</code>。</li>
+    <li><b>新しい方でWebを作る</b>：<code>cd ~/EcoCapture-Web &amp;&amp; sh deploy.sh</code>（テスト込み、root不要）。音声のテストはnumpyが要るので、ネットにつなぐまでは飛ばしてよい。</li>
+    <li><b>rootの作業</b>：<code>sudo sh ~/EcoCapture-Web/setup-root.sh "&lt;今のUTC時刻&gt;" ~/ecologger_v2_wdog_20261009.bin</code>。時刻合わせ・ルーター921600bps・起動サービス・監視役・ファーム書き込みまで一度に行う。<br>
+      <span class="warn">新品は最初にパスワードの変更を求められる</span>（<code>New password:</code>）。決めたパスワードは担当者で控える（紙に書かない）。</li>
+    <li><b>確かめる</b>：<code>/api/status</code>の<code>connected: true</code>・<code>sd_logging: 1</code>、LTEで1回送る（<code>antenna_compare.py</code>でよい）。</li>
+    <li>まだ入っていなければ：音声エージェント（<code>install-voice-agent.sh</code>、ネット接続が要る）、Wi-Fiの設定、<code>ssh unoq</code>用の鍵。</li>
+  </ol>
+  <div class="who">新しいUNO Qは時計用の電池が無く、電源を切ると時計が戻る。記録の時刻はGNSSのUTCも別に残っているので、走行の解析には困らない。</div>
+</section>
+
+<section>
+  <h2>6. ソフトを更新するとき（大会中はしない）</h2>
+  <ul>
+    <li>PCから：<code>powershell -ExecutionPolicy Bypass -File .\EcoCapture-Web\Update-UNOQ.ps1</code>（ファームも書くなら <code>-Firmware</code>）。<b>事前に記録を停止</b>。</li>
+    <li>UNO Qの中で：Webは<code>deploy.sh</code>、ファームは<code>build-mcu.sh</code>（ビルド→<code>flash-mcu.sh</code>）。</li>
+    <li>上書きの前に、UNO Q上のソースは自動で退避される。更新したら<b>コミットの番号</b>を控える（何が入っているか分からなくなるのを防ぐ）。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>7. 相談先</h2>
+  <table>
+    <tr><th>内容</th><th>人</th></tr>
+    <tr><td>回路・STM32ファーム・UNO QのLinux側の作り</td><td>Lintarohさん</td></tr>
+    <tr><td>中継サーバー（ecorun-logger-server）・先輩宅の予備サーバー</td><td>Maruo.Sさん</td></tr>
+    <tr><td>それ以外（EcoCapture-Web・アプリ・自宅サーバー・手順）</td><td>ロガー担当（このリポジトリ）</td></tr>
+  </table>
+</section>
+
+</div>
+</body>
+</html>
