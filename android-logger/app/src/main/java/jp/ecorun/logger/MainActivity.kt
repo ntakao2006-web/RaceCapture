@@ -131,7 +131,10 @@ class MainActivity : Activity() {
         running && Settings(this).loggerConfigured && !Status.fromLogger ->
             "ロガー未接続：スマホのGNSSで計測中（" + LoggerFeed.reason() + "）"
         running && now - noFixSince > 5000 -> "GNSSが測位できていません（空が見える所へ）"
-        running && LoggerFeed.lineId != null && LoggerFeed.lineId != Race.reference?.id ->
+        // Only before the lap timing starts: the logger writes the heading it learns on the first
+        // pass into its lines, which changes its id, and mid-race the lines cannot be re-read anyway.
+        running && LoggerFeed.lineId != null && LoggerFeed.lineId != Race.reference?.id &&
+            Race.values()?.let { it.current == 0 && !it.finished } != false ->
             "ラインがロガー（基準${LoggerFeed.lineId}）と違います：設定でQRを読み直す"
         !running && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ->
             "位置情報の許可がまだです（記録を始めると聞かれます）"
