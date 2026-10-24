@@ -16,9 +16,16 @@
   Laps read "1 / 3" (the old "残り3周" on lap 1 of 3 meant laps not yet completed), and the
   margin is always shown, or a plain warning when the logger/app has sent no limit.
   The browser clock is checked against the server's: the largest (server - browser) seen
-  over the last minute, since a late message can only make that difference look smaller.
+  over the last OFFSET_WINDOW_MS, since a late message can only make that difference look smaller.
   "この画面のデータ" is how old the newest data this page has is (logger -> server -> here);
   it grows when this screen stops getting updates.
+  2026-10-24 night (review by ktrogt): with a one-minute window, a link that stayed ~30 s late
+  for a minute was taken for clock skew, and the elapsed time and the data age read ~30 s
+  small. The window is now 10 minutes (clocks drift by milliseconds in that time), it starts
+  over when the browser's clock is set or the device sleeps (wall minus monotonic time jumps),
+  and "回線" shows how late the newest message came compared with the fastest one in the
+  window (or how long nothing has come). A link that has been slow ever since the page
+  opened cannot be told from skew and still reads small.
 -->
 <style>
   :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --line: #2c3235;
@@ -44,6 +51,8 @@
   td { text-align: right; padding: 1px 0; border-bottom: 1px solid var(--line); }
   #fresh { font-size: 12px; }
   #fresh.stale { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
+  #link { font-size: 12px; color: var(--dim); }
+  #link.slow { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
 </style>
 </head>
 <body>
@@ -65,20 +74,33 @@
     <thead><tr><th>周</th><th>ライン</th><th>通過</th><th>ラップ</th><th>平均</th></tr></thead>
     <tbody id="rows"></tbody>
   </table></div>
-  <div class="row"><span id="fresh"></span></div>
+  <div class="row"><span id="fresh"></span><span id="link"></span></div>
 </div>
 <script>
 const params = new URLSearchParams(location.search);
 const room = params.get('room') || 'home-test';
 const STALE_S = 10;
+const LINK_SLOW_S = 5;           // the bridge sends once a second
+const OFFSET_WINDOW_MS = 600000; // 10 min
 const KIND = { start: 'スタート', control: 'コントロール', goal: 'ゴール' };
 let clock = null;          // live_bridge.py Pace.clock()
 let offsets = [];          // [{at, d}] server minus browser time per message (ms)
+let last = null;           // the newest of them
+let wallMinusMono = null;  // Date.now() - performance.now() at the last message
 let shownPasses = '';
 
+function bestOffset() {
+  return offsets.length ? Math.max(...offsets.map(o => o.d)) : 0;
+}
 function serverNow() {
-  const d = offsets.length ? Math.max(...offsets.map(o => o.d)) : 0;
-  return Date.now() + d;
+  return Date.now() + bestOffset();
+}
+// How late this screen is getting the bridge's messages (s), or null before the first.
+function linkDelay() {
+  if (!last) return null;
+  const late = (bestOffset() - last.d) / 1000;
+  const silent = (Date.now() - last.at) / 1000 - 1;
+  return Math.max(late, silent, 0);
 }
 function mmss(s, tenths) {
   const neg = s < 0; s = Math.abs(s);
@@ -115,8 +137,17 @@ function drawPasses(passes) {
   }));
 }
 
+function drawLink() {
+  const el = document.getElementById('link');
+  const s = linkDelay();
+  if (s == null) { el.textContent = ''; el.className = ''; return; }
+  el.textContent = s > LINK_SLOW_S ? `回線が${Math.round(s)}秒遅れ` : `回線 ${s.toFixed(1)}秒`;
+  el.className = s > LINK_SLOW_S ? 'slow' : '';
+}
+
 function draw() {
   const now = serverNow();
+  drawLink();
   if (!clock) { show('state', `${room}: データなし`); return; }
   const c = clock, limit = c.limit, margin = c.margin || 0;
   const finished = c.start != null && c.end != null;
@@ -164,8 +195,12 @@ function connect() {
     const msg = JSON.parse(ev.data);
     if (!('clock' in msg)) return;
     const at = Date.now();
-    offsets.push({ at, d: msg.now - at });
-    offsets = offsets.filter(o => at - o.at < 60000);
+    const skew = at - performance.now();
+    if (wallMinusMono != null && Math.abs(skew - wallMinusMono) > 1000) offsets = [];
+    wallMinusMono = skew;
+    last = { at, d: msg.now - at };
+    offsets.push(last);
+    offsets = offsets.filter(o => at - o.at < OFFSET_WINDOW_MS);
     clock = msg.clock;
   };
 }
