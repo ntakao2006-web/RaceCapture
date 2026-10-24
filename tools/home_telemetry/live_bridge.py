@@ -16,8 +16,9 @@ This process follows those files and
        - Grafana Live (channel stream/ecorun/<room>, Speed only) when a token file exists.
      A page names the channels it draws (`&fields=`), so a phone at the pit gets ~60 bytes a
      row instead of the whole ~650-byte row;
-  3. sends the race clock (start time, limits) once a second to the clock page, which runs
-     the clock on the browser's own time so it keeps going when the pit's link stalls.
+  3. sends the race clock (start time, limits, laps and line passes) once a second to the
+     clock page, which runs the clock on the browser's own time so it keeps going when the
+     pit's link stalls.
 It also serves the map page at http://<host>:3002/map?room=<room> (G-G at /gg, the
 clock at /clock), and over the
 same WebSocket
@@ -117,55 +118,100 @@ class Pace:
 
     Adds to each point RaceAvgSpeed (since the start, from RaceTime), LapAvgSpeed (the lap
     being driven, from ElapsedTime) and LastLapAvgSpeed (the lap before), all km/h.
-    A new race (RaceTime going back) or lap (ElapsedTime going back) starts over; a gap in
-    the data longer than MAX_GAP_S is not integrated across."""
+    A new race (RaceTime going back) or lap (ElapsedTime going back) starts over.
+    A gap in the data longer than MAX_GAP_S is bridged with the mean of the speeds on either
+    side (2026-10-24 night: the Super Cub's phone sent almost nothing for 4 minutes, and
+    leaving the gap out read 19.9 km/h for a race run at 25.6 km/h; eco-run speeds are
+    steady enough for this). Gaps beyond MAX_BRIDGE_S are still left out."""
     MAX_GAP_S = 5.0
+    MAX_BRIDGE_S = 900.0
 
     def __init__(self):
         self.last_ts = None
+        self.last_speed = None
         self.race = self.lap = None   # [km, minutes at the start of the integration]
         self.race_min = self.lap_min = None
         self.last_lap_avg = None
         self.count = None
         self.start_ms = None
         self.events = []   # line passes for the timing sheet, taken by Bridge.follow
+        self.passes = []   # this race's line passes, kept for the clock page
         self.latest = {}   # last value of the channels the pit clock shows (TimeLimit/Margin come sparse)
 
     def clock(self):
         """The pit clock (clock.html, 2026-10-24): the start time, not the elapsed time, so the
         browser keeps the clock running on its own when the pit's link stalls. A race is on
-        while RaceTime and ElapsedTime are sent, finished when only RaceTime is (frozen)."""
+        while RaceTime and ElapsedTime are sent, finished when only RaceTime is (frozen).
+        The line passes come along too (2026-10-24 night): Grafana's polled lap panels fell
+        ~30 s behind at Motegi and the pit gave the riders a wrong pace from them. They make
+        `lap_start` (the lap being driven runs on the browser's clock too) and the lap table.
+        `total` is LapCount + LapsLeft: both the logger and the app count LapsLeft as the
+        laps not yet completed, so it read 3 on lap 1 of 3 (the pit expected 2)."""
         on = self.race_min is not None and self.start_ms is not None
         finished = on and self.lap_min is None
+        count, left = self.latest.get('LapCount'), self.latest.get('LapsLeft')
+        passes = self.passes if on else []
         return {'start': self.start_ms if on else None,
                 'end': round(self.start_ms + self.race_min * 60000) if finished else None,
                 'limit': self.latest.get('TimeLimit'), 'margin': self.latest.get('Margin'),
-                'lap': self.latest.get('CurrentLap'), 'left': self.latest.get('LapsLeft'),
+                'lap': self.latest.get('CurrentLap'), 'count': count,
+                'total': None if count is None or left is None else round(count + left),
+                # From ElapsedTime rather than the last pass, so it holds after a bridge restart
+                'lap_start': round(self.last_ts - self.lap_min * 60000) if on and not finished else None,
+                'last_lap': None if self.latest.get('LapTime') is None else round(self.latest['LapTime'] * 60, 1),
+                'passes': passes,
+                'lap_avg': self.latest.get('LapAvgSpeed') if on and not finished else None,
+                'race_avg': self.latest.get('RaceAvgSpeed') if on else None,
                 'data_t': self.last_ts}
+
+    @staticmethod
+    def whole(acc):
+        """Integrated from the start of its race or lap: one picked up midway (the bridge
+        restarted, or a test replay) would divide part of the distance by the whole time."""
+        return acc is not None and acc[1] < 0.1
 
     def event(self, lap, kind, at_ms, lap_s=None, avg=None):
         """One line pass: lap 0 is the start; kind start/control/goal."""
         self.events.append({'lap': lap, 'kind': kind, 'at_ms': int(at_ms), 'lap_s': lap_s, 'avg': avg,
                             'race': time.strftime('%H:%M', time.localtime(self.start_ms / 1000))})
+        if kind == 'start':
+            self.passes = []
+        self.passes.append({'n': lap, 'k': kind, 't': int(at_ms),
+                            's': None if lap_s is None else round(lap_s, 1),
+                            'v': None if avg is None else round(avg, 1)})
 
     def add(self, ts_ms, fields):
         speed = fields.get('Speed', fields.get('GPSSpeed'))
         race_min, lap_min = fields.get('RaceTime'), fields.get('ElapsedTime')
-        for name in ('TimeLimit', 'Margin', 'CurrentLap', 'LapsLeft'):
+        for name in ('TimeLimit', 'Margin', 'CurrentLap', 'LapsLeft', 'LapCount', 'LapTime'):
             if name in fields:
                 self.latest[name] = fields[name]
         dt = (ts_ms - self.last_ts) / 1000 if self.last_ts is not None else None
         self.last_ts = ts_ms
-        step = speed * dt / 3600 if speed is not None and dt is not None and 0 < dt <= self.MAX_GAP_S else 0.0
+        step = 0.0
+        if speed is not None and dt is not None and 0 < dt <= self.MAX_GAP_S:
+            step = speed * dt / 3600
+        elif speed is not None and self.last_speed is not None and dt is not None and 0 < dt <= self.MAX_BRIDGE_S:
+            step = (speed + self.last_speed) / 2 * dt / 3600
+        if speed is not None:
+            self.last_speed = speed
         # A completed lap (or the goal): the pass time is when the new lap's clock started,
         # or for the goal, the start plus the final race time. Checked before the lap
         # integration below starts over, so the finished lap's distance is still there.
+        # A step that spans the pass (a gap in the data around the line) is split at the
+        # pass time: the part before ends this lap, the part after starts the next.
         count = fields.get('LapCount')
+        after, lap_done = 0.0, False
         if count is not None and self.count is not None and count > self.count and self.start_ms is not None:
             finished = race_min is not None and lap_min is None
             at = self.start_ms + race_min * 60000 if finished else ts_ms - (lap_min or 0) * 60000
+            if step and dt:
+                after = step * min(1.0, max(0.0, (ts_ms - at) / 1000 / dt))
+            if self.lap is not None:
+                self.lap[0] += step - after
+                lap_done = True
             lap_s = fields['LapTime'] * 60 if fields.get('LapTime') is not None else None
-            avg = self.lap[0] / (lap_s / 3600) if self.lap is not None and lap_s else None
+            avg = self.lap[0] / (lap_s / 3600) if self.whole(self.lap) and lap_s else None
             self.event(int(count), 'goal' if finished else 'control', at, lap_s, avg)
             if avg is not None:
                 self.last_lap_avg = avg   # the goal lap too, which has no next lap to start
@@ -184,15 +230,16 @@ class Pace:
         if lap_min is None:
             self.lap = None
         elif self.lap is None or self.lap_min is None or lap_min < self.lap_min - 0.05:
-            if self.lap is not None and self.lap_min is not None and self.lap_min > self.lap[1]:
+            if self.whole(self.lap) and self.lap_min is not None and self.lap_min > self.lap[1]:
                 self.last_lap_avg = self.lap[0] / ((self.lap_min - self.lap[1]) / 60)
-            self.lap = [0.0, lap_min]
-        else:
+            self.lap = [after, 0.0] if after else [0.0, lap_min]
+        elif not lap_done:
             self.lap[0] += step
         self.race_min, self.lap_min = race_min, lap_min
         for name, acc, now in (('RaceAvgSpeed', self.race, race_min), ('LapAvgSpeed', self.lap, lap_min)):
-            if acc is not None and now - acc[1] > 0.1:   # 6 s in: too early is only noise
+            if self.whole(acc) and now - acc[1] > 0.1:   # 6 s in: too early is only noise
                 fields[name] = acc[0] / ((now - acc[1]) / 60)
+            self.latest[name] = fields.get(name)
         if self.last_lap_avg is not None and self.race is not None:
             fields['LastLapAvgSpeed'] = self.last_lap_avg
         return fields

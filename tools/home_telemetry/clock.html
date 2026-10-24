@@ -8,23 +8,39 @@
   Race clock for the pit, embedded in Grafana (2026-10-24). At Motegi the pit's phone link
   was so slow that Grafana's polled panels fell ~30 s behind, and the elapsed time with them
   (the team nearly ran out of time). This page gets only the start time and the limits from
-  live_bridge.py (/ws?room=<room>&kind=clock, ~200 bytes a second) and runs the clock on the
-  browser's own time, so it keeps going while the link stalls.
+  live_bridge.py (/ws?room=<room>&kind=clock, a few hundred bytes a second) and runs the clock
+  on the browser's own time, so it keeps going while the link stalls.
+  2026-10-24 night: the lap panels lagged the same way (the pit trusted a lap time ~30 s old
+  and the riders finished just inside the limit), so the laps live here too: the lap being
+  driven runs from its line pass on the browser's clock, and the passes come with the clock.
+  Laps read "1 / 3" (the old "残り3周" on lap 1 of 3 meant laps not yet completed), and the
+  margin is always shown, or a plain warning when the logger/app has sent no limit.
   The browser clock is checked against the server's: the largest (server - browser) seen
   over the last minute, since a late message can only make that difference look smaller.
   "この画面のデータ" is how old the newest data this page has is (logger -> server -> here);
   it grows when this screen stops getting updates.
 -->
 <style>
-  :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --green: #73bf69; --orange: #ff9830; --red: #f2495c; }
+  :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --line: #2c3235;
+    --green: #73bf69; --orange: #ff9830; --red: #f2495c; }
   html, body { margin: 0; height: 100%; background: transparent; color: var(--ink);
     font: 13px/1.25 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
-  #wrap { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 2px 8px; box-sizing: border-box; }
+  #wrap { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 4px; padding: 4px 8px; box-sizing: border-box; }
   .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-variant-numeric: tabular-nums; }
+  .cell { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; border-top: 1px solid var(--line); padding-top: 2px; }
   .label { color: var(--dim); white-space: nowrap; }
-  #state { color: var(--dim); }
-  #elapsed { font-size: clamp(22px, 9vw, 46px); font-weight: 600; }
-  #target, #limit { font-size: clamp(16px, 5.5vw, 28px); font-weight: 600; }
+  #state { font-size: clamp(14px, 4vw, 20px); color: var(--dim); }
+  #laps { font-size: clamp(22px, 8vw, 40px); font-weight: 700; }
+  #elapsed { font-size: clamp(26px, 10vw, 52px); font-weight: 700; }
+  .big { font-size: clamp(16px, 5.5vw, 28px); font-weight: 600; }
+  #margin { font-size: clamp(13px, 3.6vw, 16px); }
+  #margin.warn { color: #000; background: var(--orange); border-radius: 4px; padding: 2px 6px; }
+  #passes { flex: 1; min-height: 0; overflow: auto; border-top: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: clamp(12px, 3.4vw, 15px); }
+  th { color: var(--dim); font-weight: normal; text-align: right; position: sticky; top: 0; background: #181b1f; }
+  th:first-child, td:first-child { text-align: left; }
+  td { text-align: right; padding: 1px 0; border-bottom: 1px solid var(--line); }
   #fresh { font-size: 12px; }
   #fresh.stale { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
 </style>
@@ -33,16 +49,31 @@
 <div id="wrap">
   <div class="row"><span id="state">接続中…</span><span id="laps"></span></div>
   <div class="row"><span class="label">経過</span><span id="elapsed">--:--</span></div>
-  <div class="row"><span class="label">目標まで</span><span id="target">—</span></div>
-  <div class="row"><span class="label">規定まで</span><span id="limit">—</span></div>
+  <div class="pair">
+    <div class="cell"><span class="label">規定まで</span><span id="limit" class="big">—</span></div>
+    <div class="cell"><span class="label">目標まで</span><span id="target" class="big">—</span></div>
+  </div>
+  <div class="row"><span id="margin"></span></div>
+  <div class="pair">
+    <div class="cell"><span class="label">この周</span><span id="lapnow" class="big">—</span></div>
+    <div class="cell"><span class="label">前の周</span><span id="lastlap" class="big">—</span></div>
+    <div class="cell"><span class="label">この周の平均</span><span id="lapavg">—</span></div>
+    <div class="cell"><span class="label">スタートからの平均</span><span id="raceavg">—</span></div>
+  </div>
+  <div id="passes"><table>
+    <thead><tr><th>周</th><th>ライン</th><th>通過</th><th>ラップ</th><th>平均</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
   <div class="row"><span id="fresh"></span></div>
 </div>
 <script>
 const params = new URLSearchParams(location.search);
 const room = params.get('room') || 'home-test';
 const STALE_S = 10;
-let clock = null;          // {start, end, limit, margin, lap, left, data_t} from live_bridge.py
+const KIND = { start: 'スタート', control: 'コントロール', goal: 'ゴール' };
+let clock = null;          // live_bridge.py Pace.clock()
 let offsets = [];          // [{at, d}] server minus browser time per message (ms)
+let shownPasses = '';
 
 function serverNow() {
   const d = offsets.length ? Math.max(...offsets.map(o => o.d)) : 0;
@@ -54,12 +85,33 @@ function mmss(s, tenths) {
   const sec = tenths ? r.toFixed(1).padStart(4, '0') : String(Math.floor(r)).padStart(2, '0');
   return (neg ? '−' : '') + m + ':' + sec;
 }
+function hms(ms) {
+  return new Date(ms).toLocaleTimeString('ja-JP', { hour12: false });
+}
+function kmh(v) { return v == null ? '—' : v.toFixed(1) + ' km/h'; }
 function colorFor(left) {
   return left < 300 ? 'var(--red)' : left < 900 ? 'var(--orange)' : 'var(--green)';
 }
 function show(id, text, color) {
   const el = document.getElementById(id);
   el.textContent = text; el.style.color = color || '';
+}
+
+function drawPasses(passes) {
+  const key = JSON.stringify(passes);
+  if (key === shownPasses) return;
+  shownPasses = key;
+  const body = document.getElementById('rows');
+  body.replaceChildren(...passes.slice().reverse().map(p => {
+    const tr = document.createElement('tr');
+    for (const text of [p.n === 0 ? '—' : p.n, KIND[p.k] || p.k, hms(p.t),
+                        p.s == null ? '—' : mmss(p.s, true), p.v == null ? '—' : p.v.toFixed(1)]) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      tr.appendChild(td);
+    }
+    return tr;
+  }));
 }
 
 function draw() {
@@ -69,16 +121,29 @@ function draw() {
   const finished = c.start != null && c.end != null;
   const elapsed = c.start == null ? null : ((finished ? c.end : now) - c.start) / 1000;
   show('state', c.start == null ? 'スタート前' : finished ? 'ゴール' : '走行中');
-  show('laps', c.lap == null ? '' : finished ? `${c.lap}周` : `${c.lap}周目` + (c.left != null ? `・残り${c.left}周` : ''));
+  const of = c.total != null ? ` / ${c.total}` : '';
+  show('laps', finished ? (c.count != null ? `${c.count}${of}` : '') : c.lap != null ? `${c.lap}${of}` : '');
   show('elapsed', elapsed == null ? '--:--' : mmss(elapsed, finished));
+  const m = document.getElementById('margin');
   if (limit == null) {
-    show('target', 'ロガーに規定時間なし', 'var(--dim)'); show('limit', '—');
+    show('limit', '—'); show('target', '—');
+    m.textContent = '規定時間・余裕がまだ届いていません（ドライバーのアプリで大会の設定をロック／Ver.2は記録中か確認）';
+    m.className = 'warn';
   } else {
     const left = limit - (elapsed || 0);
     show('limit', mmss(left, finished), colorFor(left));
-    if (margin > 0) show('target', mmss(left - margin, finished) + `（余裕${Math.round(margin)}秒）`, colorFor(left - margin));
-    else show('target', '—', 'var(--dim)');
+    show('target', margin > 0 ? mmss(left - margin, finished) : '—', margin > 0 ? colorFor(left - margin) : 'var(--dim)');
+    m.textContent = `規定 ${mmss(limit, true)}　余裕 ${Math.round(margin)}秒` + (margin > 0 ? '（目標まで＝規定まで−余裕）' : '');
+    m.className = '';
   }
+  const passes = c.passes || [];
+  const last = passes.length ? passes[passes.length - 1] : null;
+  show('lapnow', c.lap_start != null ? mmss((now - c.lap_start) / 1000, false) : '—');
+  const lastLap = last && last.s != null ? last.s : c.last_lap;
+  show('lastlap', lastLap != null && lastLap > 0 ? mmss(lastLap, true) : '—');
+  show('lapavg', kmh(c.lap_avg));
+  show('raceavg', kmh(c.race_avg));
+  drawPasses(passes);
   const fresh = document.getElementById('fresh');
   if (c.data_t == null) { fresh.textContent = ''; fresh.className = ''; return; }
   const age = (now - c.data_t) / 1000;

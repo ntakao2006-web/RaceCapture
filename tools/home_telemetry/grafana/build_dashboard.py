@@ -2,11 +2,12 @@
 
   python build_dashboard.py      -> rewrites ecorun-live.json next to this file
 
-Top: lap, the race clock (clock.html: elapsed and time left, run on the browser's clock),
-average speeds, speed. Middle: map and the G-G circle (gg.html), side by side, both
-served by live_bridge.py. Then the line passes for the timing sheet (start / control /
-goal times, from live_bridge.py's Pace), and a collapsed row with the speed graph and
-every channel (no queries until opened: the pit's link at Motegi was slow). The map panel keeps
+Top: the race clock (clock.html: laps "1 / 3", elapsed and time left, margin, the lap
+being driven, the line passes and averages, run on the browser's clock) beside the map,
+both pushed by live_bridge.py. Then speed and the data-quality numbers, and a collapsed
+row with the old polled lap panels, the line passes kept 24 h, the speed graph and every
+channel (no queries until opened: the pit's link at Motegi was slow). No G-G circle
+(2026-10-24 night: eco-run does not need it; gg.html is still served). The map panel keeps
 its HTML from the previous ecorun-live.json. No talk panel and no best lap
 (2026-10-23: the pit talks on Discord, and eco-run is not about the fastest lap).
 """
@@ -88,64 +89,49 @@ def build(old):
 
     panels = []
     y = 0
-    # --- top: the numbers the pit reads first --------------------------------
-    # The elapsed and remaining time are a clock page, not polled panels (2026-10-24): at
-    # Motegi the pit's link was so slow that these panels fell ~30 s behind and the team
-    # nearly ran out of time. The page gets the start time once and runs on the browser's
-    # clock. The time limit and margin still come from the logger (or the phone app).
-    panels += [
-        stat('周回', [target(last('CurrentLap'), 'A', '走行中'), target(last('LapsLeft'), 'B', '残り')],
-             pos(0, y, 5, 6), decimals=0, description='走行中の周（スタートから最初のコントロールまでが1周目）と残り周回（規定周回数を入れたとき）'),
-        {'type': 'text', 'title': '経過・残り時間', 'gridPos': pos(5, y, 8, 6),
-         'description': 'スタート時刻だけを受け取り、この端末の時計で進める（回線が詰まっても止まらない）。'
-                        '規定まで＝規定時間−経過。目標まで＝さらに余裕だけ早くゴールする時刻まで。5分を切ると赤。'
-                        '規定時間・余裕はロガー（二輪はアプリ）から届いたもの。'
-                        '一番下は、この画面が持っている最新データの古さ（ロガー→サーバー→この画面）。10秒を超えると赤',
-         'options': {'mode': 'html', 'content':
-                     '<iframe src="/live/clock?room=$room" '
-                     'style="width:100%;height:100%;border:0;display:block"></iframe>'}},
-        stat('平均速度（スタートから）', [target(last('RaceAvgSpeed'))], pos(13, y, 4, 6), unit='velocitykmh', decimals=1,
-             description='自宅サーバーで速度を時間で積算して出した値（live_bridge.py）'),
-        stat('この周の平均 ／ 前の周', [target(last('LapAvgSpeed'), 'A', 'この周'), target(last('LastLapAvgSpeed'), 'B', '前の周')],
-             pos(17, y, 4, 6), unit='velocitykmh', decimals=1),
-    ]
-    live_speed = dict(live_speed, title='速度', gridPos=pos(21, y, 3, 6))
+    # --- top: the race clock and the map, both pushed (2026-10-24 night) ------
+    # At Motegi the pit's phone link was so slow that polled panels fell ~30 s behind: first
+    # the elapsed time (the team nearly ran out of time), then the lap times the pit used to
+    # pace the riders. The clock page now carries the laps, the line passes and the margin
+    # too, and runs on the browser's clock. The G-G circle is gone (eco-run does not need it)
+    # and the lap / average panels moved into the collapsed row, so fewer queries share the link.
+    panels.append({'type': 'text', 'title': '周回・時間（この端末の時計で進む）', 'gridPos': pos(0, y, 14, 17),
+                   'description': 'スタート時刻と各ラインの通過だけを受け取り、この端末の時計で進める（回線が詰まっても止まらない）。'
+                                  '周回は「走行中の周 / 規定周回数」。規定まで＝規定時間−経過。目標まで＝さらに余裕だけ早くゴールする時刻まで。'
+                                  '5分を切ると赤。規定時間・余裕はロガー（二輪はアプリ）から届いたもの。'
+                                  'この周＝最後のライン通過からの時間。平均速度はサーバーで速度を積算した値。'
+                                  '一番下は、この画面が持っている最新データの古さ（ロガー→サーバー→この画面）。10秒を超えると赤',
+                   'options': {'mode': 'html', 'content':
+                               '<iframe src="/live/clock?room=$room" '
+                               'style="width:100%;height:100%;border:0;display:block"></iframe>'}})
+    panels.append(dict(map_panel, title='', gridPos=pos(14, y, 10, 17)))
+    y += 17
+    # --- second row: speed and whether the data is good (polled every 5 s is fine here) --
+    live_speed = dict(live_speed, title='速度', gridPos=pos(0, y, 4, 4))
     live_speed['options'] = dict(live_speed['options'], graphMode='none')
-    panels.append(live_speed)
-    y += 6
-    # --- second row: lap times and whether the data is good ------------------
     panels += [
-        stat('前回ラップ', [target(last('LapTime', 60))], pos(0, y, 4, 4), unit='dthms'),
-        stat('この周の経過', [target(last('ElapsedTime', 60))], pos(4, y, 4, 4), unit='dthms'),
-        stat('GPS衛星数', [target(last('GPSSats'))], pos(8, y, 3, 4), decimals=0,
+        live_speed,
+        stat('GPS衛星数', [target(last('GPSSats'))], pos(4, y, 4, 4), decimals=0,
              thresholds=[{'color': 'red', 'value': None}, {'color': 'orange', 'value': 6}, {'color': 'green', 'value': 10}],
              color_mode='value'),
-        stat('GNSS精度', [target(last('GPSAcc'))], pos(11, y, 4, 4), unit='lengthm', decimals=1,
+        stat('GNSS精度', [target(last('GPSAcc'))], pos(8, y, 4, 4), unit='lengthm', decimals=1,
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 8}],
              color_mode='value', description='受信機が出す水平精度（大きいほど悪い）。ライン幅の判定にも足している'),
-        oil_temp(pos(15, y, 4, 4)),
+        oil_temp(pos(12, y, 4, 4)),
         # Was "最終受信" (2026-10-24: nobody could tell what it measured). It is how old the
         # newest data on the server is, so it says nothing about a pit screen that has stopped
         # updating; the clock panel shows that.
-        stat('サーバー到着までの遅れ', [target(f'time() - timestamp(ecorun_Interval{{{ROOM}}})')], pos(19, y, 5, 4), unit='s', decimals=1,
+        stat('サーバー到着までの遅れ', [target(f'time() - timestamp(ecorun_Interval{{{ROOM}}})')], pos(16, y, 8, 4), unit='s', decimals=1,
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 10}],
              color_mode='background', no_value='受信なし',
              description='ロガーが測った時刻（GNSS）から、そのデータがサーバーに届いて検索できるようになるまでの秒数。'
-                         'ロガーのLTE・サーバーの遅れで、この画面の回線の遅れは含まない（そちらは「経過・残り時間」の一番下）'),
+                         'ロガーのLTE・サーバーの遅れで、この画面の回線の遅れは含まない（そちらは「周回・時間」の一番下）'),
     ]
     y += 4
-    # --- middle: map and the G-G circle (replaced the acceleration time series,
-    # 2026-10-23: direction matters, and motorsport people read the circle) --------
-    panels.append(dict(map_panel, title='', gridPos=pos(0, y, 14, 14)))
-    panels.append({'type': 'text', 'title': 'G（前後・左右）', 'gridPos': pos(14, y, 10, 14),
-                   'description': '上が加速、下が減速、左右が横G。点が今、線が直近3秒。外側の輪が0.5G',
-                   'options': {'mode': 'html', 'content':
-                               '<iframe src="/live/gg?room=$room" '
-                               'style="width:100%;height:100%;border:0;display:block"></iframe>'}})
-    y += 14
-    # --- line passes for the timing sheet, and talk --------------------------
+    # --- bottom, collapsed (a collapsed row's panels send no queries): the old polled lap
+    # panels as a cross-check, the line passes kept 24 h, speed over time, every channel ------
     passes = {
-        'type': 'table', 'title': '通過時刻（スタート・コントロール・ゴール）', 'gridPos': pos(0, y, 24, 9), 'datasource': VM,
+        'type': 'table', 'title': '通過時刻（24時間分。サーバーの記録）', 'gridPos': pos(0, y + 5, 24, 9), 'datasource': VM,
         'description': 'ロガーが判定した各ラインの通過時刻。live_bridge.pyが周回の切り替わりから出す。'
                        '「レース」はスタート時刻（同じ部屋で何度か走ったときの区別）',
         'targets': [target(f'last_over_time(ecorun_lap_at{{{ROOM}}}[24h])', 'A', fmt='table')],
@@ -166,14 +152,19 @@ def build(old):
         ]},
         'options': {'showHeader': True, 'cellHeight': 'sm'},
     }
-    panels.append(passes)
-    y += 9
-    # --- bottom: speed over time and every channel, in a collapsed row: a collapsed row's
-    # panels send no queries (2026-10-24: the speed graph alone was ~1000 points a refresh) --
-    detail = [dict(speed_graph, title='速度の推移', gridPos=pos(0, y + 1, 24, 6)),
-              dict(table, title='全チャンネル（最新）', gridPos=pos(0, y + 7, 24, 7))]
-    panels.append({'type': 'row', 'title': '詳細（速度の推移・全チャンネル）　開くと通信量が増えます', 'collapsed': True,
-                   'gridPos': pos(0, y, 24, 1), 'panels': detail})
+    detail = [
+        stat('前回ラップ', [target(last('LapTime', 60))], pos(0, y + 1, 6, 4), unit='dthms'),
+        stat('この周の経過', [target(last('ElapsedTime', 60))], pos(6, y + 1, 6, 4), unit='dthms'),
+        stat('平均速度（スタートから）', [target(last('RaceAvgSpeed'))], pos(12, y + 1, 6, 4), unit='velocitykmh', decimals=1,
+             description='自宅サーバーで速度を時間で積算して出した値（live_bridge.py）'),
+        stat('この周の平均 ／ 前の周', [target(last('LapAvgSpeed'), 'A', 'この周'), target(last('LastLapAvgSpeed'), 'B', '前の周')],
+             pos(18, y + 1, 6, 4), unit='velocitykmh', decimals=1),
+        passes,
+        dict(speed_graph, title='速度の推移', gridPos=pos(0, y + 14, 24, 6)),
+        dict(table, title='全チャンネル（最新）', gridPos=pos(0, y + 20, 24, 7)),
+    ]
+    panels.append({'type': 'row', 'title': '詳細（問い合わせ方式の周回・通過時刻・速度の推移・全チャンネル）　開くと通信量が増えます',
+                   'collapsed': True, 'gridPos': pos(0, y, 24, 1), 'panels': detail})
 
     n = 0
     for p in panels + detail:
