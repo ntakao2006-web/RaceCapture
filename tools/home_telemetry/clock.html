@@ -31,27 +31,32 @@
   :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --line: #2c3235;
     --green: #73bf69; --orange: #ff9830; --red: #f2495c; }
   html, body { margin: 0; height: 100%; background: transparent; color: var(--ink);
-    font: 13px/1.25 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
-  #wrap { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 2px; padding: 2px 6px; box-sizing: border-box; }
-  .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-variant-numeric: tabular-nums; }
-  .cell { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; border-top: 1px solid var(--line); padding-top: 2px; }
-  .label { color: var(--dim); white-space: nowrap; }
-  /* 2026-10-24 night: one size smaller, the pit's screen could not fit the dashboard */
-  #state { font-size: clamp(13px, 3.4vw, 16px); color: var(--dim); }
-  #laps { font-size: clamp(18px, 6vw, 30px); font-weight: 700; }
-  #elapsed { font-size: clamp(22px, 7.5vw, 38px); font-weight: 700; }
-  .big { font-size: clamp(14px, 4.4vw, 21px); font-weight: 600; }
-  #margin { font-size: clamp(12px, 3vw, 14px); }
+    font: 15px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  /* 2026-10-25: larger text sized to the panel (vw and vh of this frame) and labels next to
+     their values; the panel stays the size set on 10-24, which fits the pit's screen */
+  #wrap { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 3px; padding: 4px 8px; box-sizing: border-box; }
+  .row { display: flex; align-items: baseline; gap: 0.6em; font-variant-numeric: tabular-nums; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; font-variant-numeric: tabular-nums; }
+  .cell { display: flex; align-items: baseline; gap: 0.5em; border-top: 1px solid var(--line); padding-top: 1px; }
+  .label { color: var(--dim); white-space: nowrap; font-size: clamp(12px, min(2.6vw, 4.4vh), 17px); }
+  #state { font-size: clamp(18px, min(5.5vw, 9vh), 36px); font-weight: 700; color: var(--dim); }
+  #state.run { color: var(--green); }
+  #state.goal { color: #000; background: var(--orange); border-radius: 6px; padding: 0 0.3em; }
+  #laps { font-size: clamp(20px, min(6.5vw, 10vh), 44px); font-weight: 700; }
+  #elapsed { font-size: clamp(26px, min(8.5vw, 13vh), 58px); font-weight: 700; }
+  .big { font-size: clamp(16px, min(5vw, 7.5vh), 32px); font-weight: 600; }
+  .mid { font-size: clamp(14px, min(3.6vw, 5.5vh), 22px); font-weight: 600; }
+  #margin { font-size: clamp(12px, min(3vw, 4.6vh), 17px); }
   #margin.warn { color: #000; background: var(--orange); border-radius: 4px; padding: 2px 6px; }
   #passes { flex: 1; min-height: 0; overflow: auto; border-top: 1px solid var(--line); }
-  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: clamp(11px, 3vw, 13px); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: clamp(12px, min(3vw, 4.4vh), 17px); }
   th { color: var(--dim); font-weight: normal; text-align: right; position: sticky; top: 0; background: #181b1f; }
   th:first-child, td:first-child { text-align: left; }
   td { text-align: right; padding: 1px 0; border-bottom: 1px solid var(--line); }
-  #fresh { font-size: 12px; }
+  tr.goal td { color: var(--orange); font-weight: 700; }
+  #fresh { font-size: 13px; }
   #fresh.stale { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
-  #link { font-size: 12px; color: var(--dim); }
+  #link { font-size: 13px; color: var(--dim); margin-left: auto; }
   #link.slow { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
 </style>
 </head>
@@ -67,8 +72,8 @@
   <div class="pair">
     <div class="cell"><span class="label">この周</span><span id="lapnow" class="big">—</span></div>
     <div class="cell"><span class="label">前の周</span><span id="lastlap" class="big">—</span></div>
-    <div class="cell"><span class="label">この周の平均</span><span id="lapavg">—</span></div>
-    <div class="cell"><span class="label">スタートからの平均</span><span id="raceavg">—</span></div>
+    <div class="cell"><span class="label">この周の平均</span><span id="lapavg" class="mid">—</span></div>
+    <div class="cell"><span class="label">スタートからの平均</span><span id="raceavg" class="mid">—</span></div>
   </div>
   <div id="passes"><table>
     <thead><tr><th>周</th><th>ライン</th><th>通過</th><th>ラップ</th><th>平均</th></tr></thead>
@@ -127,6 +132,7 @@ function drawPasses(passes) {
   const body = document.getElementById('rows');
   body.replaceChildren(...passes.slice().reverse().map(p => {
     const tr = document.createElement('tr');
+    if (p.k === 'goal') tr.className = 'goal';
     for (const text of [p.n === 0 ? '—' : p.n, KIND[p.k] || p.k, hms(p.t),
                         p.s == null ? '—' : mmss(p.s, true), p.v == null ? '—' : p.v.toFixed(1)]) {
       const td = document.createElement('td');
@@ -153,6 +159,7 @@ function draw() {
   const finished = c.start != null && c.end != null;
   const elapsed = c.start == null ? null : ((finished ? c.end : now) - c.start) / 1000;
   show('state', c.start == null ? 'スタート前' : finished ? 'ゴール' : '走行中');
+  document.getElementById('state').className = c.start == null ? '' : finished ? 'goal' : 'run';
   const of = c.total != null ? ` / ${c.total}` : '';
   show('laps', finished ? (c.count != null ? `${c.count}${of}` : '') : c.lap != null ? `${c.lap}${of}` : '');
   show('elapsed', elapsed == null ? '--:--' : mmss(elapsed, finished));
