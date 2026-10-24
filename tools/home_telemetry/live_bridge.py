@@ -62,6 +62,7 @@ from websockets.http11 import Response
 
 UTC_MIN_MS = 1_500_000_000_000  # reject Utc=0 / uptime-like values
 HISTORY = 3000                  # points per room sent to a newly opened map (5 min at 10 Hz)
+REBUILD_S = 6 * 3600            # on start, files written to this recently rebuild the laps (Bridge.rebuild)
 VIEWER_STALE_S = 60             # a shared viewer position disappears after this long
 APP_STALE_S = 15 * 60           # ...but an OwnTracks phone standing still may report only every few minutes
 MAX_HTTP_BODY = 16_000          # one OwnTracks message
@@ -125,6 +126,9 @@ class Pace:
     steady enough for this). Gaps beyond MAX_BRIDGE_S are still left out."""
     MAX_GAP_S = 5.0
     MAX_BRIDGE_S = 900.0
+    # A race or lap first seen this long after its line (2026-10-25: a phone reports the start
+    # ~6 s late) still counts from the line, at the speed of that first point.
+    HEAD_S = 30.0
 
     def __init__(self):
         self.last_ts = None
@@ -163,6 +167,13 @@ class Pace:
                 'lap_avg': self.latest.get('LapAvgSpeed') if on and not finished else None,
                 'race_avg': self.latest.get('RaceAvgSpeed') if on else None,
                 'data_t': self.last_ts}
+
+    def head(self, minutes, speed):
+        """A new race or lap integration [km, minutes it starts from]: from its line when
+        that was at most HEAD_S ago, else from here (left out of the averages)."""
+        if speed is not None and minutes * 60 <= self.HEAD_S:
+            return [speed * minutes / 60, 0.0]
+        return [0.0, minutes]
 
     @staticmethod
     def whole(acc):
@@ -211,7 +222,14 @@ class Pace:
                 self.lap[0] += step - after
                 lap_done = True
             lap_s = fields['LapTime'] * 60 if fields.get('LapTime') is not None else None
-            avg = self.lap[0] / (lap_s / 3600) if self.whole(self.lap) and lap_s else None
+            # Several laps at once (2026-10-25): a control line missed (the phone's recording
+            # stopped across it) makes the next pass count k laps sharing the time evenly, and
+            # LapTime is one share. The distance covers all k, so it is shared the same way.
+            k = max(1, round(count - self.count))
+            avg = self.lap[0] / (k * lap_s / 3600) if self.whole(self.lap) and lap_s else None
+            for i in range(k - 1):
+                n = int(self.count) + 1 + i
+                self.event(n, 'control', at - (k - 1 - i) * lap_s * 1000 if lap_s else at, lap_s, avg)
             self.event(int(count), 'goal' if finished else 'control', at, lap_s, avg)
             if avg is not None:
                 self.last_lap_avg = avg   # the goal lap too, which has no next lap to start
@@ -220,7 +238,7 @@ class Pace:
         if race_min is None:
             self.race = None
         elif self.race is None or self.race_min is None or race_min < self.race_min - 0.05:   # 3 s of jitter is not a new race
-            self.race = [0.0, race_min]
+            self.race = self.head(race_min, speed)
             new_start = ts_ms - race_min * 60000
             if self.start_ms is None or abs(new_start - self.start_ms) > 2000:   # not just the bridge restarting
                 self.start_ms = new_start
@@ -232,7 +250,7 @@ class Pace:
         elif self.lap is None or self.lap_min is None or lap_min < self.lap_min - 0.05:
             if self.whole(self.lap) and self.lap_min is not None and self.lap_min > self.lap[1]:
                 self.last_lap_avg = self.lap[0] / ((self.lap_min - self.lap[1]) / 60)
-            self.lap = [after, 0.0] if after else [0.0, lap_min]
+            self.lap = [after, 0.0] if after else self.head(lap_min, speed)
         elif not lap_done:
             self.lap[0] += step
         self.race_min, self.lap_min = race_min, lap_min
@@ -421,8 +439,36 @@ class Bridge:
         print(f'Grafana Live push: {"on" if self.token else "off (no token file)"}', flush=True)
 
     # --- input -----------------------------------------------------------
+    def rebuild(self):
+        """Rebuild each room's laps from the files written in the last REBUILD_S (2026-10-25):
+        a bridge restarted mid-race used to pick up the files at their end, so the line passes
+        and averages from before the restart were gone. A room's files are read in name order
+        (the server names them by session start), only into Pace: VictoriaMetrics already has
+        the rows and the lap marks, and the map's trail is not replayed. The files are then
+        followed from where this read stopped."""
+        cutoff, rows = time.time() - REBUILD_S, 0
+        for path in sorted(glob.glob(os.path.join(self.args.dir, '*', '*.jsonl'))):
+            try:
+                if os.path.getmtime(path) < cutoff:
+                    continue
+                f = Follower(path, from_start=True)
+                points = f.poll()
+            except OSError:
+                continue
+            pace = self.paces.setdefault(f.room, Pace())
+            for ts, fields in points:
+                pace.add(ts, fields)
+            pace.events.clear()
+            self.followers[path] = f
+            rows += len(points)
+        for room, pace in sorted(self.paces.items()):
+            c = pace.clock()
+            print(f'rebuilt {room}: lap {c["lap"]}, {len(c["passes"])} passes', flush=True)
+        print(f'rebuild: {rows} rows from the last {REBUILD_S // 3600} h', flush=True)
+
     async def follow(self):
         vm_batch, last_vm = [], time.time()
+        self.rebuild()
         while True:
             for path in glob.glob(os.path.join(self.args.dir, '*', '*.jsonl')):
                 if path not in self.followers:
