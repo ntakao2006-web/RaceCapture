@@ -1,4 +1,4 @@
-$ErrorActionPreference='Stop'
+﻿$ErrorActionPreference='Stop'
 $taskWatcher=Join-Path $PSScriptRoot 'Watch-EcoCapture-USB.ps1'
 $taskStartup=Join-Path ([Environment]::GetFolderPath('Startup')) 'EcoCapture-Web USB.lnk'
 $taskShell=New-Object -ComObject WScript.Shell

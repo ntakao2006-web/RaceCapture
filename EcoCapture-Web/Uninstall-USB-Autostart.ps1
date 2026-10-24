@@ -1,4 +1,4 @@
-$ErrorActionPreference='Stop'
+﻿$ErrorActionPreference='Stop'
 $taskStartup=Join-Path ([Environment]::GetFolderPath('Startup')) 'EcoCapture-Web USB.lnk'
 if(Test-Path -LiteralPath $taskStartup){Remove-Item -LiteralPath $taskStartup}
 $taskWatcher=Join-Path $PSScriptRoot 'Watch-EcoCapture-USB.ps1'

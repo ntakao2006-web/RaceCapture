@@ -1,4 +1,4 @@
-param([string]$Serial = '3263089125', [int]$Port = 8080)
+﻿param([string]$Serial = '2954148814', [int]$Port = 8080)
 $ErrorActionPreference = 'Stop'
 $taskAdb = Join-Path $PSScriptRoot '..\other\uno_q_tools\platform-tools\adb.exe'
 if (-not (Test-Path -LiteralPath $taskAdb)) {

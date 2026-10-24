@@ -1,4 +1,4 @@
-﻿param([string]$Serial='3263089125',[switch]$Firmware)
+﻿param([string]$Serial='2954148814',[switch]$Firmware)
 $ErrorActionPreference='Stop'
 $taskTools=Join-Path $PSScriptRoot '..\other\uno_q_tools'
 $taskAdb=Join-Path $taskTools 'platform-tools\adb.exe'
