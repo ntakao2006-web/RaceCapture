@@ -25,19 +25,20 @@
     --green: #73bf69; --orange: #ff9830; --red: #f2495c; }
   html, body { margin: 0; height: 100%; background: transparent; color: var(--ink);
     font: 13px/1.25 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
-  #wrap { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 4px; padding: 4px 8px; box-sizing: border-box; }
+  #wrap { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 2px; padding: 2px 6px; box-sizing: border-box; }
   .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-variant-numeric: tabular-nums; }
   .cell { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; border-top: 1px solid var(--line); padding-top: 2px; }
   .label { color: var(--dim); white-space: nowrap; }
-  #state { font-size: clamp(14px, 4vw, 20px); color: var(--dim); }
-  #laps { font-size: clamp(22px, 8vw, 40px); font-weight: 700; }
-  #elapsed { font-size: clamp(26px, 10vw, 52px); font-weight: 700; }
-  .big { font-size: clamp(16px, 5.5vw, 28px); font-weight: 600; }
-  #margin { font-size: clamp(13px, 3.6vw, 16px); }
+  /* 2026-10-24 night: one size smaller, the pit's screen could not fit the dashboard */
+  #state { font-size: clamp(13px, 3.4vw, 16px); color: var(--dim); }
+  #laps { font-size: clamp(18px, 6vw, 30px); font-weight: 700; }
+  #elapsed { font-size: clamp(22px, 7.5vw, 38px); font-weight: 700; }
+  .big { font-size: clamp(14px, 4.4vw, 21px); font-weight: 600; }
+  #margin { font-size: clamp(12px, 3vw, 14px); }
   #margin.warn { color: #000; background: var(--orange); border-radius: 4px; padding: 2px 6px; }
   #passes { flex: 1; min-height: 0; overflow: auto; border-top: 1px solid var(--line); }
-  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: clamp(12px, 3.4vw, 15px); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: clamp(11px, 3vw, 13px); }
   th { color: var(--dim); font-weight: normal; text-align: right; position: sticky; top: 0; background: #181b1f; }
   th:first-child, td:first-child { text-align: left; }
   td { text-align: right; padding: 1px 0; border-bottom: 1px solid var(--line); }

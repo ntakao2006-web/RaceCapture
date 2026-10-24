@@ -95,7 +95,7 @@ def build(old):
     # pace the riders. The clock page now carries the laps, the line passes and the margin
     # too, and runs on the browser's clock. The G-G circle is gone (eco-run does not need it)
     # and the lap / average panels moved into the collapsed row, so fewer queries share the link.
-    panels.append({'type': 'text', 'title': '周回・時間（この端末の時計で進む）', 'gridPos': pos(0, y, 14, 17),
+    panels.append({'type': 'text', 'title': '周回・時間（この端末の時計で進む）', 'gridPos': pos(0, y, 14, 12),
                    'description': 'スタート時刻と各ラインの通過だけを受け取り、この端末の時計で進める（回線が詰まっても止まらない）。'
                                   '周回は「走行中の周 / 規定周回数」。規定まで＝規定時間−経過。目標まで＝さらに余裕だけ早くゴールする時刻まで。'
                                   '5分を切ると赤。規定時間・余裕はロガー（二輪はアプリ）から届いたもの。'
@@ -104,30 +104,30 @@ def build(old):
                    'options': {'mode': 'html', 'content':
                                '<iframe src="/live/clock?room=$room" '
                                'style="width:100%;height:100%;border:0;display:block"></iframe>'}})
-    panels.append(dict(map_panel, title='', gridPos=pos(14, y, 10, 17)))
-    y += 17
+    panels.append(dict(map_panel, title='', gridPos=pos(14, y, 10, 12)))
+    y += 12   # 12, was 17 (2026-10-24 night): the dashboard did not fit the pit's screen
     # --- second row: speed and whether the data is good (polled every 5 s is fine here) --
-    live_speed = dict(live_speed, title='速度', gridPos=pos(0, y, 4, 4))
+    live_speed = dict(live_speed, title='速度', gridPos=pos(0, y, 4, 3))
     live_speed['options'] = dict(live_speed['options'], graphMode='none')
     panels += [
         live_speed,
-        stat('GPS衛星数', [target(last('GPSSats'))], pos(4, y, 4, 4), decimals=0,
+        stat('GPS衛星数', [target(last('GPSSats'))], pos(4, y, 4, 3), decimals=0,
              thresholds=[{'color': 'red', 'value': None}, {'color': 'orange', 'value': 6}, {'color': 'green', 'value': 10}],
              color_mode='value'),
-        stat('GNSS精度', [target(last('GPSAcc'))], pos(8, y, 4, 4), unit='lengthm', decimals=1,
+        stat('GNSS精度', [target(last('GPSAcc'))], pos(8, y, 4, 3), unit='lengthm', decimals=1,
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 8}],
              color_mode='value', description='受信機が出す水平精度（大きいほど悪い）。ライン幅の判定にも足している'),
-        oil_temp(pos(12, y, 4, 4)),
+        oil_temp(pos(12, y, 4, 3)),
         # Was "最終受信" (2026-10-24: nobody could tell what it measured). It is how old the
         # newest data on the server is, so it says nothing about a pit screen that has stopped
         # updating; the clock panel shows that.
-        stat('サーバー到着までの遅れ', [target(f'time() - timestamp(ecorun_Interval{{{ROOM}}})')], pos(16, y, 8, 4), unit='s', decimals=1,
+        stat('サーバー到着までの遅れ', [target(f'time() - timestamp(ecorun_Interval{{{ROOM}}})')], pos(16, y, 8, 3), unit='s', decimals=1,
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 10}],
              color_mode='background', no_value='受信なし',
              description='ロガーが測った時刻（GNSS）から、そのデータがサーバーに届いて検索できるようになるまでの秒数。'
                          'ロガーのLTE・サーバーの遅れで、この画面の回線の遅れは含まない（そちらは「周回・時間」の一番下）'),
     ]
-    y += 4
+    y += 3
     # --- bottom, collapsed (a collapsed row's panels send no queries): the old polled lap
     # panels as a cross-check, the line passes kept 24 h, speed over time, every channel ------
     passes = {
