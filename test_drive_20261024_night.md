@@ -79,6 +79,13 @@ Ver.2のラップの設定（3本のライン・向き・規定周回数・規�
 5. 戻ったら再びPCとつなぎ、**Claudeが控えの設定をそのまま`/api/lap`へ書き戻し、周回をリセットする**。**基準番号が0115に戻ったこと**と、規定周回数7・規定時間39:20.11・余裕30秒・3本の固定の向きが控えと同じことを確かめる
 6. 明日の朝、A54をVer.2につないで「ラインがロガーと違います」が出ないことを確かめる（出たら手順書のとおりQRを読み直す）
 
+- **10/25 1:42、2〜3まで実施**（USBのadb）：
+  - 入れ替える前のVer.2：もてぎの3本（基準**0115**、向きはスタート151.5°・コントロール154.2°・ゴール151.0°）、7周・39:20.11・余裕30秒、練習走行の7周が残った状態
+  - 控えは3か所（中身は同じ`64704b81…`）：UNO Qの`/home/arduino/lap-motegi-backup-20261025.json`、PCの`drive_logs/lap_backup_20261025/lap.json`（`/api/lap`の答えは`api_lap.json`）、Claudeの作業フォルダ
+  - 書き戻し用：UNO Qの`/home/arduino/lap-motegi-restore-20261025.json`（PCは`drive_logs/lap_backup_20261025/lap_restore_motegi.json`）
+  - 書き込んだもの：道の駅もてぎの3本（向きなし）・3周・16:27.36・余裕30秒、周回をリセット → **基準75CB**（Pixel 9aと同じ）、0 / 3・スタート前
+  - 書き戻すときのコマンド（UNO Qの中で。`X-EcoCapture: 1`は管理画面の操作に必要な目印）：
+    `curl -X POST -H 'Content-Type: application/json' -H 'X-EcoCapture: 1' --data @/home/arduino/lap-motegi-restore-20261025.json http://127.0.0.1:8080/api/lap` → `curl -X POST -H 'X-EcoCapture: 1' http://127.0.0.1:8080/api/lap/reset` → `/api/lap/code`の`id`が**0115**であることを確かめる
 - 注意：USBを抜き差ししたときにVer.2が丸ごと再起動したことがある（10/24 11:45）。試験では構わないが、つなぐのは電源を入れてから1回、外すのも1回にする
 
 ## 3. 走った後
