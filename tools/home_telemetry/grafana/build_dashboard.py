@@ -2,10 +2,11 @@
 
   python build_dashboard.py      -> rewrites ecorun-live.json next to this file
 
-Top: lap, race time, time left, average speeds, speed. Middle: map and speed graph.
-Then the line passes for the timing sheet (start / control / goal times, from
-live_bridge.py's Pace), a low speed graph and every channel. The map and the G-G
-circle (gg.html, also served by live_bridge.py) sit side by side. The map panel keeps
+Top: lap, the race clock (clock.html: elapsed and time left, run on the browser's clock),
+average speeds, speed. Middle: map and the G-G circle (gg.html), side by side, both
+served by live_bridge.py. Then the line passes for the timing sheet (start / control /
+goal times, from live_bridge.py's Pace), and a collapsed row with the speed graph and
+every channel (no queries until opened: the pit's link at Motegi was slow). The map panel keeps
 its HTML from the previous ecorun-live.json. No talk panel and no best lap
 (2026-10-23: the pit talks on Discord, and eco-run is not about the fastest lap).
 """
@@ -76,34 +77,33 @@ def pos(x, y, w, h):
 def build(old):
     # Panels carried over are found by what they show, not by title, so the
     # builder runs again on its own output.
+    every = old['panels'] + [q for p in old['panels'] for q in p.get('panels', [])]   # also inside collapsed rows
+
     def find(kind, text):
-        return next(p for p in old['panels'] if p['type'] == kind and text in json.dumps(p, ensure_ascii=False))
+        return next(p for p in every if p['type'] == kind and text in json.dumps(p, ensure_ascii=False))
     map_panel = find('text', '/live/map')
     live_speed = find('stat', 'stream/ecorun/')
     speed_graph = find('timeseries', 'ecorun_Speed{')
     table = find('table', '__name__=~')
 
-    # The time limit and margin come from the logger (the dash phone writes them before the
-    # start, 2026-10-24); the pit only reads them, so the two can never disagree.
-    limit, margin = last('TimeLimit'), last('Margin')
-    # Before the start there is no RaceTime: count it as 0 so the whole limit shows.
-    left = f'({limit} - ({last("RaceTime", 60)} or {limit} * 0))'
-
     panels = []
     y = 0
     # --- top: the numbers the pit reads first --------------------------------
+    # The elapsed and remaining time are a clock page, not polled panels (2026-10-24): at
+    # Motegi the pit's link was so slow that these panels fell ~30 s behind and the team
+    # nearly ran out of time. The page gets the start time once and runs on the browser's
+    # clock. The time limit and margin still come from the logger (or the phone app).
     panels += [
         stat('周回', [target(last('CurrentLap'), 'A', '走行中'), target(last('LapsLeft'), 'B', '残り')],
              pos(0, y, 5, 6), decimals=0, description='走行中の周（スタートから最初のコントロールまでが1周目）と残り周回（規定周回数を入れたとき）'),
-        stat('経過時間', [target(last('RaceTime', 60))], pos(5, y, 4, 6), unit='dthms',
-             description='スタートからの経過（ゴール後はレース時間で止まる）'),
-        stat('残り時間', [target(f'({left} - {margin}) and ({margin} > 0)', 'A', '目標まで'),
-                          target(left, 'B', '規定まで')],
-             pos(9, y, 4, 6), unit='dthms', no_value='ロガーに規定時間なし',
-             thresholds=[{'color': 'red', 'value': None}, {'color': 'orange', 'value': 300}, {'color': 'green', 'value': 900}],
-             color_mode='value',
-             description='規定まで＝規定時間−経過時間。目標まで＝さらに余裕だけ早くゴールする時刻まで（余裕0なら出さない）。'
-                         '規定時間と余裕はドライバーのアプリで設定し、走行前にロガーへ書き込まれたもの。5分を切ると赤'),
+        {'type': 'text', 'title': '経過・残り時間', 'gridPos': pos(5, y, 8, 6),
+         'description': 'スタート時刻だけを受け取り、この端末の時計で進める（回線が詰まっても止まらない）。'
+                        '規定まで＝規定時間−経過。目標まで＝さらに余裕だけ早くゴールする時刻まで。5分を切ると赤。'
+                        '規定時間・余裕はロガー（二輪はアプリ）から届いたもの。'
+                        '一番下は、この画面が持っている最新データの古さ（ロガー→サーバー→この画面）。10秒を超えると赤',
+         'options': {'mode': 'html', 'content':
+                     '<iframe src="/live/clock?room=$room" '
+                     'style="width:100%;height:100%;border:0;display:block"></iframe>'}},
         stat('平均速度（スタートから）', [target(last('RaceAvgSpeed'))], pos(13, y, 4, 6), unit='velocitykmh', decimals=1,
              description='自宅サーバーで速度を時間で積算して出した値（live_bridge.py）'),
         stat('この周の平均 ／ 前の周', [target(last('LapAvgSpeed'), 'A', 'この周'), target(last('LastLapAvgSpeed'), 'B', '前の周')],
@@ -124,9 +124,14 @@ def build(old):
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 8}],
              color_mode='value', description='受信機が出す水平精度（大きいほど悪い）。ライン幅の判定にも足している'),
         oil_temp(pos(15, y, 4, 4)),
-        stat('最終受信', [target(f'time() - timestamp(ecorun_Interval{{{ROOM}}})')], pos(19, y, 5, 4), unit='s', decimals=1,
+        # Was "最終受信" (2026-10-24: nobody could tell what it measured). It is how old the
+        # newest data on the server is, so it says nothing about a pit screen that has stopped
+        # updating; the clock panel shows that.
+        stat('サーバー到着までの遅れ', [target(f'time() - timestamp(ecorun_Interval{{{ROOM}}})')], pos(19, y, 5, 4), unit='s', decimals=1,
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 10}],
-             color_mode='background', no_value='受信なし', description='最後にロガーのデータが届いてからの秒数'),
+             color_mode='background', no_value='受信なし',
+             description='ロガーが測った時刻（GNSS）から、そのデータがサーバーに届いて検索できるようになるまでの秒数。'
+                         'ロガーのLTE・サーバーの遅れで、この画面の回線の遅れは含まない（そちらは「経過・残り時間」の一番下）'),
     ]
     y += 4
     # --- middle: map and the G-G circle (replaced the acceleration time series,
@@ -163,19 +168,22 @@ def build(old):
     }
     panels.append(passes)
     y += 9
-    # --- bottom: speed over time (smaller than before: the number is on top) and detail
-    panels.append(dict(speed_graph, title='速度の推移', gridPos=pos(0, y, 24, 6)))
-    y += 6
-    panels.append(dict(table, title='全チャンネル（最新）', gridPos=pos(0, y, 24, 7)))
+    # --- bottom: speed over time and every channel, in a collapsed row: a collapsed row's
+    # panels send no queries (2026-10-24: the speed graph alone was ~1000 points a refresh) --
+    detail = [dict(speed_graph, title='速度の推移', gridPos=pos(0, y + 1, 24, 6)),
+              dict(table, title='全チャンネル（最新）', gridPos=pos(0, y + 7, 24, 7))]
+    panels.append({'type': 'row', 'title': '詳細（速度の推移・全チャンネル）　開くと通信量が増えます', 'collapsed': True,
+                   'gridPos': pos(0, y, 24, 1), 'panels': detail})
 
-    for i, p in enumerate(panels, 1):
-        p['id'] = i
+    n = 0
+    for p in panels + detail:
+        n += 1
+        p['id'] = n
     dash = {k: v for k, v in old.items() if k != 'panels'}
     dash['panels'] = panels
-    # 2 s, not 500 ms (2026-10-23): ~15 queries per refresh, and on a phone's link a
-    # round trip over 500 ms cancelled the previous one ("context canceled"), so panels
-    # sat loading. Speed (Grafana Live), the map and the G-G circle are pushed anyway.
-    dash['refresh'] = '2s'
+    # 5 s (2026-10-24, was 2 s): the pit at Motegi chose 5 s itself, and still saw queries
+    # cancelled by the next refresh. The clock, speed (Grafana Live), map and G-G are pushed.
+    dash['refresh'] = '5s'
     # The hand-typed time limit (limit_min, then limit and margin) is gone: the logger has it.
     variables = [v for v in old['templating']['list'] if v['name'] not in ('limit_min', 'limit', 'margin')]
     dash['templating'] = {'list': variables}

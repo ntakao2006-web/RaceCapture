@@ -29,6 +29,8 @@ class SensorHub(context: Context, private val handler: Handler) : SensorEventLis
     private val gyro = DoubleArray(3)
     private var accelN = 0
     private var gyroN = 0
+    private var rows = 0L
+    private var sentLimits: Pair<Double?, Double>? = null
 
     private val gnss = object : GnssStatus.Callback() {
         override fun onSatelliteStatusChanged(status: GnssStatus) {
@@ -111,6 +113,14 @@ class SensorHub(context: Context, private val handler: Handler) : SensorEventLis
             out["LapTime"] = v.lastS?.div(60); out["BestLap"] = v.bestS?.div(60)
             out["ElapsedTime"] = v.elapsedS?.div(60); out["RaceTime"] = v.raceS?.div(60)
             out["LapsLeft"] = v.lapsLeft?.toDouble()
+        }
+        // The class's time limit and margin for the pit's clock: every 50th row (5 s) and when
+        // they change, like the Ver.2 logger (the server keeps the last value).
+        val c = Race.config()
+        val limits = c.timeLimitS to c.marginS
+        if (rows++ % 50 == 0L || limits != sentLimits) {
+            out["TimeLimit"] = c.timeLimitS; out["Margin"] = c.marginS
+            sentLimits = limits
         }
         out
     }

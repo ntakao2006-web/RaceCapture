@@ -13,8 +13,13 @@ This process follows those files and
      (loggers send 5 rows at once every 0.5 s, which looks jerky if shown as is)
      and sends each one to
        - browsers on ws://<host>:3002/ws?room=<room>  (the live map page), and
-       - Grafana Live (channel stream/ecorun/<room>) when a token file exists.
-It also serves the map page at http://<host>:3002/map?room=<room>, and over the
+       - Grafana Live (channel stream/ecorun/<room>, Speed only) when a token file exists.
+     A page names the channels it draws (`&fields=`), so a phone at the pit gets ~60 bytes a
+     row instead of the whole ~650-byte row;
+  3. sends the race clock (start time, limits) once a second to the clock page, which runs
+     the clock on the browser's own time so it keeps going when the pit's link stalls.
+It also serves the map page at http://<host>:3002/map?room=<room> (G-G at /gg, the
+clock at /clock), and over the
 same WebSocket
   - keeps shapes people draw on the map (lines, circles, markers...) per room in
     SQLite, so every viewer sees the same course notes, and
@@ -45,6 +50,7 @@ import secrets
 import sqlite3
 import time
 import uuid
+import urllib.parse
 import urllib.request
 from collections import deque
 from http import HTTPStatus
@@ -76,6 +82,14 @@ def decode_row(names, row):
             out[name] = values[k]
             k += 1
     return out
+
+
+def pick(ts, fields, names):
+    """One live row for a page: only the channels it asked for (all when None), rounded."""
+    if names is None:
+        return {'t': ts, **fields}
+    return {'t': ts, **{k: round(fields[k], 6 if k in ('Latitude', 'Longitude') else 3)
+                        for k in names if k in fields}}
 
 
 def clean_name(name):
@@ -115,6 +129,19 @@ class Pace:
         self.count = None
         self.start_ms = None
         self.events = []   # line passes for the timing sheet, taken by Bridge.follow
+        self.latest = {}   # last value of the channels the pit clock shows (TimeLimit/Margin come sparse)
+
+    def clock(self):
+        """The pit clock (clock.html, 2026-10-24): the start time, not the elapsed time, so the
+        browser keeps the clock running on its own when the pit's link stalls. A race is on
+        while RaceTime and ElapsedTime are sent, finished when only RaceTime is (frozen)."""
+        on = self.race_min is not None and self.start_ms is not None
+        finished = on and self.lap_min is None
+        return {'start': self.start_ms if on else None,
+                'end': round(self.start_ms + self.race_min * 60000) if finished else None,
+                'limit': self.latest.get('TimeLimit'), 'margin': self.latest.get('Margin'),
+                'lap': self.latest.get('CurrentLap'), 'left': self.latest.get('LapsLeft'),
+                'data_t': self.last_ts}
 
     def event(self, lap, kind, at_ms, lap_s=None, avg=None):
         """One line pass: lap 0 is the start; kind start/control/goal."""
@@ -124,6 +151,9 @@ class Pace:
     def add(self, ts_ms, fields):
         speed = fields.get('Speed', fields.get('GPSSpeed'))
         race_min, lap_min = fields.get('RaceTime'), fields.get('ElapsedTime')
+        for name in ('TimeLimit', 'Margin', 'CurrentLap', 'LapsLeft'):
+            if name in fields:
+                self.latest[name] = fields[name]
         dt = (ts_ms - self.last_ts) / 1000 if self.last_ts is not None else None
         self.last_ts = ts_ms
         step = speed * dt / 3600 if speed is not None and dt is not None and 0 < dt <= self.MAX_GAP_S else 0.0
@@ -335,6 +365,7 @@ class Bridge:
         self.playouts = {}
         self.paces = {}   # room -> Pace
         self.clients = {}  # websocket -> room
+        self.client_opts = {}  # websocket -> {kind, fields} (see client)
         self.started = time.time()
         self.token = None
         if os.path.exists(args.grafana_token_file):
@@ -385,16 +416,23 @@ class Bridge:
 
     # --- output ----------------------------------------------------------
     async def emit(self, room, ts, fields):
-        msg = json.dumps({'t': ts, **fields})
+        msgs = {}   # one encoding per field list asked for
         for ws, r in list(self.clients.items()):
-            if r == room:
-                try:
-                    await ws.send(msg)
-                except Exception:
-                    self.clients.pop(ws, None)
-        if self.token:
+            opts = self.client_opts.get(ws, {})
+            if r != room or opts.get('kind') == 'clock':
+                continue
+            key = opts.get('fields')
+            if key not in msgs:
+                msgs[key] = json.dumps(pick(ts, fields, key))
+            try:
+                await ws.send(msgs[key])
+            except Exception:
+                self.clients.pop(ws, None)
+        if self.token and 'Speed' in fields:
             # The measurement becomes the last part of the channel stream/ecorun/<room>.
-            body = line_protocol(re.sub(r'[^A-Za-z0-9_.-]', '_', room), {}, fields, ts)
+            # Only Speed: it is all the Grafana panel shows, and every viewer gets the whole row
+            # (2026-10-24: ~30 channels 10 times a second crowded the pit's slow link at Motegi).
+            body = line_protocol(re.sub(r'[^A-Za-z0-9_.-]', '_', room), {}, {'Speed': fields['Speed']}, ts)
             asyncio.get_running_loop().run_in_executor(None, self.grafana_push, body)
 
     def grafana_push(self, body):
@@ -408,7 +446,8 @@ class Bridge:
         path, _, query = request.path.partition('?')
         if path == '/ws':
             return None  # continue with the WebSocket handshake
-        pages = {'/map': 'map.html', '/gg': 'gg.html'}   # gg: the G-G circle (2026-10-23)
+        # gg: the G-G circle (2026-10-23); clock: the race clock (2026-10-24)
+        pages = {'/map': 'map.html', '/gg': 'gg.html', '/clock': 'clock.html'}
         if path.rstrip('/') in pages:
             with open(os.path.join(HERE, pages[path.rstrip('/')]), 'rb') as f:
                 body = f.read()
@@ -417,10 +456,11 @@ class Bridge:
                 'Content-Length': str(len(body))}), body)
         return connection.respond(HTTPStatus.NOT_FOUND, 'not found\n')
 
-    async def room_send(self, room, msg):
+    async def room_send(self, room, msg, kind=None):
+        """To the room's map pages (shapes, viewers); the clock and G-G pages do not draw them."""
         text = json.dumps(msg)
         for ws, r in list(self.clients.items()):
-            if r == room:
+            if r == room and self.client_opts.get(ws, {}).get('kind') == kind:
                 try:
                     await ws.send(text)
                 except Exception:
@@ -436,8 +476,23 @@ class Bridge:
         """Everyone's shared position, every 2 s (a handful of phones: negligible load)."""
         while True:
             await asyncio.sleep(2)
-            for room in {r for r in self.clients.values()}:
-                await self.room_send(room, {'viewers': self.viewer_list(room)})
+            for room in {r for ws, r in self.clients.items() if self.client_opts.get(ws, {}).get('kind') != 'clock'}:
+                await self.room_send(room, {'viewers': self.viewer_list(room)}, kind=None)
+
+    def clock_msg(self, room):
+        pace = self.paces.get(room)
+        return json.dumps({'clock': pace.clock() if pace else None, 'now': round(time.time() * 1000)})
+
+    async def push_clock(self):
+        """The pit clock's state once a second: ~200 bytes, whatever the link."""
+        while True:
+            await asyncio.sleep(1)
+            for ws, opts in list(self.client_opts.items()):
+                if opts.get('kind') == 'clock' and ws in self.clients:
+                    try:
+                        await ws.send(self.clock_msg(self.clients[ws]))
+                    except Exception:
+                        self.clients.pop(ws, None)
 
     async def handle(self, ws, room, msg):
         kind = msg.get('type')
@@ -533,13 +588,30 @@ class Bridge:
         return out
 
     async def client(self, ws):
-        query = ws.request.path.partition('?')[2]
-        room = dict(p.split('=', 1) for p in query.split('&') if '=' in p).get('room', '')
-        self.clients[ws] = room
+        """/ws?room=<room>[&kind=clock|gg][&fields=A,B][&history=<s>]: a page asks only for the
+        channels it draws and as much history as it keeps (2026-10-24, for the pit's slow link:
+        the whole rows were ~650 bytes each, and a new map got 5 minutes of them, ~2 MB)."""
+        query = urllib.parse.parse_qs(ws.request.path.partition('?')[2])
+        room = query.get('room', [''])[0]
+        kind = query.get('kind', [None])[0]
+        fields = query.get('fields', [None])[0]
+        fields = tuple(sorted(f for f in fields.split(',') if f)) if fields else None
         try:
-            history = list(self.playouts[room].history) if room in self.playouts else []
-            await ws.send(json.dumps({'history': [{'t': ts, **fl} for ts, fl in history]}))
-            await ws.send(json.dumps({'shapes': self.shapes.all(room), 'viewers': self.viewer_list(room)}))
+            keep_ms = float(query['history'][0]) * 1000 if 'history' in query else None
+        except ValueError:
+            keep_ms = None
+        self.clients[ws] = room
+        self.client_opts[ws] = {'kind': kind, 'fields': fields}
+        try:
+            if kind == 'clock':
+                await ws.send(self.clock_msg(room))
+            else:
+                history = list(self.playouts[room].history) if room in self.playouts else []
+                if keep_ms is not None and history:
+                    history = [p for p in history if p[0] >= history[-1][0] - keep_ms]
+                await ws.send(json.dumps({'history': [pick(ts, fl, fields) for ts, fl in history]}))
+            if kind is None:
+                await ws.send(json.dumps({'shapes': self.shapes.all(room), 'viewers': self.viewer_list(room)}))
             async for raw in ws:
                 if isinstance(raw, str) and len(raw) <= MAX_SHAPE_BYTES + 1000:
                     try:
@@ -552,6 +624,7 @@ class Bridge:
             pass
         finally:
             self.clients.pop(ws, None)
+            self.client_opts.pop(ws, None)
             self.viewers.pop(ws, None)
 
 
@@ -573,6 +646,7 @@ async def main():
     async with app_server, serve(bridge.client, host, int(port), process_request=bridge.http,
                                  max_size=MAX_SHAPE_BYTES + 1000):
         asyncio.get_running_loop().create_task(bridge.push_viewers())
+        asyncio.get_running_loop().create_task(bridge.push_clock())
         await bridge.follow()
 
 

@@ -44,6 +44,11 @@ object PodiumEncoder {
         Channel("ElapsedTime", "ElapsedTime", "Min", 0.0, 60.0, 4),
         Channel("RaceTime", "RaceTime", "Min", 0.0, 600.0, 4),
         Channel("LapsLeft", "LapsLeft", "", 0.0, 1000.0, 0),
+        // For the pit's clock and data panels, as the Ver.2 logger sends them (2026-10-24: the
+        // two-wheel pit screen said "no time limit"). TimeLimit/Margin only now and then (SensorHub).
+        Channel("Accuracy", "GPSAcc", "m", 0.0, 1000.0, 1),
+        Channel("TimeLimit", "TimeLimit", "Sec", 0.0, 86400.0, 2),
+        Channel("Margin", "Margin", "Sec", 0.0, 3600.0, 1),
     )
 
     fun hello(clientId: String): String =

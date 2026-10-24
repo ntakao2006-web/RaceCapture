@@ -102,7 +102,8 @@ function connect() {
   // Works direct (http://host:3002/gg) and behind the public path (/live/gg), like map.html.
   const base = location.pathname.replace(/\/gg\/?$/, '');
   const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}`);
+  const ws = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}` +
+                           `&kind=gg&fields=LongAccel,LatAccel&history=${TRAIL_MS / 1000}`);
   const status = document.getElementById('status');
   ws.onopen = () => { status.textContent = room; };
   ws.onclose = () => { status.textContent = `${room}: 再接続中…`; setTimeout(connect, 2000); };

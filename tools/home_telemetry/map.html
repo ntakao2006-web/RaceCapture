@@ -199,7 +199,9 @@ function connect() {
   // Works both direct (http://host:3002/map) and behind `tailscale serve` (https://host:8443/live/map).
   const base = location.pathname.replace(/\/map\/?$/, '');
   const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = sock = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}`);
+  // Only the channels drawn here (2026-10-24: the whole row crowded the pit's slow link).
+  const ws = sock = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}` +
+                                  `&fields=Latitude,Longitude,Speed&history=${TRAIL_MS / 1000}`);
   const status = document.getElementById('status');
   ws.onopen = () => { status.textContent = `${room}: connected`; };
   ws.onclose = () => { status.textContent = `${room}: reconnecting…`; setTimeout(connect, 2000); };

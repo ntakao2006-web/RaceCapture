@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Race Clock</title>
+<!--
+  Race clock for the pit, embedded in Grafana (2026-10-24). At Motegi the pit's phone link
+  was so slow that Grafana's polled panels fell ~30 s behind, and the elapsed time with them
+  (the team nearly ran out of time). This page gets only the start time and the limits from
+  live_bridge.py (/ws?room=<room>&kind=clock, ~200 bytes a second) and runs the clock on the
+  browser's own time, so it keeps going while the link stalls.
+  The browser clock is checked against the server's: the largest (server - browser) seen
+  over the last minute, since a late message can only make that difference look smaller.
+  "この画面のデータ" is how old the newest data this page has is (logger -> server -> here);
+  it grows when this screen stops getting updates.
+-->
+<style>
+  :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --green: #73bf69; --orange: #ff9830; --red: #f2495c; }
+  html, body { margin: 0; height: 100%; background: transparent; color: var(--ink);
+    font: 13px/1.25 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  #wrap { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 2px 8px; box-sizing: border-box; }
+  .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+  .label { color: var(--dim); white-space: nowrap; }
+  #state { color: var(--dim); }
+  #elapsed { font-size: clamp(22px, 9vw, 46px); font-weight: 600; }
+  #target, #limit { font-size: clamp(16px, 5.5vw, 28px); font-weight: 600; }
+  #fresh { font-size: 12px; }
+  #fresh.stale { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="row"><span id="state">接続中…</span><span id="laps"></span></div>
+  <div class="row"><span class="label">経過</span><span id="elapsed">--:--</span></div>
+  <div class="row"><span class="label">目標まで</span><span id="target">—</span></div>
+  <div class="row"><span class="label">規定まで</span><span id="limit">—</span></div>
+  <div class="row"><span id="fresh"></span></div>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const room = params.get('room') || 'home-test';
+const STALE_S = 10;
+let clock = null;          // {start, end, limit, margin, lap, left, data_t} from live_bridge.py
+let offsets = [];          // [{at, d}] server minus browser time per message (ms)
+
+function serverNow() {
+  const d = offsets.length ? Math.max(...offsets.map(o => o.d)) : 0;
+  return Date.now() + d;
+}
+function mmss(s, tenths) {
+  const neg = s < 0; s = Math.abs(s);
+  const m = Math.floor(s / 60), r = s - m * 60;
+  const sec = tenths ? r.toFixed(1).padStart(4, '0') : String(Math.floor(r)).padStart(2, '0');
+  return (neg ? '−' : '') + m + ':' + sec;
+}
+function colorFor(left) {
+  return left < 300 ? 'var(--red)' : left < 900 ? 'var(--orange)' : 'var(--green)';
+}
+function show(id, text, color) {
+  const el = document.getElementById(id);
+  el.textContent = text; el.style.color = color || '';
+}
+
+function draw() {
+  const now = serverNow();
+  if (!clock) { show('state', `${room}: データなし`); return; }
+  const c = clock, limit = c.limit, margin = c.margin || 0;
+  const finished = c.start != null && c.end != null;
+  const elapsed = c.start == null ? null : ((finished ? c.end : now) - c.start) / 1000;
+  show('state', c.start == null ? 'スタート前' : finished ? 'ゴール' : '走行中');
+  show('laps', c.lap == null ? '' : finished ? `${c.lap}周` : `${c.lap}周目` + (c.left != null ? `・残り${c.left}周` : ''));
+  show('elapsed', elapsed == null ? '--:--' : mmss(elapsed, finished));
+  if (limit == null) {
+    show('target', 'ロガーに規定時間なし', 'var(--dim)'); show('limit', '—');
+  } else {
+    const left = limit - (elapsed || 0);
+    show('limit', mmss(left, finished), colorFor(left));
+    if (margin > 0) show('target', mmss(left - margin, finished) + `（余裕${Math.round(margin)}秒）`, colorFor(left - margin));
+    else show('target', '—', 'var(--dim)');
+  }
+  const fresh = document.getElementById('fresh');
+  if (c.data_t == null) { fresh.textContent = ''; fresh.className = ''; return; }
+  const age = (now - c.data_t) / 1000;
+  fresh.textContent = age > STALE_S
+    ? `最新のデータが${Math.round(age)}秒前のまま（時計は進み続けます）`
+    : `この画面のデータ：${age.toFixed(1)}秒前`;
+  fresh.className = age > STALE_S ? 'stale' : '';
+}
+
+function connect() {
+  // Works direct (http://host:3002/clock) and behind the public path (/live/clock), like map.html.
+  const base = location.pathname.replace(/\/clock\/?$/, '');
+  const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}&kind=clock`);
+  ws.onclose = () => { show('state', `${room}: 再接続中…`); setTimeout(connect, 2000); };
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    if (!('clock' in msg)) return;
+    const at = Date.now();
+    offsets.push({ at, d: msg.now - at });
+    offsets = offsets.filter(o => at - o.at < 60000);
+    clock = msg.clock;
+  };
+}
+connect();
+setInterval(draw, 200);
+</script>
+</body>
+</html>

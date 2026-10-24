@@ -33,6 +33,18 @@ class PodiumEncoderTest {
     }
 
     @Test
+    fun pitClockChannelsUseTheVer2Names() {
+        // The pit's clock (live_bridge.py) reads TimeLimit and Margin by name, in seconds.
+        val meta = PodiumEncoder.meta()
+        assertTrue(meta.contains("""{"nm":"GPSAcc","ut":"m","""))
+        assertTrue(meta.contains("""{"nm":"TimeLimit","ut":"Sec","""))
+        assertTrue(meta.contains("""{"nm":"Margin","ut":"Sec","""))
+        assertTrue(PodiumEncoder.CHANNELS.size <= 32)   // still one presence mask
+        val i = PodiumEncoder.CHANNELS.indexOfFirst { it.key == "TimeLimit" }
+        assertEquals("[987.36,${1L shl i}]", PodiumEncoder.row(mapOf("TimeLimit" to 987.36)))
+    }
+
+    @Test
     fun helloNamesTheLoggerRoleWithoutAudio() {
         assertEquals("""{"type":"hello","client_id":"car \"2\"","protocol":2,"role":"logger","audio_formats":[]}""",
             PodiumEncoder.hello("car \"2\""))
