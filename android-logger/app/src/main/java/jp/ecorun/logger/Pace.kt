@@ -2,6 +2,7 @@ package jp.ecorun.logger
 
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.sin
 
 /**
  * Average-speed pacing, which is what eco-run drivers steer by, following the
@@ -16,7 +17,8 @@ import kotlin.math.hypot
  * Lap distances come from the regulation distance, not from GNSS: a standing
  * start before the control line makes the first lap shorter by the start ->
  * control distance, and a goal before the control line makes the last lap
- * shorter by the goal -> control distance (both measured between the lines).
+ * shorter by the goal -> control distance (both measured along the control
+ * line's heading, [pastControlM]).
  * The rest of the regulation distance is shared evenly between the laps.
  */
 object Pace {
@@ -30,16 +32,34 @@ object Pace {
     /** The finishing time the pacing aims at. */
     private fun plannedS(c: LapConfig) = c.timeLimitS?.let { it - c.marginS }
 
+    /**
+     * How far [g] lies past the control line along the way the cars go (m; negative before it).
+     * 2026-10-25: Motegi's start and goal are in the pit lane beside the main course, and the
+     * straight-line gap counted the 29 m across to the goal as 29 m less to drive: the last lap
+     * was 26 m short and the outlook read ~4 s too kind (the goal is 2.3 m past the control).
+     * Without a heading on the control line, the old guess: the start past it, the goal before it.
+     */
+    private fun pastControlM(c: LapConfig, g: Gate?, before: Boolean): Double {
+        val control = c.control ?: return 0.0
+        if (g == null) return 0.0
+        val heading = control.bearing ?: return if (before) -apart(g, control) else apart(g, control)
+        val east = (g.lon - control.lon) * M_PER_DEG * cos(Math.toRadians((g.lat + control.lat) / 2))
+        val north = (g.lat - control.lat) * M_PER_DEG
+        val h = Math.toRadians(heading)
+        return east * sin(h) + north * cos(h)
+    }
+
     /** Distance of lap [index] (0 = first) in metres, or null without a regulation distance and lap count. */
     fun lapDistanceM(c: LapConfig, index: Int): Double? {
         val total = c.raceDistanceM ?: return null
         val n = c.totalLaps ?: return null
         if (n <= 0 || index !in 0 until n) return null
-        val shortStart = apart(c.start, c.control); val shortGoal = apart(c.goal, c.control)
-        val full = (total + shortStart + shortGoal) / n
+        // A standing start past the control line shortens lap 1; a goal before it shortens the last lap.
+        val start = pastControlM(c, c.start, before = false); val goal = pastControlM(c, c.goal, before = true)
+        val full = (total + start - goal) / n
         var d = full
-        if (index == 0) d -= shortStart
-        if (index == n - 1) d -= shortGoal
+        if (index == 0) d -= start
+        if (index == n - 1) d += goal
         return d
     }
 
@@ -75,4 +95,42 @@ object Pace {
     /** Seconds ahead (+) of the checkpoint after the first [count] laps: the sheet's 差. */
     fun bankedS(c: LapConfig, laps: List<Double>, count: Int): Double? =
         checkpointS(c, count)?.let { it - laps.take(count).sum() }
+
+    /**
+     * Where the race is heading (2026-10-25): the Super Cub finished 0.2 s over the limit after
+     * two laps below their targets, and the screen showed "slow" in the same red as on any lap
+     * below a target that has the margin in it. [spareS] is how far inside (+) or over (−) the
+     * limit itself the finish comes if the rest of the race is driven at [basisKmh]; [minimumKmh]
+     * is the slowest average over the rest that still makes the limit.
+     */
+    data class Outlook(val spareS: Double, val minimumKmh: Double?, val basisKmh: Double, val fromLastLap: Boolean)
+
+    /** This lap's average decides once it has run this long; before that, the lap before's. */
+    const val OUTLOOK_AFTER_S = 30.0
+
+    /** Regulation distance (m) still to drive, with [doneInLapM] of lap [index] behind. */
+    fun remainingM(c: LapConfig, index: Int, doneInLapM: Double): Double? {
+        val n = c.totalLaps ?: return null
+        if (index !in 0 until n) return null
+        var left = 0.0
+        for (k in index until n) left += lapDistanceM(c, k) ?: return null
+        return maxOf(0.0, left - minOf(doneInLapM, lapDistanceM(c, index)!!))
+    }
+
+    /** [Outlook] for the lap being driven, or null before the start, after the goal, or without the regulation. */
+    fun outlook(c: LapConfig, laps: List<Double>, v: LapValues?): Outlook? {
+        if (v == null || v.finished || v.current == 0) return null
+        val limit = c.timeLimitS ?: return null
+        val race = v.raceS ?: return null
+        val elapsed = v.elapsedS ?: return null
+        val index = v.count
+        val lapAvg = v.avgKmh
+        val lastAvg = if (index > 0 && laps.size >= index) lapKmh(c, index - 1, laps[index - 1]) else null
+        val fromLastLap = lapAvg == null || elapsed < OUTLOOK_AFTER_S
+        val basis = (if (fromLastLap) lastAvg else lapAvg) ?: return null
+        if (basis <= 0) return null
+        val left = remainingM(c, index, (lapAvg ?: basis) / 3.6 * elapsed) ?: return null
+        val time = limit - race
+        return Outlook(limit - (race + left / (basis / 3.6)), if (time > 0) left / time * 3.6 else null, basis, fromLastLap)
+    }
 }

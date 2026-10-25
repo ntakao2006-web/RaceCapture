@@ -26,6 +26,12 @@
   and "回線" shows how late the newest message came compared with the fastest one in the
   window (or how long nothing has come). A link that has been slow ever since the page
   opened cannot be told from skew and still reads small.
+  2026-10-25 (ER-13): the Super Cub finished 0.2 s over the limit and nothing here said it was
+  heading there. "予想ゴール" is how far inside (+) or over (−) the limit the finish comes at this
+  lap's average (live_bridge.py Pace.outlook), "最低" the slowest average over the rest that still
+  makes it. Over the limit the page turns red (cleared only OUTLOOK_CLEAR_S back inside, so it does
+  not flicker) and, when switched on, beeps every BEEP_EVERY_MS. The sound is off until someone
+  presses the button (a browser plays nothing before a tap anyway).
 -->
 <style>
   :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --line: #2c3235;
@@ -58,12 +64,21 @@
   #fresh.stale { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
   #link { font-size: 13px; color: var(--dim); margin-left: auto; }
   #link.slow { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
+  #spare { font-size: clamp(20px, min(6.5vw, 10vh), 44px); font-weight: 700; }
+  #wrap.over { background: rgba(242, 73, 92, 0.18); box-shadow: inset 0 0 0 4px var(--red); }
+  #overmsg { font-weight: 700; color: #fff; background: var(--red); border-radius: 4px; padding: 1px 8px; display: none;
+    font-size: clamp(13px, min(3.2vw, 5vh), 20px); }
+  #wrap.over #overmsg { display: inline; }
+  #beep { font-size: 12px; background: transparent; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+  #beep.on { color: #fff; border-color: var(--orange); }
 </style>
 </head>
 <body>
 <div id="wrap">
   <div class="row"><span id="state">接続中…</span><span id="laps"></span></div>
   <div class="row"><span class="label">経過</span><span id="elapsed">--:--</span></div>
+  <div class="row"><span class="label">予想ゴール 規定まで</span><span id="spare">—</span><span id="basis" class="label"></span>
+    <span class="label">最低</span><span id="minkmh" class="mid">—</span><span id="overmsg">このままだとタイムオーバー</span></div>
   <div class="pair">
     <div class="cell"><span class="label">規定まで</span><span id="limit" class="big">—</span></div>
     <div class="cell"><span class="label">目標まで</span><span id="target" class="big">—</span></div>
@@ -79,7 +94,7 @@
     <thead><tr><th>周</th><th>ライン</th><th>通過</th><th>ラップ</th><th>平均</th></tr></thead>
     <tbody id="rows"></tbody>
   </table></div>
-  <div class="row"><span id="fresh"></span><span id="link"></span></div>
+  <div class="row"><span id="fresh"></span><button id="beep" type="button">警告音：切</button><span id="link"></span></div>
 </div>
 <script>
 const params = new URLSearchParams(location.search);
@@ -88,6 +103,14 @@ const STALE_S = 10;
 const LINK_SLOW_S = 5;           // the bridge sends once a second
 const OFFSET_WINDOW_MS = 600000; // 10 min
 const KIND = { start: 'スタート', control: 'コントロール', goal: 'ゴール' };
+const OUTLOOK_SAFE_S = 10;     // green from this far inside the limit (or the margin, if larger), as the app
+const OUTLOOK_CLEAR_S = 2;     // back inside the limit by this much before the red goes off
+const MIN_SHOWN_KMH = 60;      // a "slowest average" above this only says the time is up
+const BEEP_EVERY_MS = 5000;
+let over = false;
+let beepOn = false;
+let audio = null;
+let lastBeep = 0;
 let clock = null;          // live_bridge.py Pace.clock()
 let offsets = [];          // [{at, d}] server minus browser time per message (ms)
 let last = null;           // the newest of them
@@ -143,6 +166,34 @@ function drawPasses(passes) {
   }));
 }
 
+function beep() {
+  if (!audio) return;
+  const t = audio.currentTime;
+  for (const at of [0, 0.25]) {   // two short tones
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = 880; g.gain.setValueAtTime(0.3, t + at); g.gain.setValueAtTime(0, t + at + 0.15);
+    o.connect(g); g.connect(audio.destination); o.start(t + at); o.stop(t + at + 0.16);
+  }
+}
+
+function drawOutlook(c, margin) {
+  const o = c.outlook;
+  over = o != null && (o.spare < 0 || (over && o.spare < OUTLOOK_CLEAR_S));
+  document.getElementById('wrap').classList.toggle('over', over);
+  show('basis', o && o.from_last ? '（前の周の平均で）' : '');
+  if (o == null) {
+    show('spare', '—', 'var(--dim)'); show('minkmh', '—');
+  } else {
+    const color = over ? 'var(--red)' : o.spare < Math.max(margin, OUTLOOK_SAFE_S) ? 'var(--orange)' : 'var(--green)';
+    show('spare', (o.spare >= 0 ? '+' : '') + mmss(o.spare, true), color);
+    show('minkmh', o.min_kmh != null && o.min_kmh <= MIN_SHOWN_KMH ? kmh(o.min_kmh) : '—');
+  }
+  // This lap's average in red under the slowest that still makes it.
+  const lapavg = document.getElementById('lapavg');
+  lapavg.style.color = o && o.min_kmh != null && c.lap_avg != null && c.lap_avg < o.min_kmh ? 'var(--red)' : '';
+  if (over && beepOn && Date.now() - lastBeep >= BEEP_EVERY_MS) { lastBeep = Date.now(); beep(); }
+}
+
 function drawLink() {
   const el = document.getElementById('link');
   const s = linkDelay();
@@ -182,6 +233,7 @@ function draw() {
   show('lastlap', lastLap != null && lastLap > 0 ? mmss(lastLap, true) : '—');
   show('lapavg', kmh(c.lap_avg));
   show('raceavg', kmh(c.race_avg));
+  drawOutlook(c, margin);
   drawPasses(passes);
   const fresh = document.getElementById('fresh');
   if (c.data_t == null) { fresh.textContent = ''; fresh.className = ''; return; }
@@ -211,6 +263,13 @@ function connect() {
     clock = msg.clock;
   };
 }
+document.getElementById('beep').onclick = () => {
+  beepOn = !beepOn;
+  if (beepOn && !audio) audio = new AudioContext();
+  if (beepOn) { audio.resume(); beep(); }   // one beep now, so the pit hears it works
+  const b = document.getElementById('beep');
+  b.textContent = beepOn ? '警告音：入' : '警告音：切'; b.className = beepOn ? 'on' : '';
+};
 connect();
 setInterval(draw, 200);
 </script>

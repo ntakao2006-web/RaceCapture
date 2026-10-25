@@ -129,8 +129,18 @@ class Pace:
     # A race or lap first seen this long after its line (2026-10-25: a phone reports the start
     # ~6 s late) still counts from the line, at the speed of that first point.
     HEAD_S = 30.0
+    # Regulation distance by the number of laps (Honda EMC 2026, ch. 2 art. 1-4: the CN groups
+    # 7 laps, the two-wheel and two-seat classes 3), for the outlook. TimeLimit comes from the
+    # logger/app; the distance does not, and the laps tell the classes apart.
+    REG_DISTANCE_M = {3: 6856.72, 7: 16389.68}
+    # The lap being driven decides the outlook once it has run this long (before: the lap before).
+    OUTLOOK_AFTER_S = 30.0
 
-    def __init__(self):
+    def __init__(self, split=None):
+        # (start, goal) metres past the control line along the way the cars go (--lap-split):
+        # the regulation distance is then split by lap as the driver's app does (Pace.lapDistanceM)
+        self.split = split
+        self.lap_scale = 1.0   # regulation / GNSS distance of the last whole lap (as LapTimer.distScale)
         self.last_ts = None
         self.last_speed = None
         self.race = self.lap = None   # [km, minutes at the start of the integration]
@@ -166,7 +176,59 @@ class Pace:
                 'passes': passes,
                 'lap_avg': self.latest.get('LapAvgSpeed') if on and not finished else None,
                 'race_avg': self.latest.get('RaceAvgSpeed') if on else None,
+                'outlook': self.outlook() if on and not finished else None,
                 'data_t': self.last_ts}
+
+    def outlook(self):
+        """Where the race is heading (2026-10-25, ER-13): the Super Cub finished 0.2 s over the limit
+        and nothing on the pit's screen said it was heading there. `spare` is how far inside (+) or
+        over (-) the limit the finish comes if the rest is driven at this lap's average (the lap
+        before's in a lap's first OUTLOOK_AFTER_S), `min_kmh` the slowest average over the rest that
+        still makes it. With --lap-split the distance left is counted by lap as the driver's app does
+        (Pace.outlook; the 2026-10-25 replay ended 0.8 s over against the real 0.2 s). Without it, the
+        regulation distance less the GNSS distance driven, which runs ~0.3-1 % short, so it errs late
+        (the replay: 3.8 s over at the goal), the safe side, and the app may read a few seconds kinder."""
+        limit = self.latest.get('TimeLimit')
+        count, left = self.latest.get('LapCount'), self.latest.get('LapsLeft')
+        if limit is None or count is None or left is None or self.race_min is None or self.lap_min is None:
+            return None
+        total_m = self.REG_DISTANCE_M.get(round(count + left))
+        if total_m is None or not self.whole(self.race):
+            return None
+        lap_avg = self.latest.get('LapAvgSpeed')
+        from_last = lap_avg is None or self.lap_min * 60 < self.OUTLOOK_AFTER_S
+        basis = (self.last_lap_avg if count >= 1 else None) if from_last else lap_avg
+        if not basis or basis <= 0:
+            return None
+        race_s = self.race_min * 60
+        index = int(count)
+        if self.split is not None and index < round(count + left):
+            n = round(count + left)
+            lap_m = [self.lap_m(k, n) for k in range(n)]
+            done = (self.lap[0] * 1000 * self.lap_scale if self.whole(self.lap) and self.lap[0] > 0
+                    else basis / 3.6 * self.lap_min * 60)
+            remain = max(0.0, sum(lap_m[index:]) - min(done, lap_m[index]))
+        else:
+            remain = max(0.0, total_m - self.race[0] * 1000)
+        return {'spare': round(limit - (race_s + remain / (basis / 3.6)), 1),
+                'min_kmh': round(remain / (limit - race_s) * 3.6, 2) if limit > race_s else None,
+                'basis': round(basis, 2), 'from_last': from_last}
+
+    def lap_m(self, index, laps=None):
+        """Regulation distance of lap `index` (0 = first) by --lap-split, or None without it."""
+        if self.split is None:
+            return None
+        if laps is None:
+            count, left = self.latest.get('LapCount'), self.latest.get('LapsLeft')
+            if count is None or left is None:
+                return None
+            laps = round(count + left)
+        total = self.REG_DISTANCE_M.get(laps)
+        if total is None or not 0 <= index < laps:
+            return None
+        start, goal = self.split
+        full = (total + start - goal) / laps
+        return full - (start if index == 0 else 0) + (goal if index == laps - 1 else 0)
 
     def head(self, minutes, speed):
         """A new race or lap integration [km, minutes it starts from]: from its line when
@@ -221,6 +283,11 @@ class Pace:
             if self.lap is not None:
                 self.lap[0] += step - after
                 lap_done = True
+                reg = self.lap_m(int(self.count))
+                if reg and self.whole(self.lap) and self.lap[0] > 0 and round(count - self.count) == 1:
+                    ratio = reg / (self.lap[0] * 1000)
+                    if 0.85 <= ratio <= 1.15:
+                        self.lap_scale = ratio
             lap_s = fields['LapTime'] * 60 if fields.get('LapTime') is not None else None
             # Several laps at once (2026-10-25): a control line missed (the phone's recording
             # stopped across it) makes the next pass count k laps sharing the time evenly, and
@@ -468,7 +535,7 @@ class Bridge:
                 points = self.only_new(f.room, f.poll())
             except OSError:
                 continue
-            pace = self.paces.setdefault(f.room, Pace())
+            pace = self.paces.setdefault(f.room, Pace(self.args.lap_split))
             for ts, fields in points:
                 pace.add(ts, fields)
             pace.events.clear()
@@ -493,7 +560,7 @@ class Bridge:
                 except OSError:
                     continue
                 if points:
-                    pace = self.paces.setdefault(f.room, Pace())
+                    pace = self.paces.setdefault(f.room, Pace(self.args.lap_split))
                     points = [(ts, pace.add(ts, fl)) for ts, fl in points]
                     # Line passes as ecorun_lap_at{room,lap,kind,race,seconds,avg} = pass time (ms), one
                     # sample each. Lap time and average are labels so one query gives one row per pass.
@@ -743,6 +810,10 @@ async def main():
     ap.add_argument('--listen', default='0.0.0.0:3002')
     ap.add_argument('--db', default=os.path.join(HERE, 'map.db'), help='SQLite file for drawn shapes')
     ap.add_argument('--owntracks-listen', default='127.0.0.1:3003', help='HTTP for the OwnTracks app')
+    ap.add_argument('--lap-split', type=lambda v: tuple(float(x) for x in v.split(',')), default=None,
+                    metavar='START,GOAL', help='metres the start and goal lines lie past the control line along '
+                    'the way the cars go (Motegi 2026-10-25, reference 0115: 293.2,2.3); splits the '
+                    'regulation distance by lap for the outlook, as the driver app does')
     args = ap.parse_args()
 
     bridge = Bridge(args)

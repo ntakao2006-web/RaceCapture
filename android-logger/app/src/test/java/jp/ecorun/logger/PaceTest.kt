@@ -15,7 +15,8 @@ class PaceTest {
         // Standing start before the control line: the first lap is the shortest, then the last (goal before the control).
         val c = motegi.control!!; val s = motegi.start!!
         val startToControl = Math.hypot((c.lon - s.lon) * 111320.0 * Math.cos(Math.toRadians((c.lat + s.lat) / 2)), (c.lat - s.lat) * 111320.0)
-        assertEquals(startToControl, d[1] - d[0], 1e-6)
+        // Measured along the control line's heading (2026-10-25): these lines lie on one straight, so within a metre of the gap.
+        assertEquals(startToControl, d[1] - d[0], 1.0)
         assert(d[0] < d[2] && d[2] < d[1])
         assertEquals(6856.72 / 3, Pace.lapDistanceM(motegi.copy(start = null, goal = null), 1)!!, 1e-6)
     }
