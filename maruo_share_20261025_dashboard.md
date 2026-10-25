@@ -1,0 +1,34 @@
+# Maruo.Sさんへ：ピット用ダッシュボードの引き継ぎ（2026-10-25、未送）
+
+主サーバー（先輩のラックサーバー）でも、自宅のROCK 5Bと**完全に同じ**ピット用の画面を出してもらうための連絡。
+DiscordのDMにそのまま貼る想定。本体は`server_deploy_grafana_x86.md`（RaceCaptureリポジトリ。先輩はcollaboratorなので見られる）。
+`maruo_share_20261024_grafana.md`（未送）の差し替え。10/24夜〜10/25の画面の作り直しを全部含む。
+
+---
+
+お疲れ様です！
+大会2日目のピットで使っているダッシュボード（Grafanaの「EcoRun Live」と、中に埋め込んでいる「周回・時間」のページ・地図）を、
+先輩のサーバーでも**5Bと完全に同じ状態**で動かせるように、引き継ぎの一式をまとめました。
+今朝（10/25 10時）の5Bの実物と、ファイルの中身（sha256）・Grafanaの設定・Grafanaの中身（DB）・VictoriaMetricsの起動オプション・Funnelのパスまで突き合わせてあります。
+
+- 手順書（画面の構成・ブリッジがしていること・10/18以降の変更点・5Bの設定との対応表・手順・確認）
+  https://github.com/ntakao2006-web/RaceCapture/blob/master/server_deploy_grafana_x86.md
+- ファイル一式（ダッシュボードのJSON・3つのページ・ブリッジ・Docker Compose）
+  https://github.com/ntakao2006-web/RaceCapture/tree/master/tools/home_telemetry
+
+要点です。
+
+1. **サーバー本体の変更は要りません。** 今の`latest`（397facf）が`ECORUN_TELEMETRY_DIR`に書くJSON Linesを読むだけです（5Bも今そのイメージで動いています）
+2. 足すのはVictoriaMetrics・Grafana・ブリッジ（Python）の3つで、`tools/home_telemetry/deploy/`で`docker compose up -d --build`すれば立ちます
+3. 外からは今の公開URLに`/grafana`と`/live`の2つのパスを足すだけです（Funnelなら`tailscale funnel --bg --set-path=…`を2回。手順書6-4）
+4. Grafanaの中で手で作るのは、速度パネル用のサービスアカウント`live-bridge`（Editor）とそのトークンだけです（5Bもこれだけ。手順書6-3）
+5. 昨日の指摘（もてぎの回線が遅く、経過時間・ラップが約30秒遅れて見えた）を受けて、**時間と周回は「周回・時間」のページに移し、見ている端末の時計で進める**形に作り直しました。手順書1章に今の画面の中身をまとめています
+6. 今後こちらで5Bの画面を直したときは、同じ変更をリポジトリへコミットします。`git pull`して手順書8章のとおり作り直せば同じになります
+
+確認させてください。
+
+- 先輩のサーバーの外からの入口は、Tailscale Funnelですか？（nginx・Caddyの例も手順書に入れてあります）
+- チームの`compose.yaml`の例はホストの3001・3002を使っていますが、同じマシンなら番号を変えてもらう必要があります（`.env`で変えられます）
+- 画面に出るのはそのサーバーのJSON Linesに書かれた分だけなので、両方の画面を同じにするには**複製が流れていることが前提**です（複製が止まっていた件は別にお送りした報告のとおりです）
+
+こちらのPCではDocker Desktopが起動しないので、コンテナを実際に起動しての確認はできていません（構文の確認まで）。詰まったら教えてください！

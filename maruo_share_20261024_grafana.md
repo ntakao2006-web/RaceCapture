@@ -1,5 +1,7 @@
 # Maruo.Sさんへ：ピット用Grafana・地図の引き継ぎ（2026-10-24、未送）
 
+> **2026-10-25に`maruo_share_20261025_dashboard.md`へ差し替え。こちらは送らない**（10/24夜〜10/25の画面の作り直しを含まないため）。
+
 主サーバー（先輩のラックサーバー）でも、自宅のROCK 5Bと同じピット用の画面を出せるようにするための連絡。
 DiscordのDMにそのまま貼る想定。本体は`server_deploy_grafana_x86.md`（RaceCaptureリポジトリ。先輩はcollaboratorなので見られる）。
 
