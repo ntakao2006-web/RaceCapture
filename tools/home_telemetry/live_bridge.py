@@ -429,6 +429,7 @@ class Bridge:
         self.followers = {}
         self.playouts = {}
         self.paces = {}   # room -> Pace
+        self.newest = {}  # room -> newest row time taken (only_new)
         self.clients = {}  # websocket -> room
         self.client_opts = {}  # websocket -> {kind, fields} (see client)
         self.started = time.time()
@@ -439,6 +440,18 @@ class Bridge:
         print(f'Grafana Live push: {"on" if self.token else "off (no token file)"}', flush=True)
 
     # --- input -----------------------------------------------------------
+    def only_new(self, room, points):
+        """Drop rows not newer than the newest one already taken for this room (2026-10-25):
+        when the cluster peer reconnects, the server replays its history into the room's open
+        file, and last night's test laps were counted as laps of the race being run."""
+        newest, kept = self.newest.get(room, 0), []
+        for p in points:
+            if p[0] > newest:
+                kept.append(p)
+                newest = p[0]
+        self.newest[room] = newest
+        return kept
+
     def rebuild(self):
         """Rebuild each room's laps from the files written in the last REBUILD_S (2026-10-25):
         a bridge restarted mid-race used to pick up the files at their end, so the line passes
@@ -452,7 +465,7 @@ class Bridge:
                 if os.path.getmtime(path) < cutoff:
                     continue
                 f = Follower(path, from_start=True)
-                points = f.poll()
+                points = self.only_new(f.room, f.poll())
             except OSError:
                 continue
             pace = self.paces.setdefault(f.room, Pace())
@@ -476,7 +489,7 @@ class Bridge:
                     self.followers[path] = Follower(path, from_start=new)
             for f in self.followers.values():
                 try:
-                    points = f.poll()
+                    points = self.only_new(f.room, f.poll())
                 except OSError:
                     continue
                 if points:
