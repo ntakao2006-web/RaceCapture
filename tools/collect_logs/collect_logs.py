@@ -12,7 +12,8 @@
 もう一度は取らない。新しいものが1つも無ければフォルダを作らない。
 
 使い方: Collect-Logs.cmd をダブルクリック。
-  python collect_logs.py [--drives E: F:] [--url URL ...] [--no-emmc] [--no-phone] [--phone-dir DIR] [--out DIR]
+  python collect_logs.py [--drives E: F:] [--url URL ...] [--no-emmc] [--no-phone] [--phone-dir DIR] [--out DIR] [--config FILE]
+  --config にロガーの config.json（/api/config）を渡すと、SDのCSVに油温などCAN信号の列が付く。
 """
 import argparse
 import ctypes
@@ -95,7 +96,11 @@ class Run:
         return target
 
 
-def collect_sd(run, manifest, kind, files, log):
+def collect_sd(run, manifest, kind, files, log, config=None):
+    decoder = None  # one decoder across the sorted files keeps CAN values continuous at file boundaries
+    if kind == 'v2_sd' and config is not None:
+        from sd_decode import new_decoder
+        decoder = new_decoder()
     for src in files:
         key = f'{kind}/{src.name}/{src.stat().st_size}'
         if key in manifest:
@@ -110,7 +115,7 @@ def collect_sd(run, manifest, kind, files, log):
         if kind == 'v2_sd':
             try:
                 from sd_decode import convert
-                convert(dest, dest.with_suffix('.csv'))
+                convert(dest, dest.with_suffix('.csv'), config, decoder)
             except Exception as exc:  # keep the raw file; decoding can be redone later
                 log(f'    （CSVへの変換に失敗。BINはコピー済み）{exc}')
 
@@ -210,12 +215,17 @@ def main(argv=None):
     parser.add_argument('--no-phone', action='store_true', help='スマホからは回収しない')
     parser.add_argument('--phone-dir', type=Path, help='スマホのEcoLoggerフォルダを手でコピーした場所（USBの自動コピーの代わり）')
     parser.add_argument('--out', type=Path, default=REPO / 'drive_logs')
+    parser.add_argument('--config', type=Path, help='ロガーのconfig.json。SDのCSVにCAN信号の列を付ける')
     args = parser.parse_args(argv)
     log = print
     args.out.mkdir(parents=True, exist_ok=True)
     manifest_path = args.out / 'collected.json'
     manifest = load_manifest(manifest_path)
     run = Run(args.out)
+    config = None
+    if args.config:
+        from sd_decode import load_config
+        config = load_config(args.config)
     problems = []
     try:
         sources = find_sources(args.drives if args.drives is not None else candidate_drives())
@@ -224,7 +234,7 @@ def main(argv=None):
         for kind, drive, files in sources:
             log(f'{drive} {"Ver.1 SD" if kind == "v1_sd" else "Ver.2 SD"}（{len(files)} ファイル）')
             try:
-                collect_sd(run, manifest, kind, files, log)
+                collect_sd(run, manifest, kind, files, log, config if kind == 'v2_sd' else None)
             except OSError as exc:
                 problems.append(f'{drive}: {exc}')
         if not args.no_emmc:
