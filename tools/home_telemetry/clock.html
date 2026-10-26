@@ -32,6 +32,9 @@
   makes it. Over the limit the page turns red (cleared only OUTLOOK_CLEAR_S back inside, so it does
   not flicker) and, when switched on, beeps every BEEP_EVERY_MS. The sound is off until someone
   presses the button (a browser plays nothing before a tap anyway).
+  2026-10-26: as the driver's app (Pace.overrun), lap 1 turns red only more than FIRST_LAP_ALARM_S
+  over: with no lap before to go by, its slow middle read a few seconds over in a lap that ended
+  5 s ahead. This lap's average turns red only while the page is red.
 -->
 <style>
   :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --line: #2c3235;
@@ -104,7 +107,8 @@ const LINK_SLOW_S = 5;           // the bridge sends once a second
 const OFFSET_WINDOW_MS = 600000; // 10 min
 const KIND = { start: 'スタート', control: 'コントロール', goal: 'ゴール' };
 const OUTLOOK_SAFE_S = 10;     // green from this far inside the limit (or the margin, if larger), as the app
-const OUTLOOK_CLEAR_S = 2;     // back inside the limit by this much before the red goes off
+const OUTLOOK_CLEAR_S = 2;     // back inside the alarm's line by this much before the red goes off
+const FIRST_LAP_ALARM_S = 5;   // lap 1: red only this far over
 const MIN_SHOWN_KMH = 60;      // a "slowest average" above this only says the time is up
 const BEEP_EVERY_MS = 5000;
 let over = false;
@@ -178,7 +182,8 @@ function beep() {
 
 function drawOutlook(c, margin) {
   const o = c.outlook;
-  over = o != null && (o.spare < 0 || (over && o.spare < OUTLOOK_CLEAR_S));
+  const line = c.count === 0 ? -FIRST_LAP_ALARM_S : 0;
+  over = o != null && (o.spare < line || (over && o.spare < line + OUTLOOK_CLEAR_S));
   document.getElementById('wrap').classList.toggle('over', over);
   show('basis', o && o.from_last ? '（前の周の平均で）' : '');
   if (o == null) {
@@ -190,7 +195,7 @@ function drawOutlook(c, margin) {
   }
   // This lap's average in red under the slowest that still makes it.
   const lapavg = document.getElementById('lapavg');
-  lapavg.style.color = o && o.min_kmh != null && c.lap_avg != null && c.lap_avg < o.min_kmh ? 'var(--red)' : '';
+  lapavg.style.color = over && o.min_kmh != null && c.lap_avg != null && c.lap_avg < o.min_kmh ? 'var(--red)' : '';
   if (over && beepOn && Date.now() - lastBeep >= BEEP_EVERY_MS) { lastBeep = Date.now(); beep(); }
 }
 

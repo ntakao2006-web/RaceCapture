@@ -103,7 +103,9 @@ object Pace {
      * limit itself the finish comes if the rest of the race is driven at [basisKmh]; [minimumKmh]
      * is the slowest average over the rest that still makes the limit.
      */
-    data class Outlook(val spareS: Double, val minimumKmh: Double?, val basisKmh: Double, val fromLastLap: Boolean)
+    data class Outlook(val spareS: Double, val minimumKmh: Double?, val basisKmh: Double, val fromLastLap: Boolean,
+                       /** The lap being driven, 0 = first. */
+                       val lap: Int = 0)
 
     /** This lap's average decides once it has run this long; before that, the lap before's. */
     const val OUTLOOK_AFTER_S = 30.0
@@ -131,6 +133,22 @@ object Pace {
         if (basis <= 0) return null
         val left = remainingM(c, index, (lapAvg ?: basis) / 3.6 * elapsed) ?: return null
         val time = limit - race
-        return Outlook(limit - (race + left / (basis / 3.6)), if (time > 0) left / time * 3.6 else null, basis, fromLastLap)
+        return Outlook(limit - (race + left / (basis / 3.6)), if (time > 0) left / time * 3.6 else null, basis, fromLastLap, index)
+    }
+
+    /**
+     * Lap 1 raises the overrun alarm only this far over (2026-10-26, ER-13): with no lap before
+     * to go by, its own average decides, and the slow part of Motegi's lap 1 read up to 3 s over
+     * for a minute in a lap that ended 5 s ahead (GNSS distance is good to ~3 s a lap anyway).
+     */
+    const val FIRST_LAP_ALARM_S = 5.0
+    /** Back inside the alarm's line by this much before it goes off, so it does not flicker. */
+    const val ALARM_CLEAR_S = 2.0
+
+    /** Whether the overrun alarm (the red frame) is on, given whether it [wasOn]. */
+    fun overrun(o: Outlook?, wasOn: Boolean): Boolean {
+        if (o == null) return false
+        val line = if (o.lap == 0) -FIRST_LAP_ALARM_S else 0.0
+        return o.spareS < line || (wasOn && o.spareS < line + ALARM_CLEAR_S)
     }
 }

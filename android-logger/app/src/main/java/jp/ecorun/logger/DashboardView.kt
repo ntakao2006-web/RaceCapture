@@ -46,7 +46,7 @@ class DashboardView(context: Context) : View(context) {
     var dash = Dash()
         set(v) { field = v; invalidate() }
     var bottomReservePx = 0f
-    /** Showing the overrun alarm: set below the limit, cleared only [OUTLOOK_CLEAR_S] inside it, so it does not flicker. */
+    /** Showing the overrun alarm (the red frame), see [Pace.overrun]. */
     private var overrun = false
 
     private val bg = Color.rgb(9, 12, 16)
@@ -129,12 +129,17 @@ class DashboardView(context: Context) : View(context) {
         // Race clock: while racing with the regulation known, where the finish is heading (2026-10-25).
         val limit = cfg.timeLimitS
         val outlook = Pace.outlook(cfg, d.laps, v)
-        overrun = outlook != null && (outlook.spareS < 0 || (overrun && outlook.spareS < OUTLOOK_CLEAR_S))
+        overrun = Pace.overrun(outlook, overrun)
         if (limit != null) {
             val race = v?.raceS
             val rem = if (race == null) limit else limit - race
             val margin = if (cfg.marginS > 0 && cfg.raceDistanceM != null) "　余裕${"%.0f".format(cfg.marginS)}秒" else ""
-            if (outlook != null) {
+            if (v?.finished == true && race != null) {
+                // After the goal, the result against the limit to a tenth (2026-10-26: "+0:00" hid 0.2 s over).
+                // The phone's goal time can be ~1 s off the official one, hence "アプリの計測".
+                tileBox(c, gx + gw + pad, top, gw, gh, "規定まで", resultText(rem), "ゴール " + clock(race, true) + "（アプリの計測）",
+                    if (rem < 0) red else green, label)
+            } else if (outlook != null) {
                 tileBox(c, gx + gw + pad, top, gw, gh, "予想ゴール　規定まで", gap(outlook.spareS),
                     "残り " + (if (rem < 0) "+" else "") + clock(abs(rem), false) + margin, outlookColor(outlook, cfg), label)
             } else {
@@ -157,7 +162,7 @@ class DashboardView(context: Context) : View(context) {
         }
     }
 
-    /** Green with the margin (at least [OUTLOOK_SAFE_S]) to spare, yellow inside the limit but not by that much, red over it. */
+    /** Red with the alarm on; else green with the margin (at least [OUTLOOK_SAFE_S]) to spare, yellow without it. */
     private fun outlookColor(o: Pace.Outlook, cfg: LapConfig) =
         if (overrun) red else if (o.spareS < maxOf(cfg.marginS, OUTLOOK_SAFE_S)) yellow else green
 
@@ -168,7 +173,9 @@ class DashboardView(context: Context) : View(context) {
      * the first-half speed that makes it up sooner; beside it this lap's running
      * average, coloured like the sheet: green on target, yellow too fast.
      * 2026-10-25: red only for a pace that misses the limit itself ([Pace.Outlook.minimumKmh],
-     * shown under the average); below a target that still has the margin in it is yellow.
+     * shown under the average) while the overrun alarm is on; below a target that still has the
+     * margin in it, or under the minimum early in lap 1 (no alarm yet), is yellow. 2026-10-26: the
+     * gap at the last lap's end turns grey under the alarm, where a green "+4秒" read as all well.
      */
     private fun speedTiles(c: Canvas, x: Float, y: Float, w: Float, h: Float, pad: Float, d: Dash, outlook: Pace.Outlook?) {
         val cfg = d.config; val v = d.lap
@@ -181,7 +188,7 @@ class DashboardView(context: Context) : View(context) {
             v?.finished == true -> (banked?.let { "ゴール　差 " + gap(it) } ?: "ゴール") to label
             target == null -> (v?.raceS?.let { if (it < (cfg.timeLimitS ?: 0.0)) "目標タイムを過ぎました" else "規定時間を過ぎました" } ?: "") to red
             banked != null -> listOfNotNull("差 " + gap(banked), half?.let { "前半 %.1f".format(it) }).joinToString("　") to
-                (if (banked >= 0) green else if ((outlook?.spareS ?: 0.0) >= 0) yellow else red)
+                (if (overrun) label else if (banked >= 0) green else yellow)
             running -> "" to label
             else -> "スタート前" to label
         }
@@ -192,7 +199,8 @@ class DashboardView(context: Context) : View(context) {
         val floor = minimum?.let { "最低 %.1f".format(it) }
         val (avgSub, avgColor) = when {
             avg == null -> (if (running) "計測中" else if (v?.finished == true) "ゴール" else "スタート前") to white
-            minimum != null && avg < minimum -> listOfNotNull("規定に間に合わない", floor).joinToString("　") to red
+            minimum != null && avg < minimum && overrun -> listOfNotNull("規定に間に合わない", floor).joinToString("　") to red
+            minimum != null && avg < minimum -> listOfNotNull("遅い", floor).joinToString("　") to yellow
             target == null -> (floor ?: "") to white
             avg < target -> listOfNotNull("遅い " + signed(avg - target), floor).joinToString("　") to yellow
             avg > target + FAST_KMH -> "速すぎ　" + signed(avg - target) to yellow
@@ -267,8 +275,11 @@ class DashboardView(context: Context) : View(context) {
          * distance driven comes from GNSS speed, good to about 1% (~3 s a lap at Motegi).
          */
         const val OUTLOOK_SAFE_S = 10.0
-        /** Back inside the limit by this much before the overrun alarm goes off again. */
-        const val OUTLOOK_CLEAR_S = 2.0
+        /** Seconds inside (+) or over (−) the limit to a tenth, e.g. "−0.2秒", "+1:12.3". */
+        fun resultText(s: Double): String {
+            val tenths = Math.round(abs(s) * 10) / 10.0
+            return (if (s < 0) "−" else "+") + if (tenths < 60) "%.1f秒".format(tenths) else clock(tenths, true)
+        }
         /** m:ss (or h:mm:ss), with tenths when [tenths]. */
         fun clock(seconds: Double, tenths: Boolean): String {
             val t = if (tenths) floor(seconds * 10) / 10 else floor(seconds)

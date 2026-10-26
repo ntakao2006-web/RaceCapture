@@ -1,6 +1,7 @@
 package jp.ecorun.logger
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -81,6 +82,30 @@ class OutlookTest {
         assertNull(o.minimumKmh)
     }
 
+    private fun outlookOn(lap: Int, spare: Double) = Pace.Outlook(spare, 25.0, 25.0, false, lap)
+
+    /** The red frame: over the limit from lap 2, more than 5 s over in lap 1; off 2 s back inside. */
+    @Test
+    fun overrunAlarm() {
+        assertFalse(Pace.overrun(null, true))
+        assertFalse(Pace.overrun(outlookOn(0, -3.0), false))
+        assertTrue(Pace.overrun(outlookOn(0, -5.5), false))
+        assertTrue(Pace.overrun(outlookOn(0, -4.0), true))      // stays on until 2 s back inside its line
+        assertFalse(Pace.overrun(outlookOn(0, -2.9), true))
+        assertTrue(Pace.overrun(outlookOn(1, -0.1), false))
+        assertTrue(Pace.overrun(outlookOn(1, 1.9), true))
+        assertFalse(Pace.overrun(outlookOn(1, 2.1), true))
+        assertFalse(Pace.overrun(outlookOn(1, 1.9), false))
+    }
+
+    /** After the goal, the result against the limit to a tenth: the Super Cub's 0.2 s over read "+0:00". */
+    @Test
+    fun resultToATenth() {
+        assertEquals("−0.2秒", DashboardView.resultText(limit - 987.564))
+        assertEquals("+29.0秒", DashboardView.resultText(2360.11 - 2331.13))
+        assertEquals("+1:12.3", DashboardView.resultText(72.34))
+    }
+
     /** Crossing times of 2026-10-25 from the start (s): control, control, goal. */
     private val passes = listOf(287.855, 640.805, 987.564)
 
@@ -118,6 +143,14 @@ class OutlookTest {
         // read just over the limit for a while: by at most a couple of seconds, inside the yellow.
         assertTrue(run.first { it.first == 287 }.second!!.spareS > 0)
         assertTrue(run.filter { it.first < 288 }.all { (it.second?.spareS ?: 0.0) > -3 })
+        // The red frame: none in lap 1 (its slow middle read at most a few seconds over), then on
+        // from early lap 2 to the goal without a break.
+        var on = false
+        val alarm = run.map { (s, o) -> on = Pace.overrun(o, on); s to on }
+        assertTrue(alarm.filter { it.first < 288 }.none { it.second })
+        val frame = alarm.first { it.second }.first
+        assertTrue("red frame from $frame s", frame in 289..420)
+        assertTrue(alarm.filter { it.first >= frame }.all { it.second })
         // The overrun shows within 2 minutes of lap 2 (about 6:20)...
         val first = run.first { it.first >= 288 && (it.second?.spareS ?: 1.0) < 0 }.first
         assertTrue("first overrun at $first s", first in 289..420)
