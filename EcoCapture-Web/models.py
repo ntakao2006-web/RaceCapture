@@ -77,6 +77,19 @@ class Configuration(BaseModel):
                 raise ValueError('油温の自動状態チャンネル名と重複しています')
         return self
 
+def signal_columns(config):
+    """One log column per CAN signal; sensor-hub oil temperature adds <name>State (Open is the same as State 1)."""
+    names = []
+    for sig in config.signals:
+        names.append(sig.name)
+        if sig.conversion == 'sensorhub_oiltemp':
+            names.append(sig.name + 'State')
+    return names
+
+def log_value(value):
+    """Drop float noise such as 6016*.01 -> 60.160000000000004 when writing a log."""
+    return round(value, 9) if isinstance(value, float) else value
+
 CHANNELS = {
     "Speed": ("車速", "km/h"), "GPSSpeed": ("GNSS速度", "km/h"), "RPM": ("回転数", "rpm"),
     "Throttle": ("スロットル", "%"), "BatteryVolt": ("バッテリー", "V"),

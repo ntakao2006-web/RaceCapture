@@ -19,7 +19,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sd_storage import SDStorage
 from sd_timestamp import stamp_logs
-from models import CHANNELS, LAP_CHANNELS, Configuration, validate_sample
+from models import CHANNELS, LAP_CHANNELS, Configuration, log_value, signal_columns, validate_sample
 from podium import PodiumSender
 import field
 from lap import LapLine, LapTimer, line_qr
@@ -51,6 +51,7 @@ class Recorder:
         self.file = None
         self.can_file = None
         self.writer = None
+        self.can_columns = []
         self.name = None
         self.rows = 0
         self.started = None
@@ -75,12 +76,17 @@ class Recorder:
             "started_utc": self.started, "config": config.model_dump(),
             "mcu_generation_hz": 100, "linux_poll_target_hz": 20,
             "clock": "host_utc is Linux reception time, not GNSS time; mcu_ms wraps at 2^32",
-            "units": {k: unit for k, (_, unit) in {**CHANNELS, **LAP_CHANNELS}.items()}, "state": "recording"
+            "units": {**{k: unit for k, (_, unit) in {**CHANNELS, **LAP_CHANNELS}.items()},
+                      **{s.name: s.unit for s in config.signals if s.name not in CHANNELS}}, "state": "recording"
         })
         self.file = (LOGS / self.name).open("x", encoding="utf-8", newline="")
         self.can_file = (LOGS / (self.name + ".can.jsonl")).open("x",encoding="utf-8")
         self.writer = csv.writer(self.file)
-        self.writer.writerow(["schema", "demo", "source", "host_utc", "seq", "mcu_ms", *CHANNELS,"gnss_utc","gnss_itow_ms","imu_raw","imu_temperature_C","imu_calibration","quaternion","gnss_hacc_m","can_signals",*LAP_CHANNELS])
+        base = ["schema", "demo", "source", "host_utc", "seq", "mcu_ms", *CHANNELS,"gnss_utc","gnss_itow_ms","imu_raw","imu_temperature_C","imu_calibration","quaternion","gnss_hacc_m",*LAP_CHANNELS]
+        # One column per CAN signal (fixed for the file: config cannot change while recording).
+        # Signals named like a fixed channel (RPM, Speed, ...) are already written there.
+        self.can_columns = [name for name in signal_columns(config) if name not in CHANNELS]
+        self.writer.writerow([*base, *(name if name not in base else "CAN_" + name for name in self.can_columns)])
         self.last_sync = time.monotonic()
         self.last_check = 0
 
@@ -94,7 +100,8 @@ class Recorder:
                 if self.make_room() < RESERVE_BYTES:
                     raise OSError("Storage reserve reached (256 MiB)")
             self.writer.writerow([1, int(sample["demo"]), sample["source"], sample["host_utc"], sample["seq"], sample["mcu_ms"],
-                                  *(sample["values"][k] for k in CHANNELS),sample.get("gnss_utc"),sample.get("gnss_itow_ms"),sample.get("imu_raw"),sample.get("imu_temperature_C"),json.dumps(sample.get("imu_calibration")),json.dumps(sample.get("quaternion")),sample.get("gnss_hacc_m"),json.dumps(sample.get("can_signals",{})),*((sample.get("lap") or {}).get(k) for k in LAP_CHANNELS)])
+                                  *(sample["values"][k] for k in CHANNELS),sample.get("gnss_utc"),sample.get("gnss_itow_ms"),sample.get("imu_raw"),sample.get("imu_temperature_C"),json.dumps(sample.get("imu_calibration")),json.dumps(sample.get("quaternion")),sample.get("gnss_hacc_m"),*((sample.get("lap") or {}).get(k) for k in LAP_CHANNELS),
+                                  *(log_value(sample.get("can_signals",{}).get(k)) for k in self.can_columns)])
             self.rows += 1
             if now - self.last_sync >= 1:
                 if self.can_file:self.can_file.flush();os.fsync(self.can_file.fileno())
@@ -121,7 +128,7 @@ class Recorder:
             file.close()
         try:
             path = LOGS / (self.name + ".meta.json")
-            meta = json.loads(path.read_text())
+            meta = json.loads(path.read_text(encoding="utf-8"))
             meta.update(state="error" if self.error else "closed", rows=self.rows,
                         ended_utc=datetime.now(timezone.utc).isoformat(), error=self.error)
             atomic_json(path, meta)
@@ -313,7 +320,7 @@ async def lifespan(app):
     # Incomplete sessions remain downloadable and are explicitly marked after a restart.
     for path in LOGS.glob("*.csv.meta.json"):
         try:
-            meta = json.loads(path.read_text())
+            meta = json.loads(path.read_text(encoding="utf-8"))
             if meta.get("state") == "recording":
                 meta["state"] = "interrupted"
                 atomic_json(path, meta)

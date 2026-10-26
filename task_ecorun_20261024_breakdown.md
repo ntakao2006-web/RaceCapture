@@ -115,7 +115,12 @@ Maruo.Sさんの範囲拡大の依頼（ER-7-7）とPR、Maruo.Sさんのサー�
 - [x] ER-3-5 SDのCSVに油温の列が無い件を直す（2026-10-26）。原因は、SDのBINをCSVにする`EcoCapture-Web/sd_decode.py`がCANを生のフレームとして`.can.jsonl`へ書き出すだけで、車両設定どおりに読み解いていなかったこと。
   - `sd_decode.py`に`--config`（ロガーの`config.json`）を付けると、設定した信号を1列ずつCSVの最後に足す（センサーハブの油温は`<名前>State`も。0正常・1オープン・2短絡・3データ異常・4フレームなし）。読み解きはロガー本体と同じ処理（`hardware.py`の`feed_can`・`can_snapshot`へ切り出した。本体側の動作は変えていない）で、各行にはその時刻から1秒以内の最新の値が入る。続きのファイルは変換の状態を引き継ぎ、ファイルの境目で値が途切れない。`Collect-Logs`（`collect_logs.py`）も`--config`を受け取る
   - 10/24・25のmajestaのCSVへ`OilTemp`・`OilTempState`を足して作り直した（PC上だけ。既存の21列は全行で同一と確認、全行が状態0）。手順は各フォルダの`整形の方法.md`6章
-  - 残り：①回収のときに設定を自動で取ってくる仕組みは無い（今は`--config`で手渡し）、②UNO Q本体（eMMC）のCSVは全CAN信号を`can_signals`の1列にJSONで入れており、表計算では扱いにくい。SUGOではNCECの13信号が入るので、SUGOまでに直すか判断する
+  - 残り：①回収のときに設定を自動で取ってくる仕組みは無い（今は`--config`で手渡し）、②UNO Q本体（eMMC）のCSVは全CAN信号を`can_signals`の1列にJSONで入れており、表計算では扱いにくい。SUGOではNCECの13信号が入るので、SUGOまでに直すか判断する（→ER-3-6でPC側を直した）
+- [ ] ER-3-6 UNO Q本体（eMMC）のCSVもCAN信号を1列ずつにする（2026-10-26ユーザー依頼。**PC側の実装・テストまで済み、本番のUNO Qへの反映はユーザーの了承待ち**）
+  - `server.py`の記録で、`can_signals`（全信号を1列のJSON）をやめ、設定した信号を1列ずつ行の最後に出す（センサーハブの油温は`<名前>State`も。列の作り方は`models.py`の`signal_columns`で、SDの`sd_decode.py`と共通）。RPM・Speed・WaterTemp・Throttleのように決まった列と同じ名前の信号は、今までどおりその列に入るので重ねて出さない。`seq`などの基本の列と同じ名前は`CAN_<名前>`にする。小数の端数（60.160000000000004）は丸める。各信号の単位は`.meta.json`の`units`に入る
+  - あわせて、`.meta.json`を読み直すところが文字コードを指定しておらず、Windowsで「°」が化けていたのをUTF-8に固定した（UNO QはLinuxで影響なし）
+  - 反映済みのUNO Qで記録した古いファイルは`can_signals`の形のまま。Web画面の「解析」（先頭側の列だけを見る）は新旧どちらでも動く
+  - 反映するファイル：`server.py`・`models.py`・`hardware.py`・`sd_decode.py`（`deploy.sh`）。反映後に、記録を1本取ってCSVの最後に`OilTemp`等の列があること、管理画面の状態APIの`config_error`が空であることを確かめる
 
 ## ER-4 記録の確実化（Ver.2本命）
 

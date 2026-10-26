@@ -214,6 +214,24 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(rows[0]['LapCount'], '2'); self.assertEqual(rows[0]['LapTime'], '1.25'); self.assertEqual(rows[0]['BestLap'], '')
         self.assertTrue(set(LAP_CHANNELS) <= set(rows[0]))
 
+    def test_can_signals_are_one_column_each(self):
+        oil = Signal(name='OilTemp', unit='°C', channel=2, can_id=0x600, byte_offset=0, data_type='int16', scale=.01, conversion='sensorhub_oiltemp')
+        rpm = Signal(name='RPM', unit='rpm', can_id=0x201, byte_offset=0, scale=.25)          # a fixed channel: written in RPM, not twice
+        seq = Signal(name='seq', can_id=0x300, byte_offset=0)                                 # clashes with a base column
+        boost = Signal(name='Boost', unit='kPa', channel=2, can_id=0x500, byte_offset=0)
+        self.s.runtime.recorder.start(Configuration(signals=[oil, rpm, seq, boost]))
+        sample = self.sample(); sample['values']['RPM'] = 1000.0
+        sample['can_signals'] = {'OilTemp': 6016 * .01, 'OilTempState': 0, 'OilTempOpen': 0, 'RPM': 1000.0, 'seq': 5}
+        self.s.runtime.recorder.append(sample); name = self.s.runtime.recorder.name; self.s.runtime.recorder.stop()
+        with (self.s.LOGS / name).open(encoding='utf-8', newline='') as f:
+            header = next(csv.reader(f)); f.seek(0); row = next(csv.DictReader(f))
+        self.assertNotIn('can_signals', header)
+        self.assertEqual(header[-4:], ['OilTemp', 'OilTempState', 'CAN_seq', 'Boost'])
+        self.assertEqual(header.count('RPM'), 1)
+        self.assertEqual((row['OilTemp'], row['OilTempState'], row['CAN_seq'], row['Boost'], row['RPM']), ('60.16', '0', '5', '', '1000.0'))
+        meta = json.loads((self.s.LOGS / (name + '.meta.json')).read_text(encoding='utf-8'))
+        self.assertEqual((meta['units']['OilTemp'], meta['units']['Boost']), ('°C', 'kPa'))
+
     def test_stale_data_cleared_and_no_disconnected_recording(self):
         self.connected()
         self.assertIsNotNone(self.client.get("/api/telemetry").json()["sample"])

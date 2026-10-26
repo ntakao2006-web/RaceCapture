@@ -32,10 +32,8 @@ def records(stream):
 FIELDS=['mcu_ms','AccelX','AccelY','AccelZ','GyroX','GyroY','GyroZ','Roll','Pitch','LongAccel','LatAccel','VertAccel','Lat','Lon','Altitude','GPSSpeed','GPSFix','GPSSats','gnss_itow_ms','imu_raw','imu_calibration']
 
 def can_columns(config):
-    names=[]
-    for sig in config.signals:
-        names.append(sig.name)
-        if sig.conversion=='sensorhub_oiltemp':names.append(sig.name+'State')
+    from models import signal_columns
+    names=signal_columns(config)
     if clash:=set(names)&set(FIELDS):raise ValueError(f'CAN signal name clashes with an SD column: {sorted(clash)}')
     return names
 
@@ -49,7 +47,9 @@ def convert(source,target,config=None,decoder=None):
     can_path=Path(str(target)+'.can.jsonl')
     import json
     extra=can_columns(config) if config is not None else []
-    if config is not None and decoder is None:decoder=new_decoder()
+    if config is not None:
+        from models import log_value
+        if decoder is None:decoder=new_decoder()
     with Path(source).open('rb') as stream,Path(target).open('w',encoding='utf-8',newline='') as output,can_path.open('w',encoding='utf-8') as can:
         writer=csv.DictWriter(output,fieldnames=FIELDS+extra);writer.writeheader()
         for kind,stamp,data in records(stream):
@@ -80,7 +80,7 @@ def convert(source,target,config=None,decoder=None):
                     row.update(Lon=struct.unpack_from('<i',nav,24)[0]*1e-7,Lat=struct.unpack_from('<i',nav,28)[0]*1e-7,Altitude=struct.unpack_from('<i',nav,36)[0]/1000,GPSSpeed=struct.unpack_from('<i',nav,60)[0]*.0036)
             if extra:
                 decoded,_=decoder.can_snapshot(stamp,config)
-                row.update((name,round(value,9) if isinstance(value,float) else value) for name in extra for value in [decoded.get(name)])  # 6016*.01 -> 60.16
+                row.update((name,log_value(decoded.get(name))) for name in extra)
             writer.writerow(row);count+=1
     return {'rows':count,'can_frames':can_count,'csv':str(target)}
 
