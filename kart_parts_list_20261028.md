@@ -3,18 +3,22 @@
 > `kart_logger_study_20261027.md`8章の構成を、実際に買える部品に落としたもの。発注はユーザー（KT-2-2、11/5まで）。
 > 価格と在庫は**2026-10-28に各店のページで見た値（税込）**。注文の前にもう一度確かめる。
 > ステアリング角の部品も入れてある（2026-10-28 ユーザー決定）。
+> 2026-10-28夕に改訂：GNSSをSparkFun SAM-M10Q（9,338円）からドローン用のBeitian BE-250（2,894円）へ替えた。
+> 最初の版の「M10はGPSだけで18Hzが上限」は古いデータシートの値で誤り。u-bloxの2023年の資料で、**M10はGPSだけなら25Hz**が出る（2章）。
 
 ## 0. 先に結論
 
-- 店は**DigiKey・秋月・Amazon**の3つと、近所のホームセンター。合計は**約5.1万円**（うちステアリング角が約7,700円）。
-  調査資料の見込み（2〜4.5万円＋ステアリング角3,000〜5,000円）より少し上。
-  主な理由は、GNSS（アンテナ内蔵の小基板が約9,300円）と、ステアリング角の部品が4個入りなどのまとめ売りしか無いこと
+- 店は**DigiKey・秋月・Amazon**の3つと、近所のホームセンター。合計は**約4.5万円**（うちステアリング角が約7,700円）。
+  調査資料の見込み（2〜4.5万円＋ステアリング角3,000〜5,000円）の上のほう。
+  ステアリング角の部品が4個入りなどのまとめ売りしか無いのが効いている
+- **センサーを付けない最小の構成（GPSのラップと画面だけ）なら約2.2万円**（5章）
 - **画面（Adafruit 4694）だけは今週中に頼む。** 国内の在庫がほぼ無い（DigiKeyとマルツは在庫0、DigiKeyは11/11に1個入荷予定）。
   11/5まで待つと手に入らないおそれがある（1章）
 - 構成を2つ変えた（2章）
   - マイコン：手持ちのDevKitC-1ではなく、**電池の充電回路が入ったAdafruit ESP32-S3 Feather**（約3,200円）。
     DevKitC-1だと充電回路と5Vへの昇圧回路を別に買うことになり、値段はほぼ同じで配線が増える。DevKitC-1は部品が届くまでのファーム作りに使う
-  - GNSS：**アンテナ内蔵のu-blox SAM-M10Q**。アンテナ線が要らない。GPSだけに絞って18Hz（調査資料の「18〜25Hz」は18Hzに訂正）
+  - GNSS：**u-bloxのM10を使ったドローン用の小基板（Beitian BE-250、約2,900円）**。アンテナが載っていて、アンテナ線が要らない。
+    GPSだけに絞って25Hz（調査資料の「18〜25Hz」のとおり）。SparkFunのSAM-M10Q（9,338円）は、BE-250が使えなかったときの控え
 - 11/3の採寸のあとで決めるもの：ハンドルへの取付ボルト、ステアリング角のベルトの長さ（候補は5本セットで買っておく）、車体のパイプに巻くバンドの太さ
 - 回転の入力回路の部品は、回路案（KT-3、11/9以降）が決まってから秋月で買う。1〜2日で届くので11/5の注文に入れなくてよい
 
@@ -44,24 +48,42 @@
 | 部分 | 調査資料の案 | この部品リスト | 理由 |
 |---|---|---|---|
 | マイコン | ESP32-S3（手持ちのDevKitC-1） | Adafruit ESP32-S3 Feather（フラッシュ4MB・PSRAM 2MB） | リチウム電池の充電回路・残量計・USB-Cが載っている。DevKitC-1は5Vで動かす基板なので、充電回路と昇圧回路を別に買う必要があり（約3,500円）、値段は変わらず配線が増える。電池から直接3.3Vを作るので、電池も長くもつ |
-| GNSS | u-blox M10系、18〜25Hz | SparkFun SAM-M10Q（アンテナ内蔵） | アンテナとアンテナ線が要らず、ハンドルの上で取り回しが楽。M10はGPSだけに絞って18Hzが上限（4種類の衛星を使うと5Hz）。みちびきを足しても18Hzが出るかはKT-4-1で確かめる |
+| GNSS | u-blox M10系、18〜25Hz | Beitian BE-250（u-blox M10050チップ、25mm角のアンテナ付き） | アンテナとアンテナ線が要らず、ハンドルの上で取り回しが楽。中身は同じM10なので、SparkFunのSAM-M10Q（9,338円）の約3分の1の値段で同じ速さが出る。電源は3.6〜5.5VなのでFeatherの3.3Vではなく電池の端子から取る（下の注） |
 | SD | （記載なし） | Adafruit microSD基板（SPI・SDIO両用） | ピンが足りるように、SDは画面と同じSPIの線につなぐ予定 |
 | CHTセンサー | プラグの座金型（K型） | **非接地**の座金型 | 熱電対IC（MAX31855）は、測る先の金属に電気的につながった（接地型の）熱電対を読めない。座金に溶接した接地型だとエラーになる |
 
+GNSSの更新の速さ（u-bloxの資料 UBX-23006557、2023-07。SAM-M10Q・MAX-M10S・チップのM10050を含むM10の全製品が対象で、ファームの更新は要らず設定だけで変わる）：
+
+| 使う衛星 | 古いデータシートの値 | いまの値 |
+|---|---|---|
+| GPSだけ | 18Hz | **25Hz** |
+| GPS＋Galileo | 10Hz | 20Hz |
+| 3種類 | 10Hz | 16Hz |
+| 4種類 | 5Hz | 10Hz |
+
+- 最初の版はSparkFunの説明（18Hz）をそのまま使っていた。ロガー本体の検討（`hardware_interface_spec.md`のMAX-M10M）では、もともと「単一GNSSで18〜25Hz」としていた
+- BE-250の電源：3.6〜5.5V（標準5V）。Featherの3.3Vの端子では足りないので、**電池の端子（BAT、3.7〜4.2V）**から取る。
+  電池がほぼ空（3.6V未満）になるとGNSSが先に止まるので、ファームで3.7Vを切ったら画面に警告を出す。2000mAhの電池なら1日の走行では下がりきらない見込み
+- BE-250の信号の電圧：中のチップは3.3Vで動くので、送信（TX）の線も3.3Vのはず。商品ページに「5.0V TTL」とあるので、届いたら測って確かめる（4章）
+- 安い基板なので、中のチップが本物か・ファームの版（SPG 5.10）で25Hzに設定できるかは、届いてから確かめる（4章）。だめならSAM-M10Q（DigiKey、3〜4日）に替える
+
 ファームへの影響（KT-4-1で直す）：今の`firmware/logger_v1`はDevKitC-1（フラッシュ16MB・PSRAM 8MB）向けの設定。
 Featherは4MB・2MBなので、区画の表とPSRAMの設定を合わせる。今のファームは約0.6MBなので収まる。
+GNSSは25Hzの設定を入れ、通信の速さ（初期値38400bps）を115200bps以上に上げる。
 
 ## 3. 注文リスト
 
-### DigiKey（6,000円以上で送料無料、3〜4日で届く）
+### DigiKey（6,000円以上で送料無料、未満は送料2,000円。3〜4日で届く）
 
 | 品名 | 品番 | 数 | 価格（税込） | 用途・注意 |
 |---|---|---|---|---|
 | Adafruit ESP32-S3 Feather with 4MB Flash 2MB PSRAM | [5477](https://www.digikey.jp/ja/products/detail/adafruit-industries-llc/5477/16583982) | 1 | 3,174円 | マイコン。在庫61 |
-| SparkFun GPS Breakout - Chip Antenna, SAM-M10Q (Qwiic) | [GPS-21834](https://www.digikey.jp/ja/products/detail/sparkfun-electronics/21834/18735208) | 1 | 9,338円 | GNSS。40.6mm角。UARTのピンでつなぐ。在庫264 |
 | Adafruit Micro SD SPI or SDIO Card Breakout Board（3V専用） | [4682](https://www.digikey.jp/ja/products/detail/adafruit-industries-llc/4682/12822319) | 1 | 635円 | SD。在庫2,585 |
 | （画面をDigiKeyで頼む場合）Adafruit 4694 | 1章 | 1 | 8,150円 | 取り寄せ |
-| **小計** | | | **13,147円**（画面込み21,297円） | |
+| **小計** | | | **3,809円**（画面込み11,959円） | |
+
+- 画面もDigiKeyで頼めば6,000円を超えて送料無料。画面を別の店（Mouserなど）で頼むと、DigiKeyの分は送料2,000円がかかる
+- GNSSの控え：SparkFun SAM-M10Q（[GPS-21834](https://www.digikey.jp/ja/products/detail/sparkfun-electronics/21834/18735208)、9,338円、在庫264）。BE-250が使えなかったときだけ頼む
 
 ### 秋月電子
 
@@ -77,13 +99,14 @@ Featherは4MB・2MBなので、区画の表とPSRAMの設定を合わせる。�
 
 | 品名 | ASIN | 数 | 価格（税込） | 用途・注意 |
 |---|---|---|---|---|
+| BEITIAN BE-250 GPSモジュール（M10050チップ、コンパスなし） | [B0GSFCYJV4](https://www.amazon.co.jp/dp/B0GSFCYJV4) | 1 | 2,894円 | GNSS。25×25×6mm、8g、1mmピッチ4ピンの線付き。電源は3.6〜5.5V（2章の注）。10/28は残り3個（販売DIYmall-JP）。売り切れなら、同じM10050チップでコンパスの無い別の基板を探す |
 | リチウムポリマー電池 3.7V 2000mAh 103450（保護回路付き、PH2.0） | [B0GFCZZB3D](https://www.amazon.co.jp/dp/B0GFCZZB3D) | 1 | 2,199円 | 10×34×50mm、35g。**差す前に極性を確かめる**（4章） |
 | Annadue CHTセンサー K型 内径14mmワッシャー 非接地絶縁 | [B0H998JP1B](https://www.amazon.co.jp/dp/B0H998JP1B) | 1 | 1,807〜2,204円 | 種類（#1〜#3）の違いが商品ページに書いていない（線の長さの違いと思われる）。エンジンからハンドルまで届く**1.5m以上**のものを選ぶ。座金の厚さ1.5mm。届くのは11/11〜15 |
 | 防水押しボタン 16mm モーメンタリ（5個） | [B086JKLWTV](https://www.amazon.co.jp/dp/B086JKLWTV) | 1 | 899円 | ボタン2つ（ラップの操作・ステアリングの0点など）。手袋で押せる大きさ |
 | GX12 丸形コネクタ 4ピン（10組） | [B0C1CZ38MK](https://www.amazon.co.jp/dp/B0C1CZ38MK) | 1 | 1,414円 | ステアリング角のセンサー用。ねじ込みで振動でも外れない |
 | GX12 丸形コネクタ 3ピン（3組） | [B09DPLJ22L](https://www.amazon.co.jp/dp/B09DPLJ22L) | 1 | 979円 | B入力（磁気・赤外線の受信機。今回は端子だけ） |
 | GX12 丸形コネクタ 2ピン | [B0C5917BHP](https://www.amazon.co.jp/dp/B0C5917BHP) | 1 | 976円 | 回転（プラグコードに巻く線） |
-| **小計** | | | **約8,590円** | |
+| **小計** | | | **約11,480円** | |
 
 コネクタはピンの数を変えて、差し間違えられないようにしてある。
 
@@ -120,19 +143,36 @@ Featherは4MB・2MBなので、区画の表とPSRAMの設定を合わせる。�
 - **CHTセンサーが非接地か**：テスターで、熱電対の線と座金の間が導通しないことを確かめる
 - **AS5600の基板**：回る向きを決めるDIRの端子をGNDにつなぐ（つないでいない安い基板があり、角度が安定しない）。
   出力はアナログ（OUT）を使う予定。線が1.5mほどになるので、I²Cで読むより強い（KT-4-7で決める）
-- **SAM-M10Q**：屋外で衛星をつかむかだけ、先にPCにつないで見る
+- **BE-250**（KT-4-1の最初に、手持ちのDevKitC-1につないで見る）
+  - 電池の電圧（3.7〜4.2V）で電源を入れ、送信（TX）の線の電圧をテスターで測る。3.3V前後ならそのままFeatherへ。5V近くあれば抵抗2本で下げる
+  - 中のファームの版（SPG 5.10か）を読み、25Hzに設定してGPSだけで実際に25回／秒出るかを見る。屋外で衛星をつかむか
+  - だめならSAM-M10Q（DigiKey、3〜4日）を頼む。11/9に確かめても11/29には間に合う
 - Featherの充電は電流が小さめなので、空からの充電は数時間〜一晩かかる見込み（未確認）。前の日の夜に充電する
 
 ## 5. 合計
 
 | 店 | 小計（税込） | うちステアリング角 |
 |---|---|---|
-| DigiKey（マイコン・GNSS・SD） | 13,147円 | ― |
-| 画面 | 約8,150円 | ― |
+| DigiKey（マイコン・SD） | 3,809円 | ― |
+| 画面 | 約8,150円（DigiKeyなら送料無料。別の店ならDigiKeyの送料2,000円が加わる） | ― |
 | 秋月 | 8,270円＋送料 | ― |
-| Amazon | 約14,340円 | 約5,750円 |
+| Amazon（GNSSを含む） | 約17,230円 | 約5,750円 |
 | 近所・後で | 約7,100円 | 約1,950円（シールド線・ホースバンド・M3） |
-| **合計** | **約5.1万円** | **約7,700円** |
+| **合計** | **約4.5万円** | **約7,700円** |
+
+### センサーを付けない最小の構成
+
+GPSのラップ・セクター・走行ライン・G（GNSSから計算）・画面だけ。回転・CHT・BNO055・ステアリング角を外す。
+
+| 店 | 買うもの | 金額 |
+|---|---|---|
+| DigiKey | マイコン 3,174円、SD基板 635円、画面 8,150円 | 11,959円（送料無料） |
+| Amazon | GNSS 2,894円、電池 2,199円、押しボタン 899円 | 5,992円 |
+| 近所 | 電源スイッチ・取付ボルト・画面の前の透明板・microSDカード・ユニバーサル基板 | 約3,000〜4,500円 |
+| **合計** | | **約2.2万円**（手持ちを使えば約2万円） |
+
+あとから足すときの目安：回転 約2,300円（入力回路の部品・2ピンのコネクタ・ノイズフィルター）、CHT 約7,500円、BNO055 2,780円、ステアリング角 約9,100円（4ピンのコネクタ込み）。
+秋月で買うものが無くなるので秋月の送料もかからない。
 
 減らせるところ：
 
@@ -149,6 +189,10 @@ Featherは4MB・2MBなので、区画の表とPSRAMの設定を合わせる。�
 
 - DigiKey：[Adafruit 4694](https://www.digikey.jp/ja/products/detail/adafruit-industries-llc/4694/13157994)、[LS027B7DH01A](https://www.digikey.jp/ja/products/detail/sharp-microelectronics/LS027B7DH01A/5054067)、[Adafruit 5477](https://www.digikey.jp/ja/products/detail/adafruit-industries-llc/5477/16583982)、[SparkFun 21834](https://www.digikey.jp/ja/products/detail/sparkfun-electronics/21834/18735208)、[Adafruit 4682](https://www.digikey.jp/ja/products/detail/adafruit-industries-llc/4682/12822319)
 - 秋月電子：[AE-BNO055-BO](https://akizukidenshi.com/catalog/g/g116996/)、[MAX31855モジュール](https://akizukidenshi.com/catalog/g/g108218/)、[MPJ-K-F](https://akizukidenshi.com/catalog/g/g114971/)、[SMPW-K-M](https://akizukidenshi.com/catalog/g/g114969/)
-- SAM-M10Qの更新の速さ・端子：[SparkFun Hardware Overview](https://docs.sparkfun.com/SparkFun_u-blox_SAM-M10Q/hardware_overview/)
+- M10の更新の速さ（25Hz）：[u-blox Information note UBX-23006557](https://content.u-blox.com/sites/default/files/documents/u-bloxM10-with-25Hz-Navigation-UpdateRate_IN_UBX-23006557.pdf)（2023-07-10）。
+  古い値（18Hz）は[SparkFun Hardware Overview](https://docs.sparkfun.com/SparkFun_u-blox_SAM-M10Q/hardware_overview/)
+- SparkFun SAM-M10Qの米国での値段（$51.50）：[SparkFun](https://www.sparkfun.com/sparkfun-gps-breakout-chip-antenna-sam-m10q-qwiic.html)
+- BE-250の仕様（M10050、3.6〜5.5V、25×25×6mm）：[Amazonの商品ページ](https://www.amazon.co.jp/dp/B0GSFCYJV4)
+- DigiKeyの送料（6,000円未満は2,000円）：DigiKey Japanの各ページの表示
 - Adafruit 4694の仕様（3V/5V両用、フレームバッファ13.5KB）：[Adafruit](https://www.adafruit.com/product/4694)
 - Amazonの各商品：表のリンク先
