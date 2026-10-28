@@ -118,7 +118,10 @@ Maruo.Sさんの範囲拡大の依頼（ER-7-7）とPR、Maruo.Sさんのサー�
   - `sd_decode.py`に`--config`（ロガーの`config.json`）を付けると、設定した信号を1列ずつCSVの最後に足す（センサーハブの油温は`<名前>State`も。0正常・1オープン・2短絡・3データ異常・4フレームなし）。読み解きはロガー本体と同じ処理（`hardware.py`の`feed_can`・`can_snapshot`へ切り出した。本体側の動作は変えていない）で、各行にはその時刻から1秒以内の最新の値が入る。続きのファイルは変換の状態を引き継ぎ、ファイルの境目で値が途切れない。`Collect-Logs`（`collect_logs.py`）も`--config`を受け取る
   - 10/24・25のmajestaのCSVへ`OilTemp`・`OilTempState`を足して作り直した（PC上だけ。既存の21列は全行で同一と確認、全行が状態0）。手順は各フォルダの`整形の方法.md`6章
   - 残り：①回収のときに設定を自動で取ってくる仕組みは無い（今は`--config`で手渡し）、②UNO Q本体（eMMC）のCSVは全CAN信号を`can_signals`の1列にJSONで入れており、表計算では扱いにくい。SUGOではNCECの13信号が入るので、SUGOまでに直すか判断する（→ER-3-6でPC側を直した）
-- [ ] ER-3-6 UNO Q本体（eMMC）のCSVもCAN信号を1列ずつにする（2026-10-26ユーザー依頼。**PC側の実装・テストまで済み、本番のUNO Qへの反映はユーザーの了承待ち**）
+- [x] ER-3-6 UNO Q本体（eMMC）のCSVもCAN信号を1列ずつにする（2026-10-26ユーザー依頼。PC側の実装・テストのあと、**2026-10-28にユーザー了承で本番のUNO Qへ反映した**）
+  - 2026-10-28の反映：本体の6ファイル（下の4つと試験2つ）が変更前のリポジトリと一字一句同じことを確かめてから置き換えた。控えは本体`~/EcoCapture-Web/.bak-20261028-er36/`（6ファイル・`config.json`・旧イメージのID）とPC`Documents\UNOQ_backup\2026-10-28_er36\`、旧イメージは`ecocapture-web:pre-er36`の名前で残してある。`deploy.sh`は音声の試験（新しいUNO Qにnumpyが無く止まる）の行だけ除いて実行し、本体上の試験11組がすべて通った
+  - 反映後の確認：起動後に自動で始まった記録を止めて開くと、`can_signals`の列が無く、最後に`WheelFrontA`〜`ClutchDisengaged`の8信号と`OilTemp`・`OilTempState`が並び（RPM・Speed・WaterTemp・Throttleは決まった列に1回だけ）、全行の列数が見出しと一致、`.meta.json`は`closed`で単位入り。`config_error`は空、MCUのリセット0。ハブ未接続のため`OilTemp`は空欄・`OilTempState`は4（フレームなし）で、値が入ることは実車（ハブ接続時）で確かめる。確認後に記録を再開した
+  - 本体の設定はNCECの13信号（油温を含む）のまま。本体の時計はネットにつながるまで10/24のまま進んでいたので、この日のファイル名の日付は実際と違う
   - `server.py`の記録で、`can_signals`（全信号を1列のJSON）をやめ、設定した信号を1列ずつ行の最後に出す（センサーハブの油温は`<名前>State`も。列の作り方は`models.py`の`signal_columns`で、SDの`sd_decode.py`と共通）。RPM・Speed・WaterTemp・Throttleのように決まった列と同じ名前の信号は、今までどおりその列に入るので重ねて出さない。`seq`などの基本の列と同じ名前は`CAN_<名前>`にする。小数の端数（60.160000000000004）は丸める。各信号の単位は`.meta.json`の`units`に入る
   - あわせて、`.meta.json`を読み直すところが文字コードを指定しておらず、Windowsで「°」が化けていたのをUTF-8に固定した（UNO QはLinuxで影響なし）
   - 反映済みのUNO Qで記録した古いファイルは`can_signals`の形のまま。Web画面の「解析」（先頭側の列だけを見る）は新旧どちらでも動く
