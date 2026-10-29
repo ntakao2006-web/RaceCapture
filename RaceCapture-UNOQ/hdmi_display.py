@@ -12,7 +12,10 @@ from pathlib import Path
 
 CONNECTOR = os.environ.get("LOGGER_V2_DRM_CONNECTOR", "DP-1")
 STATUS_PATH = Path(f"/sys/class/drm/card0-{CONNECTOR}/status")
-PREFERRED_MODES = ("1280x800", "1280x720", "1024x768", "800x600")
+# 1080p60 first: on the 2026-10 replacement board the USB-C video (ANX7625) through an
+# HDMI dock gave no picture at 1280x720 (iiyama: no signal, Portkeys HD7H: white) and
+# a picture at 1920x1080@60, as also reported on the Arduino forum for the UNO Q.
+PREFERRED_MODES = ("1920x1080", "1280x800", "1280x720", "1024x768", "800x600")
 MAX_WIDTH = 1280
 MAX_HEIGHT = 800
 

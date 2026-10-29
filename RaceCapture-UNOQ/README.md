@@ -32,7 +32,7 @@ UNO Q内の待受はRCP `127.0.0.1:7223`、画面HTTP `127.0.0.1:6080`、VNC `12
 
 `arduino-router-serial` は `/dev/ttyGS0` が無い間、エラー終了せず静かに待機します。USB gadgetが後から現れれば自動的にsocatへ切り替わるため、従来の約3秒周期の再起動ループとjournal汚染を避けつつ、シリアルMonitor機能は維持します。
 
-主表示はHDMI（Linux上では`DP-1`）を想定します。接続を2回連続で確認してから出力を切り替え、1280×800または1280×720・約60Hzを優先して4K等の高負荷モードを避けます。HDMI接続中はUSB画面転送を停止し、RaceCaptureは20fps上限で動作します。RaceCaptureとEcoCaptureのうち画面の裏側にあるUIプロセスだけを一時停止し、センサー取得、eMMC記録、SD記録、RCP変換は停止しません。障害記録にはHDMI接続状態、利用可能モード、GPU周波数も含めます。
+主表示はHDMI（Linux上では`DP-1`）を想定します。接続を2回連続で確認してから出力を切り替え、1920×1080・60Hzを最優先し（2026-10-21交換後の基板では、HDMIドック経由だと1280×720で映像が出ず、1080p60で出た）、それが無い画面では1280×800・1280×720などを選んで4K等の高負荷モードを避けます。HDMI接続中はUSB画面転送を停止し、RaceCaptureは20fps上限で動作します。RaceCaptureとEcoCaptureのうち画面の裏側にあるUIプロセスだけを一時停止し、センサー取得、eMMC記録、SD記録、RCP変換は停止しません。障害記録にはHDMI接続状態、利用可能モード、GPU周波数も含めます。
 
 `install.sh` は導入済みUNO Q用のサービス配置です。公式ARM64パッケージ、Xorg/modesetting、Mesa freedreno、x11vnc/noVNC/websockify等が必要です。専用XorgがGPUを使うため、標準ログイン画面のLightDMは停止・自動起動無効にしています。初回表示設定は `configure_display.py`、初回ダッシュボード設定はアプリ停止中に `configure_app.py` を使います。後者は作成済みのLoggerV2ページを初期配置に戻すため、ユーザーがカスタマイズした後は通常更新で実行しないでください。
 

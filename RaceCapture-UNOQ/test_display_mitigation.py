@@ -18,13 +18,14 @@ HDMI-1 disconnected
 
 
 class DisplayMitigationTests(unittest.TestCase):
-    def test_prefers_bounded_hdmi_mode(self):
+    def test_prefers_1080p_the_usb_c_video_can_show(self):
         modes = hdmi_display.parse_modes(XRANDR)
         self.assertEqual(modes, ["1920x1080", "1280x800", "1280x720"])
-        self.assertEqual(hdmi_display.choose_mode(modes), "1280x800")
+        self.assertEqual(hdmi_display.choose_mode(modes), "1920x1080")
+        self.assertEqual(hdmi_display.choose_mode(["3840x2160", "1920x1080", "1280x720"]), "1920x1080")
 
     def test_falls_back_to_largest_bounded_mode(self):
-        self.assertEqual(hdmi_display.choose_mode(["1920x1080", "1024x600", "800x480"]), "1024x600")
+        self.assertEqual(hdmi_display.choose_mode(["2560x1440", "1024x600", "800x480"]), "1024x600")
 
     def test_signals_only_display_service_cgroup(self):
         with tempfile.TemporaryDirectory() as temporary:
