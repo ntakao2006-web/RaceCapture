@@ -27,6 +27,24 @@ class DisplayMitigationTests(unittest.TestCase):
     def test_falls_back_to_largest_bounded_mode(self):
         self.assertEqual(hdmi_display.choose_mode(["2560x1440", "1024x600", "800x480"]), "1024x600")
 
+    def test_configure_cycles_output_before_setting_mode(self):
+        calls = []
+
+        def run(command, **_):
+            calls.append(command)
+            return type("Done", (), {"returncode": 0, "stdout": XRANDR if "--query" in command else "", "stderr": ""})()
+
+        with tempfile.TemporaryDirectory() as temporary:
+            status = Path(temporary) / "status"
+            status.write_text("connected\n")
+            with patch.object(hdmi_display, "STATUS_PATH", status), \
+                 patch.object(hdmi_display.subprocess, "run", run), \
+                 patch.object(hdmi_display.time, "sleep"):
+                result = hdmi_display.configure()
+        self.assertEqual(result["selected_mode"], "1920x1080")
+        self.assertEqual(calls[1], ["/usr/bin/xrandr", "--output", "DP-1", "--off"])
+        self.assertEqual(calls[2][:5], ["/usr/bin/xrandr", "--output", "DP-1", "--mode", "1920x1080"])
+
     def test_signals_only_display_service_cgroup(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

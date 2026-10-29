@@ -7,6 +7,7 @@ import json
 import os
 import re
 import subprocess
+import time
 from pathlib import Path
 
 
@@ -18,6 +19,7 @@ STATUS_PATH = Path(f"/sys/class/drm/card0-{CONNECTOR}/status")
 PREFERRED_MODES = ("1920x1080", "1280x800", "1280x720", "1024x768", "800x600")
 MAX_WIDTH = 1280
 MAX_HEIGHT = 800
+OFF_SECONDS = 2
 
 
 def parse_modes(output: str, connector: str = CONNECTOR) -> list[str]:
@@ -64,6 +66,12 @@ def configure() -> dict[str, object]:
     )
     modes = parse_modes(query.stdout)
     mode = choose_mode(modes)
+    # Turn the output off first so the mode set below always retrains the link. When the
+    # mode is unchanged, xrandr does nothing, and a monitor that missed the hotplug-time
+    # signal (Portkeys HD7H) stays at "No signal" until the output is cycled.
+    subprocess.run(["/usr/bin/xrandr", "--output", CONNECTOR, "--off"],
+                   capture_output=True, text=True, check=False)
+    time.sleep(OFF_SECONDS)
     command = ["/usr/bin/xrandr", "--output", CONNECTOR]
     if mode:
         command += ["--mode", mode, "--rate", "60", "--primary"]
