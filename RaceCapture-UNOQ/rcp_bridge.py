@@ -9,6 +9,7 @@ import logging
 import math
 import time
 import urllib.request
+from datetime import datetime
 
 API = 'http://127.0.0.1:8080'
 LOG = logging.getLogger('logger-v2-rcp')
@@ -26,15 +27,33 @@ def channel(name, unit='', low=-1000, high=1000, precision=3):
         'GPSSats': (0, 60, 0), 'Roll': (-180, 180, 2), 'Pitch': (-180, 180, 2),
         'Yaw': (0, 360, 2), 'Throttle': (0, 100, 1), 'WaterTemp': (-40, 150, 1),
         'BatteryVolt': (0, 20, 2), 'OilTemp': (-40, 180, 1),
-        'OilTempState': (0, 4, 0), 'OilTempOpen': (0, 1, 0)}
+        'OilTempState': (0, 4, 0), 'OilTempOpen': (0, 1, 0),
+        'LapCount': (0, 1000, 0), 'CurrentLap': (0, 1000, 0), 'Utc': (0, 0, 0)}
+    if name in TIME_CHANNELS:
+        ranges[name] = (0, 0, 4)
     low, high, precision = ranges.get(name, (low, high, precision))
     unit = {'°': 'deg', '°/s': 'deg/s', 'm/s²': 'm/s2', '°C': 'C'}.get(unit, unit)
     return dict(nm=name, ut=unit, min=low, max=high, prec=precision, sr=10)
 
+# Lap timer values from EcoCapture (lap.py), in minutes like RaceCapture's own
+# time channels, so the app formats them as m:ss. SessionTime carries RaceTime
+# (since the first control line crossing); ElapsedTime is the running lap.
+TIME_CHANNELS = ('LapTime', 'BestLap', 'ElapsedTime', 'SessionTime')
+LAP_VALUES = {'LapCount': 'LapCount', 'CurrentLap': 'CurrentLap', 'LapTime': 'LapTime',
+    'BestLap': 'BestLap', 'ElapsedTime': 'ElapsedTime', 'SessionTime': 'RaceTime'}
+
 EXTRA = [('IMUTemp','C'), ('CalSystem',''), ('CalGyro',''), ('CalAccel',''), ('CalMag',''),
     ('QuatW',''), ('QuatX',''), ('QuatY',''), ('QuatZ',''), ('GPSHAcc','m'),
     ('CAN1Rx',''), ('CAN2Rx',''), ('SDErrors',''), ('SDDropped',''), ('SDLogging',''),
-    ('BridgeErrors',''), ('IMUErrors','')]
+    ('BridgeErrors',''), ('IMUErrors',''), ('LapCount',''), ('CurrentLap',''),
+    ('LapTime','Min'), ('BestLap','Min'), ('ElapsedTime','Min'), ('SessionTime','Min'), ('Utc','')]
+
+def utc_millis(text):
+    """ISO time from the sample (GNSS first, else the host clock) as RaceCapture's Utc."""
+    try:
+        return datetime.fromisoformat(text.replace('Z', '+00:00')).timestamp() * 1000
+    except (AttributeError, TypeError, ValueError):
+        return None
 
 class Source:
     def __init__(self):
@@ -86,6 +105,10 @@ class Source:
             for name, value in zip(('QuatW','QuatX','QuatY','QuatZ'), s.get('quaternion') or []):
                 values[name] = value
             values['GPSHAcc'] = s.get('gnss_hacc_m')
+            lap = s.get('lap') or {}
+            for name, key in LAP_VALUES.items():
+                values[name] = lap.get(key)
+            values['Utc'] = utc_millis(s.get('gnss_utc') or s.get('host_utc'))
             h = self.frame['status'].get('hardware', {})
             counts = h.get('can_counts', [0,0])
             values.update(CAN1Rx=counts[0], CAN2Rx=counts[1], SDErrors=h.get('sd_errors'),

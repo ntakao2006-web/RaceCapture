@@ -1528,6 +1528,20 @@
     - 初回の案内「Customizing your dashboard」が、`global_help`をオフにしても毎回出た。`general_prefs.help.dashboard_gauge_help`を`False`にして止め、`configure_app.py`にも足した。
   - 測った値：アプリのCPUは1コアの約71%（20秒平均）、温度55℃、本体の空き2.2GB。導入に使ったdebは本体の`~/pkg-20261029-racecapture/`（99MB）に残してある。
   - 起動直後の約50秒は、EcoCaptureの画面が前面に出ることがある。その後、RaceCaptureが前面に来る。
+- 2026-10-29追記: **SUGO用の車載ダッシュの画面と、水温・油温の3段の警告を作った（SG-2-2・SG-3-1、ユーザー依頼）。** RaceCaptureに「SUGO 120min」のページ（3×3）を作り、起動時の最初の画面にした。
+  - 並びは、上の段が水温・油温・回転数、中の段が今の周の経過・前周・ベスト、下の段がレース経過・時刻・周回。
+  - 警告は、油温が110℃で黄・120℃で赤・130℃で赤＋画面に「PIT IN」。水温はそれぞれ10℃下（`ncec-roadster`の`thermal-limits.md`による暫定値）。
+  - 作り方は`RaceCapture-UNOQ/configure_sugo_dashboard.py`。詳細は`task_sugo_20261108_breakdown.md`のSG-2-2・SG-3-1。
+  - **RCPの橋渡し（`rcp_bridge.py`）に周回と時刻のチャンネルを足した。** EcoCaptureのラップ計測（`lap.py`）の値は前からあったが、RaceCaptureへ渡していなかった。
+    LapCount・CurrentLap・LapTime・BestLap・ElapsedTime（今の周）・SessionTime（lap.pyのRaceTime）・Utcを、RaceCaptureの時間のチャンネルと同じ名前・分単位で渡すので、アプリが「分:秒」・時刻の形で表示する。
+    時刻を日本時間で出すため、`racecapture-app.service`に`TZ=Asia/Tokyo`を足した（本体の時計はUTCのまま）。
+  - **RaceCapture 2.19.0の警告の設定の形**（公開ソースは2016年版までで載っていないため、アプリ本体の中のコードの定数から読み取った）：
+    - `prefs.json`の`alerts`に、チャンネル名ごとに`{"channel", "alert_rules": [...]}`。
+    - 規則は`enabled`・`range_type`（`-`＝範囲内、`<=`、`>=`）・`low_threshold`・`high_threshold`・`activate_sec`・`deactivate_sec`・`alert_actions`。
+    - 動作は`{"color_alertaction": {"color": RGBA}}`（タイルの背景色）と`{"popup_alertaction": {"message", "shape", "color"}}`（画面に文字）。
+    - 規則の数に上限は無いので、「2段まで」としていた前の見立ては誤りだった。
+  - 時間の表示は、チャンネル名がアプリの`system_channels.json`で時間の型（ElapsedTime・LapTime・PredTime・SessionTime・BestLap・SectorTime）なら「分:秒」、Utcなら時刻になる。
+  - 机の上で、周回の値・時刻が正しく出ることと、黄・赤・「PIT IN」が出ることを確かめた。警告は、値が止まっている周回のチャンネルに一時的に同じ規則を付けて試し、試したあと消した。実車の水温・油温での表示は未確認。
 
 ## 5. 開発ロードマップ（詳細版）
 

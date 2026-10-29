@@ -7,6 +7,8 @@ User=arduino
 RuntimeDirectory=racecapture-app
 RuntimeDirectoryMode=0700
 Environment=HOME=/home/arduino
+# The Utc gauge shows local time; the system clock stays UTC.
+Environment=TZ=Asia/Tokyo
 ExecStartPre=/bin/sleep 2
 ExecStart=/opt/logger-v2-racecapture/launch.sh
 ExecStartPost=/bin/sh -c 'sleep 8; DISPLAY=:2 /opt/logger-v2-racecapture/fit_window.py || true'
