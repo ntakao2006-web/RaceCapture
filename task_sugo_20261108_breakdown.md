@@ -211,6 +211,14 @@
       メニューと「信号なし」の文字は液晶に出るので、液晶の側は正常で、入ってきた映像を処理するところで白くなっている。
       HD7Hは仕様上1080p60を受けられる。説明書のPDF（B&H）は配布元に読み込みを断られ、メニューの場所は確かめられなかった。
       次に試すこと：①iiyamaで映ったHDMIケーブルでHD7Hにつなぐ ②HD7Hの設定を工場出荷の状態へ戻し、LUT・露出の補助表示（フォルスカラー・ゼブラ等）が切れていることを見る ③それでも白ければ初期不良として交換・返品を検討
+    - **2026-10-29 続き：①iiyamaで映ったHDMIケーブルに替えても白い**（ユーザー目視）→ケーブルは原因ではない。
+      HD7Hの説明書（Portkeys公式 `portkeys.com/download/hd7h-user-manual/`、画像だけの1枚のPDF）を読んだ。要点：
+      - MENUの中は5つ：画像調整（Brightness・Contrast・Chroma・Sharpness・Tint・Anamorphic・Backlight・Color Temperature）、入力設定（HDMI/AV）、反転、カスタムボタン（F1＝Peaking、F2＝Luma Histogram）、設定（言語・**System Reset**・音・ファーム）
+      - 説明書の画面例の値は、Brightness 50・Contrast 50・Chroma 50・Sharpness 3・Tint 50・Backlight 10・6500K
+      - **メニューを開いていないときの上・下ボタンは、明るさ（Brightness）を直接上げ下げする**。上を押し続けて明るさが最大になると、映像が白く飛ぶことがある
+      - LUTの機能は無い。HDMIは1280×720p60・1920×1080p60とも受けられる
+      - 問い合わせ先：Services@portkeys.com
+      次に試すこと：画像調整のBrightness・Contrastが50か見て、違えば50へ戻す→設定の「System Reset」→それでも白ければ初期不良
   - **2026-10-29（ユーザー依頼で入れ直した。上の訂正のとおり、実物の画面はまだ出ていない）**：Portkeys HD7H（モニターが名乗る名前で確認）にRaceCaptureの画面が1280×720で出た。GPUで描画していて、電源の入れ直しだけで自動で立ち上がる。確認はUNO Qの画面の写しとHDMIの接続状態で行った（実物の画面の目視はユーザー）。
     ロガーの記録は約100Hzのまま、エラー・取りこぼし0。アプリのCPUは1コアの約71%、温度55℃。入れたもの・直したことはARCHITECTURE.md 4章の2026-10-29追記
   - 画面は今、初期設定の「LoggerV2 - IMU」のページ（加速度・角速度・姿勢・IMU温度）。SUGO用の中身はSG-2-2で作る
