@@ -1518,6 +1518,16 @@
   - 同日、UNO QのWi-Fiを、エコラン大会用の親機（`ecologger-dash`、SSID `EcoLogger-majesta`）からPixelのテザリング（Pixel_1167）の子機へ戻した（ユーザー依頼）。ドックを使っている間はUSBのadbが使えないので、Wi-Fi経由のsshで作業するため。
     親機の設定は**消さずに自動接続だけ止めた**。パスワードがUNO Qとスマホのアプリにしか無いためで、設定を消す`install-dash-ap.sh --off`は使っていない。`nmcli`で切り替えられ、root権限は要らなかった。
   - 同日、新しいUNO Qには、HDMIへRaceCaptureアプリを出すサービス一式（`racecapture-*`・`logger-v2-rcp`）が入っていないことがわかった。`/opt/logger-v2-racecapture`にファイルの一部があるだけで、`ecocapture-native`も起動していない。SUGOの車載ダッシュ（`task_sugo_20261108_breakdown.md`のSG-2-4）の前に入れ直しが要る。
+- 2026-10-29追記: **新しいUNO QへHDMI表示のサービス一式を入れ直し（ユーザー依頼）、Portkeys HD7HにRaceCaptureの画面が1280×720で出た。** GPU（Adreno FD702）で描画している。電源を入れ直しただけで自動で立ち上がり、ロガーの記録（約100Hz、SD・eMMCとも）は止まらなかった。詳細は`task_sugo_20261108_breakdown.md`のSG-2-4。
+  - 入れたもの：公式のRaceCapture 2.19.0（READMEのSHA-256と一致）、x11vnc・noVNC・websockify・日本語フォント（fonts-noto-cjk）・mesa-utils・mtdev-tools。
+    パッケージ一覧が2025年12月のままで7個が見つからなかったため、`apt-get update`をした。依存のMesaを名前で指定すると25.2から26.1へ上がってしまうので、**Mesaは25.2.6のまま**にした（新規35個・更新0）。
+  - `RaceCapture-UNOQ/install.sh`と同じ手順で配置した。ただし`ecocapture-native`の実行ファイルはリポジトリに無いため、`/opt`にあった既存のものを使った。LightDMは止めた。USBのシリアル口（`ttyGS0`）が無い間に159回再起動していた`arduino-router-serial`も、待機する設定にして止まった。
+    タッチパネル上のRaceCapture停止ボタン用の`sudo`の許可（`racecapture-app-control.sudoers`）は入れていない。HD7Hはタッチできないため。
+  - 直したこと：
+    - `launch.sh`が`xrandr --auto`でモニターの推奨の1080pへ切り替え、`hdmi_display.py`が選んだ1280×720を上書きしていた。前の基板のタッチ画面は推奨が1280×800だったので表に出ていなかった。`hdmi_display.py`を使うように直した。
+    - 初回の案内「Customizing your dashboard」が、`global_help`をオフにしても毎回出た。`general_prefs.help.dashboard_gauge_help`を`False`にして止め、`configure_app.py`にも足した。
+  - 測った値：アプリのCPUは1コアの約71%（20秒平均）、温度55℃、本体の空き2.2GB。導入に使ったdebは本体の`~/pkg-20261029-racecapture/`（99MB）に残してある。
+  - 起動直後の約50秒は、EcoCaptureの画面が前面に出ることがある。その後、RaceCaptureが前面に来る。
 
 ## 5. 開発ロードマップ（詳細版）
 

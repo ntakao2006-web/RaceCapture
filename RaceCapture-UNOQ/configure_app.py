@@ -12,6 +12,9 @@ general['preferences'].update(conn_type='WiFi',last_known_device='127.0.0.1',
     startup_screen='Dashboard',full_screen_mode='0',distance_units='kilometers',
     temperature_units='Celsius',send_telemetry='0',global_help='False')
 general['setup']['setup_enabled']='0'
+# 2.19.0 still shows the first-run gauge help with global_help off; it only stays hidden
+# when this flag is not True. A non-touch HDMI monitor has no way to press GOT IT.
+general.setdefault('help',{})['dashboard_gauge_help']='False'
 general['dashboard_preferences'].update(last_dash_screen='dashboard_logger_v2_imu',bottom_gauge_bar_enabled='0')
 defaults=json.loads(Path('/opt/racecapture/_internal/resource/defaults/default_dashboard.json').read_text())
 template=next(iter(defaults.values()))['gauges'][0]['config']
