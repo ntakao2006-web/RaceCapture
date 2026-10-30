@@ -18,6 +18,12 @@
   SourceUtc - (time of the video's first frame): it follows the replay through its loops,
   its gaps and restarts, with no clock of its own to agree on.
 
+  The dashboard and the video can be on separate screens (2026-10-31, user's wish): Grafana's
+  dashboard on one, /demo?right=none on the other. The bridge sends each row to Grafana Live
+  (speed), the map and this page at the same moment, so they agree without knowing of each
+  other. The race clock panel runs on real time and reads ~2-3 s ahead of the map, as at the pit.
+  Full screen hides the settings and the status line.
+
   Settings are kept in this browser. They can also be given in the URL, e.g.
     /demo?room=demo-majesta&start=2026-10-25T12:19:41.899%2B09:00&offset=0.3
   (`server` defaults to the site serving the page; `video` takes a URL, but a file picked with
@@ -48,6 +54,8 @@
   #right { flex: 1; display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--line); }
   #right iframe { flex: 1; width: 100%; border: 0; display: block; min-height: 0; }
   #right.none { display: none; }
+  /* On the screen visitors watch: the video alone (Esc brings the settings back) */
+  html:fullscreen #bar, html:fullscreen #status { display: none; }
   @media (max-width: 800px) { #main { flex-direction: column; } #right { border-left: 0; border-top: 1px solid var(--line); } }
 </style>
 </head>
@@ -185,6 +193,7 @@ function take(src) {
 function median(a) { const s = [...a].sort((x, y) => x - y); return s[s.length >> 1]; }
 
 const RENDER_DELAY = 150;   // map.html draws the car this far behind the newest row
+const HOLD_S = 120;         // this close to either end of the video, hold its end frame quietly
 function fmt(ms) { return new Date(ms).toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo', hour12: false }); }
 
 setInterval(() => {
@@ -200,9 +209,18 @@ setInterval(() => {
   if (!(dur > 0)) { status.textContent = text; return; }
   if (want < 0 || want > dur) {
     if (!video.paused) video.pause();
-    note.hidden = false;
-    note.textContent = `この時刻の動画はありません（動画は ${fmt(start)}〜${fmt(start + dur * 1000)}。` +
-                       `いまは ${fmt(raceMs)}）`;
+    // Just before the video starts or after it ends (each loop of the replay): hold its first or
+    // last frame. Far outside, the start time or the car must be wrong: say so.
+    const edge = want < 0 ? 0 : dur - 0.05;
+    if (want > -HOLD_S && want < dur + HOLD_S) {
+      note.hidden = true;
+      if (Math.abs(video.currentTime - edge) > 0.5) video.currentTime = edge;
+      text += want < 0 ? `　動画の始まりまで ${(-want).toFixed(0)}秒` : '　動画はここまで';
+    } else {
+      note.hidden = false;
+      note.textContent = `この時刻の動画はありません（動画は ${fmt(start)}〜${fmt(start + dur * 1000)}。` +
+                         `いまは ${fmt(raceMs)}）`;
+    }
   } else {
     note.hidden = true;
     const diff = want - video.currentTime;
