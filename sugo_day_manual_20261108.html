@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SUGO当日手順書</title>
+<!-- SG-5-1 当日用A4手順書（2026-10-30 下書き）。ブラウザで開いて A4・縦・余白「なし」または「最小」で印刷する。
+     下線の空欄は当日までに手で書き込む（ピット画面のURLは紙に書くだけにし、このファイルには入れない）。
+     11/5に仕上げる：警告の数値と行動（t960）、スタート手順（t970）、11/2の通し確認（SG-1-4）で分かったこと。
+     下敷きは ecorun_day_manual_20261024.html。 -->
+<style>
+  :root { --ink: #1a1a1a; --sub: #555; --line: #999; --accent: #b5453f; --warn: #b5453f; --bg: #fff; --box: #f8f1f0; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #f08a84; --warn: #f08a84; --bg: #161616; --box: #2b2221; } }
+  :root[data-theme="dark"] { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #f08a84; --warn: #f08a84; --bg: #161616; --box: #2b2221; }
+  @page { size: A4 portrait; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 7.9pt/1.4 "Yu Gothic UI", "Meiryo", sans-serif; }
+  .page { max-width: 192mm; margin: 0 auto; padding: 16px; }
+  @media print { .page { padding: 0; } body { background: #fff; color: #000; } }
+  header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 2px; margin-bottom: 5px; }
+  h1 { font-size: 13pt; margin: 0; }
+  header span { color: var(--sub); font-size: 7.6pt; }
+  .cols { columns: 2; column-gap: 6mm; }
+  @media (max-width: 640px) { .cols { columns: 1; } header { display: block; } }
+  section { break-inside: avoid; margin-bottom: 5px; }
+  h2 { font-size: 9.4pt; margin: 0 0 2px; padding: 1px 5px; background: var(--accent); color: #fff; border-radius: 2px; }
+  ol, ul { margin: 0; padding-left: 15px; }
+  li { margin: 0 0 1px; }
+  b { color: var(--accent); }
+  .warn { color: var(--warn); font-weight: bold; }
+  .who { color: var(--sub); font-size: 7.6pt; }
+  .fill { display: inline-block; min-width: 34mm; border-bottom: 1px solid var(--line); }
+  .wide { min-width: 62mm; }
+  table { width: 100%; border-collapse: collapse; font-size: 7.9pt; }
+  th, td { border: 1px solid var(--line); padding: 1px 3px; vertical-align: top; text-align: left; }
+  th { background: var(--box); white-space: nowrap; }
+  .box { background: var(--box); padding: 3px 5px; border-radius: 2px; margin: 0 0 2px; }
+  .draft { color: var(--warn); font-size: 7.6pt; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>SUGO 120分耐久 当日手順書（ロガー・モニター・回収）</h1>
+  <span>2026-11-08 NCEC ／ <b>タイムは公式の計測が正</b>。ロガーは止まっても走ってよい</span>
+</header>
+<p class="draft">下書き（2026-10-30）。11/5に仕上げる：警告の数値と行動（t960）、スタート手順（t970）、11/2の通し確認の結果。</p>
+<div class="cols">
+
+<section>
+  <h2>0. 構成と連絡先</h2>
+  <table>
+    <tr><th>もの</th><th>役目</th></tr>
+    <tr><td>ロガー Ver.2（UNO Q）</td><td>走行記録（本体＋シールドのSD）、ピットへLTE送信、前方の映像に計器を焼き込んで本体へ録画</td></tr>
+    <tr><td>モニター HD7H</td><td>「SUGO 120min」のページ（水温・油温・回転数／今の周・前周・ベスト／レース経過・時刻・周）</td></tr>
+    <tr><td>Defiの3連メーター</td><td><b>油温・油圧はこちらが正</b>（モニターの油温は記録とピット用）</td></tr>
+  </table>
+  <div>ピット画面：<span class="fill wide"></span></div>
+  <div>ロガー担当：<span class="fill"></span> ☎ <span class="fill"></span></div>
+  <div>予選 9:00〜<span class="fill" style="min-width:12mm"></span>　決勝 10:30〜12:30</div>
+</section>
+
+<section>
+  <h2>1. 取り付けの確認（出走前・スイッチOFFのまま）</h2>
+  <ol>
+    <li>手元スイッチの<b>蓋が開いている＝OFF</b>を確かめてから触る。</li>
+    <li>充電器の2口：<b>高出力側＝ロガー（ドック）</b>、もう一方＝モニター（9Vのケーブル）。<b>2口とも挿してから</b>スイッチを入れる。</li>
+    <li>ドックに<b>カメラ・HDMI・電源</b>。<span class="warn">ドックは電源を入れる前につなぐ</span>（動いている途中で差し替えると認識しない）。</li>
+    <li>GNSS・LTEアンテナのコネクタを指で押し込む。シールドのSDが奥まで入っている。</li>
+    <li>カメラの向き、ケーブルが走行の振動で引っ張られないか（手で揺する）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>2. 電源ON（毎回・エンジンを掛ける前）</h2>
+  <p class="box"><span class="warn">録画は1回の電源ONで約2時間45分まで</span>（それを超えると録画が止まる。走行記録は続く）。
+    <b>予選のあとは一度スイッチを切り、決勝の電源はスタートの45分前より後（9:45以降、目安10:00）に入れる</b>。朝から入れっぱなしにしない。</p>
+  <ol>
+    <li>レバーを上げて<b>蓋を閉じる（蓋が閉まっている＝ON）</b>。電源を入れるだけで記録・録画が始まる（止めるボタンは無い）。</li>
+    <li>約1〜2分でモニターに「SUGO 120min」。<b>時刻（Utc）が進んでいれば</b>本体は動いている。</li>
+    <li>エンジンを掛けると水温・回転数が出る。油温は基板がつながっていれば出る。</li>
+    <li>ピット画面に位置・速度が出れば、記録とLTEはOK（<b>GNSSが測位するまで出ない</b>。最初の送信まで約1分40秒）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>3. ラインの確認（朝のコースウォーク）</h2>
+  <ul>
+    <li>ロガーのラインは<b>設定済み</b>（グランドスタンド前、メインストレートとピットレーンをまたぐ幅50m）。現地で登録し直すことは無い。</li>
+    <li>公式の計測ライン（路面の線）の位置を<b>写真に撮る</b>だけ。ずれていても<b>ラップタイムは変わらない</b>（ずれるのは1周目とピットに入った周の区切りだけ）。</li>
+    <li>予選の最初の数周で、モニターの<b>周（CurrentLap）が増え、前周（LapTime）が出る</b>こと。出なければ7章。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>4. 予選のあと・決勝の前（ラップのリセット）</h2>
+  <ol>
+    <li>予選から戻ったら<b>スイッチを入れたまま</b>、パドックでPCとPixel（テザリング）を車の近くへ。</li>
+    <li>PCで <b>Reset-Laps.cmd</b>（<span class="who">RaceCapture\tools\sugo_setup\</span>）→「<b>ラップの記録を消しました（完了0周）</b>」。<br>
+      <span class="who">ラインはそのまま。「★ラインが…」と出たらロガー担当へ。</span></li>
+    <li><b>スイッチを切る</b>（決勝の録画の時間を残すため）。決勝の電源は2章の時刻から。</li>
+    <li>レース経過（SessionTime）は、リセットのあと<b>最初にラインを通った時から</b>数える。
+      スタートまでにラインを通る（ピットからグリッドへ・フォーメーションラップ）とそこから数える：<span class="fill"></span>
+      <span class="who">（t970の公式通知で分かったら書く）</span></li>
+    <li><span class="warn">リセットできなくても走ってよい</span>（レース経過と周が予選からの続きになるだけ。前周・ベストのタイムは正しい）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>5. ドライバー交代のときに見るところ</h2>
+  <ul>
+    <li>スイッチの<b>蓋が閉まっている</b>。モニターの<b>時刻が進み、周が増えている</b>。</li>
+    <li>給油（第1ゲートから外のスタンド）の周は長くなる。ロガーは何もしなくてよい。</li>
+  </ul>
+  <table>
+    <tr><th>モニターの色</th><th>油温</th><th>水温</th><th>すること</th></tr>
+    <tr><td>黄</td><td>110〜119℃</td><td>100〜109℃</td><td>注意。ペースを見直す</td></tr>
+    <tr><td>赤</td><td>120〜129℃</td><td>110〜119℃</td><td>クーリング走行</td></tr>
+    <tr><td>赤＋「PIT IN」</td><td>130℃以上</td><td>120℃以上</td><td><span class="warn">ピットへ</span></td></tr>
+  </table>
+  <p class="draft">数値と「すること」は暫定（track/thermal-limits.md）。t960で決めたものに合わせる。色は1秒続いたら出て、下がって5秒で消える。</p>
+</section>
+
+<section>
+  <h2>6. 走り終えたら（止める）・回収</h2>
+  <ol>
+    <li>蓋を開けてレバーを倒す。<b>蓋は開けたまま</b>（開いている＝OFF）。記録・録画は電源OFFで閉じる（最後の約1秒が欠けるだけ）。</li>
+    <li><span class="who">（1日の最後・ピットのPC）</span>ロガーの<b>電源を完全に切ってから</b>ドックを外し、UNO QをPCと<b>USBで直結</b>（PCから給電されて起動する）。シールドのSDはカードリーダーでPCへ。</li>
+    <li>約2分待って <b>Collect-Logs.cmd</b>（<span class="who">RaceCapture\tools\collect_logs\</span>）。<b>動画も吸い出す</b>（120分で約11GB、約5分）。</li>
+    <li>「<b>新しいログ ○件を回収しました</b>」→ <b>drive_logs\日付\runNN_時刻\</b>（v2_emmc・v2_video・v2_sd）。元のファイルは消えない。</li>
+    <li><span class="warn">回収するまでロガーを長く動かさない</span>（空きが足りなくなると、前の電源ONの動画から古い順に消える）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>7. 困ったとき</h2>
+  <table>
+    <tr><th>症状</th><th>まずやること</th></tr>
+    <tr><td>モニターが真っ白</td><td>明るさが上がりきっている。メニューを開いていないときの<b>上・下ボタン</b>で下げる</td></tr>
+    <tr><td>モニターが「信号なし」</td><td>2分待つ（ロガーが自動で出し直す）。だめならHDMIを抜き差し</td></tr>
+    <tr><td>時刻が止まった・ページが消えた</td><td><b>走ってよい</b>。ロガーが再起動していることがある（10/29に机の上で1回、自分で再起動して約8分後に記録が戻った）。戻れば記録・録画は自動で再開（ファイルが分かれるだけ）。戻らなければピットでスイッチを入れ直す</td></tr>
+    <tr><td>水温・回転数が No data</td><td>エンジンが掛かっているか。OBD2のタップが外れていないか</td></tr>
+    <tr><td>油温が No data</td><td>基板・配線。<b>Defiのメーターで見て走ってよい</b></td></tr>
+    <tr><td>周が増えない・前周が出ない</td><td>タイムは公式が正。ピットでロガー担当へ（ラインの位置・向き）</td></tr>
+    <tr><td>レース経過が合わない</td><td>公式が正。4章のリセットの時点を確かめる</td></tr>
+    <tr><td>ピット画面に出ない</td><td>記録には影響しない。GNSSの測位待ち・電波。起動から最初の送信まで約1分40秒</td></tr>
+    <tr><td>回収で「UNO Qに接続できません」</td><td>ロガーの電源を完全に切る → PCにつないでから入れ直す。<b>電源が入ったままドック⇔PCを差し替えない</b></td></tr>
+    <tr><td>Reset-Laps.cmdがつながらない</td><td>PCとロガーが同じPixelのテザリングにいるか。だめなら4章の5</td></tr>
+  </table>
+</section>
+
+</div>
+</div>
+</body>
+</html>
