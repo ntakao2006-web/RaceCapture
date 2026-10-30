@@ -12,7 +12,8 @@
 //   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むときはstrftimeの書式とみなし、
 //         OVERLAY_SEGMENT_MIN分（既定10）ごとに、キーフレームの所で新しいファイルへ切り替える
 //   出力の横に xxx.csv（1秒ごとに「ファイル内の枚目・動画内の秒・UTC」）を書く。走行データと時刻を合わせる用
-//   空きがOVERLAY_MIN_FREE_MB（既定1024）を切ったら記録を止めて終わる（終了コード3）
+//   空きがOVERLAY_MIN_FREE_MB（既定2048）を切ったら記録を止めて終わる（終了コード3）。EcoCaptureは空きが1GiBを
+//   切ると古い走行記録から消すので、録画はそれより手前で止め、走行記録が伸びる分を残す
 //   SIGINT/SIGTERMで止めると、エンコーダに残った分を書き出してから終わる
 //   OVERLAY_OUT=720 のときは1280x720で保存する（既定は1920x1080。計器は同じ配置のまま縮む）
 //   OVERLAY_DEMO=1 のときは作り物の値で描く（見た目と警告の色の確認用。画面にDEMOと出る）
@@ -355,7 +356,7 @@ static FILE *out, *csv;
 static const char *out_pat;
 static char out_name[512];
 static int ts_mode, seg_on, low_space, seg_frames, encoded, idr_count, header_inserted;
-static double seg_len = 600, seg_t0, min_free_mb = 1024;
+static double seg_len = 600, seg_t0, min_free_mb = 2048;
 static int64_t seg_us0;
 static size_t bytes;
 static uint8_t seq_hdr[256], cc_pat, cc_pmt, cc_vid;
