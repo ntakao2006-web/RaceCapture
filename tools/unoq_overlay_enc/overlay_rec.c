@@ -12,8 +12,10 @@
 //   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むときはstrftimeの書式とみなし、
 //         OVERLAY_SEGMENT_MIN分（既定10）ごとに、キーフレームの所で新しいファイルへ切り替える
 //   出力の横に xxx.csv（1秒ごとに「ファイル内の枚目・動画内の秒・UTC」）を書く。走行データと時刻を合わせる用
-//   空きがOVERLAY_MIN_FREE_MB（既定2048）を切ったら記録を止めて終わる（終了コード3）。EcoCaptureは空きが1GiBを
-//   切ると古い走行記録から消すので、録画はそれより手前で止め、走行記録が伸びる分を残す
+//   空きがOVERLAY_MIN_FREE_MB（既定2048）を切ったら、出力先（%の書式のとき）にある前の起動のときの動画を古い順に消して空ける。
+//   今回の電源ONから後に書いた動画は消さない（カメラが抜けて録画をやり直しても、同じ走行の前半は残る）。消せる動画が無くなっても足りなければ、記録を止めて終わる（終了コード3）。
+//   EcoCaptureは空きが1GiBを切ると古い走行記録から消すので、録画はそれより手前で止め、走行記録が伸びる分を残す
+//   （消す順番：①前の起動のときの動画（大きい・古い順）②走行記録（EcoCaptureが古い順）。手順書5-13）
 //   SIGINT/SIGTERMで止めると、エンコーダに残った分を書き出してから終わる
 //   OVERLAY_OUT=720 のときは1280x720で保存する（既定は1920x1080。計器は同じ配置のまま縮む）
 //   OVERLAY_DEMO=1 のときは作り物の値で描く（見た目と警告の色の確認用。画面にDEMOと出る）
@@ -42,7 +44,9 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/statvfs.h>
+#include <dirent.h>
 #include <drm/drm.h>
 #include <drm/msm_drm.h>
 #include <time.h>
@@ -357,6 +361,7 @@ static const char *out_pat;
 static char out_name[512];
 static int ts_mode, seg_on, low_space, seg_frames, encoded, idr_count, header_inserted;
 static double seg_len = 600, seg_t0, min_free_mb = 2048;
+static time_t boot_start;  // 今回の電源ONの時刻。これより前に書き終わった動画だけを消してよい
 static int64_t seg_us0;
 static size_t bytes;
 static uint8_t seq_hdr[256], cc_pat, cc_pmt, cc_vid;
@@ -441,6 +446,31 @@ static void seg_open(int64_t us) {
     printf("file %s\n", out_name); fflush(stdout);
 }
 
+// 空きが足りないとき、出力先のフォルダから前の起動のときの動画（.ts）を1つ、古い順に消す（横の.csvも）。消せたら1
+static int remove_oldest_video(void) {
+    char dir[sizeof out_name]; snprintf(dir, sizeof dir, "%s", out_name);
+    char *sl = strrchr(dir, '/'); if (sl) *sl = 0; else snprintf(dir, sizeof dir, ".");
+    DIR *d = opendir(dir); if (!d) return 0;
+    char best[sizeof out_name + 256] = "", p[sizeof best]; time_t bt = 0; struct dirent *e;
+    while ((e = readdir(d))) {
+        size_t l = strlen(e->d_name); struct stat st;
+        if (l < 4 || strcmp(e->d_name + l - 3, ".ts")) continue;
+        snprintf(p, sizeof p, "%s/%s", dir, e->d_name);
+        if (stat(p, &st) || !S_ISREG(st.st_mode) || st.st_mtime >= boot_start) continue;
+        if (!*best || st.st_mtime < bt) { snprintf(best, sizeof best, "%s", p); bt = st.st_mtime; }
+    }
+    closedir(d);
+    if (!*best || unlink(best)) return 0;
+    printf("removed %s (free space)\n", best); fflush(stdout);
+    snprintf(p, sizeof p, "%.*s.csv", (int)(strlen(best) - 3), best); unlink(p);
+    return 1;
+}
+
+static double free_mb(void) {
+    struct statvfs sv;
+    return fstatvfs(fileno(out), &sv) ? 1e18 : (double)sv.f_bavail * sv.f_frsize / 1048576.0;
+}
+
 // エンコーダから出た1枚分。キーフレームの所でファイルの切り替え・書き出しの促し・空きの確認・時刻の記録をする
 static void emit(const uint8_t *p, size_t n, int64_t us) {
     int has_sps = 0, idr = 0, slice = 0;
@@ -463,8 +493,8 @@ static void emit(const uint8_t *p, size_t n, int64_t us) {
         idr_count++;
         if (!out || (seg_on && now() - seg_t0 >= seg_len)) seg_open(us);
         else { fflush(out); sync_file_range(fileno(out), 0, 0, SYNC_FILE_RANGE_WRITE); }  // 待たずに書き出しを始めさせる
-        struct statvfs sv;
-        if (!fstatvfs(fileno(out), &sv) && (double)sv.f_bavail * sv.f_frsize < min_free_mb * 1048576.0) { low_space = 1; quit = 1; }
+        while (seg_on && free_mb() < min_free_mb && remove_oldest_video()) {}
+        if (free_mb() < min_free_mb) { low_space = 1; quit = 1; }
         if (csv) {
             double u = utc_of(us); time_t s = (time_t)u; struct tm g; gmtime_r(&s, &g);
             char ts[32]; strftime(ts, sizeof ts, "%Y-%m-%dT%H:%M:%S", &g);
@@ -672,6 +702,7 @@ int main(int argc, char **argv) {
     const size_t ol = strlen(out_pat); ts_mode = !(ol > 5 && !strcmp(out_pat + ol - 5, ".h264"));
     signal(SIGINT, on_signal); signal(SIGTERM, on_signal);
     setenv("TZ", "Asia/Tokyo", 0); tzset();
+    struct timespec up; clock_gettime(CLOCK_BOOTTIME, &up); boot_start = time(NULL) - up.tv_sec;
 
     rfd = open("/dev/dri/renderD128", O_RDWR | O_CLOEXEC); if (rfd < 0) DIE("open renderD128");
     cam_open(argv[1]);

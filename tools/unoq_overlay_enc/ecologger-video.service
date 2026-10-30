@@ -5,14 +5,15 @@ After=docker.service ecocapture-web-start.service
 User=arduino
 Environment=TZ=Asia/Tokyo
 Environment=OVERLAY_SEGMENT_MIN=10
-# EcoCaptureは空きが1GiBを切ると古い走行記録から消す。録画はその手前（2GiB）で止める
+# 空きが2GiBを切ったら、前の起動のときの動画を古い順に消して空ける（今回の電源ONから後の動画は消さない）。消せる動画が無ければ止める。
+# EcoCaptureは空きが1GiBを切ると古い走行記録から消すので、録画はその手前で収める
 Environment=OVERLAY_MIN_FREE_MB=2048
 ExecStart=/opt/ecologger-video/run-video.sh
 # 電源を切るとき（SIGTERM）は、エンコーダに残った分を書き出してから終わる
 TimeoutStopSec=10
 Restart=on-failure
 RestartSec=5
-# 空きが足りずに止めたとき（終了コード3）は、その起動中はもう録らない
+# 消せる動画が無く空きが足りずに止めたとき（終了コード3）は、その起動中はもう録らない
 RestartPreventExitStatus=3
 NoNewPrivileges=true
 [Install]

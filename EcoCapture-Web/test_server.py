@@ -34,6 +34,27 @@ class ServerTests(unittest.TestCase):
             self.s.runtime.recorder.make_room()
         self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},{current})
 
+    def test_emmc_retention_deletes_finished_videos_before_logs(self):
+        for n in range(2):
+            self.s.runtime.recorder.start(Configuration());self.s.runtime.recorder.stop()
+            os.utime(self.s.LOGS/self.s.runtime.recorder.name,(500+n,500+n))
+        logs={p.name for p in self.s.LOGS.glob('LOG_*.csv')}
+        self.s.VIDEOS.mkdir()
+        for n in range(3):
+            for ext in ('.ts','.csv'):
+                path=self.s.VIDEOS/f'2026103{n}_120000{ext}';path.write_bytes(b'x');os.utime(path,(1000+n,1000+n))
+        recording=self.s.VIDEOS/'20261031_130000.ts';recording.write_bytes(b'x')
+        self.s.runtime.recorder.start(Configuration());current=self.s.runtime.recorder.name
+        space=iter([0,0,self.s.KEEP_FREE_BYTES])
+        with patch.object(self.s.shutil,"disk_usage",side_effect=lambda _:type("Space",(),{"free":next(space,self.s.KEEP_FREE_BYTES)})()):
+            self.assertGreaterEqual(self.s.runtime.recorder.make_room(),self.s.KEEP_FREE_BYTES)
+        self.assertEqual({p.name for p in self.s.VIDEOS.iterdir()},{'20261032_120000.ts','20261032_120000.csv',recording.name})
+        self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},logs|{current})
+        with patch.object(self.s.shutil,"disk_usage",return_value=type("Space",(),{"free":0})()):
+            self.s.runtime.recorder.make_room()
+        self.assertEqual({p.name for p in self.s.VIDEOS.iterdir()},{recording.name})
+        self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},{current})
+
     def test_removed_sd_closes_backup_without_claiming_sd_saved(self):
         from unittest.mock import AsyncMock
         from fastapi import HTTPException

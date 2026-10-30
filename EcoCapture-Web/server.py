@@ -30,11 +30,30 @@ LOGS = ROOT / "logs"
 LOGS.mkdir(exist_ok=True)
 CONFIG_PATH = ROOT / "config.json"
 RESERVE_BYTES = 256 * 1024 * 1024
-# Dashcam-style retention: below this free space, delete the oldest finished
-# logs (never the one being written). RESERVE_BYTES stays as the hard floor.
+# Dashcam-style retention: below this free space, delete finished onboard videos
+# first (oldest first; ~5 GB/h each hour of video), then the oldest finished logs
+# (~0.2 GB/h and the primary data). Never the log or video being written.
+# RESERVE_BYTES stays as the hard floor.
 KEEP_FREE_BYTES = int(os.environ.get("ECOCAPTURE_KEEP_FREE_BYTES", 1024 * 1024 * 1024))
+# Burned-in onboard video (tools/unoq_overlay_enc/overlay_rec.c): YYYYMMDD_HHMMSS.ts + .csv.
+# The recorder touches its file every second, so a video written within this
+# window is treated as still recording.
+VIDEOS = ROOT / "video"
+VIDEO_ACTIVE_SEC = 120
 PUBLIC_DIR=ROOT/'public'
 PUBLIC_DIR.mkdir(exist_ok=True)
+
+
+def finished_videos():
+    """Onboard videos the recorder is no longer writing, oldest first."""
+    cutoff = time.time() - VIDEO_ACTIVE_SEC
+    found = []
+    for path in VIDEOS.glob("*.ts"):
+        with suppress(OSError):  # the recorder may remove a file while we look
+            mtime = path.stat().st_mtime
+            if path.is_file() and not path.is_symlink() and mtime < cutoff:
+                found.append((mtime, path))
+    return [path for _, path in sorted(found)]
 
 
 def atomic_json(path, data):
@@ -138,6 +157,12 @@ class Recorder:
     def make_room(self):
         free=shutil.disk_usage(ROOT).free
         if free>=KEEP_FREE_BYTES:return free
+        for path in finished_videos():
+            if free>=KEEP_FREE_BYTES:return free
+            for target in (path,path.with_suffix('.csv')):
+                with suppress(OSError):
+                    if target.is_file() and not target.is_symlink():target.unlink()
+            free=shutil.disk_usage(ROOT).free
         closed=sorted((p for p in LOGS.glob('LOG_*.csv') if not (self.file and p.name==self.name)),key=lambda p:p.stat().st_mtime)
         for path in closed:
             if free>=KEEP_FREE_BYTES:break
