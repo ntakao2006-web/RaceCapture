@@ -8,6 +8,8 @@ Environment=OVERLAY_SEGMENT_MIN=10
 # 空きが2GiBを切ったら、前の起動のときの動画を古い順に消して空ける（今回の電源ONから後の動画は消さない）。消せる動画が無ければ止める。
 # EcoCaptureは空きが1GiBを切ると古い走行記録から消すので、録画はその手前で収める
 Environment=OVERLAY_MIN_FREE_MB=2048
+# 1080p・10Mbps：空き約13GBで1回の電源ONあたり約2時間45分録れる（12Mbpsだと約2時間19分で、SUGO決勝120分の前後に余裕が無い）
+Environment=OVERLAY_BITRATE_MBPS=10
 ExecStart=/opt/ecologger-video/run-video.sh
 # 電源を切るとき（SIGTERM）は、エンコーダに残った分を書き出してから終わる
 TimeoutStopSec=10

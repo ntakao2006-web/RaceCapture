@@ -14,6 +14,7 @@
 //   出力の横に xxx.csv（1秒ごとに「ファイル内の枚目・動画内の秒・UTC・どの時計か・本体の時計のUTC」）を書く。走行データと時刻を合わせる用。
 //   時刻は走行データのGNSSの時刻に合わせる（本体の時計は車の中では合っていないことがある）。GNSSの時刻が分かるまでは
 //   本体の時計で書き、分かったら、それまで本体の時計で名前を付けたこの録画のファイルをGNSSの時刻の名前へ付け直す
+//   ビットレートはOVERLAY_BITRATE_MBPS（既定10。1分で約77MB、空き約13GBで約2時間45分。12だと約2時間19分。手順書5-13）
 //   空きがOVERLAY_MIN_FREE_MB（既定2048）を切ったら、出力先（%の書式のとき）にある前の起動のときの動画を古い順に消して空ける。
 //   今回の電源ONから後に書いた動画は消さない（カメラが抜けて録画をやり直しても、同じ走行の前半は残る）。消せる動画が無くなっても足りなければ、記録を止めて終わる（終了コード3）。
 //   EcoCaptureは空きが1GiBを切ると古い走行記録から消すので、録画はそれより手前で止め、走行記録が伸びる分を残す
@@ -409,7 +410,7 @@ static FILE *out, *csv;
 static const char *out_pat;
 static char out_name[512];
 static int ts_mode, seg_on, low_space, seg_frames, encoded, idr_count, header_inserted;
-static double seg_len = 600, seg_t0, min_free_mb = 2048;
+static double seg_len = 600, seg_t0, min_free_mb = 2048, bitrate_mbps = 10;
 static time_t boot_start;  // 今回の電源ONの時刻。これより前に書き終わった動画だけを消してよい
 static int64_t seg_us0;
 static size_t bytes;
@@ -796,6 +797,7 @@ int main(int argc, char **argv) {
     const int profile = getenv("OVERLAY_PROFILE") && atoi(getenv("OVERLAY_PROFILE"));
     if (getenv("OVERLAY_SEGMENT_MIN")) seg_len = atof(getenv("OVERLAY_SEGMENT_MIN")) * 60;
     if (getenv("OVERLAY_MIN_FREE_MB")) min_free_mb = atof(getenv("OVERLAY_MIN_FREE_MB"));
+    if (getenv("OVERLAY_BITRATE_MBPS")) bitrate_mbps = atof(getenv("OVERLAY_BITRATE_MBPS"));
     if (getenv("OVERLAY_TELEMETRY_PORT")) api_port = atoi(getenv("OVERLAY_TELEMETRY_PORT"));
     for (int i = 0; i < CLK_N; i++) clk[i].at = -1e9;
     for (int i = 0; i < 64; i++) stamps[i].us = -1;  // まだ使っていない枠（0は最初の枚の時刻なので区別する）
@@ -855,7 +857,9 @@ int main(int argc, char **argv) {
     struct v4l2_streamparm sp = { .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE };
     sp.parm.output.timeperframe.numerator = 1; sp.parm.output.timeperframe.denominator = 30;
     if (xioctl(fd, VIDIOC_S_PARM, &sp)) DIE("S_PARM");  // これが無いとクロックが上がらない（手順書5-5①）
-    set_ctrl(V4L2_CID_MPEG_VIDEO_BITRATE, 12000000, "bitrate");
+    set_ctrl(V4L2_CID_MPEG_VIDEO_BITRATE, (int)(bitrate_mbps * 1e6), "bitrate");
+    struct v4l2_control br = { .id = V4L2_CID_MPEG_VIDEO_BITRATE };
+    if (!xioctl(fd, VIDIOC_G_CTRL, &br)) printf("bitrate %d\n", br.value);
     set_ctrl(V4L2_CID_MPEG_VIDEO_GOP_SIZE, 30, "gop_size");
     set_ctrl(V4L2_CID_MPEG_VIDEO_H264_I_PERIOD, 30, "h264_i_frame_period");
 
