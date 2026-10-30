@@ -114,21 +114,26 @@ $('toggle').onclick = () => $('bar').classList.toggle('hidden');
 $('fullscreen').onclick = () => document.documentElement.requestFullscreen?.();
 $('file').onchange = () => {
   const f = $('file').files[0];
-  if (f) { video.src = URL.createObjectURL(f); guessStart(f.name); }
+  if (f) { video.src = URL.createObjectURL(f); guessStart(f.name, f.size); }
 };
 video.onerror = () => { note.hidden = false; note.textContent = '動画を読み込めません。「ファイルを選択」で選び直してください'; };
 
 // Videos already lined up with the race. taichi_eco_2026.mp4 (majesta's onboard camera, edited, its
 // own time stamp frozen): the first frame's time from the launch (the START banner starts growing at
 // 10.29 s, Speed rises from 12:15:56.9) and agrees with the stop after the finish (2381.8 s, 12:55:28.4)
+// Also known by size, and by name when the browser saved a second copy as "name (1).mp4".
 const KNOWN = {
-  'taichi_eco_2026.mp4': { room: 'demo-majesta', start: '2026-10-25 12:15:46.6' },
+  'taichi_eco_2026.mp4': { size: 6117949740, room: 'demo-majesta', start: '2026-10-25 12:15:46.6' },
 };
+function knownVideo(name, size) {
+  const base = decodeURIComponent(name.split(/[\\/?#]/).filter(Boolean).pop() || '').replace(/ \(\d+\)(?=\.\w+$)/, '');
+  return KNOWN[base] || Object.values(KNOWN).find(k => k.size === size);
+}
 
 // The recorder names its files by the race time of the first frame (YYYYMMDD_HHMMSS, JST)
-function guessStart(name) {
+function guessStart(name, size) {
   if (params.get('start')) return;
-  const known = KNOWN[name.split(/[\\/]/).pop()];
+  const known = knownVideo(name, size);
   if (known) {
     $('start').value = known.start;
     save('start', known.start);
