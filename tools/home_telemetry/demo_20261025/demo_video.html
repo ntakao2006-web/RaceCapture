@@ -108,13 +108,27 @@ $('file').onchange = () => {
   const f = $('file').files[0];
   if (f) { video.src = URL.createObjectURL(f); guessStart(f.name); }
 };
-if (params.get('video')) { video.src = params.get('video'); guessStart(params.get('video')); }
 video.onerror = () => { note.hidden = false; note.textContent = '動画を読み込めません。「ファイルを選択」で選び直してください'; };
+
+// Videos already lined up with the race. taichi_eco_2026.mp4 (majesta's onboard camera, edited, its
+// own time stamp frozen): the first frame's time from the launch (the START banner starts growing at
+// 10.29 s, Speed rises from 12:15:56.9) and agrees with the stop after the finish (2381.8 s, 12:55:28.4)
+const KNOWN = {
+  'taichi_eco_2026.mp4': { room: 'demo-majesta', start: '2026-10-25 12:15:46.6' },
+};
 
 // The recorder names its files by the race time of the first frame (YYYYMMDD_HHMMSS, JST)
 function guessStart(name) {
+  if (params.get('start')) return;
+  const known = KNOWN[name.split(/[\\/]/).pop()];
+  if (known) {
+    $('start').value = known.start;
+    save('start', known.start);
+    if ($('room').value !== known.room) { $('room').value = known.room; save('room', known.room); connect(); }
+    return;
+  }
   const m = /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/.exec(name);
-  if (m && !params.get('start')) {
+  if (m) {
     $('start').value = `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]}`;
     save('start', $('start').value);
   }
@@ -201,6 +215,7 @@ setInterval(() => {
 }, 250);
 document.addEventListener('click', () => { if (video.src && video.paused && note.textContent.startsWith('画面')) video.play(); });
 
+if (params.get('video')) { video.src = params.get('video'); guessStart(params.get('video')); }
 connect();
 </script>
 </body>
