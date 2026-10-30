@@ -104,6 +104,29 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(cm.exception.line, 2)
 
 
+class EstimateTest(unittest.TestCase):
+    """塗る面積からの重さの見積もり（本体での実測は手順書5-15）"""
+
+    def test_default_is_ok(self):
+        screens, ms, level = hud_layout.estimate(hud_layout.load(hud_layout.DEFAULT_INI), FONT)
+        self.assertAlmostEqual(screens, 0.30, delta=0.02)
+        self.assertEqual(level, 'ok')
+        self.assertLess(abs(ms - 18.65), 1.0)  # 本体で18.65ms
+
+    def test_full_screen_boxes(self):
+        base = (HERE / 'hud.ini').read_text(encoding='utf-8')
+        box = '[full{}]\ntype = box\nrect = 0 0 1920 1080\ncolor = 0 0 0 0.06\n\n'
+        for n, want, measured in ((1, 'edge', 24.52), (2, 'heavy', 35.42)):
+            hud = hud_layout.parse(base + ''.join(box.format(i) for i in range(n)))
+            screens, ms, level = hud_layout.estimate(hud, FONT)
+            self.assertEqual(level, want, n)
+            self.assertGreaterEqual(ms, measured)  # 少し重めに見積もる
+
+    def test_nodata_items_are_counted(self):
+        hud = hud_layout.parse('[a]\ntype = box\nshow = nodata\nrect = 0 0 1920 1080\ncolor = red\n')
+        self.assertAlmostEqual(hud_layout.estimate(hud, FONT)[0], 1.0)
+
+
 class PreviewTest(unittest.TestCase):
     def test_renders_three_states(self):
         hud = hud_layout.load(hud_layout.DEFAULT_INI)

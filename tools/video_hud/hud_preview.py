@@ -4,6 +4,7 @@ hud.ini を保存するたびに描き直す。並べるのは次の3つ:
   - 普段：hud.ini の [preview] の仮の値
   - 赤：しきい値（alarm_at・alarm_below）のある計器を、赤になる値にしたもの
   - 数値が来ていない：値が何も無いとき（show = nodata の計器が出る。時刻も出ない）
+ページの上に、塗る面積から見積もった重さ（GPUの時間）を出す（hud_layout.estimate、手順書5-15の実測から）。
 組み立ては本体と同じ規則（hud_layout.py ＝ 本体の hud_layout.h の写し）。文字は本体と同じ文字の一覧表を、
 GPUと同じく画素の真ん中で直線補間して貼る。本体の動画はYUV（色は縦横半分の細かさ）なので、色の縁は少しにじむ。
 
@@ -137,6 +138,9 @@ body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.6 system-ui,
 main { max-width:1500px; margin:0 auto; padding:16px; }
 h1 { font-size:20px; margin:0 0 4px; }
 .sub { color:var(--sub); font-size:13px; margin:0 0 12px; word-break:break-all; }
+.load { border-radius:8px; padding:8px 14px; margin:0 0 12px; font-weight:600; }
+.load.ok { background:#e6f4ea; color:#1e6b34; } .load.edge { background:#fff4d6; color:#7a5200; } .load.heavy { background:#fdecea; color:#b3261e; }
+@media (prefers-color-scheme: dark) { .load.ok { background:#16301f; color:#8fd6a5; } .load.edge { background:#3a2f12; color:#f2cf73; } .load.heavy { background:#3b1d1b; color:#ffb4ab; } }
 .err { display:none; background:var(--errbg); color:var(--err); border:1px solid var(--err); border-radius:8px; padding:10px 14px; margin:0 0 12px; white-space:pre-wrap; }
 figure { margin:0 0 18px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px; }
 figcaption { font-weight:600; margin:0 0 6px; }
@@ -144,6 +148,7 @@ img { width:100%; height:auto; display:block; border-radius:4px; background:#000
 </style></head><body><main>
 <h1>走行映像の計器の見た目</h1>
 <p class="sub" id="info">読み込み中…</p>
+<div class="load" id="load"></div>
 <div class="err" id="err"></div>
 <div id="shots">__FIGS__</div>
 </main>
@@ -153,6 +158,8 @@ async function poll() {
   try {
     const s = await (await fetch('/state', {cache: 'no-store'})).json();
     document.getElementById('info').textContent = s.info;
+    const l = document.getElementById('load');
+    l.className = 'load ' + (s.level || ''); l.textContent = s.load || '';
     const e = document.getElementById('err');
     e.style.display = s.error ? 'block' : 'none';
     e.textContent = s.error ? s.error + (s.version > 0 ? '\\n（下の絵は、最後に正しく読めたときのもの）' : '') : '';
@@ -178,6 +185,7 @@ class Watcher:
         self.bg, self.bg_name = load_background(bg_path)
         self.lock = threading.Lock()
         self.version, self.images, self.error, self.info = 0, {}, '', ''
+        self.load, self.level = '', ''
         self.key = None
 
     def check(self):
@@ -189,10 +197,12 @@ class Watcher:
         if key == self.key:
             return
         self.key = key
-        error, images, info = '', None, ''
+        error, images, info, load, level = '', None, '', '', ''
         try:
             hud = hud_layout.load(self.ini)
             images = render_states(hud, self.font, self.bg)
+            screens, ms, level = hud_layout.estimate(hud, self.font)
+            load = hud_layout.describe_estimate(screens, ms, level)
             info = (f'{self.ini}（計器 {len(hud.items)}個・値 {len(hud.refs)}種類）を見ています。保存すると描き直します。'
                     f' 背景：{self.bg_name}。描いた時刻 {time.strftime("%H:%M:%S")}')
         except hud_layout.HudError as e:
@@ -205,6 +215,7 @@ class Watcher:
             self.error = error
             if images:
                 self.images, self.version, self.info = images, self.version + 1, info
+                self.load, self.level = load, level
             elif not self.info:
                 self.info = f'{self.ini} を見ています'
 
@@ -231,7 +242,8 @@ def serve(watcher, open_browser=True):
                 body, ctype = page, 'text/html; charset=utf-8'
             elif path == '/state':
                 with watcher.lock:
-                    body = json.dumps({'version': watcher.version, 'error': watcher.error, 'info': watcher.info}).encode()
+                    body = json.dumps({'version': watcher.version, 'error': watcher.error, 'info': watcher.info,
+                                       'load': watcher.load, 'level': watcher.level}).encode()
                 ctype = 'application/json'
             elif path.startswith('/img/') and path.endswith('.png'):
                 with watcher.lock:
@@ -281,6 +293,7 @@ def main():
         for name, data in watcher.images.items():
             (out / f'{name}.png').write_bytes(data)
         print(f'{out} に書きました：{", ".join(n + ".png" for n in watcher.images)}')
+        print(watcher.load)
         return
     serve(watcher, not args.no_browser)
 

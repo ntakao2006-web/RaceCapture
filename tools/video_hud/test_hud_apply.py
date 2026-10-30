@@ -125,6 +125,22 @@ class ApplyTest(unittest.TestCase):
             hud_apply.runner = orig
         self.assertEqual(called, [])
 
+    def test_main_refuses_heavy_layout_without_force(self):
+        heavy = HERE / 'testdata' / '_heavy_tmp.ini'
+        heavy.write_text(GOOD.decode('utf-8') + ''.join(
+            f'[full{i}]\ntype = box\nrect = 0 0 1920 1080\ncolor = 0 0 0 0.06\n\n' for i in range(3)), encoding='utf-8')
+        called = []
+        orig = hud_apply.runner
+        hud_apply.runner = lambda *a: called.append(a) or FakeUnoQ(ready=False)
+        try:
+            self.assertEqual(hud_apply.main([str(heavy)]), 1)
+            self.assertEqual(called, [])
+            self.assertEqual(hud_apply.main([str(heavy), '--force']), 2)  # 送ろうとする（偽の本体は古い版なので2）
+            self.assertEqual(len(called), 1)
+        finally:
+            hud_apply.runner = orig
+            heavy.unlink()
+
     def test_hud_ini_is_valid(self):
         hud_layout.parse(GOOD.decode('utf-8'))
 

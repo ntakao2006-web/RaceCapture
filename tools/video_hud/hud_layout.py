@@ -12,6 +12,7 @@ import math
 import re
 import struct
 from dataclasses import dataclass, field
+from dataclasses import replace as dataclasses_replace
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -591,6 +592,38 @@ def build(hud, font, values, utc=None, age=0.0):
             t = int(utc) + 9 * 3600
             put_text(it, f'{t // 3600 % 24:02d}:{t // 60 % 60:02d}:{t % 60:02d}', it.color)
     return b.quads
+
+
+# ---------------------------------------------------------------- 重さの見積もり
+# 本体で測った、計器の塗る面積とGPUの時間（1コマあたり。2026-10-30、手順書5-15）。重さは四角形の数ではなく塗る面積で決まる:
+#   計器なし15.6ms、元の配置（画面0.31枚分）18.7ms、文字2000個（0.50枚分）19.4ms、
+#   画面1枚分の四角を足す（1.31枚分）24.5ms・29.9コマ、2枚分（2.31枚分）35.4ms・27.0コマ、6枚分（6.31枚分）75.8ms・12.9コマ
+# 見積もりは少し重めに出る直線（15.6ms ＋ 画面1枚分ごとに9.6ms）。1コマの持ち時間は33.3msで、GPUのほかに約2.5ms、
+# カメラ（USB）の分で約1ms、車内の暑さの分も見て、25msまでを「余裕あり」、29msまでを「ぎりぎり」とする
+GPU_BASE_MS, GPU_MS_PER_SCREEN = 15.6, 9.6
+GPU_OK_MS, GPU_EDGE_MS = 25.0, 29.0
+
+
+def quad_area(q):
+    xs, ys = q[0], q[1]
+    return abs(sum(xs[i] * ys[(i + 1) % 4] - xs[(i + 1) % 4] * ys[i] for i in range(4))) / 2
+
+
+def estimate(hud, font):
+    """(塗る面積（画面何枚分）, 見積もりのGPUの時間ms, 'ok'|'edge'|'heavy')。値はすべて有る・時刻あり・数値ありの1コマで見る
+    （nodata の計器も足して、多めに見積もる）"""
+    full = Hud(items=[dataclasses_replace(it, show='always') if it.show == 'nodata' else it for it in hud.items],
+               refs=hud.refs, nodata_after=hud.nodata_after)
+    quads = build(full, font, [1.0] * len(hud.refs), 0, 0.0)
+    screens = sum(quad_area(q) for q in quads) / (1920 * 1080)
+    ms = GPU_BASE_MS + GPU_MS_PER_SCREEN * screens
+    return screens, ms, 'ok' if ms <= GPU_OK_MS else 'edge' if ms <= GPU_EDGE_MS else 'heavy'
+
+
+def describe_estimate(screens, ms, level):
+    text = f'塗る面積は画面{screens:.2f}枚分、GPUの見積もりは1コマ{ms:.1f}ms（持ち時間33ms）'
+    return text + {'ok': '：余裕あり', 'edge': '：ぎりぎり（暑い車内などで毎秒30コマを切るおそれ）',
+                   'heavy': '：重すぎる（毎秒30コマを切る。大きな四角や後ろに敷く四角を小さく・少なくする）'}[level]
 
 
 # ---------------------------------------------------------------- PCの確認で使う値

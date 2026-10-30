@@ -13,6 +13,7 @@
   python hud_apply.py 別の.ini
   python hud_apply.py --default    # 自分の配置を本体から消して、元の配置（hud_default.ini）へ戻す
   python hud_apply.py --status     # 本体が今どの配置で描いているかを見るだけ
+重さの見積もり（hud_layout.estimate）が「重すぎる」（毎秒30コマを切る）ときは送らない。それでも送るときは --force
 """
 import argparse
 import subprocess
@@ -160,6 +161,7 @@ def main(argv=None):
     parser.add_argument('ini', nargs='?', default=str(HERE / 'hud.ini'))
     parser.add_argument('--default', action='store_true', help='自分の配置を本体から消して、元の配置へ戻す')
     parser.add_argument('--status', action='store_true', help='本体が今どの配置で描いているかを見るだけ')
+    parser.add_argument('--force', action='store_true', help='重さの見積もりが「重すぎる」でも送る')
     parser.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     args = parser.parse_args(argv)
@@ -180,6 +182,11 @@ def main(argv=None):
             print(f'{path.name} の {e}（何も送っていません。Preview-HUD.cmd で確かめてから送ってください）')
             return 1
         print(f'{path.name}：計器{len(hud.items)}個・値{len(hud.refs)}種類。誤りはありません')
+        screens, ms, level = hud_layout.estimate(hud, hud_layout.load_font())
+        print(hud_layout.describe_estimate(screens, ms, level))
+        if level == 'heavy' and not args.force:
+            print('★重すぎるので送りません（録画が毎秒30コマを切ります）。それでも送るときは --force')
+            return 1
 
     try:
         run = runner(args.adb, args.host)
