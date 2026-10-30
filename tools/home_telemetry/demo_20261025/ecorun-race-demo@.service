@@ -1,0 +1,18 @@
+# Demo for the school festival (2026-10-30): loop the 2026-10-25 Motegi race of one vehicle
+# into room demo-<vehicle>, forever. One instance per vehicle: majesta, super-cub, aubergine.
+#   sudo cp ecorun-race-demo@.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#   sudo systemctl enable --now ecorun-race-demo@majesta ecorun-race-demo@super-cub ecorun-race-demo@aubergine
+# Stop them all: sudo systemctl disable --now 'ecorun-race-demo@*'
+[Unit]
+Description=Demo: loop the 2026-10-25 Motegi race of %i into room demo-%i
+After=ecorun-vm-bridge.service
+
+[Service]
+User=ntakao
+EnvironmentFile=/home/ntakao/home_telemetry/demo_20261025/%i.env
+ExecStart=/usr/bin/python3 /home/ntakao/home_telemetry/demo_loop.py --dir /home/ntakao/ecorun-logger-server/data/telemetry $DEMO_ARGS
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

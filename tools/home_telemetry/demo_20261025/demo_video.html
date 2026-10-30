@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>走行動画とピット画面</title>
+<!--
+  School festival demo (2026-10-30): the race's video beside the pit screen, in step.
+  Served by the 5B itself at /demo (`tailscale serve --set-path /demo <this file>`): the clock and
+  map beside the video are then the same site, as inside Grafana. From any other site (this file
+  opened from disk, or another server) their WebSockets never reached the bridge (Chromium and
+  Edge, 2026-10-30), so only the video works there. The video itself is picked from the PC
+  showing it, so the 5B does not send it.
+
+  demo_loop.py replays the race on the server and adds SourceUtc (the row's time on race day)
+  to every row. This page asks the bridge for SourceUtc only (/live/ws?room=..&fields=SourceUtc),
+  and since the bridge sends each row when the map draws it, the video is kept at
+  SourceUtc - (time of the video's first frame): it follows the replay through its loops,
+  its gaps and restarts, with no clock of its own to agree on.
+
+  Settings are kept in this browser. They can also be given in the URL, e.g.
+    /demo?room=demo-majesta&start=2026-10-25T12:19:41.899%2B09:00&offset=0.3
+  (`server` defaults to the site serving the page; `video` takes a URL, but a file picked with
+  the button is not kept and has to be picked again after a reload).
+-->
+<style>
+  :root { --bg: #111217; --panel: #1b1d24; --line: #2c2f3a; --text: #e6e6e6; --dim: #9aa0aa; --ok: #6bd18a; --warn: #f2b84b; --bad: #f26b6b; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+               font-family: system-ui, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; }
+  body { display: flex; flex-direction: column; }
+  #bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 8px 12px;
+         background: var(--panel); border-bottom: 1px solid var(--line); font-size: 14px; }
+  #bar.hidden > :not(#toggle) { display: none; }
+  #bar label { display: flex; gap: 6px; align-items: center; color: var(--dim); }
+  #bar input, #bar select, #bar button { background: #0d0e12; color: var(--text); border: 1px solid var(--line);
+         border-radius: 4px; padding: 4px 6px; font: inherit; }
+  #bar button { cursor: pointer; }
+  #server { width: 22em; } #start { width: 15em; } #offset { width: 5em; }
+  #main { flex: 1; display: flex; min-height: 0; }
+  #left { flex: 1.25; position: relative; background: #000; min-width: 0; }
+  video { width: 100%; height: 100%; object-fit: contain; display: block; }
+  #note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center;
+          padding: 24px; font-size: 20px; color: var(--dim); background: rgba(0,0,0,.6); }
+  #note[hidden] { display: none; }
+  #status { position: absolute; left: 8px; bottom: 8px; padding: 4px 8px; border-radius: 4px; font-size: 13px;
+            background: rgba(0,0,0,.6); color: var(--dim); font-variant-numeric: tabular-nums; }
+  #right { flex: 1; display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--line); }
+  #right iframe { flex: 1; width: 100%; border: 0; display: block; min-height: 0; }
+  #right.none { display: none; }
+  @media (max-width: 800px) { #main { flex-direction: column; } #right { border-left: 0; border-top: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<div id="bar">
+  <button id="toggle" title="設定を隠す・出す">⚙</button>
+  <label>サーバー <input id="server" placeholder="https://（5BのURL）"></label>
+  <label>車両 <select id="room">
+    <option value="demo-majesta">majesta</option>
+    <option value="demo-super-cub">スーパーカブ</option>
+    <option value="demo-aubergine">aubergine</option>
+  </select></label>
+  <label>動画 <input id="file" type="file" accept="video/*"></label>
+  <label>最初のコマの時刻 <input id="start" placeholder="2026-10-25 12:19:41.899"></label>
+  <label>ずれ <button data-step="-0.5">−0.5</button><input id="offset" type="number" step="0.1" value="0"><button data-step="0.5">＋0.5</button>秒</label>
+  <label>右側 <select id="right-mode">
+    <option value="live">周回・時間と地図</option>
+    <option value="grafana">Grafana（埋め込みの許可が要る）</option>
+    <option value="none">なし（動画だけ）</option>
+  </select></label>
+  <button id="fullscreen">全画面</button>
+</div>
+<div id="main">
+  <div id="left">
+    <video id="video" muted playsinline preload="auto"></video>
+    <div id="note">動画ファイルを選んでください</div>
+    <div id="status">—</div>
+  </div>
+  <div id="right"></div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const video = $('video'), note = $('note'), status = $('status');
+const params = new URLSearchParams(location.search);
+const KEYS = ['server', 'room', 'start', 'offset', 'right-mode'];
+
+function load(key, fallback) {
+  const fromUrl = params.get(key === 'right-mode' ? 'right' : key);
+  if (fromUrl !== null) return fromUrl;
+  try { return localStorage.getItem('demo_video.' + key) ?? fallback; } catch (e) { return fallback; }
+}
+function save(key, value) { try { localStorage.setItem('demo_video.' + key, value); } catch (e) { /* private window */ } }
+
+// Served by the 5B (/demo): the server is the page's own site
+if (location.protocol === 'https:') $('server').value = location.origin;
+for (const key of KEYS) {
+  const el = $(key);
+  el.value = load(key, el.value);
+  el.addEventListener('change', () => { save(key, el.value); if (key !== 'offset') connect(); });
+}
+document.querySelectorAll('[data-step]').forEach(b => b.onclick = () => {
+  $('offset').value = (parseFloat($('offset').value || 0) + parseFloat(b.dataset.step)).toFixed(1);
+  save('offset', $('offset').value);
+});
+$('toggle').onclick = () => $('bar').classList.toggle('hidden');
+$('fullscreen').onclick = () => document.documentElement.requestFullscreen?.();
+$('file').onchange = () => {
+  const f = $('file').files[0];
+  if (f) { video.src = URL.createObjectURL(f); guessStart(f.name); }
+};
+if (params.get('video')) { video.src = params.get('video'); guessStart(params.get('video')); }
+video.onerror = () => { note.hidden = false; note.textContent = '動画を読み込めません。「ファイルを選択」で選び直してください'; };
+
+// The recorder names its files by the race time of the first frame (YYYYMMDD_HHMMSS, JST)
+function guessStart(name) {
+  const m = /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/.exec(name);
+  if (m && !params.get('start')) {
+    $('start').value = `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]}`;
+    save('start', $('start').value);
+  }
+}
+
+// "2026-10-25 12:19:41.899" is read as JST unless it carries its own offset
+function startMs() {
+  const s = $('start').value.trim().replace(' ', 'T');
+  if (!s) return NaN;
+  return Date.parse(/(Z|[+-]\d{2}:?\d{2})$/.test(s) ? s : s + '+09:00');
+}
+
+function baseUrl() { return $('server').value.trim().replace(/\/+$/, ''); }
+
+function showRight() {
+  const right = $('right'), mode = $('right-mode').value, base = baseUrl(), room = encodeURIComponent($('room').value);
+  right.className = mode === 'none' ? 'none' : '';
+  if (mode === 'none' || !base) { right.innerHTML = ''; return; }
+  const urls = mode === 'grafana'
+    ? [`${base}/grafana/d/ecorun-demo?var-room=${room}&kiosk`]
+    : [`${base}/live/clock?room=${room}`, `${base}/live/map?room=${room}`];
+  right.innerHTML = urls.map(u => `<iframe src="${u}" allow="geolocation"></iframe>`).join('');
+}
+
+// ---- following the replay ----
+// Each row says which moment of race day the map is drawing now. `lead` is that moment minus
+// this page's clock, from recent rows (median, so one late row does not move the video).
+let ws = null, leads = [], lastRow = 0, retry = null;
+function connect() {
+  showRight();
+  if (ws) { ws.onclose = null; ws.close(); ws = null; }
+  clearTimeout(retry);
+  leads = [];
+  const base = baseUrl();
+  if (!base) { status.textContent = 'サーバーのURLを入れてください'; return; }
+  const url = base.replace(/^http/, 'ws') + `/live/ws?room=${encodeURIComponent($('room').value)}&kind=video&fields=SourceUtc&history=1`;
+  ws = new WebSocket(url);
+  ws.onmessage = ev => {
+    const msg = JSON.parse(ev.data);
+    const rows = msg.history ? msg.history.slice(-1) : [msg];
+    for (const row of rows) if (typeof row.SourceUtc === 'number') take(row.SourceUtc);
+  };
+  ws.onclose = () => { ws = null; retry = setTimeout(connect, 3000); };
+}
+
+function take(src) {
+  const lead = src - performance.now();
+  // A new loop (or the replay restarting) jumps the race time: start over at once
+  if (leads.length && Math.abs(lead - median(leads)) > 2000) leads = [];
+  leads.push(lead);
+  if (leads.length > 15) leads.shift();
+  lastRow = performance.now();
+}
+function median(a) { const s = [...a].sort((x, y) => x - y); return s[s.length >> 1]; }
+
+const RENDER_DELAY = 150;   // map.html draws the car this far behind the newest row
+function fmt(ms) { return new Date(ms).toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo', hour12: false }); }
+
+setInterval(() => {
+  const start = startMs();
+  if (!leads.length) { status.textContent = ws ? 'サーバーのデータを待っています…' : '接続していません'; return; }
+  const raceMs = performance.now() + median(leads) - RENDER_DELAY;
+  const quiet = (performance.now() - lastRow) / 1000;
+  let text = `走行の時刻 ${fmt(raceMs)}` + (quiet > 3 ? `（${quiet.toFixed(0)}秒データなし）` : '');
+  if (!video.src) { status.textContent = text; return; }
+  if (isNaN(start)) { note.hidden = false; note.textContent = '「最初のコマの時刻」を入れてください'; status.textContent = text; return; }
+  const want = (raceMs - start) / 1000 + parseFloat($('offset').value || 0);
+  const dur = video.duration;
+  if (!(dur > 0)) { status.textContent = text; return; }
+  if (want < 0 || want > dur) {
+    if (!video.paused) video.pause();
+    note.hidden = false;
+    note.textContent = `この時刻の動画はありません（動画は ${fmt(start)}〜${fmt(start + dur * 1000)}。` +
+                       `いまは ${fmt(raceMs)}）`;
+  } else {
+    note.hidden = true;
+    const diff = want - video.currentTime;
+    if (Math.abs(diff) > 1 || video.paused) { video.currentTime = want; video.playbackRate = 1; }
+    else video.playbackRate = Math.abs(diff) < 0.05 ? 1 : 1 + Math.max(-0.1, Math.min(0.1, diff * 0.5));
+    if (video.paused) video.play().catch(() => { note.hidden = false; note.textContent = '画面をクリックすると再生します'; });
+    text += `　動画 ${video.currentTime.toFixed(1)}秒（ずれ ${(diff * 1000).toFixed(0)}ms）`;
+  }
+  status.textContent = text;
+}, 250);
+document.addEventListener('click', () => { if (video.src && video.paused && note.textContent.startsWith('画面')) video.play(); });
+
+connect();
+</script>
+</body>
+</html>

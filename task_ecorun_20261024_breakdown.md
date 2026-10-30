@@ -513,6 +513,19 @@ Maruo.Sさんの追加依頼（ER-7-7）と重なるものは、まず自宅の�
   - 確認：テスト`tools/home_telemetry/test_live_bridge.py` 6件通過（今日の記録の再生：`--lap-split`ありで2周目に超過予想→ゴールまで超過、ゴール直前−1.2秒。なしで−3.8秒）。PCで5Bと同じ版のwebsockets（15.0.1）を使いブリッジを動かし、`tools/race_replay/snapshot.py`でレース中の5:00・8:00・12:00・16:00を今の時刻にずらして流し、時計ページを確認（5:00は+0:41緑、8:00は−0:15で赤枠、12:00は−0:12、16:00は−0:03）。画面は`drive_logs/20261025_race_server/screens_outlook_pc/`。**Grafanaに埋め込んだときの収まり・警告音を実際に鳴らすことは未確認**。5Bへ入れるときは`--lap-split 293.2,2.3`を起動設定に足す（コースが変われば値も変わる）
   - 2026-10-26 ②に合わせて、時計ページも1周目は5秒を超える超過予想のときだけ赤くし、「この周の平均」の赤も赤のときだけにした。PCのブリッジで確認（1周目3:00は橙の「−0:01.8」で枠なし、2周目6:40は赤枠「−0:18.2」）。画面は`drive_logs/20261025_race_server/screens_outlook_pc_v2/`
 
+## ER-14 学園祭のデモ：10/25本番の走行を5Bで繰り返し流す（2026-10-30起票）
+
+> 高専の学園祭（10/31）で、5Bのリンクを開けばいつでも大会本番の走行が見られるようにする（ユーザー依頼）。あわせて、大会の走行動画を横に流してサーバーのデータと同期させたい（同日ユーザー相談）。
+
+- [x] ER-14-1 **3台の本番をデモ用の部屋で繰り返し流す**（2026-10-30 21:20〜5Bで常駐）：`tools/home_telemetry/demo_loop.py`。10/25に5Bが保存したJSON Lines（`drive_logs/20261025_race_server/`のPCの写しを5Bの`~/home_telemetry/demo_20261025/`へ置いた）を時間の範囲で切り出し、時刻（`Utc`・`recv_ms`）を今へずらして、当日と同じ間隔でブリッジが読むフォルダ（`data/telemetry/demo-<車>/`）へ書く。部屋は`demo-majesta`（スタート30秒前〜ゴール約1分後、40分31秒）・`demo-super-cub`（18分）・`demo-aubergine`（15分5秒）で、本物の部屋とは分けた。**サーバー本体はこのフォルダを読まないので、サーバーのDB・先輩のサーバーへの複製には入らない**（10/24に止めた旧デモ`ecorun-demo-replay`とはそこが違う）。各行に当日の時刻`SourceUtc`を足す（動画の同期用）。majestaのLTEの再接続による約44秒の途切れ2回はそのまま再現。常駐は`ecorun-race-demo@{majesta,super-cub,aubergine}`（`demo_20261025/ecorun-race-demo@.service`と各`.env`、有効化済み＝再起動後も動く）。ファイルは2時間ごとに切り替え、4時間より古いものは消す（eMMCの空きが1.2GBしかない）
+  - 確認：PCで高速に流し、5Bと同じ版のブリッジの周回計算に通すと、3台とも当日の記録とラップが一致（majesta 4:57.2〜5:30.5の7周・38:51.1、カブ 287.9／352.9／346.8秒、aubergine 245.6／273.0／281.2秒）。5Bでも開始30秒でスタートを検出、1周目のラップも同じ値（aubergine 245.64秒、カブ287.874秒、majesta 297.24秒）。aubergineは21:33:58にゴール（3周目281.238秒）、21:35:14に1回目を流し終え、21:35:48に2回目のスタートを検出（ループの継ぎ目も確認）
+- [x] ER-14-2 **デモ用のGrafana画面**：`tools/home_telemetry/grafana/build_demo_dashboard.py`で、ピット用（`ecorun-live`）から作る`ecorun-demo.json`（同じパネルの上に「10/25もてぎ本番の再生です」の帯、左上の「車両」でデモの3部屋だけを選ぶ。既定はmajesta）。5Bへ入れ、公開リンクの`/grafana/d/ecorun-demo`でmajesta・カブとも周回・時間、地図（車を追従）、速度、衛星数、油温が動くことを確認。**ピット用の画面は変えていない**（ただし部屋の選択肢にはデモの3部屋も出る）
+- [ ] ER-14-3 **走行動画を横に流して同期させる**：`tools/home_telemetry/demo_20261025/demo_video.html`。ブリッジから`SourceUtc`だけを受け（`/live/ws?…&kind=video&fields=SourceUtc`）、地図が描いているのと同じ当日の時刻に動画を合わせる（1秒を超えるずれは飛ばす、それ未満は再生速度を±10%で寄せる。ループの始まりでも追従）。動画は見せるPCから「ファイルを選択」で読む（5Bからは送らない）。最初のコマの時刻（日本時間）と「ずれ」の秒を入れる（ファイル名が`YYYYMMDD_HHMMSS`なら自動で入る）。右側に周回・時間と地図
+  - 確認：焼き込みの試験動画（`drive_logs/20261030_hud_replay/ecorun_replay_20261025_lap1.mp4`、最初のコマ12:19:41.899）で、動画に焼き込まれた時計とページの「走行の時刻」が一致、ずれ5〜216ms（PCのブラウザ・Edge）
+  - **自分のPCから開いたページに5Bの地図・周回を埋め込むと、その中の接続が5Bに届かない**（この確認用ブラウザとEdgeの両方。5Bの接続数で確認）。Grafanaの中のように5Bと同じサイトから開けば届くので、ページを5Bの`/demo`に置いた（`tailscale serve --set-path=/demo`）。**このとき`tailscale serve`が公開（Funnel）を外してtailnet内だけにしてしまった**。公開に戻すコマンド（`tailscale funnel --bg --https=443 --set-path=/demo …`）は安全確認で止められたため、ユーザーに実行を依頼した。変更前の設定は5Bの`~/tailscale-serve.20261030-before-demo.json`
+  - 残り：実際の大会の動画（焼き込み版は別の作業で作成中）で、最初のコマの時刻を決めて合わせる。見せるPCのChromeで「ファイルを選択」から読むことの確認（ここで試したのはURL指定の読み込みまで）。Grafanaを丸ごと横に出すにはGrafanaの`allow_embedding`を入れて再起動が要る（今は`X-Frame-Options: deny`）
+- [ ] ER-14-4 学園祭の後に片付ける：`sudo systemctl disable --now 'ecorun-race-demo@*'`、`data/telemetry/demo-*`を消す、VictoriaMetricsからデモの部屋を消す（`/api/v1/admin/tsdb/delete_series?match[]={room=~"demo-.*"}`）、`/demo`を外すか残すか決める
+
 ## ER-6 Ver.1（保険）
 
 - [ ] ER-6-1 電源ONで記録開始、**電源を切るだけで終了**してよい運用にできるか確認する（SD_Eject不要化。直前のデータがどこまで残るか試験）

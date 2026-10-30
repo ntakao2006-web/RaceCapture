@@ -1,0 +1,891 @@
+{
+  "uid": "ecorun-demo",
+  "title": "EcoRun デモ（10/25 もてぎ本番の再生）",
+  "tags": [
+    "ecorun",
+    "demo"
+  ],
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "500ms",
+      "1s",
+      "2s",
+      "5s",
+      "10s"
+    ]
+  },
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "name": "room",
+        "label": "車両",
+        "type": "custom",
+        "query": "majesta（エコランカー・7周） : demo-majesta, スーパーカブ（ガソリン二輪・3周） : demo-super-cub, aubergine（電動二輪・3周） : demo-aubergine",
+        "current": {
+          "text": "majesta（エコランカー・7周）",
+          "value": "demo-majesta"
+        },
+        "options": [
+          {
+            "text": "majesta（エコランカー・7周）",
+            "value": "demo-majesta",
+            "selected": true
+          },
+          {
+            "text": "スーパーカブ（ガソリン二輪・3周）",
+            "value": "demo-super-cub",
+            "selected": false
+          },
+          {
+            "text": "aubergine（電動二輪・3周）",
+            "value": "demo-aubergine",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**2026年10月25日 Honda エコ マイレッジ チャレンジ（モビリティリゾートもてぎ）本番の再生です。**　当日ピットで見ていた画面に、車から届いたデータを当日と同じ間隔で流し直しています（スタートからゴールまでを繰り返し）。左上の「車両」で3台を切り替えられます。　地図は自動で車を追いかけます。"
+      },
+      "id": 1
+    },
+    {
+      "type": "text",
+      "title": "周回・時間（この端末の時計で進む）",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 14,
+        "h": 12
+      },
+      "description": "スタート時刻と各ラインの通過だけを受け取り、この端末の時計で進める（回線が詰まっても止まらない）。周回は「走行中の周 / 規定周回数」。規定まで＝規定時間−経過。目標まで＝さらに余裕だけ早くゴールする時刻まで。5分を切ると赤。規定時間・余裕はロガー（二輪はアプリ）から届いたもの。この周＝最後のライン通過からの時間。平均速度はサーバーで速度を積算した値。一番下は、この画面が持っている最新データの古さ（ロガー→サーバー→この画面）。10秒を超えると赤",
+      "options": {
+        "mode": "html",
+        "content": "<iframe src=\"/live/clock?room=$room\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
+      },
+      "id": 2
+    },
+    {
+      "id": 3,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "description": "live_bridge.py の地図ページ。Grafanaと同じアドレス（tailscale serve の :8443、/live）で開いたときに表示される",
+      "gridPos": {
+        "x": 14,
+        "y": 3,
+        "w": 10,
+        "h": 12
+      },
+      "options": {
+        "mode": "html",
+        "content": "<iframe allow=\"geolocation\" src=\"/live/map?room=$room\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "速度",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 4,
+        "h": 3
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "queryType": "measurements",
+          "channel": "stream/ecorun/$room",
+          "filter": {
+            "fields": [
+              "Speed"
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "velocitykmh",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Speed$/"
+        },
+        "graphMode": "none",
+        "colorMode": "none"
+      },
+      "interval": "100ms",
+      "maxDataPoints": 3000,
+      "description": "Grafana Live（live_bridge.pyが0.1秒ごとに押し出す）。トークン未設定なら空"
+    },
+    {
+      "type": "stat",
+      "title": "GPS衛星数",
+      "gridPos": {
+        "x": 4,
+        "y": 15,
+        "w": 4,
+        "h": 3
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_GPSSats{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "—",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 6
+              },
+              {
+                "color": "green",
+                "value": 10
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "",
+      "id": 5
+    },
+    {
+      "type": "stat",
+      "title": "GNSS精度",
+      "gridPos": {
+        "x": 8,
+        "y": 15,
+        "w": 4,
+        "h": 3
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_GPSAcc{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "—",
+          "unit": "lengthm",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 8
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "受信機が出す水平精度（大きいほど悪い）。ライン幅の判定にも足している",
+      "id": 6
+    },
+    {
+      "type": "stat",
+      "title": "油温",
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 4,
+        "h": 3
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_OilTemp{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false,
+          "legendFormat": "油温"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_OilTempState{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false,
+          "legendFormat": "状態"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "—",
+          "unit": "celsius",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 110
+              },
+              {
+                "color": "red",
+                "value": 125
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "状態"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "正常",
+                        "color": "green"
+                      },
+                      "1": {
+                        "text": "オープン",
+                        "color": "red"
+                      },
+                      "2": {
+                        "text": "短絡",
+                        "color": "red"
+                      },
+                      "3": {
+                        "text": "データ異常",
+                        "color": "red"
+                      },
+                      "4": {
+                        "text": "通信途絶",
+                        "color": "red"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "description": "センサーハブの油温。状態が「正常」以外のときは温度が出ない",
+      "id": 7
+    },
+    {
+      "type": "stat",
+      "title": "サーバー到着までの遅れ",
+      "gridPos": {
+        "x": 16,
+        "y": 15,
+        "w": 8,
+        "h": 3
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "time() - timestamp(ecorun_Interval{room=\"$room\"})",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "受信なし",
+          "unit": "s",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "colorMode": "background",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "ロガーが測った時刻（GNSS）から、そのデータがサーバーに届いて検索できるようになるまでの秒数。ロガーのLTE・サーバーの遅れで、この画面の回線の遅れは含まない（そちらは「周回・時間」の一番下）",
+      "id": 8
+    },
+    {
+      "type": "row",
+      "title": "詳細（問い合わせ方式の周回・通過時刻・速度の推移・全チャンネル）　開くと通信量が増えます",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "type": "stat",
+          "title": "前回ラップ",
+          "gridPos": {
+            "x": 0,
+            "y": 19,
+            "w": 6,
+            "h": 4
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "ecorun-vm"
+              },
+              "expr": "round(last_over_time(ecorun_LapTime{room=\"$room\"}[10m]) * 60)",
+              "instant": true,
+              "range": false
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "noValue": "—",
+              "unit": "dthms"
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "graphMode": "none",
+            "colorMode": "none",
+            "textMode": "value",
+            "justifyMode": "center"
+          },
+          "description": "",
+          "id": 10
+        },
+        {
+          "type": "stat",
+          "title": "この周の経過",
+          "gridPos": {
+            "x": 6,
+            "y": 19,
+            "w": 6,
+            "h": 4
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "ecorun-vm"
+              },
+              "expr": "round(last_over_time(ecorun_ElapsedTime{room=\"$room\"}[10m]) * 60)",
+              "instant": true,
+              "range": false
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "noValue": "—",
+              "unit": "dthms"
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "graphMode": "none",
+            "colorMode": "none",
+            "textMode": "value",
+            "justifyMode": "center"
+          },
+          "description": "",
+          "id": 11
+        },
+        {
+          "type": "stat",
+          "title": "平均速度（スタートから）",
+          "gridPos": {
+            "x": 12,
+            "y": 19,
+            "w": 6,
+            "h": 4
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "ecorun-vm"
+              },
+              "expr": "last_over_time(ecorun_RaceAvgSpeed{room=\"$room\"}[10m])",
+              "instant": true,
+              "range": false
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "noValue": "—",
+              "unit": "velocitykmh",
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "graphMode": "none",
+            "colorMode": "none",
+            "textMode": "value",
+            "justifyMode": "center"
+          },
+          "description": "自宅サーバーで速度を時間で積算して出した値（live_bridge.py）",
+          "id": 12
+        },
+        {
+          "type": "stat",
+          "title": "この周の平均 ／ 前の周",
+          "gridPos": {
+            "x": 18,
+            "y": 19,
+            "w": 6,
+            "h": 4
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "ecorun-vm"
+              },
+              "expr": "last_over_time(ecorun_LapAvgSpeed{room=\"$room\"}[10m])",
+              "instant": true,
+              "range": false,
+              "legendFormat": "この周"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "ecorun-vm"
+              },
+              "expr": "last_over_time(ecorun_LastLapAvgSpeed{room=\"$room\"}[10m])",
+              "instant": true,
+              "range": false,
+              "legendFormat": "前の周"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "noValue": "—",
+              "unit": "velocitykmh",
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": ""
+            },
+            "graphMode": "none",
+            "colorMode": "none",
+            "textMode": "value_and_name",
+            "justifyMode": "center"
+          },
+          "description": "",
+          "id": 13
+        },
+        {
+          "type": "table",
+          "title": "通過時刻（24時間分。サーバーの記録）",
+          "gridPos": {
+            "x": 0,
+            "y": 23,
+            "w": 24,
+            "h": 9
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "description": "ロガーが判定した各ラインの通過時刻。live_bridge.pyが周回の切り替わりから出す。「レース」はスタート時刻（同じ部屋で何度か走ったときの区別）",
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "ecorun-vm"
+              },
+              "expr": "last_over_time(ecorun_lap_at{room=\"$room\"}[24h])",
+              "instant": true,
+              "range": false,
+              "format": "table"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "room": true,
+                  "__name__": true
+                },
+                "indexByName": {
+                  "race": 0,
+                  "lap": 1,
+                  "kind": 2,
+                  "Value": 3,
+                  "seconds": 4,
+                  "avg": 5
+                },
+                "renameByName": {
+                  "race": "レース",
+                  "lap": "周",
+                  "kind": "ライン",
+                  "Value": "通過時刻",
+                  "seconds": "ラップ（秒）",
+                  "avg": "平均速度（km/h）"
+                }
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "sort": [
+                  {
+                    "field": "通過時刻",
+                    "desc": true
+                  }
+                ]
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "center"
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "通過時刻"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "time:HH:mm:ss"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "ライン"
+                },
+                "properties": [
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "type": "value",
+                        "options": {
+                          "start": {
+                            "text": "スタート"
+                          },
+                          "control": {
+                            "text": "コントロール"
+                          },
+                          "goal": {
+                            "text": "ゴール"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm"
+          },
+          "id": 14
+        },
+        {
+          "id": 15,
+          "type": "timeseries",
+          "title": "速度の推移",
+          "gridPos": {
+            "x": 0,
+            "y": 32,
+            "w": 24,
+            "h": 6
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "ecorun_Speed{room=\"$room\"}",
+              "legendFormat": "Speed"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "velocitykmh",
+              "custom": {
+                "lineWidth": 2,
+                "spanNulls": 2000
+              }
+            },
+            "overrides": []
+          },
+          "interval": "100ms",
+          "maxDataPoints": 3000
+        },
+        {
+          "id": 16,
+          "type": "table",
+          "title": "全チャンネル（最新）",
+          "gridPos": {
+            "x": 0,
+            "y": 38,
+            "w": 24,
+            "h": 7
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "last_over_time({__name__=~\"ecorun_.+\", room=\"$room\"}[1m])",
+              "instant": true,
+              "format": "table"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "room": true,
+                  "db": true
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "id": 9
+    }
+  ]
+}
