@@ -58,7 +58,8 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `server_deploy_grafana_x86.md`：自宅ROCK 5Bのピット用Grafana（EcoRun Live）・「周回・時間」のページ・地図を、別のLinuxサーバー（主サーバーにする先輩のラックサーバー）で**5Bと同じに立てる**ための引き継ぎ資料（2026-10-25 10時の5Bの実物と照合した版）。画面の構成・ブリッジがしていること・10/18以降のUI変更・5Bの設定との対応表・手順。実際のファイルは`tools/home_telemetry/deploy/`（VictoriaMetrics・Grafana・ブリッジのDocker Compose）。チームの`latest`がJSON Linesを書くのでサーバー本体の変更は不要。先輩へ送る文面は`maruo_share_20261025_dashboard.md`
 - `task_sugo_20261108_breakdown.md`：**SUGO 120分耐久（2026-11-08、ロードスターNCEC）**向けのロガー・車載ダッシュ・インジケーター・油温油圧の基板の分解と日程（SG-x）。大会そのものの準備は`ncec-roadster`リポジトリ側
 - `kart_logger_study_20261027.md`：**レーシングカート（KT100）用の画面付き一体型ロガー**の調査資料。使う人向けに、できること・できないこと、MyLapsのラインを直接は検知できない理由とラップの取り方（GPS・磁気ストリップ・赤外線ビーコン）、**公式レースではアクセル開度・ブレーキ圧・ステアリング角を付けられない規則（CIK-FIA、2023年版の3.8・9.8）**、画面（反射型のメモリー液晶）と電源、ステアリング角の付け方とわかること（7章。ロガーがハンドルと一緒に回るためIMUのGをそのまま使えない件も）、富士スピードウェイ カートコースの情報、予算の目安
-- `kart_parts_list_20261028.md`：カート用ロガー試作0号の**部品リスト**（KT-2-1。DigiKey・秋月・Amazonの品番・価格・リンク、ステアリング角の部品込みで約5.8万円、センサー無しの最小構成なら約3.6万円）。**基板は正規の店（DigiKey・Mouser・RS等）だけで買う**（Amazonは基板以外のみ）。マイコンはAdafruit ESP32-S3 Feather、GNSSはu-blox NEO-M9N（SparkFun）＋Taoglasの25mm角アンテナ（4種類の衛星で25Hz）。**画面（Adafruit 4694）は国内在庫がほぼ無く先行注文が要る**
+- `kart_parts_list_20261028.md`：カート用ロガー試作0号の**部品リスト**（KT-2-1。DigiKey・秋月・Amazonの品番・価格・リンク、ステアリング角の部品込みで約4.9万円、センサー無しの最小構成なら約2.6万円）。**基板は正規の店（DigiKey・Mouser・RS等）だけで買う**（Amazonは基板以外のみ）。マイコンはAdafruit ESP32-S3 Feather、GNSSはu-blox NEO-M9N単体を自作の載せ台基板に載せる（4種類の衛星で25Hz）。**画面（Adafruit 4694）とNEO-M9Nは国内在庫が無く先行注文が要る**
+- `kart_gnss_carrier_design.md`：カート用ロガーの**GNSSの載せ台基板**（KT-3-2）の回路と配置の案。NEO-M9N単体＋Taoglasの25mm角パッシブパッチを載せる40×40mmの2層基板、ピン全24本のつなぎ先、部品表（DigiKey・秋月）、アンテナの線の寸法、組み立て・確かめ方、Lintarohさんに見てほしい点。配置図は`kart_gnss_carrier_layout.svg`
 - `task_kart_20261129_breakdown.md`：カート用ロガー試作0号を**2026-11-29に富士スピードウェイ カートコース**で使うための分解と日程（KT-x）。11/3は下見だけ、11/8まではSUGO優先
 - `ncec_next_session_checklist.md`：**NCECに実車接続する前に必ず開く**。実車が無いと解けない宿題の一覧
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
