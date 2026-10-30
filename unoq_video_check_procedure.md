@@ -629,8 +629,57 @@ GPU・エンコーダ・展開・保存の負荷はカメラのときと同じ�
 - 明るい場所（屋外・窓際）で、カメラが30枚出すことを確かめる
 - ~~カメラをつないだときに、10Mbpsで1本（10分）が約770MBになることを確かめる~~（2026-10-30済み：約769.8MB）
 - 車載で、本物のGNSSの時刻へ切り替わること（`.csv`の`clock`が`gnss`になること）を確かめる
-- 画面の項目と配置を、EcoCaptureで作り直すダッシュと合わせてユーザーと詰める
+- ~~画面の項目と配置を、EcoCaptureで作り直すダッシュと合わせてユーザーと詰める~~ → 5-14で、項目・位置・大きさ・色を設定ファイルで変えられるようにした（中身はユーザーが決める）
 - 車載（10/31取付・11/2の公道120分）で、長時間の温度と、走行中の録画を確かめる
+
+### 5-14. 計器を設定ファイルで変えられるようにした（2026-10-30、ユーザー依頼）
+
+**目的**：焼き込む計器の項目・位置・大きさ・色を、プログラムを直さずにユーザーが自分で変えられるようにする。
+PCで見た目を確かめてから本体へ送る。**SUGO（11/8）は今の配置のまま**（ユーザー判断）。
+
+**作ったもの**：
+
+| 置き場所 | 中身 |
+|---|---|
+| `tools/video_hud/hud.ini` | **ユーザーが書き換える設定**。最初は今の配置と同じ。頭に書き方（種類・キー・色・値の名前）を全部書いてある |
+| `tools/video_hud/Preview-HUD.cmd`（`hud_preview.py`） | PCのブラウザに見た目を出す。**hud.iniを保存するたびに描き直す**。「普段（`[preview]`の値）」「赤（しきい値を越えた値）」「数値が来ていない」の3枚。誤りは行番号つきで出し、絵は最後に正しく読めたときのまま |
+| `tools/video_hud/Apply-HUD.cmd`（`hud_apply.py`） | 本体へ送る（`ssh unoq`。`--adb`でUSB）。**送る前にPCで読み、誤りがあれば送らない**。本体が読んだ結果を見て「反映されました」か、本体が読めなかった理由を出す。`--default`で元の配置へ戻す、`--status`で今の配置を見る |
+| `tools/unoq_overlay_enc/hud_layout.h` | 本体の録画（`overlay_rec.c`）の設定の読み取りと計器の組み立て（GLを使わない部分） |
+| `tools/unoq_overlay_enc/hud_default.ini` | 元の配置（10/30の配置）。本体の`/opt/ecologger-video/`へ置き、自分の配置が無いときに使う |
+| `tools/video_hud/hud_layout.py` | `hud_layout.h`のPython版（見た目の確認・送る前の確かめ用） |
+| `tools/unoq_overlay_enc/hud_dump.c` | 本体のCで組み立てた頂点を書き出す（PCとの突き合わせ用） |
+
+**設定ファイルでできること**（詳しくは`hud.ini`の頭）：
+- 種類：`box`（四角）・`text`（決まった文字）・`value`（数値。`format = laptime`でラップタイムの形）・`bar`（棒。左右上下に伸ばせる・目盛り）・`gball`（Gボール）・`clock`（時刻）
+- 位置（1920×1080の座標）・大きさ（`size`）・右寄せ・小数の桁・前後に付ける文字・単位の換算（`scale`・`offset`）
+- 色（名前・`#RRGGBB`・`#RRGGBBAA`・0〜1の数）。しきい値で色を変える：`warn_at`・`alarm_at`（以上）、`warn_below`・`alarm_below`（未満）
+- 出す条件：いつも／数値が来ていないときだけ／出さない。後ろに敷く四角（`box`）
+- 値は**EcoCaptureの`/api/telemetry`にある値ならどれでも**（`values.Throttle`・`values.BatteryVolt`・`lap.RaceTime`等）。`|`でつなぐと、無いときに次を使う
+- できないこと：日本語の文字（文字の一覧表が英数字と記号だけ）、計器は64個・値は32種類まで
+
+**本体での動き**（`overlay_rec.c`）：
+- `/home/arduino/ecologger-video/hud.ini`（自分の配置）があればそれ、無いか読めなければ`/opt/ecologger-video/hud_default.ini`（元の配置）で描く
+- **録画中も約1秒ごとにファイルを見て、書き換わっていれば次のコマから新しい配置で描く**（録画は止めない）。誤りがあれば前の配置のまま
+- 読んだ結果を`/home/arduino/ecologger-video/hud_status.txt`へ書く（どのファイル・計器の数・読めなかったファイルと理由）。`Apply-HUD.cmd`はこれを見る
+- どちらも読めないときは、計器を描かずに左上へ「HUD CONFIG ERROR」と出して録り続ける
+- `Apply-HUD.cmd`は別の名前で書いてから入れ替えるので、録画が書きかけのファイルを読むことは無い
+
+**確かめたこと**：
+- **今の配置がまったく変わらないこと**：元の作り（プログラムに直接書いた配置、HEADの`overlay_rec.c`）と新しい作り（`hud_default.ini`を読む）を本体のgccで組み立て、5つの状態（普段・黄・赤・数値なし・0や負の値）で**1枚分の頂点（130〜142個の四角形）が1つ残らず同じ**だった。新しい`overlay_rec.c`は本体で`-Wall`で警告なく組み立てられた（GPUでの実行はしていない）
+- **PCとの一致**：本体の`hud_dump`で作った頂点（元の配置の5状態＋使っていない書き方を一通り使う`testdata/features.ini`の2状態）を`testdata/*.golden`に置き、PCの`hud_layout.py`が同じ頂点を作ることを`test_hud_layout.py`で確かめる。誤りのある設定22通り（`testdata/bad/`）は、**PCも本体のCも同じ行で断った**
+- **送る〜反映**：`overlay_rec.c`の読み直しの部分をそのまま使う試験用プログラムを本体の別フォルダで動かし、PCから本物の`ssh unoq`で、①送る→反映 ②本体が断るファイル（PCの確かめを通さずに送った）→「読めなかった・前の配置のまま」 ③直して送る→反映 ④同じ中身をもう一度→反映 ⑤`--default`→元の配置、をすべて確かめた。動いている録画サービスには触っていない（試験のフォルダは消した）
+- **今の本体（古い録画プログラム）に対しては**、`Apply-HUD.cmd`は「まだ対応していない」と出して何も送らない（本物で確認）
+- 見た目の確認：保存すると約1秒でブラウザの絵が変わること、誤りを書くと行番号つきで出ることを確かめた。描いた絵は本体の録画の1コマと同じ配置・同じ文字の形
+- 試験：`python -m unittest test_hud_layout test_hud_apply`（`tools/video_hud`で）19件すべて通過
+
+**本体へ入れる（まだ入れていない。SUGOのあと、ユーザーの了承を得てから）**：
+1. 本体の`~/video_test/install/`へ、`tools/unoq_overlay_enc/`の`overlay_rec.c`・**`hud_layout.h`**・**`hud_default.ini`**・`hud_font_64.pgm`・`run-video.sh`・`ecologger-video.service`・`install-video.sh`を置く
+2. 5-13と同じく、rootで`install-video.sh`を動かす（録画は入れ替えの間だけ止まり、新しいファイルになる）
+3. `Apply-HUD.cmd --status`で「元の配置（hud_default.ini）で描いています」と出ることを確かめる
+4. `Apply-HUD.cmd`で`hud.ini`を送り、「反映されました」と出ること、録画の1コマで計器が変わったことを確かめる
+
+**規則を変えるとき**：`hud_layout.h`と`hud_layout.py`の両方を直し、本体で`hud_dump`を使って`testdata/*.golden`を作り直してから`test_hud_layout.py`を通す
+（`./hud_dump <ini> hud_font_64.pgm testdata/<状態>.state > <名前>.golden`）。
 
 ---
 

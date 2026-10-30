@@ -1,0 +1,12 @@
+# 赤の範囲。Gは外周を越える
+values.Speed = 245.4
+values.RPM = 9100
+values.WaterTemp = 112
+can_signals.OilTemp = 122.5
+values.LatAccel = 2.4
+values.LongAccel = -3
+lap.CurrentLap = 100
+lap.ElapsedTime = 12.5
+lap.LapTime = 0.999
+lap.BestLap = 0.5
+utc = 1793345999

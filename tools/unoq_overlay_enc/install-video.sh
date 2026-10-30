@@ -7,8 +7,11 @@ set -eu
 src=${1:-/home/arduino/video_test/install}
 dst=/opt/ecologger-video
 mkdir -p "$dst"
+# overlay_rec.c と同じ場所に hud_layout.h が要る
 gcc -O2 -o "$dst/overlay_rec" "$src/overlay_rec.c" -lEGL -lGLESv2 -ljpeg -lm -lpthread
 install -m 0644 "$src/hud_font_64.pgm" "$dst/"
+# 元の計器の配置（自分の配置 /home/arduino/ecologger-video/hud.ini が無いときに使う）
+install -m 0644 "$src/hud_default.ini" "$dst/"
 install -m 0755 "$src/run-video.sh" "$dst/"
 # .serviceはWindowsで取り出すとCRLFになることがあるので、CRを落として置く
 tr -d '\r' < "$src/ecologger-video.service" > /etc/systemd/system/ecologger-video.service

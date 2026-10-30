@@ -1,0 +1,11 @@
+# 黄色の範囲。車速が無くGNSS速度だけ
+values.GPSSpeed = 97.6
+values.RPM = 6500
+values.WaterTemp = 104
+can_signals.OilTemp = 115
+values.LatAccel = -1.2
+values.LongAccel = 0.9
+lap.CurrentLap = 3
+lap.ElapsedTime = 1.0
+lap.LapTime = 1.6
+utc = 1793300000

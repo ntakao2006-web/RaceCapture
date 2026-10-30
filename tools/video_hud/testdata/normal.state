@@ -1,0 +1,13 @@
+# 普段（hud_default.ini の [preview] と同じ値）。2026-10-30 13:45:12 JST
+values.Speed = 128
+values.RPM = 5600
+values.WaterTemp = 88
+can_signals.OilTemp = 96
+values.LatAccel = 0.62
+values.LongAccel = -0.35
+lap.CurrentLap = 12
+lap.ElapsedTime = 0.8455
+lap.LapTime = 1.60617
+lap.BestLap = 1.58083
+utc = 1793335512
+age = 0.1

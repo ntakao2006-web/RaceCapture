@@ -1,0 +1,8 @@
+values.Throttle = 15
+values.BatteryVolt = 12.1
+values.Speed = 150
+values.LongAccel = -1.2
+values.LatAccel = 3
+lap.LapTime = 1.6
+utc = 1793335512
+age = 0.5

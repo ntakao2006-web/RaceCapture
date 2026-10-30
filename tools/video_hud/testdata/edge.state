@@ -1,0 +1,10 @@
+# 0や負の値
+values.Speed = 0
+values.RPM = 0
+values.WaterTemp = -5
+values.LatAccel = 0
+lap.CurrentLap = 0
+lap.ElapsedTime = -1
+lap.LapTime = 0
+utc = 0
+age = 1.5

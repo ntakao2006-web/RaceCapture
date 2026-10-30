@@ -6,7 +6,11 @@
 //   数値はEcoCaptureのAPI（http://127.0.0.1:8080/api/telemetry）を別スレッドで約10Hzで読む
 //   土台は overlay_enc_test.c（mode=1・thr=1、unoq_video_check_procedure.md 5-11）。計器の文字は
 //   make_font_atlas.py で作る文字の一覧表（hud_font_64.pgm、DejaVu Sans Mono Bold）をGPUで貼る
-// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread
+//   計器の項目・位置・大きさ・色は設定ファイル（hud.ini、組み立ては hud_layout.h）で決める。OVERLAY_HUD のファイルがあればそれを、
+//   無いか読めなければ OVERLAY_HUD_DEFAULT（既定は文字の一覧表と同じ場所の hud_default.ini）を使う。録画中も約1秒ごとに見て、
+//   書き換わっていれば次のコマから新しい配置で描く（誤りがあれば前の配置のまま）。読んだ結果は OVERLAY_HUD_STATUS のファイルへ書く
+//   PCでの見た目の確認と本体への送り方は tools/video_hud/（手順書5-14）
+// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h を同じ場所に置く）
 // 実行: ./overlay_rec <入力> <出力> [seconds=60、0は止めるまで] [font=hud_font_64.pgm]
 //   入力：/dev/videoN（カメラ）か file:xxx.jpg（同じJPEGを30fpsで繰り返す。カメラ無しで試す用）
 //   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むときはstrftimeの書式とみなし、
@@ -54,6 +58,7 @@
 #include <drm/msm_drm.h>
 #include <time.h>
 #include <unistd.h>
+#include "hud_layout.h"
 
 #define W 1920  // 計器を描く座標の大きさ（出力の既定の大きさでもある）
 #define H 1080
@@ -65,13 +70,6 @@
 #define FOURCC(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
 #define DRM_FORMAT_R8 FOURCC('R', '8', ' ', ' ')
 #define DRM_FORMAT_GR88 FOURCC('G', 'R', '8', '8')
-
-// 計器の目安（ダッシュの警告と同じ。ncec-roadster track/thermal-limits.md、configure_sugo_dashboard.py）
-#define RPM_MAX 8000.0
-#define RPM_YELLOW 6000.0
-#define RPM_RED 7000.0
-static const double WATER_LIMITS[2] = { 100, 110 }, OIL_LIMITS[2] = { 110, 120 };  // 黄・赤
-#define G_FULL 1.5  // Gボールの外周
 
 static int ow = W, oh = H;  // 出力の大きさ（OVERLAY_OUT=720で1280x720）
 static double now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec + t.tv_nsec * 1e-9; }
@@ -87,12 +85,15 @@ static void on_signal(int s) { (void)s; quit = 1; }
 
 // ---------------------------------------------------------------- 走行データ（EcoCaptureのAPI）
 struct tele {
-    double speed, rpm, water, oil, lat_g, long_g, lap_no, lap_run, lap_last, lap_best;  // 無ければNAN
     time_t utc; int utc_ok;
     double got;  // 最後に読めた時刻（now()）
 };
-static struct tele tl = { NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, 0, 0, -1e9 };
+static struct tele tl = { 0, 0, -1e9 };
 static pthread_mutex_t tmu = PTHREAD_MUTEX_INITIALIZER;
+// 計器の設定（hud.ini）。差し替えるのは描画のスレッドだけ。走行データのスレッドが値の名前を写すときと、値（tvals）はtmuで守る
+static struct hud *hud_cur;
+static int hud_gen;  // 差し替えるたびに増やす（前の設定の順で読んだ値を捨てる）
+static double tvals[HUD_REFS];  // 値（hud_cur->ref の順。無ければNAN）
 static int api_port = 8080;  // OVERLAY_TELEMETRY_PORTで変えられる（時刻合わせの試験で、作り物の値を返す相手へ向ける）
 
 // ---- 時刻（GNSS）
@@ -171,31 +172,42 @@ static double jtime_frac(const char *js, const char *key) {
     return timegm(&t) + (q[n] == '.' ? strtod(q + n, NULL) : 0);
 }
 
+// 値の名前（"values.Speed|values.GPSSpeed" の形）を | の前から順に探し、最初に数値だったもの。無ければNAN
+static double jref(const char *js, const char *spec) {
+    char alt[HUD_REF_LEN];
+    for (const char *p = spec; *p;) {
+        size_t n = strcspn(p, "|"); if (n >= sizeof alt) n = sizeof alt - 1;
+        memcpy(alt, p, n); alt[n] = 0; p += n; if (*p == '|') p++;
+        char *dot = strchr(alt, '.');
+        double v;
+        if (dot) { *dot = 0; v = jnum(js, alt, dot + 1); } else v = jnum(js, NULL, alt);
+        if (!isnan(v)) return v;
+    }
+    return NAN;
+}
+
 static void *telemetry(void *arg) {
     (void)arg;
-    static char buf[1 << 16];
+    static char buf[1 << 16], refs[HUD_REFS][HUD_REF_LEN];
     while (!quit) {
         double a = now();
         if (http_get("/api/telemetry", buf, sizeof buf) > 0 && strstr(buf, "\"sample\"")) {
             const char *js = strstr(buf, "\"sample\"");
+            int nref = 0, gen;
+            pthread_mutex_lock(&tmu);
+            gen = hud_gen;
+            if (hud_cur) { nref = hud_cur->nref; memcpy(refs, hud_cur->ref, sizeof refs[0] * nref); }
+            pthread_mutex_unlock(&tmu);
+            double v[HUD_REFS];
+            for (int i = 0; i < nref; i++) v[i] = jref(js, refs[i]);
             struct tele t;
-            t.speed = jnum(js, "values", "Speed");
-            if (isnan(t.speed)) t.speed = jnum(js, "values", "GPSSpeed");
-            t.rpm = jnum(js, "values", "RPM");
-            t.water = jnum(js, "values", "WaterTemp");
-            t.oil = jnum(js, "can_signals", "OilTemp");
-            t.lat_g = jnum(js, "values", "LatAccel");
-            t.long_g = jnum(js, "values", "LongAccel");
-            t.lap_no = jnum(js, "lap", "CurrentLap");
-            t.lap_run = jnum(js, "lap", "ElapsedTime");  // 分
-            t.lap_last = jnum(js, "lap", "LapTime");
-            t.lap_best = jnum(js, "lap", "BestLap");
             t.utc_ok = jtime(js, "gnss_utc", &t.utc) || jtime(js, "host_utc", &t.utc);
             t.got = now();
             // gnss_utcは秒まで。秒の小数はiTOW（GPSの時刻。UTCとの差は整数秒なので小数は同じ）から取る
             const double host = jtime_frac(js, "host_utc"), gnss = jtime_frac(js, "gnss_utc"), itow = jnum(js, NULL, "gnss_itow_ms");
             pthread_mutex_lock(&tmu);
             tl = t;
+            if (gen == hud_gen) memcpy(tvals, v, sizeof v[0] * nref);  // 読んでいる間に設定が差し替わったら捨てる
             if (host > 0 && gnss > 0 && !isnan(itow)) clock_sample(gnss + fmod(itow, 1000) / 1000 - (host - (wall() - now())));
             pthread_mutex_unlock(&tmu);
         }
@@ -261,14 +273,11 @@ static const char *FS_HUD =
     "  o = plane==0 ? vec4(0.0627+dot(col.rgb,vec3(0.257,0.504,0.098)), 0.0, 0.0, al)\n"
     "               : vec4(0.5+dot(col.rgb,vec3(-0.148,-0.291,0.439)), 0.5+dot(col.rgb,vec3(0.439,-0.368,-0.071)), 0.0, al); }\n";
 
-// ---------------------------------------------------------------- 計器の描画
+// ---------------------------------------------------------------- 計器の描画（組み立ては hud_layout.h）
 static GLuint p_hud, vao_hud, vbo_hud, t_atlas;
 static GLint u_plane;
-static int cell_w, cell_h, first_ch, n_ch, atlas_cols, atlas_w, atlas_h;
-#define HUD_MAX 6000
-static float hv[8 * HUD_MAX];  // 頂点（x, y, u, v, r, g, b, a）
-static int hn;
 
+// 文字の一覧表を読み、寸法を hud_layout.h の cell_w 等へ入れてGPUへ送る
 static void load_font(const char *path) {
     FILE *f = fopen(path, "rb"); if (!f) DIE("open %s", path);
     char line[256]; int w = 0, h = 0, maxv = 0;
@@ -289,118 +298,72 @@ static void load_font(const char *path) {
     printf("font %s: %dx%d cell %dx%d\n", path, w, h, cell_w, cell_h);
 }
 
-// 四角形（頂点4つ：p0 p1 p2 p3 の順に回る）を三角形2つでためる。u0<0なら塗りつぶし
-static void quad4(const float x[4], const float y[4], float u0, float v0, float u1, float v1, const float c[4]) {
-    if (hn + 6 > HUD_MAX) return;
-    const float u[4] = { u0, u1, u1, u0 }, v[4] = { v0, v0, v1, v1 };
-    static const int ord[6] = { 0, 1, 3, 1, 2, 3 };
-    for (int k = 0; k < 6; k++) {
-        float *p = hv + 8 * hn++; int i = ord[k];
-        p[0] = x[i]; p[1] = y[i]; p[2] = u[i]; p[3] = v[i]; memcpy(p + 4, c, 4 * sizeof(float));
-    }
+// ---- 計器の設定（hud.ini）を選んで読む。録画中も約1秒ごとに呼び、書き換わっていれば読み直す
+static const char *hud_path, *hud_default_path, *hud_status_path;
+static char hud_loaded[512], hud_bad[512];  // 今の配置を読んだファイル・読めなかったファイル（直されるまで読み直さない）
+static struct stat hud_st, hud_bad_st;
+static int hud_nofile;
+
+static int same_file(const struct stat *a, const struct stat *b) {
+    return a->st_ino == b->st_ino && a->st_size == b->st_size && a->st_mtim.tv_sec == b->st_mtim.tv_sec && a->st_mtim.tv_nsec == b->st_mtim.tv_nsec;
 }
 
-static void rect(float x0, float y0, float x1, float y1, const float c[4]) {
-    const float x[4] = { x0, x1, x1, x0 }, y[4] = { y0, y0, y1, y1 };
-    quad4(x, y, -1, -1, -1, -1, c);
+// 読んだ結果を OVERLAY_HUD_STATUS のファイルへ書く（tools/video_hud/hud_apply.py が読む）。
+// loaded・ino・size は今の配置を読んだファイル、bad・bad_ino・bad_size は読めなかったファイル（無ければ空と0）
+static void hud_write_status(const char *error) {
+    if (!hud_status_path) return;
+    char tmp[600]; snprintf(tmp, sizeof tmp, "%s.tmp", hud_status_path);
+    FILE *f = fopen(tmp, "w"); if (!f) return;
+    time_t t = time(NULL); struct tm lt; localtime_r(&t, &lt);
+    char at[40]; strftime(at, sizeof at, "%Y-%m-%dT%H:%M:%S%z", &lt);
+    fprintf(f, "at=%s\nloaded=%s\nino=%llu\nsize=%lld\nitems=%d\nbad=%s\nbad_ino=%llu\nbad_size=%lld\nerror=%s\n", at, hud_loaded,
+            (unsigned long long)hud_st.st_ino, (long long)hud_st.st_size, hud_cur ? hud_cur->n : 0, hud_bad,
+            hud_bad[0] ? (unsigned long long)hud_bad_st.st_ino : 0ULL, hud_bad[0] ? (long long)hud_bad_st.st_size : 0LL, error ? error : "");
+    fclose(f); rename(tmp, hud_status_path);
 }
 
-// 太さwの線分
-static void seg(float x0, float y0, float x1, float y1, float w, const float c[4]) {
-    float dx = x1 - x0, dy = y1 - y0, l = sqrtf(dx * dx + dy * dy); if (l <= 0) return;
-    float nx = -dy / l * w / 2, ny = dx / l * w / 2;
-    const float x[4] = { x0 + nx, x1 + nx, x1 - nx, x0 - nx }, y[4] = { y0 + ny, y1 + ny, y1 - ny, y0 - ny };
-    quad4(x, y, -1, -1, -1, -1, c);
+static int hud_load(const char *path, const struct stat *st, char *err, size_t errn) {
+    if (st->st_size > 256 << 10) { snprintf(err, errn, "%s: 大きすぎる", path); return 0; }
+    FILE *f = fopen(path, "rb"); if (!f) { snprintf(err, errn, "%s: 開けない", path); return 0; }
+    char *src = calloc(1, st->st_size + 1);
+    size_t n = fread(src, 1, st->st_size, f); fclose(f); src[n] = 0;
+    struct hud *h = malloc(sizeof *h);
+    char e[400];
+    int ok = hud_parse(src, h, e, sizeof e);
+    free(src);
+    if (!ok) { snprintf(err, errn, "%s %s", path, e); free(h); return 0; }
+    pthread_mutex_lock(&tmu);
+    struct hud *old = hud_cur; hud_cur = h; hud_gen++;
+    for (int i = 0; i < HUD_REFS; i++) tvals[i] = NAN;
+    pthread_mutex_unlock(&tmu);
+    free(old);
+    snprintf(hud_loaded, sizeof hud_loaded, "%s", path); hud_st = *st;
+    printf("hud %s: %d items, %d values\n", path, h->n, h->nref); fflush(stdout);
+    return 1;
 }
 
-// 文字列を (x, y)（左上）から描く。s＝倍率（1.0で1文字 cell_w×cell_h）。戻り値は右端
-static float text(float x, float y, float s, const float c[4], const char *str) {
-    int n = 0;
-    for (const char *p = str; *p && n < 64; p++, n++) {
-        int i = (unsigned char)*p - first_ch; if (i < 0 || i >= n_ch) i = 0;
-        float u0 = (float)(i % atlas_cols) * cell_w / atlas_w, v0 = (float)(i / atlas_cols) * cell_h / atlas_h;
-        float u1 = u0 + (float)cell_w / atlas_w, v1 = v0 + (float)cell_h / atlas_h;
-        float x0 = x + n * cell_w * s, x1 = x0 + cell_w * s, y1 = y + cell_h * s;
-        const float qx[4] = { x0, x1, x1, x0 }, qy[4] = { y, y, y1, y1 };
-        quad4(qx, qy, u0, v0, u1, v1, c);
+// OVERLAY_HUD のファイルがあればそれ、無ければ OVERLAY_HUD_DEFAULT。前に読んだときから変わっていれば読み直す
+static void hud_check(void) {
+    struct stat st; const char *path = NULL;
+    if (hud_path && !stat(hud_path, &st)) path = hud_path;
+    else if (hud_default_path && !stat(hud_default_path, &st)) path = hud_default_path;
+    if (!path) {
+        if (!hud_cur && !hud_nofile) { hud_nofile = 1; fprintf(stderr, "hud: 設定ファイルが無い\n"); hud_write_status("設定ファイルが無い（計器を描かずに録っている）"); }
+        return;
     }
-    return x + n * cell_w * s;
-}
-static float text_w(float s, const char *str) { return strlen(str) * cell_w * s; }
-
-static void fmt_laptime(char *b, size_t n, double minutes, int decimals) {
-    if (isnan(minutes) || minutes < 0) { snprintf(b, n, decimals == 1 ? "-:--.-" : "-:--.--"); return; }
-    double sec = minutes * 60; int m = (int)(sec / 60); double s = sec - m * 60;
-    if (decimals == 1) snprintf(b, n, "%d:%04.1f", m, s); else snprintf(b, n, "%d:%05.2f", m, s);
-}
-
-static const float WHITE[4] = { .95f, .97f, 1, 1 }, GREY[4] = { .65f, .7f, .75f, 1 }, DIM[4] = { .55f, .6f, .65f, 1 };
-static const float YELLOW[4] = { 1, .8f, 0, 1 }, RED[4] = { 1, .2f, .15f, 1 }, GREEN[4] = { .25f, .9f, .35f, 1 };
-
-static const float *temp_color(double v, const double lim[2]) {
-    return isnan(v) ? DIM : v >= lim[1] ? RED : v >= lim[0] ? YELLOW : WHITE;
-}
-
-static void draw_hud(const struct tele *t, double age) {
-    char b[64];
-    const float panel[4] = { 0, 0, 0, .55f }, track[4] = { .2f, .2f, .22f, .7f };
-    rect(0, 860, W, H, panel);
-
-    // 回転数のバー（パネルの上）
-    rect(40, 828, 1880, 852, track);
-    if (!isnan(t->rpm)) {
-        double f = fmin(fmax(t->rpm / RPM_MAX, 0), 1);
-        const float *c = t->rpm >= RPM_RED ? RED : t->rpm >= RPM_YELLOW ? YELLOW : GREEN;
-        rect(40, 828, 40 + 1840 * f, 852, c);
-    }
-    for (int k = 1; k < 8; k++) { float x = 40 + 1840 * k * 1000 / RPM_MAX; seg(x, 828, x, 852, 3, panel); }
-
-    // 車速
-    text(40, 870, .42f, GREY, "SPEED km/h");
-    if (isnan(t->speed)) snprintf(b, sizeof b, "--"); else snprintf(b, sizeof b, "%.0f", t->speed);
-    text(300 - text_w(1.8f, b), 905, 1.8f, WHITE, b);
-    // 回転数
-    text(360, 870, .42f, GREY, "RPM");
-    if (isnan(t->rpm)) snprintf(b, sizeof b, "--"); else snprintf(b, sizeof b, "%.0f", t->rpm);
-    text(660 - text_w(1.8f, b), 905, 1.8f, isnan(t->rpm) ? WHITE : t->rpm >= RPM_RED ? RED : WHITE, b);
-    // 水温・油温
-    text(720, 885, .5f, GREY, "WATER");
-    if (isnan(t->water)) snprintf(b, sizeof b, "--"); else snprintf(b, sizeof b, "%.0fC", t->water);
-    text(1000 - text_w(1.0f, b), 870, 1.0f, temp_color(t->water, WATER_LIMITS), b);
-    text(720, 975, .5f, GREY, "OIL");
-    if (isnan(t->oil)) snprintf(b, sizeof b, "--"); else snprintf(b, sizeof b, "%.0fC", t->oil);
-    text(1000 - text_w(1.0f, b), 960, 1.0f, temp_color(t->oil, OIL_LIMITS), b);
-    // ラップ
-    if (isnan(t->lap_no)) snprintf(b, sizeof b, "LAP --"); else snprintf(b, sizeof b, "LAP %.0f", t->lap_no);
-    text(1060, 870, .5f, GREY, b);
-    fmt_laptime(b, sizeof b, t->lap_run, 1);
-    text(1060, 915, 1.45f, WHITE, b);
-    text(1440, 885, .45f, GREY, "LAST");
-    fmt_laptime(b, sizeof b, t->lap_last, 2); text(1540, 875, .6f, WHITE, b);
-    text(1440, 975, .45f, GREY, "BEST");
-    fmt_laptime(b, sizeof b, t->lap_best, 2); text(1540, 965, .6f, GREEN, b);
-
-    // Gボール（外周＝G_FULL。横Gは右が正、前後Gは加速が下・減速が上）
-    const float cx = 1815, cy = 965, r = 72;
-    for (int i = 0; i < 48; i++) {
-        float a0 = i * 2 * M_PI / 48, a1 = (i + 1) * 2 * M_PI / 48;
-        seg(cx + r * cosf(a0), cy + r * sinf(a0), cx + r * cosf(a1), cy + r * sinf(a1), 3, GREY);
-    }
-    seg(cx - r, cy, cx + r, cy, 3, DIM); seg(cx, cy - r, cx, cy + r, 3, DIM);
-    if (!isnan(t->lat_g) && !isnan(t->long_g)) {
-        float gx = cx + r * fmax(fmin(t->lat_g / G_FULL, 1), -1), gy = cy + r * fmax(fmin(t->long_g / G_FULL, 1), -1);
-        rect(gx - 9, gy - 9, gx + 9, gy + 9, YELLOW);
-    }
-
-    // 時刻（右上、日本時間）
-    if (t->utc_ok) {
-        struct tm lt; time_t u = t->utc; localtime_r(&u, &lt);
-        snprintf(b, sizeof b, "%02d:%02d:%02d", lt.tm_hour, lt.tm_min, lt.tm_sec);
-        rect(1650, 20, 1900, 80, panel);
-        text(1665, 26, .6f, WHITE, b);
-    }
-    // 数値が来ていない
-    if (age > 1.5) { rect(20, 20, 330, 80, panel); text(35, 26, .6f, RED, "NO DATA"); }
+    if (!strcmp(path, hud_loaded) && same_file(&st, &hud_st)) return;  // 今のまま
+    if (!strcmp(path, hud_bad) && same_file(&st, &hud_bad_st)) return;  // 前に読めなかったまま
+    char err[1200];
+    if (hud_load(path, &st, err, sizeof err)) { hud_bad[0] = 0; hud_write_status(NULL); return; }
+    fprintf(stderr, "hud: %s\n", err);
+    snprintf(hud_bad, sizeof hud_bad, "%s", path); hud_bad_st = st;
+    if (hud_cur) strcat(err, "（前の配置のまま）");
+    else if (path == hud_path && hud_default_path && !stat(hud_default_path, &st)) {
+        char e2[600];
+        if (hud_load(hud_default_path, &st, e2, sizeof e2)) strcat(err, "（元の配置 hud_default.ini を使っている）");
+        else { fprintf(stderr, "hud: %s\n", e2); strcat(err, "（元の配置も読めないので、計器を描かずに録っている）"); }
+    } else strcat(err, "（計器を描かずに録っている）");
+    hud_write_status(err);
 }
 
 // ---------------------------------------------------------------- 保存（MPEG-TS／素のH.264）と1秒ごとの時刻
@@ -799,6 +762,11 @@ int main(int argc, char **argv) {
     if (getenv("OVERLAY_MIN_FREE_MB")) min_free_mb = atof(getenv("OVERLAY_MIN_FREE_MB"));
     if (getenv("OVERLAY_BITRATE_MBPS")) bitrate_mbps = atof(getenv("OVERLAY_BITRATE_MBPS"));
     if (getenv("OVERLAY_TELEMETRY_PORT")) api_port = atoi(getenv("OVERLAY_TELEMETRY_PORT"));
+    hud_path = getenv("OVERLAY_HUD"); hud_status_path = getenv("OVERLAY_HUD_STATUS");
+    static char def_path[512];  // 既定の配置：OVERLAY_HUD_DEFAULT、無ければ文字の一覧表と同じ場所の hud_default.ini
+    if (getenv("OVERLAY_HUD_DEFAULT")) snprintf(def_path, sizeof def_path, "%s", getenv("OVERLAY_HUD_DEFAULT"));
+    else { const char *sl = strrchr(font, '/'); snprintf(def_path, sizeof def_path, "%.*shud_default.ini", sl ? (int)(sl - font + 1) : 0, font); }
+    hud_default_path = def_path;
     for (int i = 0; i < CLK_N; i++) clk[i].at = -1e9;
     for (int i = 0; i < 64; i++) stamps[i].us = -1;  // まだ使っていない枠（0は最初の枚の時刻なので区別する）
     out_pat = argv[2]; seg_on = strchr(out_pat, '%') != NULL;
@@ -809,6 +777,7 @@ int main(int argc, char **argv) {
 
     rfd = open("/dev/dri/renderD128", O_RDWR | O_CLOEXEC); if (rfd < 0) DIE("open renderD128");
     cam_open(argv[1]);
+    hud_check();  // 走行データのスレッドが値の名前を使うので、その前に読む
     pthread_t tel_th; pthread_create(&tel_th, NULL, telemetry, NULL);
 
     // ---- EGL（画面を使わない surfaceless）
@@ -946,17 +915,19 @@ int main(int argc, char **argv) {
         if (profile) glFinish();
         double b1 = now(); s_up += b1 - a;
 
-        struct tele t; pthread_mutex_lock(&tmu); t = tl; pthread_mutex_unlock(&tmu);
+        if (f && f % 30 == 0) hud_check();  // 設定ファイルが書き換わっていれば読み直す（約1秒ごと）
+        struct tele t; double v[HUD_REFS];
+        pthread_mutex_lock(&tmu); t = tl; memcpy(v, tvals, sizeof v); pthread_mutex_unlock(&tmu);
         if (demo) {  // 見た目と警告の色を机の上で確かめるための作り物の値（画面にDEMOと出す）
-            double ph = f / 30.0;
-            t.speed = 90 + 70 * sin(ph * .4); t.rpm = 4500 + 3400 * sin(ph * .9); t.water = 98 + 14 * sin(ph * .15);
-            t.oil = t.water + 10; t.lat_g = 1.1 * sin(ph * .7); t.long_g = .8 * cos(ph * .7);
-            t.lap_no = 3; t.lap_run = fmod(ph, 95) / 60; t.lap_last = 96.37 / 60; t.lap_best = 94.85 / 60;
+            for (int i = 0; hud_cur && i < hud_cur->nref; i++) v[i] = hud_demo(hud_cur->ref[i], f / 30.0);
             t.got = now();
         }
         const double age = now() - t.got;
         hn = 0;  // 計器の形を1枚分ためて、まとめてGPUへ送る（面ごとに同じものを描く）
-        if (!getenv("OVERLAY_NOHUD")) draw_hud(&t, age);
+        if (!getenv("OVERLAY_NOHUD")) {
+            if (hud_cur) hud_draw(hud_cur, v, t.utc_ok, t.utc, age);
+            else text(40, 26, .6f, RED, "HUD CONFIG ERROR");  // 設定ファイルが無い・読めない（録画は続ける）
+        }
         if (demo) text(40, 26, .6f, YELLOW, "DEMO");
         glBindBuffer(GL_ARRAY_BUFFER, vbo_hud);
         glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 8 * hn, hv, GL_STREAM_DRAW);

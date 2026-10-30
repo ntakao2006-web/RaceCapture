@@ -1,0 +1,8 @@
+values.Throttle = 75
+values.BatteryVolt = 14.2
+values.GPSSpeed = 33.3
+values.LongAccel = 0.4
+values.LatAccel = -0.2
+lap.LapTime = -1
+utc = 1793300001
+age = 2.5
