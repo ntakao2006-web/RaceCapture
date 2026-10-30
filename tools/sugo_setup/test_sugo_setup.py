@@ -26,6 +26,8 @@ class FakeUnoQ:
             url = next(w for w in words if w.startswith('http'))
             path = url.removeprefix(sugo_setup.API)
             body = json.loads(words[words.index('--data-binary') + 1]) if '--data-binary' in words else None
+            if body is not None and 'X-EcoCapture: 1' not in words:  # 本物と同じく、操作ヘッダーの無い書き込みは断る
+                return '{"detail":"操作ヘッダーが必要です"}\n403'
             return json.dumps(self.api(path, body)) + '\n200'
         if words[0] == 'cat':
             return self.files[words[1].rsplit('/', 1)[1]]

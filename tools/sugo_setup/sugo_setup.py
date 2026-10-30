@@ -63,8 +63,9 @@ def runner(use_adb, host):
 def api(run, path, body=None):
     """本体のEcoCaptureのAPIを本体の中から呼ぶ（外へ口を開けない）"""
     command = f'curl -s -m 15 -w "\\n%{{http_code}}" {API}{path}'
-    if body is not None:
-        command += f" -X POST -H 'Content-Type: application/json' --data-binary {shlex.quote(json.dumps(body))}"
+    if body is not None:  # 書き込みはEcoCaptureの操作ヘッダーが要る（server.pyのlocal_requests）
+        command += (" -X POST -H 'X-EcoCapture: 1' -H 'Content-Type: application/json'"
+                    f" --data-binary {shlex.quote(json.dumps(body))}")
     text, _, code = run(command).rstrip().rpartition('\n')
     if code != '200':
         raise RuntimeError(f'{path}: HTTP {code} {text[:200]}')
