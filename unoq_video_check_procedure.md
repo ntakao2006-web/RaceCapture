@@ -672,11 +672,20 @@ PCで見た目を確かめてから本体へ送る。**SUGO（11/8）は今の�
 - 見た目の確認：保存すると約1秒でブラウザの絵が変わること、誤りを書くと行番号つきで出ることを確かめた。描いた絵は本体の録画の1コマと同じ配置・同じ文字の形
 - 試験：`python -m unittest test_hud_layout test_hud_apply`（`tools/video_hud`で）19件すべて通過
 
-**本体へ入れる（まだ入れていない。SUGOのあと、ユーザーの了承を得てから）**：
+**本体へ入れる手順**（2026-10-30に入れた。結果は下）：
 1. 本体の`~/video_test/install/`へ、`tools/unoq_overlay_enc/`の`overlay_rec.c`・**`hud_layout.h`**・**`hud_default.ini`**・`hud_font_64.pgm`・`run-video.sh`・`ecologger-video.service`・`install-video.sh`を置く
 2. 5-13と同じく、rootで`install-video.sh`を動かす（録画は入れ替えの間だけ止まり、新しいファイルになる）
 3. `Apply-HUD.cmd --status`で「元の配置（hud_default.ini）で描いています」と出ることを確かめる
 4. `Apply-HUD.cmd`で`hud.ini`を送り、「反映されました」と出ること、録画の1コマで計器が変わったことを確かめる
+
+**本体へ入れた（2026-10-30 19:17、ユーザー了承。配置は元のまま）**：
+- 戻す用に、前の録画プログラムを`/opt/ecologger-video/overlay_rec.pre-hud-20261030`・`run-video.sh.pre-hud-20261030`、前の置き場所を`~/video_test/install.pre-hud-20261030/`として残した。
+  戻すときは、この2つを元の名前へ写して`systemctl restart ecologger-video.service`
+- `install-video.sh`で入れ替えた。録画は19:17:00に止まって19:17:01から新しいファイルになり、起動してすぐ元の配置（`/opt/ecologger-video/hud_default.ini`、計器19個）を読んだ
+- `Apply-HUD.cmd`と同じ処理（`hud_apply.py`）で`hud.ini`を送った：「反映されました」（19:17:31に本体が読んだ）。`--status`も「自分の配置（hud.ini）で描いています」になった
+- 録画の1コマを、入れ替える前（19:16:57）と、`hud.ini`を送ったあと（19:18:01）で見比べた：計器の配置・文字・色が同じ（配置は元のまま送ったので、見た目は変わらないのが正しい）
+- 入れ替えのあとの104秒：録画は**すべての秒で30コマ**（読み直した19:17:31にもコマ落ちなし）、サービスの再起動0回。ロガーは毎秒99.1〜101.1回、SDのエラー・取りこぼし0。温度74.6〜75.9℃
+- まだ確かめていないこと：配置を実際に変えて送り、録画の絵が途中で変わること（読み直しの部分は本体の試験用プログラムで確かめ済み。配置は元のままにするユーザーの指示どおり、本物の録画では変えていない）
 
 **規則を変えるとき**：`hud_layout.h`と`hud_layout.py`の両方を直し、本体で`hud_dump`を使って`testdata/*.golden`を作り直してから`test_hud_layout.py`を通す
 （`./hud_dump <ini> hud_font_64.pgm testdata/<状態>.state > <名前>.golden`）。
