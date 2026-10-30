@@ -1,0 +1,18 @@
+[Unit]
+Description=EcoLogger V2 onboard video with burned-in telemetry
+After=docker.service ecocapture-web-start.service
+[Service]
+User=arduino
+Environment=TZ=Asia/Tokyo
+Environment=OVERLAY_SEGMENT_MIN=10
+Environment=OVERLAY_MIN_FREE_MB=1024
+ExecStart=/opt/ecologger-video/run-video.sh
+# 電源を切るとき（SIGTERM）は、エンコーダに残った分を書き出してから終わる
+TimeoutStopSec=10
+Restart=on-failure
+RestartSec=5
+# 空きが足りずに止めたとき（終了コード3）は、その起動中はもう録らない
+RestartPreventExitStatus=3
+NoNewPrivileges=true
+[Install]
+WantedBy=multi-user.target

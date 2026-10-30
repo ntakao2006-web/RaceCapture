@@ -1,14 +1,23 @@
-// UNO Q：走行映像に走行データ（車速・回転数・水温・油温・ラップ・G・時刻）を焼き込んでH.264で保存する（試作）
-//   カメラ（UVC、MJPEG 1280x720）→ 展開スレッド（libjpeg-turbo）→ GPUで1920x1080へ拡大し計器を重ね描き
-//   → エンコーダ（venus）の入力バッファへdmabufで直接NV12を書く（コピー無し）→ H.264（.h264のまま保存）
+// UNO Q：走行映像に走行データ（車速・回転数・水温・油温・ラップ・G・時刻）を焼き込んで保存する（試作）
+//   カメラ（UVC、MJPEG 1280x720）→ 展開スレッド（libjpeg-turbo）→ GPUと共有するメモリへ写す
+//   → GPUで1920x1080へ拡大し計器を重ね描き → エンコーダ（venus）の入力バッファへdmabufで直接NV12を書く → H.264
+//   GPUはY（輝度）面とUV（色差）面へ直接描く。RGBの中間画面は作らず、計器は面ごとに1回の描画にまとめる（手順書5-13）
+//   保存はMPEG-TS（.ts）。1枚ごとにカメラの時刻を付ける。途中で電源が切れても、そこまでは再生できる
 //   数値はEcoCaptureのAPI（http://127.0.0.1:8080/api/telemetry）を別スレッドで約10Hzで読む
 //   土台は overlay_enc_test.c（mode=1・thr=1、unoq_video_check_procedure.md 5-11）。計器の文字は
 //   make_font_atlas.py で作る文字の一覧表（hud_font_64.pgm、DejaVu Sans Mono Bold）をGPUで貼る
 // ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread
-// 実行: ./overlay_rec /dev/videoN out.h264 [seconds=60] [font=hud_font_64.pgm]
+// 実行: ./overlay_rec <入力> <出力> [seconds=60、0は止めるまで] [font=hud_font_64.pgm]
+//   入力：/dev/videoN（カメラ）か file:xxx.jpg（同じJPEGを30fpsで繰り返す。カメラ無しで試す用）
+//   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むときはstrftimeの書式とみなし、
+//         OVERLAY_SEGMENT_MIN分（既定10）ごとに、キーフレームの所で新しいファイルへ切り替える
+//   出力の横に xxx.csv（1秒ごとに「ファイル内の枚目・動画内の秒・UTC」）を書く。走行データと時刻を合わせる用
+//   空きがOVERLAY_MIN_FREE_MB（既定1024）を切ったら記録を止めて終わる（終了コード3）
 //   SIGINT/SIGTERMで止めると、エンコーダに残った分を書き出してから終わる
+//   OVERLAY_OUT=720 のときは1280x720で保存する（既定は1920x1080。計器は同じ配置のまま縮む）
 //   OVERLAY_DEMO=1 のときは作り物の値で描く（見た目と警告の色の確認用。画面にDEMOと出る）
 //   OVERLAY_PROFILE=1 のときは工程ごとにGPUの完了を待って時間を測る（その分遅くなる）
+//   OVERLAY_NOHUD=1 のときは計器を描かない（時間の比較用）
 #define _GNU_SOURCE
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -32,10 +41,13 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
+#include <sys/statvfs.h>
+#include <drm/drm.h>
+#include <drm/msm_drm.h>
 #include <time.h>
 #include <unistd.h>
 
-#define W 1920
+#define W 1920  // 計器を描く座標の大きさ（出力の既定の大きさでもある）
 #define H 1080
 #define NOUT 4
 #define NCAP 4
@@ -53,7 +65,9 @@
 static const double WATER_LIMITS[2] = { 100, 110 }, OIL_LIMITS[2] = { 110, 120 };  // 黄・赤
 #define G_FULL 1.5  // Gボールの外周
 
+static int ow = W, oh = H;  // 出力の大きさ（OVERLAY_OUT=720で1280x720）
 static double now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec + t.tv_nsec * 1e-9; }
+static double wall(void) { struct timespec t; clock_gettime(CLOCK_REALTIME, &t); return t.tv_sec + t.tv_nsec * 1e-9; }
 #define DIE(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, " (errno=%d %s)\n", errno, strerror(errno)); exit(1); } while (0)
 
 static int xioctl(int fd, unsigned long req, void *arg) {
@@ -169,43 +183,36 @@ static GLuint fbo_for(GLuint t) {
 static const char *VS_FULL =
     "#version 300 es\n"
     "void main(){ vec2 p=vec2((gl_VertexID<<1)&2, gl_VertexID&2); gl_Position=vec4(p*2.0-1.0,0.0,1.0); }\n";
-// JPEGを展開したY/Cb/Cr（BT.601 full range、色差は間引かれたまま）→ RGB、1920x1080へ拡大
-static const char *FS_JPEG2RGB =
-    "#version 300 es\nprecision mediump float;\n"
-    "uniform sampler2D ty; uniform sampler2D tu; uniform sampler2D tv; uniform vec2 sy; uniform vec2 sc; out vec4 o;\n"
-    "void main(){ vec2 q=gl_FragCoord.xy/vec2(1920.0,1080.0);\n"
-    "  float y=texture(ty,q*sy).r; float u=texture(tu,q*sc).r-0.5; float v=texture(tv,q*sc).r-0.5;\n"
-    "  o=vec4(y+1.402*v, y-0.344*u-0.714*v, y+1.772*u, 1.0); }\n";
-// 重ね描き（ピクセル座標・上端が0）
-static const char *VS_OVL =
-    "#version 300 es\nlayout(location=0) in vec2 a;\n"
-    "void main(){ gl_Position=vec4(a.x/960.0-1.0, a.y/540.0-1.0, 0.0, 1.0); }\n";
-static const char *FS_COL =
-    "#version 300 es\nprecision mediump float; uniform vec4 col; out vec4 o; void main(){ o=col; }\n";
-// 文字：位置（ピクセル）と一覧表の座標。一覧表の濃さをそのまま不透明度にする
-static const char *VS_TXT =
-    "#version 300 es\nlayout(location=0) in vec2 a; layout(location=1) in vec2 t; out vec2 uv;\n"
-    "void main(){ uv=t; gl_Position=vec4(a.x/960.0-1.0, a.y/540.0-1.0, 0.0, 1.0); }\n";
-static const char *FS_TXT =
-    "#version 300 es\nprecision mediump float; uniform sampler2D atlas; uniform vec4 col; in vec2 uv; out vec4 o;\n"
-    "void main(){ o=vec4(col.rgb, col.a*texture(atlas,uv).r); }\n";
-// GPUの描いた絵（RGB）をエンコーダのNV12（Y=R8、UV=GR88）へ直接書く
-static const char *FS_Y =
-    "#version 300 es\nprecision highp float; uniform sampler2D t; out vec4 o;\n"
-    "void main(){ ivec2 p=ivec2(gl_FragCoord.xy); float y=0.0625;\n"
-    "  if(p.y<1080) y+=dot(texelFetch(t,p,0).rgb,vec3(0.257,0.504,0.098)); o=vec4(y,0.0,0.0,1.0); }\n";
-static const char *FS_UV =
-    "#version 300 es\nprecision highp float; uniform sampler2D t; out vec4 o;\n"
-    "void main(){ ivec2 p=ivec2(gl_FragCoord.xy); vec2 uv=vec2(0.5);\n"
-    "  if(p.y<540){ vec3 c=texture(t,(vec2(p*2)+1.0)/vec2(1920.0,1080.0)).rgb;\n"
-    "    uv=vec2(0.5+dot(c,vec3(-0.148,-0.291,0.439)), 0.5+dot(c,vec3(0.439,-0.368,-0.071))); }\n"
-    "  o=vec4(uv,0.0,1.0); }\n";
+// カメラの絵（JPEGを展開したY/Cb/Cr、BT.601 full range、色差は間引かれたまま）を出力の大きさ（os）へ拡大して、
+// エンコーダのY面（R8）・UV面（GR88、R=Cb・G=Cr）へ直接書く。limited rangeへ直す（Y=16+219/255・C=128+224/255）
+static const char *FS_CAM_Y =
+    "#version 300 es\nprecision highp float; uniform sampler2D ty; uniform vec2 sy; uniform vec2 os; out vec4 o;\n"
+    "void main(){ o=vec4(0.0627+0.8588*texture(ty,gl_FragCoord.xy/os*sy).r,0.0,0.0,1.0); }\n";
+static const char *FS_CAM_UV =
+    "#version 300 es\nprecision highp float; uniform sampler2D tu; uniform sampler2D tv; uniform vec2 sc; uniform vec2 os; out vec4 o;\n"
+    "void main(){ vec2 q=gl_FragCoord.xy/os*sc;\n"
+    "  o=vec4(0.5+0.8784*(texture(tu,q).r-0.5), 0.5+0.8784*(texture(tv,q).r-0.5), 0.0, 1.0); }\n";
+// 計器（1920x1080の上での座標・上端が0。出力が720pでもそのまま縮む）。1枚分の四角形をためて、面ごとに1回で描く。
+// 頂点ごとに色を持ち、一覧表の座標が負なら塗りつぶし、そうでなければ一覧表の濃さを不透明度にする（文字）。
+// 色はRGBで持ち、描く面（plane：0=Y、1=UV）の値（BT.601 limited range）へここで直す。YもUVもRGBの一次式なので、
+// 半透明の重ねも面ごとに正しく混ざる
+static const char *VS_HUD =
+    "#version 300 es\nlayout(location=0) in vec2 a; layout(location=1) in vec2 t; layout(location=2) in vec4 c;\n"
+    "out vec2 uv; out vec4 col;\n"
+    "void main(){ uv=t; col=c; gl_Position=vec4(a.x/960.0-1.0, a.y/540.0-1.0, 0.0, 1.0); }\n";
+static const char *FS_HUD =
+    "#version 300 es\nprecision mediump float; uniform sampler2D atlas; uniform int plane; in vec2 uv; in vec4 col; out vec4 o;\n"
+    "void main(){ float al=col.a*(uv.x<0.0 ? 1.0 : texture(atlas,uv).r);\n"
+    "  o = plane==0 ? vec4(0.0627+dot(col.rgb,vec3(0.257,0.504,0.098)), 0.0, 0.0, al)\n"
+    "               : vec4(0.5+dot(col.rgb,vec3(-0.148,-0.291,0.439)), 0.5+dot(col.rgb,vec3(0.439,-0.368,-0.071)), 0.0, al); }\n";
 
 // ---------------------------------------------------------------- 計器の描画
-static GLuint p_col, p_txt, vao_col, vbo_col, vao_txt, vbo_txt, t_atlas;
-static GLint u_col, u_tcol;
+static GLuint p_hud, vao_hud, vbo_hud, t_atlas;
+static GLint u_plane;
 static int cell_w, cell_h, first_ch, n_ch, atlas_cols, atlas_w, atlas_h;
-static float vtx[6 * 4 * 64];
+#define HUD_MAX 6000
+static float hv[8 * HUD_MAX];  // 頂点（x, y, u, v, r, g, b, a）
+static int hn;
 
 static void load_font(const char *path) {
     FILE *f = fopen(path, "rb"); if (!f) DIE("open %s", path);
@@ -227,17 +234,28 @@ static void load_font(const char *path) {
     printf("font %s: %dx%d cell %dx%d\n", path, w, h, cell_w, cell_h);
 }
 
-static void rect(float x0, float y0, float x1, float y1, const float c[4]) {
-    float v[] = { x0, y0, x1, y0, x0, y1, x1, y0, x1, y1, x0, y1 };
-    glUseProgram(p_col); glUniform4fv(u_col, 1, c);
-    glBindVertexArray(vao_col); glBindBuffer(GL_ARRAY_BUFFER, vbo_col);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof v, v); glDrawArrays(GL_TRIANGLES, 0, 6);
+// 四角形（頂点4つ：p0 p1 p2 p3 の順に回る）を三角形2つでためる。u0<0なら塗りつぶし
+static void quad4(const float x[4], const float y[4], float u0, float v0, float u1, float v1, const float c[4]) {
+    if (hn + 6 > HUD_MAX) return;
+    const float u[4] = { u0, u1, u1, u0 }, v[4] = { v0, v0, v1, v1 };
+    static const int ord[6] = { 0, 1, 3, 1, 2, 3 };
+    for (int k = 0; k < 6; k++) {
+        float *p = hv + 8 * hn++; int i = ord[k];
+        p[0] = x[i]; p[1] = y[i]; p[2] = u[i]; p[3] = v[i]; memcpy(p + 4, c, 4 * sizeof(float));
+    }
 }
 
-static void lines(const float *pts, int n, GLenum mode, const float c[4]) {
-    glUseProgram(p_col); glUniform4fv(u_col, 1, c);
-    glBindVertexArray(vao_col); glBindBuffer(GL_ARRAY_BUFFER, vbo_col);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 2 * n, pts); glDrawArrays(mode, 0, n);
+static void rect(float x0, float y0, float x1, float y1, const float c[4]) {
+    const float x[4] = { x0, x1, x1, x0 }, y[4] = { y0, y0, y1, y1 };
+    quad4(x, y, -1, -1, -1, -1, c);
+}
+
+// 太さwの線分
+static void seg(float x0, float y0, float x1, float y1, float w, const float c[4]) {
+    float dx = x1 - x0, dy = y1 - y0, l = sqrtf(dx * dx + dy * dy); if (l <= 0) return;
+    float nx = -dy / l * w / 2, ny = dx / l * w / 2;
+    const float x[4] = { x0 + nx, x1 + nx, x1 - nx, x0 - nx }, y[4] = { y0 + ny, y1 + ny, y1 - ny, y0 - ny };
+    quad4(x, y, -1, -1, -1, -1, c);
 }
 
 // 文字列を (x, y)（左上）から描く。s＝倍率（1.0で1文字 cell_w×cell_h）。戻り値は右端
@@ -248,13 +266,9 @@ static float text(float x, float y, float s, const float c[4], const char *str) 
         float u0 = (float)(i % atlas_cols) * cell_w / atlas_w, v0 = (float)(i / atlas_cols) * cell_h / atlas_h;
         float u1 = u0 + (float)cell_w / atlas_w, v1 = v0 + (float)cell_h / atlas_h;
         float x0 = x + n * cell_w * s, x1 = x0 + cell_w * s, y1 = y + cell_h * s;
-        float q[] = { x0, y, u0, v0, x1, y, u1, v0, x0, y1, u0, v1, x1, y, u1, v0, x1, y1, u1, v1, x0, y1, u0, v1 };
-        memcpy(vtx + n * 24, q, sizeof q);
+        const float qx[4] = { x0, x1, x1, x0 }, qy[4] = { y, y, y1, y1 };
+        quad4(qx, qy, u0, v0, u1, v1, c);
     }
-    glUseProgram(p_txt); glUniform4fv(u_tcol, 1, c);
-    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, t_atlas);
-    glBindVertexArray(vao_txt); glBindBuffer(GL_ARRAY_BUFFER, vbo_txt);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 24 * n, vtx); glDrawArrays(GL_TRIANGLES, 0, 6 * n);
     return x + n * cell_w * s;
 }
 static float text_w(float s, const char *str) { return strlen(str) * cell_w * s; }
@@ -284,7 +298,7 @@ static void draw_hud(const struct tele *t, double age) {
         const float *c = t->rpm >= RPM_RED ? RED : t->rpm >= RPM_YELLOW ? YELLOW : GREEN;
         rect(40, 828, 40 + 1840 * f, 852, c);
     }
-    for (int k = 1; k < 8; k++) { float x = 40 + 1840 * k * 1000 / RPM_MAX; float tick[] = { x, 828, x, 852 }; lines(tick, 2, GL_LINES, panel); }
+    for (int k = 1; k < 8; k++) { float x = 40 + 1840 * k * 1000 / RPM_MAX; seg(x, 828, x, 852, 3, panel); }
 
     // 車速
     text(40, 870, .42f, GREY, "SPEED km/h");
@@ -313,11 +327,11 @@ static void draw_hud(const struct tele *t, double age) {
 
     // Gボール（外周＝G_FULL。横Gは右が正、前後Gは加速が下・減速が上）
     const float cx = 1815, cy = 965, r = 72;
-    float ring[2 * 48];
-    for (int i = 0; i < 48; i++) { ring[2 * i] = cx + r * cosf(i * 2 * M_PI / 48); ring[2 * i + 1] = cy + r * sinf(i * 2 * M_PI / 48); }
-    lines(ring, 48, GL_LINE_LOOP, GREY);
-    float cross[] = { cx - r, cy, cx + r, cy, cx, cy - r, cx, cy + r };
-    lines(cross, 4, GL_LINES, DIM);
+    for (int i = 0; i < 48; i++) {
+        float a0 = i * 2 * M_PI / 48, a1 = (i + 1) * 2 * M_PI / 48;
+        seg(cx + r * cosf(a0), cy + r * sinf(a0), cx + r * cosf(a1), cy + r * sinf(a1), 3, GREY);
+    }
+    seg(cx - r, cy, cx + r, cy, 3, DIM); seg(cx, cy - r, cx, cy + r, 3, DIM);
     if (!isnan(t->lat_g) && !isnan(t->long_g)) {
         float gx = cx + r * fmax(fmin(t->lat_g / G_FULL, 1), -1), gy = cy + r * fmax(fmin(t->long_g / G_FULL, 1), -1);
         rect(gx - 9, gy - 9, gx + 9, gy + 9, YELLOW);
@@ -334,37 +348,146 @@ static void draw_hud(const struct tele *t, double age) {
     if (age > 1.5) { rect(20, 20, 330, 80, panel); text(35, 26, .6f, RED, "NO DATA"); }
 }
 
+// ---------------------------------------------------------------- 保存（MPEG-TS／素のH.264）と1秒ごとの時刻
+#define PID_PMT 0x1000
+#define PID_VID 0x0100
+static FILE *out, *csv;
+static const char *out_pat;
+static char out_name[512];
+static int ts_mode, seg_on, low_space, seg_frames, encoded, idr_count, header_inserted;
+static double seg_len = 600, seg_t0, min_free_mb = 1024;
+static int64_t seg_us0;
+static size_t bytes;
+static uint8_t seq_hdr[256], cc_pat, cc_pmt, cc_vid;
+static size_t seq_len;
+static struct { int64_t us; double utc; } stamps[64];  // エンコーダへ渡した時刻（µs）→ その枚のUTC
+
+static void put(const void *p, size_t n) { fwrite(p, 1, n, out); bytes += n; }
+
+static uint32_t crc32_mpeg(const uint8_t *p, int n) {
+    uint32_t c = 0xffffffff;
+    while (n--) { c ^= (uint32_t)*p++ << 24; for (int k = 0; k < 8; k++) c = c & 0x80000000 ? (c << 1) ^ 0x04c11db7 : c << 1; }
+    return c;
+}
+
+static void ts_section(int pid, uint8_t *cc, uint8_t *sec, int n) {  // secの最後の4バイトにCRCを入れて1パケットで出す
+    uint32_t c = crc32_mpeg(sec, n - 4);
+    sec[n - 4] = c >> 24; sec[n - 3] = c >> 16; sec[n - 2] = c >> 8; sec[n - 1] = c;
+    uint8_t pk[188]; memset(pk, 0xff, sizeof pk);
+    pk[0] = 0x47; pk[1] = 0x40 | pid >> 8; pk[2] = pid & 0xff; pk[3] = 0x10 | ((*cc)++ & 0x0f);
+    pk[4] = 0;  // pointer_field
+    memcpy(pk + 5, sec, n); put(pk, sizeof pk);
+}
+
+// PAT・PMT（番組1つ、H.264が1本）。キーフレームの前に毎回出し、途中から読んでも分かるようにする
+static void ts_tables(void) {
+    uint8_t pat[16] = { 0x00, 0xb0, 13, 0x00, 0x01, 0xc1, 0x00, 0x00, 0x00, 0x01, 0xe0 | PID_PMT >> 8, PID_PMT & 0xff };
+    uint8_t pmt[21] = { 0x02, 0xb0, 18, 0x00, 0x01, 0xc1, 0x00, 0x00, 0xe0 | PID_VID >> 8, PID_VID & 0xff, 0xf0, 0x00,
+                        0x1b, 0xe0 | PID_VID >> 8, PID_VID & 0xff, 0xf0, 0x00 };
+    ts_section(0, &cc_pat, pat, sizeof pat);
+    ts_section(PID_PMT, &cc_pmt, pmt, sizeof pmt);
+}
+
+// 1枚（アクセスユニット）をPES（PTSのみ。Bフレームは無い）にしてTSのパケットへ。pts・pcrは90kHz
+static void ts_frame(const uint8_t *es, size_t n, uint64_t pts, uint64_t pcr, int key) {
+    const uint8_t hd[20] = { 0, 0, 1, 0xe0, 0, 0, 0x80, 0x80, 5,
+        0x21 | (pts >> 29 & 0x0e), pts >> 22 & 0xff, 0x01 | (pts >> 14 & 0xfe), pts >> 7 & 0xff, 0x01 | (pts << 1 & 0xfe),
+        0, 0, 0, 1, 0x09, 0xf0 };  // PESの頭＋AUD（区切りのNAL。TSのH.264では付ける決まり）
+    size_t total = sizeof hd + n, off = 0;
+    for (int first = 1; off < total; first = 0) {
+        uint8_t pk[188], af[184]; size_t L = 0; int has_af = 0;
+        if (first) {  // 1枚目のパケットにPCR（とキーフレームの印）
+            af[L++] = (key ? 0x40 : 0) | 0x10;
+            af[L++] = pcr >> 25; af[L++] = pcr >> 17; af[L++] = pcr >> 9; af[L++] = pcr >> 1;
+            af[L++] = (pcr & 1) << 7 | 0x7e; af[L++] = 0;
+            has_af = 1;
+        }
+        size_t cap = has_af ? 183 - L : 184, left = total - off;
+        if (left < cap) {  // 最後のパケットは詰め物で188バイトにする
+            size_t s = cap - left;
+            if (!has_af) { has_af = 1; s--; if (s) { af[L++] = 0x00; s--; } }
+            memset(af + L, 0xff, s); L += s; cap = left;
+        }
+        pk[0] = 0x47; pk[1] = (first ? 0x40 : 0) | PID_VID >> 8; pk[2] = PID_VID & 0xff;
+        pk[3] = (has_af ? 0x30 : 0x10) | (cc_vid++ & 0x0f);
+        size_t p = 4;
+        if (has_af) { pk[p++] = L; memcpy(pk + p, af, L); p += L; }
+        size_t a = off, m = cap;
+        if (a < sizeof hd) { size_t c = sizeof hd - a < m ? sizeof hd - a : m; memcpy(pk + p, hd + a, c); p += c; a += c; m -= c; }
+        if (m) memcpy(pk + p, es + (a - sizeof hd), m);
+        put(pk, sizeof pk); off += cap;
+    }
+}
+
+static double utc_of(int64_t us) {
+    for (int i = 0; i < 64; i++) if (stamps[i].us == us) return stamps[i].utc;
+    return wall();
+}
+
+// 新しいファイル（と時刻のcsv）を開く。usはそのファイルの最初の枚（キーフレーム）の時刻
+static void seg_open(int64_t us) {
+    if (out) fclose(out);
+    if (csv) fclose(csv);
+    csv = NULL;
+    if (seg_on) { time_t u = (time_t)utc_of(us); struct tm lt; localtime_r(&u, &lt); strftime(out_name, sizeof out_name, out_pat, &lt); }
+    else snprintf(out_name, sizeof out_name, "%s", out_pat);
+    out = fopen(out_name, "wb"); if (!out) DIE("open %s", out_name);
+    char cn[sizeof out_name + 8]; snprintf(cn, sizeof cn, "%s", out_name);
+    char *dot = strrchr(cn, '.'); if (dot && !strchr(dot, '/')) *dot = 0;
+    strcat(cn, ".csv");
+    csv = fopen(cn, "w"); if (csv) fprintf(csv, "frame,video_s,utc\n");
+    seg_t0 = now(); seg_us0 = us; seg_frames = 0;
+    printf("file %s\n", out_name); fflush(stdout);
+}
+
+// エンコーダから出た1枚分。キーフレームの所でファイルの切り替え・書き出しの促し・空きの確認・時刻の記録をする
+static void emit(const uint8_t *p, size_t n, int64_t us) {
+    int has_sps = 0, idr = 0, slice = 0;
+    for (size_t i = 0; i + 3 < n; i++) {
+        if (p[i] || p[i + 1] || p[i + 2] != 1) continue;
+        int t = p[i + 3] & 0x1f;
+        if (t == 7) has_sps = 1;
+        if (t == 7 && !seq_len) {  // 最初のSPSからスライスの手前（無ければ最後）までを控える
+            size_t s = i > 0 && p[i - 1] == 0 ? i - 1 : i, e = i + 3;
+            while (e + 3 < n && !(p[e] == 0 && p[e + 1] == 0 && p[e + 2] == 1 && ((p[e + 3] & 0x1f) == 5 || (p[e + 3] & 0x1f) == 1))) e++;
+            if (e + 3 >= n) e = n;
+            if (e > s && e - s <= sizeof seq_hdr) { memcpy(seq_hdr, p + s, e - s); seq_len = e - s; if (seq_hdr[seq_len - 1] == 0) seq_len--; }
+        }
+        if (t == 5) idr = 1;
+        if (t == 5 || t == 1) slice = 1;
+    }
+    if (!slice) return;  // SPS・PPSだけの入れ物（最初の1回）。控えたので捨てる
+    encoded++;
+    if (idr) {
+        idr_count++;
+        if (!out || (seg_on && now() - seg_t0 >= seg_len)) seg_open(us);
+        else { fflush(out); sync_file_range(fileno(out), 0, 0, SYNC_FILE_RANGE_WRITE); }  // 待たずに書き出しを始めさせる
+        struct statvfs sv;
+        if (!fstatvfs(fileno(out), &sv) && (double)sv.f_bavail * sv.f_frsize < min_free_mb * 1048576.0) { low_space = 1; quit = 1; }
+        if (csv) {
+            double u = utc_of(us); time_t s = (time_t)u; struct tm g; gmtime_r(&s, &g);
+            char ts[32]; strftime(ts, sizeof ts, "%Y-%m-%dT%H:%M:%S", &g);
+            fprintf(csv, "%d,%.3f,%s.%03dZ\n", seg_frames, (us - seg_us0) / 1e6, ts, (int)((u - s) * 1000));
+            fflush(csv);
+        }
+        if (ts_mode) ts_tables();
+    }
+    if (!out) return;
+    static uint8_t tmp[4 << 20];
+    if (idr && !has_sps && seq_len && n + seq_len <= sizeof tmp) {  // SPS・PPSが付いていないIDRには控えを前に付ける
+        memcpy(tmp, seq_hdr, seq_len); memcpy(tmp + seq_len, p, n); p = tmp; n += seq_len; header_inserted++;
+    }
+    if (ts_mode) { uint64_t t90 = (uint64_t)us * 9 / 100; ts_frame(p, n, t90 + 45000, t90, idr); }  // PTSはPCRより0.5秒先
+    else put(p, n);
+    seg_frames++;
+}
+
 // ---------------------------------------------------------------- エンコーダ
 struct vbuf { void *p; size_t len; };
 static int fd, t1 = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, t2 = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
 static struct vbuf ob[NOUT], cb[NCAP];
-static int freeidx[NOUT], nfree, encoded, eos, idr_count, header_inserted;
-static size_t bytes;
-static FILE *out;
-static uint8_t seq_hdr[256]; static size_t seq_len;
-
-// 出てきたH.264をファイルへ。最初のSPS・PPSを控え、以後のIDRの前に付いていなければ付け足す
-// （エンコーダは先頭にしか出さないので、途中から読めるように。手順書5-11）
-static void write_es(const uint8_t *p, size_t n) {
-    size_t i = 0; int has_sps = 0;
-    while (i + 4 < n) {
-        if (p[i] == 0 && p[i + 1] == 0 && p[i + 2] == 1) {
-            int t = p[i + 3] & 0x1f;
-            if (t == 7) has_sps = 1;
-            if (t == 7 && !seq_len) {  // SPSからIDRかスライスの手前までを控える
-                size_t s = i > 0 && p[i - 1] == 0 ? i - 1 : i, e = i + 3;
-                while (e + 3 < n && !(p[e] == 0 && p[e + 1] == 0 && p[e + 2] == 1 && ((p[e + 3] & 0x1f) == 5 || (p[e + 3] & 0x1f) == 1))) e++;
-                if (e > s && e - s <= sizeof seq_hdr) { memcpy(seq_hdr, p + s, e - s); seq_len = e - s; if (seq_hdr[seq_len - 1] == 0) seq_len--; }
-            }
-            if (t == 5) {
-                idr_count++;
-                if (!has_sps && seq_len) { fwrite(seq_hdr, 1, seq_len, out); bytes += seq_len; header_inserted++; has_sps = 1; }
-            }
-            i += 3;
-        } else i++;
-    }
-    fwrite(p, 1, n, out); bytes += n;
-}
+static int freeidx[NOUT], nfree, eos;
+static double s_emit;
 
 static void drain(int block) {
     struct pollfd pf = { .fd = fd, .events = POLLIN | POLLOUT };
@@ -373,8 +496,12 @@ static void drain(int block) {
         struct v4l2_plane pl[1] = {0};
         struct v4l2_buffer b = { .type = t2, .memory = V4L2_MEMORY_MMAP, .length = 1, .m.planes = pl };
         if (xioctl(fd, VIDIOC_DQBUF, &b)) break;
-        write_es(cb[b.index].p, pl[0].bytesused);
-        if (pl[0].bytesused) encoded++;
+        // エンコーダのバッファはCPUのキャッシュが効かないので、1バイトずつ読むと遅い（50KBで約4ms）。先にまとめて写す
+        static uint8_t es[1 << 20];
+        double a = now();
+        size_t n = pl[0].bytesused < sizeof es ? pl[0].bytesused : sizeof es;
+        if (n) { memcpy(es, cb[b.index].p, n); emit(es, n, (int64_t)b.timestamp.tv_sec * 1000000 + b.timestamp.tv_usec); }
+        s_emit += now() - a;
         if (b.flags & V4L2_BUF_FLAG_LAST) { eos = 1; break; }
         xioctl(fd, VIDIOC_QBUF, &b);
     }
@@ -406,50 +533,95 @@ static int open_by_name(const char *name) {
 // ---------------------------------------------------------------- カメラ（UVC・MJPEG）と展開スレッド
 static int cfd = -1;
 static struct vbuf camb[NCAM];
+static uint8_t *src_jpeg; static size_t src_len;  // file: のときのJPEG
 static struct jpeg_decompress_struct jd;
 static struct jpeg_error_mgr jerr;
-static uint8_t *slot[2][3];  // 展開先（2枚を交互に使う。成分ごと、幅・高さは8の倍数へ切り上げ）
+static uint8_t *scratch[3];  // 展開先（成分ごと、幅・高さは8の倍数へ切り上げ。CPUのキャッシュが効く普通のメモリ）
+// GPUと共有するメモリ（2枚を交互に使う）。展開した絵をここへ写すと、GPUはそのまま読める（glTexSubImageの転送が要らない）。
+// msmのGEMを書き込み結合（WC）で確保し、dmabufにしてLINEARで取り込む。展開を直接ここへしないのは、libjpegの書き方
+// （8バイトずつ行をまたぐ）がWCのメモリでは遅いため。まとめて写すほうが速い
+static int rfd = -1;
+static uint8_t *slot[2][3];
+static int slot_fd[2][3];
+static double slot_ts[2], slot_utc[2];  // その枚のカメラの時刻（CLOCK_MONOTONIC）とUTC
 static int pw[3], ph[3];
 static float chroma_w, chroma_h;  // 色差の大きさ（最初の1枚で控える。jdはGPU側から読まない）
 
+static uint8_t *gem_alloc(size_t size, int *dmafd) {
+    struct drm_msm_gem_new gn = { .size = size, .flags = MSM_BO_WC };
+    if (xioctl(rfd, DRM_IOCTL_MSM_GEM_NEW, &gn)) DIE("MSM_GEM_NEW");
+    struct drm_msm_gem_info gi = { .handle = gn.handle, .info = MSM_INFO_GET_OFFSET };
+    if (xioctl(rfd, DRM_IOCTL_MSM_GEM_INFO, &gi)) DIE("MSM_GEM_INFO");
+    uint8_t *p = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, rfd, gi.value);
+    if (p == MAP_FAILED) DIE("mmap gem");
+    struct drm_prime_handle pr = { .handle = gn.handle, .flags = DRM_CLOEXEC | DRM_RDWR };
+    if (xioctl(rfd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &pr)) DIE("PRIME_HANDLE_TO_FD");
+    *dmafd = pr.fd;
+    return p;
+}
+
 static void cam_open(const char *dev) {
-    cfd = open(dev, O_RDWR); if (cfd < 0) DIE("open %s", dev);
-    struct v4l2_format f = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE };
-    f.fmt.pix.width = CAM_W; f.fmt.pix.height = CAM_H; f.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
-    if (xioctl(cfd, VIDIOC_S_FMT, &f)) DIE("camera S_FMT");
-    if (f.fmt.pix.width != CAM_W || f.fmt.pix.height != CAM_H || f.fmt.pix.pixelformat != V4L2_PIX_FMT_MJPEG)
-        DIE("カメラが %dx%d MJPEG を受け付けない", CAM_W, CAM_H);
-    struct v4l2_streamparm sp = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE };
-    sp.parm.capture.timeperframe.numerator = 1; sp.parm.capture.timeperframe.denominator = 30;
-    xioctl(cfd, VIDIOC_S_PARM, &sp);
-    struct v4l2_requestbuffers rq = { .count = NCAM, .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP };
-    if (xioctl(cfd, VIDIOC_REQBUFS, &rq)) DIE("camera REQBUFS");
-    for (unsigned i = 0; i < rq.count && i < NCAM; i++) {
-        struct v4l2_buffer b = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP, .index = i };
-        if (xioctl(cfd, VIDIOC_QUERYBUF, &b)) DIE("camera QUERYBUF");
-        camb[i].len = b.length; camb[i].p = mmap(NULL, b.length, PROT_READ | PROT_WRITE, MAP_SHARED, cfd, b.m.offset);
-        if (camb[i].p == MAP_FAILED) DIE("camera mmap");
-        if (xioctl(cfd, VIDIOC_QBUF, &b)) DIE("camera QBUF");
+    if (!strncmp(dev, "file:", 5)) {
+        FILE *f = fopen(dev + 5, "rb"); if (!f) DIE("open %s", dev + 5);
+        fseek(f, 0, SEEK_END); src_len = ftell(f); fseek(f, 0, SEEK_SET);
+        src_jpeg = malloc(src_len);
+        if (fread(src_jpeg, 1, src_len, f) != src_len) DIE("read %s", dev + 5);
+        fclose(f);
+    } else {
+        cfd = open(dev, O_RDWR); if (cfd < 0) DIE("open %s", dev);
+        struct v4l2_format f = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE };
+        f.fmt.pix.width = CAM_W; f.fmt.pix.height = CAM_H; f.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+        if (xioctl(cfd, VIDIOC_S_FMT, &f)) DIE("camera S_FMT");
+        if (f.fmt.pix.width != CAM_W || f.fmt.pix.height != CAM_H || f.fmt.pix.pixelformat != V4L2_PIX_FMT_MJPEG)
+            DIE("カメラが %dx%d MJPEG を受け付けない", CAM_W, CAM_H);
+        struct v4l2_streamparm sp = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE };
+        sp.parm.capture.timeperframe.numerator = 1; sp.parm.capture.timeperframe.denominator = 30;
+        xioctl(cfd, VIDIOC_S_PARM, &sp);
+        struct v4l2_requestbuffers rq = { .count = NCAM, .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP };
+        if (xioctl(cfd, VIDIOC_REQBUFS, &rq)) DIE("camera REQBUFS");
+        for (unsigned i = 0; i < rq.count && i < NCAM; i++) {
+            struct v4l2_buffer b = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP, .index = i };
+            if (xioctl(cfd, VIDIOC_QUERYBUF, &b)) DIE("camera QUERYBUF");
+            camb[i].len = b.length; camb[i].p = mmap(NULL, b.length, PROT_READ | PROT_WRITE, MAP_SHARED, cfd, b.m.offset);
+            if (camb[i].p == MAP_FAILED) DIE("camera mmap");
+            if (xioctl(cfd, VIDIOC_QBUF, &b)) DIE("camera QBUF");
+        }
+        int t = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        if (xioctl(cfd, VIDIOC_STREAMON, &t)) DIE("camera STREAMON");
     }
-    int t = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (xioctl(cfd, VIDIOC_STREAMON, &t)) DIE("camera STREAMON");
     jd.err = jpeg_std_error(&jerr); jpeg_create_decompress(&jd);
 }
 
-static void cam_frame(int s, double *t_wait, double *t_dec) {
-    uint8_t **pln = slot[s];
-    double a = now();
+static void cam_frame(int s, double *t_wait, double *t_dec, double *t_copy) {
+    uint8_t **pln = scratch;
+    double a = now(), ts;
     struct v4l2_buffer b = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP };
-    if (xioctl(cfd, VIDIOC_DQBUF, &b)) DIE("camera DQBUF");
+    const uint8_t *jp = src_jpeg; size_t jn = src_len;
+    if (cfd >= 0) {
+        if (xioctl(cfd, VIDIOC_DQBUF, &b)) DIE("camera DQBUF");
+        jp = camb[b.index].p; jn = b.bytesused;
+        // UVCはCLOCK_MONOTONICで時刻を付ける（そうでなければ受け取った時刻で代える）
+        ts = (b.flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) == V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+             ? b.timestamp.tv_sec + b.timestamp.tv_usec * 1e-6 : now();
+    } else {  // file: は30fpsの刻みに合わせて出す
+        static double t0; static long k;
+        if (!t0) t0 = a;
+        ts = t0 + k++ / 30.0;
+        if (ts > a) usleep((ts - a) * 1e6);
+    }
     double c = now(); *t_wait += c - a;
-    jpeg_mem_src(&jd, camb[b.index].p, b.bytesused);  // UVCのMJPEGはハフマン表を省くが、libjpeg-turboが標準表で補う
+    slot_ts[s] = ts; slot_utc[s] = wall() - (c - ts);
+    jpeg_mem_src(&jd, jp, jn);  // UVCのMJPEGはハフマン表を省くが、libjpeg-turboが標準表で補う
     jpeg_read_header(&jd, TRUE);
     jd.raw_data_out = TRUE; jd.do_fancy_upsampling = FALSE; jd.dct_method = JDCT_IFAST;
     jpeg_start_decompress(&jd);
-    if (!slot[0][0]) {
+    if (!scratch[0]) {
+        if (jd.output_width != CAM_W || jd.output_height != CAM_H) DIE("JPEGが %dx%d ではない", CAM_W, CAM_H);
         for (int i = 0; i < 3; i++) {
             pw[i] = jd.comp_info[i].width_in_blocks * DCTSIZE; ph[i] = jd.comp_info[i].height_in_blocks * DCTSIZE;
-            for (int k = 0; k < 2; k++) slot[k][i] = malloc((size_t)pw[i] * (ph[i] + 16 * DCTSIZE));
+            if (pw[i] % 64) DIE("JPEGの幅 %d がGPUで読める並び（64の倍数）でない", pw[i]);
+            scratch[i] = malloc((size_t)pw[i] * (ph[i] + 16 * DCTSIZE));
+            for (int k = 0; k < 2; k++) slot[k][i] = gem_alloc(((size_t)pw[i] * ph[i] + 4095) & ~(size_t)4095, &slot_fd[k][i]);
         }
         chroma_w = (float)CAM_W * jd.comp_info[1].h_samp_factor / jd.max_h_samp_factor;
         chroma_h = (float)CAM_H * jd.comp_info[1].v_samp_factor / jd.max_v_samp_factor;
@@ -464,35 +636,43 @@ static void cam_frame(int s, double *t_wait, double *t_dec) {
         jpeg_read_raw_data(&jd, arr, step);
     }
     jpeg_finish_decompress(&jd);
-    if (xioctl(cfd, VIDIOC_QBUF, &b)) DIE("camera QBUF");
-    *t_dec += now() - c;
+    if (cfd >= 0 && xioctl(cfd, VIDIOC_QBUF, &b)) DIE("camera QBUF");
+    double d = now(); *t_dec += d - c;
+    for (int i = 0; i < 3; i++) memcpy(slot[s][i], scratch[i], (size_t)pw[i] * ph[i]);
+    *t_copy += now() - d;
 }
 
 static pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
 static int filled[2], dec_frames;
-static double d_wait, d_dec;
+static double d_wait, d_dec, d_copy;
 static void *decoder(void *arg) {
     (void)arg;
-    for (int f = 0; f < dec_frames && !quit; f++) {
+    for (int f = 0; (!dec_frames || f < dec_frames) && !quit; f++) {
         int s = f & 1;
         pthread_mutex_lock(&mu); while (filled[s] && !quit) pthread_cond_wait(&cv, &mu); pthread_mutex_unlock(&mu);
         if (quit) break;
-        cam_frame(s, &d_wait, &d_dec);
+        cam_frame(s, &d_wait, &d_dec, &d_copy);
         pthread_mutex_lock(&mu); filled[s] = 1; pthread_cond_broadcast(&cv); pthread_mutex_unlock(&mu);
     }
     return NULL;
 }
 
 int main(int argc, char **argv) {
-    if (argc < 3) { fprintf(stderr, "usage: %s /dev/videoN out.h264 [seconds=60] [font=hud_font_64.pgm]\n", argv[0]); return 1; }
-    const int frames = (argc > 3 ? atoi(argv[3]) : 60) * 30;
+    if (argc < 3) { fprintf(stderr, "usage: %s </dev/videoN|file:x.jpg> <out.ts|out.h264|%%Y%%m%%d_%%H%%M%%S.ts> [seconds=60] [font=hud_font_64.pgm]\n", argv[0]); return 1; }
+    const int frames = (argc > 3 ? atoi(argv[3]) : 60) * 30;  // 0は止めるまで
     const char *font = argc > 4 ? argv[4] : "hud_font_64.pgm";
+    if (getenv("OVERLAY_OUT") && atoi(getenv("OVERLAY_OUT")) == 720) { ow = 1280; oh = 720; }
     const int demo = getenv("OVERLAY_DEMO") && atoi(getenv("OVERLAY_DEMO"));
     const int profile = getenv("OVERLAY_PROFILE") && atoi(getenv("OVERLAY_PROFILE"));
+    if (getenv("OVERLAY_SEGMENT_MIN")) seg_len = atof(getenv("OVERLAY_SEGMENT_MIN")) * 60;
+    if (getenv("OVERLAY_MIN_FREE_MB")) min_free_mb = atof(getenv("OVERLAY_MIN_FREE_MB"));
+    out_pat = argv[2]; seg_on = strchr(out_pat, '%') != NULL;
+    const size_t ol = strlen(out_pat); ts_mode = !(ol > 5 && !strcmp(out_pat + ol - 5, ".h264"));
     signal(SIGINT, on_signal); signal(SIGTERM, on_signal);
     setenv("TZ", "Asia/Tokyo", 0); tzset();
 
+    rfd = open("/dev/dri/renderD128", O_RDWR | O_CLOEXEC); if (rfd < 0) DIE("open renderD128");
     cam_open(argv[1]);
     pthread_t tel_th; pthread_create(&tel_th, NULL, telemetry, NULL);
 
@@ -505,37 +685,40 @@ int main(int argc, char **argv) {
     EGLContext ctx = eglCreateContext(dpy, EGL_NO_CONFIG_KHR, EGL_NO_CONTEXT, cattr);
     if (ctx == EGL_NO_CONTEXT || !eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, ctx)) DIE("egl context");
 
-    GLuint p_jpg = program(VS_FULL, FS_JPEG2RGB), p_dy = program(VS_FULL, FS_Y), p_duv = program(VS_FULL, FS_UV);
-    p_col = program(VS_OVL, FS_COL); u_col = glGetUniformLocation(p_col, "col");
-    p_txt = program(VS_TXT, FS_TXT); u_tcol = glGetUniformLocation(p_txt, "col");
-    glUseProgram(p_txt); glUniform1i(glGetUniformLocation(p_txt, "atlas"), 0);
-    GLuint t_rgb = tex(GL_RGBA8, W, H, GL_LINEAR), f_rgb = fbo_for(t_rgb), t_c[3] = {0};
-    glGenVertexArrays(1, &vao_col); glBindVertexArray(vao_col);
-    glGenBuffers(1, &vbo_col); glBindBuffer(GL_ARRAY_BUFFER, vbo_col);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 256, NULL, GL_STREAM_DRAW);
-    glEnableVertexAttribArray(0); glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glGenVertexArrays(1, &vao_txt); glBindVertexArray(vao_txt);
-    glGenBuffers(1, &vbo_txt); glBindBuffer(GL_ARRAY_BUFFER, vbo_txt);
-    glBufferData(GL_ARRAY_BUFFER, sizeof vtx, NULL, GL_STREAM_DRAW);
-    glEnableVertexAttribArray(0); glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16, 0);
-    glEnableVertexAttribArray(1); glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, (void *)8);
+    GLuint p_cy = program(VS_FULL, FS_CAM_Y), p_cuv = program(VS_FULL, FS_CAM_UV);
+    glUseProgram(p_cy); glUniform1i(glGetUniformLocation(p_cy, "ty"), 0);
+    const GLint u_sy = glGetUniformLocation(p_cy, "sy"), u_osy = glGetUniformLocation(p_cy, "os");
+    glUseProgram(p_cuv); glUniform1i(glGetUniformLocation(p_cuv, "tu"), 1); glUniform1i(glGetUniformLocation(p_cuv, "tv"), 2);
+    const GLint u_sc = glGetUniformLocation(p_cuv, "sc"), u_osuv = glGetUniformLocation(p_cuv, "os");
+    p_hud = program(VS_HUD, FS_HUD); u_plane = glGetUniformLocation(p_hud, "plane");
+    glUseProgram(p_hud); glUniform1i(glGetUniformLocation(p_hud, "atlas"), 3);
+    GLuint t_c[2][3] = {{0}};  // カメラの絵（共有メモリをそのまま取り込む。2組を交互に使う）
+    glGenVertexArrays(1, &vao_hud); glBindVertexArray(vao_hud);
+    glGenBuffers(1, &vbo_hud); glBindBuffer(GL_ARRAY_BUFFER, vbo_hud);
+    glEnableVertexAttribArray(0); glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 32, 0);
+    glEnableVertexAttribArray(1); glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 32, (void *)8);
+    glEnableVertexAttribArray(2); glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 32, (void *)16);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glLineWidth(3.0f);
     load_font(font);
+    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, t_atlas); glActiveTexture(GL_TEXTURE0);  // 文字の一覧表は3番に置いたまま
 
     // ---- エンコーダ
     fd = open_by_name("Qualcomm Venus video encoder");
     struct v4l2_format cf = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE };
-    cf.fmt.pix_mp.width = W; cf.fmt.pix_mp.height = H; cf.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
-    cf.fmt.pix_mp.num_planes = 1; cf.fmt.pix_mp.plane_fmt[0].sizeimage = 4 << 20;
+    cf.fmt.pix_mp.width = ow; cf.fmt.pix_mp.height = oh; cf.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
+    cf.fmt.pix_mp.num_planes = 1; cf.fmt.pix_mp.plane_fmt[0].sizeimage = 1 << 20;  // 大きいとDQBUF・QBUFのたびのキャッシュ操作が重い
     if (xioctl(fd, VIDIOC_S_FMT, &cf)) DIE("S_FMT capture");
     struct v4l2_format of = { .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE };
-    of.fmt.pix_mp.width = W; of.fmt.pix_mp.height = H; of.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12;
+    of.fmt.pix_mp.width = ow; of.fmt.pix_mp.height = oh; of.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12;
     of.fmt.pix_mp.num_planes = 1;
     if (xioctl(fd, VIDIOC_S_FMT, &of)) DIE("S_FMT output");
     const int bpl = of.fmt.pix_mp.plane_fmt[0].bytesperline, osz = of.fmt.pix_mp.plane_fmt[0].sizeimage;
-    const int ah = (H + 31) & ~31;  // 輝度面の行数（1088）
-    if (bpl != W || osz < bpl * ah * 3 / 2) DIE("想定外のバッファ配置（bytesperline=%d sizeimage=%d）", bpl, osz);
+    const int ah = (oh + 31) & ~31;  // 輝度面の行数（1080pなら1088）
+    if (bpl != ow || osz < bpl * ah * 3 / 2) DIE("想定外のバッファ配置（bytesperline=%d sizeimage=%d）", bpl, osz);
+    // 映像の本当の大きさを伝える（無いと1080pのSPSが1088行になり、下に8行の帯が出る）
+    struct v4l2_selection sel = { .type = V4L2_BUF_TYPE_VIDEO_OUTPUT, .target = V4L2_SEL_TGT_CROP, .r = { 0, 0, ow, oh } };
+    if (xioctl(fd, VIDIOC_S_SELECTION, &sel)) fprintf(stderr, "warn: crop not set (errno=%d)\n", errno);
+    else printf("crop %ux%u\n", sel.r.width, sel.r.height);
     struct v4l2_streamparm sp = { .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE };
     sp.parm.output.timeperframe.numerator = 1; sp.parm.output.timeperframe.denominator = 30;
     if (xioctl(fd, VIDIOC_S_PARM, &sp)) DIE("S_PARM");  // これが無いとクロックが上がらない（手順書5-5①）
@@ -558,7 +741,7 @@ int main(int argc, char **argv) {
         if (xioctl(fd, VIDIOC_EXPBUF, &eb)) DIE("EXPBUF");
         for (int p = 0; p < 2; p++) {
             // modifierをLINEARと明示する（Mesa 25.2は指定が無いと断る。手順書5-11）
-            EGLint at[] = { EGL_WIDTH, p ? W / 2 : W, EGL_HEIGHT, p ? ah / 2 : ah,
+            EGLint at[] = { EGL_WIDTH, p ? ow / 2 : ow, EGL_HEIGHT, p ? ah / 2 : ah,
                             EGL_LINUX_DRM_FOURCC_EXT, p ? DRM_FORMAT_GR88 : DRM_FORMAT_R8,
                             EGL_DMA_BUF_PLANE0_FD_EXT, eb.fd, EGL_DMA_BUF_PLANE0_OFFSET_EXT, p ? bpl * ah : 0,
                             EGL_DMA_BUF_PLANE0_PITCH_EXT, bpl,
@@ -568,7 +751,13 @@ int main(int argc, char **argv) {
             GLuint t; glGenTextures(1, &t); glBindTexture(GL_TEXTURE_2D, t); img2tex(GL_TEXTURE_2D, im);
             if (p) f_duv[i] = fbo_for(t); else f_dy[i] = fbo_for(t);
         }
+        // 下の余りの行（と最初の中身）を黒にしておく。毎回描くのは映像の行だけ
+        glBindFramebuffer(GL_FRAMEBUFFER, f_dy[i]); glViewport(0, 0, ow, ah);
+        glClearColor(16 / 255.f, 0, 0, 1); glClear(GL_COLOR_BUFFER_BIT);
+        glBindFramebuffer(GL_FRAMEBUFFER, f_duv[i]); glViewport(0, 0, ow / 2, ah / 2);
+        glClearColor(.5f, .5f, 0, 1); glClear(GL_COLOR_BUFFER_BIT);
     }
+    glFinish();
     rq = (struct v4l2_requestbuffers){ .count = NCAP, .type = t2, .memory = V4L2_MEMORY_MMAP };
     if (xioctl(fd, VIDIOC_REQBUFS, &rq)) DIE("REQBUFS cap");
     const int ncap = rq.count < NCAP ? rq.count : NCAP;
@@ -582,14 +771,14 @@ int main(int argc, char **argv) {
     }
     if (xioctl(fd, VIDIOC_STREAMON, &t1) || xioctl(fd, VIDIOC_STREAMON, &t2)) DIE("STREAMON");
 
-    out = fopen(argv[2], "wb"); if (!out) DIE("open out");
     nfree = nout; for (int i = 0; i < nout; i++) freeidx[i] = i;
-    double s_up = 0, s_draw = 0, s_conv = 0, s_wait = 0, s_cam = 0;
+    double s_up = 0, s_draw = 0, s_conv = 0, s_wait = 0, s_cam = 0, s_q = 0, s_dr = 0;
     pthread_t dec_th; dec_frames = frames; pthread_create(&dec_th, NULL, decoder, NULL);
 
-    double t0 = now();
+    double t0 = now(), cam_t0 = 0;
+    int64_t last_us = -1;
     int f = 0;
-    for (; f < frames && !quit; f++) {
+    for (; (!frames || f < frames) && !quit; f++) {
         double a = now();
         while (nfree == 0) drain(1);
         s_wait += now() - a;
@@ -602,29 +791,24 @@ int main(int argc, char **argv) {
         if (quit) { freeidx[nfree++] = bi; break; }
         s_cam += now() - a;
         a = now();
-        for (int i = 0; i < 3; i++) {
-            if (!t_c[i]) t_c[i] = tex(GL_R8, pw[i], ph[i], GL_LINEAR);
-            glBindTexture(GL_TEXTURE_2D, t_c[i]);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pw[i], ph[i], GL_RED, GL_UNSIGNED_BYTE, slot[s][i]);
+        for (int i = 0; i < 3 && !t_c[s][i]; i++) {  // 最初の1回だけ、共有メモリをテクスチャとして取り込む
+            EGLint at[] = { EGL_WIDTH, pw[i], EGL_HEIGHT, ph[i], EGL_LINUX_DRM_FOURCC_EXT, DRM_FORMAT_R8,
+                            EGL_DMA_BUF_PLANE0_FD_EXT, slot_fd[s][i], EGL_DMA_BUF_PLANE0_OFFSET_EXT, 0,
+                            EGL_DMA_BUF_PLANE0_PITCH_EXT, pw[i],
+                            EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT, 0, EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT, 0, EGL_NONE };
+            EGLImageKHR im = mkimg(dpy, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, NULL, at);
+            if (im == EGL_NO_IMAGE_KHR) DIE("eglCreateImage camera%d err=0x%x", i, eglGetError());
+            glGenTextures(1, &t_c[s][i]); glBindTexture(GL_TEXTURE_2D, t_c[s][i]); img2tex(GL_TEXTURE_2D, im);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         }
-        pthread_mutex_lock(&mu); filled[s] = 0; pthread_cond_broadcast(&cv); pthread_mutex_unlock(&mu);
+        const double cam_ts = slot_ts[s], cam_utc = slot_utc[s];
         // 工程ごとの完了待ちは時間を測るときだけ（待つとCPUとGPUの間にすき間ができて遅くなる）
         if (profile) glFinish();
         double b1 = now(); s_up += b1 - a;
 
-        // ② カメラの絵をRGBで1920x1080へ → 計器を重ね描き
-        glBindFramebuffer(GL_FRAMEBUFFER, f_rgb); glViewport(0, 0, W, H);
-        glDisable(GL_BLEND);
-        glUseProgram(p_jpg);
-        const char *nm[3] = { "ty", "tu", "tv" };
-        for (int i = 0; i < 3; i++) {
-            glActiveTexture(GL_TEXTURE0 + i); glBindTexture(GL_TEXTURE_2D, t_c[i]);
-            glUniform1i(glGetUniformLocation(p_jpg, nm[i]), i);
-        }
-        glUniform2f(glGetUniformLocation(p_jpg, "sy"), (float)CAM_W / pw[0], (float)CAM_H / ph[0]);
-        glUniform2f(glGetUniformLocation(p_jpg, "sc"), chroma_w / pw[1], chroma_h / ph[1]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glActiveTexture(GL_TEXTURE0);
         struct tele t; pthread_mutex_lock(&tmu); t = tl; pthread_mutex_unlock(&tmu);
         if (demo) {  // 見た目と警告の色を机の上で確かめるための作り物の値（画面にDEMOと出す）
             double ph = f / 30.0;
@@ -633,30 +817,54 @@ int main(int argc, char **argv) {
             t.lap_no = 3; t.lap_run = fmod(ph, 95) / 60; t.lap_last = 96.37 / 60; t.lap_best = 94.85 / 60;
             t.got = now();
         }
-        glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        draw_hud(&t, now() - t.got);
+        const double age = now() - t.got;
+        hn = 0;  // 計器の形を1枚分ためて、まとめてGPUへ送る（面ごとに同じものを描く）
+        if (!getenv("OVERLAY_NOHUD")) draw_hud(&t, age);
         if (demo) text(40, 26, .6f, YELLOW, "DEMO");
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_hud);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 8 * hn, hv, GL_STREAM_DRAW);
+
+        // ② エンコーダのY面・UV面へ、カメラの絵を拡大して書き、計器を重ねる
+        for (int plane = 0; plane < 2; plane++) {
+            glBindFramebuffer(GL_FRAMEBUFFER, plane ? f_duv[bi] : f_dy[bi]);
+            glViewport(0, 0, plane ? ow / 2 : ow, plane ? oh / 2 : oh);
+            glDisable(GL_BLEND);
+            if (!plane) {
+                glUseProgram(p_cy); glUniform2f(u_sy, (float)CAM_W / pw[0], (float)CAM_H / ph[0]); glUniform2f(u_osy, ow, oh);
+                glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, t_c[s][0]);
+            } else {
+                glUseProgram(p_cuv); glUniform2f(u_sc, chroma_w / pw[1], chroma_h / ph[1]); glUniform2f(u_osuv, ow / 2, oh / 2);
+                glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, t_c[s][1]);
+                glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, t_c[s][2]);
+                glActiveTexture(GL_TEXTURE0);
+            }
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glUseProgram(p_hud); glUniform1i(u_plane, plane);
+            glBindVertexArray(vao_hud); glDrawArrays(GL_TRIANGLES, 0, hn);
+            if (profile && !plane) { glFinish(); double c = now(); s_draw += c - b1; b1 = c; }
+        }
         glDisable(GL_BLEND);
-        if (profile) glFinish();
-        double bd = now(); s_draw += bd - b1;
+        glFinish();  // エンコーダへ渡す前にGPUの書き込みを終わらせる
+        pthread_mutex_lock(&mu); filled[s] = 0; pthread_cond_broadcast(&cv); pthread_mutex_unlock(&mu);  // GPUが読み終えたので展開スレッドへ返す
+        double bd = now(); s_conv += bd - b1;
 
-        // ③ エンコーダのバッファへ直接NV12を書く
-        glBindTexture(GL_TEXTURE_2D, t_rgb);
-        glBindFramebuffer(GL_FRAMEBUFFER, f_dy[bi]); glViewport(0, 0, W, ah);
-        glUseProgram(p_dy); glUniform1i(glGetUniformLocation(p_dy, "t"), 0); glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindFramebuffer(GL_FRAMEBUFFER, f_duv[bi]); glViewport(0, 0, W / 2, ah / 2);
-        glUseProgram(p_duv); glUniform1i(glGetUniformLocation(p_duv, "t"), 0); glDrawArrays(GL_TRIANGLES, 0, 3);
-        glFinish();
-        s_conv += now() - bd;
-
+        // ③ エンコーダへ。時刻はカメラの時刻（最初の枚からのµs）
+        if (!f) cam_t0 = cam_ts;
+        int64_t us = llround((cam_ts - cam_t0) * 1e6);
+        if (us <= last_us) us = last_us + 1;
+        last_us = us;
+        stamps[f & 63].us = us; stamps[f & 63].utc = cam_utc;
         struct v4l2_plane pl[1] = {{ .bytesused = osz, .length = ob[bi].len }};
         struct v4l2_buffer b = { .type = t1, .memory = V4L2_MEMORY_MMAP, .index = bi, .length = 1, .m.planes = pl };
-        b.timestamp.tv_sec = f / 30; b.timestamp.tv_usec = (f % 30) * 33333;
+        b.timestamp.tv_sec = us / 1000000; b.timestamp.tv_usec = us % 1000000;
         // 1秒ごとにIDR（途中から再生を始められるキーフレーム）を出させる。I_PERIODだけでは
-        // IDRでないIフレームになり、途中から読めない（手順書5-11）。IDRの前にはwrite_esがSPS・PPSを足す
+        // IDRでないIフレームになり、途中から読めない（手順書5-11）。IDRの前にはemitがSPS・PPSを確かめる
         if (f && f % 30 == 0) set_ctrl(V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME, 1, "force_key_frame");
         if (xioctl(fd, VIDIOC_QBUF, &b)) DIE("QBUF out");
+        double bq = now(); s_q += bq - bd;
         drain(0);
+        s_dr += now() - bq;
     }
     quit = 1;
     pthread_mutex_lock(&mu); pthread_cond_broadcast(&cv); pthread_mutex_unlock(&mu);
@@ -664,17 +872,20 @@ int main(int argc, char **argv) {
     xioctl(fd, VIDIOC_ENCODER_CMD, &ec);
     double tend = now() + 3; while (!eos && now() < tend) drain(1);
     double el = now() - t0;
-    fclose(out);
+    if (out) fclose(out);
+    if (csv) fclose(csv);
     pthread_join(dec_th, NULL); pthread_join(tel_th, NULL);
 
-    printf("frames=%d encoded=%d bytes=%zu elapsed=%.2fs fps=%.1f idr=%d sps_pps_inserted=%d\n",
-           f, encoded, bytes, el, f / el, idr_count, header_inserted);
-    if (f) printf("per-frame ms: wait_decoded=%.2f upload=%.2f draw=%.2f convert=%.2f wait_encoder=%.2f"
-                  " (decoder: wait_camera=%.2f jpeg_decode=%.2f)\n",
-                  s_cam / f * 1e3, s_up / f * 1e3, s_draw / f * 1e3, s_conv / f * 1e3, s_wait / f * 1e3,
-                  d_wait / f * 1e3, d_dec / f * 1e3);
+    printf("output %dx%d\n", ow, oh);
+    printf("frames=%d encoded=%d bytes=%zu elapsed=%.2fs fps=%.1f idr=%d sps_pps_inserted=%d video_s=%.2f\n",
+           f, encoded, bytes, el, f / el, idr_count, header_inserted, last_us / 1e6);
+    if (f) printf("per-frame ms: wait_decoded=%.2f upload=%.2f draw_y=%.2f draw_uv+finish=%.2f queue=%.2f drain=%.2f wait_encoder=%.2f"
+                  " emit=%.2f (decoder: wait_camera=%.2f jpeg_decode=%.2f copy=%.2f)\n",
+                  s_cam / f * 1e3, s_up / f * 1e3, s_draw / f * 1e3, s_conv / f * 1e3, s_q / f * 1e3, s_dr / f * 1e3,
+                  s_wait / f * 1e3, s_emit / f * 1e3, d_wait / f * 1e3, d_dec / f * 1e3, d_copy / f * 1e3);
     struct rusage ru; getrusage(RUSAGE_SELF, &ru);
     double cpu = ru.ru_utime.tv_sec + ru.ru_utime.tv_usec * 1e-6 + ru.ru_stime.tv_sec + ru.ru_stime.tv_usec * 1e-6;
     printf("process CPU: %.1f%% of one core\n", cpu / el * 100);
+    if (low_space) { fprintf(stderr, "空きが%.0fMBを切ったので止めた\n", min_free_mb); return 3; }
     return 0;
 }
