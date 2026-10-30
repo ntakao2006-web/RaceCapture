@@ -1,8 +1,10 @@
 import json
+import os
 import shutil
 import sys
 import tempfile
 import threading
+import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -26,8 +28,28 @@ class FakeUnoQ(BaseHTTPRequestHandler):
         pass
 
 
+# 偽のadb：端末はスマホ（動画の置き場なし）とUNO Qの2台。UNO Qの動画の置き場はargv[1]のフォルダ
+FAKE_ADB = r'''
+import os, shutil, sys, time
+device, args = sys.argv[1], sys.argv[2:]
+if args[0] == 'devices':
+    print('List of devices attached\nPHONE1\tdevice\nUNOQ1\tdevice\n'); sys.exit()
+if args[1] != 'UNOQ1':
+    sys.exit()
+if args[2] == 'shell':
+    print('DIR|')
+    for n in sorted(os.listdir(device)):
+        st = os.stat(os.path.join(device, n)); print(f'{n}|{st.st_size}|{int(st.st_mtime)}')
+    print(f'NOW|{int(time.time())}')
+elif args[2] == 'pull':
+    shutil.copyfile(os.path.join(device, args[3].rsplit('/', 1)[1]), args[4])
+'''
+
+
 class CollectTests(unittest.TestCase):
     def setUp(self):
+        self.adb_command = collect_logs.adb_command
+        collect_logs.adb_command = lambda: None  # この試験の中ではPCのadbを使わない
         self.dir = Path(tempfile.mkdtemp())
         self.v1 = self.dir / 'v1card'; (self.v1 / 'logs').mkdir(parents=True)
         for name in ('20261024_100000_JST_L1234ABCD_0002.csv', '20261024_100000_JST_L1234ABCD_0002_can.csv',
@@ -44,6 +66,7 @@ class CollectTests(unittest.TestCase):
         self.url = f'http://127.0.0.1:{self.server.server_port}/'
 
     def tearDown(self):
+        collect_logs.adb_command = self.adb_command
         self.server.shutdown(); shutil.rmtree(self.dir)
 
     def run_once(self):
@@ -68,6 +91,23 @@ class CollectTests(unittest.TestCase):
         self.assertEqual(self.run_once(), 0)
         run2 = next(self.out.glob('*/run02_*'))
         self.assertEqual([p.name for p in (run2 / 'v2_sd').glob('*.BIN')], ['EL000002.BIN'])
+
+    def test_collects_finished_videos_over_usb_once(self):
+        device = self.dir / 'device'; device.mkdir()
+        for name, data, age in (('20261108_130000.ts', b'0123456789', 3600), ('20261108_130000.csv', b'frame\n', 3600),
+                                ('20261108_131000.ts', b'rec', 5), ('20261108_131000.csv', b'f\n', 5)):
+            (device / name).write_bytes(data); os.utime(device / name, (time.time() - age,) * 2)
+        fake = self.dir / 'fake_adb.py'; fake.write_text(FAKE_ADB, encoding='utf-8')
+        collect_logs.adb_command = lambda: [sys.executable, str(fake), str(device)]
+        args = ['--drives', '--no-emmc', '--no-phone', '--out', str(self.out)]
+        self.assertEqual(collect_logs.main(args), 0)
+        run = next(self.out.glob('*/run01_*'))
+        # 録画中（5秒前に書かれた）の1本は取らない。途中のファイル（.part）も残さない
+        self.assertEqual(sorted(p.name for p in (run / 'v2_video').iterdir()), ['20261108_130000.csv', '20261108_130000.ts'])
+        self.assertEqual((run / 'v2_video' / '20261108_130000.ts').read_bytes(), b'0123456789')
+        self.assertEqual(len(list(device.iterdir())), 4)  # 本体の側は消さない
+        self.assertEqual(collect_logs.main(args), 0)
+        self.assertEqual(len(list(self.out.glob('*/run*'))), 1)  # 2回目は新しいものが無い
 
     def test_unreachable_uno_q_still_collects_cards(self):
         self.server.shutdown()

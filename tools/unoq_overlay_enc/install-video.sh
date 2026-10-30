@@ -13,5 +13,7 @@ install -m 0755 "$src/run-video.sh" "$dst/"
 # .serviceはWindowsで取り出すとCRLFになることがあるので、CRを落として置く
 tr -d '\r' < "$src/ecologger-video.service" > /etc/systemd/system/ecologger-video.service
 systemctl daemon-reload
-systemctl enable --now ecologger-video.service
+# 入れ直しのときも新しい版で動くように、動いていても止めてから起動し直す（録画中のファイルは閉じられる）
+systemctl enable ecologger-video.service
+systemctl restart ecologger-video.service
 systemctl --no-pager status ecologger-video.service | head -5

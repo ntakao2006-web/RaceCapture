@@ -11,7 +11,9 @@
 //   入力：/dev/videoN（カメラ）か file:xxx.jpg（同じJPEGを30fpsで繰り返す。カメラ無しで試す用）
 //   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むときはstrftimeの書式とみなし、
 //         OVERLAY_SEGMENT_MIN分（既定10）ごとに、キーフレームの所で新しいファイルへ切り替える
-//   出力の横に xxx.csv（1秒ごとに「ファイル内の枚目・動画内の秒・UTC」）を書く。走行データと時刻を合わせる用
+//   出力の横に xxx.csv（1秒ごとに「ファイル内の枚目・動画内の秒・UTC・どの時計か・本体の時計のUTC」）を書く。走行データと時刻を合わせる用。
+//   時刻は走行データのGNSSの時刻に合わせる（本体の時計は車の中では合っていないことがある）。GNSSの時刻が分かるまでは
+//   本体の時計で書き、分かったら、それまで本体の時計で名前を付けたこの録画のファイルをGNSSの時刻の名前へ付け直す
 //   空きがOVERLAY_MIN_FREE_MB（既定2048）を切ったら、出力先（%の書式のとき）にある前の起動のときの動画を古い順に消して空ける。
 //   今回の電源ONから後に書いた動画は消さない（カメラが抜けて録画をやり直しても、同じ走行の前半は残る）。消せる動画が無くなっても足りなければ、記録を止めて終わる（終了コード3）。
 //   EcoCaptureは空きが1GiBを切ると古い走行記録から消すので、録画はそれより手前で止め、走行記録が伸びる分を残す
@@ -90,12 +92,38 @@ struct tele {
 };
 static struct tele tl = { NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, 0, 0, -1e9 };
 static pthread_mutex_t tmu = PTHREAD_MUTEX_INITIALIZER;
+static int api_port = 8080;  // OVERLAY_TELEMETRY_PORTで変えられる（時刻合わせの試験で、作り物の値を返す相手へ向ける）
+
+// ---- 時刻（GNSS）
+// 本体（Linux）の時計は、車の中ではネットにつながらず合っていないことがある（電池付きの時計が無く、前に止めたときの
+// 時刻から動き出す。LTEはSTM32側なのでLinuxの時計合わせには使えない）。そこで、走行データのGNSSの時刻と、
+// その行を本体が受け取った時刻（host_utc）の差から「GNSSの時刻 − CLOCK_MONOTONIC」を求め、各コマの時刻に使う。
+// 受け取りまでの遅れ（数十〜100ms）があるので、直近30秒で一番遅れの小さい（差が大きい）値を使う
+#define CLK_N 128
+static struct { double est, at; } clk[CLK_N];
+static int clk_i;
+static double gnss_off, gnss_at = -1e9;  // GNSSの時刻 − CLOCK_MONOTONIC と、それを最後に求めた時刻（now()）。tmuで守る
+
+static void clock_sample(double est) {  // tmuを持って呼ぶ
+    double t = now(), best = -1e18;
+    clk[clk_i].est = est; clk[clk_i].at = t; clk_i = (clk_i + 1) % CLK_N;
+    for (int i = 0; i < CLK_N; i++) if (clk[i].at > t - 30 && clk[i].est > best) best = clk[i].est;
+    gnss_off = best; gnss_at = t;
+}
+
+// GNSSの時刻が分かっていれば1（1分以上来ていなければ0）
+static int gnss_offset(double *off) {
+    pthread_mutex_lock(&tmu);
+    int ok = now() - gnss_at < 60; *off = gnss_off;
+    pthread_mutex_unlock(&tmu);
+    return ok;
+}
 
 static int http_get(const char *path, char *buf, int cap) {
     int s = socket(AF_INET, SOCK_STREAM, 0); if (s < 0) return -1;
     struct timeval tv = { 0, 500000 };
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv); setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof tv);
-    struct sockaddr_in a = { .sin_family = AF_INET, .sin_port = htons(8080), .sin_addr.s_addr = htonl(INADDR_LOOPBACK) };
+    struct sockaddr_in a = { .sin_family = AF_INET, .sin_port = htons(api_port), .sin_addr.s_addr = htonl(INADDR_LOOPBACK) };
     if (connect(s, (struct sockaddr *)&a, sizeof a)) { close(s); return -1; }
     char req[256];
     int n = snprintf(req, sizeof req, "GET %s HTTP/1.0\r\nHost: 127.0.0.1\r\nX-EcoCapture: 1\r\nConnection: close\r\n\r\n", path);
@@ -118,12 +146,28 @@ static double jnum(const char *js, const char *section, const char *key) {
 }
 
 // "2026-10-29T13:50:42.577141+00:00" → time_t（UTC）
+// "key": "…" の文字列の中身の先頭（無い・nullならNULL。コロンのあとの空白は読み飛ばす）
+static const char *jstr(const char *js, const char *key) {
+    char k[64]; snprintf(k, sizeof k, "\"%s\":", key);
+    const char *q = strstr(js, k); if (!q) return NULL;
+    q += strlen(k); while (*q == ' ') q++;
+    return *q == '"' ? q + 1 : NULL;
+}
+
 static int jtime(const char *js, const char *key, time_t *out) {
-    char k[64]; snprintf(k, sizeof k, "\"%s\":\"", key);
-    const char *q = strstr(js, k); if (!q) return 0;
+    const char *q = jstr(js, key); if (!q) return 0;
     struct tm t = {0};
-    if (sscanf(q + strlen(k), "%d-%d-%dT%d:%d:%d", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec) != 6) return 0;
+    if (sscanf(q, "%d-%d-%dT%d:%d:%d", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec) != 6) return 0;
     t.tm_year -= 1900; t.tm_mon -= 1; *out = timegm(&t); return 1;
+}
+
+// 同じく秒の小数まで（UTC）。無ければ0
+static double jtime_frac(const char *js, const char *key) {
+    const char *q = jstr(js, key); if (!q) return 0;
+    struct tm t = {0}; int n = 0;
+    if (sscanf(q, "%d-%d-%dT%d:%d:%d%n", &t.tm_year, &t.tm_mon, &t.tm_mday, &t.tm_hour, &t.tm_min, &t.tm_sec, &n) != 6) return 0;
+    t.tm_year -= 1900; t.tm_mon -= 1;
+    return timegm(&t) + (q[n] == '.' ? strtod(q + n, NULL) : 0);
 }
 
 static void *telemetry(void *arg) {
@@ -147,7 +191,12 @@ static void *telemetry(void *arg) {
             t.lap_best = jnum(js, "lap", "BestLap");
             t.utc_ok = jtime(js, "gnss_utc", &t.utc) || jtime(js, "host_utc", &t.utc);
             t.got = now();
-            pthread_mutex_lock(&tmu); tl = t; pthread_mutex_unlock(&tmu);
+            // gnss_utcは秒まで。秒の小数はiTOW（GPSの時刻。UTCとの差は整数秒なので小数は同じ）から取る
+            const double host = jtime_frac(js, "host_utc"), gnss = jtime_frac(js, "gnss_utc"), itow = jnum(js, NULL, "gnss_itow_ms");
+            pthread_mutex_lock(&tmu);
+            tl = t;
+            if (host > 0 && gnss > 0 && !isnan(itow)) clock_sample(gnss + fmod(itow, 1000) / 1000 - (host - (wall() - now())));
+            pthread_mutex_unlock(&tmu);
         }
         double r = 0.1 - (now() - a);
         if (r > 0) usleep(r * 1e6);
@@ -366,7 +415,12 @@ static int64_t seg_us0;
 static size_t bytes;
 static uint8_t seq_hdr[256], cc_pat, cc_pmt, cc_vid;
 static size_t seq_len;
-static struct { int64_t us; double utc; } stamps[64];  // エンコーダへ渡した時刻（µs）→ その枚のUTC
+// エンコーダへ渡した時刻（µs）→ その枚のカメラの時刻（CLOCK_MONOTONIC）と、本体の時計でのUTC
+static struct { int64_t us; double mono, host; } stamps[64];
+// この録画で開いたファイル。本体の時計で名前を付けたものは、GNSSの時刻が分かったら付け直す
+#define RUN_FILES 64
+static struct { char ts[512], csv[520]; double mono; int gnss; } runf[RUN_FILES];
+static int nrunf, clock_announced;
 
 static void put(const void *p, size_t n) { fwrite(p, 1, n, out); bytes += n; }
 
@@ -425,9 +479,25 @@ static void ts_frame(const uint8_t *es, size_t n, uint64_t pts, uint64_t pcr, in
     }
 }
 
-static double utc_of(int64_t us) {
-    for (int i = 0; i < 64; i++) if (stamps[i].us == us) return stamps[i].utc;
-    return wall();
+// その枚のUTC。GNSSの時刻が分かっていればそれで（*gnss=1）、無ければ本体の時計で。*hostは本体の時計でのUTC
+static double frame_utc(int64_t us, int *gnss, double *host) {
+    double mono = now(), off; *host = wall();
+    for (int i = 0; i < 64; i++) if (stamps[i].us == us) { mono = stamps[i].mono; *host = stamps[i].host; break; }
+    *gnss = gnss_offset(&off);
+    return *gnss ? mono + off : *host;
+}
+
+static void iso_utc(double u, char *b, size_t n) {
+    time_t s = (time_t)floor(u); struct tm g; gmtime_r(&s, &g);
+    char t[32]; strftime(t, sizeof t, "%Y-%m-%dT%H:%M:%S", &g);
+    snprintf(b, n, "%s.%03dZ", t, (int)((u - s) * 1000));
+}
+
+// 出力名の拡張子を.csvにした名前
+static void csv_name(const char *ts, char *b, size_t n) {
+    snprintf(b, n, "%s", ts);
+    char *dot = strrchr(b, '.'); if (dot && !strchr(dot, '/')) *dot = 0;
+    strncat(b, ".csv", n - strlen(b) - 1);
 }
 
 // 新しいファイル（と時刻のcsv）を開く。usはそのファイルの最初の枚（キーフレーム）の時刻
@@ -435,15 +505,38 @@ static void seg_open(int64_t us) {
     if (out) fclose(out);
     if (csv) fclose(csv);
     csv = NULL;
-    if (seg_on) { time_t u = (time_t)utc_of(us); struct tm lt; localtime_r(&u, &lt); strftime(out_name, sizeof out_name, out_pat, &lt); }
+    int g; double host, u = frame_utc(us, &g, &host);
+    if (seg_on) { time_t s = (time_t)u; struct tm lt; localtime_r(&s, &lt); strftime(out_name, sizeof out_name, out_pat, &lt); }
     else snprintf(out_name, sizeof out_name, "%s", out_pat);
     out = fopen(out_name, "wb"); if (!out) DIE("open %s", out_name);
-    char cn[sizeof out_name + 8]; snprintf(cn, sizeof cn, "%s", out_name);
-    char *dot = strrchr(cn, '.'); if (dot && !strchr(dot, '/')) *dot = 0;
-    strcat(cn, ".csv");
-    csv = fopen(cn, "w"); if (csv) fprintf(csv, "frame,video_s,utc\n");
+    char cn[sizeof out_name + 8]; csv_name(out_name, cn, sizeof cn);
+    // utc：その秒の頭の枚の時刻（GNSSの時刻、まだ分からなければ本体の時計）。clock：どちらで付けたか。host_utc：本体の時計
+    csv = fopen(cn, "w"); if (csv) fprintf(csv, "frame,video_s,utc,clock,host_utc\n");
     seg_t0 = now(); seg_us0 = us; seg_frames = 0;
+    if (seg_on && nrunf < RUN_FILES) {
+        snprintf(runf[nrunf].ts, sizeof runf[nrunf].ts, "%s", out_name); snprintf(runf[nrunf].csv, sizeof runf[nrunf].csv, "%s", cn);
+        runf[nrunf].mono = now();
+        for (int i = 0; i < 64; i++) if (stamps[i].us == us) { runf[nrunf].mono = stamps[i].mono; break; }
+        runf[nrunf].gnss = g; nrunf++;
+    }
     printf("file %s\n", out_name); fflush(stdout);
+}
+
+// GNSSの時刻が分かったら、本体の時計で名前を付けたこの録画のファイルを、GNSSの時刻の名前へ付け直す（書いている途中でもよい）
+static void rename_by_gnss(void) {
+    double off;
+    if (!seg_on || !gnss_offset(&off)) return;
+    for (int i = 0; i < nrunf; i++) {
+        if (runf[i].gnss) continue;
+        runf[i].gnss = 1;
+        char ts[512], cn[520]; time_t s = (time_t)(runf[i].mono + off); struct tm lt; localtime_r(&s, &lt);
+        strftime(ts, sizeof ts, out_pat, &lt); csv_name(ts, cn, sizeof cn);
+        if (!strcmp(ts, runf[i].ts) || !access(ts, F_OK) || rename(runf[i].ts, ts)) continue;
+        rename(runf[i].csv, cn);
+        printf("renamed %s -> %s (GNSS time)\n", runf[i].ts, ts); fflush(stdout);
+        if (!strcmp(out_name, runf[i].ts)) snprintf(out_name, sizeof out_name, "%s", ts);
+        snprintf(runf[i].ts, sizeof runf[i].ts, "%s", ts); snprintf(runf[i].csv, sizeof runf[i].csv, "%s", cn);
+    }
 }
 
 // 空きが足りないとき、出力先のフォルダから前の起動のときの動画（.ts）を1つ、古い順に消す（横の.csvも）。消せたら1
@@ -495,12 +588,17 @@ static void emit(const uint8_t *p, size_t n, int64_t us) {
         else { fflush(out); sync_file_range(fileno(out), 0, 0, SYNC_FILE_RANGE_WRITE); }  // 待たずに書き出しを始めさせる
         while (seg_on && free_mb() < min_free_mb && remove_oldest_video()) {}
         if (free_mb() < min_free_mb) { low_space = 1; quit = 1; }
+        int g; double host, u = frame_utc(us, &g, &host);
         if (csv) {
-            double u = utc_of(us); time_t s = (time_t)u; struct tm g; gmtime_r(&s, &g);
-            char ts[32]; strftime(ts, sizeof ts, "%Y-%m-%dT%H:%M:%S", &g);
-            fprintf(csv, "%d,%.3f,%s.%03dZ\n", seg_frames, (us - seg_us0) / 1e6, ts, (int)((u - s) * 1000));
+            char a[40], b[40]; iso_utc(u, a, sizeof a); iso_utc(host, b, sizeof b);
+            fprintf(csv, "%d,%.3f,%s,%s,%s\n", seg_frames, (us - seg_us0) / 1e6, a, g ? "gnss" : "host", b);
             fflush(csv);
         }
+        if (g && !clock_announced) {
+            clock_announced = 1;
+            printf("clock: GNSS time found (the host clock is off by %+.3f s)\n", host - u); fflush(stdout);
+        }
+        rename_by_gnss();
         if (ts_mode) ts_tables();
     }
     if (!out) return;
@@ -698,6 +796,9 @@ int main(int argc, char **argv) {
     const int profile = getenv("OVERLAY_PROFILE") && atoi(getenv("OVERLAY_PROFILE"));
     if (getenv("OVERLAY_SEGMENT_MIN")) seg_len = atof(getenv("OVERLAY_SEGMENT_MIN")) * 60;
     if (getenv("OVERLAY_MIN_FREE_MB")) min_free_mb = atof(getenv("OVERLAY_MIN_FREE_MB"));
+    if (getenv("OVERLAY_TELEMETRY_PORT")) api_port = atoi(getenv("OVERLAY_TELEMETRY_PORT"));
+    for (int i = 0; i < CLK_N; i++) clk[i].at = -1e9;
+    for (int i = 0; i < 64; i++) stamps[i].us = -1;  // まだ使っていない枠（0は最初の枚の時刻なので区別する）
     out_pat = argv[2]; seg_on = strchr(out_pat, '%') != NULL;
     const size_t ol = strlen(out_pat); ts_mode = !(ol > 5 && !strcmp(out_pat + ol - 5, ".h264"));
     signal(SIGINT, on_signal); signal(SIGTERM, on_signal);
@@ -886,7 +987,7 @@ int main(int argc, char **argv) {
         int64_t us = llround((cam_ts - cam_t0) * 1e6);
         if (us <= last_us) us = last_us + 1;
         last_us = us;
-        stamps[f & 63].us = us; stamps[f & 63].utc = cam_utc;
+        stamps[f & 63].us = us; stamps[f & 63].mono = cam_ts; stamps[f & 63].host = cam_utc;
         struct v4l2_plane pl[1] = {{ .bytesused = osz, .length = ob[bi].len }};
         struct v4l2_buffer b = { .type = t1, .memory = V4L2_MEMORY_MMAP, .index = bi, .length = 1, .m.planes = pl };
         b.timestamp.tv_sec = us / 1000000; b.timestamp.tv_usec = us % 1000000;

@@ -5,14 +5,16 @@
   - Ver.2（UNO Q）のシールドSDカード: ELxxxxxx.BIN（CSVへ変換も行う）
   - Ver.2 本体（eMMC）: WebのAPIからCSV・メタデータ・CAN生ログ。USB（adb転送）か、
     同じWi-Fi（テザリング）上の uno-q.local で届いた方から取る
+  - Ver.2 本体の走行映像（焼き込み録画、~/ecocapture-v2-data/video の .ts と .csv）: USBのadbで直接吸い出す。
+    1本約900MB（10分）で、Wi-Fiでは遅すぎるのでUSBのときだけ。録画中のファイル（2分以内に書かれたもの）は取らない
   - スマホ組（Androidロガー）: USBの「ファイル転送」でつないだ端末の Download/EcoLogger の EL_*.csv
 
-出力: drive_logs/<回収日>/run<NN>_<時刻>/{v1_sd,v2_sd,v2_emmc,phone}/
+出力: drive_logs/<回収日>/run<NN>_<時刻>/{v1_sd,v2_sd,v2_emmc,v2_video,phone}/
 前回までに回収したファイル（名前と大きさが同じもの）は drive_logs/collected.json で覚えておき、
 もう一度は取らない。新しいものが1つも無ければフォルダを作らない。
 
 使い方: Collect-Logs.cmd をダブルクリック。
-  python collect_logs.py [--drives E: F:] [--url URL ...] [--no-emmc] [--no-phone] [--phone-dir DIR] [--out DIR] [--config FILE]
+  python collect_logs.py [--drives E: F:] [--url URL ...] [--no-emmc] [--no-video] [--no-phone] [--phone-dir DIR] [--out DIR] [--config FILE]
   --config にロガーの config.json（/api/config）を渡すと、SDのCSVに油温などCAN信号の列が付く。
 """
 import argparse
@@ -129,6 +131,75 @@ def find_adb():
     return shutil.which('adb') or next((str(p) for p in ADB_CANDIDATES if p.is_file()), None)
 
 
+def adb_command():
+    """adbを呼ぶときの先頭（試験では偽のadbに差し替える）。adbが無ければNone"""
+    adb = find_adb()
+    return [adb] if adb else None
+
+
+VIDEO_DIR = '/home/arduino/ecocapture-v2-data/video'
+VIDEO_ACTIVE_SEC = 120  # 録画はファイルを1秒ごとに更新するので、これより最近に書かれたものは録画中とみなす
+# 動画の置き場があればDIR、ファイルごとに「名前|大きさ|更新時刻」、最後に本体の今の時刻
+VIDEO_LIST = (f'if cd {VIDEO_DIR} 2>/dev/null; then echo "DIR|"; '
+              "for f in *.ts *.csv; do [ -f \"$f\" ] && stat -c '%n|%s|%Y' \"$f\"; done; fi; echo \"NOW|$(date +%s)\"")
+
+
+def list_uno_q_videos(adb):
+    """USBでつないだ端末のうち、動画の置き場があるもの（UNO Q）を探して (serial, {名前: (大きさ, 更新時刻)}, 今) を返す"""
+    devices = subprocess.run([*adb, 'devices'], capture_output=True, text=True, timeout=15).stdout.splitlines()
+    for line in devices[1:]:
+        parts = line.split()
+        if len(parts) < 2 or parts[1] != 'device':
+            continue
+        try:
+            out = subprocess.run([*adb, '-s', parts[0], 'shell', VIDEO_LIST], capture_output=True, text=True, timeout=30).stdout
+        except subprocess.SubprocessError:
+            continue
+        rows = [r.split('|') for r in out.splitlines() if '|' in r]
+        if not any(r[0] == 'DIR' for r in rows):
+            continue
+        now = next((int(r[1]) for r in rows if r[0] == 'NOW'), 0)
+        return parts[0], {r[0]: (int(r[1]), int(r[2])) for r in rows if len(r) == 3}, now
+    return None, {}, 0
+
+
+def collect_video(run, manifest, log):
+    adb = adb_command()
+    if not adb:
+        log('  adbが見つからないので、動画は回収しません。')
+        return
+    serial, files, now = list_uno_q_videos(adb)
+    if not serial:
+        log('  USBでつないだUNO Qが見つかりません（動画はUSBのときだけ回収。ドックを外してPCへ直接つなぐ）。')
+        return
+    for name in sorted(files):
+        if not name.endswith('.ts'):
+            continue
+        csv = name[:-3] + '.csv'
+        size, mtime = files[name]
+        if now - mtime < VIDEO_ACTIVE_SEC:
+            log(f'  v2_video: {name} は録画中のため回収しません')
+            continue
+        for item in (name, csv):
+            if item not in files:
+                continue
+            key = f'v2_video/{item}/{files[item][0]}'
+            if key in manifest:
+                continue
+            dest = run.folder('v2_video') / item
+            part = dest.with_name(dest.name + '.part')
+            if item == name:
+                log(f'  v2_video: {item}（{files[item][0] / 1e6:.0f}MB）')
+            subprocess.run([*adb, '-s', serial, 'pull', f'{VIDEO_DIR}/{item}', str(part)], capture_output=True,
+                           timeout=max(300, files[item][0] / 2e6), check=True)
+            if part.stat().st_size != files[item][0]:
+                part.unlink()
+                raise OSError(f'動画の大きさが一致しません: {item}')
+            part.replace(dest)
+            manifest[key] = str(dest.relative_to(run.path.parents[1]))
+            run.count += 1
+
+
 def reach_uno_q(urls, log):
     """Return the first URL that answers. A localhost URL is retried after setting up the adb forward."""
     for url in urls:
@@ -212,6 +283,7 @@ def main(argv=None):
     parser.add_argument('--drives', nargs='*', help='調べるドライブ（省略時はCドライブ以外すべて）')
     parser.add_argument('--url', nargs='+', default=DEFAULT_URLS, help='UNO QのWeb（上から順に試す。127.0.0.1はadb転送）')
     parser.add_argument('--no-emmc', action='store_true', help='UNO Q本体からは回収しない')
+    parser.add_argument('--no-video', action='store_true', help='UNO Q本体の走行映像は回収しない')
     parser.add_argument('--no-phone', action='store_true', help='スマホからは回収しない')
     parser.add_argument('--phone-dir', type=Path, help='スマホのEcoLoggerフォルダを手でコピーした場所（USBの自動コピーの代わり）')
     parser.add_argument('--out', type=Path, default=REPO / 'drive_logs')
@@ -245,6 +317,12 @@ def main(argv=None):
                     collect_emmc(run, manifest, url, log)
                 except (urllib.error.URLError, OSError, ValueError) as exc:
                     problems.append(f'UNO Q: {exc}')
+        if not args.no_video:
+            log('Ver.2 本体（走行映像、USBのみ）')
+            try:
+                collect_video(run, manifest, log)
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                problems.append(f'UNO Qの動画: {exc}')
         if not args.no_phone:
             log('スマホ（Androidロガー）')
             with tempfile.TemporaryDirectory() as staging:
