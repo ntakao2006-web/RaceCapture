@@ -528,7 +528,8 @@ Maruo.Sさんの追加依頼（ER-7-7）と重なるものは、まず自宅の�
   - 大会の動画は、ブラウザが2つ目を`taichi_eco_2026 (1).mp4`のように保存した場合や名前を変えた場合も、名前の「 (n)」を無視するのと大きさ（6117949740バイト）で見分ける（5Bの`/demo`で確認）
   - 2026-10-31 ユーザーが公開に戻すコマンドを実行。`AllowFunnel: true`、経路は`/`・`/demo`・`/grafana`・`/live`のまま、公開側のアドレス経由で4ページとも200を確認
   - 公開（Funnel）が外れたのは期限切れではなく、10/30 21:28:33に`/demo`を足した`tailscale serve`の操作そのもの（直前の控えでは`AllowFunnel: true`、同じ秒に設定が書き換わった）
-  - 残り：見せるPCのChromeで「ファイルを選択」から読むことと全画面の確認（ここで試したのはURL指定の読み込みまで）。Grafanaを丸ごと横に出すにはGrafanaの`allow_embedding`を入れて再起動が要る（今は`X-Frame-Options: deny`）
+  - 2026-10-31朝、ユーザーから「動画の画面で『接続が拒否されました』と出る」。5Bの公開・サービスは正常（公開側・tailnet側とも4ページ200、画面の接続が約10本）。**動画のページの「右側」を「Grafana」にすると、Grafanaの`X-Frame-Options: deny`でChromeが枠の中に「〜で接続が拒否されました」と出す**（選んだ値はそのブラウザに保存されるので、一度選んだ端末ではずっと出る）。右側の選択肢からGrafanaを外し、保存済みの値が無い選択肢なら「周回・時間と地図」に戻すようにした。あわせて、5Bから開いたときは保存済みの「サーバー」欄を使わず、常にそのページのサイトにした（前の値が残った端末で枠や接続が別の場所へ向かわないように）。5Bの`/demo`へ反映（前の版は`demo_video.html.bak-20261031-before-noframe`）、Grafanaとサーバー欄に古い値を入れたブラウザで、右側が周回・時間と地図になり接続することを確認
+  - 残り：見せるPCのChromeで「ファイルを選択」から読むことと全画面の確認（ここで試したのはURL指定の読み込みまで）。Grafanaを丸ごと横に出すにはGrafanaの`allow_embedding`を入れて再起動が要る（今は`X-Frame-Options: deny`。ダッシュボードは別のURLで開く運用にしたので、入れていない）
 - [ ] ER-14-4 学園祭の後に片付ける：`sudo systemctl disable --now 'ecorun-race-demo@*'`、`data/telemetry/demo-*`を消す、VictoriaMetricsからデモの部屋を消す（`/api/v1/admin/tsdb/delete_series?match[]={room=~"demo-.*"}`）、`/demo`を外すか残すか決める
 
 ## ER-6 Ver.1（保険）

@@ -22,11 +22,13 @@
   dashboard on one, /demo?right=none on the other. The bridge sends each row to Grafana Live
   (speed), the map and this page at the same moment, so they agree without knowing of each
   other. The race clock panel runs on real time and reads ~2-3 s ahead of the map, as at the pit.
-  Full screen hides the settings and the status line.
+  Full screen hides the settings and the status line. Grafana itself cannot sit beside the video:
+  it sends X-Frame-Options: deny, and Chrome shows "refused to connect" in its place (2026-10-31),
+  so the right side offers the clock and map only.
 
   Settings are kept in this browser. They can also be given in the URL, e.g.
     /demo?room=demo-majesta&start=2026-10-25T12:19:41.899%2B09:00&offset=0.3
-  (`server` defaults to the site serving the page; `video` takes a URL, but a file picked with
+  (`server` is the site serving the page whenever the 5B serves it; `video` takes a URL, but a file picked with
   the button is not kept and has to be picked again after a reload).
 -->
 <style>
@@ -73,7 +75,6 @@
   <label>ずれ <button data-step="-0.5">−0.5</button><input id="offset" type="number" step="0.1" value="0"><button data-step="0.5">＋0.5</button>秒</label>
   <label>右側 <select id="right-mode">
     <option value="live">周回・時間と地図</option>
-    <option value="grafana">Grafana（埋め込みの許可が要る）</option>
     <option value="none">なし（動画だけ）</option>
   </select></label>
   <button id="fullscreen">全画面</button>
@@ -99,11 +100,13 @@ function load(key, fallback) {
 }
 function save(key, value) { try { localStorage.setItem('demo_video.' + key, value); } catch (e) { /* private window */ } }
 
-// Served by the 5B (/demo): the server is the page's own site
-if (location.protocol === 'https:') $('server').value = location.origin;
+// Served by the 5B (/demo): the server is the page's own site, whatever an earlier visit saved
+const served = location.protocol === 'https:';
+if (served) $('server').value = location.origin;
 for (const key of KEYS) {
   const el = $(key);
-  el.value = load(key, el.value);
+  if (!(served && key === 'server')) el.value = load(key, el.value);
+  if (el.tagName === 'SELECT' && el.selectedIndex < 0) el.selectedIndex = 0;  // a choice since removed
   el.addEventListener('change', () => { save(key, el.value); if (key !== 'offset') connect(); });
 }
 document.querySelectorAll('[data-step]').forEach(b => b.onclick = () => {
@@ -160,9 +163,7 @@ function showRight() {
   const right = $('right'), mode = $('right-mode').value, base = baseUrl(), room = encodeURIComponent($('room').value);
   right.className = mode === 'none' ? 'none' : '';
   if (mode === 'none' || !base) { right.innerHTML = ''; return; }
-  const urls = mode === 'grafana'
-    ? [`${base}/grafana/d/ecorun-demo?var-room=${room}&kiosk`]
-    : [`${base}/live/clock?room=${room}`, `${base}/live/map?room=${room}`];
+  const urls = [`${base}/live/clock?room=${room}`, `${base}/live/map?room=${room}`];
   right.innerHTML = urls.map(u => `<iframe src="${u}" allow="geolocation"></iframe>`).join('');
 }
 
