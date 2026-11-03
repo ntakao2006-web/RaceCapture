@@ -42,6 +42,7 @@ class FormatTests(unittest.TestCase):
         self.assertEqual(fmt_signed(0.41), '+0.41')
         self.assertEqual(fmt_signed(-0.84), '−0.84')
         self.assertEqual(fmt_signed(0.001), '0.00')
+        self.assertEqual((fmt_signed(38.42), fmt_signed(-123.4)), ('+38.4', '−123'))
         self.assertEqual(fmt_signed(None), '--')
 
 
@@ -128,7 +129,8 @@ class ModelTests(unittest.TestCase):
         s, _ = m.update(frame(lap), 0.0)
         self.assertEqual((s['lap_now'], s['last'], s['best'], s['lap_no'], s['elapsed'], s['clock']),
                          ('1:12.3', '1:52.34', '1:51.12', '23', '0:36:15', '11:16'))
-        self.assertEqual((s['last_note'], s['last_note_kind']), ('前周比 +0.41', 'slower'))
+        self.assertEqual((s['last_note'], s['last_note_kind']), ('前周比 +0.41秒', 'slower'))
+        self.assertEqual((s['notice'], s['notice_kind']), ('', None))
         self.assertTrue(s['rec'] and s['gnss'] and s['oil_sensor'] and not s['stale'])
         self.assertEqual((s['video'], s['video_kind']), ('', None))  # an EcoCapture without the video summary
 
@@ -163,13 +165,27 @@ class ModelTests(unittest.TestCase):
         moving = lambda **kw: {**frame(lap={**lap, **kw}), 'sample': {**frame(lap={**lap, **kw})['sample'],
                                                                          'values': {'Lat': LAT0, 'Lon': LON0, 'GPSSpeed': 120.0}}}
         s, _ = m.update(moving(), 0.0)
-        self.assertEqual((s['delta'], s['delta_kind'], s['lap_tag']), ('+41.50', 'slower', ''))
-        s, _ = m.update(moving(LapStartPit=True, LastLapPit=True), 0.1)  # the out lap
-        self.assertEqual((s['delta'], s['delta_kind'], s['delta_frac'], s['lap_tag']), ('--', None, None, 'ピットアウト'))
+        self.assertEqual((s['delta'], s['delta_kind'], s['notice']), ('+41.5', 'slower', ''))
+        in_box = moving(LapStartPit=True, LastLapPit=True); in_box['sample']['values']['GPSSpeed'] = 0.0
+        s, _ = m.update(in_box, 0.1)  # stopped in the box, past the line
+        self.assertEqual((s['delta'], s['notice'], s['notice_kind']), ('--', 'ピットイン', 'pit'))
+        s, _ = m.update(moving(LapStartPit=True, LastLapPit=True), 0.2)  # the out lap
+        self.assertEqual((s['delta'], s['delta_kind'], s['delta_frac'], s['notice'], s['notice_kind']),
+                         ('--', None, None, 'ピットアウト', 'pit'))
         self.assertEqual((s['last_note'], s['last_note_kind'], s['warn_level']), ('PIT', 'pit', 0))
         stopped = moving(); stopped['sample']['values']['GPSSpeed'] = 3.0
-        s, _ = m.update(stopped, 0.2)
-        self.assertEqual((s['delta'], s['lap_tag']), ('--', ''))
+        s, _ = m.update(stopped, 0.3)  # stopped on the in lap (a box before the line): nothing known yet
+        self.assertEqual((s['delta'], s['notice']), ('--', ''))
+
+    def test_the_temperature_takes_the_same_strip_and_comes_first(self):
+        m = DashModel(config())
+        out_lap = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapStartPit': True, 'LastLapPit': True}
+        for k in range(12):
+            s, _ = m.update(frame(out_lap, oil=122), k * 0.1)
+        self.assertEqual((s['notice'], s['notice_kind']), ('クーリング　油温 122℃', 'cool'))
+        for k in range(12):
+            s, _ = m.update(frame(out_lap, oil=96, water=121), 2.0 + k * 0.1)
+        self.assertEqual((s['notice'], s['notice_kind']), ('ピットイン　水温 121℃', 'pitin'))
 
     def test_no_warning_from_values_of_a_dead_link(self):
         m = DashModel(config())

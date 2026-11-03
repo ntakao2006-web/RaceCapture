@@ -8,7 +8,7 @@ shown is worked out in dash_model.py. Settings: ~/.config/ecocapture-dash.json (
 
   ecocapture_dash.py                    the dash
   ecocapture_dash.py --demo             a made-up drive (laps, the gap, a pit stop, oil heating up to 130 C)
-  ecocapture_dash.py --state warn120    one fixed screen: normal start pit warn110 warn120 warn130 lost stale
+  ecocapture_dash.py --state warn120    one fixed screen: normal start pit pitbox warn110 warn120 warn130 lost stale
   ecocapture_dash.py --sound warn       play one warning sound and exit (warn / pit; --volume 0.3)
   --size 1920x1080 --snapshot out.png   window size, and save the first frame as PNG then exit
   --no-pause                            leave the other display apps alone (checking on a running UNO Q)
@@ -127,16 +127,16 @@ def fixed_state(config, name):
     """One screen for checking the layout (the gap is filled in by hand: it needs a best lap's track)."""
     lap = {'CurrentLap': 23, 'LapCount': 22, 'ElapsedTime': 72.3 / 60, 'LapTime': 112.34 / 60, 'BestLap': 111.12 / 60,
            'RaceTime': 2175 / 60, 'LapDiffS': 0.41, 'LastLapPit': False}
-    temps = {'normal': (98, 88), 'start': (92, 84), 'pit': (101, 91), 'warn110': (112, 101), 'warn120': (122, 111),
+    temps = {'normal': (98, 88), 'start': (92, 84), 'pit': (101, 91), 'pitbox': (101, 91), 'warn110': (112, 101), 'warn120': (122, 111),
              'warn130': (131, 120), 'lost': (None, 93), 'stale': (98, 88)}[name]
     if name == 'start':
         lap.update(CurrentLap=0, LapCount=0, ElapsedTime=None, LapTime=None, BestLap=None, RaceTime=None, LapDiffS=None, LastLapPit=None)
-    if name == 'pit':  # just out of the pit lane: the in lap was a pit lap, the running lap is the out lap
+    if name in ('pit', 'pitbox'):  # the in lap was a pit lap, the running lap started in the pit lane
         lap.update(ElapsedTime=21.4 / 60, LapTime=221.07 / 60, LapDiffS=None, LastLapPit=True, LapStartPit=True)
     # before the start the video light is yellow: 108 minutes left is short of the race
     frame = {'status': {'connected': True, 'logging': {'active': True},
                         'video': {'recording': True, 'minutes_left': 108 if name == 'start' else 150}},
-             'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777, 'GPSSpeed': 120.0},
+             'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777, 'GPSSpeed': 0.0 if name == 'pitbox' else 120.0},
                         'can_signals': {'OilTemp': temps[0], 'WaterTemp': temps[1]},
                         'gnss_utc': '2026-11-08T02:16:15Z', 'lap': lap}}
     model = DashModel(config)
@@ -144,7 +144,7 @@ def fixed_state(config, name):
         state, _ = model.update(frame, 100.0 + k * 0.1)
     if name == 'stale':
         state, _ = model.update(None, 100.0 + 8 + 12)
-    if name not in ('start', 'stale', 'pit'):
+    if name not in ('start', 'stale', 'pit', 'pitbox'):
         state.update(delta='−0.84', delta_kind='faster', delta_frac=-0.42)
     return state
 
@@ -167,8 +167,7 @@ def css_for(w, h):
     .faster {{ color: #38e05a; }}
     .slower {{ color: #ff4a4a; }}
     .even {{ color: #f4f4f4; }}
-    .pitnote, .pittag {{ color: #5aaeff; }}
-    .pittag {{ font-family: {FONT_TEXT}; font-size: {int(cap * 1.25)}px; font-weight: bold; }}
+    .pitnote {{ color: #5aaeff; }}
     .bar-bg {{ background-color: #2c2c2c; }}
     .bar-mid {{ background-color: #9a9a9a; }}
     .bar-faster {{ background-color: #2fc64c; }}
@@ -177,17 +176,11 @@ def css_for(w, h):
     .chip-ok {{ color: #38e05a; background-color: #0f2a14; }}
     .chip-warn {{ color: #1c1000; background-color: #ffb020; }}
     .chip-bad {{ color: #ffffff; background-color: #d81e1e; }}
-    .banner {{ background-color: #e01414; border-radius: {rad}px; }}
-    .banner label {{ color: #ffffff; font-family: {FONT_TEXT}; font-weight: bold; }}
-    .pit {{ background-color: #e00000; border-radius: {rad}px; }}
-    .pit-dark {{ background-color: #2a0000; border-radius: {rad}px; }}
-    .pit label {{ color: #ffffff; font-family: {FONT_TEXT}; font-weight: bold; }}
-    .pit-dark label {{ color: #ff6060; font-family: {FONT_TEXT}; font-weight: bold; }}
-    .banner .warn-act {{ font-size: {int(mid * 0.85)}px; }}
-    .banner .warn-name, .pit .warn-name, .pit-dark .warn-name {{ font-size: {int(cap * 1.3)}px; }}
-    .banner .warn-val {{ font-family: {FONT_NUM}; font-size: {int(mid * 1.2)}px; }}
-    .pit .warn-val, .pit-dark .warn-val {{ font-family: {FONT_NUM}; font-size: {int(big * 0.95)}px; }}
-    .pit .pit-act, .pit-dark .pit-act {{ font-size: {int(mid * 0.9)}px; }}
+    .notice {{ font-family: {FONT_TEXT}; font-size: {int(mid * 0.55)}px; font-weight: bold; border-radius: {rad}px; }}
+    .notice-none {{ background-color: transparent; color: transparent; }}
+    .notice-pit {{ background-color: #1f64c8; color: #ffffff; }}
+    .notice-cool {{ background-color: #ff8a1a; color: #1c1000; }}
+    .notice-pitin {{ background-color: #d81e1e; color: #ffffff; }}
     .stale {{ background-color: #1a1a1a; }}
     .stale label {{ color: #d8d8d8; font-family: {FONT_TEXT}; }}
     .stale-big {{ font-size: {int(mid * 0.6)}px; font-weight: bold; }}
@@ -256,23 +249,17 @@ def run_gui(args, config):
             self.bar_mid.get_style_context().add_class('bar-mid')
             for part in (self.bar_bg, self.bar_fill, self.bar_mid):
                 self.bar.put(part, 0, 0)
-            # A normal pit stop is information, not a warning: a blue tag, never red.
-            self.lap_tag = label('', 'pittag')
-            self.cell_now = box(True, box(False, label('今の周', 'cap'), self.lap_tag, spacing=int(0.015 * self.size[0])),
-                                self.lap_now, cls='cell')
-            self.cell_delta = box(True, label('ベスト比', 'cap'), self.delta, self.bar, cls='cell')
-            # 130 C: the alarm takes the running lap's place only, so the rest stays readable in the pit.
-            # The temperature first (what is wrong), then what to do.
-            self.pit_name, self.pit_value = label('', 'warn-name'), label('', 'warn-val')
-            pit_temp = box(False, self.pit_name, self.pit_value, spacing=int(0.015 * self.size[0]))
-            pit_temp.set_halign(Gtk.Align.CENTER)
-            self.pit = box(True, cls='pit')
-            self.pit.set_center_widget(box(True, pit_temp, label('ピットイン', 'pit-act', xalign=0.5)))
-            self.lap_stack = Gtk.Stack()
-            self.lap_stack.add_named(self.cell_now, 'lap')
-            self.lap_stack.add_named(self.pit, 'pit')
+            # The pit stop and the temperature share one strip under the running lap, the same size; only the
+            # colour differs (blue an ordinary stop, orange cooling, red come in). The rest stays readable.
+            # Always there (empty when nothing to say), so the numbers never move.
+            self.notice = label('', 'notice', 'notice-none', xalign=0.5)
+            self.cell_now = box(True, label('今の周', 'cap'), self.lap_now, self.notice, cls='cell')
+            self.bar_holder = box(True)  # as tall as the strip, so the two big numbers stay level
+            self.bar_holder.pack_start(self.bar, True, False, 0)
+            self.bar.set_valign(Gtk.Align.CENTER)
+            self.cell_delta = box(True, label('ベスト比', 'cap'), self.delta, self.bar_holder, cls='cell')
             self.row1 = Gtk.Box(spacing=0, homogeneous=True)
-            self.row1.pack_start(self.lap_stack, True, True, 0)
+            self.row1.pack_start(self.cell_now, True, True, 0)
             self.row1.pack_start(self.cell_delta, True, True, 0)
 
             self.last = label('--', 'num', 'mid')
@@ -287,14 +274,6 @@ def run_gui(args, config):
             for cell, value in ((self.cell_now, self.lap_now), (self.cell_delta, self.delta), (self.cell_last, self.last),
                                 (self.cell_best, self.best), (self.cell_lap, self.lap_no)):
                 cell.set_child_packing(value, True, True, 0, Gtk.PackType.START)  # the number centred below its caption
-            # The words small, the temperature big: what to do, then how hot.
-            self.banner_name, self.banner_value = label('', 'warn-name'), label('', 'warn-val')
-            self.banner = box(False, cls='banner')
-            self.banner.set_center_widget(box(False, label('クーリング開始', 'warn-act'), self.banner_name, self.banner_value,
-                                              spacing=int(0.02 * self.size[0])))
-            self.stack = Gtk.Stack()
-            self.stack.add_named(self.row2, 'normal')
-            self.stack.add_named(self.banner, 'banner')
 
             self.elapsed = label('--', 'num', 'small')
             self.clock = label('--', 'num', 'small')
@@ -313,7 +292,7 @@ def run_gui(args, config):
                 chip.set_valign(Gtk.Align.CENTER)
                 self.row3.pack_end(chip, False, False, 0)
 
-            self.root = box(True, self.row1, self.stack, self.row3, cls='root')
+            self.root = box(True, self.row1, self.row2, self.row3, cls='root')
             self.stale_big = label('', 'stale-big', xalign=0.5)
             self.stale_sub = label('', 'stale-sub', xalign=0.5)
             self.stale = box(True, cls='stale')
@@ -337,7 +316,7 @@ def run_gui(args, config):
             self.row1.set_spacing(gap); self.row2.set_spacing(gap)
             r1, r2 = int(inner_h * 0.45), int(inner_h * 0.33)
             self.row1.set_size_request(inner_w, r1)
-            self.stack.set_size_request(inner_w, r2)
+            self.row2.set_size_request(inner_w, r2)
             self.row3.set_size_request(inner_w, inner_h - r1 - r2)
             avail = inner_w - 2 * gap
             for cell, share in ((self.cell_last, .42), (self.cell_best, .34), (self.cell_lap, .24)):
@@ -350,7 +329,9 @@ def run_gui(args, config):
             self.bar_w = int((inner_w - gap) / 2 - 2 * cell_pad)
             self.bar_h = max(10, int(0.028 * h))
             self.bar.set_size_request(self.bar_w, self.bar_h)
-            self.bar.set_margin_top(int(0.01 * h))
+            strip_h = int(0.105 * h)
+            self.notice.set_size_request(-1, strip_h)
+            self.bar_holder.set_size_request(-1, strip_h)
             self.bar_bg.set_size_request(self.bar_w, self.bar_h)
             self.bar_mid.set_size_request(max(2, int(0.003 * w)), self.bar_h + 0)
             self.bar.move(self.bar_mid, self.bar_w // 2 - max(2, int(0.003 * w)) // 2, 0)
@@ -378,26 +359,20 @@ def run_gui(args, config):
             return True
 
         def show_state(self, s):
-            self.flash = args.state or int(time.monotonic() * 2) % 2 == 0  # the 130 C alarm flashes once a second
             self.stale.set_visible(bool(s['stale']))
             if s['stale']:
                 waited = s.get('stale_s')
                 self.stale_big.set_text('ロガーの値を待っています' if waited is None else 'ロガーの値が来ていません')
                 self.stale_sub.set_text('' if waited is None else f'最後に受け取ってから {int(waited)} 秒')
             level = s['warn_level']
-            self.lap_stack.set_visible_child_name('pit' if level >= 3 else 'lap')
-            if level >= 3:
-                classes(self.pit, 'pit' if self.flash else 'pit-dark')
-                self.pit_name.set_text(s['warn_label'] or '')
-                self.pit_value.set_text(s['warn_value'] or '')
-            self.stack.set_visible_child_name('banner' if level == 2 else 'normal')
-            if level == 2:
-                self.banner_name.set_text(s['warn_label'] or '')
-                self.banner_value.set_text(s['warn_value'] or '')
+            self.notice.set_text(s['notice'] or '')
+            classes(self.notice, 'notice', f"notice-{s['notice_kind'] or 'none'}")
 
             self.lap_now.set_text(s['lap_now'])
-            self.lap_tag.set_text(s.get('lap_tag', ''))
-            self.delta.set_text(s['delta'])
+            if s['delta_kind']:  # a number: say it is seconds, smaller, so the number stays the thing to read
+                self.delta.set_markup(f"{s['delta']}<span size=\"40%\">秒</span>")
+            else:
+                self.delta.set_text(s['delta'])
             classes(self.delta, 'num', 'big', s['delta_kind'] or 'even')
             frac = s['delta_frac']
             half = self.bar_w // 2
@@ -505,7 +480,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description='EcoCapture DASH')
     parser.add_argument('--config', default=str(CONFIG_PATH))
     parser.add_argument('--demo', action='store_true')
-    parser.add_argument('--state', choices=['normal', 'start', 'pit', 'warn110', 'warn120', 'warn130', 'lost', 'stale'])
+    parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'warn110', 'warn120', 'warn130', 'lost', 'stale'])
     parser.add_argument('--sound', choices=['warn', 'pit'])
     parser.add_argument('--size')
     parser.add_argument('--snapshot')

@@ -50,7 +50,7 @@ DEFAULTS = {
               'card': 'ArduinoImolaHPH', 'route': ['SEC_MI2S_RX Audio Mixer MultiMedia4']},
 }
 
-WARN_TEXT = {1: '注意', 2: 'クーリング開始', 3: 'ピットイン'}
+WARN_TEXT = {1: '注意', 2: 'クーリング', 3: 'ピットイン'}
 STOPPED_KMH = 10.0  # slower than this the gap to the best lap means nothing (in the pit, on the grid)
 
 # lap_ref.h
@@ -96,13 +96,15 @@ def fmt_hms(seconds):
 
 
 def fmt_signed(seconds):
-    """+0.41 / −0.84 (U+2212, as wide as +)."""
+    """+0.41 / −0.84 (U+2212, as wide as +); +38.4 and +123 once the hundredths stop mattering, so the
+    number with its unit still fits its cell (in the pit lane before the line the gap runs to tens of seconds)."""
     if seconds is None:
         return '--'
     if abs(seconds) < 0.005:
         return '0.00'
     sign = '+' if seconds > 0 else '−'
-    return f'{sign}{abs(seconds):.2f}'
+    size = abs(seconds)
+    return f'{sign}{size:.{2 if size < 10 else 1 if size < 100 else 0}f}'
 
 
 def parse_utc(text):
@@ -262,14 +264,25 @@ class DashModel:
         oil, water = (pick('OilTemp'), pick('WaterTemp')) if live else (None, None)
         sound = self.warning.update(now, oil, water)
         delta = self.lapref.update(lat, lon, number(lap.get('CurrentLap')), elapsed, last, best) if live else None
-        if out_lap or (speed is not None and speed < STOPPED_KMH):
+        stopped = speed is not None and speed < STOPPED_KMH
+        if out_lap or stopped:
             delta = None  # still tracked above, so the reference keeps its place
+        # One strip under the running lap, the same for a pit stop and for the temperature: the colour says
+        # which (blue an ordinary stop, orange cooling, red the call to come in), the words what it is.
+        level = self.warning.level
+        if level >= 2:
+            value = '' if self.warning.value is None else f'{self.warning.value:.0f}℃'
+            notice, notice_kind = f'{WARN_TEXT[level]}　{self.warning.label} {value}', 'cool' if level == 2 else 'pitin'
+        elif out_lap:
+            notice, notice_kind = 'ピットイン' if stopped else 'ピットアウト', 'pit'
+        else:
+            notice, notice_kind = '', None
 
         diff, pit = number(lap.get('LapDiffS')), lap.get('LastLapPit') is True
         if pit:
             note, note_kind = 'PIT', 'pit'
         elif diff is not None:
-            note, note_kind = f'前周比 {fmt_signed(diff)}', 'slower' if diff > 0.005 else 'faster' if diff < -0.005 else 'even'
+            note, note_kind = f'前周比 {fmt_signed(diff)}秒', 'slower' if diff > 0.005 else 'faster' if diff < -0.005 else 'even'
         else:
             note, note_kind = '', None
         utc = parse_utc(sample.get('gnss_utc')) or parse_utc(sample.get('host_utc'))
@@ -291,7 +304,7 @@ class DashModel:
             'stale': stale,
             'stale_s': None if self.last_good is None else now - self.last_good,
             'lap_now': fmt_lap(elapsed, 1),
-            'lap_tag': 'ピットアウト' if out_lap else '',
+            'notice': notice, 'notice_kind': notice_kind,
             'delta': fmt_signed(delta),
             'delta_kind': None if delta is None else 'slower' if delta > 0.005 else 'faster' if delta < -0.005 else 'even',
             'delta_frac': None if delta is None else max(-1.0, min(1.0, delta / scale)),
