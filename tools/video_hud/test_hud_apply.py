@@ -15,8 +15,9 @@ GOOD = (HERE / 'hud.ini').read_bytes()
 class FakeUnoQ:
     """hud_apply が組み立てたシェルのコマンドを読んで、ファイルと録画の読み直しを真似る"""
 
-    def __init__(self, ready=True, active=True, c_accepts=True, recorder_alive=True):
+    def __init__(self, ready=True, active=True, c_accepts=True, recorder_alive=True, version=2):
         self.ready, self.active, self.c_accepts, self.alive = ready, active, c_accepts, recorder_alive
+        self.version = version
         self.files, self.ino, self.commands = {}, 100, []
         self.loaded = None  # (path, ino, size)
         self.bad = None
@@ -43,7 +44,8 @@ class FakeUnoQ:
     def __call__(self, command, data=None):
         self.commands.append(command)
         if command.startswith('if [ -f'):
-            return (f'READY={int(self.ready)}\nACTIVE={"active" if self.active else "inactive"}\n' + self.status)
+            return (f'READY={int(self.ready)}\nVERSION={self.version}\nACTIVE={"active" if self.active else "inactive"}\n'
+                    + self.status)
         if 'cat >' in command:
             self.ino += 1
             self.files[hud_apply.REMOTE_INI] = (self.ino, data)
@@ -82,6 +84,18 @@ class ApplyTest(unittest.TestCase):
         fake = FakeUnoQ(ready=False)
         self.assertEqual(hud_apply.apply(fake, GOOD, self.log.append, sleeper(fake)), 2)
         self.assertEqual(fake.files, {})
+
+    def test_new_gauges_need_new_recorder(self):
+        """針のメーター等を使う設定は、対応していない版の本体へ送らない。使わない設定は送る"""
+        old = (HERE.parent / 'unoq_overlay_enc' / 'hud_default.ini').read_bytes()
+        self.assertEqual(hud_layout.needed_version(hud_layout.parse(GOOD.decode('utf-8'))), 2)
+        self.assertEqual(hud_layout.needed_version(hud_layout.parse(old.decode('utf-8'))), 1)
+        fake = FakeUnoQ(version=1)
+        fake.recorder_tick()
+        self.assertEqual(hud_apply.apply(fake, GOOD, self.log.append, sleeper(fake), need=2), 2)
+        self.assertEqual(fake.files, {})
+        self.assertIn('対応していない版', self.log[-1])
+        self.assertEqual(hud_apply.apply(fake, old, self.log.append, sleeper(fake), need=1), 0)
 
     def test_recorder_stopped(self):
         fake = FakeUnoQ(active=False)

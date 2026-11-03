@@ -6,7 +6,8 @@
 新しい配置が使われたかを知らせる。本体で読めなかったときは、本体は前の配置のまま録り続ける。
 
 本体の録画が設定ファイルに対応した版（2026-10-30以降の overlay_rec。/opt/ecologger-video/hud_default.ini がある）で
-ないときは、何も送らずに止める（手順書 unoq_video_check_procedure.md 5-14）。
+ないときは、何も送らずに止める（手順書 unoq_video_check_procedure.md 5-14）。針のメーター・弧・コース図・calc.〜 などを
+使う設定は、それに対応した版（2026-11-04以降、手順書5-16）でないと送らない。
 
 つなぎ方：既定は ssh unoq（Pixelのテザリング）。--adb でUSBのadb（ドックを外してPCへ直接つないだとき）。
   python hud_apply.py              # hud.ini を送る
@@ -31,6 +32,8 @@ REMOTE_INI = f'{REMOTE_DIR}/hud.ini'
 STATUS = f'{REMOTE_DIR}/hud_status.txt'
 DEFAULT_ON_DEVICE = '/opt/ecologger-video/hud_default.ini'
 SERVICE = 'ecologger-video.service'
+RECORDER = '/opt/ecologger-video/overlay_rec'
+V2_MARK = 'lapref 1'  # 2026-11-04以降の録画プログラム（lap_ref.h のファイルの書式）にある文字
 WAIT_S = 8  # 録画は約1秒ごとに見る。カメラの枚数が落ちていると少し遅れる
 
 
@@ -67,13 +70,17 @@ def parse_status(text):
 
 
 def device_state(run):
-    """(新しい録画が入っているか, 録画サービスが動いているか, hud_status.txt の中身)"""
+    """(新しい録画が入っているか, 録画サービスが動いているか, hud_status.txt の中身, 録画プログラムの版)。
+    版：2 ＝ 針のメーター・弧・コース図・calc.〜 に対応（2026-11-04以降）、1 ＝ それより前"""
     out = run(f'if [ -f {DEFAULT_ON_DEVICE} ]; then echo READY=1; else echo READY=0; fi; '
+              f'if grep -q "{V2_MARK}" {RECORDER} 2>/dev/null; then echo VERSION=2; else echo VERSION=1; fi; '
               f'echo ACTIVE=$(systemctl is-active {SERVICE} 2>/dev/null); cat {STATUS} 2>/dev/null; true')
     lines = out.splitlines()
     ready = 'READY=1' in lines
     active = any(ln == 'ACTIVE=active' for ln in lines)
-    return ready, active, parse_status('\n'.join(ln for ln in lines if not ln.startswith(('READY=', 'ACTIVE='))))
+    version = 2 if 'VERSION=2' in lines else 1
+    status = parse_status('\n'.join(ln for ln in lines if not ln.startswith(('READY=', 'ACTIVE=', 'VERSION='))))
+    return ready, active, status, version
 
 
 def describe(status):
@@ -92,7 +99,7 @@ def wait_for(run, done, sleep=time.sleep, timeout=WAIT_S):
     """hud_status.txt が done(status) を満たすまで待つ。満たした status、時間切れなら最後の status と False"""
     status, t = {}, 0.0
     while True:
-        _, _, status = device_state(run)
+        _, _, status, _ = device_state(run)
         if done(status):
             return status, True
         if t >= timeout:
@@ -111,12 +118,17 @@ def push(run, data):
     return ino, size
 
 
-def apply(run, data, log=print, sleep=time.sleep):
-    """0：反映された（か、次の録画から反映される）、2：本体が対応していない、3：本体が読めなかった、4：確かめられなかった"""
-    ready, active, _ = device_state(run)
+def apply(run, data, log=print, sleep=time.sleep, need=1):
+    """0：反映された（か、次の録画から反映される）、2：本体が対応していない、3：本体が読めなかった、4：確かめられなかった。
+    need：この設定に要る録画プログラムの版（hud_layout.needed_version）"""
+    ready, active, _, version = device_state(run)
     if not ready:
         log('★本体の録画プログラムが、まだ計器の設定ファイルに対応していません（何も送っていません）。'
             '新しい版を入れる必要があります（手順書5-14の「本体へ入れる」）')
+        return 2
+    if version < need:
+        log('★この設定は針のメーター・弧・コース図・ベストとの差（calc.〜）などを使っていますが、本体の録画プログラムが'
+            'まだ対応していない版です（何も送っていません）。新しい版を入れる必要があります（手順書5-16の「本体へ入れる」）')
         return 2
     ino, size = push(run, data)
     log(f'本体へ送りました：{REMOTE_INI}（{size}バイト）')
@@ -139,7 +151,7 @@ def apply(run, data, log=print, sleep=time.sleep):
 
 
 def back_to_default(run, log=print, sleep=time.sleep):
-    ready, active, _ = device_state(run)
+    ready, active, _, _ = device_state(run)
     if not ready:
         log('★本体の録画プログラムが、まだ計器の設定ファイルに対応していません（何もしていません）')
         return 2
@@ -166,7 +178,7 @@ def main(argv=None):
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     args = parser.parse_args(argv)
 
-    data = None
+    data, need = None, 1
     if not args.default and not args.status:
         path = Path(args.ini)
         try:
@@ -182,6 +194,7 @@ def main(argv=None):
             print(f'{path.name} の {e}（何も送っていません。Preview-HUD.cmd で確かめてから送ってください）')
             return 1
         print(f'{path.name}：計器{len(hud.items)}個・値{len(hud.refs)}種類。誤りはありません')
+        need = hud_layout.needed_version(hud)
         screens, ms, level = hud_layout.estimate(hud, hud_layout.load_font())
         print(hud_layout.describe_estimate(screens, ms, level))
         if level == 'heavy' and not args.force:
@@ -191,13 +204,14 @@ def main(argv=None):
     try:
         run = runner(args.adb, args.host)
         if args.status:
-            ready, active, status = device_state(run)
-            print(f'録画サービス：{"動いている" if active else "止まっている"}')
+            ready, active, status, version = device_state(run)
+            print(f'録画サービス：{"動いている" if active else "止まっている"}'
+                  f'（録画プログラムは{"針のメーター・コース図に対応した版" if version >= 2 else "針のメーター・コース図に未対応の版"}）')
             print(describe(status) if ready else '本体の録画プログラムは、まだ計器の設定ファイルに対応していない版です（元の配置で描いている）')
             return 0
         if args.default:
             return back_to_default(run)
-        return apply(run, data)
+        return apply(run, data, need=need)
     except (RuntimeError, subprocess.SubprocessError) as e:
         print(f'本体につながりませんでした：{e}')
         print('（ssh unoq はPixelのテザリングでつながっているときだけ。USBで直接つないだときは --adb）')

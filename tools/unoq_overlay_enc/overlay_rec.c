@@ -10,7 +10,9 @@
 //   無いか読めなければ OVERLAY_HUD_DEFAULT（既定は文字の一覧表と同じ場所の hud_default.ini）を使う。録画中も約1秒ごとに見て、
 //   書き換わっていれば次のコマから新しい配置で描く（誤りがあれば前の配置のまま）。読んだ結果は OVERLAY_HUD_STATUS のファイルへ書く
 //   PCでの見た目の確認と本体への送り方は tools/video_hud/（手順書5-14）
-// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h を同じ場所に置く）
+//   ベストとの差（calc.Delta 等）とコース図の線は、走行データの位置・ラップから lap_ref.h で作る。ベストの周の軌跡は
+//   OVERLAY_LAPREF のファイルへ書き、録画をやり直しても lap.BestLap と同じ時間なら続きから使う（手順書5-16）
+// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h・lap_ref.h を同じ場所に置く）
 // 実行: ./overlay_rec <入力> <出力> [seconds=60、0は止めるまで] [font=hud_font_64.pgm]
 //   入力：/dev/videoN（カメラ）か file:xxx.jpg（同じJPEGを30fpsで繰り返す。カメラ無しで試す用）
 //   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むときはstrftimeの書式とみなし、
@@ -25,7 +27,9 @@
 //   （消す順番：①前の起動のときの動画（大きい・古い順）②走行記録（EcoCaptureが古い順）。手順書5-13）
 //   SIGINT/SIGTERMで止めると、エンコーダに残った分を書き出してから終わる
 //   OVERLAY_OUT=720 のときは1280x720で保存する（既定は1920x1080。計器は同じ配置のまま縮む）
-//   OVERLAY_DEMO=1 のときは作り物の値で描く（見た目と警告の色の確認用。画面にDEMOと出る）
+//   OVERLAY_DEMO=1 のときは作り物の値で描く（見た目と警告の色の確認用。画面にDEMOと出る）。位置とラップは架空のコースを
+//   周ごとに違う速さで走らせたもので、ベストとの差・コース図も動く（ベストの周はファイルへ書かない）。
+//   OVERLAY_DEMO_START 秒（既定250＝2周半）走った所から始める
 //   OVERLAY_PROFILE=1 のときは工程ごとにGPUの完了を待って時間を測る（その分遅くなる）
 //   OVERLAY_NOHUD=1 のときは計器を描かない（時間の比較用）
 #define _GNU_SOURCE
@@ -59,6 +63,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "hud_layout.h"
+#include "lap_ref.h"
 
 #define W 1920  // 計器を描く座標の大きさ（出力の既定の大きさでもある）
 #define H 1080
@@ -95,6 +100,22 @@ static struct hud *hud_cur;
 static int hud_gen;  // 差し替えるたびに増やす（前の設定の順で読んだ値を捨てる）
 static double tvals[HUD_REFS];  // 値（hud_cur->ref の順。無ければNAN）
 static int api_port = 8080;  // OVERLAY_TELEMETRY_PORTで変えられる（時刻合わせの試験で、作り物の値を返す相手へ向ける）
+// ベストとの差・コース図の線（lap_ref.h）。lr は走行データのスレッド（DEMOのときは描画のスレッド）だけが触る。
+// 線は ttrk に写してtmuで守る。計算した値は「calc.名前」で計器から使える（calc_value）
+static struct lap_ref lr;
+static struct hud_track ttrk;
+static int demo;  // OVERLAY_DEMO=1：作り物の値で描く（走行データのスレッドは差の計算をしない）
+
+// calc.Delta（ベストとの差、秒）・calc.SpeedDelta（速度の差、km/h）・calc.BestLapNo（ベストの周の番号）・
+// calc.Predicted（予想ラップ、分）・calc.GTotal（横Gと前後Gを合わせた大きさ）。無い名前・無いときはNAN
+static double calc_value(const char *name, double lat_g, double long_g) {
+    if (!strcmp(name, "Delta")) return lr.delta;
+    if (!strcmp(name, "SpeedDelta")) return lr.sdelta;
+    if (!strcmp(name, "BestLapNo")) return lr.best_no;
+    if (!strcmp(name, "Predicted")) return lr.pred;
+    if (!strcmp(name, "GTotal")) return hypot(lat_g, long_g);
+    return NAN;
+}
 
 // ---- 時刻（GNSS）
 // 本体（Linux）の時計は、車の中ではネットにつながらず合っていないことがある（電池付きの時計が無く、前に止めたときの
@@ -180,15 +201,35 @@ static double jref(const char *js, const char *spec) {
         memcpy(alt, p, n); alt[n] = 0; p += n; if (*p == '|') p++;
         char *dot = strchr(alt, '.');
         double v;
-        if (dot) { *dot = 0; v = jnum(js, alt, dot + 1); } else v = jnum(js, NULL, alt);
+        if (dot && dot - alt == 4 && !strncmp(alt, "calc", 4))  // calc.〜：ここで計算した値
+            v = calc_value(dot + 1, jnum(js, "values", "LatAccel"), jnum(js, "values", "LongAccel"));
+        else if (dot) { *dot = 0; v = jnum(js, alt, dot + 1); } else v = jnum(js, NULL, alt);
         if (!isnan(v)) return v;
     }
     return NAN;
 }
 
+// DEMOの値：位置・速度・ラップは作り物の走行（lap_ref.h の lr_demo）、calc.〜 は計算した値、ほかは hud_demo
+static double demo_ref(const char *spec, const struct lr_demo *d, double lat, double lon, double ph) {
+    char k[HUD_REF_LEN]; snprintf(k, sizeof k, "%s", spec);
+    k[strcspn(k, "|")] = 0;
+    const char *n = strchr(k, '.') ? strchr(k, '.') + 1 : k;
+    if (!strncmp(k, "calc.", 5)) return calc_value(n, hud_demo("LatAccel", ph), hud_demo("LongAccel", ph));
+    if (!strcmp(n, "Lat")) return lat;
+    if (!strcmp(n, "Lon")) return lon;
+    if (!strcmp(n, "Speed") || !strcmp(n, "GPSSpeed")) return lr_demo_v0(d, d->s) * lr_demo_factor(d->lap);
+    if (!strcmp(n, "CurrentLap")) return d->lap;
+    if (!strcmp(n, "LapCount")) return d->count;
+    if (!strcmp(n, "ElapsedTime")) return (d->t - d->lap_start) / 60;
+    if (!strcmp(n, "LapTime")) return d->last / 60;
+    if (!strcmp(n, "BestLap")) return d->best / 60;
+    return hud_demo(spec, ph);
+}
+
 static void *telemetry(void *arg) {
     (void)arg;
     static char buf[1 << 16], refs[HUD_REFS][HUD_REF_LEN];
+    static struct hud_track trk;
     while (!quit) {
         double a = now();
         if (http_get("/api/telemetry", buf, sizeof buf) > 0 && strstr(buf, "\"sample\"")) {
@@ -198,6 +239,15 @@ static void *telemetry(void *arg) {
             gen = hud_gen;
             if (hud_cur) { nref = hud_cur->nref; memcpy(refs, hud_cur->ref, sizeof refs[0] * nref); }
             pthread_mutex_unlock(&tmu);
+            if (!demo) {  // ベストとの差・コース図の線を進めてから、calc.〜 の値を読む
+                const double lat = jnum(js, "values", "Lat"), lon = jnum(js, "values", "Lon");
+                lr_update(&lr, lat, lon, jref(js, "values.Speed|values.GPSSpeed"), jnum(js, "lap", "CurrentLap"),
+                          jnum(js, "lap", "ElapsedTime"), jnum(js, "lap", "LapTime"), jnum(js, "lap", "BestLap"));
+                lr_track(&lr, lat, lon, &trk);
+                pthread_mutex_lock(&tmu); ttrk.n = trk.n;
+                memcpy(ttrk.lat, trk.lat, sizeof trk.lat[0] * trk.n); memcpy(ttrk.lon, trk.lon, sizeof trk.lon[0] * trk.n);
+                pthread_mutex_unlock(&tmu);
+            }
             double v[HUD_REFS];
             for (int i = 0; i < nref; i++) v[i] = jref(js, refs[i]);
             struct tele t;
@@ -316,7 +366,8 @@ static void hud_write_status(const char *error) {
     FILE *f = fopen(tmp, "w"); if (!f) return;
     time_t t = time(NULL); struct tm lt; localtime_r(&t, &lt);
     char at[40]; strftime(at, sizeof at, "%Y-%m-%dT%H:%M:%S%z", &lt);
-    fprintf(f, "at=%s\nloaded=%s\nino=%llu\nsize=%lld\nitems=%d\nbad=%s\nbad_ino=%llu\nbad_size=%lld\nerror=%s\n", at, hud_loaded,
+    // version：2 ＝ 針のメーター・弧・コース図・calc.〜 に対応（2026-11-04）。無ければ1（hud_apply.py が見る）
+    fprintf(f, "version=2\nat=%s\nloaded=%s\nino=%llu\nsize=%lld\nitems=%d\nbad=%s\nbad_ino=%llu\nbad_size=%lld\nerror=%s\n", at, hud_loaded,
             (unsigned long long)hud_st.st_ino, (long long)hud_st.st_size, hud_cur ? hud_cur->n : 0, hud_bad,
             hud_bad[0] ? (unsigned long long)hud_bad_st.st_ino : 0ULL, hud_bad[0] ? (long long)hud_bad_st.st_size : 0LL, error ? error : "");
     fclose(f); rename(tmp, hud_status_path);
@@ -756,7 +807,19 @@ int main(int argc, char **argv) {
     const int frames = (argc > 3 ? atoi(argv[3]) : 60) * 30;  // 0は止めるまで
     const char *font = argc > 4 ? argv[4] : "hud_font_64.pgm";
     if (getenv("OVERLAY_OUT") && atoi(getenv("OVERLAY_OUT")) == 720) { ow = 1280; oh = 720; }
-    const int demo = getenv("OVERLAY_DEMO") && atoi(getenv("OVERLAY_DEMO"));
+    demo = getenv("OVERLAY_DEMO") && atoi(getenv("OVERLAY_DEMO"));
+    lr_init(&lr, demo ? NULL : getenv("OVERLAY_LAPREF"));  // ベストの周を書くファイル（録画をやり直しても続きから使う）
+    static struct lr_demo dd;
+    double demo_t0 = 0;  // DEMOは架空のコースを OVERLAY_DEMO_START 秒（既定250＝2周半）走った所から始める（ベストとの差がすぐ出る）
+    if (demo) {
+        lr_demo_init(&dd);
+        demo_t0 = getenv("OVERLAY_DEMO_START") ? atof(getenv("OVERLAY_DEMO_START")) : 250;
+        for (double t = 0; t < demo_t0; t += .1) {
+            lr_demo_step(&dd, t);
+            double lat, lon; lr_demo_pos(&dd, dd.s, &lat, &lon);
+            lr_update(&lr, lat, lon, lr_demo_v0(&dd, dd.s) * lr_demo_factor(dd.lap), dd.lap, (dd.t - dd.lap_start) / 60, dd.last / 60, dd.best / 60);
+        }
+    }
     const int profile = getenv("OVERLAY_PROFILE") && atoi(getenv("OVERLAY_PROFILE"));
     if (getenv("OVERLAY_SEGMENT_MIN")) seg_len = atof(getenv("OVERLAY_SEGMENT_MIN")) * 60;
     if (getenv("OVERLAY_MIN_FREE_MB")) min_free_mb = atof(getenv("OVERLAY_MIN_FREE_MB"));
@@ -918,17 +981,27 @@ int main(int argc, char **argv) {
         if (f && f % 30 == 0) hud_check();  // 設定ファイルが書き換わっていれば読み直す（約1秒ごと）
         struct tele t; double v[HUD_REFS];
         pthread_mutex_lock(&tmu); t = tl; memcpy(v, tvals, sizeof v); pthread_mutex_unlock(&tmu);
-        if (demo) {  // 見た目と警告の色を机の上で確かめるための作り物の値（画面にDEMOと出す）
-            for (int i = 0; hud_cur && i < hud_cur->nref; i++) v[i] = hud_demo(hud_cur->ref[i], f / 30.0);
+        static struct hud_track trk;
+        if (demo) {  // 見た目と警告の色を机の上で確かめるための作り物の値（画面にDEMOと出す）。架空のコースを走り、差・コース図も動かす
+            lr_demo_step(&dd, demo_t0 + f / 30.0);
+            double lat, lon; lr_demo_pos(&dd, dd.s, &lat, &lon);
+            if (f % 3 == 0)  // 走行データと同じ約10Hz
+                lr_update(&lr, lat, lon, lr_demo_v0(&dd, dd.s) * lr_demo_factor(dd.lap), dd.lap, (dd.t - dd.lap_start) / 60, dd.last / 60, dd.best / 60);
+            lr_track(&lr, lat, lon, &trk);
+            for (int i = 0; hud_cur && i < hud_cur->nref; i++) v[i] = demo_ref(hud_cur->ref[i], &dd, lat, lon, f / 30.0);
             t.got = now();
+        } else {
+            pthread_mutex_lock(&tmu); trk.n = ttrk.n;
+            memcpy(trk.lat, ttrk.lat, sizeof trk.lat[0] * trk.n); memcpy(trk.lon, ttrk.lon, sizeof trk.lon[0] * trk.n);
+            pthread_mutex_unlock(&tmu);
         }
         const double age = now() - t.got;
         hn = 0;  // 計器の形を1枚分ためて、まとめてGPUへ送る（面ごとに同じものを描く）
         if (!getenv("OVERLAY_NOHUD")) {
-            if (hud_cur) hud_draw(hud_cur, v, t.utc_ok, t.utc, age);
+            if (hud_cur) hud_draw(hud_cur, v, t.utc_ok, t.utc, age, &trk);
             else text(40, 26, .6f, RED, "HUD CONFIG ERROR");  // 設定ファイルが無い・読めない（録画は続ける）
         }
-        if (demo) text(40, 26, .6f, YELLOW, "DEMO");
+        if (demo) text(40, 470, .6f, YELLOW, "DEMO");  // どちらの配置の計器とも重ならない所
         glBindBuffer(GL_ARRAY_BUFFER, vbo_hud);
         glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 8 * hn, hv, GL_STREAM_DRAW);
 

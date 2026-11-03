@@ -10,6 +10,8 @@ mkdir -p "$dir"
 hud=/home/arduino/ecologger-video
 mkdir -p "$hud"
 export OVERLAY_HUD="$hud/hud.ini" OVERLAY_HUD_DEFAULT="$bin/hud_default.ini" OVERLAY_HUD_STATUS="$hud/hud_status.txt"
+# ベストの周の軌跡（ベストとの差・コース図。録画をやり直しても lap.BestLap と同じ時間なら続きから使う。手順書5-16）
+export OVERLAY_LAPREF="$hud/lap_ref.txt"
 while :; do
     for d in /dev/v4l/by-id/*-video-index0; do
         [ -e "$d" ] && exec "$bin/overlay_rec" "$d" "$dir/%Y%m%d_%H%M%S.ts" 0 "$bin/hud_font_64.pgm"

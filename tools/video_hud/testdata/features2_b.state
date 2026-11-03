@@ -1,0 +1,12 @@
+# features2.ini の端の値（範囲の外・負・無い値）。コース図の線は無し
+values.RPM = 9500
+values.Speed = -5
+values.BatteryVolt = 11.5
+values.LatAccel = -1.234
+values.LongAccel = 2.5
+calc.Delta = -3
+calc.SpeedDelta = 25
+calc.Predicted = 1.5
+values.Lat = 36.00252036
+values.Lon = 140.00719030
+age = 0.1

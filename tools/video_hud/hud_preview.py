@@ -88,7 +88,8 @@ def rasterize(quads, font, bg):
         px = np.arange(ix0, ix1, dtype=np.float64) + .5
         py = np.arange(iy0, iy1, dtype=np.float64) + .5
         if u0 < 0:  # 塗りつぶし（回った四角も）
-            X, Y = np.meshgrid(px, py)
+            # 隣り合う四角の境目にちょうど乗る画素を両方で塗らないよう、ほんの少しずらして見る（GPUは片方だけ塗る）
+            X, Y = np.meshgrid(px + 1e-4, py + 1.3e-4)
             cross = [(xs[(i + 1) % 4] - xs[i]) * (Y - ys[i]) - (ys[(i + 1) % 4] - ys[i]) * (X - xs[i]) for i in range(4)]
             inside = np.all([cr >= 0 for cr in cross], axis=0) | np.all([cr <= 0 for cr in cross], axis=0)
             a = c[3] * inside.astype(np.float32)
@@ -115,16 +116,27 @@ def to_png(img):
     return buf.getvalue()
 
 
-def render_states(hud, font, bg, utc=None):
-    """3つの状態の PNG（bytes）"""
+def with_position(table, track):
+    """[preview] に位置（values.Lat・values.Lon）が無ければ、コース図の線の3割の所に置く"""
+    table = dict(table)
+    if 'values.Lat' not in table or 'values.Lon' not in table:
+        table['values.Lat'], table['values.Lon'] = track[int(len(track) * .3)]
+    return table
+
+
+def render_states(hud, font, bg, utc=None, track=None):
+    """3つの状態の PNG（bytes）。コース図の線は track（無ければ架空のコース hud_layout.DEMO_TRACK）。
+    本体では走ったコースの線が出る。数値が来ていないときも、それまでに作った線は出る（点は出ない）"""
     utc = time.time() if utc is None else utc
+    track = track or hud_layout.DEMO_TRACK
+    base = with_position(hud.preview, track)
     nan = [math.nan] * len(hud.refs)
     cases = {
-        'normal': (hud_layout.values_from(hud, hud.preview), utc, 0.0),
-        'alarm': (hud_layout.values_from(hud, hud_layout.alarm_table(hud, hud.preview)), utc, 0.0),
+        'normal': (hud_layout.values_from(hud, base), utc, 0.0),
+        'alarm': (hud_layout.values_from(hud, hud_layout.alarm_table(hud, base)), utc, 0.0),
         'nodata': (nan, None, hud.nodata_after + 1),
     }
-    return {name: to_png(rasterize(hud_layout.build(hud, font, *cases[name]), font, bg)) for name, _ in STATES}
+    return {name: to_png(rasterize(hud_layout.build(hud, font, *cases[name], track), font, bg)) for name, _ in STATES}
 
 
 # ---------------------------------------------------------------- ブラウザで見る
@@ -205,6 +217,8 @@ class Watcher:
             load = hud_layout.describe_estimate(screens, ms, level)
             info = (f'{self.ini}（計器 {len(hud.items)}個・値 {len(hud.refs)}種類）を見ています。保存すると描き直します。'
                     f' 背景：{self.bg_name}。描いた時刻 {time.strftime("%H:%M:%S")}')
+            if any(it.type == 'map' for it in hud.items):
+                info += '。コース図は架空のコース（本体では走ったコースの線になる）'
         except hud_layout.HudError as e:
             error = f'{self.ini.name} の {e}'
         except FileNotFoundError:

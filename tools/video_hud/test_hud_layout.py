@@ -2,11 +2,11 @@
 
 testdata/*.golden は本体（UNO Q）で tools/unoq_overlay_enc/hud_dump.c を動かして作った頂点:
   ./hud_dump <ini> hud_font_64.pgm testdata/<状態>.state > <名前>.golden
-  default_<状態>：hud_default.ini（normal warn alarm nodata edge）、features_<a|b>：testdata/features.ini
+  default_<状態>：hud_default.ini（normal warn alarm nodata edge）、features_<a|b>：testdata/features.ini、
+  features2_<a|b>：testdata/features2.ini（2026-11-04に足した dial・arc・map 等。a はコース図の線つき）
 testdata/bad/*.ini は誤りのある設定。1行目の「# expect N」が誤りの行（本体の hud_dump でも同じ行で断ることを確かめてある）。
 hud_layout.h か hud_layout.py の規則を変えたら、本体で golden を作り直してからこれを通す（手順書5-14）。
 """
-import dataclasses
 import math
 import sys
 import unittest
@@ -22,8 +22,8 @@ FONT = hud_layout.load_font()
 
 
 def read_state(path):
-    """hud_dump.c と同じ読み方：値の名前 = 値、utc、age"""
-    table, utc, age = {}, None, 0.0
+    """hud_dump.c と同じ読み方：値の名前 = 値、utc、age、trackpt = 緯度 経度（コース図の線）"""
+    table, utc, age, track = {}, None, 0.0, []
     for line in path.read_text(encoding='utf-8').splitlines():
         if '=' not in line or line.startswith('#'):
             continue
@@ -32,9 +32,11 @@ def read_state(path):
             utc = int(v)
         elif k == 'age':
             age = float(v)
+        elif k == 'trackpt':
+            track.append(tuple(float(x) for x in v.split()))
         else:
             table[k] = float(v)
-    return table, utc, age
+    return table, utc, age, track or None
 
 
 def vertices(quads):
@@ -50,8 +52,8 @@ def vertices(quads):
 class GoldenTest(unittest.TestCase):
     def check(self, ini, state, golden):
         hud = hud_layout.load(ini)
-        table, utc, age = read_state(DATA / state)
-        got = vertices(hud_layout.build(hud, FONT, hud_layout.values_from(hud, table), utc, age))
+        table, utc, age, track = read_state(DATA / state)
+        got = vertices(hud_layout.build(hud, FONT, hud_layout.values_from(hud, table), utc, age, track))
         lines = (DATA / golden).read_text().splitlines()
         self.assertEqual(lines[0], f'quads {len(got) // 6}', golden)
         want = [tuple(float(x) for x in ln.split()) for ln in lines[1:]]
@@ -71,6 +73,12 @@ class GoldenTest(unittest.TestCase):
             with self.subTest(s):
                 self.check(DATA / 'features.ini', f'features_{s}.state', f'features_{s}.golden')
 
+    def test_features2(self):
+        """針のメーター・弧・コース図・origin・signed・rings・center"""
+        for s in ('a', 'b'):
+            with self.subTest(s):
+                self.check(DATA / 'features2.ini', f'features2_{s}.state', f'features2_{s}.golden')
+
 
 class ParseTest(unittest.TestCase):
     def test_bad_configs_report_line(self):
@@ -84,14 +92,14 @@ class ParseTest(unittest.TestCase):
                     hud_layout.parse(text)
                 self.assertEqual(cm.exception.line, expect, str(cm.exception))
 
-    def test_user_hud_ini_matches_default_layout(self):
-        """最初の hud.ini は元の配置（hud_default.ini）と同じ計器"""
+    def test_user_hud_ini_is_racechrono_layout(self):
+        """hud.ini は2026-11-04のRaceChronoのような配置（新しい録画プログラムが要る）。元の配置は hud_default.ini のまま"""
         a, b = hud_layout.load(HERE / 'hud.ini'), hud_layout.load(hud_layout.DEFAULT_INI)
-        # 説明の行数だけ違う。NaN（しきい値なし）同士も同じとみなすため repr で比べる
-        no_line = lambda hud: [repr(dataclasses.replace(it, line=0)) for it in hud.items]  # noqa: E731
-        self.assertEqual(no_line(a), no_line(b))
-        self.assertEqual(a.refs, b.refs)
-        self.assertEqual(a.preview, b.preview)
+        self.assertEqual(hud_layout.needed_version(a), 2)
+        self.assertEqual(hud_layout.needed_version(b), 1)
+        self.assertEqual({it.type for it in a.items} >= {'dial', 'arc', 'map', 'gball', 'bar', 'value'}, True)
+        self.assertIn('calc.Delta', a.refs)
+        self.assertEqual(hud_layout.estimate(a, FONT)[2], 'ok')
 
     def test_bom_and_crlf(self):
         text = '﻿[a]\r\ntype = text\r\nx = 1\r\ny = 2\r\ntext = "A B"\r\n'
@@ -106,6 +114,21 @@ class ParseTest(unittest.TestCase):
 
 class EstimateTest(unittest.TestCase):
     """塗る面積からの重さの見積もり（本体での実測は手順書5-15）"""
+
+    def test_map_track_and_dot(self):
+        """コース図：線が無ければ何も描かない。位置が無ければ点を描かない。rect の中に収まる"""
+        hud = hud_layout.parse('[m]\ntype = map\nrect = 100 200 500 400\n')
+        la, lo = hud_layout.DEMO_TRACK[50]
+        self.assertEqual(hud_layout.build(hud, FONT, [la, lo], 0, 0.0, None), [])
+        with_dot = hud_layout.build(hud, FONT, [la, lo], 0, 0.0, hud_layout.DEMO_TRACK)
+        no_dot = hud_layout.build(hud, FONT, [math.nan, math.nan], 0, 0.0, hud_layout.DEMO_TRACK)
+        self.assertEqual(len(with_dot) - len(no_dot), 16)
+        xs = [x for q in no_dot for x in q[0]]
+        ys = [y for q in no_dot for y in q[1]]
+        self.assertGreaterEqual(min(xs), 100)
+        self.assertLessEqual(max(xs), 500)
+        self.assertGreaterEqual(min(ys), 200)
+        self.assertLessEqual(max(ys), 400)
 
     def test_default_is_ok(self):
         screens, ms, level = hud_layout.estimate(hud_layout.load(hud_layout.DEFAULT_INI), FONT)

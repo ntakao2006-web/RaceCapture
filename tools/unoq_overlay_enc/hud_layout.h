@@ -59,6 +59,26 @@ static float text(float x, float y, float s, const float c[4], const char *str) 
 }
 static float text_w(float s, const char *str) { return strlen(str) * cell_w * s; }
 
+// 円の上の点。角度は度で、0が真上・時計回り
+static void polar(float cx, float cy, double r, double deg, float *x, float *y) {
+    double a = deg * M_PI / 180;
+    *x = cx + r * sin(a); *y = cy - r * cos(a);
+}
+
+// 半径 r0〜r1 の帯を角度 a0〜a1 まで、n 個の四角形で（r0 = 0 なら扇形）
+static void band_n(float cx, float cy, double r0, double r1, double a0, double a1, int n, const float c[4]) {
+    for (int k = 0; k < n; k++) {
+        double b0 = a0 + (a1 - a0) * k / n, b1 = a0 + (a1 - a0) * (k + 1) / n;
+        float x[4], y[4];
+        polar(cx, cy, r1, b0, &x[0], &y[0]); polar(cx, cy, r1, b1, &x[1], &y[1]);
+        polar(cx, cy, r0, b1, &x[2], &y[2]); polar(cx, cy, r0, b0, &x[3], &y[3]);
+        quad4(x, y, -1, -1, -1, -1, c);
+    }
+}
+static void band(float cx, float cy, double r0, double r1, double a0, double a1, const float c[4]) {  // 5度ごと
+    if (a1 != a0) band_n(cx, cy, r0, r1, a0, a1, (int)ceil(fabs(a1 - a0) / 5), c);
+}
+
 static void fmt_laptime(char *b, size_t n, double minutes, int decimals) {
     if (isnan(minutes) || minutes < 0) { snprintf(b, n, decimals == 1 ? "-:--.-" : "-:--.--"); return; }
     double sec = minutes * 60; int m = (int)(sec / 60); double s = sec - m * 60;
@@ -68,6 +88,7 @@ static void fmt_laptime(char *b, size_t n, double minutes, int decimals) {
 static const float WHITE[4] = { .95f, .97f, 1, 1 }, GREY[4] = { .65f, .7f, .75f, 1 }, DIM[4] = { .55f, .6f, .65f, 1 };
 static const float YELLOW[4] = { 1, .8f, 0, 1 }, RED[4] = { 1, .2f, .15f, 1 }, GREEN[4] = { .25f, .9f, .35f, 1 };
 static const float PANEL[4] = { 0, 0, 0, .55f }, TRACK[4] = { .2f, .2f, .22f, .7f }, BLACK[4] = { 0, 0, 0, 1 };
+static const float OUTLINE[4] = { 0, 0, 0, .6f };
 
 // ---------------------------------------------------------------- 設定（hud.ini）
 #define HUD_ITEMS 64
@@ -80,18 +101,26 @@ static const float PANEL[4] = { 0, 0, 0, .55f }, TRACK[4] = { .2f, .2f, .22f, .7
 #define HUD_LINE 1024
 #define HUD_VAL 160
 
-enum { HT_BOX, HT_TEXT, HT_VALUE, HT_BAR, HT_GBALL, HT_CLOCK };
+#define HUD_TRACK_MAX 300  // コース図の線の点の数の上限
+
+enum { HT_BOX, HT_TEXT, HT_VALUE, HT_BAR, HT_GBALL, HT_CLOCK, HT_DIAL, HT_ARC, HT_MAP };
 enum { HS_ALWAYS, HS_NODATA, HS_NEVER };
 enum { HD_RIGHT, HD_LEFT, HD_UP, HD_DOWN };
+enum { HF_NUMBER, HF_LAPTIME, HF_SIGNED };
 
 struct hud_item {
-    int type, show, right, laptime, decimals, dir, flip_x, flip_y, has_box;
+    int type, show, right, fmt, decimals, dir, flip_x, flip_y, has_box, rings;  // right：0 左寄せ・1 右寄せ・2 真ん中。fmt は HF_ の値
     int ref, ref2;  // 値の番号（hud.ref の添字）。無ければ-1
     float x, y, size, rect[4], box[4], tick_width, radius, line_width, dot;
+    float width, tick_length, label_size, needle_width, outline_width;
     float color[4], missing[4], warn_c[4], alarm_c[4], box_c[4], track_c[4], tick_c[4], ring_c[4], cross_c[4];
+    float needle_c[4], face_c[4], outline_c[4];
     double warn_at, alarm_at, warn_below, alarm_below, scale, offset, min, max, tick_every, full;
+    double origin, start, sweep, minor_every, label_every, label_scale, rotate;
     char text[HUD_STR], prefix[HUD_STR], unit[HUD_STR];
 };
+// コース図の線（緯度・経度。本体では lap_ref.h が走行中に作る）
+struct hud_track { int n; double lat[HUD_TRACK_MAX], lon[HUD_TRACK_MAX]; };
 struct hud {
     int n, nref;
     double nodata_after;  // 数値がこの秒数来なければ show = nodata の計器を出す
@@ -104,18 +133,27 @@ struct hud_sec { char name[40]; int line, nkv; struct hud_kv kv[HUD_KVS]; };
 struct hud_color { char name[32]; float c[4]; };
 
 // どの種類で使えるキーか（どの種類にも type show box box_color が使える）
-static const char *HUD_TYPES[] = { "box", "text", "value", "bar", "gball", "clock" };
-static const char *HUD_KEYS[] = {
+#define HUD_NTYPES 9
+#define HUD_TYPE_LIST "box text value bar gball clock dial arc map"
+static const char *HUD_TYPES[HUD_NTYPES] = { "box", "text", "value", "bar", "gball", "clock", "dial", "arc", "map" };
+static const char *HUD_KEYS[HUD_NTYPES] = {
     "rect color",
     "x y size color align text",
     "x y size color align value scale offset decimals prefix unit format missing_color"
     " warn_at alarm_at warn_below alarm_below warn_color alarm_color",
-    "rect value scale offset min max direction color warn_at alarm_at warn_below alarm_below warn_color alarm_color"
+    "rect value scale offset min max origin direction color warn_at alarm_at warn_below alarm_below warn_color alarm_color"
     " track_color tick_every tick_color tick_width",
-    "center radius full x_value y_value flip_x flip_y ring_color cross_color color dot line_width",
+    "center radius full rings x_value y_value flip_x flip_y ring_color cross_color color dot line_width",
     "x y size color align",
+    "center radius value scale offset min max start sweep tick_every minor_every tick_length tick_width"
+    " label_every label_scale label_size decimals color needle_color needle_width face_color ring_color line_width"
+    " warn_at alarm_at warn_color alarm_color",
+    "center radius width value scale offset min max start sweep color warn_at alarm_at warn_below alarm_below"
+    " warn_color alarm_color track_color tick_every tick_color tick_width",
+    "rect color dot track_color line_width outline_color outline_width rotate",
 };
-static const char *HUD_NEED[] = { "rect", "x y text", "x y value", "rect value max", "center radius", "x y" };
+static const char *HUD_NEED[HUD_NTYPES] = { "rect", "x y text", "x y value", "rect value max", "center radius", "x y",
+                                            "center radius value max", "center radius value max", "rect" };
 
 static int hud_err(char *err, size_t n, int line, const char *fmt, ...) {
     va_list ap; va_start(ap, fmt);
@@ -222,22 +260,28 @@ static const struct hud_kv *hud_get(const struct hud_sec *s, const char *key) {
 // 1つの計器の節を組み立てる
 static int hud_item(struct hud *h, const struct hud_sec *s, const struct hud_color *uc, int nuc, char *err, size_t errn) {
     const struct hud_kv *tk = hud_get(s, "type");
-    if (!tk) return hud_err(err, errn, s->line, "[%s] に type が無い（box text value bar gball clock のどれか）", s->name);
+    if (!tk) return hud_err(err, errn, s->line, "[%s] に type が無い（" HUD_TYPE_LIST " のどれか）", s->name);
     int type = -1;
-    for (int i = 0; i < 6; i++) if (!strcmp(tk->val, HUD_TYPES[i])) type = i;
-    if (type < 0) return hud_err(err, errn, tk->line, "type「%s」は無い（box text value bar gball clock のどれか）", tk->val);
+    for (int i = 0; i < HUD_NTYPES; i++) if (!strcmp(tk->val, HUD_TYPES[i])) type = i;
+    if (type < 0) return hud_err(err, errn, tk->line, "type「%s」は無い（" HUD_TYPE_LIST " のどれか）", tk->val);
     if (h->n >= HUD_ITEMS) return hud_err(err, errn, s->line, "計器が多すぎる（%d個まで）", HUD_ITEMS);
     struct hud_item *it = &h->it[h->n];
     memset(it, 0, sizeof *it);
     it->type = type; it->ref = it->ref2 = -1; it->size = 1; it->scale = 1; it->max = NAN;
     it->warn_at = it->alarm_at = it->warn_below = it->alarm_below = NAN;
-    it->decimals = -1; it->full = 1.5; it->dot = 18; it->line_width = 3; it->tick_width = 3;
-    memcpy(it->color, type == HT_BAR ? GREEN : type == HT_GBALL ? YELLOW : WHITE, sizeof it->color);
+    it->decimals = -1; it->full = 1.5; it->rings = 1; it->dot = 18; it->line_width = 3; it->tick_width = 3;
+    it->origin = NAN; it->start = -135; it->sweep = 270; it->label_every = NAN; it->label_scale = 1;
+    it->width = 20; it->tick_length = NAN; it->label_size = .4f; it->needle_width = 6;
+    if (type == HT_DIAL) it->line_width = 0;  // 針のメーターの外周の線は、line_width を書いたときだけ
+    if (type == HT_MAP) it->line_width = 4;
+    memcpy(it->color, type == HT_BAR || type == HT_ARC ? GREEN : type == HT_GBALL ? YELLOW : type == HT_MAP ? RED : WHITE, sizeof it->color);
     memcpy(it->warn_c, YELLOW, sizeof it->warn_c); memcpy(it->alarm_c, RED, sizeof it->alarm_c);
-    memcpy(it->box_c, PANEL, sizeof it->box_c); memcpy(it->track_c, TRACK, sizeof it->track_c);
+    memcpy(it->box_c, PANEL, sizeof it->box_c); memcpy(it->track_c, type == HT_MAP ? WHITE : TRACK, sizeof it->track_c);
     memcpy(it->tick_c, PANEL, sizeof it->tick_c); memcpy(it->ring_c, GREY, sizeof it->ring_c); memcpy(it->cross_c, DIM, sizeof it->cross_c);
+    memcpy(it->needle_c, RED, sizeof it->needle_c); memcpy(it->outline_c, OUTLINE, sizeof it->outline_c);  // face_c は透明（描かない）
     int has_missing = 0, has_box_c = 0;
-    const char *ref1 = type == HT_GBALL ? "values.LatAccel" : NULL, *ref2 = type == HT_GBALL ? "values.LongAccel" : NULL;
+    const char *ref1 = type == HT_GBALL ? "values.LatAccel" : type == HT_MAP ? "values.Lat" : NULL;
+    const char *ref2 = type == HT_GBALL ? "values.LongAccel" : type == HT_MAP ? "values.Lon" : NULL;
 
     for (int i = 0; i < s->nkv; i++) {
         const struct hud_kv *kv = &s->kv[i];
@@ -272,7 +316,25 @@ static int hud_item(struct hud *h, const struct hud_sec *s, const struct hud_col
         else if (!strcmp(k, "dot")) { NUM(it->dot); if (!(it->dot > 0)) return hud_err(err, errn, kv->line, "dot は0より大きい数"); }
         else if (!strcmp(k, "line_width")) { NUM(it->line_width); if (!(it->line_width > 0)) return hud_err(err, errn, kv->line, "line_width は0より大きい数"); }
         else if (!strcmp(k, "tick_width")) { NUM(it->tick_width); if (!(it->tick_width > 0)) return hud_err(err, errn, kv->line, "tick_width は0より大きい数"); }
+        else if (!strcmp(k, "width")) { NUM(it->width); if (!(it->width > 0)) return hud_err(err, errn, kv->line, "width は0より大きい数"); }
+        else if (!strcmp(k, "tick_length")) { NUM(it->tick_length); if (!(it->tick_length > 0)) return hud_err(err, errn, kv->line, "tick_length は0より大きい数"); }
+        else if (!strcmp(k, "label_size")) { NUM(it->label_size); if (!(it->label_size > 0)) return hud_err(err, errn, kv->line, "label_size は0より大きい数"); }
+        else if (!strcmp(k, "needle_width")) { NUM(it->needle_width); if (!(it->needle_width > 0)) return hud_err(err, errn, kv->line, "needle_width は0より大きい数"); }
+        else if (!strcmp(k, "outline_width")) { NUM(it->outline_width); if (!(it->outline_width > 0)) return hud_err(err, errn, kv->line, "outline_width は0より大きい数"); }
         else if (!strcmp(k, "tick_every")) { NUM(it->tick_every); if (it->tick_every < 0) return hud_err(err, errn, kv->line, "tick_every は0以上（0で目盛り無し）"); }
+        else if (!strcmp(k, "minor_every")) { NUM(it->minor_every); if (it->minor_every < 0) return hud_err(err, errn, kv->line, "minor_every は0以上（0で細かい目盛り無し）"); }
+        else if (!strcmp(k, "label_every")) { NUM(it->label_every); if (it->label_every < 0) return hud_err(err, errn, kv->line, "label_every は0以上（0で数字無し）"); }
+        else if (!strcmp(k, "rings")) {
+            if (!hud_num(v, &d[0]) || d[0] != floor(d[0]) || d[0] < 1 || d[0] > 4) return hud_err(err, errn, kv->line, "rings は1〜4の整数（「%s」）", v);
+            it->rings = (int)d[0];
+        } else if (!strcmp(k, "sweep")) {
+            NUM(it->sweep);
+            if (it->sweep == 0 || fabs(it->sweep) > 360) return hud_err(err, errn, kv->line, "sweep は0でない-360〜360の数（度）");
+        }
+        else if (!strcmp(k, "start")) NUM(it->start);
+        else if (!strcmp(k, "origin")) NUM(it->origin);
+        else if (!strcmp(k, "label_scale")) NUM(it->label_scale);
+        else if (!strcmp(k, "rotate")) NUM(it->rotate);
         else if (!strcmp(k, "scale")) NUM(it->scale);
         else if (!strcmp(k, "offset")) NUM(it->offset);
         else if (!strcmp(k, "min")) NUM(it->min);
@@ -288,11 +350,12 @@ static int hud_item(struct hud *h, const struct hud_sec *s, const struct hud_col
             if (strcmp(v, "0") && strcmp(v, "1")) return hud_err(err, errn, kv->line, "%s は0か1（「%s」）", k, v);
             if (k[5] == 'x') it->flip_x = *v == '1'; else it->flip_y = *v == '1';
         } else if (!strcmp(k, "align")) {
-            if (!strcmp(v, "left")) it->right = 0; else if (!strcmp(v, "right")) it->right = 1;
-            else return hud_err(err, errn, kv->line, "align は left か right（「%s」）", v);
+            if (!strcmp(v, "left")) it->right = 0; else if (!strcmp(v, "right")) it->right = 1; else if (!strcmp(v, "center")) it->right = 2;
+            else return hud_err(err, errn, kv->line, "align は left right center のどれか（「%s」）", v);
         } else if (!strcmp(k, "format")) {
-            if (!strcmp(v, "number")) it->laptime = 0; else if (!strcmp(v, "laptime")) it->laptime = 1;
-            else return hud_err(err, errn, kv->line, "format は number か laptime（「%s」）", v);
+            if (!strcmp(v, "number")) it->fmt = HF_NUMBER; else if (!strcmp(v, "laptime")) it->fmt = HF_LAPTIME;
+            else if (!strcmp(v, "signed")) it->fmt = HF_SIGNED;
+            else return hud_err(err, errn, kv->line, "format は number laptime signed のどれか（「%s」）", v);
         } else if (!strcmp(k, "direction")) {
             if (!strcmp(v, "right")) it->dir = HD_RIGHT; else if (!strcmp(v, "left")) it->dir = HD_LEFT;
             else if (!strcmp(v, "up")) it->dir = HD_UP; else if (!strcmp(v, "down")) it->dir = HD_DOWN;
@@ -311,6 +374,9 @@ static int hud_item(struct hud *h, const struct hud_sec *s, const struct hud_col
         else if (!strcmp(k, "tick_color")) COLOR(it->tick_c);
         else if (!strcmp(k, "ring_color")) COLOR(it->ring_c);
         else if (!strcmp(k, "cross_color")) COLOR(it->cross_c);
+        else if (!strcmp(k, "needle_color")) COLOR(it->needle_c);
+        else if (!strcmp(k, "face_color")) COLOR(it->face_c);
+        else if (!strcmp(k, "outline_color")) COLOR(it->outline_c);
 #undef NUM
 #undef COLOR
     }
@@ -322,12 +388,18 @@ static int hud_item(struct hud *h, const struct hud_sec *s, const struct hud_col
     if (!has_missing) memcpy(it->missing, it->color, sizeof it->missing);
     if (type == HT_TEXT && !it->text[0]) return hud_err(err, errn, hud_get(s, "text")->line, "text が空");
     if (type == HT_VALUE) {
-        if (it->decimals < 0) it->decimals = it->laptime ? 2 : 0;
-        if (it->laptime && it->decimals != 1 && it->decimals != 2) return hud_err(err, errn, hud_get(s, "decimals")->line, "format = laptime の decimals は1か2");
+        if (it->decimals < 0) it->decimals = it->fmt == HF_LAPTIME ? 2 : 0;
+        if (it->fmt == HF_LAPTIME && it->decimals != 1 && it->decimals != 2) return hud_err(err, errn, hud_get(s, "decimals")->line, "format = laptime の decimals は1か2");
     }
-    if (type == HT_BAR) {
+    if (type == HT_DIAL && it->decimals < 0) it->decimals = 0;
+    if (type == HT_BAR || type == HT_DIAL || type == HT_ARC) {
         if (!(it->max > it->min)) return hud_err(err, errn, hud_get(s, "max")->line, "max は min（既定0）より大きい数");
         if (it->tick_every > 0 && (it->max - it->min) / it->tick_every > 200) return hud_err(err, errn, hud_get(s, "tick_every")->line, "目盛りが多すぎる（200本まで）");
+        if (it->minor_every > 0 && (it->max - it->min) / it->minor_every > 200) return hud_err(err, errn, hud_get(s, "minor_every")->line, "細かい目盛りが多すぎる（200本まで）");
+    }
+    if (type == HT_DIAL) {
+        if (isnan(it->label_every)) it->label_every = it->tick_every;
+        if (it->label_every > 0 && (it->max - it->min) / it->label_every > 50) return hud_err(err, errn, hud_get(s, "label_every") ? hud_get(s, "label_every")->line : hud_get(s, "tick_every")->line, "目盛りの数字が多すぎる（50個まで）");
     }
     if (ref1 && (it->ref = hud_add_ref(h, ref1)) < 0) return hud_err(err, errn, s->line, "値の名前が多すぎる（%d種類まで）", HUD_REFS);
     if (ref2 && (it->ref2 = hud_add_ref(h, ref2)) < 0) return hud_err(err, errn, s->line, "値の名前が多すぎる（%d種類まで）", HUD_REFS);
@@ -421,11 +493,50 @@ static const float *hud_pick(const struct hud_item *it, double x) {
 }
 
 static void hud_text(const struct hud_item *it, const char *s, const float *c) {
-    text(it->right ? it->x - text_w(it->size, s) : it->x, it->y, it->size, c, s);
+    text(it->right == 1 ? it->x - text_w(it->size, s) : it->right == 2 ? it->x - text_w(it->size, s) / 2 : it->x, it->y, it->size, c, s);
 }
 
-// v：値（h->ref の順、無ければNAN）。utc_ok・utc：時刻。age：最後に数値を受け取ってからの秒
-static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t utc, double age) {
+// 針のメーター・弧のゲージで、値 x の角度（度。min〜max の外は端に止める）
+static double hud_angle(const struct hud_item *it, double x) {
+    return it->start + it->sweep * fmin(fmax((x - it->min) / (it->max - it->min), 0), 1);
+}
+
+// コース図：線を緯度・経度から平面へ直し（北が上、rotate 度だけ時計回りに回す）、rect の中へ縦横比を保って収める
+static void hud_map(const struct hud_item *it, const struct hud_track *trk, double lat, double lon) {
+    if (!trk || trk->n < 2) return;
+    double la0 = trk->lat[0], la1 = la0, lo0 = trk->lon[0], lo1 = lo0;
+    for (int i = 1; i < trk->n; i++) {
+        la0 = fmin(la0, trk->lat[i]); la1 = fmax(la1, trk->lat[i]); lo0 = fmin(lo0, trk->lon[i]); lo1 = fmax(lo1, trk->lon[i]);
+    }
+    const double lac = (la0 + la1) / 2, loc = (lo0 + lo1) / 2, k = cos(lac * M_PI / 180);
+    const double cr = cos(it->rotate * M_PI / 180), sr = sin(it->rotate * M_PI / 180);
+    static double px[HUD_TRACK_MAX], py[HUD_TRACK_MAX];
+    double x0 = 0, x1 = 0, y0 = 0, y1 = 0;
+    for (int i = 0; i < trk->n; i++) {
+        double X = (trk->lon[i] - loc) * k, Y = -(trk->lat[i] - lac);
+        px[i] = X * cr - Y * sr; py[i] = X * sr + Y * cr;
+        if (!i || px[i] < x0) x0 = px[i];
+        if (!i || px[i] > x1) x1 = px[i];
+        if (!i || py[i] < y0) y0 = py[i];
+        if (!i || py[i] > y1) y1 = py[i];
+    }
+    const float *r = it->rect;
+    const double lw = it->line_width + 2 * it->outline_width, m = fmax(it->dot, lw) / 2 + 2;
+    const double aw = r[2] - r[0] - 2 * m, ah = r[3] - r[1] - 2 * m;
+    if (aw <= 0 || ah <= 0 || (x1 <= x0 && y1 <= y0)) return;
+    const double s = fmin(x1 > x0 ? aw / (x1 - x0) : INFINITY, y1 > y0 ? ah / (y1 - y0) : INFINITY);
+    const double ox = (r[0] + r[2]) / 2.0 - s * (x0 + x1) / 2, oy = (r[1] + r[3]) / 2.0 - s * (y0 + y1) / 2;
+    if (it->outline_width > 0)
+        for (int i = 0; i + 1 < trk->n; i++) seg(ox + s * px[i], oy + s * py[i], ox + s * px[i + 1], oy + s * py[i + 1], lw, it->outline_c);
+    for (int i = 0; i + 1 < trk->n; i++) seg(ox + s * px[i], oy + s * py[i], ox + s * px[i + 1], oy + s * py[i + 1], it->line_width, it->track_c);
+    if (!isnan(lat) && !isnan(lon)) {
+        double X = (lon - loc) * k, Y = -(lat - lac);
+        band_n(ox + s * (X * cr - Y * sr), oy + s * (X * sr + Y * cr), 0, it->dot / 2, 0, 360, 16, it->color);
+    }
+}
+
+// v：値（h->ref の順、無ければNAN）。utc_ok・utc：時刻。age：最後に数値を受け取ってからの秒。trk：コース図の線（無ければNULL）
+static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t utc, double age, const struct hud_track *trk) {
     char b[3 * HUD_STR + 32];
     const int nodata = age > h->nodata_after;
     for (int i = 0; i < h->n; i++) {
@@ -438,10 +549,11 @@ static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t ut
         case HT_TEXT: hud_text(it, it->text, it->color); break;
         case HT_VALUE: {
             double x = hud_val(it, v, it->ref);
-            if (it->laptime) {
+            if (it->fmt == HF_LAPTIME) {
                 char t[32]; fmt_laptime(t, sizeof t, x, it->decimals);
                 snprintf(b, sizeof b, "%s%s%s", it->prefix, t, isnan(x) || x < 0 ? "" : it->unit);
             } else if (isnan(x)) snprintf(b, sizeof b, "%s--", it->prefix);
+            else if (it->fmt == HF_SIGNED) snprintf(b, sizeof b, "%s%+.*f%s", it->prefix, it->decimals, x, it->unit);
             else snprintf(b, sizeof b, "%s%.*f%s", it->prefix, it->decimals, x, it->unit);
             hud_text(it, b, hud_pick(it, x));
             break;
@@ -450,7 +562,17 @@ static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t ut
             const float w = r[2] - r[0], hh = r[3] - r[1];
             rect(r[0], r[1], r[2], r[3], it->track_c);
             double x = hud_val(it, v, it->ref);
-            if (!isnan(x)) {
+            if (!isnan(x) && !isnan(it->origin)) {  // origin から値まで（値が origin より小さければ逆向きに伸びる）
+                double f0 = fmin(fmax((it->origin - it->min) / (it->max - it->min), 0), 1);
+                double f1 = fmin(fmax((x - it->min) / (it->max - it->min), 0), 1), lo = fmin(f0, f1), hi = fmax(f0, f1);
+                const float *c = hud_pick(it, x);
+                if (hi > lo) {
+                    if (it->dir == HD_RIGHT) rect(r[0] + w * lo, r[1], r[0] + w * hi, r[3], c);
+                    else if (it->dir == HD_LEFT) rect(r[2] - w * hi, r[1], r[2] - w * lo, r[3], c);
+                    else if (it->dir == HD_UP) rect(r[0], r[3] - hh * hi, r[2], r[3] - hh * lo, c);
+                    else rect(r[0], r[1] + hh * lo, r[2], r[1] + hh * hi, c);
+                }
+            } else if (!isnan(x)) {
                 double f = fmin(fmax((x - it->min) / (it->max - it->min), 0), 1);
                 const float *c = hud_pick(it, x);
                 if (it->dir == HD_RIGHT) rect(r[0], r[1], r[0] + w * f, r[3], c);
@@ -474,9 +596,12 @@ static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t ut
         }
         case HT_GBALL: {  // 外周＝full（G）。flipが無ければ、x_valueは右が正、y_valueは下が正
             const float cx = it->x, cy = it->y, rr = it->radius, lw = it->line_width;
-            for (int k = 0; k < 48; k++) {
-                float a0 = k * 2 * M_PI / 48, a1 = (k + 1) * 2 * M_PI / 48;
-                seg(cx + rr * cosf(a0), cy + rr * sinf(a0), cx + rr * cosf(a1), cy + rr * sinf(a1), lw, it->ring_c);
+            for (int j = 1; j <= it->rings; j++) {  // 外周（rings が2以上なら、内側にも等間隔の輪）
+                const float ri = rr * j / it->rings;
+                for (int k = 0; k < 48; k++) {
+                    float a0 = k * 2 * M_PI / 48, a1 = (k + 1) * 2 * M_PI / 48;
+                    seg(cx + ri * cosf(a0), cy + ri * sinf(a0), cx + ri * cosf(a1), cy + ri * sinf(a1), lw, it->ring_c);
+                }
             }
             seg(cx - rr, cy, cx + rr, cy, lw, it->cross_c); seg(cx, cy - rr, cx, cy + rr, lw, it->cross_c);
             double gx = hud_val(it, v, it->ref), gy = hud_val(it, v, it->ref2);
@@ -494,6 +619,62 @@ static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t ut
             hud_text(it, b, it->color);
             break;
         }
+        case HT_DIAL: {  // 針のメーター：盤 → 外周の線 → 黄・赤の帯 → 目盛り → 数字 → 針
+            const float cx = it->x, cy = it->y, rr = it->radius;
+            const double tl = isnan(it->tick_length) ? rr * .12 : it->tick_length, span = it->max - it->min;
+            const double a0 = it->start, a1 = it->start + it->sweep;
+            if (it->face_c[3] > 0) band(cx, cy, 0, rr, 0, 360, it->face_c);
+            if (it->line_width > 0) band(cx, cy, rr - it->line_width, rr, a0, a1, it->ring_c);
+            if (!isnan(it->warn_at) && it->warn_at < it->max)
+                band(cx, cy, rr - tl * .45, rr, hud_angle(it, it->warn_at), hud_angle(it, isnan(it->alarm_at) ? it->max : fmax(it->alarm_at, it->warn_at)), it->warn_c);
+            if (!isnan(it->alarm_at) && it->alarm_at < it->max) band(cx, cy, rr - tl * .45, rr, hud_angle(it, it->alarm_at), a1, it->alarm_c);
+            for (int k = 0; it->minor_every > 0; k++) {
+                double tv = it->min + k * it->minor_every;
+                if (tv > it->max + 1e-9 * span) break;
+                if (it->tick_every > 0 && fabs(remainder(tv - it->min, it->tick_every)) < 1e-6 * span) continue;
+                float xa, ya, xb, yb; double a = hud_angle(it, tv);
+                polar(cx, cy, rr, a, &xa, &ya); polar(cx, cy, rr - tl * .55, a, &xb, &yb);
+                seg(xa, ya, xb, yb, it->tick_width * .6f, it->color);
+            }
+            for (int k = 0; it->tick_every > 0; k++) {
+                double tv = it->min + k * it->tick_every;
+                if (tv > it->max + 1e-9 * span) break;
+                float xa, ya, xb, yb; double a = hud_angle(it, tv);
+                polar(cx, cy, rr, a, &xa, &ya); polar(cx, cy, rr - tl, a, &xb, &yb);
+                seg(xa, ya, xb, yb, it->tick_width, it->color);
+            }
+            for (int k = 0; it->label_every > 0; k++) {  // 数字の箱の外側の端が、目盛りの内側から4ピクセル内に来るように置く
+                double tv = it->min + k * it->label_every;
+                if (tv > it->max + 1e-9 * span) break;
+                snprintf(b, sizeof b, "%.*f", it->decimals, tv * it->label_scale);
+                double a = hud_angle(it, tv) * M_PI / 180, w = text_w(it->label_size, b), lh = cell_h * it->label_size;
+                double rl = rr - tl - 4 - .5 * (fabs(sin(a)) * w + fabs(cos(a)) * lh);
+                text(cx + rl * sin(a) - w / 2, cy - rl * cos(a) - lh / 2, it->label_size, it->color, b);
+            }
+            double x = hud_val(it, v, it->ref);
+            if (!isnan(x)) {
+                float xt, yt; polar(cx, cy, rr - tl * .2, hud_angle(it, x), &xt, &yt);
+                seg(cx, cy, xt, yt, it->needle_width, it->needle_c);
+                rect(cx - it->needle_width, cy - it->needle_width, cx + it->needle_width, cy + it->needle_width, it->needle_c);
+            }
+            break;
+        }
+        case HT_ARC: {  // 弧のゲージ：地の帯 → 値までの帯 → 区切り
+            const float cx = it->x, cy = it->y, rr = it->radius;
+            const double r0 = fmax(rr - it->width, 0), span = it->max - it->min;
+            band(cx, cy, r0, rr, it->start, it->start + it->sweep, it->track_c);
+            double x = hud_val(it, v, it->ref);
+            if (!isnan(x)) band(cx, cy, r0, rr, it->start, hud_angle(it, x), hud_pick(it, x));
+            for (int k = 1; it->tick_every > 0; k++) {
+                double tv = it->min + k * it->tick_every;
+                if (tv >= it->max - 1e-9 * span) break;
+                float xa, ya, xb, yb; double a = hud_angle(it, tv);
+                polar(cx, cy, rr, a, &xa, &ya); polar(cx, cy, r0, a, &xb, &yb);
+                seg(xa, ya, xb, yb, it->tick_width, it->tick_c);
+            }
+            break;
+        }
+        case HT_MAP: hud_map(it, trk, hud_val(it, v, it->ref), hud_val(it, v, it->ref2)); break;
         }
     }
 }

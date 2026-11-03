@@ -5,6 +5,7 @@
 // 実行:   ./hud_dump <hud.ini> <hud_font_64.pgm> <state.txt>
 //   state.txt は1行に「名前 = 値」。名前は値の名前（values.RPM 等。| でつないだものは前から順に探す）か、
 //   utc（UNIX秒。書かなければ時刻は出さない）・age（最後に数値を受け取ってからの秒。既定0）。書いていない値は無し（NAN）
+//   trackpt = 緯度 経度 の行を並べると、その順にコース図の線になる
 // 出力：1行目に「quads 四角形の数」、続けて1行に1頂点「x y u v r g b a」。設定の誤りは標準エラーへ出して終了コード2
 #define _GNU_SOURCE
 #include "hud_layout.h"
@@ -38,6 +39,7 @@ int main(int argc, char **argv) {
 
     static char names[256][HUD_REF_LEN]; double vals[256]; int nn = 0;
     time_t utc = 0; int utc_ok = 0; double age = 0;
+    static struct hud_track trk;
     char *st = slurp(argv[3]);
     for (char *l = strtok(st, "\n"); l; l = strtok(NULL, "\n")) {
         char *eq = strchr(l, '='); if (!eq || l[0] == '#') continue;
@@ -45,6 +47,7 @@ int main(int argc, char **argv) {
         char *k = hud_trim(l), *v = hud_trim(eq + 1);
         if (!strcmp(k, "utc")) { utc = (time_t)atoll(v); utc_ok = 1; }
         else if (!strcmp(k, "age")) age = atof(v);
+        else if (!strcmp(k, "trackpt")) { if (trk.n < HUD_TRACK_MAX && sscanf(v, "%lf %lf", &trk.lat[trk.n], &trk.lon[trk.n]) == 2) trk.n++; }
         else if (nn < 256) { snprintf(names[nn], HUD_REF_LEN, "%s", k); vals[nn++] = atof(v); }
     }
     double v[HUD_REFS];
@@ -57,7 +60,7 @@ int main(int argc, char **argv) {
 
     (void)hud_demo;  // 本体のDEMO用。ここでは使わない
     hn = 0;
-    hud_draw(h, v, utc_ok, utc, age);
+    hud_draw(h, v, utc_ok, utc, age, trk.n ? &trk : NULL);
     printf("quads %d\n", hn / 6);
     for (int i = 0; i < hn; i++) {
         const float *p = hv + 8 * i;
