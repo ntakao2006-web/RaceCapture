@@ -48,14 +48,16 @@ class DefiTempSetupTests(unittest.TestCase):
             from models import Signal
         except ImportError as error:  # pydanticが無いPC
             self.skipTest(str(error))
-        water, oil = (Signal(**s) for s in defi_temp_setup.temp_signals(defi_temp_setup.PULLUP_OHM))
-        # 2026-11-03 Defiの油温計 85℃ のときの Temp2 の60秒平均 2.1346 V（公称5 V換算）
-        self.assertAlmostEqual(oil.ntc_celsius(2.1346 / 5), 85, delta=.5)
-        self.assertAlmostEqual(oil.ntc_celsius(2.109 / 5), 86, delta=.5)
-        # 水温はファンの周期で揺れる。平均 2.035 V ≒ メーターの87〜89℃
-        self.assertAlmostEqual(water.ntc_celsius(2.035 / 5), 88, delta=1.5)
+        water, oil = (Signal(**s) for s in defi_temp_setup.temp_signals())
+        celsius = lambda signal, volt: signal.ntc_celsius(round(volt / 5 * 4095) * signal.scale)  # 公称5 V換算の電圧から
+        # Defiのメーターと並べて読んだ点（Temp1・Temp2の30〜60秒平均）。水温はファンの周期で揺れるので平均
+        for signal, meter, volt in ((oil, 85, 2.1346), (oil, 86, 2.109), (oil, 72, 2.655),
+                                    (water, 88, 2.035), (water, 70.75, 2.67), (water, 36, 4.0165)):
+            self.assertAlmostEqual(celsius(signal, volt), meter, delta=1.5)
         # 表の97℃より上は同じβ式を延ばす（警告の110〜130℃）。電圧が下がるほど高温
-        self.assertGreater(oil.ntc_celsius(1.6 / 5), oil.ntc_celsius(2.1 / 5))
+        self.assertGreater(celsius(oil, 1.6), celsius(oil, 2.1))
+        # Defiの電圧は公称5 Vより高いので、ADCの上限（センサーが外れたとき）は約6℃に出る（警告は鳴らない側）
+        self.assertLess(celsius(oil, 5.0), 10)
         (t1, r1), (t2, r2) = defi_temp_setup.DEFI_POINTS
         beta = math.log(r1 / r2) / (1 / (t1 + 273.15) - 1 / (t2 + 273.15))
         for celsius in (97, 120, 130):

@@ -85,8 +85,8 @@ def save(run, config, status, signals, label):
     recording = status['logging']['active']
     try:
         if recording:
-            # 停止はSDのファイルに時刻を付け終わるまで返らない（server.pyのstop_log。記録が長いと1分を超える）
-            api(run, '/api/log/stop', {}, wait=180)
+            # 停止はSDのファイルに時刻を付け終わるまで返らない（server.pyのstop_log。3分を超えることがある）
+            api(run, '/api/log/stop', {}, wait=420)
             print('記録を止めました')
         api(run, '/api/config', {**config, 'signals': signals})
         print('設定を保存しました')

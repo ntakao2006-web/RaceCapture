@@ -60,7 +60,7 @@ def runner(use_adb, host):
 
     def run(command):
         # 待つ長さは各コマンド（curl -m）が決める。記録の停止はSDの時刻付けが終わるまで返らないので長めに打ち切る
-        done = subprocess.run([*head, command], capture_output=True, text=True, encoding='utf-8', timeout=200)
+        done = subprocess.run([*head, command], capture_output=True, text=True, encoding='utf-8', timeout=450)
         if done.returncode:
             raise RuntimeError(f'本体でのコマンドが失敗しました: {done.stderr.strip() or done.stdout.strip()}')
         return done.stdout
