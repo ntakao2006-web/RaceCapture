@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>走行映像の回収</title>
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6676; --line: #dde1e8;
+  --accent: #2563eb; --accent-text: #ffffff; --ok: #15803d; --ok-bg: #e7f6ec; --warn: #a16207; --warn-bg: #fdf3d8;
+  --bad: #b91c1c; --bad-bg: #fde8e8; --info: #1d4ed8; --info-bg: #e5edff; --chip: #eef0f4;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151b; --panel: #1b1f27; --text: #e6e9ef; --muted: #9aa3b2; --line: #2c323d;
+    --accent: #4f8cff; --accent-text: #0b1020; --ok: #4ade80; --ok-bg: #14301f; --warn: #facc15; --warn-bg: #33290c;
+    --bad: #f87171; --bad-bg: #3a1717; --info: #93b4ff; --info-bg: #19254a; --chip: #262b35;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "Yu Gothic UI", "Meiryo", system-ui, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 20px; margin: 4px 0 2px; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+.sub { color: var(--muted); font-size: 13px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin: 12px 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 12px 0; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.tile .k { color: var(--muted); font-size: 12px; }
+.tile .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tile .n { color: var(--muted); font-size: 12px; }
+.banner { border-radius: 10px; padding: 10px 12px; margin: 12px 0; }
+.banner.warn { background: var(--warn-bg); color: var(--warn); }
+.banner.bad { background: var(--bad-bg); color: var(--bad); }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+button.danger { color: var(--bad); }
+button:disabled { opacity: .45; cursor: default; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.bad { background: var(--bad-bg); color: var(--bad); }
+.chip.info { background: var(--info-bg); color: var(--info); }
+.session { border-top: 1px solid var(--line); padding: 12px 0; }
+.session:first-of-type { border-top: 0; }
+.session .title { font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; }
+.session .meta { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
+details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-top: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; }
+.scroll { overflow-x: auto; }
+.bar { height: 10px; background: var(--chip); border-radius: 999px; overflow: hidden; margin: 8px 0 4px; }
+.bar > div { height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+.log { font: 12px/1.4 Consolas, monospace; color: var(--muted); max-height: 160px; overflow-y: auto; white-space: pre-wrap; margin-top: 6px; }
+.problems { color: var(--bad); margin-top: 6px; }
+input[type=text] { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); min-width: 0; flex: 1 1 260px; }
+.hidden { display: none; }
+@media (max-width: 600px) { .tile .v { font-size: 19px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>走行映像の回収</h1>
+  <div class="sub" id="link">本体を探しています…</div>
+  <div class="row" style="margin-top:8px">
+    <button id="refresh">本体を探し直す</button>
+    <span class="sub" id="listed"></span>
+  </div>
+  <div id="banner"></div>
+  <div class="tiles" id="tiles"></div>
+
+  <div class="panel hidden" id="job">
+    <div class="row"><h2 id="job-name" style="margin:0"></h2><span class="sub" id="job-file"></span>
+      <button id="cancel" class="danger" style="margin-left:auto">止める</button></div>
+    <div class="bar"><div id="job-bar"></div></div>
+    <div class="sub" id="job-rate"></div>
+    <div class="problems" id="job-problems"></div>
+    <div class="log" id="job-log"></div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <button class="primary" id="collect-all">未回収をすべて吸い出す</button>
+      <button class="danger" id="delete-all">回収済みを本体からすべて消す</button>
+    </div>
+    <div class="sub" style="margin-top:6px">吸い出すと1本ごとに本体とPCで中身が同じか（SHA-256）を確かめ、本体に「回収済み」の印を付けます。
+      本体は空きが足りなくなると回収済みから消します。PCに吸い出したファイルは、このアプリは消しません。</div>
+  </div>
+
+  <div class="panel">
+    <h2>走行（新しい順）</h2>
+    <div id="sessions" class="sub">—</div>
+  </div>
+
+  <div class="panel">
+    <h2>控え（PCが壊れたとき用のもう1部）</h2>
+    <div class="row">
+      <input type="text" id="backup" placeholder="例 E:\EcoLoggerVideo　または ssh:ecorun-home:/srv/ecologger-video">
+      <button id="backup-save">保存</button>
+      <button id="backup-run">控えへ写す</button>
+    </div>
+    <div class="sub" id="backup-state" style="margin-top:6px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>本体が消した記録</h2>
+    <div class="sub" style="margin-bottom:6px">未回収のまま消えたもの（赤）は、空きが足りずに録画かEcoCaptureが消したものです。</div>
+    <div class="scroll" id="deleted">—</div>
+  </div>
+  <div class="sub" id="pc-root"></div>
+</main>
+<script>
+const STATE = {
+  recording: ['録画中', 'info'], current: ['今の走行・未回収', 'warn'], kept: ['保護・未回収', 'warn'],
+  uncollected: ['未回収', 'warn'], collected: ['回収済み', 'ok'], collected_elsewhere: ['回収済み（別のPC）', ''],
+  on_pc_unmarked: ['PCにある（印待ち）', 'info'],
+};
+let last = null;
+const openIds = new Set();  // 開いている「章の一覧」（描き直しても開いたまま）
+document.addEventListener('toggle', e => {
+  const d = e.target; if (!d.dataset || !d.dataset.id) return;
+  d.open ? openIds.add(d.dataset.id) : openIds.delete(d.dataset.id);
+}, true);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const gb = b => (b / 1e9).toFixed(b >= 1e10 ? 0 : 1) + 'GB';
+const hm = s => s == null ? '?' : `${Math.floor(s / 3600)}:${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}`;
+const chip = (text, cls = '') => `<span class="chip ${cls}">${esc(text)}</span>`;
+
+async function post(path, body = {}) {
+  const r = await fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Video-Collect': '1'}, body: JSON.stringify(body)});
+  if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.error || r.statusText); }
+  load();
+}
+
+function tiles(s) {
+  const d = s.device, t = [];
+  if (d) {
+    const m = d.minutes_left;
+    t.push(['本体の空き', gb(d.free), '録画は2GBを切ると消すか止まる']);
+    t.push(['あと録れる時間', hm(m * 60), '消してよい動画の分も含む']);
+    t.push(['録画', d.recording ? '録画中' : '止まっている', d.recording ? d.recording_file : (d.current_session ? `今の走行 ${d.current_session}` : 'カメラ未接続など')]);
+    t.push(['走行記録（本体）', gb(d.logs_bytes), `${d.logs_files} 本。Collect-Logs.cmd で回収`]);
+  }
+  t.push(['PCの空き', gb(s.pc.free), s.pc.root]);
+  $('tiles').innerHTML = t.map(([k, v, n]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="n">${esc(n)}</div></div>`).join('');
+  let b = '';
+  if (s.error) b = `<div class="banner bad">${esc(s.error)}</div>`;
+  else if (d && d.minutes_left < 130) b = `<div class="banner warn">あと約${d.minutes_left}分しか録れません。2時間を超える走行の前に、回収して本体から消すか、走行記録を回収して本体を空けてください。</div>`;
+  $('banner').innerHTML = b;
+}
+
+function sessionHtml(g, busy) {
+  const counts = Object.entries(g.counts).map(([k, n]) => chip(`${(STATE[k] || [k])[0]} ${n}`, (STATE[k] || [0, ''])[1])).join(' ');
+  const collectable = g.chapters.some(c => !['recording', 'collected'].includes(c.state));
+  const deletable = g.chapters.some(c => c.state === 'collected');
+  const onPc = g.chapters.some(c => c.on_pc);
+  const miss = g.missing.length ? ' ' + chip(`見当たらない章 ${g.missing.map(m => m.number + (m.deleted ? '（本体が消した）' : '')).join('・')}`, 'bad') : '';
+  const rows = g.chapters.map(c => `<tr><td>${esc(c.chapter || '')}</td><td>${esc(c.name)}</td><td>${esc(c.start)}〜${esc(c.end)}</td>
+    <td>${hm(c.seconds)}</td><td>${gb(c.size)}</td><td>${chip((STATE[c.state] || [c.state])[0], (STATE[c.state] || [0, ''])[1])}</td><td>${c.on_pc ? 'PCにある' : ''}</td></tr>`).join('');
+  return `<div class="session">
+    <div class="row"><span class="title">${esc(g.title)}</span>${g.current ? chip('今の走行', 'info') : ''}${g.kept ? chip('保護', 'warn') : ''}
+      ${g.clock === 'gnss' ? chip('GNSSの時刻') : chip('本体の時計（ずれていることがある）')}</div>
+    <div class="meta">${esc(g.id)}${g.legacy ? '（前の名前の形）' : ''}・${g.chapters.length} 本・${hm(g.seconds)}・${gb(g.bytes)}　${counts}${miss}</div>
+    <div class="row">
+      <button class="primary" data-act="collect" data-id="${esc(g.id)}" ${busy || !collectable ? 'disabled' : ''}>吸い出す</button>
+      <button class="danger" data-act="delete" data-id="${esc(g.id)}" ${busy || !deletable ? 'disabled' : ''}>回収済みを本体から消す</button>
+      <button data-act="keep" data-id="${esc(g.id)}" data-on="${g.kept ? 0 : 1}" ${busy ? 'disabled' : ''}>${g.kept ? '保護をやめる' : '保護する'}</button>
+      <button data-act="join" data-id="${esc(g.id)}" ${busy || !onPc ? 'disabled' : ''}>1本につなげる（PC）</button>
+      <button data-act="open" data-id="${esc(g.id)}" ${!onPc ? 'disabled' : ''}>PCのフォルダ</button>
+    </div>
+    <details data-id="${esc(g.id)}" ${openIds.has(g.id) ? 'open' : ''}><summary>章の一覧</summary><div class="scroll"><table><tr><th>章</th><th>ファイル</th><th>時刻</th><th>長さ</th><th>大きさ</th><th>本体</th><th>PC</th></tr>${rows}</table></div></details>
+  </div>`;
+}
+
+function render(s) {
+  last = s;
+  const d = s.device, job = s.job, busy = !!(job && job.running);
+  $('link').textContent = d ? `本体：${d.link}` : (s.error || '本体がつながっていません');
+  $('listed').textContent = s.listed_at ? `本体を読んだ時刻 ${new Date(s.listed_at * 1000).toLocaleTimeString('ja-JP')}` : '';
+  tiles(s);
+  $('collect-all').disabled = busy || !d; $('delete-all').disabled = busy || !d; $('refresh').disabled = busy;
+  $('backup-run').disabled = busy || !s.pc.backup;
+  const sessions = [...s.sessions].reverse();
+  $('sessions').innerHTML = !d ? '本体がつながっていません。' : (sessions.length ? sessions.map(g => sessionHtml(g, busy)).join('') : '本体に動画はありません。');
+  if (document.activeElement !== $('backup')) $('backup').value = s.pc.backup;
+  $('backup-state').textContent = s.pc.backup ? (s.pc.not_backed_up ? `まだ控えに写していない章 ${s.pc.not_backed_up} 本` : '吸い出した章はすべて控えにもある')
+    : '写し先を決めると、吸い出したあとに自動で控えへも写して確かめます（ネットは使いません。家の5Bは家のLANで）。';
+  const del = d ? d.deleted : [];
+  $('deleted').innerHTML = del.length ? `<table><tr><th>時刻（UTC）</th><th>消したもの</th><th>大きさ</th><th>回収</th><th>消した側</th></tr>` +
+    del.map(r => `<tr style="${r.collected ? '' : 'color:var(--bad)'}"><td>${esc(r.utc)}</td><td>${esc(r.name)}</td><td>${gb(r.size)}</td>
+      <td>${r.collected ? '回収済み' : '未回収'}</td><td>${esc({recorder: '録画', ecocapture: 'EcoCapture', pc: 'このアプリ'}[r.by] || r.by)}</td></tr>`).join('') + '</table>' : 'まだありません。';
+  $('pc-root').textContent = `PCの保存先：${s.pc.root}`;
+  $('job').classList.toggle('hidden', !job);
+  if (job) {
+    $('job-name').textContent = job.name + (job.running ? '中' : '');
+    $('job-file').textContent = job.running ? job.file : '';
+    $('job-bar').style.width = job.total ? `${Math.min(100, job.done / job.total * 100)}%` : (job.running ? '0' : '100%');
+    $('job-rate').textContent = job.total ? `${gb(job.done)} / ${gb(job.total)}` + (job.rate ? `・${(job.rate / 1e6).toFixed(0)}MB/s` : '') +
+      (job.running && job.eta ? `・残り約${Math.ceil(job.eta / 60)}分` : '') : '';
+    $('job-problems').innerHTML = job.problems.map(p => `<div>【要確認】${esc(p)}</div>`).join('');
+    $('job-log').textContent = job.messages.join('\n');
+    $('cancel').disabled = !job.running;
+  }
+}
+
+async function load() {
+  try { render(await (await fetch('/api/state')).json()); }
+  catch (e) { $('link').textContent = 'アプリが止まっています（黒い窓を閉じましたか）'; }
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const id = b.dataset.id, g = last && last.sessions.find(x => x.id === id);
+  if (b.dataset.act === 'collect') post('/api/collect', {sessions: [id]});
+  if (b.dataset.act === 'delete') {
+    const n = g.chapters.filter(c => c.state === 'collected');
+    if (confirm(`${g.title} の回収済み ${n.length} 本（${gb(n.reduce((a, c) => a + c.size, 0))}）を本体から消します。\nPCの写しをもう一度確かめてから消します。よいですか？`))
+      post('/api/delete', {sessions: [id]});
+  }
+  if (b.dataset.act === 'keep') {
+    const on = b.dataset.on === '1';
+    if (!on || confirm('保護した走行は、回収するまで空きが足りなくなっても消しません。その分だけ録れる時間が減り、録画が止まることがあります。保護しますか？'))
+      post('/api/keep', {session: id, on});
+  }
+  if (b.dataset.act === 'join') post('/api/join', {session: id});
+  if (b.dataset.act === 'open') post('/api/open', {session: id});
+});
+$('refresh').onclick = () => post('/api/refresh');
+$('collect-all').onclick = () => post('/api/collect', {sessions: null});
+$('delete-all').onclick = () => {
+  const n = last.sessions.flatMap(g => g.chapters).filter(c => c.state === 'collected');
+  if (!n.length) return alert('本体から消せる回収済みの動画はありません。');
+  if (confirm(`回収済み ${n.length} 本（${gb(n.reduce((a, c) => a + c.size, 0))}）を本体から消します。\nPCの写しをもう一度確かめてから消します。よいですか？`))
+    post('/api/delete', {sessions: null});
+};
+$('cancel').onclick = () => post('/api/cancel');
+$('backup-save').onclick = () => post('/api/settings', {backup: $('backup').value});
+$('backup-run').onclick = () => post('/api/backup');
+load();
+setInterval(load, 1500);
+</script>
+</body>
+</html>

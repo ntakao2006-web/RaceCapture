@@ -23,6 +23,7 @@ from models import CHANNELS, LAP_CHANNELS, Configuration, log_value, signal_colu
 from podium import PodiumSender
 import field
 from lap import LapLine, LapTimer, line_qr
+import video_store
 
 ROOT = Path(os.environ.get("ECOCAPTURE_DATA", "/data"))
 ROOT.mkdir(parents=True, exist_ok=True)
@@ -30,30 +31,37 @@ LOGS = ROOT / "logs"
 LOGS.mkdir(exist_ok=True)
 CONFIG_PATH = ROOT / "config.json"
 RESERVE_BYTES = 256 * 1024 * 1024
-# Dashcam-style retention: below this free space, delete finished onboard videos
-# first (oldest first; ~5 GB/h each hour of video), then the oldest finished logs
-# (~0.2 GB/h and the primary data). Never the log or video being written.
-# RESERVE_BYTES stays as the hard floor.
+# Dashcam-style retention: below this free space, delete onboard videos in the
+# recorder's order (video_store.py: collected ones first, then uncollected ones of
+# other sessions that are not protected; ~4.6 GB/h of video), then the oldest
+# finished logs (~0.3 GB/h and the primary data). Never the log or video being
+# written, nor the session being recorded. RESERVE_BYTES stays as the hard floor.
 KEEP_FREE_BYTES = int(os.environ.get("ECOCAPTURE_KEEP_FREE_BYTES", 1024 * 1024 * 1024))
-# Burned-in onboard video (tools/unoq_overlay_enc/overlay_rec.c): YYYYMMDD_HHMMSS.ts + .csv.
-# The recorder touches its file every second, so a video written within this
-# window is treated as still recording.
+# Burned-in onboard video (tools/unoq_overlay_enc/overlay_rec.c): <session>_<NN>.ts + .csv,
+# with the recorder's state in .recording (unoq_video_check_procedure.md 5-17).
 VIDEOS = ROOT / "video"
-VIDEO_ACTIVE_SEC = 120
+LOG_BYTES_PER_MIN = 5e6  # measured 2026-11-03: about 0.3 GB/h of CSV and CAN log while recording
 PUBLIC_DIR=ROOT/'public'
 PUBLIC_DIR.mkdir(exist_ok=True)
 
 
-def finished_videos():
-    """Onboard videos the recorder is no longer writing, oldest first."""
-    cutoff = time.time() - VIDEO_ACTIVE_SEC
-    found = []
-    for path in VIDEOS.glob("*.ts"):
-        with suppress(OSError):  # the recorder may remove a file while we look
-            mtime = path.stat().st_mtime
-            if path.is_file() and not path.is_symlink() and mtime < cutoff:
-                found.append((mtime, path))
-    return [path for _, path in sorted(found)]
+_video_cache = [0.0, None]
+
+
+def video_status(logging_active=False):
+    """Onboard video summary for /api/status (and EcoCapture DASH), refreshed every 5 s."""
+    now = time.monotonic()
+    if _video_cache[1] is None or now - _video_cache[0] >= 5:
+        store = video_store.scan(VIDEOS)
+        free = shutil.disk_usage(ROOT).free
+        uncollected = [c for c in store.chapters if not c.collected and not c.active]
+        _video_cache[:] = [now, {
+            "recording": store.alive, "file": store.active_file, "session": store.current_session,
+            "minutes_left": round(store.minutes_left(free, other_bytes_per_min=LOG_BYTES_PER_MIN if logging_active else 0)),
+            "chapters": len(store.chapters), "uncollected": len(uncollected),
+            "uncollected_bytes": sum(c.size for c in uncollected),
+            "kept_sessions": len({c.session for c in store.chapters if c.kept})}]
+    return _video_cache[1]
 
 
 def atomic_json(path, data):
@@ -157,11 +165,7 @@ class Recorder:
     def make_room(self):
         free=shutil.disk_usage(ROOT).free
         if free>=KEEP_FREE_BYTES:return free
-        for path in finished_videos():
-            if free>=KEEP_FREE_BYTES:return free
-            for target in (path,path.with_suffix('.csv')):
-                with suppress(OSError):
-                    if target.is_file() and not target.is_symlink():target.unlink()
+        if video_store.make_room(VIDEOS,KEEP_FREE_BYTES,lambda:shutil.disk_usage(ROOT).free,'ecocapture'):
             free=shutil.disk_usage(ROOT).free
         closed=sorted((p for p in LOGS.glob('LOG_*.csv') if not (self.file and p.name==self.name)),key=lambda p:p.stat().st_mtime)
         for path in closed:
@@ -228,6 +232,7 @@ class Runtime:
                 "bridge_errors": self.bridge_errors, "mcu_resets": self.resets, "error": self.error,
                 "config_error": self.config_error, "storage": "internal-emmc",
                 "storage_free_bytes": shutil.disk_usage(ROOT).free,
+                "video": video_status(self.recorder.file is not None),
                 "sensors": self.sensors if fresh else {k:"通信待ち" for k in self.sensors}, "hardware": self.hardware,
                 "logging": {**self.recorder.status(),"sd_warning":self.sd_warning()}, "sd_copy": self.sd.status, "podium":self.podium.status()}
 
@@ -750,8 +755,7 @@ async def delete_log(name: str):
     path = log_path(name)
     if runtime.recorder.file and name == runtime.recorder.name:
         raise HTTPException(409, "記録中のログは削除できません")
-    path.unlink()
-    path.with_suffix(".csv.meta.json").unlink(missing_ok=True)
+    runtime.recorder.delete_log(path)  # with its metadata, CAN log and SD journal
     return {"deleted": name}
 
 

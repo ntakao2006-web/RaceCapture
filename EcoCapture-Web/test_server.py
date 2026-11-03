@@ -34,7 +34,7 @@ class ServerTests(unittest.TestCase):
             self.s.runtime.recorder.make_room()
         self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},{current})
 
-    def test_emmc_retention_deletes_finished_videos_before_logs(self):
+    def test_emmc_retention_deletes_videos_in_the_recorders_order_before_logs(self):
         for n in range(2):
             self.s.runtime.recorder.start(Configuration());self.s.runtime.recorder.stop()
             os.utime(self.s.LOGS/self.s.runtime.recorder.name,(500+n,500+n))
@@ -42,18 +42,31 @@ class ServerTests(unittest.TestCase):
         self.s.VIDEOS.mkdir()
         for n in range(3):
             for ext in ('.ts','.csv'):
-                path=self.s.VIDEOS/f'2026103{n}_120000{ext}';path.write_bytes(b'x');os.utime(path,(1000+n,1000+n))
-        recording=self.s.VIDEOS/'20261031_130000.ts';recording.write_bytes(b'x')
+                path=self.s.VIDEOS/f'2026103{n}_120000_01{ext}';path.write_bytes(b'x');os.utime(path,(1000+n,1000+n))
+        (self.s.VIDEOS/'20261032_120000_01.ts.ok').write_text('1 '+'0'*64+' 2026-11-04T00:00:00Z\n')  # collected: first
+        (self.s.VIDEOS/'20261031_120000.keep').write_bytes(b'')  # protected and uncollected: never
+        recording=self.s.VIDEOS/'20261031_130000_02.ts';recording.write_bytes(b'x')
+        earlier=self.s.VIDEOS/'20261031_130000_01.ts';earlier.write_bytes(b'x')  # the session being recorded: never
+        (self.s.VIDEOS/'.recording').write_text('boot_id=B\nsession=20261031_130000\nfile=20261031_130000_02.ts\nbt=99\n')
         self.s.runtime.recorder.start(Configuration());current=self.s.runtime.recorder.name
         space=iter([0,0,self.s.KEEP_FREE_BYTES])
-        with patch.object(self.s.shutil,"disk_usage",side_effect=lambda _:type("Space",(),{"free":next(space,self.s.KEEP_FREE_BYTES)})()):
-            self.assertGreaterEqual(self.s.runtime.recorder.make_room(),self.s.KEEP_FREE_BYTES)
-        self.assertEqual({p.name for p in self.s.VIDEOS.iterdir()},{'20261032_120000.ts','20261032_120000.csv',recording.name})
-        self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},logs|{current})
-        with patch.object(self.s.shutil,"disk_usage",return_value=type("Space",(),{"free":0})()):
-            self.s.runtime.recorder.make_room()
-        self.assertEqual({p.name for p in self.s.VIDEOS.iterdir()},{recording.name})
+        with patch.object(self.s.video_store,'boot_id',return_value='B'),patch.object(self.s.video_store,'boottime',return_value=100):
+            with patch.object(self.s.shutil,"disk_usage",side_effect=lambda _:type("Space",(),{"free":next(space,self.s.KEEP_FREE_BYTES)})()):
+                self.assertGreaterEqual(self.s.runtime.recorder.make_room(),self.s.KEEP_FREE_BYTES)
+            self.assertNotIn('20261032_120000_01.ts',{p.name for p in self.s.VIDEOS.iterdir()})
+            self.assertIn('20261030_120000_01.ts',{p.name for p in self.s.VIDEOS.iterdir()})
+            self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},logs|{current})
+            with patch.object(self.s.shutil,"disk_usage",return_value=type("Space",(),{"free":0})()):
+                self.s.runtime.recorder.make_room()
+                video=self.s.video_status()
+        self.assertEqual({p.name for p in self.s.VIDEOS.iterdir()},
+                         {'20261031_120000_01.ts','20261031_120000_01.csv','20261031_120000.keep',recording.name,earlier.name,
+                          '.recording','deleted.log'})
         self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},{current})
+        self.assertEqual([(r['by'],r['name'],r['collected']) for r in self.s.video_store.parse_log((self.s.VIDEOS/'deleted.log').read_text())],
+                         [('ecocapture','20261032_120000_01.ts',True),('ecocapture','20261030_120000_01.ts',False)])
+        self.assertEqual((video['recording'],video['session'],video['minutes_left'],video['uncollected'],video['kept_sessions']),
+                         (True,'20261031_130000',0,2,1))
 
     def test_removed_sd_closes_backup_without_claiming_sd_saved(self):
         from unittest.mock import AsyncMock
@@ -278,8 +291,11 @@ class ServerTests(unittest.TestCase):
         meta = self.client.get(f"/api/logs/{name}/metadata").json()
         self.assertEqual(meta["state"], "closed")
         self.assertEqual(meta["rows"], 1)
+        self.assertTrue((self.s.LOGS / (name + ".can.jsonl")).exists())
         self.assertEqual(self.client.delete(f"/api/logs/{name}", headers=self.headers).status_code, 200)
         self.assertEqual(self.client.get(f"/api/logs/{name}/download").status_code, 404)
+        # the CAN log (often the bigger file) goes with it, so deleting a log really frees the space
+        self.assertEqual([p.name for p in self.s.LOGS.iterdir() if p.name.startswith(name)], [])
 
     def test_config_validation_and_persistence(self):
         data = Configuration().model_dump()

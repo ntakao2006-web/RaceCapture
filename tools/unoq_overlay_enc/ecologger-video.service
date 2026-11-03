@@ -5,8 +5,9 @@ After=docker.service ecocapture-web-start.service
 User=arduino
 Environment=TZ=Asia/Tokyo
 Environment=OVERLAY_SEGMENT_MIN=10
-# 空きが2GiBを切ったら、前の起動のときの動画を古い順に消して空ける（今回の電源ONから後の動画は消さない）。消せる動画が無ければ止める。
-# EcoCaptureは空きが1GiBを切ると古い走行記録から消すので、録画はその手前で収める
+# 空きが2GiBを切ったら、①回収済み（PCの回収アプリが確かめた印のあるもの）②ほかの走行の未回収で保護していないもの、の順に
+# 古いものから消して空ける。今録っている走行と保護した走行の未回収は消さず、消せる動画が無ければ止める（video_store.h、手順書5-17）。
+# EcoCaptureは空きが1GiBを切ると同じ順で動画を消してから古い走行記録を消すので、録画はその手前で収める
 Environment=OVERLAY_MIN_FREE_MB=2048
 # 1080p・10Mbps：空き約13GBで1回の電源ONあたり約2時間45分録れる（12Mbpsだと約2時間19分で、SUGO決勝120分の前後に余裕が無い）
 Environment=OVERLAY_BITRATE_MBPS=10

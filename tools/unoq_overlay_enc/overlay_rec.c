@@ -12,19 +12,23 @@
 //   PCでの見た目の確認と本体への送り方は tools/video_hud/（手順書5-14）
 //   ベストとの差（calc.Delta 等）とコース図の線は、走行データの位置・ラップから lap_ref.h で作る。ベストの周の軌跡は
 //   OVERLAY_LAPREF のファイルへ書き、録画をやり直しても lap.BestLap と同じ時間なら続きから使う（手順書5-16）
-// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h・lap_ref.h を同じ場所に置く）
+// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h・lap_ref.h・video_store.h を同じ場所に置く）
 // 実行: ./overlay_rec <入力> <出力> [seconds=60、0は止めるまで] [font=hud_font_64.pgm]
 //   入力：/dev/videoN（カメラ）か file:xxx.jpg（同じJPEGを30fpsで繰り返す。カメラ無しで試す用）
-//   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むときはstrftimeの書式とみなし、
-//         OVERLAY_SEGMENT_MIN分（既定10）ごとに、キーフレームの所で新しいファイルへ切り替える
+//   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むとき（本番は <置き場>/%Y%m%d_%H%M%S.ts）はGoProと同じく、
+//         1回の録画を1つの走行とし、OVERLAY_SEGMENT_MIN分（既定10）ごとにキーフレームの所で次の章のファイルへ切り替える。
+//         名前は「走行の録り始めの時刻（%の書式）_章の番号」（例 20261108_130205_01.ts、_02 …）。カメラが抜けて録画をやり直しても、
+//         前の録画が止まってからVS_GAP_S（300秒）以内なら同じ走行の続きの章にする（手順書5-17）
 //   出力の横に xxx.csv（1秒ごとに「ファイル内の枚目・動画内の秒・UTC・どの時計か・本体の時計のUTC」）を書く。走行データと時刻を合わせる用。
 //   時刻は走行データのGNSSの時刻に合わせる（本体の時計は車の中では合っていないことがある）。GNSSの時刻が分かるまでは
-//   本体の時計で書き、分かったら、それまで本体の時計で名前を付けたこの録画のファイルをGNSSの時刻の名前へ付け直す
+//   本体の時計で名前を付け、分かったら、その走行のファイルをすべてGNSSの時刻の走行の名前へ付け直す
+//   置き場には、録画の今の状態 .recording（起動の番号・走行・書いているファイル・起動からの秒。5秒ごとに書き直す）と、
+//   走行ごとの <走行>.session を書く。EcoCaptureとPCの回収アプリはこれで書いている途中のファイルと今の走行を見分ける
 //   ビットレートはOVERLAY_BITRATE_MBPS（既定10。1分で約77MB、空き約13GBで約2時間45分。12だと約2時間19分。手順書5-13）
-//   空きがOVERLAY_MIN_FREE_MB（既定2048）を切ったら、出力先（%の書式のとき）にある前の起動のときの動画を古い順に消して空ける。
-//   今回の電源ONから後に書いた動画は消さない（カメラが抜けて録画をやり直しても、同じ走行の前半は残る）。消せる動画が無くなっても足りなければ、記録を止めて終わる（終了コード3）。
-//   EcoCaptureは空きが1GiBを切ると古い走行記録から消すので、録画はそれより手前で止め、走行記録が伸びる分を残す
-//   （消す順番：①前の起動のときの動画（大きい・古い順）②走行記録（EcoCaptureが古い順）。手順書5-13）
+//   空きがOVERLAY_MIN_FREE_MB（既定2048）を切ったら、video_store.h の順に消して空ける：①回収済み（PCの回収アプリが中身を
+//   確かめた印のあるもの）を古い順 ②回収していない、ほかの走行の、保護していないものを古い順。書いているファイル・今の走行・
+//   保護した走行の未回収は消さず、それでも足りなければ記録を止めて終わる（終了コード3）。消したものは deleted.log に書く。
+//   EcoCaptureは空きが1GiBを切ると同じ順で動画を消し、次に古い走行記録から消すので、録画はそれより手前で止め、走行記録が伸びる分を残す（手順書5-13・5-17）
 //   SIGINT/SIGTERMで止めると、エンコーダに残った分を書き出してから終わる
 //   OVERLAY_OUT=720 のときは1280x720で保存する（既定は1920x1080。計器は同じ配置のまま縮む）
 //   OVERLAY_DEMO=1 のときは作り物の値で描く（見た目と警告の色の確認用。画面にDEMOと出る）。位置とラップは架空のコースを
@@ -64,6 +68,7 @@
 #include <unistd.h>
 #include "hud_layout.h"
 #include "lap_ref.h"
+#include "video_store.h"
 
 #define W 1920  // 計器を描く座標の大きさ（出力の既定の大きさでもある）
 #define H 1080
@@ -425,17 +430,16 @@ static const char *out_pat;
 static char out_name[512];
 static int ts_mode, seg_on, low_space, seg_frames, encoded, idr_count, header_inserted;
 static double seg_len = 600, seg_t0, min_free_mb = 2048, bitrate_mbps = 10;
-static time_t boot_start;  // 今回の電源ONの時刻。これより前に書き終わった動画だけを消してよい
 static int64_t seg_us0;
 static size_t bytes;
 static uint8_t seq_hdr[256], cc_pat, cc_pmt, cc_vid;
 static size_t seq_len;
 // エンコーダへ渡した時刻（µs）→ その枚のカメラの時刻（CLOCK_MONOTONIC）と、本体の時計でのUTC
 static struct { int64_t us; double mono, host; } stamps[64];
-// この録画で開いたファイル。本体の時計で名前を付けたものは、GNSSの時刻が分かったら付け直す
-#define RUN_FILES 64
-static struct { char ts[512], csv[520]; double mono; int gnss; } runf[RUN_FILES];
-static int nrunf, clock_announced;
+// 走行（%の書式のとき）：置き場・名前の書式（拡張子を除く）と拡張子・今の走行の名前・章の番号・起動の番号
+static char vdir[512], name_pat[256], name_ext[16] = ".ts", sess[64], boot_id[64];
+static int chapter, sess_gnss, clock_announced;  // sess_gnss：走行の名前がGNSSの時刻か
+static double sess_mono, rec_written = -1e9;      // 走行の最初の枚の時刻（CLOCK_MONOTONIC。同じ起動なら別の録画とも比べられる）
 
 static void put(const void *p, size_t n) { fwrite(p, 1, n, out); bytes += n; }
 
@@ -495,9 +499,10 @@ static void ts_frame(const uint8_t *es, size_t n, uint64_t pts, uint64_t pcr, in
 }
 
 // その枚のUTC。GNSSの時刻が分かっていればそれで（*gnss=1）、無ければ本体の時計で。*hostは本体の時計でのUTC
-static double frame_utc(int64_t us, int *gnss, double *host) {
+static double frame_utc(int64_t us, int *gnss, double *host, double *mono_out) {
     double mono = now(), off; *host = wall();
     for (int i = 0; i < 64; i++) if (stamps[i].us == us) { mono = stamps[i].mono; *host = stamps[i].host; break; }
+    if (mono_out) *mono_out = mono;
     *gnss = gnss_offset(&off);
     return *gnss ? mono + off : *host;
 }
@@ -515,63 +520,112 @@ static void csv_name(const char *ts, char *b, size_t n) {
     strncat(b, ".csv", n - strlen(b) - 1);
 }
 
-// 新しいファイル（と時刻のcsv）を開く。usはそのファイルの最初の枚（キーフレーム）の時刻
+// 録画の今の状態を置き場の .recording へ（一時ファイルから置き換えるので、読む側が書きかけを見ることはない）。
+// EcoCapture・PCの回収アプリは、起動の番号とbt（起動からの秒）で、書いている途中のファイルと今の走行を見分ける（video_store.h）
+static void rec_state(void) {
+    if (!seg_on || !sess[0]) return;
+    char p[600], t[610]; snprintf(p, sizeof p, "%s/.recording", vdir); snprintf(t, sizeof t, "%s.tmp", p);
+    FILE *f = fopen(t, "w"); if (!f) return;
+    const char *base = strrchr(out_name, '/');
+    fprintf(f, "boot_id=%s\nsession=%s\nfile=%s\nbt=%.3f\npid=%d\nmbps=%g\nmin_free_mb=%g\nsegment_min=%g\n",
+            boot_id, sess, base ? base + 1 : out_name, vs_boottime(), (int)getpid(), bitrate_mbps, min_free_mb, seg_len / 60);
+    if (fclose(f) == 0) rename(t, p);
+    rec_written = now();
+}
+
+// <走行>.session：その走行の起動の番号・最初の枚の時刻（CLOCK_MONOTONIC）・名前の時計（gnss/host）
+static void sess_write(void) {
+    char p[600]; snprintf(p, sizeof p, "%s/%s.session", vdir, sess);
+    FILE *f = fopen(p, "w"); if (!f) return;
+    fprintf(f, "boot_id=%s\nstart_mono=%.3f\nclock=%s\n", boot_id, sess_mono, sess_gnss ? "gnss" : "host");
+    fclose(f);
+}
+
+static void sess_name(double u, char *b, size_t n) { time_t s = (time_t)u; struct tm lt; localtime_r(&s, &lt); strftime(b, n, name_pat, &lt); }
+
+// その名前の走行が置き場にもうあるか（.session か、その名前で始まる章）
+static int sess_exists(const char *name) {
+    char p[600]; struct stat st; snprintf(p, sizeof p, "%s/%s.session", vdir, name);
+    if (!lstat(p, &st)) return 1;
+    DIR *d = opendir(vdir); struct dirent *e; int found = 0; size_t l = strlen(name);
+    while (d && !found && (e = readdir(d))) found = !strncmp(e->d_name, name, l) && e->d_name[l] == '_';
+    if (d) closedir(d);
+    return found;
+}
+
+// 起動したとき：前の録画が同じ起動で、止まってからVS_GAP_S以内なら（カメラの抜き差し）、その走行の次の章から続ける
+static void sess_resume(void) {
+    char p[600], text[4096], v[256], s[256];
+    snprintf(p, sizeof p, "%s/.recording", vdir); vs_read(p, text, sizeof text);
+    vs_kv(text, "boot_id", v, sizeof v); if (!boot_id[0] || strcmp(v, boot_id)) return;
+    vs_kv(text, "bt", v, sizeof v); char *end; double bt = strtod(v, &end);
+    if (!v[0] || *end || !(vs_boottime() - bt < VS_GAP_S)) return;
+    vs_kv(text, "session", s, sizeof s); if (!s[0] || strlen(s) >= sizeof sess) return;
+    snprintf(p, sizeof p, "%s/%s.session", vdir, s); if (!vs_read(p, text, sizeof text)) return;
+    vs_kv(text, "start_mono", v, sizeof v); sess_mono = atof(v);
+    vs_kv(text, "clock", v, sizeof v); sess_gnss = !strcmp(v, "gnss");
+    snprintf(sess, sizeof sess, "%s", s);
+    DIR *d = opendir(vdir); struct dirent *e; chapter = 0;
+    while (d && (e = readdir(d))) {
+        size_t l = strlen(e->d_name); char ss[256]; int k;
+        if (l < 3 || strcmp(e->d_name + l - 3, ".ts")) continue;
+        vs_session_of(e->d_name, ss, sizeof ss, &k);
+        if (!strcmp(ss, sess) && k > chapter) chapter = k;
+    }
+    if (d) closedir(d);
+    printf("session %s continues from chapter %d (restarted within %d s)\n", sess, chapter + 1, VS_GAP_S); fflush(stdout);
+}
+
+// 次の章（と時刻のcsv）を開く。usはそのファイルの最初の枚（キーフレーム）の時刻。新しい走行なら、その枚の時刻で走行の名前を決める
 static void seg_open(int64_t us) {
     if (out) fclose(out);
     if (csv) fclose(csv);
     csv = NULL;
-    int g; double host, u = frame_utc(us, &g, &host);
-    if (seg_on) { time_t s = (time_t)u; struct tm lt; localtime_r(&s, &lt); strftime(out_name, sizeof out_name, out_pat, &lt); }
-    else snprintf(out_name, sizeof out_name, "%s", out_pat);
+    int g; double host, mono, u = frame_utc(us, &g, &host, &mono);
+    if (seg_on) {
+        if (!sess[0]) {  // 同じ名前の走行があれば（同じ秒にやり直した等）1秒ずつずらす
+            sess_mono = mono; sess_gnss = g; chapter = 0;
+            for (int k = 0; k < 60; k++) { sess_name(u + k, sess, sizeof sess); if (!sess_exists(sess)) break; }
+            sess_write();
+        }
+        chapter++;
+        snprintf(out_name, sizeof out_name, "%s/%s_%02d%s", vdir, sess, chapter, name_ext);
+    } else snprintf(out_name, sizeof out_name, "%s", out_pat);
     out = fopen(out_name, "wb"); if (!out) DIE("open %s", out_name);
     char cn[sizeof out_name + 8]; csv_name(out_name, cn, sizeof cn);
     // utc：その秒の頭の枚の時刻（GNSSの時刻、まだ分からなければ本体の時計）。clock：どちらで付けたか。host_utc：本体の時計
     csv = fopen(cn, "w"); if (csv) fprintf(csv, "frame,video_s,utc,clock,host_utc\n");
     seg_t0 = now(); seg_us0 = us; seg_frames = 0;
-    if (seg_on && nrunf < RUN_FILES) {
-        snprintf(runf[nrunf].ts, sizeof runf[nrunf].ts, "%s", out_name); snprintf(runf[nrunf].csv, sizeof runf[nrunf].csv, "%s", cn);
-        runf[nrunf].mono = now();
-        for (int i = 0; i < 64; i++) if (stamps[i].us == us) { runf[nrunf].mono = stamps[i].mono; break; }
-        runf[nrunf].gnss = g; nrunf++;
-    }
     printf("file %s\n", out_name); fflush(stdout);
+    rec_state();
 }
 
-// GNSSの時刻が分かったら、本体の時計で名前を付けたこの録画のファイルを、GNSSの時刻の名前へ付け直す（書いている途中でもよい）
+// GNSSの時刻が分かったら、本体の時計で名前を付けた走行のファイル（前の録画の章も、書いている途中の章も）を、
+// GNSSの時刻の走行の名前へ付け直す（章の番号・.csv・印・.session・.keep もそのまま）
 static void rename_by_gnss(void) {
     double off;
-    if (!seg_on || !gnss_offset(&off)) return;
-    for (int i = 0; i < nrunf; i++) {
-        if (runf[i].gnss) continue;
-        runf[i].gnss = 1;
-        char ts[512], cn[520]; time_t s = (time_t)(runf[i].mono + off); struct tm lt; localtime_r(&s, &lt);
-        strftime(ts, sizeof ts, out_pat, &lt); csv_name(ts, cn, sizeof cn);
-        if (!strcmp(ts, runf[i].ts) || !access(ts, F_OK) || rename(runf[i].ts, ts)) continue;
-        rename(runf[i].csv, cn);
-        printf("renamed %s -> %s (GNSS time)\n", runf[i].ts, ts); fflush(stdout);
-        if (!strcmp(out_name, runf[i].ts)) snprintf(out_name, sizeof out_name, "%s", ts);
-        snprintf(runf[i].ts, sizeof runf[i].ts, "%s", ts); snprintf(runf[i].csv, sizeof runf[i].csv, "%s", cn);
+    if (!seg_on || !sess[0] || sess_gnss || !gnss_offset(&off)) return;
+    sess_gnss = 1;  // 付け直せなくても（同じ名前の走行がある等）もう試さない
+    char nn[64]; sess_name(sess_mono + off, nn, sizeof nn);
+    if (strcmp(nn, sess) && !sess_exists(nn)) {
+        char names[512][256]; int k = 0; const size_t l = strlen(sess);
+        DIR *d = opendir(vdir); struct dirent *e;
+        while (d && k < 512 && (e = readdir(d)))
+            if (!strncmp(e->d_name, sess, l) && (e->d_name[l] == '_' || e->d_name[l] == '.') && strlen(e->d_name) < sizeof names[0])
+                snprintf(names[k++], sizeof names[0], "%s", e->d_name);
+        if (d) closedir(d);
+        const char *cur = strrchr(out_name, '/'); cur = cur ? cur + 1 : out_name;
+        char renamed_cur[512] = "";
+        for (int i = 0; i < k; i++) {
+            char a[1024], b[1024]; snprintf(a, sizeof a, "%s/%s", vdir, names[i]); snprintf(b, sizeof b, "%s/%s%s", vdir, nn, names[i] + l);
+            if (rename(a, b)) continue;
+            if (!strcmp(names[i], cur)) snprintf(renamed_cur, sizeof renamed_cur, "%s", b);
+        }
+        printf("renamed session %s -> %s (GNSS time, %d files)\n", sess, nn, k); fflush(stdout);
+        if (renamed_cur[0]) snprintf(out_name, sizeof out_name, "%s", renamed_cur);
+        snprintf(sess, sizeof sess, "%s", nn);
     }
-}
-
-// 空きが足りないとき、出力先のフォルダから前の起動のときの動画（.ts）を1つ、古い順に消す（横の.csvも）。消せたら1
-static int remove_oldest_video(void) {
-    char dir[sizeof out_name]; snprintf(dir, sizeof dir, "%s", out_name);
-    char *sl = strrchr(dir, '/'); if (sl) *sl = 0; else snprintf(dir, sizeof dir, ".");
-    DIR *d = opendir(dir); if (!d) return 0;
-    char best[sizeof out_name + 256] = "", p[sizeof best]; time_t bt = 0; struct dirent *e;
-    while ((e = readdir(d))) {
-        size_t l = strlen(e->d_name); struct stat st;
-        if (l < 4 || strcmp(e->d_name + l - 3, ".ts")) continue;
-        snprintf(p, sizeof p, "%s/%s", dir, e->d_name);
-        if (stat(p, &st) || !S_ISREG(st.st_mode) || st.st_mtime >= boot_start) continue;
-        if (!*best || st.st_mtime < bt) { snprintf(best, sizeof best, "%s", p); bt = st.st_mtime; }
-    }
-    closedir(d);
-    if (!*best || unlink(best)) return 0;
-    printf("removed %s (free space)\n", best); fflush(stdout);
-    snprintf(p, sizeof p, "%.*s.csv", (int)(strlen(best) - 3), best); unlink(p);
-    return 1;
+    sess_write(); rec_state();
 }
 
 static double free_mb(void) {
@@ -601,9 +655,10 @@ static void emit(const uint8_t *p, size_t n, int64_t us) {
         idr_count++;
         if (!out || (seg_on && now() - seg_t0 >= seg_len)) seg_open(us);
         else { fflush(out); sync_file_range(fileno(out), 0, 0, SYNC_FILE_RANGE_WRITE); }  // 待たずに書き出しを始めさせる
-        while (seg_on && free_mb() < min_free_mb && remove_oldest_video()) {}
+        if (now() - rec_written >= 5) rec_state();
+        if (seg_on && free_mb() < min_free_mb) vs_make_room(vdir, min_free_mb, free_mb, "recorder", boot_id, vs_boottime());
         if (free_mb() < min_free_mb) { low_space = 1; quit = 1; }
-        int g; double host, u = frame_utc(us, &g, &host);
+        int g; double host, u = frame_utc(us, &g, &host, NULL);
         if (csv) {
             char a[40], b[40]; iso_utc(u, a, sizeof a); iso_utc(host, b, sizeof b);
             fprintf(csv, "%d,%.3f,%s,%s,%s\n", seg_frames, (us - seg_us0) / 1e6, a, g ? "gnss" : "host", b);
@@ -836,7 +891,14 @@ int main(int argc, char **argv) {
     const size_t ol = strlen(out_pat); ts_mode = !(ol > 5 && !strcmp(out_pat + ol - 5, ".h264"));
     signal(SIGINT, on_signal); signal(SIGTERM, on_signal);
     setenv("TZ", "Asia/Tokyo", 0); tzset();
-    struct timespec up; clock_gettime(CLOCK_BOOTTIME, &up); boot_start = time(NULL) - up.tv_sec;
+    if (seg_on) {  // <置き場>/<名前の書式><拡張子> に分ける。走行の続きかどうかは .recording で見る
+        const char *sl = strrchr(out_pat, '/');
+        snprintf(vdir, sizeof vdir, "%.*s", sl ? (int)(sl - out_pat) : 1, sl ? out_pat : ".");
+        snprintf(name_pat, sizeof name_pat, "%s", sl ? sl + 1 : out_pat);
+        char *dot = strrchr(name_pat, '.'); if (dot) { snprintf(name_ext, sizeof name_ext, "%s", dot); *dot = 0; }
+        vs_boot_id(boot_id, sizeof boot_id);
+        sess_resume();
+    }
 
     rfd = open("/dev/dri/renderD128", O_RDWR | O_CLOEXEC); if (rfd < 0) DIE("open renderD128");
     cam_open(argv[1]);
@@ -1055,6 +1117,7 @@ int main(int argc, char **argv) {
     double el = now() - t0;
     if (out) fclose(out);
     if (csv) fclose(csv);
+    rec_state();  // 止まった時刻を残す（ここからVS_GAP_S以内にやり直せば同じ走行の続き）
     pthread_join(dec_th, NULL); pthread_join(tel_th, NULL);
 
     printf("output %dx%d\n", ow, oh);

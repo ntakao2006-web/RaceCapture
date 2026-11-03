@@ -40,6 +40,9 @@ DEFAULTS = {
     'hold_off_s': 5.0,
     'delta_full_scale_s': 2.0,
     'stale_s': 2.0,
+    # The burnt-in video (EcoCapture /api/status 'video', unoq_video_check_procedure.md 5-17): fewer minutes
+    # left than this (a 120-minute race with the grid and the cool-down lap) is shown in yellow
+    'video_warn_min': 130,
     # The UNO Q's one sound card: its 4th front end (MultiMedia4) is routed to SEC_MI2S_RX, the I2S
     # link to the ANX7625 (the USB-C video bridge) and so to the monitor's speaker over HDMI
     # (device tree: sound/hdmi-i2s-dai-link, port 18; checked 2026-11-04). PipeWire does not use the card.
@@ -273,6 +276,17 @@ class DashModel:
         clock = (utc.astimezone(JST) if utc else (wall or datetime.now(JST))).strftime('%H:%M')
         scale = self.config['delta_full_scale_s']
         current = number(lap.get('CurrentLap'))
+        # How long the burnt-in video can still record (EcoCapture works it out from the free space and
+        # the videos the recorder may delete). No light from an EcoCapture without the summary.
+        video = status.get('video')
+        left = number((video or {}).get('minutes_left'))
+        if video is None:
+            video_text, video_kind = '', None
+        elif not video.get('recording'):
+            video_text, video_kind = '録画なし', 'warn'
+        else:
+            video_text = '録画' if left is None else f'録画 {int(left) // 60}:{int(left) % 60:02d}'
+            video_kind = 'ok' if left is None or left >= self.config['video_warn_min'] else 'warn'
         state = {
             'stale': stale,
             'stale_s': None if self.last_good is None else now - self.last_good,
@@ -287,6 +301,7 @@ class DashModel:
             'elapsed': fmt_hms(race) if race is not None else 'スタート待ち',
             'clock': clock,
             'rec': bool((status.get('logging') or {}).get('active')),
+            'video': video_text, 'video_kind': video_kind,
             'gnss': lat is not None and lon is not None and not (lat == 0 and lon == 0),
             'oil_sensor': oil is not None,
             'warn_level': self.warning.level,

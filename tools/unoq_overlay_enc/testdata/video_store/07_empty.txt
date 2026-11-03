@@ -1,0 +1,8 @@
+# 動画が無い
+boot B1
+now 100
+expect
+bytes 0
+delete 1
+left
+logged 0

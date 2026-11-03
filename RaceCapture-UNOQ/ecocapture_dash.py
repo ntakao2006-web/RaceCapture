@@ -116,7 +116,8 @@ class DemoFeed:
                 if len(times) >= 2 and not pit(k - 1) and not pit(k - 2):
                     lap['LapDiffS'] = round(times[-1] - times[-2], 3)
         oil = 95 + 38 * ((now - self.t0) % 600) / 480 if (now - self.t0) % 600 < 480 else 133 - 30 * ((now - self.t0) % 600 - 480) / 120
-        return {'status': {'connected': True, 'logging': {'active': True}},
+        return {'status': {'connected': True, 'logging': {'active': True},
+                           'video': {'recording': True, 'minutes_left': max(0, 150 - (now - self.t0) / 60)}},
                 'sample': {'values': {'Lat': lat, 'Lon': lon, 'GPSSpeed': 80.0},
                            'can_signals': {'OilTemp': oil, 'WaterTemp': oil - 10},
                            'gnss_utc': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'lap': lap}}
@@ -132,7 +133,9 @@ def fixed_state(config, name):
         lap.update(CurrentLap=0, LapCount=0, ElapsedTime=None, LapTime=None, BestLap=None, RaceTime=None, LapDiffS=None, LastLapPit=None)
     if name == 'pit':  # just out of the pit lane: the in lap was a pit lap, the running lap is the out lap
         lap.update(ElapsedTime=21.4 / 60, LapTime=221.07 / 60, LapDiffS=None, LastLapPit=True, LapStartPit=True)
-    frame = {'status': {'connected': True, 'logging': {'active': True}},
+    # before the start the video light is yellow: 108 minutes left is short of the race
+    frame = {'status': {'connected': True, 'logging': {'active': True},
+                        'video': {'recording': True, 'minutes_left': 108 if name == 'start' else 150}},
              'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777, 'GPSSpeed': 120.0},
                         'can_signals': {'OilTemp': temps[0], 'WaterTemp': temps[1]},
                         'gnss_utc': '2026-11-08T02:16:15Z', 'lap': lap}}
@@ -415,8 +418,17 @@ def run_gui(args, config):
             self.elapsed.set_text(s['elapsed'])
             classes(self.elapsed, *(('waiting',) if waiting else ('num', 'small')))
             self.clock.set_text(s['clock'])
-            self.chip_rec.set_text('記録中' if s['rec'] else '記録停止')
-            classes(self.chip_rec, 'chip', 'chip-ok' if s['rec'] else 'chip-bad')
+            # One light for recording (the row has no room for a fourth: the oil warning must stay readable):
+            # the log stopped, else the burnt-in video short of time or not recording, else all well
+            if not s['rec']:
+                self.chip_rec.set_text('記録停止')
+                classes(self.chip_rec, 'chip', 'chip-bad')
+            elif s.get('video_kind') == 'warn':
+                self.chip_rec.set_text(s['video'])
+                classes(self.chip_rec, 'chip', 'chip-warn')
+            else:
+                self.chip_rec.set_text('記録中')
+                classes(self.chip_rec, 'chip', 'chip-ok')
             self.chip_gnss.set_text('GNSS' if s['gnss'] else 'GNSS未測位')
             classes(self.chip_gnss, 'chip', 'chip-ok' if s['gnss'] else 'chip-warn')
             if level == 1:

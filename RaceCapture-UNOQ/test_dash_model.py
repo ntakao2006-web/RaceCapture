@@ -130,6 +130,20 @@ class ModelTests(unittest.TestCase):
                          ('1:12.3', '1:52.34', '1:51.12', '23', '0:36:15', '11:16'))
         self.assertEqual((s['last_note'], s['last_note_kind']), ('前周比 +0.41', 'slower'))
         self.assertTrue(s['rec'] and s['gnss'] and s['oil_sensor'] and not s['stale'])
+        self.assertEqual((s['video'], s['video_kind']), ('', None))  # an EcoCapture without the video summary
+
+    def test_video_light(self):
+        m = DashModel(config())
+        f = frame()
+        f['status']['video'] = {'recording': True, 'minutes_left': 108}
+        s, _ = m.update(f, 0.0)
+        self.assertEqual((s['video'], s['video_kind']), ('録画 1:48', 'warn'))  # short of a 120-minute race
+        f['status']['video'] = {'recording': True, 'minutes_left': 150}
+        s, _ = m.update(f, 0.1)
+        self.assertEqual((s['video'], s['video_kind']), ('録画 2:30', 'ok'))
+        f['status']['video'] = {'recording': False, 'minutes_left': 150}
+        s, _ = m.update(f, 0.2)
+        self.assertEqual((s['video'], s['video_kind']), ('録画なし', 'warn'))
 
     def test_waiting_pit_lost_and_stale(self):
         m = DashModel(config())

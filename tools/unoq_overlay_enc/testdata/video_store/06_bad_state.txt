@@ -1,0 +1,8 @@
+# .recording の時刻が読めない：録画は動いていないとみなす（守るものが無い）
+boot B1
+now 100
+recording boot_id=B1 session=20261108_130205 file=20261108_130205_01.ts bt=12abc
+file 20261108_130205_01.ts 10 99
+file 20261108_130205_01.ts.ok 3 99
+expect 20261108_130205_01.ts
+bytes 10

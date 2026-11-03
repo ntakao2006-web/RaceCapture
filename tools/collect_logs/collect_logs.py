@@ -5,11 +5,13 @@
   - Ver.2（UNO Q）のシールドSDカード: ELxxxxxx.BIN（CSVへ変換も行う）
   - Ver.2 本体（eMMC）: WebのAPIからCSV・メタデータ・CAN生ログ。USB（adb転送）か、
     同じWi-Fi（テザリング）上の uno-q.local で届いた方から取る
-  - Ver.2 本体の走行映像（焼き込み録画、~/ecocapture-v2-data/video の .ts と .csv）: USBのadbで直接吸い出す。
-    1本約900MB（10分）で、Wi-Fiでは遅すぎるのでUSBのときだけ。録画中のファイル（2分以内に書かれたもの）は取らない
+  - Ver.2 本体の走行映像（焼き込み録画、~/ecocapture-v2-data/video の .ts と .csv）: 回収アプリ（tools/video_collect、
+    Collect-Video.cmd）と同じ処理で、USBのadbで吸い出して本体とPCで中身が同じか（SHA-256）を確かめ、本体に回収済みの印を付ける。
+    1本約770MB（10分）で、Wi-Fiでは遅すぎるのでUSBのときだけ。録画中のファイルは取らない。置き場は run フォルダでなく
+    drive_logs/v2_video/<走行>/（走行ごと）。本体から消すのは回収アプリの画面から
   - スマホ組（Androidロガー）: USBの「ファイル転送」でつないだ端末の Download/EcoLogger の EL_*.csv
 
-出力: drive_logs/<回収日>/run<NN>_<時刻>/{v1_sd,v2_sd,v2_emmc,v2_video,phone}/
+出力: drive_logs/<回収日>/run<NN>_<時刻>/{v1_sd,v2_sd,v2_emmc,phone}/ と、動画は drive_logs/v2_video/<走行>/
 前回までに回収したファイル（名前と大きさが同じもの）は drive_logs/collected.json で覚えておき、
 もう一度は取らない。新しいものが1つも無ければフォルダを作らない。
 
@@ -41,6 +43,7 @@ V2_SD_NAME = re.compile(r'^EL\d{6}\.BIN$', re.I)
 PHONE_NAME = re.compile(r'^EL_[A-Za-z0-9_-]+_\d{8}_\d{6}\.csv$')
 DEFAULT_URLS = ['http://127.0.0.1:8080/', 'http://uno-q.local:8080/']
 ADB_CANDIDATES = [Path(os.environ.get('LOCALAPPDATA', '')) / 'Android' / 'Sdk' / 'platform-tools' / 'adb.exe',
+                  Path(os.environ.get('LOCALAPPDATA', '')) / 'AndroidSdkTools' / 'platform-tools' / 'adb.exe',
                   REPO / 'other' / 'uno_q_tools' / 'platform-tools' / 'adb.exe']
 
 
@@ -131,73 +134,30 @@ def find_adb():
     return shutil.which('adb') or next((str(p) for p in ADB_CANDIDATES if p.is_file()), None)
 
 
-def adb_command():
-    """adbを呼ぶときの先頭（試験では偽のadbに差し替える）。adbが無ければNone"""
-    adb = find_adb()
-    return [adb] if adb else None
+def video_link():
+    """動画を吸い出す相手（USBのadbでつないだUNO Qだけ。試験では差し替える）"""
+    import video_collect
+    return video_collect.find_link(None)
 
 
-VIDEO_DIR = '/home/arduino/ecocapture-v2-data/video'
-VIDEO_ACTIVE_SEC = 120  # 録画はファイルを1秒ごとに更新するので、これより最近に書かれたものは録画中とみなす
-# 動画の置き場があればDIR、ファイルごとに「名前|大きさ|更新時刻」、最後に本体の今の時刻
-VIDEO_LIST = (f'if cd {VIDEO_DIR} 2>/dev/null; then echo "DIR|"; '
-              "for f in *.ts *.csv; do [ -f \"$f\" ] && stat -c '%n|%s|%Y' \"$f\"; done; fi; echo \"NOW|$(date +%s)\"")
-
-
-def list_uno_q_videos(adb):
-    """USBでつないだ端末のうち、動画の置き場があるもの（UNO Q）を探して (serial, {名前: (大きさ, 更新時刻)}, 今) を返す"""
-    devices = subprocess.run([*adb, 'devices'], capture_output=True, text=True, timeout=15).stdout.splitlines()
-    for line in devices[1:]:
-        parts = line.split()
-        if len(parts) < 2 or parts[1] != 'device':
-            continue
-        try:
-            out = subprocess.run([*adb, '-s', parts[0], 'shell', VIDEO_LIST], capture_output=True, text=True, timeout=30).stdout
-        except subprocess.SubprocessError:
-            continue
-        rows = [r.split('|') for r in out.splitlines() if '|' in r]
-        if not any(r[0] == 'DIR' for r in rows):
-            continue
-        now = next((int(r[1]) for r in rows if r[0] == 'NOW'), 0)
-        return parts[0], {r[0]: (int(r[1]), int(r[2])) for r in rows if len(r) == 3}, now
-    return None, {}, 0
-
-
-def collect_video(run, manifest, log):
-    adb = adb_command()
-    if not adb:
-        log('  adbが見つからないので、動画は回収しません。')
-        return
-    serial, files, now = list_uno_q_videos(adb)
-    if not serial:
+def collect_video(out, log):
+    """回収アプリ（tools/video_collect）と同じ処理で未回収の動画を吸い出す。取った本数を返す"""
+    sys.path.insert(0, str(REPO / 'tools' / 'video_collect'))
+    import video_collect
+    link = video_link()
+    if not link:
         log('  USBでつないだUNO Qが見つかりません（動画はUSBのときだけ回収。ドックを外してPCへ直接つなぐ）。')
-        return
-    for name in sorted(files):
-        if not name.endswith('.ts'):
-            continue
-        csv = name[:-3] + '.csv'
-        size, mtime = files[name]
-        if now - mtime < VIDEO_ACTIVE_SEC:
-            log(f'  v2_video: {name} は録画中のため回収しません')
-            continue
-        for item in (name, csv):
-            if item not in files:
-                continue
-            key = f'v2_video/{item}/{files[item][0]}'
-            if key in manifest:
-                continue
-            dest = run.folder('v2_video') / item
-            part = dest.with_name(dest.name + '.part')
-            if item == name:
-                log(f'  v2_video: {item}（{files[item][0] / 1e6:.0f}MB）')
-            subprocess.run([*adb, '-s', serial, 'pull', f'{VIDEO_DIR}/{item}', str(part)], capture_output=True,
-                           timeout=max(300, files[item][0] / 2e6), check=True)
-            if part.stat().st_size != files[item][0]:
-                part.unlink()
-                raise OSError(f'動画の大きさが一致しません: {item}')
-            part.replace(dest)
-            manifest[key] = str(dest.relative_to(run.path.parents[1]))
-            run.count += 1
+        return 0
+    pc = video_collect.PcStore(out / 'v2_video')
+    job = video_collect.Job('吸い出し')
+    job.log = lambda text: log('  v2_video: ' + text)
+    n = video_collect.collect(link, video_collect.list_device(link), pc, None, job)
+    for problem in job.problems:
+        log(f'  【要確認】{problem}')
+    after = video_collect.list_device(link)
+    log(f'  v2_video: 本体の空き {after.free / 1e9:.1f}GB、あと約{after.minutes_left():.0f}分録れる'
+        f'（回収済みは、空きが要るときに本体が先に消す。すぐ消すときは Collect-Video.cmd の画面から）')
+    return n
 
 
 def reach_uno_q(urls, log):
@@ -298,7 +258,7 @@ def main(argv=None):
     if args.config:
         from sd_decode import load_config
         config = load_config(args.config)
-    problems = []
+    problems, videos = [], 0
     try:
         sources = find_sources(args.drives if args.drives is not None else candidate_drives())
         if not sources:
@@ -320,7 +280,7 @@ def main(argv=None):
         if not args.no_video:
             log('Ver.2 本体（走行映像、USBのみ）')
             try:
-                collect_video(run, manifest, log)
+                videos = collect_video(args.out, log)
             except (OSError, ValueError, subprocess.SubprocessError) as exc:
                 problems.append(f'UNO Qの動画: {exc}')
         if not args.no_phone:
@@ -335,12 +295,14 @@ def main(argv=None):
                         collect_sd(run, manifest, 'phone', files, log)
                     except OSError as exc:
                         problems.append(f'{device}: {exc}')
-    finally:
-        save_manifest(manifest_path, manifest)
+    finally:  # 動画の回収（video_collect）も同じファイルへ書くので、読み直して足す
+        save_manifest(manifest_path, {**load_manifest(manifest_path), **manifest})
     log('')
     if run.count:
         log(f'新しいログ {run.count} 件を回収しました: {run.path}')
-    else:
+    if videos:
+        log(f'走行映像 {videos} 本を回収しました: {args.out / "v2_video"}（走行ごとのフォルダ）')
+    if not run.count and not videos:
         log('新しいログはありませんでした（前回までに回収済み）。')
     for problem in problems:
         log(f'【要確認】{problem}')
