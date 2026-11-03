@@ -2,9 +2,22 @@ import asyncio
 import json
 import time
 import unittest
-from rcp_bridge import Source, channel, client
+from rcp_bridge import Source, build_meta, channel, client
 
 class Samples(unittest.TestCase):
+    def test_defi_voltage_channels_and_state(self):
+        config={'signals':[{'name':'OilTemp','unit':'°C','conversion':'sensorhub_oiltemp'},
+            {'name':'PressVolt','unit':'V','conversion':'defi_volt','scale':5/4095,'offset':0.0}]}
+        meta={c['nm']:c for c in build_meta(config,[{'name':'RPM','unit':'rpm'}])}
+        self.assertEqual([n for n in meta if 'Oil' in n or 'Press' in n],['OilTemp','OilTempState','OilTempOpen','PressVolt','PressVoltState'])
+        self.assertEqual((meta['PressVolt']['min'],meta['PressVolt']['max'],meta['PressVolt']['prec'],meta['PressVolt']['ut']),(0.0,5.0,3,'V'))
+        self.assertEqual((meta['PressVoltState']['min'],meta['PressVoltState']['max'],meta['PressVoltState']['prec']),(0,4,0))
+        # Near a rail the voltage is still sent, with its state.
+        s=Source();s.updated=time.monotonic();s.meta=[meta['PressVolt'],meta['PressVoltState']]
+        s.frame={'status':{'connected':True},'sample':{'can_signals':{'PressVolt':0.0,'PressVoltState':1}}}
+        self.assertEqual(s.sample()['s']['d'],[0.0,1,3])
+        s.frame['sample']['can_signals']={'PressVolt':None,'PressVoltState':4}
+        self.assertEqual(s.sample()['s']['d'],[4,2])
     def test_open_sensor_masks_temperature_but_keeps_fault_channels(self):
         s=Source();s.updated=time.monotonic()
         s.meta=[channel('OilTemp'),channel('OilTempState'),channel('OilTempOpen')]

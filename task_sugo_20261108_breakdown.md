@@ -274,9 +274,15 @@
 
 ## SG-4 油温・油圧の基板
 
-- [ ] SG-4-1 Lintarohさんへ相談を送る（`lintaroh_share_20261025_sugo.md`）：11/3までに付けられる形があるか（ユニバーサル基板でよい）、油圧だけ先に、など
+- [x] SG-4-1 Lintarohさんへ相談を送る（`lintaroh_share_20261025_sugo.md`）：11/3までに付けられる形があるか（ユニバーサル基板でよい）、油圧だけ先に、など
+  - 2026-11-01：Lintarohさんの答えは**PIC（PIC18F26Q84）のファームv8**。PRESS・TEMP1・TEMP2の3つの電圧をCAN2の標準ID 0x580で約10Hzで送る（`lintaroh_answer_20261101_defi_volt.md`）。
+    ソース修正・ビルド・PC上の試験までで、**PICへの書き込みは未**。外部のプルアップとセンサーはまだつないでいない。v8のソースとHEXはLintarohさんの手元にあり、リポジトリの`pic18f26q84_blink.X`は旧0x600の版のまま
 - [ ] SG-4-2 **Defiセンサーの確認**（`ncec_next_session_checklist.md`の項目G。見るだけ・テスターで数か所）。オイル交換#2で車をいじる日に一緒にやる。**基板の方式を決める前提なので最優先**
 - [ ] SG-4-3 （作る場合）ロガー側の受信と換算：ER-3-1の「センサーハブの油温」（0x500、比率→抵抗→温度）を流用し、Defiセンサーの表を校正値に入れる。油圧の換算を足す
+  - 2026-11-03：**受信はPC上でできた**（換算`defi_volt`。1フレームを丸ごと検証し、状態は 未校正／下限付近／上限付近／データ異常／通信途絶）。信号は`PressVolt`・`Temp1Volt`・`Temp2Volt`（V、公称5V換算）。
+    登録は`python tools/sugo_setup/defi_volt_setup.py --apply`（既定は確かめるだけ）。旧式の`OilTemp`（0x600）は消さずに残す（車載ダッシュの油温のゲージ・警告が付いているため）
+  - 残り：①本体への反映（了承を取ってから。`EcoCapture-Web/Update-UNOQ.ps1`と、`RaceCapture-UNOQ/rcp_bridge.py`を`/opt/logger-v2-racecapture`へ）→ ②`defi_volt_setup.py --apply` →
+    ③PICにv8を書いてつなぎ、0x580が約10Hzで届くこと・CAN2の受信数が増えることを見る → ④**換算**：TEMP1・TEMP2のどちらが油温か、温度のプルアップ抵抗値、油圧の電圧と圧力の関係をLintarohさんと決め、℃・kPaへ直す（そこで初めて車載ダッシュの`OilTemp`のゲージと警告につながる）
 - [ ] SG-4-4 （作る場合）取付と校正（Defiメーターの表示と並べて読む）
 - 保留：Defi分岐v2のJLCPCB発注は、**回路図入力と基板レイアウトが未着手**で、発注から到着まで少なくとも10日前後かかるため、SUGOには間に合わない見込み
 

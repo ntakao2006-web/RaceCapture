@@ -35,6 +35,61 @@ class HardwareTests(unittest.TestCase):
   for bad in ({'channel':1},{'scale':1},{'data_type':'uint16'},{'byte_offset':1},{'endian':'big'}):
    with self.assertRaises(ValueError):Signal(**{**oil.model_dump(),**bad})
   with self.assertRaises(ValueError):Configuration(signals=[oil,Signal(name='OilTempOpen',can_id=0x123)])
+ def defi_config(self):
+  return Configuration(signals=[Signal(name=name,unit='V',channel=2,can_id=0x580,byte_offset=at,data_type='uint16',scale=5/4095,conversion='defi_volt') for name,at in (('PressVolt',0),('Temp1Volt',2),('Temp2Volt',4))])
+ def defi_frame(self,press,temp1,temp2,flags=None,version=1):
+  if flags is None:flags=sum(1<<i for i,adc in enumerate((press,temp1,temp2)) if adc<=4)|sum(1<<3+i for i,adc in enumerate((press,temp1,temp2)) if adc>=4091)
+  return struct.pack('<3HBB',press,temp1,temp2,flags,version).hex()
+ def defi_sample(self,decoder,frames,stamp=2000):
+  # frames: (mcu_ms, channel, id, extended, rtr, hex)
+  batch={'rows':[[1,stamp,'']],'can':[list(f) for f in frames]}
+  state=self.state();state['mcu_ms']=stamp
+  return decoder.decode(state,batch,self.defi_config())[0][0]
+ def test_defi_voltage_packet_from_handoff_example(self):
+  # lintaroh_answer_20261101_defi_volt.md: PRESS=0, TEMP1=2048, TEMP2=4095 -> 00 00 00 08 FF 0F 21 01
+  self.assertEqual(self.defi_frame(0,2048,4095),'00000008ff0f2101')
+  s=self.defi_sample(HardwareDecoder(),[(1990,2,0x580,0,0,'00000008ff0f2101')])
+  self.assertEqual(s['can_signals']['PressVolt'],0);self.assertAlmostEqual(s['can_signals']['Temp1Volt'],2.501,places=3);self.assertAlmostEqual(s['can_signals']['Temp2Volt'],5)
+  self.assertEqual({k:v['label'] for k,v in s['can_states'].items()},{'PressVolt':'下限付近','Temp1Volt':'未校正','Temp2Volt':'上限付近'})
+  self.assertEqual([s['can_signals'][n+'State'] for n in ('PressVolt','Temp1Volt','Temp2Volt')],[1,0,2])
+  self.assertNotIn('PressVoltOpen',s['can_signals'])  # a rail flag never proves an open/short
+ def test_defi_voltage_rail_boundaries(self):
+  for adc,code in ((4,1),(5,0),(4090,0),(4091,2)):
+   s=self.defi_sample(HardwareDecoder(),[(1990,2,0x580,0,0,self.defi_frame(adc,2048,2048))])
+   self.assertEqual(s['can_states']['PressVolt']['code'],code,adc);self.assertAlmostEqual(s['can_signals']['PressVolt'],adc*5/4095)
+ def test_defi_voltage_bad_frames_never_keep_the_previous_value(self):
+  good=self.defi_frame(1000,2000,3000)
+  bad=[good[:14],good+'00',self.defi_frame(1000,2000,3000,version=2),self.defi_frame(1000,2000,3000,version=0),
+   struct.pack('<3HBB',4096,2000,3000,0,1).hex(),struct.pack('<3HBB',1000,2000,3000,0x40,1).hex(),struct.pack('<3HBB',1000,2000,3000,0x80,1).hex(),
+   struct.pack('<3HBB',1000,2000,3000,0x01,1).hex(),struct.pack('<3HBB',4,2000,3000,0,1).hex(),struct.pack('<3HBB',1000,2000,4095,0,1).hex(),
+   struct.pack('<3HBB',1000,2000,3000,0x08,1).hex()]
+  for payload in bad:
+   decoder=HardwareDecoder();self.defi_sample(decoder,[(1980,2,0x580,0,0,good)],1985)
+   s=self.defi_sample(decoder,[(1990,2,0x580,0,0,payload)])
+   self.assertEqual({v['code'] for v in s['can_states'].values()},{3},payload)
+   self.assertEqual([s['can_signals'][n] for n in ('PressVolt','Temp1Volt','Temp2Volt')],[None]*3,payload)
+  s=self.defi_sample(decoder,[(2010,2,0x580,0,0,good)],2020)
+  self.assertAlmostEqual(s['can_signals']['Temp2Volt'],3000*5/4095);self.assertEqual(s['can_states']['Temp2Volt']['code'],0)
+ def test_defi_voltage_ignores_rtr_extended_id_and_can1(self):
+  for frame in ((1990,2,0x580,0,1,''),(1990,2,0x580,1,0,self.defi_frame(1000,2000,3000)),(1990,1,0x580,0,0,self.defi_frame(1000,2000,3000))):
+   s=self.defi_sample(HardwareDecoder(),[frame])
+   self.assertEqual(s['can_states']['PressVolt'],{'code':4,'label':'通信途絶'},frame);self.assertIsNone(s['can_signals']['PressVolt'])
+ def test_defi_voltage_timeout_and_mcu_reset(self):
+  decoder=HardwareDecoder();good=self.defi_frame(1000,2000,3000)
+  s=self.defi_sample(decoder,[(1990,2,0x580,0,0,good)],2990);self.assertEqual(s['can_states']['PressVolt']['code'],0)  # 1.0 s old: still fresh
+  s=self.defi_sample(decoder,[],2991);self.assertEqual(s['can_states']['PressVolt']['code'],4);self.assertIsNone(s['can_signals']['PressVolt'])
+  self.defi_sample(decoder,[(2995,2,0x580,0,0,good)],3000)
+  s=self.defi_sample(decoder,[],10)  # MCU restarted: the frame from before is not current
+  self.assertEqual(s['can_signals']['PressVoltState'],4);self.assertIsNone(s['can_signals']['PressVolt'])
+ def test_defi_voltage_layout_and_columns(self):
+  from models import signal_columns
+  sig=self.defi_config().signals[0]
+  for bad in ({'channel':1},{'extended':True,'can_id':0x580},{'byte_offset':1},{'byte_offset':6},{'data_type':'int16'},{'endian':'big'},{'scale':0},{'scale':-1}):
+   with self.assertRaises(ValueError):Signal(**{**sig.model_dump(),**bad})
+  Signal(**{**sig.model_dump(),'scale':1,'unit':''})  # ADC counts are allowed too
+  with self.assertRaises(ValueError):Configuration(signals=[sig,Signal(name='PressVoltState',can_id=0x123)])
+  self.assertEqual(signal_columns(self.defi_config()),['PressVolt','PressVoltState','Temp1Volt','Temp1VoltState','Temp2Volt','Temp2VoltState'])
+  self.assertEqual(Configuration.model_validate_json(self.defi_config().model_dump_json()),self.defi_config())
  def test_gnss_cadence_does_not_halve_when_status_skips_one_solution(self):
   decoder=HardwareDecoder();state=self.state();nav=bytearray(92);nav[20]=3;nav[21]=1
   for itow,expected in [(1000,None),(1100,10),(1300,10),(1500,10)]:

@@ -55,6 +55,29 @@ def utc_millis(text):
     except (AttributeError, TypeError, ValueError):
         return None
 
+def build_meta(config, base):
+    """Fixed channels, then each configured CAN signal and the state channels its decoder adds."""
+    meta = [channel(c['name'], c['unit']) for c in base]
+    names = {c['nm'] for c in meta}
+    for sig in config.get('signals', []):
+        conversion = sig.get('conversion')
+        if sig['name'] not in names:
+            if conversion == 'defi_volt':
+                # 12-bit ADC (PIC v8, 0x580) times the configured scale, e.g. 0-5 V.
+                low = sig.get('offset', 0)
+                meta.append(channel(sig['name'], sig['unit'], low, low + 4095 * sig.get('scale', 1), 3))
+            else:
+                meta.append(channel(sig['name'], sig['unit']))
+            names.add(sig['name'])
+        if conversion in ('sensorhub_oiltemp', 'defi_volt'):
+            for suffix in ('State','Open') if conversion == 'sensorhub_oiltemp' else ('State',):
+                name=sig['name']+suffix
+                if name not in names:
+                    meta.append(channel(name, low=0, high=4 if suffix == 'State' else 1, precision=0))
+                    names.add(name)
+    meta.extend(channel(n, u) for n, u in EXTRA if n not in names)
+    return meta
+
 class Source:
     def __init__(self):
         self.frame = {}
@@ -70,20 +93,7 @@ class Source:
                 if started - self.last_config > 5:
                     config = await asyncio.to_thread(api, '/api/config')
                     base = await asyncio.to_thread(api, '/api/channels')
-                    meta = [channel(c['name'], c['unit']) for c in base]
-                    names = {c['nm'] for c in meta}
-                    for sig in config.get('signals', []):
-                        if sig['name'] not in names:
-                            meta.append(channel(sig['name'], sig['unit']))
-                            names.add(sig['name'])
-                        if sig.get('conversion') == 'sensorhub_oiltemp':
-                            for suffix in ('State','Open'):
-                                name=sig['name']+suffix
-                                if name not in names:
-                                    meta.append(channel(name, precision=0))
-                                    names.add(name)
-                    meta.extend(channel(n, u) for n, u in EXTRA if n not in names)
-                    self.config, self.meta, self.last_config = config, meta, started
+                    self.config, self.meta, self.last_config = config, build_meta(config, base), started
                 frame = await asyncio.to_thread(api, '/api/telemetry')
                 self.frame, self.updated = frame, time.monotonic()
             except Exception as e:

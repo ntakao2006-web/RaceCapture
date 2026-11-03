@@ -60,9 +60,9 @@ def runner(use_adb, host):
     return run
 
 
-def api(run, path, body=None):
-    """本体のEcoCaptureのAPIを本体の中から呼ぶ（外へ口を開けない）"""
-    command = f'curl -s -m 15 -w "\\n%{{http_code}}" {API}{path}'
+def api(run, path, body=None, wait=15):
+    """本体のEcoCaptureのAPIを本体の中から呼ぶ（外へ口を開けない）。wait は応答を待つ秒数"""
+    command = f'curl -s -m {wait} -w "\\n%{{http_code}}" {API}{path}'
     if body is not None:  # 書き込みはEcoCaptureの操作ヘッダーが要る（server.pyのlocal_requests）
         command += (" -X POST -H 'X-EcoCapture: 1' -H 'Content-Type: application/json'"
                     f" --data-binary {shlex.quote(json.dumps(body))}")

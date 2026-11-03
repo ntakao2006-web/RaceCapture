@@ -5,6 +5,10 @@ from collections import deque
 from models import CHANNELS
 
 OILTEMP_STATES = {0:'正常', 1:'オープン', 2:'短絡', 3:'データ異常', 4:'通信途絶'}
+# PIC v8 voltage inputs: the pull-ups and the pressure curve are not known yet,
+# so a good frame is "uncalibrated", and the rail flags never mean open/short.
+DEFIVOLT_STATES = {0:'未校正', 1:'下限付近', 2:'上限付近', 3:'データ異常', 4:'通信途絶'}
+STATE_LABELS = {'sensorhub_oiltemp':OILTEMP_STATES, 'defi_volt':DEFIVOLT_STATES}
 
 def oiltemp_packet(raw):
     """Legacy PIC 0x600: int16 centi-C, uint16 ADC, uint32 ohms, all LE.
@@ -24,6 +28,21 @@ def oiltemp_packet(raw):
     if not 4 < adc < 4091 or not 0 < resistance < 0xffffffff:
         return None, 3
     return temp * .01, 0
+
+def defivolt_packet(raw, byte_offset):
+    """PIC v8 0x580: PRESS/TEMP1/TEMP2 ADC uint16 LE at 0/2/4, rail flags, version 1.
+
+    Byte 6 bits 0-2 mark ADC <= 4 and bits 3-5 ADC >= 4091 (same order); the
+    whole frame is checked so one corrupt field cannot pass as a voltage.
+    """
+    if len(raw) != 8 or raw[7] != 1 or raw[6] & 0xc0:
+        return None, 3
+    adcs = struct.unpack_from('<3H', raw)
+    for i, adc in enumerate(adcs):
+        if adc > 4095 or bool(raw[6] >> i & 1) != (adc <= 4) or bool(raw[6] >> (3+i) & 1) != (adc >= 4091):
+            return None, 3
+    adc = adcs[byte_offset // 2]
+    return adc, 1 if adc <= 4 else 2 if adc >= 4091 else 0
 
 class HardwareDecoder:
     def __init__(self):
@@ -96,8 +115,11 @@ class HardwareDecoder:
             raw=bytes.fromhex(data)
             for sig in config.signals:
                 if sig.channel!=channel or sig.can_id!=can_id or sig.extended!=bool(extended):continue
-                if sig.conversion == 'sensorhub_oiltemp':
-                    value, code = oiltemp_packet(raw)
+                if sig.conversion in STATE_LABELS:
+                    if sig.conversion == 'sensorhub_oiltemp':value, code = oiltemp_packet(raw)
+                    else:
+                        value, code = defivolt_packet(raw, sig.byte_offset)
+                        if value is not None:value = value*sig.scale+sig.offset
                     for table, item in ((self.can_values,value),(self.can_states,code)):
                         history = table.setdefault(sig.name,deque())
                         history.append((stamp,item))
@@ -116,15 +138,17 @@ class HardwareDecoder:
                     while history and (stamp-history[0][0])%2**32>1500:history.popleft()
 
     def can_snapshot(self, stamp, config):
-        """Signal values fresh within 1 s of stamp, plus State/Open for sensor-hub oil temperature."""
+        """Signal values fresh within 1 s of stamp, plus State (and Open for oil temperature) for PIC packets."""
         decoded={name:next((value for at,value in reversed(history) if (stamp-at)%2**32<=1000),None) for name,history in self.can_values.items()}
         can_states={}
         for sig in config.signals:
-            if sig.conversion != 'sensorhub_oiltemp':continue
+            if sig.conversion not in STATE_LABELS:continue
             code=next((value for at,value in reversed(self.can_states.get(sig.name,())) if (stamp-at)%2**32<=1000),4)
-            can_states[sig.name]={'code':code,'label':OILTEMP_STATES[code]}
+            can_states[sig.name]={'code':code,'label':STATE_LABELS[sig.conversion][code]}
             decoded.setdefault(sig.name,None)
-            if code != 0:decoded[sig.name]=None
+            # A voltage near a rail is still a measured voltage; an oil temperature is not.
+            if code >= (3 if sig.conversion == 'defi_volt' else 1):decoded[sig.name]=None
             decoded[sig.name+'State']=code
-            decoded[sig.name+'Open']=int(code==1) if code in (0,1,2) else None
+            if sig.conversion == 'sensorhub_oiltemp':
+                decoded[sig.name+'Open']=int(code==1) if code in (0,1,2) else None
         return decoded,can_states

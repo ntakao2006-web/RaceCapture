@@ -18,7 +18,9 @@ class Signal(BaseModel):
     bit_mask: int | None = Field(default=None, ge=1, le=255)
     # 'ntc': the scaled value is the ADC ratio V/Vref (0..1) of an NTC thermistor
     # below a pull-up to the same reference (sensor hub analog frame bytes 2-3).
-    conversion: Literal["linear", "ntc", "sensorhub_oiltemp"] = "linear"
+    # 'defi_volt': one ADC input of the PIC v8 frame (CAN2 0x580, version 1); the
+    # whole frame is validated (hardware.defivolt_packet), scale 5/4095 gives volts.
+    conversion: Literal["linear", "ntc", "sensorhub_oiltemp", "defi_volt"] = "linear"
     pullup_ohm: float | None = Field(default=None, gt=0, le=1e7)
     ntc_points: list[tuple[float, float]] = Field(default_factory=list, max_length=16)  # (°C, Ω)
 
@@ -36,6 +38,11 @@ class Signal(BaseModel):
                     or self.data_type != 'int16' or self.endian != 'little'
                     or self.scale != .01 or self.offset != 0 or self.bit_mask is not None):
                 raise ValueError('PIC油温はCAN2・標準ID・先頭int16 LE・倍率0.01で設定してください')
+        if self.conversion == 'defi_volt':
+            if (self.channel != 2 or self.extended or self.byte_offset not in (0, 2, 4)
+                    or self.data_type != 'uint16' or self.endian != 'little'
+                    or not self.scale > 0 or self.bit_mask is not None):
+                raise ValueError('Defi電圧入力はCAN2・標準ID・0/2/4バイト目のuint16 LE・正の倍率で設定してください')
         if self.conversion == "ntc":
             points = sorted(self.ntc_points)
             if self.pullup_ohm is None or len(points) < 2:
@@ -75,14 +82,19 @@ class Configuration(BaseModel):
         for sig in self.signals:
             if sig.conversion == 'sensorhub_oiltemp' and names & {sig.name+'State', sig.name+'Open'}:
                 raise ValueError('油温の自動状態チャンネル名と重複しています')
+            if sig.conversion == 'defi_volt' and sig.name+'State' in names:
+                raise ValueError('電圧入力の自動状態チャンネル名と重複しています')
         return self
 
+# Conversions whose decoder also reports <name>State (hardware.STATE_LABELS).
+STATE_CONVERSIONS = ('sensorhub_oiltemp', 'defi_volt')
+
 def signal_columns(config):
-    """One log column per CAN signal; sensor-hub oil temperature adds <name>State (Open is the same as State 1)."""
+    """One log column per CAN signal; PIC packets add <name>State (oil temperature's Open is the same as State 1)."""
     names = []
     for sig in config.signals:
         names.append(sig.name)
-        if sig.conversion == 'sensorhub_oiltemp':
+        if sig.conversion in STATE_CONVERSIONS:
             names.append(sig.name + 'State')
     return names
 
