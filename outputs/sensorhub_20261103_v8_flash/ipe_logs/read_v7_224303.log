@@ -1,0 +1,33 @@
+DFP Version Used : PIC18F-Q_DFP,1.30.487,Microchip
+*****************************************************
+
+Connecting to MPLAB Snap
+Currently loaded versions:
+Application version...........02.04.82
+Boot version..................01.01.55
+PCB version...................2
+Script version................00.10.90
+Script build number...........b12f00154b
+Tool pack version ............3.0.1931
+Updating firmware application...
+
+Connecting to MPLAB Snap
+Currently loaded versions:
+Application version...........02.04.56
+Boot version..................01.01.55
+PCB version...................2
+Script version................00.10.90
+Script build number...........b12f00154b
+Tool pack version ............3.0.1931
+Target device PIC18F26Q84 found.
+Device Id Revision = 0xa0020000
+Device Id = 0xa300
+The following memory area(s) will be read:
+program memory: start address = 0x0, end address = 0xffff
+configuration memory
+EEData memory
+User Id Memory
+Read complete
+Read successfully.
+Hex file exported to : C:\Users\ntaka\Documents\ClaudeCode\RaceCapture\outputs\sensorhub_20261103_v8_flash\firmware_v7_readback.hex
+Operation Succeeded

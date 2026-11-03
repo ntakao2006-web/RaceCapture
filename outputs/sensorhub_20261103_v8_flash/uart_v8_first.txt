@@ -1,0 +1,36 @@
+﻿PRESS adc=0 mv_nominal=0 status=LOW_RAIL
+TEMP1 adc=1651 mv_nominal=2016 status=UNQUALIFIED
+TEMP2 adc=1752 mv_nominal=2139 status=UNQUALIFIED
+VOLTAGE can_0x580=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9728 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=5 qsize=1 qcfg=96 qenable=128 diag1u=0 diag1t=0 txpps=70 rxpps=11 tris=251 ansel=243
+PRESS adc=0 mv_nominal=0 status=LOW_RAIL
+TEMP1 adc=1653 mv_nominal=2018 status=UNQUALIFIED
+TEMP2 adc=1755 mv_nominal=2143 status=UNQUALIFIED
+VOLTAGE can_0x580=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9744 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=5 qsize=1 qcfg=96 qenable=128 diag1u=0 diag1t=0 txpps=70 rxpps=11 tris=251 ansel=243
+PRESS adc=0 mv_nominal=0 status=LOW_RAIL
+TEMP1 adc=1651 mv_nominal=2016 status=UNQUALIFIED
+TEMP2 adc=1754 mv_nominal=2142 status=UNQUALIFIED
+VOLTAGE can_0x580=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9728 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=5 qsize=1 qcfg=96 qenable=128 diag1u=0 diag1t=0 txpps=70 rxpps=11 tris=251 ansel=243
+PRESS adc=0 mv_nominal=0 status=LOW_RAIL
+TEMP1 adc=1647 mv_nominal=2011 status=UNQUALIFIED
+TEMP2 adc=1759 mv_nominal=2148 status=UNQUALIFIED
+VOLTAGE can_0x580=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9744 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=5 qsize=1 qcfg=96 qenable=128 diag1u=0 diag1t=0 txpps=70 rxpps=11 tris=251 ansel=243
+PRESS adc=0 mv_nominal=0 status=LOW_RAIL
+TEMP1 adc=1644 mv_nominal=2007 status=UNQUALIFIED
+TEMP2 adc=1751 mv_nominal=2138 status=UNQUALIFIED
+VOLTAGE can_0x580=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9728 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=5 qsize=1 qcfg=96 qenable=128 diag1u=0 diag1t=0 txpps=70 rxpps=11 tris=251 ansel=243
+PRESS adc=0 mv_nominal=0 status=LOW_RAIL
+TEMP1 adc=1642 mv_nominal=2005 status=UNQUALIFIED
+TEMP2 adc=1757 mv_nominal=2145 status=UNQUALIFIED
+VOLTAGE can_0x580=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9744 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=5 qsize=1 qcfg=96 qenable=128 diag1u=0 diag1t=0 txpps=70 rxpps=11 tris=251 ansel=243
+PRESS adc=0 mv_nominal=0 status=LOW_RAIL
+TEMP1 adc=1652 mv_nominal=2017 status=UNQUALIFIED
+TEMP2 adc=1763 mv_nominal=2153 status=UNQUALIFIED
+VOLTAGE can_0x580=queued
+CAN op=6 txerr=0 rxerr=0 trecu=0 txq=5 req=0 ua=9728 conl=96 conh=135 conu=208 cont=6 rb3=1 nmsg=5 qsize=1 qcfg=96 qenable=128 diag1u=0 diag1t=0 txpps=70 rxpps=11 tris=251 ansel=243
+

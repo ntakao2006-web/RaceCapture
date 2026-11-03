@@ -73,6 +73,20 @@ voltage accuracy/CAN-reception validation was performed for v8.
 
 Defi reference: https://defi.nippon-seiki.co.jp/wp-content/uploads/2025/03/manual_dinstyle21_98.pdf
 
+## 2026-11-03 programming
+
+- Programmed this v8 HEX (SHA-256 `F4238F83...6E6E`) with MPLAB IPE 6.35 through the
+  Snap in MPLAB mode, then returned the Snap to CMSIS-DAP. Device ID 0xa300;
+  program and verify succeeded.
+- Before programming, the device was read back and matched the v7 HEX exactly.
+  Readback, IPE logs and the first UART output are in
+  `outputs/sensorhub_20261103_v8_flash/`.
+- UART: PRESS adc=0 (LOW_RAIL, not wired yet), TEMP1 about 2.02 V, TEMP2 about
+  2.15 V with the Defi temperature harnesses attached; CAN txerr/rxerr 0.
+  LoggerV2 received 0x580 at about 9.3 Hz with no CAN2 overflow increase.
+- `snap_uart_setup/Set-SnapFirmware.ps1` now finds the switcher under
+  `%LOCALAPPDATA%` and no longer aborts midway in Windows PowerShell 5.1.
+
 ## Historical evidence (earlier firmware, superseded)
 
 ## 2026-10-19 hardware check

@@ -7,6 +7,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $pythonCandidates = @(
+    (Join-Path $env:LOCALAPPDATA 'Microchip\snap-uart-tools\Scripts\python.exe'),
     'C:\Users\lintaroh\AppData\Local\Microchip\snap-uart-tools\Scripts\python.exe',
     'C:\Users\lintaroh\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Local\Microchip\snap-uart-tools\Scripts\python.exe'
 )
@@ -50,8 +51,13 @@ print('Verified:', target, device.serial_number, firmware)
     }
 
     $logPath = Join-Path $PSScriptRoot ('switch_' + $Mode.ToLowerInvariant() + '_' + (Get-Date -Format 'yyyyMMdd_HHmmss_fff') + '.log')
-    & $pythonExe -m pycmsisdapswitcher --action switch --target snap --fwtype $image.Type --appsource $firmware --verbose info 2>&1 | Tee-Object -FilePath $logPath
-    if ($LASTEXITCODE -ne 0) { throw "Firmware switch failed. See $logPath" }
+    # Windows PowerShell 5.1 turns the switcher's stderr lines into terminating errors under 'Stop',
+    # which aborted a switch midway on 2026-11-03 (Snap left in its bootloader until the switch was rerun).
+    $ErrorActionPreference = 'Continue'
+    & $pythonExe -m pycmsisdapswitcher --action switch --target snap --fwtype $image.Type --appsource $firmware --verbose info 2>&1 | ForEach-Object { "$_" } | Tee-Object -FilePath $logPath
+    $switchExitCode = $LASTEXITCODE
+    $ErrorActionPreference = 'Stop'
+    if ($switchExitCode -ne 0) { throw "Firmware switch failed. See $logPath" }
 
     $postflight = @'
 import sys
