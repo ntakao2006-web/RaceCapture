@@ -17,6 +17,9 @@ the eco-run one is left as it is:
           pit's phone), GNSS satellites and how late the data reaches the server.
   bottom  collapsed (no queries until opened): speed and revs over time, every channel.
 
+The vehicle list is the NCEC's rooms only (vehicles.py, 2026-11-04): the roadster is its own
+vehicle, not the eco-run car whose logger it borrows.
+
 The limits are the driver dash's (RaceCapture-UNOQ/configure_sugo_dashboard.py) from
 ncec-roadster track/thermal-limits.md, provisional: when t960 changes them, change OIL/WATER
 here and there.
@@ -24,6 +27,7 @@ here and there.
 import json
 from pathlib import Path
 
+import vehicles
 from build_dashboard import VM, ROOM, last, pos, stat, target
 
 HERE = Path(__file__).parent
@@ -122,7 +126,6 @@ def build(live):
                    'collapsed': True, 'gridPos': pos(0, 16, 24, 1), 'panels': detail})
     for n, p in enumerate(panels + detail, 1):
         p['id'] = n
-    room = next(v for v in live['templating']['list'] if v['name'] == 'room')
     return {
         'uid': 'sugo-live', 'title': 'SUGO 120分耐久 Live', 'tags': ['ecorun', 'sugo'],
         'timezone': 'browser', 'editable': False, 'graphTooltip': 1,
@@ -130,7 +133,9 @@ def build(live):
         # 10 s: the polled panels here change slowly; the laps, map and G are pushed.
         'refresh': '10s', 'timepicker': live.get('timepicker', {}),
         'schemaVersion': live.get('schemaVersion', 39),
-        'templating': {'list': [dict(room, current={'text': 'majesta', 'value': 'majesta'})]},
+        # The NCEC's own rooms only (vehicles.py), not the eco-run cars'
+        'templating': {'list': [vehicles.sugo_variable()]},
+        'links': vehicles.links('sugo-live'),
         'panels': panels,
     }
 

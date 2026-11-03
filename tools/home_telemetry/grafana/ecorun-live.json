@@ -36,7 +36,8 @@
         },
         "definition": "label_values(ecorun_Speed, room)",
         "refresh": 2,
-        "sort": 1
+        "sort": 1,
+        "regex": "/^(?!(?:ncec)$).*$/"
       }
     ]
   },
@@ -859,6 +860,19 @@
         }
       ],
       "id": 8
+    }
+  ],
+  "links": [
+    {
+      "type": "link",
+      "title": "NCEC・SUGOの画面",
+      "url": "/grafana/d/sugo-live",
+      "icon": "dashboard",
+      "targetBlank": false,
+      "keepTime": false,
+      "includeVars": false,
+      "asDropdown": false,
+      "tags": []
     }
   ]
 }

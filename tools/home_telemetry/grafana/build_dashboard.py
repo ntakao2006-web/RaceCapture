@@ -10,9 +10,13 @@ channel (no queries until opened: the pit's link at Motegi was slow). No G-G cir
 (2026-10-24 night: eco-run does not need it; gg.html is still served). The map panel keeps
 its HTML from the previous ecorun-live.json. No talk panel and no best lap
 (2026-10-23: the pit talks on Discord, and eco-run is not about the fastest lap).
+The NCEC's rooms are left out of the vehicle list: it has its own screen, sugo-live
+(vehicles.py, 2026-11-04).
 """
 import json
 from pathlib import Path
+
+import vehicles
 
 HERE = Path(__file__).parent
 OUT = HERE / 'ecorun-live.json'
@@ -177,7 +181,11 @@ def build(old):
     dash['refresh'] = '5s'
     # The hand-typed time limit (limit_min, then limit and margin) is gone: the logger has it.
     variables = [v for v in old['templating']['list'] if v['name'] not in ('limit_min', 'limit', 'margin')]
+    for v in variables:
+        if v['name'] == 'room':   # 2026-11-04: the NCEC is on its own screen (vehicles.py)
+            v['regex'] = vehicles.ecorun_regex()
     dash['templating'] = {'list': variables}
+    dash['links'] = vehicles.links('ecorun-live')
     return dash
 
 

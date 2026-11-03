@@ -27,26 +27,36 @@
     "list": [
       {
         "name": "room",
-        "label": "Room",
-        "type": "query",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "ecorun-vm"
-        },
-        "query": {
-          "query": "label_values(ecorun_Speed, room)",
-          "refId": "room"
-        },
-        "definition": "label_values(ecorun_Speed, room)",
-        "refresh": 2,
-        "sort": 1,
+        "label": "車両",
+        "type": "custom",
+        "query": "NCEC（ロードスター） : ncec",
         "current": {
-          "text": "majesta",
-          "value": "majesta"
-        }
+          "text": "NCEC（ロードスター）",
+          "value": "ncec"
+        },
+        "options": [
+          {
+            "text": "NCEC（ロードスター）",
+            "value": "ncec",
+            "selected": true
+          }
+        ]
       }
     ]
   },
+  "links": [
+    {
+      "type": "link",
+      "title": "エコランの画面",
+      "url": "/grafana/d/ecorun-live",
+      "icon": "dashboard",
+      "targetBlank": false,
+      "keepTime": false,
+      "includeVars": false,
+      "asDropdown": false,
+      "tags": []
+    }
+  ],
   "panels": [
     {
       "type": "text",

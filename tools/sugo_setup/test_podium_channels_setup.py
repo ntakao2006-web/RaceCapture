@@ -12,12 +12,14 @@ import sugo_setup
 NOW = ['Lat', 'Lon', 'Altitude', 'GPSSpeed', 'Yaw', 'GPSFix', 'GPSSats', 'AccelX', 'AccelY', 'AccelZ', 'GyroX', 'GyroY',
        'GyroZ', 'Roll', 'Pitch', 'Speed', 'RPM', 'Throttle', 'WaterTemp', 'LongAccel', 'LatAccel']
 ALLOWED = NOW + ['OilTemp', 'WaterTempDefi', 'PressVolt']
+RELAY = 'wss://relay.example/ws/audio/'
 
 
 class FakeUnoQ:
     """本体の代わり：/api/podium だけを真似る（書き込みは操作ヘッダーが無ければ断る）"""
     def __init__(self):
-        self.config = {'enabled': False, 'link': 'lte', 'destination': 'relay', 'channels': list(NOW)}
+        self.config = {'enabled': False, 'link': 'lte', 'destination': 'server', 'channels': list(NOW),
+                       'server_url': RELAY + 'majesta', 'backup_server_urls': []}
         self.posts = []
 
     def __call__(self, command):
@@ -33,8 +35,8 @@ class FakeUnoQ:
 
 
 class PodiumChannelsTest(unittest.TestCase):
-    def run_tool(self, *argv):
-        fake = FakeUnoQ()
+    def run_tool(self, *argv, fake=None):
+        fake = fake or FakeUnoQ()
         orig = tool.runner
         tool.runner = lambda adb, host: fake
         try:
@@ -48,11 +50,30 @@ class PodiumChannelsTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(fake.posts, [])
 
-    def test_apply_adds_only_the_oil(self):
+    def test_apply_makes_it_the_ncec(self):
         code, fake = self.run_tool('--apply')
         self.assertEqual(code, 0)
-        self.assertEqual(fake.posts, [{'channels': NOW + ['OilTemp']}])   # nothing else: not enabled, not the server
+        # the oil and the NCEC's room, nothing else: not enabled, not the server
+        self.assertEqual(fake.posts, [{'channels': NOW + ['OilTemp'], 'server_url': RELAY + 'ncec', 'backup_server_urls': []}])
         self.assertFalse(fake.config['enabled'])
+        code, fake = self.run_tool('--apply', fake=fake)   # once is enough
+        self.assertEqual((code, len(fake.posts)), (0, 1))
+
+    def test_room_goes_back_to_the_eco_run_car(self):
+        fake = FakeUnoQ()
+        fake.config.update(server_url=RELAY + 'ncec', backup_server_urls=['wss://spare.example/ws/audio/ncec'])
+        code, fake = self.run_tool('--room', 'majesta', fake=fake)
+        self.assertEqual(code, 0)
+        self.assertEqual(fake.posts, [{'server_url': RELAY + 'majesta',
+                                       'backup_server_urls': ['wss://spare.example/ws/audio/majesta']}])
+
+    def test_room_is_left_alone_when_it_cannot_be_changed(self):
+        code, fake = self.run_tool('--room', 'nc/ec')
+        self.assertEqual((code, fake.posts), (1, []))
+        fake = FakeUnoQ()
+        fake.config.update(destination='podium', server_url='')   # straight to Podium: no room
+        code, fake = self.run_tool('--apply', fake=fake)
+        self.assertEqual((code, fake.posts), (1, []))
 
     def test_slim_keeps_what_the_pit_shows(self):
         code, fake = self.run_tool('--apply', '--slim')
