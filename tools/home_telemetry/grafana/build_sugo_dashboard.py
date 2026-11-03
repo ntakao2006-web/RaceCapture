@@ -76,6 +76,30 @@ def temperatures(at):
     }
 
 
+def gps(at):
+    """Satellites and the receiver's horizontal accuracy as ±m, one above the other (2026-11-04,
+    user: the count alone says little). GPSAcc is added to the Podium rows by podium.py itself."""
+    p = stat('GPS', [target(last('GPSSats'), 'A', '衛星数'), target(last('GPSAcc'), 'B', '位置の誤差（m）')], at,
+             color_mode='value',
+             description='衛星数と、受信機が自分で見積もった水平方向の位置の誤差（±m、小さいほど良い）。'
+                         'Ver.2の受信機（MAX-M10M）は10/25のもてぎで±0.1〜0.3mと出ていて、カタログの精度（約1.5m）より'
+                         '楽観的。値そのものより、急に大きくなったら受信が悪くなったと見る（屋内では±96m）。'
+                         'ラップの判定のライン幅50mに対しては数mでも十分。LTEで約1秒に1回')
+    p['fieldConfig']['overrides'] = [
+        {'matcher': {'id': 'byName', 'options': '衛星数'}, 'properties': [
+            {'id': 'decimals', 'value': 0},
+            {'id': 'thresholds', 'value': {'mode': 'absolute', 'steps': [
+                {'color': 'red', 'value': None}, {'color': 'orange', 'value': 6}, {'color': 'green', 'value': 10}]}}]},
+        {'matcher': {'id': 'byName', 'options': '位置の誤差（m）'}, 'properties': [
+            {'id': 'unit', 'value': 'prefix:±'}, {'id': 'decimals', 'value': 1},
+            {'id': 'thresholds', 'value': {'mode': 'absolute', 'steps': [   # as ecorun-live's GNSS精度
+                {'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 8}]}}]},
+    ]
+    p['fieldConfig']['defaults']['color'] = {'mode': 'thresholds'}
+    p['options']['orientation'] = 'vertical'   # stacked in the narrow panel
+    return p
+
+
 def build(live):
     every = live['panels'] + [q for p in live['panels'] for q in p.get('panels', [])]
     table = next(p for p in every if p['type'] == 'table' and '__name__=~' in json.dumps(p))
@@ -100,9 +124,7 @@ def build(live):
                         'LTEで約1秒に1回なので、短いピークは拾えず最大は低めに出る',
          'options': frame(f'/live/gg?room=$room&lap=1&max={G_MAX}')},
         temperatures(pos(8, 11, 10, 5)),
-        stat('GPS衛星数', [target(last('GPSSats'))], pos(18, 11, 3, 5), decimals=0,
-             thresholds=[{'color': 'red', 'value': None}, {'color': 'orange', 'value': 6}, {'color': 'green', 'value': 10}],
-             color_mode='value'),
+        gps(pos(18, 11, 3, 5)),
         stat('サーバー到着までの遅れ', [target(f'time() - timestamp(ecorun_Interval{{{ROOM}}})')], pos(21, 11, 3, 5),
              unit='s', decimals=1,
              thresholds=[{'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 10}],

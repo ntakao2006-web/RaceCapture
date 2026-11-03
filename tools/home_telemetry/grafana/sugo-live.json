@@ -228,7 +228,7 @@
     },
     {
       "type": "stat",
-      "title": "GPS衛星数",
+      "title": "GPS",
       "gridPos": {
         "x": 18,
         "y": 11,
@@ -248,35 +248,98 @@
           },
           "expr": "last_over_time(ecorun_GPSSats{room=\"$room\"}[10m])",
           "instant": true,
-          "range": false
+          "range": false,
+          "legendFormat": "衛星数"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_GPSAcc{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false,
+          "legendFormat": "位置の誤差（m）"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "noValue": "—",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 6
-              },
-              {
-                "color": "green",
-                "value": 10
-              }
-            ]
-          },
           "color": {
             "mode": "thresholds"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "衛星数"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 6
+                    },
+                    {
+                      "color": "green",
+                      "value": 10
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "位置の誤差（m）"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "prefix:±"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 3
+                    },
+                    {
+                      "color": "red",
+                      "value": 8
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "reduceOptions": {
@@ -287,10 +350,11 @@
         },
         "graphMode": "none",
         "colorMode": "value",
-        "textMode": "value",
-        "justifyMode": "center"
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "vertical"
       },
-      "description": "",
+      "description": "衛星数と、受信機が自分で見積もった水平方向の位置の誤差（±m、小さいほど良い）。Ver.2の受信機（MAX-M10M）は10/25のもてぎで±0.1〜0.3mと出ていて、カタログの精度（約1.5m）より楽観的。値そのものより、急に大きくなったら受信が悪くなったと見る（屋内では±96m）。ラップの判定のライン幅50mに対しては数mでも十分。LTEで約1秒に1回",
       "id": 5
     },
     {
