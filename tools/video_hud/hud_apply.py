@@ -31,7 +31,6 @@ REMOTE_DIR = '/home/arduino/ecologger-video'
 REMOTE_INI = f'{REMOTE_DIR}/hud.ini'
 STATUS = f'{REMOTE_DIR}/hud_status.txt'
 DEFAULT_ON_DEVICE = '/opt/ecologger-video/hud_default.ini'
-SERVICE = 'ecologger-video.service'
 RECORDER = '/opt/ecologger-video/overlay_rec'
 V2_MARK = 'lapref 1'  # 2026-11-04以降の録画プログラム（lap_ref.h のファイルの書式）にある文字
 WAIT_S = 8  # 録画は約1秒ごとに見る。カメラの枚数が落ちていると少し遅れる
@@ -70,11 +69,13 @@ def parse_status(text):
 
 
 def device_state(run):
-    """(新しい録画が入っているか, 録画サービスが動いているか, hud_status.txt の中身, 録画プログラムの版)。
+    """(新しい録画が入っているか, 録画プログラムが録っているか, hud_status.txt の中身, 録画プログラムの版)。
+    サービスが動いていても、カメラが無い間は run-video.sh が待っているだけで、録画プログラム（overlay_rec）は動いていない。
     版：2 ＝ 針のメーター・弧・コース図・calc.〜 に対応（2026-11-04以降）、1 ＝ それより前"""
     out = run(f'if [ -f {DEFAULT_ON_DEVICE} ]; then echo READY=1; else echo READY=0; fi; '
               f'if grep -q "{V2_MARK}" {RECORDER} 2>/dev/null; then echo VERSION=2; else echo VERSION=1; fi; '
-              f'echo ACTIVE=$(systemctl is-active {SERVICE} 2>/dev/null); cat {STATUS} 2>/dev/null; true')
+              f'if pgrep -x overlay_rec >/dev/null; then echo ACTIVE=active; else echo ACTIVE=inactive; fi; '
+              f'cat {STATUS} 2>/dev/null; true')
     lines = out.splitlines()
     ready = 'READY=1' in lines
     active = any(ln == 'ACTIVE=active' for ln in lines)
@@ -133,7 +134,8 @@ def apply(run, data, log=print, sleep=time.sleep, need=1):
     ino, size = push(run, data)
     log(f'本体へ送りました：{REMOTE_INI}（{size}バイト）')
     if not active:
-        log('録画は今は動いていません（カメラがつながっていない等）。次に録画が始まったときに、この配置で描きます')
+        log('録画は今は止まっています（カメラがつながっていない等）。次に録画が始まったときに、この配置で描きます'
+            '（PCでの確かめは通っている。本体が読めたかは、録画が始まってから Apply-HUD.cmd --status で見られる）')
         return 0
     # 送ったファイル（inodeと大きさで見分ける）を読めたか、読めなかったかが hud_status.txt に出るまで待つ
     mine = lambda s: s.get('loaded') == REMOTE_INI and s.get('ino') == ino and s.get('size') == size  # noqa: E731
@@ -205,9 +207,12 @@ def main(argv=None):
         run = runner(args.adb, args.host)
         if args.status:
             ready, active, status, version = device_state(run)
-            print(f'録画サービス：{"動いている" if active else "止まっている"}'
+            print(f'録画：{"録っている" if active else "止まっている（カメラ待ち等）"}'
                   f'（録画プログラムは{"針のメーター・コース図に対応した版" if version >= 2 else "針のメーター・コース図に未対応の版"}）')
-            print(describe(status) if ready else '本体の録画プログラムは、まだ計器の設定ファイルに対応していない版です（元の配置で描いている）')
+            if not ready:
+                print('本体の録画プログラムは、まだ計器の設定ファイルに対応していない版です（元の配置で描いている）')
+            else:  # 止まっているときの hud_status.txt は、最後に録画したときのもの
+                print(('' if active else '最後に録画したときの記録：') + describe(status))
             return 0
         if args.default:
             return back_to_default(run)

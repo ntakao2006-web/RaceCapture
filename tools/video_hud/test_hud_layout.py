@@ -129,6 +129,11 @@ class EstimateTest(unittest.TestCase):
         self.assertLessEqual(max(xs), 500)
         self.assertGreaterEqual(min(ys), 200)
         self.assertLessEqual(max(ys), 400)
+        # 広がりが100m未満の線（止まっている車のGNSSのぶれ）は描かない。100mを超えれば描く
+        for size_m, drawn in ((90, False), (110, True)):
+            d = size_m / 111320.0
+            jitter = [(la, lo), (la + d, lo), (la + d / 2, lo + 1e-6)]
+            self.assertEqual(bool(hud_layout.build(hud, FONT, [la, lo], 0, 0.0, jitter)), drawn, size_m)
 
     def test_default_is_ok(self):
         screens, ms, level = hud_layout.estimate(hud_layout.load(hud_layout.DEFAULT_INI), FONT)

@@ -102,6 +102,7 @@ static const float OUTLINE[4] = { 0, 0, 0, .6f };
 #define HUD_VAL 160
 
 #define HUD_TRACK_MAX 300  // コース図の線の点の数の上限
+#define HUD_MAP_MIN_M 100.0  // コース図の線の広がりがこれ（m）より小さければ描かない
 
 enum { HT_BOX, HT_TEXT, HT_VALUE, HT_BAR, HT_GBALL, HT_CLOCK, HT_DIAL, HT_ARC, HT_MAP };
 enum { HS_ALWAYS, HS_NODATA, HS_NEVER };
@@ -509,6 +510,8 @@ static void hud_map(const struct hud_item *it, const struct hud_track *trk, doub
         la0 = fmin(la0, trk->lat[i]); la1 = fmax(la1, trk->lat[i]); lo0 = fmin(lo0, trk->lon[i]); lo1 = fmax(lo1, trk->lon[i]);
     }
     const double lac = (la0 + la1) / 2, loc = (lo0 + lo1) / 2, k = cos(lac * M_PI / 180);
+    // 線の広がりが HUD_MAP_MIN_M 未満なら描かない（止まっている車のGNSSのぶれを、図いっぱいに広げて描かない）
+    if (fmax((la1 - la0) * 111320.0, (lo1 - lo0) * 111320.0 * k) < HUD_MAP_MIN_M) return;
     const double cr = cos(it->rotate * M_PI / 180), sr = sin(it->rotate * M_PI / 180);
     static double px[HUD_TRACK_MAX], py[HUD_TRACK_MAX];
     double x0 = 0, x1 = 0, y0 = 0, y1 = 0;

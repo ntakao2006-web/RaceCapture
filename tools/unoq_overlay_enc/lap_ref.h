@@ -11,12 +11,13 @@
 #pragma once
 #include "hud_layout.h"
 
-#define LR_MAX 8192            // 1周にためる点の数の上限（約10Hzで13分。超えた周はベストに使わない）
+#define LR_MAX 8192            // 1周にためる点の数の上限（約10Hzで13分。超えたら古い半分を捨て、その周はベストに使わない）
 #define LR_MATCH_M 40.0        // ベストの周の線からこれより離れていたら差を出さない（ピットの奥・コース外）
 #define LR_MAP_NEAR_M 300.0    // ファイルから読んだベストの周は、今の位置がこれより近いときだけコース図に使う（別のコースの線を出さない）
 #define LR_EDGE_S 3.0          // 周の頭と終わりがこの秒数以内まで録れていれば、1周を通して録れたとみなす
 
-struct lr_lap { int n, no; double time_s; double lat[LR_MAX], lon[LR_MAX]; float el[LR_MAX], spd[LR_MAX]; };
+struct lr_lap { int n, no, dropped; double time_s;  // dropped：あふれて頭を捨てた
+                double lat[LR_MAX], lon[LR_MAX]; float el[LR_MAX], spd[LR_MAX]; };
 struct lap_ref {
     struct lr_lap cur, last, ref;  // 今の周（ここまで）、最後に通して録れた周、ベストの周
     int cur_no;                    // 今ためている周の番号（lap.CurrentLap。-1は無し）
@@ -86,7 +87,7 @@ static void lr_update(struct lap_ref *L, double lat, double lon, double spd, dou
     if (no != L->cur_no) {  // 周が変わった
         struct lr_lap *c = &L->cur;
         const double t = last_min * 60;
-        if (L->cur_no > 0 && no == L->cur_no + 1 && !isnan(t) && c->n >= 20 && c->n < LR_MAX
+        if (L->cur_no > 0 && no == L->cur_no + 1 && !isnan(t) && c->n >= 20 && !c->dropped
             && c->el[0] <= LR_EDGE_S && fabs(c->el[c->n - 1] - t) <= LR_EDGE_S) {  // 1周を通して録れた
             c->no = L->cur_no; c->time_s = t;
             memcpy(&L->last, c, sizeof *c); L->have_last = 1;
@@ -95,10 +96,16 @@ static void lr_update(struct lap_ref *L, double lat, double lon, double spd, dou
                 lr_save(L);
             }
         }
-        c->n = 0; L->cur_no = no; L->idx = 0;
+        c->n = c->dropped = 0; L->cur_no = no; L->idx = 0;
     }
     struct lr_lap *c = &L->cur;
-    if (!isnan(lat) && !isnan(lon) && c->n < LR_MAX && (!c->n || isnan(el) || isnan(c->el[c->n - 1]) || el > c->el[c->n - 1])) {
+    if (!isnan(lat) && !isnan(lon) && (!c->n || isnan(el) || isnan(c->el[c->n - 1]) || el > c->el[c->n - 1])) {
+        if (c->n == LR_MAX) {  // あふれたら古い半分を捨てる（ラップ計測が無いときも、コース図は新しい方の線になる）
+            const int h = LR_MAX / 2;
+            memmove(c->lat, c->lat + h, sizeof c->lat[0] * h); memmove(c->lon, c->lon + h, sizeof c->lon[0] * h);
+            memmove(c->el, c->el + h, sizeof c->el[0] * h); memmove(c->spd, c->spd + h, sizeof c->spd[0] * h);
+            c->n = h; c->dropped = 1;
+        }
         c->lat[c->n] = lat; c->lon[c->n] = lon; c->el[c->n] = el; c->spd[c->n] = spd; c->n++;
     }
 

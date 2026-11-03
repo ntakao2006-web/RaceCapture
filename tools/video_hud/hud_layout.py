@@ -41,6 +41,7 @@ BUILTIN_COLORS = {'white': WHITE, 'grey': GREY, 'gray': GREY, 'dim': DIM, 'yello
                   'green': GREEN, 'panel': PANEL, 'track': TRACK, 'black': BLACK}
 
 HUD_TRACK_MAX = 300  # コース図の線の点の数の上限
+HUD_MAP_MIN_M = 100.0  # コース図の線の広がりがこれ（m）より小さければ描かない
 TYPES = ['box', 'text', 'value', 'bar', 'gball', 'clock', 'dial', 'arc', 'map']
 TYPE_LIST = ' '.join(TYPES)
 KEYS = [
@@ -623,6 +624,9 @@ def _map(b, it, track, lat, lon):
     lo0, lo1 = min(p[1] for p in track), max(p[1] for p in track)
     lac, loc = (la0 + la1) / 2, (lo0 + lo1) / 2
     k = math.cos(lac * math.pi / 180)
+    # 線の広がりが HUD_MAP_MIN_M 未満なら描かない（止まっている車のGNSSのぶれを、図いっぱいに広げて描かない）
+    if max((la1 - la0) * 111320.0, (lo1 - lo0) * 111320.0 * k) < HUD_MAP_MIN_M:
+        return
     cr, sr = math.cos(it.rotate * math.pi / 180), math.sin(it.rotate * math.pi / 180)
 
     def proj(la, lo):

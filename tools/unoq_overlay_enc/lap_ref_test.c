@@ -119,6 +119,7 @@ int main(void) {
     // 7. 1周がLR_MAX点を超えたら使わない（ピットで長く止まった周など）
     lr_init(&L2, NULL);
     for (int k = 0; k < LR_MAX + 5; k++) lr_update(&L2, 36.0 + k * 1e-7, 140.0, 0, 5, k * .1 / 60, NAN, NAN);
+    CHECK(L2.cur.n == LR_MAX / 2 + 5 && L2.cur.lat[L2.cur.n - 1] == 36.0 + (LR_MAX + 4) * 1e-7, "あふれたら古い半分を捨てて続ける（%d点）", L2.cur.n);
     lr_update(&L2, 36.0, 140.0, 0, 6, 0, 13.7 / 60 * 60, 13.7);
     CHECK(!L2.have_last && !L2.have_ref, "点が多すぎる周を使った");
 
