@@ -140,8 +140,6 @@
         "defaults": {
           "unit": "celsius",
           "decimals": 0,
-          "min": 60,
-          "max": 140,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -164,6 +162,8 @@
             ]
           },
           "custom": {
+            "axisSoftMin": 60,
+            "axisSoftMax": 140,
             "thresholdsStyle": {
               "mode": "dashed"
             },

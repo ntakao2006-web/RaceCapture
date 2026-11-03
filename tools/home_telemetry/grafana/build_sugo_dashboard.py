@@ -56,9 +56,12 @@ def temperatures(at):
                        f'（水温はそれぞれ10℃下：{WATER[0]}・{WATER[1]}・{WATER[2]}℃）。問い合わせ方式なので回線が遅いと遅れる',
         'targets': [target(f'ecorun_OilTemp{{{ROOM}}}', 'A', '油温', instant=False),
                     target(f'ecorun_WaterTemp{{{ROOM}}}', 'B', '水温', instant=False)],
-        'fieldConfig': {'defaults': {'unit': 'celsius', 'decimals': 0, 'min': 60, 'max': 140,
+        # soft limits: 60-140 at least, wider when the oil is still cold before the start (a hard
+        # 60 hid the 5B demo's 54 °C oil, 2026-11-04)
+        'fieldConfig': {'defaults': {'unit': 'celsius', 'decimals': 0,
                                      'thresholds': {'mode': 'absolute', 'steps': steps},
-                                     'custom': {'thresholdsStyle': {'mode': 'dashed'}, 'lineWidth': 2,
+                                     'custom': {'axisSoftMin': 60, 'axisSoftMax': 140,
+                                                'thresholdsStyle': {'mode': 'dashed'}, 'lineWidth': 2,
                                                 'spanNulls': 60000, 'showPoints': 'never'}},
                         'overrides': [
                             {'matcher': {'id': 'byName', 'options': '油温'},
