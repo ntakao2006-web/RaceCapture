@@ -264,6 +264,45 @@ class LapTests(unittest.TestCase):
         t = LapTimer(self.root)
         self.assertFalse(t.line.enabled); self.assertIsNotNone(t.error)
 
+    def test_pit_lane_passes_mark_the_laps_on_either_side(self):
+        # North-bound line: the pit lane 11 m to the right (east), at most 80 km/h there.
+        t = self.timer(width_m=50, pit_offset_m=11.0, pit_max_kmh=80.0)
+        passes = [(10_000, 0.0, 150.0), (110_000, -4.0, 150.0), (205_000, 10.0, 55.0),
+                  (500_000, 1.0, 150.0), (600_000, 0.5, 150.0), (698_000, 2.0, 150.0)]
+        for cross, east, kmh in passes:
+            t.update(fix(cross - 1000, -200.0, east, speed=kmh))
+            for tt in range(cross - 300, cross + 400, 100):
+                t.update(fix(tt, (tt - cross) / 100.0, east, speed=kmh))
+        laps = t.state['laps']
+        self.assertEqual([lap['pit'] for lap in laps], [False, True, True, False, False])
+        self.assertEqual([p['pit'] for p in t.state['passes']], [False, False, True, False, False, False])
+        self.assertAlmostEqual(t.state['passes'][2]['offset_m'], 10.0, places=0)
+        self.assertEqual(t.state['passes'][1]['offset_m'], -4.0)
+        v = t.values()
+        self.assertIs(v['LastLapPit'], False)
+        self.assertAlmostEqual(v['LapDiffS'], -2.0, places=2)  # 98 s after 100 s
+
+    def test_pit_lap_has_no_difference_and_fast_passes_are_never_pit(self):
+        t = self.timer(width_m=50, pit_offset_m=11.0, pit_max_kmh=80.0)
+        for k, (east, kmh) in enumerate([(0.0, 150.0), (0.0, 150.0), (11.0, 50.0)]):
+            cross = 10_000 + k * 100_000
+            t.update(fix(cross - 1000, -200.0, east, speed=kmh))
+            for tt in range(cross - 300, cross + 400, 100):
+                t.update(fix(tt, (tt - cross) / 100.0, east, speed=kmh))
+        v = t.values()
+        self.assertIs(v['LastLapPit'], True); self.assertIsNone(v['LapDiffS'])
+        self.assertFalse(t.is_pit(11.0, 150.0))  # the right edge of the straight at full speed
+        self.assertFalse(t.is_pit(4.0, 40.0))    # slow, but on the track side of halfway
+        self.assertTrue(t.is_pit(6.0, 40.0))
+        t.configure(t.line.model_copy(update={'pit_offset_m': None}))
+        self.assertFalse(t.is_pit(11.0, 40.0))   # no pit lane set: nothing is a pit pass
+
+    def test_lap_difference_waits_for_two_laps(self):
+        t = self.timer()
+        drive_north(t, 10_050, laps=1, lap_s=95)
+        self.assertIsNone(t.values()['LapDiffS']); self.assertIs(t.values()['LastLapPit'], False)
+        drive_north(t, 10_050 + 95_000, laps=1, lap_s=97)
+        self.assertAlmostEqual(t.values()['LapDiffS'], 2.0, places=2)
 
 
 class LineCodeTest(unittest.TestCase):

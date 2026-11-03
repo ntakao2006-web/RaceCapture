@@ -12,6 +12,8 @@
 --restore <本体のファイル名> で、退避した lap.json のラインへ戻す（エコラン用へ戻すとき）。
 --reset でラップの記録だけを消す（予選のあと決勝の前。Reset-Laps.cmd がこれを呼ぶ）。
   レース経過（SessionTime）はリセットのあと最初にコントロールラインを通った時から数える。
+ラインがすでにSUGOで、違うのがピットレーンの値（2026-11-04に足した）だけなら、--apply はその値だけを足し、
+ラップの記録は消さない。
 
 つなぎ方: 既定は ssh unoq（Pixelのテザリング）。--adb でUSBのadb（ドックを外してPCへ直接つないだとき）。
   python sugo_setup.py            # 確かめるだけ
@@ -38,7 +40,11 @@ SUGO_LINE = {
     'enabled': True, 'lat': 38.1423587, 'lon': 140.7770000, 'bearing': 97.5, 'width_m': 50.0,
     'min_lap_s': 60.0, 'max_lap_s': 3600.0,
     'start': None, 'goal': None, 'total_laps': None, 'time_limit_s': None, 'margin_s': None,
+    # ピットレーン（OpenStreetMap way 573824372）はこの線の上でコースの中心線から右（南）へ約11m。
+    # 線を80km/h以下でそちら側（5.5mより外）を通ったらピットの通過（EcoCapture-Web/lap.py）。11/7の走行会で確かめる
+    'pit_offset_m': 11.0, 'pit_max_kmh': 80.0,
 }
+PIT_KEYS = ('pit_offset_m', 'pit_max_kmh')
 
 
 def runner(use_adb, host):
@@ -122,6 +128,7 @@ def main(argv=None):
     if args.restore:
         name = Path(args.restore).name
         saved = json.loads(run(f'cat {DATA}/{shlex.quote(name)}'))['line']
+        saved = {**dict.fromkeys(PIT_KEYS), **saved}  # a line saved before the pit lane existed has none
         print(f'{name} のラインへ戻します')
         api(run, '/api/lap', saved)
         api(run, '/api/lap/reset', {})
@@ -133,6 +140,11 @@ def main(argv=None):
     if not changes:
         print('ラインは切り替え済みなので、何もしません（ラップのリセットは /api/lap/reset か画面から）')
         return 0
+    if all(key in PIT_KEYS for key, _, _ in changes):
+        api(run, '/api/lap', {key: after for key, _, after in changes})
+        print('ピットレーンの値だけを足しました（ラップの記録はそのまま）')
+        _, left = check(run)
+        return 1 if left else 0
     backup = f"lap.json.bak-{datetime.now():%Y%m%d}-ecorun"
     run(f'cd {DATA} || exit 1; [ -e {backup} ] || cp -p lap.json {backup}; ls -l {backup}')
     print(f'今のラインを本体の {backup} へ退避しました')

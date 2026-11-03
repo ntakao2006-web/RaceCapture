@@ -1,0 +1,3 @@
+# EcoCapture DASH or the RaceCapture app on the HDMI screen (dash_switch.sh). Display apps only;
+# no access to logger, MCU or LTE services.
+arduino ALL=(root) NOPASSWD: /usr/bin/systemctl start ecocapture-dash.service, /usr/bin/systemctl stop ecocapture-dash.service, /usr/bin/systemctl start racecapture-app.service, /usr/bin/systemctl stop racecapture-app.service, /usr/bin/systemctl start racecapture-touch.service, /usr/bin/systemctl enable ecocapture-dash.service, /usr/bin/systemctl disable ecocapture-dash.service, /usr/bin/systemctl enable racecapture-app.service racecapture-touch.service, /usr/bin/systemctl disable racecapture-app.service racecapture-touch.service

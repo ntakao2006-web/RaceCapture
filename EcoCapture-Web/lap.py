@@ -25,6 +25,14 @@ the race: the stretch since the last control pass counts as the final lap
 unless it is shorter than the minimum lap (goal right after the control line).
 With a required lap count the goal is ignored until the final lap, so a goal
 line placed roughly from a map cannot end the race early.
+
+Circuits whose control line spans both the main straight and the pit lane
+(SUGO, 2026-11-04) can tell the pit lane apart: pit_offset_m is where the pit
+lane runs, measured along the line from its centre (+ to the right of travel).
+A control pass on that side of the halfway point, no faster than pit_max_kmh,
+is a pit pass, and a lap that starts or ends with one is a pit lap. Every
+control pass keeps its offset and speed so the numbers can be checked against
+a real pit stop.
 """
 import hashlib
 import json
@@ -43,6 +51,7 @@ MAX_HACC_M = 25.0
 MAX_FIX_GAP_MS = 1000
 LEARN_MIN_KMH = 5.0
 KEEP_LAPS = 500
+KEEP_PASSES = 200
 KEEP_INSIDE = 1200  # fixes kept while inside a direction-less line (2 min at 10 Hz)
 TARGETS = ('control', 'start', 'goal')
 # Registering a line while standing on it: average the last few seconds of fixes
@@ -77,6 +86,10 @@ class LapLine(BaseModel):
     # dash phone writes them with total_laps, and they go out so the pit only reads them.
     time_limit_s: float | None = Field(default=None, gt=0, le=86400)
     margin_s: float | None = Field(default=None, ge=0, le=3600)
+    # The pit lane beside the control line (2026-11-04, SUGO): its offset from the line's
+    # centre (m, + to the right of travel) and the top speed of a pass that is in it.
+    pit_offset_m: float | None = Field(default=None, ge=-100, le=100)
+    pit_max_kmh: float | None = Field(default=None, gt=0, le=300)
     set_at: str | None = None  # when the lines last changed (GNSS time, JST), shown with the QR code
 
     @model_validator(mode='after')
@@ -120,8 +133,9 @@ def offset_m(lat0, lon0, lat, lon):
     return ((lon - lon0) * EARTH_M_PER_DEG * math.cos(math.radians(lat0)), (lat - lat0) * EARTH_M_PER_DEG)
 
 
-def line_crossing(bearing, half, a, b):
-    """Interpolated time when a -> b crosses the line forward within `half` of its centre."""
+def crossing_point(bearing, a, b):
+    """(fraction of a -> b, offset from the centre in m, + to the right of travel) where
+    a -> b crosses the line forward, or None."""
     rad = math.radians(bearing)
     nx, ny = math.sin(rad), math.cos(rad)
     d0 = a[1] * nx + a[2] * ny
@@ -130,9 +144,15 @@ def line_crossing(bearing, half, a, b):
         return None
     f = -d0 / (d1 - d0)
     px, py = a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f
-    if abs(px * ny - py * nx) > half:
+    return f, px * ny - py * nx
+
+
+def line_crossing(bearing, half, a, b):
+    """Interpolated time when a -> b crosses the line forward within `half` of its centre."""
+    hit = crossing_point(bearing, a, b)
+    if hit is None or abs(hit[1]) > half:
         return None
-    return round(a[0] + (b[0] - a[0]) * f)
+    return round(a[0] + (b[0] - a[0]) * hit[0])
 
 
 class Watch:
@@ -206,6 +226,7 @@ class LapTimer:
     def empty_state():
         return {'count': 0, 'last_s': None, 'best_s': None, 'lap_start_ms': None, 'laps': [],
                 'race_start_ms': None, 'race_end_ms': None, 'finished': False,
+                'lap_start_pit': False, 'passes': [],  # control passes: offset, speed, pit (for checking the pit lane)
                 'learned': []}  # lines whose heading was learned on a pass (not typed in): the reset forgets them
 
     def save(self):
@@ -300,17 +321,31 @@ class LapTimer:
             elapsed, current = since(s['lap_start_ms']), s['count'] + 1 if s['lap_start_ms'] is not None else 0
             race = since(s['race_start_ms'])
         total = self.line.total_laps
+        # For the dash only (not in LAP_CHANNELS, so neither logged nor sent): whether the last lap
+        # went through the pit lane, and how much slower than the lap before it it was (s).
+        laps = s['laps']
+        last, before = laps[-1] if laps else None, laps[-2] if len(laps) >= 2 else None
+        pit = lambda lap: bool(lap.get('pit'))
+        diff = None if last is None or before is None or pit(last) or pit(before) else round(last['s'] - before['s'], 3)
         return {'LapCount': s['count'], 'CurrentLap': current,
                 'LapTime': minutes(s['last_s']), 'BestLap': minutes(s['best_s']), 'ElapsedTime': minutes(elapsed),
                 'RaceTime': minutes(race), 'LapsLeft': None if total is None else max(0, total - s['count']),
-                **race_options}
+                **race_options, 'LastLapPit': None if last is None else pit(last), 'LapDiffS': diff}
 
-    def record_lap(self, at_ms):
+    def record_lap(self, at_ms, pit=False):
         s = self.state
         lap = (at_ms - s['lap_start_ms']) / 1000
         s['count'] += 1; s['last_s'] = lap
         s['best_s'] = lap if s['best_s'] is None else min(s['best_s'], lap)
-        s['laps'] = (s['laps'] + [{'n': s['count'], 's': round(lap, 3), 'end_utc_ms': at_ms}])[-KEEP_LAPS:]
+        entry = {'n': s['count'], 's': round(lap, 3), 'end_utc_ms': at_ms, 'pit': bool(s.get('lap_start_pit')) or pit}
+        s['laps'] = (s['laps'] + [entry])[-KEEP_LAPS:]
+
+    def is_pit(self, offset_m, kmh):
+        """Whether a control pass at this offset and speed went through the pit lane."""
+        pit_offset, top = self.line.pit_offset_m, self.line.pit_max_kmh
+        if pit_offset is None or offset_m is None or offset_m * pit_offset <= 0 or abs(offset_m) < abs(pit_offset) / 2:
+            return False
+        return top is None or (kmh is not None and kmh <= top)
 
     def started(self, at_ms):
         s = self.state
@@ -319,23 +354,27 @@ class LapTimer:
         s['race_start_ms'] = s['lap_start_ms'] = at_ms  # a later forward crossing (re-start) replaces it
         self.try_save()
 
-    def crossed(self, at_ms):
+    def crossed(self, at_ms, offset_m=None, kmh=None):
         s = self.state
         if s['finished'] or (self.line.start is not None and s['race_start_ms'] is None):
             return
+        pit = self.is_pit(offset_m, kmh)
+        s['passes'] = (s.get('passes', []) + [{'utc_ms': at_ms, 'offset_m': None if offset_m is None else round(offset_m, 1),
+                                               'kmh': None if kmh is None else round(kmh, 1), 'pit': pit}])[-KEEP_PASSES:]
         if s['lap_start_ms'] is None:
-            s['lap_start_ms'] = at_ms
+            s['lap_start_ms'] = at_ms; s['lap_start_pit'] = pit
             if s['race_start_ms'] is None:
                 s['race_start_ms'] = at_ms
         else:
             lap = (at_ms - s['lap_start_ms']) / 1000
             if lap < self.line.min_lap_s:
+                self.try_save()
                 return
             if lap <= self.line.max_lap_s:
-                self.record_lap(at_ms)
+                self.record_lap(at_ms, pit)
             # A gap longer than any real lap (pit stop, next day) restarts the
             # running lap without counting it; totals stay until an explicit reset.
-            s['lap_start_ms'] = at_ms
+            s['lap_start_ms'] = at_ms; s['lap_start_pit'] = pit
         self.try_save()
 
     def finished(self, at_ms):
@@ -394,7 +433,11 @@ class LapTimer:
             at, learned = self.watches[target].step(gate, previous, self.previous, values.get('GPSSpeed'), values.get('Yaw'))
             if learned is not None and not (before_start and target != 'start'):
                 self.learn(target, learned); learned_any = True
-            if at is not None:
+            if at is not None and target == 'control':
+                hit = None if gate.bearing is None else crossing_point(
+                    gate.bearing, *((0, *offset_m(gate.lat, gate.lon, p[1], p[2])) for p in (previous, self.previous)))
+                event(at, None if hit is None else hit[1], values.get('GPSSpeed'))
+            elif at is not None:
                 event(at)
         if learned_any:
             self.try_save()

@@ -94,11 +94,20 @@ class SugoSetupTests(unittest.TestCase):
         self.assertEqual(self.device.laps, 0)
         self.assertEqual(sugo_setup.line_changes(self.device.line), [])
 
+    def test_apply_only_adds_the_pit_lane_to_an_older_sugo_line(self):
+        self.device.line = {k: v for k, v in sugo_setup.SUGO_LINE.items() if k not in sugo_setup.PIT_KEYS}
+        self.device.laps = 4
+        self.assertEqual(sugo_setup.main(['--apply']), 0)
+        self.assertEqual(self.device.posts, ['/api/lap'])  # no backup, no reset
+        self.assertEqual(self.device.laps, 4)
+        self.assertEqual(sugo_setup.line_changes(self.device.line), [])
+        self.assertFalse(any(n.startswith('lap.json.bak-') for n in self.device.files))
+
     def test_restore_puts_the_saved_lines_back(self):
         sugo_setup.main(['--apply'])
         backup = next(n for n in self.device.files if n.startswith('lap.json.bak-'))
         self.assertEqual(sugo_setup.main(['--restore', backup]), 0)
-        self.assertEqual(self.device.line, ECORUN)
+        self.assertEqual(self.device.line, {**ECORUN, 'pit_offset_m': None, 'pit_max_kmh': None})  # no SUGO pit lane left
 
 
 if __name__ == '__main__':

@@ -1,0 +1,28 @@
+[Unit]
+Description=EcoCapture DASH (driver screen on HDMI)
+Requires=racecapture-display.service
+After=racecapture-display.service ecocapture-web-start.service ecocapture-native.service
+# One app on the HDMI screen: starting either side stops the other (dash_switch.sh).
+Conflicts=racecapture-app.service racecapture-touch.service
+
+[Service]
+User=arduino
+SupplementaryGroups=audio
+RuntimeDirectory=ecocapture-dash
+RuntimeDirectoryMode=0700
+Environment=HOME=/home/arduino
+Environment=DISPLAY=:2
+Environment=GDK_BACKEND=x11
+Environment=XDG_RUNTIME_DIR=/run/ecocapture-dash
+Environment=TZ=Asia/Tokyo
+ExecStartPre=/bin/sleep 2
+# The same HDMI mode policy as launch.sh (1080p60 first; the HD7H needs the output cycled).
+ExecStartPre=-/bin/sh -c 'if /usr/bin/xrandr --query | /usr/bin/grep -q "^DP-1 connected"; then /usr/bin/python3 /opt/logger-v2-racecapture/hdmi_display.py >/dev/null 2>&1; fi'
+ExecStart=/usr/bin/python3 /opt/logger-v2-racecapture/ecocapture_dash.py
+ExecStopPost=-/usr/bin/python3 -c "import sys; sys.path.insert(0, '/opt/logger-v2-racecapture'); from display_load_control import set_paused; set_paused('ecocapture-native', False)"
+Nice=5
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

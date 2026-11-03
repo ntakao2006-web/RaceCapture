@@ -38,6 +38,24 @@ UNO Q内の待受はRCP `127.0.0.1:7223`、画面HTTP `127.0.0.1:6080`、VNC `12
 
 描画はAdreno FD702のGPUを使用します。当初のXvfb/llvmpipeによるCPU描画は操作が重かったため廃止しました。10秒測定でアプリCPUは176.0%から38.1%へ低下し、再起動後の最終測定では19.7%でした（1コア=100%、画面・操作状態は固定した厳密ベンチマークではありません）。描画上限30fps、画面転送の待機/まとめ時間は各10ms。RaceCapture既定のDashboardスライドはKivyモジュール `fastnav.py` で0.10秒に短縮します。x11vncのXDamage更新検知を有効にし、GPUで画面を切り替えた後に古いDashboardが残る現象を防ぎます。取得100HzとSD記録は維持します。GPU構成で再起動後に5サービス・取得・SD記録が約54秒で復帰し、実アプリのFD702使用と画面復帰を確認。30秒で280サンプル、SDブロック592増加、通信/SDエラー・欠落増加0でした。
 
+## EcoCapture DASH（車載画面、2026-11-04）
+
+SUGO 120分耐久向けに、HDMIにはRaceCaptureアプリの代わりに見るだけの専用画面を出します（`task_sugo_20261108_breakdown.md` SG-2-6）。
+出すのは今の周・ベスト比・前周と前周比（ピットを通った周は「PIT」）・ベスト・周・経過・時刻と、記録／GNSS／油温センサーの表示です。油温・水温は警告のときだけ出し、120℃と130℃では音も鳴らします。
+
+| ファイル | 役割 |
+|---|---|
+| `ecocapture_dash.py` | 画面（Python＋GTK、Xorg `:2`）。`--demo`で作り物の走行、`--state warn120`等で決まった画面、`--sound warn`で音だけ |
+| `dash_model.py` | 表示する中身の計算（GTKなし）。試験は`python -m unittest test_dash_model` |
+| `ecocapture-dash.service` | 自動起動。`racecapture-app`・`racecapture-touch`とは同時に動かない |
+| `install-dash.sh` | rootで実行。DASHを入れて、今と次の電源ONからDASHにする |
+| `dash_switch.sh` | `dash`／`racecapture`（`--boot`で電源ON時も）。`ecocapture-dash.sudoers`で`arduino`から使える |
+
+警告の温度・音の出し方は`~/.config/ecocapture-dash.json`で変えられます（`dash_model.py`の`DEFAULTS`。例：`{"oil_limits": [110, 120, 130], "sound": {"device": "default", "volume": 0.8}}`）。
+ベスト比は、ベストの周の軌跡を`~/.cache/ecocapture-dash/lapref.json`に残し、DASHを起動し直しても続きから使います。
+
+PCでは、WSLなどGTKのあるLinuxで`GDK_BACKEND=x11 python3 ecocapture_dash.py --state warn130 --size 1920x1080`のように見た目を確かめられます。
+
 ## 確認範囲と制限
 
 実測ストリーム、実アプリの数値更新、アプリ内DB記録、USBブラウザ表示、既定ブラウザ起動を検証しています。証拠は `../outputs/racecapture_unoq_20261002/`。
