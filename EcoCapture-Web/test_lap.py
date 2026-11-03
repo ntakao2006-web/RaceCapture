@@ -279,7 +279,7 @@ class LapTests(unittest.TestCase):
         self.assertAlmostEqual(t.state['passes'][2]['offset_m'], 10.0, places=0)
         self.assertEqual(t.state['passes'][1]['offset_m'], -4.0)
         v = t.values()
-        self.assertIs(v['LastLapPit'], False)
+        self.assertIs(v['LastLapPit'], False); self.assertIs(v['LapStartPit'], False)
         self.assertAlmostEqual(v['LapDiffS'], -2.0, places=2)  # 98 s after 100 s
 
     def test_pit_lap_has_no_difference_and_fast_passes_are_never_pit(self):
@@ -291,6 +291,7 @@ class LapTests(unittest.TestCase):
                 t.update(fix(tt, (tt - cross) / 100.0, east, speed=kmh))
         v = t.values()
         self.assertIs(v['LastLapPit'], True); self.assertIsNone(v['LapDiffS'])
+        self.assertIs(v['LapStartPit'], True)  # the out lap: it began in the pit lane
         self.assertFalse(t.is_pit(11.0, 150.0))  # the right edge of the straight at full speed
         self.assertFalse(t.is_pit(4.0, 40.0))    # slow, but on the track side of halfway
         self.assertTrue(t.is_pit(6.0, 40.0))

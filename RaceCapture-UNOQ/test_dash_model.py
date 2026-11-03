@@ -142,6 +142,21 @@ class ModelTests(unittest.TestCase):
         s, _ = m.update(None, 2.2); self.assertTrue(s['stale']); self.assertAlmostEqual(s['stale_s'], 2.1)
         s, _ = m.update(frame(connected=False), 3.0); self.assertTrue(s['stale'])
 
+    def test_a_pit_stop_is_not_shown_as_a_warning(self):
+        m = DashModel(config())
+        m.lapref.update = lambda *args: 41.5  # what the pit lane, 11 m from the track, would give
+        lap = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapStartPit': False}
+        moving = lambda **kw: {**frame(lap={**lap, **kw}), 'sample': {**frame(lap={**lap, **kw})['sample'],
+                                                                         'values': {'Lat': LAT0, 'Lon': LON0, 'GPSSpeed': 120.0}}}
+        s, _ = m.update(moving(), 0.0)
+        self.assertEqual((s['delta'], s['delta_kind'], s['lap_tag']), ('+41.50', 'slower', ''))
+        s, _ = m.update(moving(LapStartPit=True, LastLapPit=True), 0.1)  # the out lap
+        self.assertEqual((s['delta'], s['delta_kind'], s['delta_frac'], s['lap_tag']), ('--', None, None, 'ピットアウト'))
+        self.assertEqual((s['last_note'], s['last_note_kind'], s['warn_level']), ('PIT', 'pit', 0))
+        stopped = moving(); stopped['sample']['values']['GPSSpeed'] = 3.0
+        s, _ = m.update(stopped, 0.2)
+        self.assertEqual((s['delta'], s['lap_tag']), ('--', ''))
+
     def test_no_warning_from_values_of_a_dead_link(self):
         m = DashModel(config())
         m.update(frame(oil=135), 0.0)

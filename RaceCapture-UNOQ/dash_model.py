@@ -6,6 +6,10 @@ before (or PIT), the best lap and lap number, the time since the first control-l
 lap reset, the clock, and small lights for recording, GNSS and the oil temperature sensor. Oil and
 water temperatures are not shown as gauges (the Defi meters are there): only their warnings are.
 
+A normal pit stop is not a warning: the out lap is tagged ピットアウト and a pit lap PIT in blue,
+and the gap to the best lap is not shown on the out lap or while stopped (it would be a big red
+number that looks like an alarm). Red is only for the slower gap and the temperature warnings.
+
 Warnings (ncec-roadster track/thermal-limits.md, provisional): oil 110 C caution, 120 C start
 cooling, 130 C pit in; water 10 C lower (oil ~ water + 10 C through the heat exchanger), so the
 ECU water temperature still warns when the oil sensor is lost. A level is entered after hold_on_s
@@ -39,7 +43,8 @@ DEFAULTS = {
     'sound': {'enabled': True, 'device': 'default', 'volume': 0.8, 'repeat_s': 4.0},
 }
 
-WARN_TEXT = {1: '注意', 2: 'クーリング開始', 3: 'PIT IN'}
+WARN_TEXT = {1: '注意', 2: 'クーリング開始', 3: 'ピットイン'}
+STOPPED_KMH = 10.0  # slower than this the gap to the best lap means nothing (in the pit, on the grid)
 
 # lap_ref.h
 LR_MAX = 8192        # points kept per lap (13 min at 10 Hz; a longer lap is never the reference)
@@ -243,11 +248,15 @@ class DashModel:
         pick = lambda name: number(can.get(name)) if number(can.get(name)) is not None else number(values.get(name))
         minutes = lambda name: None if number(lap.get(name)) is None else number(lap.get(name)) * 60
         lat, lon = number(values.get('Lat')), number(values.get('Lon'))
+        speed = number(values.get('GPSSpeed')) if number(values.get('GPSSpeed')) is not None else pick('Speed')
+        out_lap = lap.get('LapStartPit') is True
         elapsed, last, best = minutes('ElapsedTime'), minutes('LapTime'), minutes('BestLap')
         race = minutes('RaceTime')
         oil, water = (pick('OilTemp'), pick('WaterTemp')) if live else (None, None)
         sound = self.warning.update(now, oil, water)
         delta = self.lapref.update(lat, lon, number(lap.get('CurrentLap')), elapsed, last, best) if live else None
+        if out_lap or (speed is not None and speed < STOPPED_KMH):
+            delta = None  # still tracked above, so the reference keeps its place
 
         diff, pit = number(lap.get('LapDiffS')), lap.get('LastLapPit') is True
         if pit:
@@ -264,6 +273,7 @@ class DashModel:
             'stale': stale,
             'stale_s': None if self.last_good is None else now - self.last_good,
             'lap_now': fmt_lap(elapsed, 1),
+            'lap_tag': 'ピットアウト' if out_lap else '',
             'delta': fmt_signed(delta),
             'delta_kind': None if delta is None else 'slower' if delta > 0.005 else 'faster' if delta < -0.005 else 'even',
             'delta_frac': None if delta is None else max(-1.0, min(1.0, delta / scale)),

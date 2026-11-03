@@ -322,7 +322,8 @@ class LapTimer:
             race = since(s['race_start_ms'])
         total = self.line.total_laps
         # For the dash only (not in LAP_CHANNELS, so neither logged nor sent): whether the last lap
-        # went through the pit lane, and how much slower than the lap before it it was (s).
+        # went through the pit lane, how much slower than the lap before it it was (s), and whether
+        # the running lap began in the pit lane (the out lap).
         laps = s['laps']
         last, before = laps[-1] if laps else None, laps[-2] if len(laps) >= 2 else None
         pit = lambda lap: bool(lap.get('pit'))
@@ -330,7 +331,8 @@ class LapTimer:
         return {'LapCount': s['count'], 'CurrentLap': current,
                 'LapTime': minutes(s['last_s']), 'BestLap': minutes(s['best_s']), 'ElapsedTime': minutes(elapsed),
                 'RaceTime': minutes(race), 'LapsLeft': None if total is None else max(0, total - s['count']),
-                **race_options, 'LastLapPit': None if last is None else pit(last), 'LapDiffS': diff}
+                **race_options, 'LastLapPit': None if last is None else pit(last), 'LapDiffS': diff,
+                'LapStartPit': None if elapsed is None else bool(s.get('lap_start_pit'))}
 
     def record_lap(self, at_ms, pit=False):
         s = self.state
