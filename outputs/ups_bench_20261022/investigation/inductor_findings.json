@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-22",
+  "latest_user_report": "User suspects the power inductor as the smoke source and clarifies that the event occurred when USB power was connected. Source and component damage are not yet physically verified.",
+  "inductor": {
+    "reference": "L1",
+    "specified_mpn": "744355147",
+    "inductance_uH": 0.47,
+    "rated_current_A_at_50K_rise": 30,
+    "typical_saturation_current_A_at_10_percent_drop": 25,
+    "dc_resistance_mOhm_at_20C": 0.67,
+    "datasheet": "https://www.we-online.com/components/products/datasheet/744355147.pdf"
+  },
+  "current_configuration": {
+    "R8_kOhm": 25.5,
+    "R10_kOhm": 100,
+    "Q1_off_peak_A_nominal": 1,
+    "Q1_off_average_charge_A_nominal": 0.5,
+    "Q1_on_equivalent_kOhm": 20.3187250996,
+    "Q1_on_peak_A_nominal": 4.92156862745,
+    "Q1_on_average_charge_A_nominal": 2.46078431373,
+    "note": "Nominal switching-current limits apply to a functioning IC with a valid ISET resistance. They do not constrain an external short directly discharging the capacitor bank through L1."
+  },
+  "review": {
+    "fresh_schematic_netlist": "inductor_current.xml",
+    "L1_connection": "CAP -- L1 -- LX (U1 pins 6,7,8)",
+    "saved_pcb_drc_violations": 0,
+    "saved_pcb_unconnected_items": 0,
+    "usb_replug_inrush": "USB-to-SYS-capacitor inrush does not pass through L1. Normal capacitor charging through L1 is controlled by MAX38890.",
+    "timing_correction": "A permanent external LX-to-GND short can discharge an already charged capacitor through L1, but does not itself establish a USB-to-L1 inrush path. When the IC high-side switch turns on into such a short, the direct USB short path is through that switch and the LX bridge, bypassing L1. The previous LX-to-GND explanation alone does not explain this power-connection event.",
+    "abnormal_uncontrolled_charge_path": "An external SYS-to-LX bridge or failed shorted high-side switch could connect USB/SYS to L1 and CAP without normal switching-current control; this is an unverified fault hypothesis, not an expected effect of normal voltage difference.",
+    "copper_loss_comparison": "At 5 A RMS, I^2*R gives 0.01675 W copper loss; this excludes core and AC losses and is not a full temperature prediction.",
+    "priorities": [
+      "Confirm the fitted L1 part number and actual smoke location.",
+      "Inspect U1 LX pins and exposed ground pad, L1 pad surroundings, and conductive debris for physical bridges.",
+      "Check R8/R10 actual values and ISET pin 12 for unintended grounding.",
+      "Consider damaged U1 internal switches and hot solder joints or flux near L1; do not infer an L1 winding failure from smoke proximity alone."
+    ],
+    "safety": "Keep USB disconnected. Do not short the capacitor bank to discharge it. No energized diagnostic test was performed."
+  },
+  "regulator_datasheet": "https://www.analog.com/media/en/technical-documentation/data-sheets/max38890.pdf"
+}

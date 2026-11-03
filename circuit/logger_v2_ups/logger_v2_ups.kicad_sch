@@ -6052,6 +6052,42 @@
 				(hide yes)
 			)
 		)
+		(property "DigiKey" "283-HVH1020-2R7705-R-ND"
+			(at 55.88 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"
+			(at 55.88 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_checked" "2026-10-16"
+			(at 55.88 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_snapshot" "4000"
+			(at 55.88 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "371ccadb-e698-4660-9944-49d79a8b3f0c")
 		)
@@ -6066,14 +6102,6 @@
 				)
 			)
 		)
-	
-		(property "DigiKey" "283-HVH1020-2R7705-R-ND" (at 55.88 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394" (at 55.88 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_checked" "2026-10-16" (at 55.88 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_snapshot" "4000" (at 55.88 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6501,6 +6529,42 @@
 				(hide yes)
 			)
 		)
+		(property "DigiKey" "283-HVH1020-2R7705-R-ND"
+			(at 39.37 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"
+			(at 39.37 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_checked" "2026-10-16"
+			(at 39.37 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_snapshot" "4000"
+			(at 39.37 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "c9265ebc-c626-4c46-be2c-5a7d63bfc72d")
 		)
@@ -6515,14 +6579,6 @@
 				)
 			)
 		)
-	
-		(property "DigiKey" "283-HVH1020-2R7705-R-ND" (at 39.37 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394" (at 39.37 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_checked" "2026-10-16" (at 39.37 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_snapshot" "4000" (at 39.37 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -8135,6 +8191,42 @@
 				(hide yes)
 			)
 		)
+		(property "DigiKey" "LTC1440IMS8#TRPBFCT-ND"
+			(at 209.55 148.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_checked" "2026-10-16"
+			(at 209.55 148.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_snapshot" "348"
+			(at 209.55 148.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Rating" "Comparator with 1.182V reference; MSOP-8 3x3mm P0.65mm; 2..11V supply"
+			(at 209.55 148.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "4a34af8f-43f7-40a4-994f-45db71024cf9")
 		)
@@ -8166,26 +8258,6 @@
 					(unit 1)
 				)
 			)
-		)
-	
-		(property "DigiKey" "LTC1440IMS8#TRPBFCT-ND"
-			(at 209.55 148.59 0)
-			(effects (font (size 1.27 1.27)) (hide yes))
-		)
-	
-		(property "Stock_checked" "2026-10-16"
-			(at 209.55 148.59 0)
-			(effects (font (size 1.27 1.27)) (hide yes))
-		)
-	
-		(property "Stock_snapshot" "348"
-			(at 209.55 148.59 0)
-			(effects (font (size 1.27 1.27)) (hide yes))
-		)
-	
-		(property "Rating" "Comparator with 1.182V reference; MSOP-8 3x3mm P0.65mm; 2..11V supply"
-			(at 209.55 148.59 0)
-			(effects (font (size 1.27 1.27)) (hide yes))
 		)
 	)
 	(symbol
@@ -8571,6 +8643,42 @@
 				(hide yes)
 			)
 		)
+		(property "DigiKey" "283-HVH1020-2R7705-R-ND"
+			(at 39.37 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"
+			(at 39.37 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_checked" "2026-10-16"
+			(at 39.37 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_snapshot" "4000"
+			(at 39.37 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "3f89242a-e3ca-4c22-a9fe-dae5c163b9a1")
 		)
@@ -8585,14 +8693,6 @@
 				)
 			)
 		)
-	
-		(property "DigiKey" "283-HVH1020-2R7705-R-ND" (at 39.37 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394" (at 39.37 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_checked" "2026-10-16" (at 39.37 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_snapshot" "4000" (at 39.37 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
 	)
 	(symbol
 		(lib_id "Device:L")
@@ -8846,6 +8946,42 @@
 				(hide yes)
 			)
 		)
+		(property "DigiKey" "283-HVH1020-2R7705-R-ND"
+			(at 72.39 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"
+			(at 72.39 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_checked" "2026-10-16"
+			(at 72.39 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_snapshot" "4000"
+			(at 72.39 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "7c0f9d93-5142-4c11-88ad-457a09060b00")
 		)
@@ -8860,14 +8996,6 @@
 				)
 			)
 		)
-	
-		(property "DigiKey" "283-HVH1020-2R7705-R-ND" (at 72.39 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394" (at 72.39 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_checked" "2026-10-16" (at 72.39 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_snapshot" "4000" (at 72.39 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -10523,6 +10651,42 @@
 				(hide yes)
 			)
 		)
+		(property "DigiKey" "283-HVH1020-2R7705-R-ND"
+			(at 55.88 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"
+			(at 55.88 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_checked" "2026-10-16"
+			(at 55.88 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_snapshot" "4000"
+			(at 55.88 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "b5e4b869-ea7f-4ae1-8f83-7678c0b3c6a5")
 		)
@@ -10537,14 +10701,6 @@
 				)
 			)
 		)
-	
-		(property "DigiKey" "283-HVH1020-2R7705-R-ND" (at 55.88 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394" (at 55.88 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_checked" "2026-10-16" (at 55.88 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_snapshot" "4000" (at 55.88 125.73 0) (effects (font (size 1.27 1.27)) (hide yes)))
 	)
 	(symbol
 		(lib_id "Device:R_Small_US")
@@ -10929,6 +11085,42 @@
 				(hide yes)
 			)
 		)
+		(property "DigiKey" "283-HVH1020-2R7705-R-ND"
+			(at 72.39 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394"
+			(at 72.39 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_checked" "2026-10-16"
+			(at 72.39 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Stock_snapshot" "4000"
+			(at 72.39 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "dbda7c0b-a915-4710-b035-3d25e81e44c7")
 		)
@@ -10943,14 +11135,6 @@
 				)
 			)
 		)
-	
-		(property "DigiKey" "283-HVH1020-2R7705-R-ND" (at 72.39 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "DigiKey_URL" "https://www.digikey.jp/ja/products/detail/eaton-electronics-division/HVH1020-2R7705-R/28140394" (at 72.39 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_checked" "2026-10-16" (at 72.39 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
-	
-		(property "Stock_snapshot" "4000" (at 72.39 133.35 0) (effects (font (size 1.27 1.27)) (hide yes)))
 	)
 	(symbol
 		(lib_id "power:GND")

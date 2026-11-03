@@ -1,0 +1,29 @@
+{
+  "status": "symbol staging, intentionally unwired",
+  "components": 19,
+  "custom_symbols": 3,
+  "default_library_instances": 16,
+  "kicad9_schematic_load": "passed: SVG and netlist exports",
+  "kicad9_library_load": "passed: all 3 symbol SVG exports",
+  "unselected_optional_references_deferred": [
+    "U5",
+    "D2"
+  ],
+  "footprints_pending": [
+    "U3",
+    "J1",
+    "J2",
+    "J3",
+    "J4",
+    "J5",
+    "D1",
+    "Y1",
+    "passives"
+  ],
+  "bom_source": "C:/Users/lintaroh/Downloads/vehicle_logger_BOM_Rev0.2.md",
+  "pin_sources": {
+    "U1": "DS70005452E pp.7-8",
+    "U2": "UBX-21029781 R08 table8",
+    "U3": "SLVSC58B p.3"
+  }
+}

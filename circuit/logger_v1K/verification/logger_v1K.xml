@@ -1,0 +1,1162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="E">
+  <design>
+    <source>C:\Users\lintaroh\Documents\RaceCapture\circuit\logger_v1K\logger_v1K.kicad_sch</source>
+    <date>2026-10-27T23:37:02+0900</date>
+    <tool>Eeschema 9.0.6</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>logger_v1K.kicad_sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+        <comment number="5" value=""/>
+        <comment number="6" value=""/>
+        <comment number="7" value=""/>
+        <comment number="8" value=""/>
+        <comment number="9" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="C1">
+      <value>CIN / TBD</value>
+      <description>Unpolarized capacitor</description>
+      <fields>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Unpolarized capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>932bb9f0-2e1f-4bc7-8570-a1c5797d8db5</tstamps>
+    </comp>
+    <comp ref="C2">
+      <value>COUT / TBD</value>
+      <description>Unpolarized capacitor</description>
+      <fields>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Unpolarized capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0559bf91-7825-47c4-907f-1d5f92bda835</tstamps>
+    </comp>
+    <comp ref="C3">
+      <value>100nF / VAUX</value>
+      <description>Unpolarized capacitor</description>
+      <fields>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Unpolarized capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f9aee14e-adf0-4f4d-926e-7a384d54610a</tstamps>
+    </comp>
+    <comp ref="C4">
+      <value>100nF / representative</value>
+      <description>Unpolarized capacitor</description>
+      <fields>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Unpolarized capacitor</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="cap capacitor"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e32aa69f-256a-45ed-9fa9-443bfe1ab771</tstamps>
+    </comp>
+    <comp ref="D1">
+      <value>CAN TVS / TBD pinout</value>
+      <description>Bidirectional dual transient-voltage-suppression diode, center on pin 3</description>
+      <fields>
+        <field name="Status">Part unselected; symbol topology only; physical pinout and footprint TBD</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Bidirectional dual transient-voltage-suppression diode, center on pin 3</field>
+      </fields>
+      <libsource lib="Device" part="D_TVS_Dual_AAC" description="Bidirectional dual transient-voltage-suppression diode, center on pin 3"/>
+      <property name="Status" value="Part unselected; symbol topology only; physical pinout and footprint TBD"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="diode TVS thyrector"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ce979774-abef-42ad-a2b3-df47713fdd37</tstamps>
+    </comp>
+    <comp ref="J1">
+      <value>503398-1892 (candidate)</value>
+      <datasheet>https://www.we-online.com/components/products/datasheet/693072010801.pdf</datasheet>
+      <description>Micro SD Card Socket</description>
+      <fields>
+        <field name="MPN">503398-1892</field>
+        <field name="Manufacturer">Molex</field>
+        <field name="Status">Candidate only; contacts/shield/card detect and footprint must be verified</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.we-online.com/components/products/datasheet/693072010801.pdf</field>
+        <field name="Description">Micro SD Card Socket</field>
+      </fields>
+      <libsource lib="Connector" part="Micro_SD_Card" description="Micro SD Card Socket"/>
+      <property name="MPN" value="503398-1892"/>
+      <property name="Manufacturer" value="Molex"/>
+      <property name="Status" value="Candidate only; contacts/shield/card detect and footprint must be verified"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="connector SD microsd"/>
+      <property name="ki_fp_filters" value="microSD*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b3c69af8-5c1c-4f08-90bb-aea2d1152a44</tstamps>
+    </comp>
+    <comp ref="J2">
+      <value>GNSS ANT / TBD</value>
+      <description>coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)</description>
+      <fields>
+        <field name="Status">Part unselected; symbol topology only; physical pinout and footprint TBD</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)</field>
+      </fields>
+      <libsource lib="Connector" part="Conn_Coaxial" description="coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)"/>
+      <property name="Status" value="Part unselected; symbol topology only; physical pinout and footprint TBD"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="BNC SMA SMB SMC LEMO coaxial connector CINCH RCA MCX MMCX U.FL UMRF"/>
+      <property name="ki_fp_filters" value="*BNC* *SMA* *SMB* *SMC* *Cinch* *LEMO* *UMRF* *MCX* *U.FL*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>90b53377-dbce-4fb3-8ed4-c77da9f7b3bc</tstamps>
+    </comp>
+    <comp ref="J3">
+      <value>CAN / TBD</value>
+      <description>Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="Status">Part unselected; symbol topology only; physical pinout and footprint TBD</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x03" description="Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Status" value="Part unselected; symbol topology only; physical pinout and footprint TBD"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>89736d65-1a6c-4b62-8390-1e4a8bbf418d</tstamps>
+    </comp>
+    <comp ref="J4">
+      <value>LiPo 1S / TBD</value>
+      <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="Status">Part unselected; symbol topology only; physical pinout and footprint TBD</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x02" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Status" value="Part unselected; symbol topology only; physical pinout and footprint TBD"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f773a8f8-9518-44fc-ac43-4d2650d0b43e</tstamps>
+    </comp>
+    <comp ref="J5">
+      <value>ICSP / TBD</value>
+      <description>Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <fields>
+        <field name="Status">Part unselected; symbol topology only; physical pinout and footprint TBD</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_01x06" description="Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Status" value="Part unselected; symbol topology only; physical pinout and footprint TBD"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f71519e5-55e5-4fcb-9722-75bbab1ece5a</tstamps>
+    </comp>
+    <comp ref="L1">
+      <value>2.2uH / provisional</value>
+      <description>Inductor</description>
+      <fields>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Inductor</field>
+      </fields>
+      <libsource lib="Device" part="L" description="Inductor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="inductor choke coil reactor magnetic"/>
+      <property name="ki_fp_filters" value="Choke_* *Coil* Inductor_* L_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>db86ff77-85a8-46b0-8442-ff49ce469bb1</tstamps>
+    </comp>
+    <comp ref="R1">
+      <value>FB_TOP TBD</value>
+      <description>Resistor</description>
+      <fields>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Resistor</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="R res resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9c9b6f3f-21f0-4de3-9d1e-74c2da93d0ac</tstamps>
+    </comp>
+    <comp ref="R2">
+      <value>FB_BOT TBD</value>
+      <description>Resistor</description>
+      <fields>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Resistor</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="R res resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f27b3a23-dc2b-4795-b7f3-35448aea9713</tstamps>
+    </comp>
+    <comp ref="R3">
+      <value>120R / optional</value>
+      <description>Resistor</description>
+      <fields>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Resistor</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="R res resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9ec4a40f-0386-4144-bb26-0709936c5da2</tstamps>
+    </comp>
+    <comp ref="U1">
+      <value>DSPIC33CK256MP605-I/PT</value>
+      <footprint>Package_QFP:TQFP-48_7x7mm_P0.5mm</footprint>
+      <datasheet>https://ww1.microchip.com/downloads/aemDocuments/documents/MCU16/ProductDocuments/DataSheets/dsPIC33CK512MP608-Family-Data-Sheet-DS70005452.pdf</datasheet>
+      <description>dsPIC33CK256MP605-I/PT, 48-pin TQFP; pin numbers per DS70005452E pp.7-8. Port/RP/ICSP/clock names shown; see datasheet for complete multiplex functions.</description>
+      <fields>
+        <field name="MPN">DSPIC33CK256MP605-I/PT</field>
+        <field name="Manufacturer">Microchip</field>
+        <field name="Pin_Map_Source">DS70005452E pp.7-8; port/RP names abbreviated</field>
+        <field name="Footprint">Package_QFP:TQFP-48_7x7mm_P0.5mm</field>
+        <field name="Datasheet">https://ww1.microchip.com/downloads/aemDocuments/documents/MCU16/ProductDocuments/DataSheets/dsPIC33CK512MP608-Family-Data-Sheet-DS70005452.pdf</field>
+        <field name="Description">dsPIC33CK256MP605-I/PT, 48-pin TQFP; pin numbers per DS70005452E pp.7-8. Port/RP/ICSP/clock names shown; see datasheet for complete multiplex functions.</field>
+      </fields>
+      <libsource lib="logger_v1K" part="dsPIC33CK256MP605-I_PT" description="dsPIC33CK256MP605-I/PT, 48-pin TQFP; pin numbers per DS70005452E pp.7-8. Port/RP/ICSP/clock names shown; see datasheet for complete multiplex functions."/>
+      <property name="MPN" value="DSPIC33CK256MP605-I/PT"/>
+      <property name="Manufacturer" value="Microchip"/>
+      <property name="Pin_Map_Source" value="DS70005452E pp.7-8; port/RP names abbreviated"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>56b4fa21-43f6-4847-8caa-760ae5819253</tstamps>
+    </comp>
+    <comp ref="U2">
+      <value>NEO-M9V-20B-01</value>
+      <footprint>RF_GPS:ublox_NEO</footprint>
+      <datasheet>https://content.u-blox.com/sites/default/files/NEO-M9V-20B_DataSheet_UBX-21029781.pdf</datasheet>
+      <description>u-blox GNSS + integrated IMU. All 24 pins per UBX-21029781 R08, table 8. Pin 16 reserved.</description>
+      <fields>
+        <field name="MPN">NEO-M9V-20B-01</field>
+        <field name="Manufacturer">u-blox</field>
+        <field name="Pin_Map_Source">UBX-21029781 R08 table 8</field>
+        <field name="Footprint">RF_GPS:ublox_NEO</field>
+        <field name="Datasheet">https://content.u-blox.com/sites/default/files/NEO-M9V-20B_DataSheet_UBX-21029781.pdf</field>
+        <field name="Description">u-blox GNSS + integrated IMU. All 24 pins per UBX-21029781 R08, table 8. Pin 16 reserved.</field>
+      </fields>
+      <libsource lib="logger_v1K" part="NEO-M9V-20B-01" description="u-blox GNSS + integrated IMU. All 24 pins per UBX-21029781 R08, table 8. Pin 16 reserved."/>
+      <property name="MPN" value="NEO-M9V-20B-01"/>
+      <property name="Manufacturer" value="u-blox"/>
+      <property name="Pin_Map_Source" value="UBX-21029781 R08 table 8"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d24afbf4-e2ef-4567-ad01-082b4f82e4d6</tstamps>
+    </comp>
+    <comp ref="U3">
+      <value>TPS63070RNMR</value>
+      <datasheet>https://www.ti.com/lit/ds/symlink/tps63070.pdf</datasheet>
+      <description>TI TPS63070RNMR, adjustable buck-boost; RNM 15-pad VQFN-HR. Pin map SLVSC58B p.3. Footprint pending exact RNM land pattern.</description>
+      <fields>
+        <field name="MPN">TPS63070RNMR</field>
+        <field name="Manufacturer">Texas Instruments</field>
+        <field name="Pin_Map_Source">SLVSC58B p.3</field>
+        <field name="Status">Footprint pending exact RNM land pattern</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/tps63070.pdf</field>
+        <field name="Description">TI TPS63070RNMR, adjustable buck-boost; RNM 15-pad VQFN-HR. Pin map SLVSC58B p.3. Footprint pending exact RNM land pattern.</field>
+      </fields>
+      <libsource lib="logger_v1K" part="TPS63070RNM" description="TI TPS63070RNMR, adjustable buck-boost; RNM 15-pad VQFN-HR. Pin map SLVSC58B p.3. Footprint pending exact RNM land pattern."/>
+      <property name="MPN" value="TPS63070RNMR"/>
+      <property name="Manufacturer" value="Texas Instruments"/>
+      <property name="Pin_Map_Source" value="SLVSC58B p.3"/>
+      <property name="Status" value="Footprint pending exact RNM land pattern"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>38753324-ef02-4aba-8efa-11c5370027ee</tstamps>
+    </comp>
+    <comp ref="U4">
+      <value>TCAN334GDR</value>
+      <footprint>Package_SO:SOIC-8_3.9x4.9mm_P1.27mm</footprint>
+      <datasheet>http://www.ti.com/lit/ds/symlink/tcan337.pdf</datasheet>
+      <description>High-Speed CAN Transceiver with CAN FD, 5Mbps, 3.3V supply, low power standby mode, shutdown mode, SOT-23-8/SOIC-8</description>
+      <fields>
+        <field name="MPN">TCAN334GDR</field>
+        <field name="Manufacturer">Texas Instruments</field>
+        <field name="Footprint">Package_SO:SOIC-8_3.9x4.9mm_P1.27mm</field>
+        <field name="Datasheet">http://www.ti.com/lit/ds/symlink/tcan337.pdf</field>
+        <field name="Description">High-Speed CAN Transceiver with CAN FD, 5Mbps, 3.3V supply, low power standby mode, shutdown mode, SOT-23-8/SOIC-8</field>
+      </fields>
+      <libsource lib="Interface_CAN_LIN" part="TCAN334G" description="High-Speed CAN Transceiver with CAN FD, 5Mbps, 3.3V supply, low power standby mode, shutdown mode, SOT-23-8/SOIC-8"/>
+      <property name="MPN" value="TCAN334GDR"/>
+      <property name="Manufacturer" value="Texas Instruments"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="High-Speed CAN Transceiver"/>
+      <property name="ki_fp_filters" value="*TSOT?23* *SOIC*3.9x4.9mm*P1.27mm*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>41114029-8655-44d4-8da5-939103928a50</tstamps>
+    </comp>
+    <comp ref="Y1">
+      <value>TBD / optional</value>
+      <description>Two pin crystal</description>
+      <fields>
+        <field name="Status">Part unselected; symbol topology only; physical pinout and footprint TBD</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Two pin crystal</field>
+      </fields>
+      <libsource lib="Device" part="Crystal" description="Two pin crystal"/>
+      <property name="Status" value="Part unselected; symbol topology only; physical pinout and footprint TBD"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="logger_v1K.kicad_sch"/>
+      <property name="ki_keywords" value="quartz ceramic resonator oscillator"/>
+      <property name="ki_fp_filters" value="Crystal*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>786fc0db-c2da-4d11-b9d0-ae61d2317582</tstamps>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector" part="Conn_Coaxial">
+      <description>coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>*BNC*</fp>
+        <fp>*SMA*</fp>
+        <fp>*SMB*</fp>
+        <fp>*SMC*</fp>
+        <fp>*Cinch*</fp>
+        <fp>*LEMO*</fp>
+        <fp>*UMRF*</fp>
+        <fp>*MCX*</fp>
+        <fp>*U.FL*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_Coaxial</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">coaxial connector (BNC, SMA, SMB, SMC, Cinch/RCA, LEMO, ...)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="In" type="passive"/>
+        <pin num="2" name="Ext" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="Micro_SD_Card">
+      <description>Micro SD Card Socket</description>
+      <docs>https://www.we-online.com/components/products/datasheet/693072010801.pdf</docs>
+      <footprints>
+        <fp>microSD*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Micro_SD_Card</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.we-online.com/components/products/datasheet/693072010801.pdf</field>
+        <field name="Description">Micro SD Card Socket</field>
+      </fields>
+      <pins>
+        <pin num="1" name="DAT2" type="bidirectional"/>
+        <pin num="2" name="DAT3/CD" type="bidirectional"/>
+        <pin num="3" name="CMD" type="input"/>
+        <pin num="4" name="VDD" type="power_in"/>
+        <pin num="5" name="CLK" type="input"/>
+        <pin num="6" name="VSS" type="power_in"/>
+        <pin num="7" name="DAT0" type="bidirectional"/>
+        <pin num="8" name="DAT1" type="bidirectional"/>
+        <pin num="9" name="SHIELD" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x02">
+      <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x02</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x03">
+      <description>Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x03</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x06">
+      <description>Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x06</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C">
+      <description>Unpolarized capacitor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Unpolarized capacitor</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="Crystal">
+      <description>Two pin crystal</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Crystal*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">Y</field>
+        <field name="Value">Crystal</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Two pin crystal</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="D_TVS_Dual_AAC">
+      <description>Bidirectional dual transient-voltage-suppression diode, center on pin 3</description>
+      <docs>~</docs>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">D_TVS_Dual_AAC</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Bidirectional dual transient-voltage-suppression diode, center on pin 3</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A1" type="passive"/>
+        <pin num="2" name="A2" type="passive"/>
+        <pin num="3" name="common" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="L">
+      <description>Inductor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Choke_*</fp>
+        <fp>*Coil*</fp>
+        <fp>Inductor_*</fp>
+        <fp>L_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">L</field>
+        <field name="Value">L</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Inductor</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R">
+      <description>Resistor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Resistor</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Interface_CAN_LIN" part="TCAN334G">
+      <description>High-Speed CAN Transceiver with CAN FD, 5Mbps, 3.3V supply, low power standby mode, shutdown mode, SOT-23-8/SOIC-8</description>
+      <docs>http://www.ti.com/lit/ds/symlink/tcan337.pdf</docs>
+      <footprints>
+        <fp>*TSOT?23*</fp>
+        <fp>*SOIC*3.9x4.9mm*P1.27mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">TCAN334G</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">http://www.ti.com/lit/ds/symlink/tcan337.pdf</field>
+        <field name="Description">High-Speed CAN Transceiver with CAN FD, 5Mbps, 3.3V supply, low power standby mode, shutdown mode, SOT-23-8/SOIC-8</field>
+      </fields>
+      <pins>
+        <pin num="1" name="TXD" type="input"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="VCC" type="power_in"/>
+        <pin num="4" name="RXD" type="tri_state"/>
+        <pin num="5" name="SHDN" type="input"/>
+        <pin num="6" name="CANL" type="bidirectional"/>
+        <pin num="7" name="CANH" type="bidirectional"/>
+        <pin num="8" name="STB" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="logger_v1K" part="NEO-M9V-20B-01">
+      <description>u-blox GNSS + integrated IMU. All 24 pins per UBX-21029781 R08, table 8. Pin 16 reserved.</description>
+      <docs>https://content.u-blox.com/sites/default/files/NEO-M9V-20B_DataSheet_UBX-21029781.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">NEO-M9V-20B-01</field>
+        <field name="Footprint">RF_GPS:ublox_NEO</field>
+        <field name="Datasheet">https://content.u-blox.com/sites/default/files/NEO-M9V-20B_DataSheet_UBX-21029781.pdf</field>
+        <field name="Description">u-blox GNSS + integrated IMU. All 24 pins per UBX-21029781 R08, table 8. Pin 16 reserved.</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~{SAFEBOOT}" type="input"/>
+        <pin num="2" name="D_SEL" type="input"/>
+        <pin num="3" name="TIMEPULSE" type="output"/>
+        <pin num="4" name="WHEELTICK" type="input"/>
+        <pin num="5" name="USB_DM" type="bidirectional"/>
+        <pin num="6" name="USB_DP" type="bidirectional"/>
+        <pin num="7" name="V_USB" type="power_in"/>
+        <pin num="8" name="~{RESET}" type="input"/>
+        <pin num="9" name="VCC_RF" type="power_out"/>
+        <pin num="10" name="GND" type="power_in"/>
+        <pin num="11" name="RF_IN" type="input"/>
+        <pin num="12" name="GND" type="power_in"/>
+        <pin num="13" name="GND" type="power_in"/>
+        <pin num="14" name="LNA_EN" type="output"/>
+        <pin num="15" name="DIR" type="input"/>
+        <pin num="16" name="Reserved" type="no_connect"/>
+        <pin num="17" name="WOM" type="output"/>
+        <pin num="18" name="SDA/~{SPI_CS}" type="bidirectional"/>
+        <pin num="19" name="SCL/SPI_CLK" type="bidirectional"/>
+        <pin num="20" name="TXD/SPI_SDO" type="output"/>
+        <pin num="21" name="RXD/SPI_SDI" type="input"/>
+        <pin num="22" name="V_BCKP" type="power_in"/>
+        <pin num="23" name="VCC" type="power_in"/>
+        <pin num="24" name="GND" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="logger_v1K" part="TPS63070RNM">
+      <description>TI TPS63070RNMR, adjustable buck-boost; RNM 15-pad VQFN-HR. Pin map SLVSC58B p.3. Footprint pending exact RNM land pattern.</description>
+      <docs>https://www.ti.com/lit/ds/symlink/tps63070.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">TPS63070RNM</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/tps63070.pdf</field>
+        <field name="Description">TI TPS63070RNMR, adjustable buck-boost; RNM 15-pad VQFN-HR. Pin map SLVSC58B p.3. Footprint pending exact RNM land pattern.</field>
+      </fields>
+      <pins>
+        <pin num="1" name="PS/SYNC" type="input"/>
+        <pin num="2" name="PG" type="open_collector"/>
+        <pin num="3" name="VAUX" type="power_out"/>
+        <pin num="4" name="GND" type="power_in"/>
+        <pin num="5" name="FB" type="input"/>
+        <pin num="6" name="FB2" type="open_collector"/>
+        <pin num="7" name="VOUT" type="power_out"/>
+        <pin num="8" name="VOUT" type="power_out"/>
+        <pin num="9" name="L2" type="passive"/>
+        <pin num="10" name="PGND" type="power_in"/>
+        <pin num="11" name="L1" type="passive"/>
+        <pin num="12" name="VIN" type="power_in"/>
+        <pin num="13" name="VIN" type="power_in"/>
+        <pin num="14" name="EN" type="input"/>
+        <pin num="15" name="VSEL" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="logger_v1K" part="dsPIC33CK256MP605-I_PT">
+      <description>dsPIC33CK256MP605-I/PT, 48-pin TQFP; pin numbers per DS70005452E pp.7-8. Port/RP/ICSP/clock names shown; see datasheet for complete multiplex functions.</description>
+      <docs>https://ww1.microchip.com/downloads/aemDocuments/documents/MCU16/ProductDocuments/DataSheets/dsPIC33CK512MP608-Family-Data-Sheet-DS70005452.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">dsPIC33CK256MP605-I_PT</field>
+        <field name="Footprint">Package_QFP:TQFP-48_7x7mm_P0.5mm</field>
+        <field name="Datasheet">https://ww1.microchip.com/downloads/aemDocuments/documents/MCU16/ProductDocuments/DataSheets/dsPIC33CK512MP608-Family-Data-Sheet-DS70005452.pdf</field>
+        <field name="Description">dsPIC33CK256MP605-I/PT, 48-pin TQFP; pin numbers per DS70005452E pp.7-8. Port/RP/ICSP/clock names shown; see datasheet for complete multiplex functions.</field>
+      </fields>
+      <pins>
+        <pin num="1" name="RB14/RP46" type="bidirectional"/>
+        <pin num="2" name="RB15/RP47" type="bidirectional"/>
+        <pin num="3" name="RC12/RP60" type="bidirectional"/>
+        <pin num="4" name="RC13/RP61" type="bidirectional"/>
+        <pin num="5" name="~{MCLR}" type="input"/>
+        <pin num="6" name="RD13/RP77" type="bidirectional"/>
+        <pin num="7" name="RC0/RP48" type="bidirectional"/>
+        <pin num="8" name="RA0" type="bidirectional"/>
+        <pin num="9" name="RA1" type="bidirectional"/>
+        <pin num="10" name="RA2" type="bidirectional"/>
+        <pin num="11" name="RA3" type="bidirectional"/>
+        <pin num="12" name="RA4" type="bidirectional"/>
+        <pin num="13" name="AVDD" type="power_in"/>
+        <pin num="14" name="AVSS" type="power_in"/>
+        <pin num="15" name="RC1/RP49" type="bidirectional"/>
+        <pin num="16" name="RC2/RP50" type="bidirectional"/>
+        <pin num="17" name="RC6/RP54" type="bidirectional"/>
+        <pin num="18" name="VDD" type="power_in"/>
+        <pin num="19" name="VSS" type="power_in"/>
+        <pin num="20" name="RC3/RP51" type="bidirectional"/>
+        <pin num="21" name="RB0/RP32/OSCI" type="bidirectional"/>
+        <pin num="22" name="RB1/RP33/OSCO" type="bidirectional"/>
+        <pin num="23" name="RD10/RP74" type="bidirectional"/>
+        <pin num="24" name="RC7/RP55" type="bidirectional"/>
+        <pin num="25" name="RB2/RP34" type="bidirectional"/>
+        <pin num="26" name="RB3/RP35/PGD2" type="bidirectional"/>
+        <pin num="27" name="RB4/RP36/PGC2" type="bidirectional"/>
+        <pin num="28" name="RC8/RP56/SCK2" type="bidirectional"/>
+        <pin num="29" name="RC9/RP57/SDI2" type="bidirectional"/>
+        <pin num="30" name="RD8/RP72/SDO2" type="bidirectional"/>
+        <pin num="31" name="VSS" type="power_in"/>
+        <pin num="32" name="VDD" type="power_in"/>
+        <pin num="33" name="RB5/RP37/PGD3" type="bidirectional"/>
+        <pin num="34" name="RB6/RP38/PGC3" type="bidirectional"/>
+        <pin num="35" name="RB7/RP39/TDO" type="bidirectional"/>
+        <pin num="36" name="RB8/RP40/PGD1" type="bidirectional"/>
+        <pin num="37" name="RB9/RP41/PGC1" type="bidirectional"/>
+        <pin num="38" name="RC4/RP52" type="bidirectional"/>
+        <pin num="39" name="RC5/RP53" type="bidirectional"/>
+        <pin num="40" name="RC10/RP58" type="bidirectional"/>
+        <pin num="41" name="RC11/RP59" type="bidirectional"/>
+        <pin num="42" name="VSS" type="power_in"/>
+        <pin num="43" name="VDD" type="power_in"/>
+        <pin num="44" name="RD1/RP65" type="bidirectional"/>
+        <pin num="45" name="RB10/RP42/TMS" type="bidirectional"/>
+        <pin num="46" name="RB11/RP43/TCK" type="bidirectional"/>
+        <pin num="47" name="RB12/RP44/TDI" type="bidirectional"/>
+        <pin num="48" name="RB13/RP45" type="bidirectional"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Connector.kicad_sym</uri>
+    </library>
+    <library logical="Connector_Generic">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Connector_Generic.kicad_sym</uri>
+    </library>
+    <library logical="Device">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Device.kicad_sym</uri>
+    </library>
+    <library logical="Interface_CAN_LIN">
+      <uri>C:\Users\lintaroh\AppData\Local\Programs\KiCad\9.0\share\kicad\symbols\/Interface_CAN_LIN.kicad_sym</uri>
+    </library>
+    <library logical="logger_v1K">
+      <uri>C:\Users\lintaroh\Documents\RaceCapture\circuit\logger_v1K/logger_v1K.kicad_sym</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="unconnected-(C1-Pad1)" class="Default">
+      <node ref="C1" pin="1" pintype="passive"/>
+    </net>
+    <net code="2" name="unconnected-(C1-Pad2)" class="Default">
+      <node ref="C1" pin="2" pintype="passive"/>
+    </net>
+    <net code="3" name="unconnected-(C2-Pad1)" class="Default">
+      <node ref="C2" pin="1" pintype="passive"/>
+    </net>
+    <net code="4" name="unconnected-(C2-Pad2)" class="Default">
+      <node ref="C2" pin="2" pintype="passive"/>
+    </net>
+    <net code="5" name="unconnected-(C3-Pad1)" class="Default">
+      <node ref="C3" pin="1" pintype="passive"/>
+    </net>
+    <net code="6" name="unconnected-(C3-Pad2)" class="Default">
+      <node ref="C3" pin="2" pintype="passive"/>
+    </net>
+    <net code="7" name="unconnected-(C4-Pad1)" class="Default">
+      <node ref="C4" pin="1" pintype="passive"/>
+    </net>
+    <net code="8" name="unconnected-(C4-Pad2)" class="Default">
+      <node ref="C4" pin="2" pintype="passive"/>
+    </net>
+    <net code="9" name="unconnected-(D1-A1-Pad1)" class="Default">
+      <node ref="D1" pin="1" pinfunction="A1" pintype="passive"/>
+    </net>
+    <net code="10" name="unconnected-(D1-A2-Pad2)" class="Default">
+      <node ref="D1" pin="2" pinfunction="A2" pintype="passive"/>
+    </net>
+    <net code="11" name="unconnected-(D1-common-Pad3)" class="Default">
+      <node ref="D1" pin="3" pinfunction="common" pintype="passive"/>
+    </net>
+    <net code="12" name="unconnected-(J1-CLK-Pad5)" class="Default">
+      <node ref="J1" pin="5" pinfunction="CLK" pintype="input"/>
+    </net>
+    <net code="13" name="unconnected-(J1-CMD-Pad3)" class="Default">
+      <node ref="J1" pin="3" pinfunction="CMD" pintype="input"/>
+    </net>
+    <net code="14" name="unconnected-(J1-DAT0-Pad7)" class="Default">
+      <node ref="J1" pin="7" pinfunction="DAT0" pintype="bidirectional"/>
+    </net>
+    <net code="15" name="unconnected-(J1-DAT1-Pad8)" class="Default">
+      <node ref="J1" pin="8" pinfunction="DAT1" pintype="bidirectional"/>
+    </net>
+    <net code="16" name="unconnected-(J1-DAT2-Pad1)" class="Default">
+      <node ref="J1" pin="1" pinfunction="DAT2" pintype="bidirectional"/>
+    </net>
+    <net code="17" name="unconnected-(J1-DAT3/CD-Pad2)" class="Default">
+      <node ref="J1" pin="2" pinfunction="DAT3/CD" pintype="bidirectional"/>
+    </net>
+    <net code="18" name="unconnected-(J1-SHIELD-Pad9)" class="Default">
+      <node ref="J1" pin="9" pinfunction="SHIELD" pintype="passive"/>
+    </net>
+    <net code="19" name="unconnected-(J1-VDD-Pad4)" class="Default">
+      <node ref="J1" pin="4" pinfunction="VDD" pintype="power_in"/>
+    </net>
+    <net code="20" name="unconnected-(J1-VSS-Pad6)" class="Default">
+      <node ref="J1" pin="6" pinfunction="VSS" pintype="power_in"/>
+    </net>
+    <net code="21" name="unconnected-(J2-Ext-Pad2)" class="Default">
+      <node ref="J2" pin="2" pinfunction="Ext" pintype="passive"/>
+    </net>
+    <net code="22" name="unconnected-(J2-In-Pad1)" class="Default">
+      <node ref="J2" pin="1" pinfunction="In" pintype="passive"/>
+    </net>
+    <net code="23" name="unconnected-(J3-Pin_1-Pad1)" class="Default">
+      <node ref="J3" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    </net>
+    <net code="24" name="unconnected-(J3-Pin_2-Pad2)" class="Default">
+      <node ref="J3" pin="2" pinfunction="Pin_2" pintype="passive"/>
+    </net>
+    <net code="25" name="unconnected-(J3-Pin_3-Pad3)" class="Default">
+      <node ref="J3" pin="3" pinfunction="Pin_3" pintype="passive"/>
+    </net>
+    <net code="26" name="unconnected-(J4-Pin_1-Pad1)" class="Default">
+      <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    </net>
+    <net code="27" name="unconnected-(J4-Pin_2-Pad2)" class="Default">
+      <node ref="J4" pin="2" pinfunction="Pin_2" pintype="passive"/>
+    </net>
+    <net code="28" name="unconnected-(J5-Pin_1-Pad1)" class="Default">
+      <node ref="J5" pin="1" pinfunction="Pin_1" pintype="passive"/>
+    </net>
+    <net code="29" name="unconnected-(J5-Pin_2-Pad2)" class="Default">
+      <node ref="J5" pin="2" pinfunction="Pin_2" pintype="passive"/>
+    </net>
+    <net code="30" name="unconnected-(J5-Pin_3-Pad3)" class="Default">
+      <node ref="J5" pin="3" pinfunction="Pin_3" pintype="passive"/>
+    </net>
+    <net code="31" name="unconnected-(J5-Pin_4-Pad4)" class="Default">
+      <node ref="J5" pin="4" pinfunction="Pin_4" pintype="passive"/>
+    </net>
+    <net code="32" name="unconnected-(J5-Pin_5-Pad5)" class="Default">
+      <node ref="J5" pin="5" pinfunction="Pin_5" pintype="passive"/>
+    </net>
+    <net code="33" name="unconnected-(J5-Pin_6-Pad6)" class="Default">
+      <node ref="J5" pin="6" pinfunction="Pin_6" pintype="passive"/>
+    </net>
+    <net code="34" name="unconnected-(L1-Pad1)" class="Default">
+      <node ref="L1" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="35" name="unconnected-(L1-Pad2)" class="Default">
+      <node ref="L1" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+    <net code="36" name="unconnected-(R1-Pad1)" class="Default">
+      <node ref="R1" pin="1" pintype="passive"/>
+    </net>
+    <net code="37" name="unconnected-(R1-Pad2)" class="Default">
+      <node ref="R1" pin="2" pintype="passive"/>
+    </net>
+    <net code="38" name="unconnected-(R2-Pad1)" class="Default">
+      <node ref="R2" pin="1" pintype="passive"/>
+    </net>
+    <net code="39" name="unconnected-(R2-Pad2)" class="Default">
+      <node ref="R2" pin="2" pintype="passive"/>
+    </net>
+    <net code="40" name="unconnected-(R3-Pad1)" class="Default">
+      <node ref="R3" pin="1" pintype="passive"/>
+    </net>
+    <net code="41" name="unconnected-(R3-Pad2)" class="Default">
+      <node ref="R3" pin="2" pintype="passive"/>
+    </net>
+    <net code="42" name="unconnected-(U1-AVDD-Pad13)" class="Default">
+      <node ref="U1" pin="13" pinfunction="AVDD" pintype="power_in"/>
+    </net>
+    <net code="43" name="unconnected-(U1-AVSS-Pad14)" class="Default">
+      <node ref="U1" pin="14" pinfunction="AVSS" pintype="power_in"/>
+    </net>
+    <net code="44" name="unconnected-(U1-RA0-Pad8)" class="Default">
+      <node ref="U1" pin="8" pinfunction="RA0" pintype="bidirectional"/>
+    </net>
+    <net code="45" name="unconnected-(U1-RA1-Pad9)" class="Default">
+      <node ref="U1" pin="9" pinfunction="RA1" pintype="bidirectional"/>
+    </net>
+    <net code="46" name="unconnected-(U1-RA2-Pad10)" class="Default">
+      <node ref="U1" pin="10" pinfunction="RA2" pintype="bidirectional"/>
+    </net>
+    <net code="47" name="unconnected-(U1-RA3-Pad11)" class="Default">
+      <node ref="U1" pin="11" pinfunction="RA3" pintype="bidirectional"/>
+    </net>
+    <net code="48" name="unconnected-(U1-RA4-Pad12)" class="Default">
+      <node ref="U1" pin="12" pinfunction="RA4" pintype="bidirectional"/>
+    </net>
+    <net code="49" name="unconnected-(U1-RB0/RP32/OSCI-Pad21)" class="Default">
+      <node ref="U1" pin="21" pinfunction="RB0/RP32/OSCI" pintype="bidirectional"/>
+    </net>
+    <net code="50" name="unconnected-(U1-RB1/RP33/OSCO-Pad22)" class="Default">
+      <node ref="U1" pin="22" pinfunction="RB1/RP33/OSCO" pintype="bidirectional"/>
+    </net>
+    <net code="51" name="unconnected-(U1-RB2/RP34-Pad25)" class="Default">
+      <node ref="U1" pin="25" pinfunction="RB2/RP34" pintype="bidirectional"/>
+    </net>
+    <net code="52" name="unconnected-(U1-RB3/RP35/PGD2-Pad26)" class="Default">
+      <node ref="U1" pin="26" pinfunction="RB3/RP35/PGD2" pintype="bidirectional"/>
+    </net>
+    <net code="53" name="unconnected-(U1-RB4/RP36/PGC2-Pad27)" class="Default">
+      <node ref="U1" pin="27" pinfunction="RB4/RP36/PGC2" pintype="bidirectional"/>
+    </net>
+    <net code="54" name="unconnected-(U1-RB5/RP37/PGD3-Pad33)" class="Default">
+      <node ref="U1" pin="33" pinfunction="RB5/RP37/PGD3" pintype="bidirectional"/>
+    </net>
+    <net code="55" name="unconnected-(U1-RB6/RP38/PGC3-Pad34)" class="Default">
+      <node ref="U1" pin="34" pinfunction="RB6/RP38/PGC3" pintype="bidirectional"/>
+    </net>
+    <net code="56" name="unconnected-(U1-RB7/RP39/TDO-Pad35)" class="Default">
+      <node ref="U1" pin="35" pinfunction="RB7/RP39/TDO" pintype="bidirectional"/>
+    </net>
+    <net code="57" name="unconnected-(U1-RB8/RP40/PGD1-Pad36)" class="Default">
+      <node ref="U1" pin="36" pinfunction="RB8/RP40/PGD1" pintype="bidirectional"/>
+    </net>
+    <net code="58" name="unconnected-(U1-RB9/RP41/PGC1-Pad37)" class="Default">
+      <node ref="U1" pin="37" pinfunction="RB9/RP41/PGC1" pintype="bidirectional"/>
+    </net>
+    <net code="59" name="unconnected-(U1-RB10/RP42/TMS-Pad45)" class="Default">
+      <node ref="U1" pin="45" pinfunction="RB10/RP42/TMS" pintype="bidirectional"/>
+    </net>
+    <net code="60" name="unconnected-(U1-RB11/RP43/TCK-Pad46)" class="Default">
+      <node ref="U1" pin="46" pinfunction="RB11/RP43/TCK" pintype="bidirectional"/>
+    </net>
+    <net code="61" name="unconnected-(U1-RB12/RP44/TDI-Pad47)" class="Default">
+      <node ref="U1" pin="47" pinfunction="RB12/RP44/TDI" pintype="bidirectional"/>
+    </net>
+    <net code="62" name="unconnected-(U1-RB13/RP45-Pad48)" class="Default">
+      <node ref="U1" pin="48" pinfunction="RB13/RP45" pintype="bidirectional"/>
+    </net>
+    <net code="63" name="unconnected-(U1-RB14/RP46-Pad1)" class="Default">
+      <node ref="U1" pin="1" pinfunction="RB14/RP46" pintype="bidirectional"/>
+    </net>
+    <net code="64" name="unconnected-(U1-RB15/RP47-Pad2)" class="Default">
+      <node ref="U1" pin="2" pinfunction="RB15/RP47" pintype="bidirectional"/>
+    </net>
+    <net code="65" name="unconnected-(U1-RC0/RP48-Pad7)" class="Default">
+      <node ref="U1" pin="7" pinfunction="RC0/RP48" pintype="bidirectional"/>
+    </net>
+    <net code="66" name="unconnected-(U1-RC1/RP49-Pad15)" class="Default">
+      <node ref="U1" pin="15" pinfunction="RC1/RP49" pintype="bidirectional"/>
+    </net>
+    <net code="67" name="unconnected-(U1-RC2/RP50-Pad16)" class="Default">
+      <node ref="U1" pin="16" pinfunction="RC2/RP50" pintype="bidirectional"/>
+    </net>
+    <net code="68" name="unconnected-(U1-RC3/RP51-Pad20)" class="Default">
+      <node ref="U1" pin="20" pinfunction="RC3/RP51" pintype="bidirectional"/>
+    </net>
+    <net code="69" name="unconnected-(U1-RC4/RP52-Pad38)" class="Default">
+      <node ref="U1" pin="38" pinfunction="RC4/RP52" pintype="bidirectional"/>
+    </net>
+    <net code="70" name="unconnected-(U1-RC5/RP53-Pad39)" class="Default">
+      <node ref="U1" pin="39" pinfunction="RC5/RP53" pintype="bidirectional"/>
+    </net>
+    <net code="71" name="unconnected-(U1-RC6/RP54-Pad17)" class="Default">
+      <node ref="U1" pin="17" pinfunction="RC6/RP54" pintype="bidirectional"/>
+    </net>
+    <net code="72" name="unconnected-(U1-RC7/RP55-Pad24)" class="Default">
+      <node ref="U1" pin="24" pinfunction="RC7/RP55" pintype="bidirectional"/>
+    </net>
+    <net code="73" name="unconnected-(U1-RC8/RP56/SCK2-Pad28)" class="Default">
+      <node ref="U1" pin="28" pinfunction="RC8/RP56/SCK2" pintype="bidirectional"/>
+    </net>
+    <net code="74" name="unconnected-(U1-RC9/RP57/SDI2-Pad29)" class="Default">
+      <node ref="U1" pin="29" pinfunction="RC9/RP57/SDI2" pintype="bidirectional"/>
+    </net>
+    <net code="75" name="unconnected-(U1-RC10/RP58-Pad40)" class="Default">
+      <node ref="U1" pin="40" pinfunction="RC10/RP58" pintype="bidirectional"/>
+    </net>
+    <net code="76" name="unconnected-(U1-RC11/RP59-Pad41)" class="Default">
+      <node ref="U1" pin="41" pinfunction="RC11/RP59" pintype="bidirectional"/>
+    </net>
+    <net code="77" name="unconnected-(U1-RC12/RP60-Pad3)" class="Default">
+      <node ref="U1" pin="3" pinfunction="RC12/RP60" pintype="bidirectional"/>
+    </net>
+    <net code="78" name="unconnected-(U1-RC13/RP61-Pad4)" class="Default">
+      <node ref="U1" pin="4" pinfunction="RC13/RP61" pintype="bidirectional"/>
+    </net>
+    <net code="79" name="unconnected-(U1-RD1/RP65-Pad44)" class="Default">
+      <node ref="U1" pin="44" pinfunction="RD1/RP65" pintype="bidirectional"/>
+    </net>
+    <net code="80" name="unconnected-(U1-RD8/RP72/SDO2-Pad30)" class="Default">
+      <node ref="U1" pin="30" pinfunction="RD8/RP72/SDO2" pintype="bidirectional"/>
+    </net>
+    <net code="81" name="unconnected-(U1-RD10/RP74-Pad23)" class="Default">
+      <node ref="U1" pin="23" pinfunction="RD10/RP74" pintype="bidirectional"/>
+    </net>
+    <net code="82" name="unconnected-(U1-RD13/RP77-Pad6)" class="Default">
+      <node ref="U1" pin="6" pinfunction="RD13/RP77" pintype="bidirectional"/>
+    </net>
+    <net code="83" name="unconnected-(U1-VDD-Pad18)" class="Default">
+      <node ref="U1" pin="18" pinfunction="VDD" pintype="power_in"/>
+    </net>
+    <net code="84" name="unconnected-(U1-VDD-Pad32)" class="Default">
+      <node ref="U1" pin="32" pinfunction="VDD" pintype="power_in"/>
+    </net>
+    <net code="85" name="unconnected-(U1-VDD-Pad43)" class="Default">
+      <node ref="U1" pin="43" pinfunction="VDD" pintype="power_in"/>
+    </net>
+    <net code="86" name="unconnected-(U1-VSS-Pad19)" class="Default">
+      <node ref="U1" pin="19" pinfunction="VSS" pintype="power_in"/>
+    </net>
+    <net code="87" name="unconnected-(U1-VSS-Pad31)" class="Default">
+      <node ref="U1" pin="31" pinfunction="VSS" pintype="power_in"/>
+    </net>
+    <net code="88" name="unconnected-(U1-VSS-Pad42)" class="Default">
+      <node ref="U1" pin="42" pinfunction="VSS" pintype="power_in"/>
+    </net>
+    <net code="89" name="unconnected-(U1-~{MCLR}-Pad5)" class="Default">
+      <node ref="U1" pin="5" pinfunction="~{MCLR}" pintype="input"/>
+    </net>
+    <net code="90" name="unconnected-(U2-DIR-Pad15)" class="Default">
+      <node ref="U2" pin="15" pinfunction="DIR" pintype="input"/>
+    </net>
+    <net code="91" name="unconnected-(U2-D_SEL-Pad2)" class="Default">
+      <node ref="U2" pin="2" pinfunction="D_SEL" pintype="input"/>
+    </net>
+    <net code="92" name="unconnected-(U2-GND-Pad10)" class="Default">
+      <node ref="U2" pin="10" pinfunction="GND" pintype="power_in"/>
+    </net>
+    <net code="93" name="unconnected-(U2-GND-Pad12)" class="Default">
+      <node ref="U2" pin="12" pinfunction="GND" pintype="power_in"/>
+    </net>
+    <net code="94" name="unconnected-(U2-GND-Pad13)" class="Default">
+      <node ref="U2" pin="13" pinfunction="GND" pintype="power_in"/>
+    </net>
+    <net code="95" name="unconnected-(U2-GND-Pad24)" class="Default">
+      <node ref="U2" pin="24" pinfunction="GND" pintype="power_in"/>
+    </net>
+    <net code="96" name="unconnected-(U2-LNA_EN-Pad14)" class="Default">
+      <node ref="U2" pin="14" pinfunction="LNA_EN" pintype="output"/>
+    </net>
+    <net code="97" name="unconnected-(U2-RF_IN-Pad11)" class="Default">
+      <node ref="U2" pin="11" pinfunction="RF_IN" pintype="input"/>
+    </net>
+    <net code="98" name="unconnected-(U2-RXD/SPI_SDI-Pad21)" class="Default">
+      <node ref="U2" pin="21" pinfunction="RXD/SPI_SDI" pintype="input"/>
+    </net>
+    <net code="99" name="unconnected-(U2-Reserved-Pad16)" class="Default">
+      <node ref="U2" pin="16" pinfunction="Reserved" pintype="no_connect"/>
+    </net>
+    <net code="100" name="unconnected-(U2-SCL/SPI_CLK-Pad19)" class="Default">
+      <node ref="U2" pin="19" pinfunction="SCL/SPI_CLK" pintype="bidirectional"/>
+    </net>
+    <net code="101" name="unconnected-(U2-SDA/~{SPI_CS}-Pad18)" class="Default">
+      <node ref="U2" pin="18" pinfunction="SDA/~{SPI_CS}" pintype="bidirectional"/>
+    </net>
+    <net code="102" name="unconnected-(U2-TIMEPULSE-Pad3)" class="Default">
+      <node ref="U2" pin="3" pinfunction="TIMEPULSE" pintype="output"/>
+    </net>
+    <net code="103" name="unconnected-(U2-TXD/SPI_SDO-Pad20)" class="Default">
+      <node ref="U2" pin="20" pinfunction="TXD/SPI_SDO" pintype="output"/>
+    </net>
+    <net code="104" name="unconnected-(U2-USB_DM-Pad5)" class="Default">
+      <node ref="U2" pin="5" pinfunction="USB_DM" pintype="bidirectional"/>
+    </net>
+    <net code="105" name="unconnected-(U2-USB_DP-Pad6)" class="Default">
+      <node ref="U2" pin="6" pinfunction="USB_DP" pintype="bidirectional"/>
+    </net>
+    <net code="106" name="unconnected-(U2-VCC-Pad23)" class="Default">
+      <node ref="U2" pin="23" pinfunction="VCC" pintype="power_in"/>
+    </net>
+    <net code="107" name="unconnected-(U2-VCC_RF-Pad9)" class="Default">
+      <node ref="U2" pin="9" pinfunction="VCC_RF" pintype="power_out"/>
+    </net>
+    <net code="108" name="unconnected-(U2-V_BCKP-Pad22)" class="Default">
+      <node ref="U2" pin="22" pinfunction="V_BCKP" pintype="power_in"/>
+    </net>
+    <net code="109" name="unconnected-(U2-V_USB-Pad7)" class="Default">
+      <node ref="U2" pin="7" pinfunction="V_USB" pintype="power_in"/>
+    </net>
+    <net code="110" name="unconnected-(U2-WHEELTICK-Pad4)" class="Default">
+      <node ref="U2" pin="4" pinfunction="WHEELTICK" pintype="input"/>
+    </net>
+    <net code="111" name="unconnected-(U2-WOM-Pad17)" class="Default">
+      <node ref="U2" pin="17" pinfunction="WOM" pintype="output"/>
+    </net>
+    <net code="112" name="unconnected-(U2-~{RESET}-Pad8)" class="Default">
+      <node ref="U2" pin="8" pinfunction="~{RESET}" pintype="input"/>
+    </net>
+    <net code="113" name="unconnected-(U2-~{SAFEBOOT}-Pad1)" class="Default">
+      <node ref="U2" pin="1" pinfunction="~{SAFEBOOT}" pintype="input"/>
+    </net>
+    <net code="114" name="unconnected-(U3-EN-Pad14)" class="Default">
+      <node ref="U3" pin="14" pinfunction="EN" pintype="input"/>
+    </net>
+    <net code="115" name="unconnected-(U3-FB-Pad5)" class="Default">
+      <node ref="U3" pin="5" pinfunction="FB" pintype="input"/>
+    </net>
+    <net code="116" name="unconnected-(U3-FB2-Pad6)" class="Default">
+      <node ref="U3" pin="6" pinfunction="FB2" pintype="open_collector"/>
+    </net>
+    <net code="117" name="unconnected-(U3-GND-Pad4)" class="Default">
+      <node ref="U3" pin="4" pinfunction="GND" pintype="power_in"/>
+    </net>
+    <net code="118" name="unconnected-(U3-L1-Pad11)" class="Default">
+      <node ref="U3" pin="11" pinfunction="L1" pintype="passive"/>
+    </net>
+    <net code="119" name="unconnected-(U3-L2-Pad9)" class="Default">
+      <node ref="U3" pin="9" pinfunction="L2" pintype="passive"/>
+    </net>
+    <net code="120" name="unconnected-(U3-PG-Pad2)" class="Default">
+      <node ref="U3" pin="2" pinfunction="PG" pintype="open_collector"/>
+    </net>
+    <net code="121" name="unconnected-(U3-PGND-Pad10)" class="Default">
+      <node ref="U3" pin="10" pinfunction="PGND" pintype="power_in"/>
+    </net>
+    <net code="122" name="unconnected-(U3-PS/SYNC-Pad1)" class="Default">
+      <node ref="U3" pin="1" pinfunction="PS/SYNC" pintype="input"/>
+    </net>
+    <net code="123" name="unconnected-(U3-VAUX-Pad3)" class="Default">
+      <node ref="U3" pin="3" pinfunction="VAUX" pintype="power_out"/>
+    </net>
+    <net code="124" name="unconnected-(U3-VIN-Pad12)" class="Default">
+      <node ref="U3" pin="12" pinfunction="VIN" pintype="power_in"/>
+    </net>
+    <net code="125" name="unconnected-(U3-VIN-Pad13)" class="Default">
+      <node ref="U3" pin="13" pinfunction="VIN" pintype="power_in"/>
+    </net>
+    <net code="126" name="unconnected-(U3-VOUT-Pad7)" class="Default">
+      <node ref="U3" pin="7" pinfunction="VOUT" pintype="power_out"/>
+    </net>
+    <net code="127" name="unconnected-(U3-VOUT-Pad8)" class="Default">
+      <node ref="U3" pin="8" pinfunction="VOUT" pintype="power_out"/>
+    </net>
+    <net code="128" name="unconnected-(U3-VSEL-Pad15)" class="Default">
+      <node ref="U3" pin="15" pinfunction="VSEL" pintype="input"/>
+    </net>
+    <net code="129" name="unconnected-(U4-CANH-Pad7)" class="Default">
+      <node ref="U4" pin="7" pinfunction="CANH" pintype="bidirectional"/>
+    </net>
+    <net code="130" name="unconnected-(U4-CANL-Pad6)" class="Default">
+      <node ref="U4" pin="6" pinfunction="CANL" pintype="bidirectional"/>
+    </net>
+    <net code="131" name="unconnected-(U4-GND-Pad2)" class="Default">
+      <node ref="U4" pin="2" pinfunction="GND" pintype="power_in"/>
+    </net>
+    <net code="132" name="unconnected-(U4-RXD-Pad4)" class="Default">
+      <node ref="U4" pin="4" pinfunction="RXD" pintype="tri_state"/>
+    </net>
+    <net code="133" name="unconnected-(U4-SHDN-Pad5)" class="Default">
+      <node ref="U4" pin="5" pinfunction="SHDN" pintype="input"/>
+    </net>
+    <net code="134" name="unconnected-(U4-STB-Pad8)" class="Default">
+      <node ref="U4" pin="8" pinfunction="STB" pintype="input"/>
+    </net>
+    <net code="135" name="unconnected-(U4-TXD-Pad1)" class="Default">
+      <node ref="U4" pin="1" pinfunction="TXD" pintype="input"/>
+    </net>
+    <net code="136" name="unconnected-(U4-VCC-Pad3)" class="Default">
+      <node ref="U4" pin="3" pinfunction="VCC" pintype="power_in"/>
+    </net>
+    <net code="137" name="unconnected-(Y1-Pad1)" class="Default">
+      <node ref="Y1" pin="1" pinfunction="1" pintype="passive"/>
+    </net>
+    <net code="138" name="unconnected-(Y1-Pad2)" class="Default">
+      <node ref="Y1" pin="2" pinfunction="2" pintype="passive"/>
+    </net>
+  </nets>
+</export>

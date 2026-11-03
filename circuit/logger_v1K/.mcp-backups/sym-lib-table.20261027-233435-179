@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "logger_v1K")(type "KiCad")(uri "C:/Users/lintaroh/Documents/RaceCapture/circuit/logger_v1K/logger_v1K.kicad_sym")(options "")(descr ""))
+)
