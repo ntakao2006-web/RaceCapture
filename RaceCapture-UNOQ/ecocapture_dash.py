@@ -370,7 +370,7 @@ def run_gui(args, config):
 
             self.lap_now.set_text(s['lap_now'])
             if s['delta_kind']:  # a number: say it is seconds, smaller, so the number stays the thing to read
-                self.delta.set_markup(f"{s['delta']}<span size=\"40%\">秒</span>")
+                self.delta.set_markup(f"{s['delta']}<span size=\"55%\">s</span>")
             else:
                 self.delta.set_text(s['delta'])
             classes(self.delta, 'num', 'big', s['delta_kind'] or 'even')

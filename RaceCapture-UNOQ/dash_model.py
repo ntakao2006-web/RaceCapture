@@ -6,8 +6,9 @@ before (or PIT), the best lap and lap number, the time since the first control-l
 lap reset, the clock, and small lights for recording, GNSS and the oil temperature sensor. Oil and
 water temperatures are not shown as gauges (the Defi meters are there): only their warnings are.
 
-A normal pit stop is not a warning: the out lap is tagged ピットアウト and a pit lap PIT in blue,
-and the gap to the best lap is not shown on the out lap or while stopped (it would be a big red
+A normal pit stop is not a warning: the lap begun in the pit lane gets a blue strip (PIT IN while
+stopped, PIT OUT once moving) and a pit lap PIT in blue, the temperature warnings the same strip in
+orange (COOLING) and red (PIT IN with the temperature); and the gap to the best lap is not shown on the out lap or while stopped (it would be a big red
 number that looks like an alarm). Red is only for the slower gap and the temperature warnings.
 
 Warnings (ncec-roadster track/thermal-limits.md, provisional): oil 110 C caution, 120 C start
@@ -50,7 +51,7 @@ DEFAULTS = {
               'card': 'ArduinoImolaHPH', 'route': ['SEC_MI2S_RX Audio Mixer MultiMedia4']},
 }
 
-WARN_TEXT = {1: '注意', 2: 'クーリング', 3: 'ピットイン'}
+WARN_TEXT = {1: '注意', 2: 'COOLING', 3: 'PIT IN'}
 STOPPED_KMH = 10.0  # slower than this the gap to the best lap means nothing (in the pit, on the grid)
 
 # lap_ref.h
@@ -274,7 +275,7 @@ class DashModel:
             value = '' if self.warning.value is None else f'{self.warning.value:.0f}℃'
             notice, notice_kind = f'{WARN_TEXT[level]}　{self.warning.label} {value}', 'cool' if level == 2 else 'pitin'
         elif out_lap:
-            notice, notice_kind = 'ピットイン' if stopped else 'ピットアウト', 'pit'
+            notice, notice_kind = 'PIT IN' if stopped else 'PIT OUT', 'pit'
         else:
             notice, notice_kind = '', None
 
@@ -282,7 +283,7 @@ class DashModel:
         if pit:
             note, note_kind = 'PIT', 'pit'
         elif diff is not None:
-            note, note_kind = f'前周比 {fmt_signed(diff)}秒', 'slower' if diff > 0.005 else 'faster' if diff < -0.005 else 'even'
+            note, note_kind = f'前周比 {fmt_signed(diff)}s', 'slower' if diff > 0.005 else 'faster' if diff < -0.005 else 'even'
         else:
             note, note_kind = '', None
         utc = parse_utc(sample.get('gnss_utc')) or parse_utc(sample.get('host_utc'))

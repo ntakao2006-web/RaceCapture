@@ -129,7 +129,7 @@ class ModelTests(unittest.TestCase):
         s, _ = m.update(frame(lap), 0.0)
         self.assertEqual((s['lap_now'], s['last'], s['best'], s['lap_no'], s['elapsed'], s['clock']),
                          ('1:12.3', '1:52.34', '1:51.12', '23', '0:36:15', '11:16'))
-        self.assertEqual((s['last_note'], s['last_note_kind']), ('前周比 +0.41秒', 'slower'))
+        self.assertEqual((s['last_note'], s['last_note_kind']), ('前周比 +0.41s', 'slower'))
         self.assertEqual((s['notice'], s['notice_kind']), ('', None))
         self.assertTrue(s['rec'] and s['gnss'] and s['oil_sensor'] and not s['stale'])
         self.assertEqual((s['video'], s['video_kind']), ('', None))  # an EcoCapture without the video summary
@@ -168,10 +168,10 @@ class ModelTests(unittest.TestCase):
         self.assertEqual((s['delta'], s['delta_kind'], s['notice']), ('+41.5', 'slower', ''))
         in_box = moving(LapStartPit=True, LastLapPit=True); in_box['sample']['values']['GPSSpeed'] = 0.0
         s, _ = m.update(in_box, 0.1)  # stopped in the box, past the line
-        self.assertEqual((s['delta'], s['notice'], s['notice_kind']), ('--', 'ピットイン', 'pit'))
+        self.assertEqual((s['delta'], s['notice'], s['notice_kind']), ('--', 'PIT IN', 'pit'))
         s, _ = m.update(moving(LapStartPit=True, LastLapPit=True), 0.2)  # the out lap
         self.assertEqual((s['delta'], s['delta_kind'], s['delta_frac'], s['notice'], s['notice_kind']),
-                         ('--', None, None, 'ピットアウト', 'pit'))
+                         ('--', None, None, 'PIT OUT', 'pit'))
         self.assertEqual((s['last_note'], s['last_note_kind'], s['warn_level']), ('PIT', 'pit', 0))
         stopped = moving(); stopped['sample']['values']['GPSSpeed'] = 3.0
         s, _ = m.update(stopped, 0.3)  # stopped on the in lap (a box before the line): nothing known yet
@@ -182,10 +182,10 @@ class ModelTests(unittest.TestCase):
         out_lap = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapStartPit': True, 'LastLapPit': True}
         for k in range(12):
             s, _ = m.update(frame(out_lap, oil=122), k * 0.1)
-        self.assertEqual((s['notice'], s['notice_kind']), ('クーリング　油温 122℃', 'cool'))
+        self.assertEqual((s['notice'], s['notice_kind']), ('COOLING　油温 122℃', 'cool'))
         for k in range(12):
             s, _ = m.update(frame(out_lap, oil=96, water=121), 2.0 + k * 0.1)
-        self.assertEqual((s['notice'], s['notice_kind']), ('ピットイン　水温 121℃', 'pitin'))
+        self.assertEqual((s['notice'], s['notice_kind']), ('PIT IN　水温 121℃', 'pitin'))
 
     def test_no_warning_from_values_of_a_dead_link(self):
         m = DashModel(config())
