@@ -95,6 +95,14 @@ input[type=text] { font: inherit; padding: 6px 8px; border: 1px solid var(--line
   </div>
 
   <div class="panel">
+    <h2>SDカード（シールドのSD・PCのカードリーダーで）</h2>
+    <div class="sub">STM32が走行の生データ（EL000001.BIN …、1本1MB）を書くカードです。抜くときはロガーの電源を切ってから（記録中に抜くと最後の1秒ほどが欠けます）。
+      回収済みかは中身で見るので、カードを空にして番号が EL000001 から付け直されても取り違えません。</div>
+    <div class="row" style="margin-top:8px"><button id="sd-find">カードを探す</button></div>
+    <div id="sd-cards" class="sub" style="margin-top:8px">—</div>
+  </div>
+
+  <div class="panel">
     <h2>控え（PCが壊れたとき用のもう1部）</h2>
     <div class="row">
       <input type="text" id="backup" placeholder="例 E:\EcoLoggerVideo　または ssh:ecorun-home:/srv/ecologger-video">
@@ -139,16 +147,16 @@ function tiles(s) {
   const d = s.device, t = [];
   if (d) {
     const m = d.minutes_left;
-    t.push(['本体の空き', gb(d.free), '録画は2GBを切ると消すか止まる']);
-    t.push(['あと録れる時間', hm(m * 60), '消してよい動画の分も含む']);
+    t.push(['本体の空き', gb(d.free), '1GBを切ると古いものから消す']);
+    t.push(['直近を残せる時間', hm(m * 60), '古い動画・走行記録を消して録り続ける']);
     t.push(['録画', d.recording ? '録画中' : '止まっている', d.recording ? d.recording_file : (d.current_session ? `今の走行 ${d.current_session}` : 'カメラ未接続など')]);
-    t.push(['走行記録（本体）', gb(d.logs_bytes), `${d.logs_files} 本。Collect-Logs.cmd で回収`]);
+    t.push(['走行記録（本体）', gb(d.logs_bytes), `${d.logs_files} 本・回収済み ${d.logs_collected} 本。Collect-Logs.cmd で回収`]);
   }
   t.push(['PCの空き', gb(s.pc.free), s.pc.root]);
   $('tiles').innerHTML = t.map(([k, v, n]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="n">${esc(n)}</div></div>`).join('');
   let b = '';
   if (s.error) b = `<div class="banner bad">${esc(s.error)}</div>`;
-  else if (d && d.minutes_left < 130) b = `<div class="banner warn">あと約${d.minutes_left}分しか録れません。2時間を超える走行の前に、回収して本体から消すか、走行記録を回収して本体を空けてください。</div>`;
+  else if (d && d.minutes_left < 130) b = `<div class="banner warn">直近の約${d.minutes_left}分しか残せません。保護した走行が多いか、本体の空きが少なくなっています。2時間を超える走行の前に、保護をやめるか回収して本体から消してください。</div>`;
   $('banner').innerHTML = b;
 }
 
@@ -175,6 +183,28 @@ function sessionHtml(g, busy) {
   </div>`;
 }
 
+function sdHtml(c, checked, busy) {
+  const ok = !c.problem;
+  const ck = checked[c.drive];
+  const range = c.files ? `${c.first}〜${c.last}` : 'ロガーのファイルは無い';
+  const state = ck ? `回収済み ${ck.collected} 本・未回収 ${ck.uncollected} 本` + (ck.uncollected ? `（${ck.uncollected_first}〜${ck.uncollected_last}）` : '')
+    : '回収済みかはまだ確かめていない';
+  const canFormat = c.files === 0 || (ck && ck.uncollected === 0);  // 回収していないファイルがあるカードはフォーマットさせない
+  return `<div class="session">
+    <div class="row"><span class="title">${esc(c.drive)} ${esc(c.label || '（名前なし）')}</span>
+      ${ok ? chip('ロガーで使える形', 'ok') : chip('ロガーで使えない形', 'bad')} ${chip(c.fs || '形式不明')} ${c.removable ? chip('取り外せるドライブ') : ''}</div>
+    <div class="meta">容量 ${gb(c.total)}・空き ${gb(c.free)}・区切り ${c.cluster ? (c.cluster / 1024) + 'KB' : '?'}・${c.files} 本（${esc(range)}、${gb(c.bytes)}）</div>
+    ${c.problem ? `<div class="problems">${esc(c.problem)}。フォーマットするとロガーで使えます。</div>` : ''}
+    <div class="sub" style="margin-bottom:6px">${esc(state)}</div>
+    <div class="row">
+      <button data-sd-act="check" data-drive="${esc(c.drive)}" ${busy || !c.files ? 'disabled' : ''}>確かめる</button>
+      <button class="primary" data-sd-act="collect" data-drive="${esc(c.drive)}" ${busy || !c.files || (ck && !ck.uncollected) ? 'disabled' : ''}>未回収を回収する</button>
+      <button class="danger" data-sd-act="empty" data-drive="${esc(c.drive)}" ${busy || !c.files || (ck && ck.collected === 0) ? 'disabled' : ''}>回収済みを消して空にする</button>
+      <button class="danger" data-sd-act="format" data-drive="${esc(c.drive)}" ${busy || !c.removable || !canFormat ? 'disabled' : ''}>フォーマット</button>
+    </div>
+  </div>`;
+}
+
 function render(s) {
   last = s;
   const d = s.device, job = s.job, busy = !!(job && job.running);
@@ -193,6 +223,10 @@ function render(s) {
     del.map(r => `<tr style="${r.collected ? '' : 'color:var(--bad)'}"><td>${esc(r.utc)}</td><td>${esc(r.name)}</td><td>${gb(r.size)}</td>
       <td>${r.collected ? '回収済み' : '未回収'}</td><td>${esc({recorder: '録画', ecocapture: 'EcoCapture', pc: 'このアプリ'}[r.by] || r.by)}</td></tr>`).join('') + '</table>' : 'まだありません。';
   $('pc-root').textContent = `PCの保存先：${s.pc.root}`;
+  const cards = (s.sd && s.sd.cards) || [];
+  $('sd-cards').innerHTML = cards.length ? cards.map(c => sdHtml(c, s.sd.checked || {}, busy)).join('')
+    : 'SDカードが見つかりません。カードリーダーに挿して「カードを探す」を押してください。';
+  $('sd-find').disabled = busy;
   $('job').classList.toggle('hidden', !job);
   if (job) {
     $('job-name').textContent = job.name + (job.running ? '中' : '');
@@ -222,7 +256,7 @@ document.addEventListener('click', e => {
   }
   if (b.dataset.act === 'keep') {
     const on = b.dataset.on === '1';
-    if (!on || confirm('保護した走行は、回収するまで空きが足りなくなっても消しません。その分だけ録れる時間が減り、録画が止まることがあります。保護しますか？'))
+    if (!on || confirm('保護した走行（とその時間の走行記録）は、回収するまで空きが足りなくなっても消しません。その分だけ残せる時間が減り、保護したもので一杯になると録画が止まります。保護しますか？'))
       post('/api/keep', {session: id, on});
   }
   if (b.dataset.act === 'join') post('/api/join', {session: id});
@@ -237,6 +271,17 @@ $('delete-all').onclick = () => {
     post('/api/delete', {sessions: null});
 };
 $('cancel').onclick = () => post('/api/cancel');
+$('sd-find').onclick = () => post('/api/sd/find');
+document.addEventListener('click', e => {
+  const b = e.target.closest('button[data-sd-act]'); if (!b) return;
+  const drive = b.dataset.drive, act = b.dataset.sdAct;
+  const c = ((last && last.sd && last.sd.cards) || []).find(x => x.drive === drive);
+  if (act === 'check' || act === 'collect') return post(`/api/sd/${act}`, {drive});
+  if (act === 'empty' && confirm(`${drive} のSDカードから、PCの写しと中身が同じファイルを消します（1本ずつSHA-256で確かめます）。\n回収していないファイルは残します。よいですか？`))
+    return post('/api/sd/empty', {drive});
+  if (act === 'format' && confirm(`${drive}（${c ? (c.label || '名前なし') + '・' + gb(c.total) : ''}）をロガー用にフォーマットします。\nカードの中身はすべて消えます。違うドライブでないか確かめてください。\nこのあと管理者の確認（UAC）が出ます。よいですか？`))
+    return post('/api/sd/format', {drive});
+});
 $('backup-save').onclick = () => post('/api/settings', {backup: $('backup').value});
 $('backup-run').onclick = () => post('/api/backup');
 load();

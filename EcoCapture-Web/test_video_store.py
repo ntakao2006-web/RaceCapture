@@ -15,45 +15,51 @@ ZERO = '0' * 64
 
 
 def run_scenario(path, test):
-    boot, now = '', 0.0
+    boot, now, wall = '', 0.0, None
     with tempfile.TemporaryDirectory() as tmp:
-        d = Path(tmp)
+        v, lg = Path(tmp) / 'video', Path(tmp) / 'logs'
+        v.mkdir()
+        lg.mkdir()
         for raw in path.read_text(encoding='utf-8').splitlines():
             line = raw.split('#', 1)[0].strip()
             if not line:
                 continue
             cmd, _, rest = line.partition(' ')
             rest = rest.strip()
+            d = lg if cmd.startswith('log') and cmd != 'logged' else v
+            scan = lambda: vs.scan(v, boot, now, lg, wall)
             if cmd == 'boot':
                 boot = rest
             elif cmd == 'now':
                 now = float(rest)
-            elif cmd == 'recording':
+            elif cmd == 'wall':
+                wall = float(rest)
+            elif cmd in ('recording', 'logrecording'):
                 (d / '.recording').write_text(''.join(t + '\n' for t in rest.split()), encoding='utf-8')
-            elif cmd == 'file':
+            elif cmd in ('file', 'logfile'):
                 name, size, mtime = rest.split()
                 (d / name).write_bytes(b'x' * int(size))
                 os.utime(d / name, (int(mtime), int(mtime)))
-            elif cmd == 'ok':
+            elif cmd in ('ok', 'logok'):
                 name, size = rest.split()
                 (d / (name + '.ok')).write_text(f'{size} {ZERO} 2026-11-08T00:00:00Z\n', encoding='utf-8')
-            elif cmd == 'keep':
+            elif cmd in ('keep', 'logkeep'):
                 (d / (rest + '.keep')).write_bytes(b'')
             elif cmd == 'expect':
-                got = ' '.join(c.name for c in vs.scan(d, boot, now).deletion_order())
+                got = ' '.join(i.name for i in scan().deletion_order())
                 test.assertEqual(got, rest, f'{path.name}: 消す順')
             elif cmd == 'bytes':
-                test.assertEqual(vs.scan(d, boot, now).deletable_bytes(), int(rest), f'{path.name}: 消してよい大きさ')
+                test.assertEqual(scan().deletable_bytes(), int(rest), f'{path.name}: 消してよい大きさ')
             elif cmd == 'delete':
                 for _ in range(int(rest)):
-                    order = vs.scan(d, boot, now).deletion_order()
+                    order = scan().deletion_order()
                     if order:
-                        vs.delete(d, order[0], 'test', boot)
-            elif cmd == 'left':
-                got = ' '.join(sorted(n for n in os.listdir(d) if n != vs.LOG_NAME))
+                        vs.delete(v, order[0], 'test', boot, lg)
+            elif cmd in ('left', 'logsleft'):
+                got = ' '.join(sorted(n for n in os.listdir(d) if n != vs.LOG_NAME or d == lg))
                 test.assertEqual(got, rest, f'{path.name}: 残ったファイル')
             elif cmd == 'logged':
-                log = d / vs.LOG_NAME
+                log = v / vs.LOG_NAME
                 lines = log.read_text(encoding='utf-8').count('\n') if log.exists() else 0
                 test.assertEqual(lines, int(rest), f'{path.name}: 消した記録')
             else:
@@ -79,8 +85,8 @@ class VideoStoreTests(unittest.TestCase):
         mib = 1048576
         store = vs.Store({'a_01.ts': (770 * 10**6, 1)}, {}, 'B', 0)  # nothing recording: deletable
         per_min = 10e6 / 8 * 60 * vs.TS_OVERHEAD
-        self.assertAlmostEqual(store.minutes_left(2048 * mib + per_min * 5), 5 + 770e6 / per_min)
-        self.assertEqual(store.minutes_left(0, min_free_mb=2048 + 770), 0)
+        self.assertAlmostEqual(store.minutes_left(1024 * mib + per_min * 5), 5 + 770e6 / per_min)
+        self.assertEqual(store.minutes_left(0, min_free_mb=1024 + 770), 0)
         rec = '.recording'
         store = vs.Store({'20261108_130205_01.ts': (100, 1)},
                          {rec: 'boot_id=B\nsession=20261108_130205\nfile=20261108_130205_01.ts\nbt=99\nmbps=5\nmin_free_mb=1\n'},
@@ -106,6 +112,25 @@ class VideoStoreTests(unittest.TestCase):
                              [('ecocapture', '20261108_090000_01.ts', 10, False, 'B'),
                               ('ecocapture', '20261108_090000_02.ts', 10, False, 'B')])
 
+
+    def test_deleting_a_log_takes_all_its_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            v, lg, j = root / 'video', root / 'logs', root / 'sd-journals'
+            for d in (v, lg, j):
+                d.mkdir()
+            name = 'LOG_20261101T000000Z_0123abcd.csv'
+            for part in ('', '.meta.json', '.can.jsonl', '.sd-journal.jsonl', '.ok', '.keep'):
+                (lg / (name + part)).write_bytes(b'x')
+                os.utime(lg / (name + part), (1000, 1000))
+            (j / (name + '.timestamps.jsonl')).write_bytes(b'x')
+            store = vs.scan(v, 'B', 100, now_wall=10000)
+            self.assertEqual([(i.kind, i.name, i.size) for i in store.items], [('log', name, 4)])
+            self.assertEqual(store.deletion_order(), [])  # protected and the marker is not for this size
+            vs.delete(v, store.logs[0], 'ecocapture', 'B')
+            self.assertEqual(os.listdir(lg) + os.listdir(j), [])
+            rows = vs.parse_log((v / vs.LOG_NAME).read_text(encoding='utf-8'))
+            self.assertEqual([(r['kind'], r['name'], r['size'], r['by']) for r in rows], [('log', name, 4, 'ecocapture')])
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

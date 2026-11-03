@@ -69,7 +69,7 @@ class CollectTests(unittest.TestCase):
         (self.data / 'logs').mkdir(parents=True)
         self.video.mkdir()
         (base / 'boot_id').write_text(BOOT + '\n')
-        (self.data / 'logs' / 'LOG_20261108T040000Z_abcd.csv').write_bytes(b'x' * 100)
+        (self.data / 'logs' / 'LOG_20261108T040000Z_0000abcd.csv').write_bytes(b'x' * 100)  # 書いたばかり：消さない
         t0 = 1793750400  # 2026-11-03T00:00:00Z ごろ
         files = {
             # 前の起動の走行（2章）
@@ -111,8 +111,8 @@ class CollectTests(unittest.TestCase):
         self.assertEqual([c['state'] for c in current['chapters']], ['current', 'recording'])
         self.assertEqual(groups[1]['seconds'], 900)
         self.assertEqual(st.deleted[0]['name'], '20261101_090000_01.ts')
-        self.assertEqual(sum(s for s, _ in st.logs.values()), 100)
-        self.assertEqual(st.store.deletable_bytes(), 1000 + 500 + 300 + 200)
+        self.assertEqual([(g.name, g.size, g.active) for g in st.store.logs], [('LOG_20261108T040000Z_0000abcd.csv', 100, True)])
+        self.assertEqual(st.store.deletable_bytes(), 1000 + 500 + 300 + 200 + 800)  # 今の走行の古い章も（ドラレコと同じ）
 
     def test_collect_verifies_marks_and_skips_the_file_being_written(self):
         job = vc.Job('test')
@@ -168,9 +168,24 @@ class CollectTests(unittest.TestCase):
         self.assertTrue((self.video / '20261030_175847.keep').exists() and (self.video / '20261030_180849.keep').exists())
         st = self.state()
         self.assertTrue(vc.describe(st, self.pc)[0]['kept'])
-        self.assertEqual(st.store.deletable_bytes(), 1000 + 500)
+        self.assertEqual(st.store.deletable_bytes(), 1000 + 500 + 800)
         vc.set_keep(self.link, legacy['members'], False)
         self.assertFalse(list(self.video.glob('*.keep')))
+
+    def test_keep_protects_the_logs_of_that_time(self):
+        logs = self.data / 'logs'
+        during, later = 'LOG_20261104T000500Z_0000000a.csv', 'LOG_20261104T020000Z_0000000b.csv'
+        for name, mtime in ((during, 1793750400 + 800), (later, 1793750400 + 9000)):
+            (logs / name).write_bytes(b'y' * 50)
+            os.utime(logs / name, (mtime, mtime))
+        group = next(g for g in vc.describe(self.state(), self.pc) if g['id'] == '20261107_090000')
+        self.assertEqual(group['logs'], [during])
+        vc.set_keep(self.link, group['members'], True, group['logs'])
+        st = self.state()
+        self.assertEqual({g.name: g.kept for g in st.store.logs}, {during: True, later: False, 'LOG_20261108T040000Z_0000abcd.csv': False})
+        self.assertNotIn(during, [i.name for i in st.store.deletion_order()])
+        vc.set_keep(self.link, group['members'], False, group['logs'])
+        self.assertFalse(list(logs.glob('*.keep')))
 
     def test_join_keeps_bytes_and_shifts_the_csv(self):
         folder = self.out / 'S'

@@ -25,10 +25,11 @@
 //   置き場には、録画の今の状態 .recording（起動の番号・走行・書いているファイル・起動からの秒。5秒ごとに書き直す）と、
 //   走行ごとの <走行>.session を書く。EcoCaptureとPCの回収アプリはこれで書いている途中のファイルと今の走行を見分ける
 //   ビットレートはOVERLAY_BITRATE_MBPS（既定10。1分で約77MB、空き約13GBで約2時間45分。12だと約2時間19分。手順書5-13）
-//   空きがOVERLAY_MIN_FREE_MB（既定2048）を切ったら、video_store.h の順に消して空ける：①回収済み（PCの回収アプリが中身を
-//   確かめた印のあるもの）を古い順 ②回収していない、ほかの走行の、保護していないものを古い順。書いているファイル・今の走行・
-//   保護した走行の未回収は消さず、それでも足りなければ記録を止めて終わる（終了コード3）。消したものは deleted.log に書く。
-//   EcoCaptureは空きが1GiBを切ると同じ順で動画を消し、次に古い走行記録から消すので、録画はそれより手前で止め、走行記録が伸びる分を残す（手順書5-13・5-17）
+//   空きがOVERLAY_MIN_FREE_MB（既定1024）を切ったら、ドラレコと同じく video_store.h の順に動画と走行記録（置き場の隣の logs/、
+//   OVERLAY_LOGS_DIR で変えられる）をまとめて消して空ける：①回収済み（PCで中身を確かめた印のあるもの）を古い順 ②ほかを古い順
+//   （今の走行の古い章も）。書いているファイル・EcoCaptureが記録中の走行記録・保護して回収していないものは消さず、
+//   消せるものが無くなったときだけ記録を止めて終わる（終了コード3）。消したものは deleted.log に書く。
+//   EcoCaptureも空きが1GiBを切ると同じ順で消す。走行記録はシールドのSDにも残る（手順書5-13・5-17・5-18）
 //   SIGINT/SIGTERMで止めると、エンコーダに残った分を書き出してから終わる
 //   OVERLAY_OUT=720 のときは1280x720で保存する（既定は1920x1080。計器は同じ配置のまま縮む）
 //   OVERLAY_DEMO=1 のときは作り物の値で描く（見た目と警告の色の確認用。画面にDEMOと出る）。位置とラップは架空のコースを
@@ -429,7 +430,7 @@ static FILE *out, *csv;
 static const char *out_pat;
 static char out_name[512];
 static int ts_mode, seg_on, low_space, seg_frames, encoded, idr_count, header_inserted;
-static double seg_len = 600, seg_t0, min_free_mb = 2048, bitrate_mbps = 10;
+static double seg_len = 600, seg_t0, min_free_mb = 1024, bitrate_mbps = 10;
 static int64_t seg_us0;
 static size_t bytes;
 static uint8_t seq_hdr[256], cc_pat, cc_pmt, cc_vid;
@@ -437,7 +438,7 @@ static size_t seq_len;
 // エンコーダへ渡した時刻（µs）→ その枚のカメラの時刻（CLOCK_MONOTONIC）と、本体の時計でのUTC
 static struct { int64_t us; double mono, host; } stamps[64];
 // 走行（%の書式のとき）：置き場・名前の書式（拡張子を除く）と拡張子・今の走行の名前・章の番号・起動の番号
-static char vdir[512], name_pat[256], name_ext[16] = ".ts", sess[64], boot_id[64];
+static char vdir[512], ldir[600], name_pat[256], name_ext[16] = ".ts", sess[64], boot_id[64];  // ldir：走行記録の置き場
 static int chapter, sess_gnss, clock_announced;  // sess_gnss：走行の名前がGNSSの時刻か
 static double sess_mono, rec_written = -1e9;      // 走行の最初の枚の時刻（CLOCK_MONOTONIC。同じ起動なら別の録画とも比べられる）
 
@@ -656,7 +657,7 @@ static void emit(const uint8_t *p, size_t n, int64_t us) {
         if (!out || (seg_on && now() - seg_t0 >= seg_len)) seg_open(us);
         else { fflush(out); sync_file_range(fileno(out), 0, 0, SYNC_FILE_RANGE_WRITE); }  // 待たずに書き出しを始めさせる
         if (now() - rec_written >= 5) rec_state();
-        if (seg_on && free_mb() < min_free_mb) vs_make_room(vdir, min_free_mb, free_mb, "recorder", boot_id, vs_boottime());
+        if (seg_on && free_mb() < min_free_mb) vs_make_room(vdir, ldir, min_free_mb, free_mb, "recorder", boot_id, vs_boottime(), wall());
         if (free_mb() < min_free_mb) { low_space = 1; quit = 1; }
         int g; double host, u = frame_utc(us, &g, &host, NULL);
         if (csv) {
@@ -896,6 +897,8 @@ int main(int argc, char **argv) {
         snprintf(vdir, sizeof vdir, "%.*s", sl ? (int)(sl - out_pat) : 1, sl ? out_pat : ".");
         snprintf(name_pat, sizeof name_pat, "%s", sl ? sl + 1 : out_pat);
         char *dot = strrchr(name_pat, '.'); if (dot) { snprintf(name_ext, sizeof name_ext, "%s", dot); *dot = 0; }
+        if (getenv("OVERLAY_LOGS_DIR")) snprintf(ldir, sizeof ldir, "%s", getenv("OVERLAY_LOGS_DIR"));
+        else snprintf(ldir, sizeof ldir, "%s/../logs", vdir);
         vs_boot_id(boot_id, sizeof boot_id);
         sess_resume();
     }

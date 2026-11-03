@@ -1,11 +1,12 @@
-// video_store_test.c：video_store.h（空きが足りないときに消す動画とその順番）を testdata/video_store/ の場面で確かめる。
+// video_store_test.c：video_store.h（空きが足りないときに消す動画・走行記録とその順番）を testdata/video_store/ の場面で確かめる。
 //   同じ場面を EcoCapture-Web/test_video_store.py でも確かめ、録画とEcoCaptureが同じ順に消すことを見る（手順書5-17）
 // ビルド・実行（WSLか本体）: gcc -O2 -Wall -o video_store_test video_store_test.c -lm && ./video_store_test testdata/video_store
 //   場面のファイル（1行に1つ。#から後は説明）：
-//     boot <起動の番号>  now <起動からの秒>  recording <鍵=値 …>（.recording へ1行ずつ）
-//     file <名前> <大きさ> <更新時刻(秒)>（中身はx）  ok <章> <印に書く大きさ>  keep <走行>
-//     expect <消す順の章 …>  bytes <消してよい大きさの合計>
-//     delete <数>（その数だけ消す順の先頭を消す）  left <残ったファイル …（deleted.log以外、名前の順）>  logged <deleted.logの行数>
+//     boot <起動の番号>  now <起動からの秒>  wall <時計の秒（無ければ今）>  recording <鍵=値 …>（video/.recording へ1行ずつ）
+//     file <名前> <大きさ> <更新時刻(秒)>（video/へ。中身はx）  ok <章> <印に書く大きさ>  keep <走行>
+//     logrecording・logfile・logok・logkeep：同じものを logs/ へ（logkeep は走行記録の名前）
+//     expect <消す順 …>  bytes <消してよい大きさの合計>  delete <数>（その数だけ消す順の先頭を消す）
+//     left・logsleft <残ったファイル …（video/はdeleted.log以外、名前の順）>  logged <deleted.logの行数>
 #include <sys/time.h>
 #include "video_store.h"
 
@@ -27,36 +28,52 @@ static void join_dir(const char *dir, char *out, size_t n) {
     for (int i = 0; i < k; i++) { if (i) strncat(out, " ", n - strlen(out) - 1); strncat(out, names[i], n - strlen(out) - 1); free(names[i]); }
 }
 
+// 中身がxで大きさsize・更新時刻mtのファイルを作る
+static void make_file(const char *p, long long size, long long mt) {
+    FILE *o = fopen(p, "w");
+    for (long long i = 0; i < size; i++) fputc('x', o);
+    fclose(o);
+    struct timeval tv[2] = { { mt, 0 }, { mt, 0 } }; utimes(p, tv);
+}
+
+static void write_kv(const char *p, char *rest) {
+    FILE *o = fopen(p, "w");
+    for (char *t = strtok(rest, " "); t; t = strtok(NULL, " ")) fprintf(o, "%s\n", t);
+    fclose(o);
+}
+
+static void write_ok(const char *p, long long size) {
+    FILE *o = fopen(p, "w");
+    fprintf(o, "%lld 0000000000000000000000000000000000000000000000000000000000000000 2026-11-08T00:00:00Z\n", size); fclose(o);
+}
+
 static void run(const char *path, const char *name) {
     FILE *f = fopen(path, "r"); if (!f) { printf("NG %s: 開けない\n", name); fails++; return; }
     char dir[] = "/tmp/vs_test_XXXXXX"; if (!mkdtemp(dir)) { perror("mkdtemp"); exit(1); }
-    char boot[64] = "", line[2048], p[1024]; double now_bt = 0;
+    char vdir[64], ldir[64]; snprintf(vdir, sizeof vdir, "%s/video", dir); snprintf(ldir, sizeof ldir, "%s/logs", dir);
+    mkdir(vdir, 0755); mkdir(ldir, 0755);
+    char boot[64] = "", line[2048], p[1024]; double now_bt = 0, now_wall = (double)time(NULL);
     while (fgets(line, sizeof line, f)) {
         char *hash = strchr(line, '#'); if (hash) *hash = 0;
         vs_trim(line); if (!line[0]) continue;
         char cmd[32] = ""; int off = 0; sscanf(line, "%31s%n", cmd, &off);
         char *rest = line + off; while (*rest == ' ') rest++;
+        char fn[256] = ""; long long size = 0, mt = 0;
         if (!strcmp(cmd, "boot")) snprintf(boot, sizeof boot, "%s", rest);
         else if (!strcmp(cmd, "now")) now_bt = atof(rest);
-        else if (!strcmp(cmd, "recording")) {
-            snprintf(p, sizeof p, "%s/.recording", dir); FILE *o = fopen(p, "w");
-            for (char *t = strtok(rest, " "); t; t = strtok(NULL, " ")) fprintf(o, "%s\n", t);
-            fclose(o);
-        } else if (!strcmp(cmd, "file")) {
-            char fn[256]; long long size; long long mt;
+        else if (!strcmp(cmd, "wall")) now_wall = atof(rest);
+        else if (!strcmp(cmd, "recording") || !strcmp(cmd, "logrecording")) {
+            snprintf(p, sizeof p, "%s/.recording", cmd[0] == 'l' ? ldir : vdir); write_kv(p, rest);
+        } else if (!strcmp(cmd, "file") || !strcmp(cmd, "logfile")) {
             sscanf(rest, "%255s %lld %lld", fn, &size, &mt);
-            snprintf(p, sizeof p, "%s/%s", dir, fn); FILE *o = fopen(p, "w");
-            for (long long i = 0; i < size; i++) fputc('x', o);
-            fclose(o);
-            struct timeval tv[2] = { { mt, 0 }, { mt, 0 } }; utimes(p, tv);
-        } else if (!strcmp(cmd, "ok")) {
-            char fn[256]; long long size; sscanf(rest, "%255s %lld", fn, &size);
-            snprintf(p, sizeof p, "%s/%s.ok", dir, fn); FILE *o = fopen(p, "w");
-            fprintf(o, "%lld 0000000000000000000000000000000000000000000000000000000000000000 2026-11-08T00:00:00Z\n", size); fclose(o);
-        } else if (!strcmp(cmd, "keep")) {
-            snprintf(p, sizeof p, "%s/%s.keep", dir, rest); FILE *o = fopen(p, "w"); fclose(o);
+            snprintf(p, sizeof p, "%s/%s", cmd[0] == 'l' ? ldir : vdir, fn); make_file(p, size, mt);
+        } else if (!strcmp(cmd, "ok") || !strcmp(cmd, "logok")) {
+            sscanf(rest, "%255s %lld", fn, &size);
+            snprintf(p, sizeof p, "%s/%s.ok", cmd[0] == 'l' ? ldir : vdir, fn); write_ok(p, size);
+        } else if (!strcmp(cmd, "keep") || !strcmp(cmd, "logkeep")) {
+            snprintf(p, sizeof p, "%s/%s.keep", cmd[0] == 'l' ? ldir : vdir, rest); FILE *o = fopen(p, "w"); fclose(o);
         } else if (!strcmp(cmd, "expect") || !strcmp(cmd, "bytes")) {
-            struct vs_store s; vs_scan(dir, boot, now_bt, &s);
+            struct vs_store s; vs_scan(vdir, ldir, boot, now_bt, now_wall, &s);
             int *idx = malloc((s.n ? s.n : 1) * sizeof *idx), k = vs_order(&s, idx);
             if (!strcmp(cmd, "expect")) {
                 char got[4096] = "";
@@ -66,16 +83,16 @@ static void run(const char *path, const char *name) {
             free(idx); vs_free(&s);
         } else if (!strcmp(cmd, "delete")) {
             for (int i = 0; i < atoi(rest); i++) {
-                struct vs_store s; vs_scan(dir, boot, now_bt, &s);
+                struct vs_store s; vs_scan(vdir, ldir, boot, now_bt, now_wall, &s);
                 int *idx = malloc((s.n ? s.n : 1) * sizeof *idx), k = vs_order(&s, idx);
-                if (k) vs_delete(dir, &s.ch[idx[0]], "test", boot);
+                if (k) vs_delete(vdir, ldir, &s.ch[idx[0]], "test", boot);
                 free(idx); vs_free(&s);
             }
-        } else if (!strcmp(cmd, "left")) {
-            char got[8192]; join_dir(dir, got, sizeof got);
+        } else if (!strcmp(cmd, "left") || !strcmp(cmd, "logsleft")) {
+            char got[8192]; join_dir(cmd[0] == 'l' && cmd[1] == 'o' ? ldir : vdir, got, sizeof got);
             CHECK(!strcmp(got, rest), "残ったファイル 「%s」（正解「%s」）", got, rest);
         } else if (!strcmp(cmd, "logged")) {
-            snprintf(p, sizeof p, "%s/" VS_LOG, dir); FILE *o = fopen(p, "r"); int lines = 0, ch;
+            snprintf(p, sizeof p, "%s/" VS_LOG, vdir); FILE *o = fopen(p, "r"); int lines = 0, ch;
             if (o) { while ((ch = fgetc(o)) != EOF) lines += ch == '\n'; fclose(o); }
             CHECK(lines == atoi(rest), "消した記録 %d 行（正解 %s）", lines, rest);
         } else { printf("NG %s: 知らない行 %s\n", name, cmd); fails++; }
@@ -110,7 +127,7 @@ int main(int argc, char **argv) {
     }
     { char p[1024]; snprintf(p, sizeof p, "%s/.recording", dir2); FILE *o = fopen(p, "w");
       fprintf(o, "boot_id=%s\nsession=20261108_130205\nfile=20261108_130205_01.ts\nbt=%.3f\n", boot, bt); fclose(o); }
-    int removed = vs_make_room(dir2, 1, no_space, "recorder", boot, vs_boottime());
+    int removed = vs_make_room(dir2, NULL, 1, no_space, "recorder", boot, vs_boottime(), (double)time(NULL));
     char left[1024]; join_dir(dir2, left, sizeof left);
     CHECK(removed == 2 && !strcmp(left, ".recording 20261108_130205_01.ts"), "空き作り %d 件、残り「%s」", removed, left);
     { char c[1100]; snprintf(c, sizeof c, "rm -rf '%s'", dir2); if (system(c)) {} }

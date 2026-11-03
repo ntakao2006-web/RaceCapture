@@ -23,7 +23,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(len(list(self.s.LOGS.glob('LOG_*.csv'))),5)
         names=[p.name for p in sorted(self.s.LOGS.glob('LOG_*.csv'),key=lambda p:p.stat().st_mtime)]
         self.s.runtime.recorder.start(Configuration());current=self.s.runtime.recorder.name
-        space=iter([0,0,0,self.s.KEEP_FREE_BYTES])
+        space=iter([0,0,0,0,self.s.KEEP_FREE_BYTES])
         with patch.object(self.s.shutil,"disk_usage",side_effect=lambda _:type("Space",(),{"free":next(space,self.s.KEEP_FREE_BYTES)})()):
             self.assertGreaterEqual(self.s.runtime.recorder.make_room(),self.s.KEEP_FREE_BYTES)
         left={p.name for p in self.s.LOGS.glob('LOG_*.csv')}
@@ -34,11 +34,12 @@ class ServerTests(unittest.TestCase):
             self.s.runtime.recorder.make_room()
         self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},{current})
 
-    def test_emmc_retention_deletes_videos_in_the_recorders_order_before_logs(self):
+    def test_emmc_retention_deletes_videos_and_logs_together_oldest_first(self):
         for n in range(2):
             self.s.runtime.recorder.start(Configuration());self.s.runtime.recorder.stop()
             os.utime(self.s.LOGS/self.s.runtime.recorder.name,(500+n,500+n))
         logs={p.name for p in self.s.LOGS.glob('LOG_*.csv')}
+        old_logs=[p.name for p in sorted(self.s.LOGS.glob('LOG_*.csv'),key=lambda p:p.stat().st_mtime)]
         self.s.VIDEOS.mkdir()
         for n in range(3):
             for ext in ('.ts','.csv'):
@@ -46,7 +47,7 @@ class ServerTests(unittest.TestCase):
         (self.s.VIDEOS/'20261032_120000_01.ts.ok').write_text('1 '+'0'*64+' 2026-11-04T00:00:00Z\n')  # collected: first
         (self.s.VIDEOS/'20261031_120000.keep').write_bytes(b'')  # protected and uncollected: never
         recording=self.s.VIDEOS/'20261031_130000_02.ts';recording.write_bytes(b'x')
-        earlier=self.s.VIDEOS/'20261031_130000_01.ts';earlier.write_bytes(b'x')  # the session being recorded: never
+        earlier=self.s.VIDEOS/'20261031_130000_01.ts';earlier.write_bytes(b'x')  # the session being recorded: its old chapters go too
         (self.s.VIDEOS/'.recording').write_text('boot_id=B\nsession=20261031_130000\nfile=20261031_130000_02.ts\nbt=99\n')
         self.s.runtime.recorder.start(Configuration());current=self.s.runtime.recorder.name
         space=iter([0,0,self.s.KEEP_FREE_BYTES])
@@ -60,13 +61,37 @@ class ServerTests(unittest.TestCase):
                 self.s.runtime.recorder.make_room()
                 video=self.s.video_status()
         self.assertEqual({p.name for p in self.s.VIDEOS.iterdir()},
-                         {'20261031_120000_01.ts','20261031_120000_01.csv','20261031_120000.keep',recording.name,earlier.name,
+                         {'20261031_120000_01.ts','20261031_120000_01.csv','20261031_120000.keep',recording.name,
                           '.recording','deleted.log'})
-        self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},{current})
+        self.assertEqual({p.name for p in self.s.LOGS.glob('LOG_*.csv')},{current})  # the log being written stays
         self.assertEqual([(r['by'],r['name'],r['collected']) for r in self.s.video_store.parse_log((self.s.VIDEOS/'deleted.log').read_text())],
-                         [('ecocapture','20261032_120000_01.ts',True),('ecocapture','20261030_120000_01.ts',False)])
-        self.assertEqual((video['recording'],video['session'],video['minutes_left'],video['uncollected'],video['kept_sessions']),
-                         (True,'20261031_130000',0,2,1))
+                         [('ecocapture','20261032_120000_01.ts',True),('ecocapture',old_logs[0],False),('ecocapture',old_logs[1],False),
+                          ('ecocapture','20261030_120000_01.ts',False),('ecocapture',earlier.name,False)])
+        self.assertEqual((video['recording'],video['session'],video['minutes_left'],video['uncollected'],video['kept_sessions'],video['logs']),
+                         (True,'20261031_130000',0,1,1,1))
+
+    def test_the_log_being_written_is_named_for_the_recorder_and_a_checked_copy_is_marked(self):
+        import hashlib
+        self.connected()
+        name=self.client.post("/api/log/start", headers=self.headers).json()["name"]
+        state=self.s.video_store.parse_kv((self.s.LOGS/'.recording').read_text())
+        self.assertEqual((state['file'],state['boot_id']),(name,self.s.video_store.boot_id()))
+        self.s.runtime.recorder.append(self.sample())
+        self.assertEqual(self.client.post(f"/api/logs/{name}/collected",headers=self.headers,json={"sha256":"0"*64}).status_code,409)
+        self.client.post("/api/log/stop", headers=self.headers)
+        self.assertFalse((self.s.LOGS/'.recording').exists())
+        csv_path=self.s.LOGS/name;can=self.s.LOGS/(name+'.can.jsonl')
+        sha=hashlib.sha256(csv_path.read_bytes()).hexdigest();can_sha=hashlib.sha256(can.read_bytes()).hexdigest()
+        self.assertEqual(self.client.post(f"/api/logs/{name}/collected",headers=self.headers,json={"sha256":sha}).status_code,409)  # the CAN log too
+        self.assertEqual(self.client.post(f"/api/logs/{name}/collected",headers=self.headers,
+                                          json={"sha256":sha,"can_sha256":"1"*64}).status_code,409)
+        self.assertEqual(self.client.post(f"/api/logs/{name}/collected",json={"sha256":sha,"can_sha256":can_sha}).status_code,403)
+        self.assertEqual(self.client.post(f"/api/logs/{name}/collected",headers=self.headers,
+                                          json={"sha256":sha,"can_sha256":can_sha}).status_code,200)
+        mark=(self.s.LOGS/(name+'.ok')).read_text().split()
+        self.assertEqual(mark[:2],[str(csv_path.stat().st_size),sha])
+        store=self.s.video_store.scan(self.s.VIDEOS,now_wall=time.time()+600)
+        self.assertEqual([(g.name,g.collected) for g in store.logs],[(name,True)])
 
     def test_removed_sd_closes_backup_without_claiming_sd_saved(self):
         from unittest.mock import AsyncMock

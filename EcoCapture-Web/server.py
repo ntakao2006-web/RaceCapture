@@ -1,6 +1,7 @@
 """EcoLogger V2: STM32 Bridge -> local CSV + REST/WebSocket. No host-generated telemetry."""
 import asyncio
 import csv
+import hashlib
 import json
 import os
 import re
@@ -17,6 +18,7 @@ from urllib.parse import urlparse
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 from sd_storage import SDStorage
 from sd_timestamp import stamp_logs
 from models import CHANNELS, LAP_CHANNELS, Configuration, log_value, signal_columns, validate_sample
@@ -31,14 +33,15 @@ LOGS = ROOT / "logs"
 LOGS.mkdir(exist_ok=True)
 CONFIG_PATH = ROOT / "config.json"
 RESERVE_BYTES = 256 * 1024 * 1024
-# Dashcam-style retention: below this free space, delete onboard videos in the
-# recorder's order (video_store.py: collected ones first, then uncollected ones of
-# other sessions that are not protected; ~4.6 GB/h of video), then the oldest
-# finished logs (~0.3 GB/h and the primary data). Never the log or video being
-# written, nor the session being recorded. RESERVE_BYTES stays as the hard floor.
+# Dashcam-style retention: below this free space, delete onboard videos and drive
+# logs together in the recorder's order (video_store.py: collected ones first, then
+# the oldest; ~4.6 GB/h of video, ~0.3 GB/h of logs), so the most recent hours stay.
+# Never the log or video being written, nor anything protected and uncollected. The
+# drive logs are also on the shield's SD card. RESERVE_BYTES stays as the hard floor.
 KEEP_FREE_BYTES = int(os.environ.get("ECOCAPTURE_KEEP_FREE_BYTES", 1024 * 1024 * 1024))
 # Burned-in onboard video (tools/unoq_overlay_enc/overlay_rec.c): <session>_<NN>.ts + .csv,
-# with the recorder's state in .recording (unoq_video_check_procedure.md 5-17).
+# with the recorder's state in .recording (unoq_video_check_procedure.md 5-17). The log
+# being written is named in LOGS/.recording the same way, so the recorder leaves it alone.
 VIDEOS = ROOT / "video"
 LOG_BYTES_PER_MIN = 5e6  # measured 2026-11-03: about 0.3 GB/h of CSV and CAN log while recording
 PUBLIC_DIR=ROOT/'public'
@@ -60,7 +63,9 @@ def video_status(logging_active=False):
             "minutes_left": round(store.minutes_left(free, other_bytes_per_min=LOG_BYTES_PER_MIN if logging_active else 0)),
             "chapters": len(store.chapters), "uncollected": len(uncollected),
             "uncollected_bytes": sum(c.size for c in uncollected),
-            "kept_sessions": len({c.session for c in store.chapters if c.kept})}]
+            "kept_sessions": len({c.session for c in store.chapters if c.kept}),
+            "logs": len(store.logs), "logs_bytes": sum(g.size for g in store.logs),
+            "logs_uncollected": sum(1 for g in store.logs if not g.collected and not g.active)}]
     return _video_cache[1]
 
 
@@ -86,6 +91,18 @@ class Recorder:
         self.error = None
         self.last_sync = 0
         self.last_check = 0
+        self.last_state = 0
+
+    def write_state(self):
+        """LOGS/.recording: the log being written, for the recorder and the collector (video_store.py)."""
+        if not self.file:
+            return
+        temp = LOGS / '.recording.tmp'
+        with suppress(OSError):
+            temp.write_text(f'boot_id={video_store.boot_id()}\nfile={self.name}\nbt={video_store.boottime():.3f}\n',
+                            encoding='utf-8')
+            temp.replace(LOGS / '.recording')
+        self.last_state = time.monotonic()
 
     def start(self, config):
         if self.file:
@@ -116,6 +133,7 @@ class Recorder:
         self.writer.writerow([*base, *(name if name not in base else "CAN_" + name for name in self.can_columns)])
         self.last_sync = time.monotonic()
         self.last_check = 0
+        self.write_state()
 
     def append(self, sample):
         if not self.file:
@@ -124,6 +142,8 @@ class Recorder:
         try:
             if now - self.last_check >= 1:
                 self.last_check = now
+                if now - self.last_state >= 5:
+                    self.write_state()
                 if self.make_room() < RESERVE_BYTES:
                     raise OSError("Storage reserve reached (256 MiB)")
             self.writer.writerow([1, int(sample["demo"]), sample["source"], sample["host_utc"], sample["seq"], sample["mcu_ms"],
@@ -145,6 +165,8 @@ class Recorder:
         if self.can_file:
             self.can_file.flush();os.fsync(self.can_file.fileno());self.can_file.close();self.can_file=None
         file, self.file = self.file, None
+        with suppress(OSError):
+            (LOGS / '.recording').unlink()
         try:
             file.flush()
             os.fsync(file.fileno())
@@ -165,18 +187,14 @@ class Recorder:
     def make_room(self):
         free=shutil.disk_usage(ROOT).free
         if free>=KEEP_FREE_BYTES:return free
-        if video_store.make_room(VIDEOS,KEEP_FREE_BYTES,lambda:shutil.disk_usage(ROOT).free,'ecocapture'):
-            free=shutil.disk_usage(ROOT).free
-        closed=sorted((p for p in LOGS.glob('LOG_*.csv') if not (self.file and p.name==self.name)),key=lambda p:p.stat().st_mtime)
-        for path in closed:
-            if free>=KEEP_FREE_BYTES:break
-            self.delete_log(path)
+        if self.file:self.write_state()  # the recorder must see this log as being written
+        if video_store.make_room(VIDEOS,KEEP_FREE_BYTES,lambda:shutil.disk_usage(ROOT).free,'ecocapture',logs=LOGS):
             free=shutil.disk_usage(ROOT).free
         return free
 
     def delete_log(self,path):
         # A file that cannot be removed must not stop the recording in progress.
-        targets=[path.with_name(path.name+suffix) for suffix in ('','.meta.json','.can.jsonl','.sd-journal.jsonl')]
+        targets=[path.with_name(path.name+suffix) for suffix in ('','.meta.json','.can.jsonl','.sd-journal.jsonl','.ok','.keep')]
         for target in targets+[ROOT/'sd-journals'/(path.name+'.timestamps.jsonl')]:
             with suppress(OSError):
                 if target.is_file() and not target.is_symlink():target.unlink()
@@ -731,8 +749,11 @@ def list_logs():
     result = []
     for path in sorted(LOGS.glob("*.csv"), reverse=True):
         stat = path.stat()
+        mark = path.with_name(path.name + ".ok")
+        collected = mark.is_file() and mark.read_text(encoding="utf-8", errors="replace").split()[:1] == [str(stat.st_size)]
         result.append({"name": path.name, "size": stat.st_size, "modified_utc": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
-                       "active": runtime.recorder.file is not None and path.name == runtime.recorder.name, "demo": path.name.startswith("DEMO_")})
+                       "active": runtime.recorder.file is not None and path.name == runtime.recorder.name, "demo": path.name.startswith("DEMO_"),
+                       "collected": collected})
     return result
 
 
@@ -757,6 +778,38 @@ async def delete_log(name: str):
         raise HTTPException(409, "記録中のログは削除できません")
     runtime.recorder.delete_log(path)  # with its metadata, CAN log and SD journal
     return {"deleted": name}
+
+
+class Collected(BaseModel):
+    sha256: str
+    can_sha256: str | None = None
+
+
+def file_sha256(path):
+    h = hashlib.sha256()
+    with path.open('rb') as f:
+        while chunk := f.read(8 << 20):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+@app.post("/api/logs/{name}/collected")
+async def log_collected(name: str, body: Collected):
+    """Collect-Logs.cmd copied this log: mark it collected (LOG_….csv.ok) when the copy matches, so it is
+    deleted first when space is low (video_store.py). The CAN log must match too when there is one."""
+    path = log_path(name)
+    if runtime.recorder.file and name == runtime.recorder.name:
+        raise HTTPException(409, "記録中のログには印を付けられません")
+    can = path.with_name(path.name + ".can.jsonl")
+    got, got_can = await asyncio.to_thread(lambda: (file_sha256(path), file_sha256(can) if can.is_file() else None))
+    if got != body.sha256.lower() or got_can != (body.can_sha256.lower() if body.can_sha256 else None):
+        raise HTTPException(409, "PCの写しと中身が違います")
+    size, can_size = path.stat().st_size, can.stat().st_size if can.is_file() else 0
+    utc = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    temp = path.with_name(path.name + ".ok.tmp")
+    temp.write_text(f"{size} {got} {can_size} {got_can or '-'} {utc}\n", encoding="utf-8")
+    temp.replace(path.with_name(path.name + ".ok"))
+    return {"collected": name, "size": size}
 
 
 @app.websocket("/ws")

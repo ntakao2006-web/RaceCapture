@@ -11,6 +11,8 @@
   - 保存先は drive_logs/v2_video/<走行>/（章の .ts・.csv と、続けて再生する <走行>.m3u8）。一覧は index.json
   - 「1本につなげる」：章を画質を落とさずに1つの .ts へ（時刻の .csv もつなげる）
   - 控え：別のフォルダ（外付けのディスク等）か ssh:<ホスト>:<フォルダ>（家の5B等）へもう1部写し、SHA-256で確かめる
+  - 本体の走行記録（logs/）も、動画と一緒に古い順に消える側として数え、走行を保護するとその時間の走行記録も保護する
+  - SDカード（シールドのSD、PCのカードリーダーに挿す）：確かめる・回収・空にする・フォーマット（sd_card.py）
 
   python video_collect.py                  # 画面を開く
   python video_collect.py --collect-all    # 画面なしで未回収をすべて吸い出す（Collect-Logs.cmd から使う）
@@ -38,6 +40,7 @@ sys.path.insert(0, str(REPO / 'EcoCapture-Web'))
 sys.path.insert(0, str(REPO / 'tools' / 'collect_logs'))
 import video_store as vs  # noqa: E402
 from collect_logs import find_adb, load_manifest, save_manifest  # noqa: E402
+import sd_card  # noqa: E402
 
 DATA_DIR = '/home/arduino/ecocapture-v2-data'
 JST = timezone(timedelta(hours=9))
@@ -51,7 +54,10 @@ echo "BOOT|$(cat "$BOOTF" 2>/dev/null)"
 echo "UP|$(cut -d' ' -f1 /proc/uptime)"
 echo "NOW|$(date +%s)"
 echo "FREE|$(df -B1 --output=avail "$D/.." 2>/dev/null | tail -1 | tr -d ' ')"
-if cd "$LOGS" 2>/dev/null; then for f in LOG_*; do [ -f "$f" ] && stat -c 'G|%n|%s|%Y' "$f"; done; fi
+if cd "$LOGS" 2>/dev/null; then
+  for f in LOG_* DEMO_*; do [ -f "$f" ] && [ ! -L "$f" ] && stat -c 'G|%n|%s|%.9Y' "$f"; done
+  for f in .recording LOG_*.csv.ok DEMO_*.csv.ok; do [ -f "$f" ] && [ ! -L "$f" ] && { echo "U|$f"; head -c 4096 "$f" | sed 's/^/|/'; echo; }; done
+fi
 cd "$D" 2>/dev/null || exit 0
 echo "DIR|"
 for f in * .recording; do [ -f "$f" ] && [ ! -L "$f" ] && stat -c 'F|%n|%s|%.9Y' "$f"; done
@@ -176,11 +182,12 @@ class DeviceState:
         self.boot = self.uptime = ''
         self.free = self.now = 0
         self.has_dir = False
-        entries, texts, self.csv, self.logs, self.deleted, self.sizes = {}, {}, {}, {}, [], {}
+        entries, texts, self.csv, self.deleted, self.sizes = {}, {}, {}, [], {}
+        log_entries, log_texts = {}, {}
         current = None
         for line in text.splitlines():
             if current is not None and line.startswith('|'):
-                texts[current] += line[1:] + '\n'
+                current[0][current[1]] += line[1:] + '\n'
                 continue
             current = None
             tag, _, rest = line.partition('|')
@@ -198,9 +205,9 @@ class DeviceState:
                 name, size, mtime = rest.rsplit('|', 2)
                 entries[name] = (int(size), int(round(float(mtime) * 1e9)))
                 self.sizes[name] = int(size)
-            elif tag == 'T':
-                current = rest
-                texts[current] = ''
+            elif tag in ('T', 'U'):
+                current = (texts if tag == 'T' else log_texts, rest)
+                current[0][rest] = ''
             elif tag == 'C':
                 name, first, last = rest.split('|', 2)
                 f, l = first.split(','), last.split(',')
@@ -208,10 +215,10 @@ class DeviceState:
                                        parse_utc(l[2]) if len(l) > 2 else None)
             elif tag == 'G':
                 name, size, mtime = rest.rsplit('|', 2)
-                self.logs[name] = (int(size), int(mtime))
+                log_entries[name] = (int(size), int(round(float(mtime) * 1e9)))
             elif tag == 'L':
                 self.deleted.extend(vs.parse_log(rest))
-        self.store = vs.Store(entries, texts, self.boot, self.uptime or 0)
+        self.store = vs.Store(entries, texts, self.boot, self.uptime or 0, log_entries, log_texts, self.now or None)
         self.chapters = {c.name: c for c in self.store.chapters}
         self.markers = {}
         for name, body in texts.items():
@@ -332,6 +339,18 @@ def group_sessions(state):
     return groups
 
 
+def log_start(name):
+    m = re.match(r'^(?:LOG|DEMO)_(\d{8}T\d{6})Z_', name)
+    return datetime.strptime(m.group(1), '%Y%m%dT%H%M%S').replace(tzinfo=timezone.utc).timestamp() if m else None
+
+
+def logs_during(state, start, end):
+    """その時間に記録していた走行記録の名前（保護するときに一緒に保護する）"""
+    if start is None or end is None:
+        return []
+    return [g.name for g in state.store.logs if log_start(g.name) is not None and log_start(g.name) <= end and g.mtime >= start]
+
+
 def describe(state, pc):
     """画面に出す一覧"""
     out = []
@@ -363,6 +382,7 @@ def describe(state, pc):
             'title': f'{fmt_jst(first[0])}〜{fmt_jst(last[2], False)}', 'clock': first[1],
             'seconds': sum(ch['seconds'] or 0 for ch in chapters), 'bytes': total, 'counts': counts,
             'kept': any(c.kept for c in g['chapters']), 'current': any(c.current for c in g['chapters']),
+            'logs': logs_during(state, first[0], last[2]),
             'chapters': chapters,
             'missing': [{'number': n, 'deleted': any(re.fullmatch(re.escape(g['id']) + rf'_0*{n}\.ts', d) for d in deleted)}
                         for n in missing],
@@ -550,8 +570,10 @@ def delete_on_device(link, state, pc, group_ids, job):
     return len(removed)
 
 
-def set_keep(link, members, on):
+def set_keep(link, members, on, logs=()):
+    """走行（とその時間の走行記録）を保護する・やめる"""
     cmds = ['cd "$D" || exit 1'] + [(f': > {q(s + ".keep")}' if on else f'rm -f -- {q(s + ".keep")}') for s in members]
+    cmds += [(f': > "$LOGS"/{q(n + ".keep")}' if on else f'rm -f -- "$LOGS"/{q(n + ".keep")}') for n in logs]
     link.run('\n'.join(cmds) + '\n', timeout=30)
 
 
@@ -680,8 +702,9 @@ def backup(pc, job):
 
 # ---------------------------------------------------------------- 画面（127.0.0.1だけ）
 class App:
-    def __init__(self, pc, ssh_host='unoq', link=None):
-        self.pc, self.ssh_host = pc, ssh_host
+    def __init__(self, pc, ssh_host='unoq', link=None, sd_drives=None):
+        self.pc, self.ssh_host, self.sd_drives = pc, ssh_host, sd_drives
+        self.sd = {'cards': [], 'checked': {}}  # PCに挿したSDカード、確かめた結果
         self.link, self.state, self.error, self.job, self.listed_at = link, None, '', None, 0
         self.lock = threading.Lock()
 
@@ -703,13 +726,33 @@ class App:
             if st:
                 device = {'link': self.link.label(), 'kind': self.link.kind, 'free': st.free, 'minutes_left': round(st.minutes_left()),
                           'recording': st.store.alive, 'recording_file': st.store.active_file, 'current_session': st.store.current_session,
-                          'logs_bytes': sum(s for s, _ in st.logs.values()), 'logs_files': sum(1 for n in st.logs if n.endswith('.csv')),
+                          'logs_bytes': sum(g.size for g in st.store.logs), 'logs_files': len(st.store.logs),
+                          'logs_collected': sum(1 for g in st.store.logs if g.collected), 'logs_recording': st.store.active_log,
                           'deleted': list(reversed(st.deleted))[:100], 'has_dir': st.has_dir}
             return {'device': device, 'error': self.error, 'sessions': describe(st, pc) if st else [],
                     'pc': {'root': str(pc.root), 'free': free_pc, 'backup': pc.settings.get('backup', ''),
                            'not_backed_up': sum(1 for e in pc.index.values() if pc.settings.get('backup') and
                                                 pc.settings['backup'] not in e.get('backup', {}))},
-                    'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at}
+                    'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at, 'sd': self.sd}
+
+    def find_sd(self):
+        self.sd['cards'] = sd_card.find_cards(self.sd_drives)
+        drives = {c['drive'] for c in self.sd['cards']}
+        self.sd['checked'] = {d: r for d, r in self.sd['checked'].items() if d in drives}
+
+    def sd_job(self, name, drive, fn):
+        """SDの作業。終わったらカードを探し直し、確かめ直す"""
+        def work(job):
+            try:
+                fn(job)
+            finally:
+                if Path(drive.rstrip('\\') + '\\').exists():
+                    job.total = job.done = 0
+                    self.sd['checked'][drive] = sd_card.check(drive, self.pc.root.parent, job)
+                self.find_sd()
+        if drive not in {c['drive'] for c in self.sd['cards']}:
+            raise RuntimeError('そのSDカードが見つからない（「カードを探す」を押す）')
+        self.start(name, work)
 
     def start(self, name, fn):
         with self.lock:
@@ -753,7 +796,7 @@ class App:
             link, state = self.need_device()
             g = next(s for s in describe(state, self.pc) if s['id'] == body['session'])
             with self.lock:
-                set_keep(link, g['members'], bool(body.get('on')))
+                set_keep(link, g['members'], bool(body.get('on')), g['logs'])
                 self.refresh()
         elif path == '/api/join':
             self.start('1本につなげる', lambda job: join_session(self.pc, body['session'], job))
@@ -766,6 +809,16 @@ class App:
         elif path == '/api/cancel':
             if self.job:
                 self.job.cancel = True
+        elif path == '/api/sd/find':
+            self.find_sd()
+        elif path == '/api/sd/check':
+            self.sd_job('SDを確かめる', body['drive'], lambda job: None)
+        elif path == '/api/sd/collect':
+            self.sd_job('SDから回収', body['drive'], lambda job: sd_card.collect(body['drive'], self.pc.root.parent, job))
+        elif path == '/api/sd/empty':
+            self.sd_job('SDを空にする', body['drive'], lambda job: sd_card.empty(body['drive'], self.pc.root.parent, job))
+        elif path == '/api/sd/format':
+            self.sd_job('SDをフォーマット', body['drive'], lambda job: sd_card.format_card(body['drive'], self.pc.root.parent, job))
         elif path == '/api/open':
             folder = self.pc.root / body.get('session', '')
             folder = folder if folder.is_dir() else self.pc.root
@@ -866,6 +919,7 @@ def main(argv=None):
     app = App(PcStore(args.out), args.ssh or None)
     print('本体を探しています…')
     app.refresh()
+    app.find_sd()
     print(app.error or f'見つかった: {app.link.label()}')
     serve(app, args.port, not args.no_browser)
     return 0

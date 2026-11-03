@@ -2,9 +2,12 @@
 
 集めるもの（どれも元のファイルは消さない・書き換えない）:
   - Ver.1（ESP32-S3）のSDカード: logs フォルダの CSV・_can.csv・.meta.json・.end.json
-  - Ver.2（UNO Q）のシールドSDカード: ELxxxxxx.BIN（CSVへ変換も行う）
+  - Ver.2（UNO Q）のシールドSDカード: ELxxxxxx.BIN（CSVへ変換も行う）。回収済みかは中身（先頭64KiBのSHA-256）で見る
+    （カードを空にするとSTM32は EL000001 から付け直し、どれも1MBなので、名前と大きさでは前のファイルと取り違えるため。
+    一覧は drive_logs/v2_sd_index.json）
   - Ver.2 本体（eMMC）: WebのAPIからCSV・メタデータ・CAN生ログ。USB（adb転送）か、
-    同じWi-Fi（テザリング）上の uno-q.local で届いた方から取る
+    同じWi-Fi（テザリング）上の uno-q.local で届いた方から取る。取ったら本体にSHA-256を送り、本体が中身を確かめて
+    回収済みの印（LOG_….csv.ok）を付ける。本体は空きが要るとき回収済みから消す（EcoCapture-Web/video_store.py）
   - Ver.2 本体の走行映像（焼き込み録画、~/ecocapture-v2-data/video の .ts と .csv）: 回収アプリ（tools/video_collect、
     Collect-Video.cmd）と同じ処理で、USBのadbで吸い出して本体とPCで中身が同じか（SHA-256）を確かめ、本体に回収済みの印を付ける。
     1本約770MB（10分）で、Wi-Fiでは遅すぎるのでUSBのときだけ。録画中のファイルは取らない。置き場は run フォルダでなく
@@ -21,6 +24,7 @@
 """
 import argparse
 import ctypes
+import hashlib
 import json
 import re
 import shutil
@@ -101,20 +105,82 @@ class Run:
         return target
 
 
-def collect_sd(run, manifest, kind, files, log, config=None):
+def sha256_of(path, limit=None):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        left = limit
+        while chunk := f.read(8 << 20 if left is None else min(8 << 20, left)):
+            h.update(chunk)
+            if left is not None:
+                left -= len(chunk)
+                if not left:
+                    break
+    return h.hexdigest()
+
+
+HEAD = 64 << 10  # SDのファイルの見分けに使う先頭（最初のブロックにSTM32の時刻が入るので、別のファイルとは必ず違う）
+
+
+class SdIndex:
+    """Ver.2のSDのファイルを中身で見分ける（drive_logs/v2_sd_index.json）。鍵は「名前/大きさ/先頭64KiBのSHA-256」、
+    値はPCに置いた場所（drive_logs からの相対）と、分かっていれば全体のSHA-256"""
+    def __init__(self, root):
+        self.root, self.path = Path(root), Path(root) / 'v2_sd_index.json'
+        try:
+            self.entries = json.loads(self.path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            self.entries = {}
+
+    def save(self):
+        temp = self.path.with_suffix('.tmp')
+        temp.write_text(json.dumps(self.entries, ensure_ascii=False, indent=1), encoding='utf-8')
+        temp.replace(self.path)
+
+    def key(self, path):
+        return f'{path.name}/{path.stat().st_size}/{sha256_of(path, HEAD)}'
+
+    def copy_of(self, src, manifest=None, key=None):
+        """PCにある同じファイル（Path）か None。前の名前と大きさだけの記録（collected.json）は、先頭が同じときだけ同じとみなす"""
+        key = key or self.key(src)
+        e = self.entries.get(key)
+        if e and (self.root / e['path']).is_file():
+            return self.root / e['path']
+        old = (manifest or {}).get(f'v2_sd/{src.name}/{src.stat().st_size}')
+        if old:
+            pc = self.root / old.replace('\\', '/')
+            if pc.is_file() and pc.stat().st_size == src.stat().st_size and sha256_of(pc, HEAD) == key.rsplit('/', 1)[1]:
+                self.entries[key] = {'path': pc.relative_to(self.root).as_posix(), 'sha256': None}
+                return pc
+        return None
+
+    def add(self, key, dest, sha):
+        self.entries[key] = {'path': dest.relative_to(self.root).as_posix(), 'sha256': sha}
+
+
+def collect_sd(run, manifest, kind, files, log, config=None, index=None):
     decoder = None  # one decoder across the sorted files keeps CAN values continuous at file boundaries
     if kind == 'v2_sd' and config is not None:
         from sd_decode import new_decoder
         decoder = new_decoder()
     for src in files:
         key = f'{kind}/{src.name}/{src.stat().st_size}'
-        if key in manifest:
+        if kind == 'v2_sd' and index is not None:
+            ikey = index.key(src)
+            if index.copy_of(src, manifest, ikey):
+                continue
+        elif key in manifest:
             continue
         dest = run.folder(kind) / src.name
         shutil.copy2(src, dest)
         if dest.stat().st_size != src.stat().st_size:
             raise OSError(f'コピーの大きさが一致しません: {src}')
-        manifest[key] = str(dest.relative_to(run.path.parents[1]))
+        if kind == 'v2_sd' and index is not None:
+            sha = sha256_of(src)
+            if sha256_of(dest) != sha:
+                dest.unlink()
+                raise OSError(f'コピーの中身が一致しません: {src}')
+            index.add(ikey, dest, sha)
+        manifest.setdefault(key, str(dest.relative_to(run.path.parents[1])))
         run.count += 1
         log(f'  {kind}: {src.name}')
         if kind == 'v2_sd':
@@ -128,6 +194,26 @@ def collect_sd(run, manifest, kind, files, log, config=None):
 def http_get(url, timeout=10):
     with urllib.request.urlopen(url, timeout=timeout) as response:
         return response.read()
+
+
+def http_post(url, body, timeout=600):
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), method='POST',
+                                 headers={'Content-Type': 'application/json', 'X-EcoCapture': '1'})
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        return response.read()
+
+
+def mark_collected(url, name, csv_path, log):
+    """本体に「PCに写した」と知らせる。本体が自分のファイルのSHA-256と比べ、同じなら回収済みの印を付ける"""
+    can = csv_path.with_name(csv_path.name + '.can.jsonl')
+    body = {'sha256': sha256_of(csv_path), 'can_sha256': sha256_of(can) if can.is_file() else None}
+    try:
+        http_post(urllib.parse.urljoin(url, f'api/logs/{urllib.parse.quote(name)}/collected'), body)
+        return True
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:  # 印を付けられない前の版のEcoCapture
+            return False
+        raise OSError(f'{name}：本体に回収済みの印を付けられません（{exc.code} {exc.read().decode("utf-8", "replace")[:120]}）')
 
 
 def find_adb():
@@ -221,6 +307,10 @@ def collect_emmc(run, manifest, url, log):
             continue
         key = f'v2_emmc/{item["name"]}/{item["size"]}'
         if key in manifest:
+            pc = run.path.parents[1] / manifest[key].replace('\\', '/')
+            if not item.get('collected') and 'collected' in item and pc.is_file():
+                if mark_collected(url, item['name'], pc, log):
+                    log(f'  v2_emmc: {item["name"]} 前に回収した写しと同じなので、本体に回収済みの印を付けた')
             continue
         name = urllib.parse.quote(item['name'])
         target = run.folder('v2_emmc')
@@ -235,7 +325,8 @@ def collect_emmc(run, manifest, url, log):
                     raise
         manifest[key] = str((target / item['name']).relative_to(run.path.parents[1]))
         run.count += 1
-        log(f'  v2_emmc: {item["name"]}')
+        marked = mark_collected(url, item['name'], target / item['name'], log)
+        log(f'  v2_emmc: {item["name"]}' + ('（本体に回収済みの印）' if marked else ''))
 
 
 def main(argv=None):
@@ -259,6 +350,7 @@ def main(argv=None):
         from sd_decode import load_config
         config = load_config(args.config)
     problems, videos = [], 0
+    sd_index = SdIndex(args.out)
     try:
         sources = find_sources(args.drives if args.drives is not None else candidate_drives())
         if not sources:
@@ -266,7 +358,7 @@ def main(argv=None):
         for kind, drive, files in sources:
             log(f'{drive} {"Ver.1 SD" if kind == "v1_sd" else "Ver.2 SD"}（{len(files)} ファイル）')
             try:
-                collect_sd(run, manifest, kind, files, log, config if kind == 'v2_sd' else None)
+                collect_sd(run, manifest, kind, files, log, config if kind == 'v2_sd' else None, sd_index)
             except OSError as exc:
                 problems.append(f'{drive}: {exc}')
         if not args.no_emmc:
@@ -297,6 +389,7 @@ def main(argv=None):
                         problems.append(f'{device}: {exc}')
     finally:  # 動画の回収（video_collect）も同じファイルへ書くので、読み直して足す
         save_manifest(manifest_path, {**load_manifest(manifest_path), **manifest})
+        sd_index.save()
     log('')
     if run.count:
         log(f'新しいログ {run.count} 件を回収しました: {run.path}')
