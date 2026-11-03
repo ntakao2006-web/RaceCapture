@@ -7,14 +7,13 @@ lap reset, the clock, and small lights for recording, GNSS and the oil temperatu
 water temperatures are not shown as gauges (the Defi meters are there): only their warnings are.
 
 A normal pit stop is not a warning: the lap begun in the pit lane gets a blue strip (PIT IN while
-stopped, PIT OUT once moving) and a pit lap PIT in blue, the temperature warnings the same strip in
-orange (COOLING) and red (PIT IN with the temperature); and the gap to the best lap is not shown on the out lap or while stopped (it would be a big red
+stopped, PIT OUT once moving) and a pit lap PIT in blue; and the gap to the best lap is not shown on the out lap or while stopped (it would be a big red
 number that looks like an alarm). Red is only for the slower gap and the temperature warnings.
 
-Warnings (ncec-roadster track/thermal-limits.md, provisional): oil 110 C caution, 120 C start
-cooling, 130 C pit in; water 10 C lower (oil ~ water + 10 C through the heat exchanger), so the
-ECU water temperature still warns when the oil sensor is lost. A level is entered after hold_on_s
-above it and left after hold_off_s below it, as on the RaceCapture page.
+One temperature warning, not tied to what to do about it (the driver decides): oil 120 C, the
+warning of ncec-roadster track/thermal-limits.md; water 10 C lower (oil ~ water + 10 C through the
+heat exchanger), so the ECU water temperature still warns when the oil sensor is lost. A big red
+band with the temperature and one alarm sound; on after hold_on_s above, off after hold_off_s below.
 
 The gap to the best lap is the algorithm of tools/unoq_overlay_enc/lap_ref.h (the burnt-in video
 HUD), ported so both show the same number: the best lap's track is kept, and the running lap's
@@ -35,8 +34,8 @@ JST = timezone(timedelta(hours=9))
 
 DEFAULTS = {
     'api': 'http://127.0.0.1:8080/api/telemetry',
-    'oil_limits': [110.0, 120.0, 130.0],
-    'water_limits': [100.0, 110.0, 120.0],
+    'oil_warn': 120.0,
+    'water_warn': 110.0,
     'hold_on_s': 1.0,
     'hold_off_s': 5.0,
     'delta_full_scale_s': 2.0,
@@ -47,11 +46,10 @@ DEFAULTS = {
     # The UNO Q's one sound card: its 4th front end (MultiMedia4) is routed to SEC_MI2S_RX, the I2S
     # link to the ANX7625 (the USB-C video bridge) and so to the monitor's speaker over HDMI
     # (device tree: sound/hdmi-i2s-dai-link, port 18; checked 2026-11-04). PipeWire does not use the card.
-    'sound': {'enabled': True, 'device': 'plughw:CARD=ArduinoImolaHPH,DEV=3', 'volume': 0.8, 'repeat_s': 4.0,
+    'sound': {'enabled': True, 'device': 'plughw:CARD=ArduinoImolaHPH,DEV=3', 'volume': 0.8,
               'card': 'ArduinoImolaHPH', 'route': ['SEC_MI2S_RX Audio Mixer MultiMedia4']},
 }
 
-WARN_TEXT = {1: '注意', 2: 'COOLING', 3: 'PIT IN'}
 STOPPED_KMH = 10.0  # slower than this the gap to the best lap means nothing (in the pit, on the grid)
 
 # lap_ref.h
@@ -197,45 +195,28 @@ class LapRef:
 
 
 class Warning:
-    """Oil / water temperature warning level 0..3 with the hold times, and when to sound."""
+    """The oil / water temperature warning (on or off) with the hold times, and when to sound."""
 
     def __init__(self, config):
         self.config = config
-        self.level, self.label, self.value = 0, None, None
-        self._up = self._down = None
-        self._last_pit_sound = None
-
-    @staticmethod
-    def step(value, limits):
-        return 0 if value is None else sum(1 for limit in limits if value >= limit)
+        self.on, self.label, self.value = False, None, None
+        self._since = None
 
     def update(self, now, oil, water):
-        """Returns the sound to play now: 'warn', 'pit' or None."""
-        lo, lw = self.step(oil, self.config['oil_limits']), self.step(water, self.config['water_limits'])
-        raw = max(lo, lw)
-        self.label, self.value = ('油温', oil) if lo >= lw and oil is not None else ('水温', water)
-        before = self.level
-        if raw == self.level:
-            self._up = self._down = None
-        elif raw > self.level:
-            self._down = None
-            self._up = now if self._up is None else self._up
-            if now - self._up >= self.config['hold_on_s']:
-                self.level, self._up = raw, None
-        else:
-            self._up = None
-            self._down = now if self._down is None else self._down
-            if now - self._down >= self.config['hold_off_s']:
-                self.level, self._down = raw, None
-        if self.level == 3:
-            repeat = self.config['sound']['repeat_s']
-            # Repeats while it is still that hot, not during the hold after it has cooled.
-            if before < 3 or (raw >= 3 and (self._last_pit_sound is None or now - self._last_pit_sound >= repeat)):
-                self._last_pit_sound = now
-                return 'pit'
+        """Returns 'warn' at the moment the warning comes on (its one sound), else None."""
+        hot_oil = oil is not None and oil >= self.config['oil_warn']
+        hot_water = water is not None and water >= self.config['water_warn']
+        # what the band shows: the one over its limit (oil first), else the oil while it is read
+        self.label, self.value = ('油温', oil) if hot_oil or (oil is not None and not hot_water) else ('水温', water)
+        hot = hot_oil or hot_water
+        if hot == self.on:
+            self._since = None
             return None
-        self._last_pit_sound = None
-        return 'warn' if self.level == 2 and before < 2 else None
+        self._since = now if self._since is None else self._since
+        if now - self._since < self.config['hold_on_s' if hot else 'hold_off_s']:
+            return None
+        self.on, self._since = hot, None
+        return 'warn' if hot else None
 
 
 class DashModel:
@@ -268,16 +249,8 @@ class DashModel:
         stopped = speed is not None and speed < STOPPED_KMH
         if out_lap or stopped:
             delta = None  # still tracked above, so the reference keeps its place
-        # One strip under the running lap, the same for a pit stop and for the temperature: the colour says
-        # which (blue an ordinary stop, orange cooling, red the call to come in), the words what it is.
-        level = self.warning.level
-        if level >= 2:
-            value = '' if self.warning.value is None else f'{self.warning.value:.0f}℃'
-            notice, notice_kind = f'{WARN_TEXT[level]}　{self.warning.label} {value}', 'cool' if level == 2 else 'pitin'
-        elif out_lap:
-            notice, notice_kind = 'PIT IN' if stopped else 'PIT OUT', 'pit'
-        else:
-            notice, notice_kind = '', None
+        # The strip under the running lap is for the pit stop only (the temperature has its own band)
+        notice = ('PIT IN' if stopped else 'PIT OUT') if out_lap else ''
 
         diff, pit = number(lap.get('LapDiffS')), lap.get('LastLapPit') is True
         if pit:
@@ -305,7 +278,7 @@ class DashModel:
             'stale': stale,
             'stale_s': None if self.last_good is None else now - self.last_good,
             'lap_now': fmt_lap(elapsed, 1),
-            'notice': notice, 'notice_kind': notice_kind,
+            'notice': notice,
             'delta': fmt_signed(delta),
             'delta_kind': None if delta is None else 'slower' if delta > 0.005 else 'faster' if delta < -0.005 else 'even',
             'delta_frac': None if delta is None else max(-1.0, min(1.0, delta / scale)),
@@ -318,8 +291,7 @@ class DashModel:
             'video': video_text, 'video_kind': video_kind,
             'gnss': lat is not None and lon is not None and not (lat == 0 and lon == 0),
             'oil_sensor': oil is not None,
-            'warn_level': self.warning.level,
-            'warn_text': WARN_TEXT.get(self.warning.level, ''),
+            'warn': self.warning.on,
             'warn_label': self.warning.label,
             'warn_value': None if self.warning.value is None else f'{self.warning.value:.0f}℃',
         }
@@ -327,13 +299,10 @@ class DashModel:
 
 
 def tone_wav(kind, volume=0.8, rate=22050):
-    """The warning sounds as WAV bytes: 'warn' three short beeps, 'pit' a two-tone alarm."""
-    if kind == 'warn':
-        parts = [(880, .18), (0, .12)] * 3
-    elif kind == 'pit':
-        parts = [(1000, .25), (750, .25)] * 4
-    else:
+    """The warning sound as WAV bytes: 'warn' a two-tone alarm of two seconds."""
+    if kind != 'warn':
         raise ValueError(kind)
+    parts = [(1000, .25), (750, .25)] * 4
     frames = bytearray()
     amp = max(0.0, min(1.0, volume)) * 32000
     fade = int(rate * .005)

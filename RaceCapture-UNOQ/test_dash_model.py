@@ -47,38 +47,32 @@ class FormatTests(unittest.TestCase):
 
 
 class WarningTests(unittest.TestCase):
-    def test_level_needs_one_second_and_sounds_once(self):
+    def test_on_after_one_second_with_one_sound(self):
         w = Warning(config())
         self.assertIsNone(w.update(0.0, 121, 100))
-        self.assertIsNone(w.update(0.5, 121, 100)); self.assertEqual(w.level, 0)
-        self.assertEqual(w.update(1.0, 121, 100), 'warn'); self.assertEqual(w.level, 2)
+        self.assertIsNone(w.update(0.5, 121, 100)); self.assertFalse(w.on)
+        self.assertEqual(w.update(1.0, 121, 100), 'warn'); self.assertTrue(w.on)
         self.assertEqual((w.label, w.value), ('油温', 121))
-        self.assertIsNone(w.update(1.1, 122, 100)); self.assertIsNone(w.update(9.0, 122, 100))
+        for t in (1.1, 5.0, 9.0):
+            self.assertIsNone(w.update(t, 135, 100))  # no second level, no repeat
+        self.assertEqual(w.value, 135)
 
-    def test_pit_in_repeats_and_leaves_five_seconds_after(self):
-        w = Warning(config())
-        w.update(0.0, 131, 110)
-        self.assertEqual(w.update(1.0, 131, 110), 'pit'); self.assertEqual(w.level, 3)
-        self.assertIsNone(w.update(3.0, 131, 110))
-        self.assertEqual(w.update(5.0, 131, 110), 'pit')  # every repeat_s (4 s)
-        self.assertIsNone(w.update(6.0, 100, 90)); self.assertEqual(w.level, 3)
-        self.assertIsNone(w.update(10.9, 100, 90)); self.assertEqual(w.level, 3)
-        self.assertIsNone(w.update(11.0, 100, 90)); self.assertEqual(w.level, 0)
-
-    def test_short_dip_keeps_the_level(self):
+    def test_off_five_seconds_after_and_a_short_dip_keeps_it(self):
         w = Warning(config())
         w.update(0.0, 125, 100); w.update(1.0, 125, 100)
         w.update(2.0, 118, 100)
-        self.assertIsNone(w.update(4.0, 124, 100)); self.assertEqual(w.level, 2)  # back up before 5 s: no new beep
-        self.assertIsNone(w.update(12.0, 124, 100))
+        self.assertIsNone(w.update(4.0, 124, 100)); self.assertTrue(w.on)  # back up before 5 s: no new sound
+        w.update(5.0, 115, 100)
+        self.assertIsNone(w.update(9.9, 115, 100)); self.assertTrue(w.on)
+        self.assertIsNone(w.update(10.0, 115, 100)); self.assertFalse(w.on)
 
-    def test_water_warns_when_the_oil_sensor_is_lost(self):
+    def test_below_120_nothing_and_water_warns_when_the_oil_sensor_is_lost(self):
         w = Warning(config())
-        w.update(0.0, None, 112); self.assertEqual(w.update(1.0, None, 112), 'warn')
-        self.assertEqual((w.level, w.label, w.value), (2, '水温', 112))
+        w.update(0.0, 119, 109); w.update(2.0, 119, 109)
+        self.assertFalse(w.on)  # no caution level below the warning any more
         w2 = Warning(config())
-        w2.update(0.0, 111, 99); w2.update(1.0, 111, 99)
-        self.assertEqual((w2.level, w2.label), (1, '油温'))
+        w2.update(0.0, None, 112); self.assertEqual(w2.update(1.0, None, 112), 'warn')
+        self.assertEqual((w2.on, w2.label, w2.value), (True, '水温', 112))
 
 
 class LapRefTests(unittest.TestCase):
@@ -130,7 +124,7 @@ class ModelTests(unittest.TestCase):
         self.assertEqual((s['lap_now'], s['last'], s['best'], s['lap_no'], s['elapsed'], s['clock']),
                          ('1:12.3', '1:52.34', '1:51.12', '23', '0:36:15', '11:16'))
         self.assertEqual((s['last_note'], s['last_note_kind']), ('前周比 +0.41s', 'slower'))
-        self.assertEqual((s['notice'], s['notice_kind']), ('', None))
+        self.assertEqual((s['notice'], s['warn']), ('', False))
         self.assertTrue(s['rec'] and s['gnss'] and s['oil_sensor'] and not s['stale'])
         self.assertEqual((s['video'], s['video_kind']), ('', None))  # an EcoCapture without the video summary
 
@@ -168,47 +162,43 @@ class ModelTests(unittest.TestCase):
         self.assertEqual((s['delta'], s['delta_kind'], s['notice']), ('+41.5', 'slower', ''))
         in_box = moving(LapStartPit=True, LastLapPit=True); in_box['sample']['values']['GPSSpeed'] = 0.0
         s, _ = m.update(in_box, 0.1)  # stopped in the box, past the line
-        self.assertEqual((s['delta'], s['notice'], s['notice_kind']), ('--', 'PIT IN', 'pit'))
+        self.assertEqual((s['delta'], s['notice']), ('--', 'PIT IN'))
         s, _ = m.update(moving(LapStartPit=True, LastLapPit=True), 0.2)  # the out lap
-        self.assertEqual((s['delta'], s['delta_kind'], s['delta_frac'], s['notice'], s['notice_kind']),
-                         ('--', None, None, 'PIT OUT', 'pit'))
-        self.assertEqual((s['last_note'], s['last_note_kind'], s['warn_level']), ('PIT', 'pit', 0))
+        self.assertEqual((s['delta'], s['delta_kind'], s['delta_frac'], s['notice']), ('--', None, None, 'PIT OUT'))
+        self.assertEqual((s['last_note'], s['last_note_kind'], s['warn']), ('PIT', 'pit', False))
         stopped = moving(); stopped['sample']['values']['GPSSpeed'] = 3.0
         s, _ = m.update(stopped, 0.3)  # stopped on the in lap (a box before the line): nothing known yet
         self.assertEqual((s['delta'], s['notice']), ('--', ''))
 
-    def test_the_temperature_takes_the_same_strip_and_comes_first(self):
+    def test_the_temperature_warning_is_apart_from_the_pit_strip(self):
         m = DashModel(config())
         out_lap = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapStartPit': True, 'LastLapPit': True}
-        for k in range(12):
-            s, _ = m.update(frame(out_lap, oil=122), k * 0.1)
-        self.assertEqual((s['notice'], s['notice_kind']), ('COOLING　油温 122℃', 'cool'))
-        for k in range(12):
-            s, _ = m.update(frame(out_lap, oil=96, water=121), 2.0 + k * 0.1)
-        self.assertEqual((s['notice'], s['notice_kind']), ('PIT IN　水温 121℃', 'pitin'))
+        sounds = [m.update(frame(out_lap, oil=122), k * 0.1)[1] for k in range(12)]
+        s, _ = m.update(frame(out_lap, oil=122), 1.2)
+        self.assertEqual((s['warn'], s['warn_label'], s['warn_value'], s['notice']), (True, '油温', '122℃', 'PIT OUT'))
+        self.assertEqual([x for x in sounds if x], ['warn'])
 
     def test_no_warning_from_values_of_a_dead_link(self):
         m = DashModel(config())
         m.update(frame(oil=135), 0.0)
         s, sound = m.update(frame(oil=135, connected=False), 1.5)
-        self.assertEqual((s['warn_level'], sound), (0, None))
+        self.assertEqual((s['warn'], sound), (False, None))
 
 
 class SoundAndConfigTests(unittest.TestCase):
     def test_tones(self):
-        for kind, seconds in (('warn', 0.9), ('pit', 2.0)):
-            with wave.open(io.BytesIO(tone_wav(kind)), 'rb') as w:
-                self.assertAlmostEqual(w.getnframes() / w.getframerate(), seconds, places=2)
+        with wave.open(io.BytesIO(tone_wav('warn')), 'rb') as w:
+            self.assertAlmostEqual(w.getnframes() / w.getframerate(), 2.0, places=2)
 
     def test_config_file_overrides_defaults(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'dash.json'
-            path.write_text(json.dumps({'oil_limits': [105, 115, 125], 'sound': {'device': 'hdmi'}, 'unknown': 1}))
+            path.write_text(json.dumps({'oil_warn': 115, 'sound': {'device': 'hdmi'}, 'unknown': 1}))
             c = load_config(path)
-            self.assertEqual(c['oil_limits'], [105, 115, 125])
+            self.assertEqual(c['oil_warn'], 115)
             self.assertEqual((c['sound']['device'], c['sound']['volume']), ('hdmi', 0.8))
             self.assertNotIn('unknown', c)
-        self.assertEqual(load_config('/nonexistent.json')['water_limits'], [100.0, 110.0, 120.0])
+        self.assertEqual(load_config('/nonexistent.json')['water_warn'], 110.0)
 
 
 if __name__ == '__main__':

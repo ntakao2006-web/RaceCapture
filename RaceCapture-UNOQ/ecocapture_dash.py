@@ -8,8 +8,8 @@ shown is worked out in dash_model.py. Settings: ~/.config/ecocapture-dash.json (
 
   ecocapture_dash.py                    the dash
   ecocapture_dash.py --demo             a made-up drive (laps, the gap, a pit stop, oil heating up to 130 C)
-  ecocapture_dash.py --state warn120    one fixed screen: normal start pit pitbox warn110 warn120 warn130 lost stale
-  ecocapture_dash.py --sound warn       play one warning sound and exit (warn / pit; --volume 0.3)
+  ecocapture_dash.py --state warn120    one fixed screen: normal start pit pitbox warn lost stale
+  ecocapture_dash.py --sound warn       play the warning sound once and exit (--volume 0.3)
   --size 1920x1080 --snapshot out.png   window size, and save the first frame as PNG then exit
   --no-pause                            leave the other display apps alone (checking on a running UNO Q)
 """
@@ -55,7 +55,7 @@ class Sound:
         self.folder = Path(tempfile.mkdtemp(prefix='ecocapture-dash-'))
         atexit.register(shutil.rmtree, self.folder, True)
         self.files = {}
-        for kind in ('warn', 'pit'):
+        for kind in ('warn',):
             path = self.folder / f'{kind}.wav'
             path.write_bytes(tone_wav(kind, self.config.get('volume', 0.8)))
             self.files[kind] = path
@@ -64,9 +64,7 @@ class Sound:
         if not self.config.get('enabled', True) or kind not in self.files:
             return None
         if self.proc and self.proc.poll() is None:
-            if kind != 'pit':
-                return None
-            self.proc.terminate()  # the 130 C alarm cuts a running caution beep
+            return None
         command = [part.format(device=self.config.get('device', 'default'), file=self.files[kind])
                    for part in self.config.get('command', ['aplay', '-q', '-D', '{device}', '{file}'])]
         try:
@@ -127,8 +125,8 @@ def fixed_state(config, name):
     """One screen for checking the layout (the gap is filled in by hand: it needs a best lap's track)."""
     lap = {'CurrentLap': 23, 'LapCount': 22, 'ElapsedTime': 72.3 / 60, 'LapTime': 112.34 / 60, 'BestLap': 111.12 / 60,
            'RaceTime': 2175 / 60, 'LapDiffS': 0.41, 'LastLapPit': False}
-    temps = {'normal': (98, 88), 'start': (92, 84), 'pit': (101, 91), 'pitbox': (101, 91), 'warn110': (112, 101), 'warn120': (122, 111),
-             'warn130': (131, 120), 'lost': (None, 93), 'stale': (98, 88)}[name]
+    temps = {'normal': (98, 88), 'start': (92, 84), 'pit': (101, 91), 'pitbox': (101, 91), 'warn': (122, 111),
+             'lost': (None, 93), 'stale': (98, 88)}[name]
     if name == 'start':
         lap.update(CurrentLap=0, LapCount=0, ElapsedTime=None, LapTime=None, BestLap=None, RaceTime=None, LapDiffS=None, LastLapPit=None)
     if name in ('pit', 'pitbox'):  # the in lap was a pit lap, the running lap started in the pit lane
@@ -179,8 +177,10 @@ def css_for(w, h):
     .notice {{ font-family: {FONT_TEXT}; font-size: {int(mid * 0.55)}px; font-weight: bold; border-radius: {rad}px; }}
     .notice-none {{ background-color: transparent; color: transparent; }}
     .notice-pit {{ background-color: #1f64c8; color: #ffffff; }}
-    .notice-cool {{ background-color: #ff8a1a; color: #1c1000; }}
-    .notice-pitin {{ background-color: #d81e1e; color: #ffffff; }}
+    .banner {{ background-color: #e01414; border-radius: {rad}px; }}
+    .banner label {{ color: #ffffff; font-weight: bold; }}
+    .banner .warn-name {{ font-family: {FONT_TEXT}; font-size: {int(mid * 0.9)}px; }}
+    .banner .warn-val {{ font-family: {FONT_NUM}; font-size: {big}px; }}
     .stale {{ background-color: #1a1a1a; }}
     .stale label {{ color: #d8d8d8; font-family: {FONT_TEXT}; }}
     .stale-big {{ font-size: {int(mid * 0.6)}px; font-weight: bold; }}
@@ -249,8 +249,7 @@ def run_gui(args, config):
             self.bar_mid.get_style_context().add_class('bar-mid')
             for part in (self.bar_bg, self.bar_fill, self.bar_mid):
                 self.bar.put(part, 0, 0)
-            # The pit stop and the temperature share one strip under the running lap, the same size; only the
-            # colour differs (blue an ordinary stop, orange cooling, red come in). The rest stays readable.
+            # A normal pit stop is information, not a warning: a blue strip under the running lap.
             # Always there (empty when nothing to say), so the numbers never move.
             self.notice = label('', 'notice', 'notice-none', xalign=0.5)
             self.cell_now = box(True, label('今の周', 'cap'), self.lap_now, self.notice, cls='cell')
@@ -274,6 +273,14 @@ def run_gui(args, config):
             for cell, value in ((self.cell_now, self.lap_now), (self.cell_delta, self.delta), (self.cell_last, self.last),
                                 (self.cell_best, self.best), (self.cell_lap, self.lap_no)):
                 cell.set_child_packing(value, True, True, 0, Gtk.PackType.START)  # the number centred below its caption
+            # The temperature warning: a red band over the middle row, the temperature big. The running lap,
+            # the gap and the bottom row stay readable (never the whole screen: the pit must see the rest).
+            self.banner_name, self.banner_value = label('', 'warn-name'), label('', 'warn-val')
+            self.banner = box(False, cls='banner')
+            self.banner.set_center_widget(box(False, self.banner_name, self.banner_value, spacing=int(0.025 * self.size[0])))
+            self.stack = Gtk.Stack()
+            self.stack.add_named(self.row2, 'normal')
+            self.stack.add_named(self.banner, 'banner')
 
             self.elapsed = label('--', 'num', 'small')
             self.clock = label('--', 'num', 'small')
@@ -292,7 +299,7 @@ def run_gui(args, config):
                 chip.set_valign(Gtk.Align.CENTER)
                 self.row3.pack_end(chip, False, False, 0)
 
-            self.root = box(True, self.row1, self.row2, self.row3, cls='root')
+            self.root = box(True, self.row1, self.stack, self.row3, cls='root')
             self.stale_big = label('', 'stale-big', xalign=0.5)
             self.stale_sub = label('', 'stale-sub', xalign=0.5)
             self.stale = box(True, cls='stale')
@@ -316,7 +323,7 @@ def run_gui(args, config):
             self.row1.set_spacing(gap); self.row2.set_spacing(gap)
             r1, r2 = int(inner_h * 0.45), int(inner_h * 0.33)
             self.row1.set_size_request(inner_w, r1)
-            self.row2.set_size_request(inner_w, r2)
+            self.stack.set_size_request(inner_w, r2)
             self.row3.set_size_request(inner_w, inner_h - r1 - r2)
             avail = inner_w - 2 * gap
             for cell, share in ((self.cell_last, .42), (self.cell_best, .34), (self.cell_lap, .24)):
@@ -364,9 +371,12 @@ def run_gui(args, config):
                 waited = s.get('stale_s')
                 self.stale_big.set_text('ロガーの値を待っています' if waited is None else 'ロガーの値が来ていません')
                 self.stale_sub.set_text('' if waited is None else f'最後に受け取ってから {int(waited)} 秒')
-            level = s['warn_level']
-            self.notice.set_text(s['notice'] or '')
-            classes(self.notice, 'notice', f"notice-{s['notice_kind'] or 'none'}")
+            self.stack.set_visible_child_name('banner' if s['warn'] else 'normal')
+            if s['warn']:
+                self.banner_name.set_text(s['warn_label'] or '')
+                self.banner_value.set_text(s['warn_value'] or '')
+            self.notice.set_text(s['notice'])
+            classes(self.notice, 'notice', 'notice-pit' if s['notice'] else 'notice-none')
 
             self.lap_now.set_text(s['lap_now'])
             if s['delta_kind']:  # a number: say it is seconds, smaller, so the number stays the thing to read
@@ -406,10 +416,7 @@ def run_gui(args, config):
                 classes(self.chip_rec, 'chip', 'chip-ok')
             self.chip_gnss.set_text('GNSS' if s['gnss'] else 'GNSS未測位')
             classes(self.chip_gnss, 'chip', 'chip-ok' if s['gnss'] else 'chip-warn')
-            if level == 1:
-                self.chip_oil.set_text(f"{s['warn_label']} {s['warn_value']}")
-                classes(self.chip_oil, 'chip', 'chip-warn')
-            elif s['oil_sensor']:
+            if s['oil_sensor']:
                 self.chip_oil.set_text('油温センサー')
                 classes(self.chip_oil, 'chip', 'chip-ok')
             else:
@@ -480,8 +487,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description='EcoCapture DASH')
     parser.add_argument('--config', default=str(CONFIG_PATH))
     parser.add_argument('--demo', action='store_true')
-    parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'warn110', 'warn120', 'warn130', 'lost', 'stale'])
-    parser.add_argument('--sound', choices=['warn', 'pit'])
+    parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'warn', 'lost', 'stale'])
+    parser.add_argument('--sound', choices=['warn'])
     parser.add_argument('--size')
     parser.add_argument('--snapshot')
     parser.add_argument('--no-pause', action='store_true')
