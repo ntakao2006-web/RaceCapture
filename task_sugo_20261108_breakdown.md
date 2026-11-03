@@ -268,7 +268,7 @@
 - [ ] SG-2-7 **動画の区切り・消し方・回収アプリ**（2026-11-04起票、ユーザー依頼・判断：全部SUGOの前に。詳細は`unoq_video_check_procedure.md`5-17）
   - [x] PCで作り、PCと本体の一時フォルダで試験した：GoProのような「走行＋章」の名前、回収済み→ほかの走行の未回収の順に消す（今の走行・保護した走行は消さない）、
     回収アプリ`tools/video_collect/Collect-Video.cmd`（SHA-256で照合して印・本体から消す・保護・つなげる・控え）、EcoCaptureの「あと何分」とDASHの札、走行記録を消すとCANの生ログも消える
-  - [ ] 本体へ入れる（録画プログラム`install-video.sh`と、EcoCaptureの`server.py`・`video_store.py`・`Dockerfile`の`deploy.sh`。本体の変更なのでユーザーの了承を取ってから）
+  - [x] 本体へ入れる（録画プログラム`install-video.sh`と、EcoCaptureの`server.py`・`video_store.py`・`Dockerfile`の`deploy.sh`）。**2026-11-04 05:30ごろ入れた（ユーザー了承、SG-2-6の`lap.py`は入れていない）**。前の版は`*.pre-v3-20261104`・`ecocapture-web:pre-videostore-20261104`
   - [ ] SUGOで録れる長さを足りるようにする：11/4 05時にあと約108分（120分の決勝に足りない）。走行記録5.78GBを回収して本体から消すと約+70分。決勝の前に入れた電源からゴールまでが「あと何分」に収まること
   - [ ] USB直結で回収アプリを使い、速さを測る（SG-5-1の手順書の回収の欄を、`Collect-Logs.cmd`から回収アプリへ書き換える）
 - [ ] SG-2-6 **EcoCapture DASH（車載画面をRaceCaptureアプリから専用の画面へ）**（2026-11-04起票、ユーザー依頼）。
