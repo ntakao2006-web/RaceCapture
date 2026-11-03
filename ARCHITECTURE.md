@@ -1680,6 +1680,14 @@
   - Web画面は電圧の横に状態を出す。RaceCaptureアプリへは3つの電圧（0〜5V）と状態が出る（`rcp_bridge.py`）。Podium（LTE）へは自動では足さない（テレメトリを圧迫しないため。要るときはPodiumの設定で選ぶ）。本体のネイティブ画面と車載ダッシュのゲージの配置は変えていない
   - PC上の試験：引継ぎの例のフレーム、ADCの4/5/4090/4091の境界、DLC・版の違い、ADC＞4095、予約bit、矛盾したフラグ、RTR、拡張ID、CAN1の同じID、1秒を超える途絶、MCUの時刻の巻き戻り。偽のMCUで、画面に「下限付近・未校正・上限付近」「データ異常」「通信途絶」が出ることも確かめた
   - まだのこと：本体への反映（EcoCaptureは`Update-UNOQ.ps1`、`rcp_bridge.py`は別に`/opt/logger-v2-racecapture`へ）、PICへのv8の書き込み（リポジトリの`pic18f26q84_blink.X`はまだ旧0x600の版で、v8のソースとHEXはLintarohさんの手元）、PICをつないだ実受信の確認、3入力の電圧のテスターとの照合
+- 2026-11-03追記（同日夜）: **上のDefi電圧入力の受信をUNO Qへ入れた（UNO Q更新済み）。PIC v8はまだ書き込んでおらず、PICをつないだ実CANでの0x580の確認もまだ。**
+  - 入れる前に、本体の`EcoCapture-Web`と`rcp_bridge.py`がPCの変更前の版と同じであることを確かめた（違ったのは、本体に置いてあったPC用の`.ps1`・READMEが古い版だったことと、配るたびに作り直される`public/`だけ）
+  - 退避：本体の`/home/arduino/ecocapture-source-backups/`に`*_20261103_192921_before-defivolt.tar`（`EcoCapture-Web`、`/opt/logger-v2-racecapture`、RaceCaptureの設定`~/.config/racecapture`）と、`config.json.bak-20261103_*`。同じものをPCの`other/uno_q_tools/source-backups/`と`config-backups/`にも置いた。`rcp_bridge.py`の元は`rcp_bridge.py.bak-20261103-before-defivolt`
+  - 手順：記録を止める→`Update-UNOQ.ps1`と同じ手順をsshで流す（adbが使えなかったため）→`rcp_bridge.py`を置いて`logger-v2-rcp`を再起動→`defi_volt_setup.py --apply`→記録を再開。`deploy.sh`の試験（`defi_volt`の6件を含む）と、RCPブリッジの試験は本体のPythonで全部通った。`RaceCapture-UNOQ/install.sh`と`configure_app.py`は使っていない
+  - 本体で確かめたこと：信号は13→16。旧`OilTemp`は約40℃・正常のまま（旧ファームのPICが0x600を送っている）。3つの電圧は期待どおり「通信途絶」（PIC v8がまだ無いため）。GNSS（Fix 3・17衛星）・IMU・SD記録・CAN2の受信は続いている。記録のCSVには`PressVolt`〜`Temp2VoltState`の6列が増えた。RaceCaptureアプリにもチャンネルが出た（電圧は0〜5V・精度3、状態は0〜4）。RaceCaptureのダッシュボードの配置は変わっておらず、更新されたのはアプリが覚えているチャンネル一覧（`last_channel_meta`）だけ
+  - 記録を止めるAPIは、SDのファイルに時刻を付け終わるまで応答を返さない（今回は50秒を超えた）。そこで`defi_volt_setup.py`の待ち時間を延ばし、停止の応答が取れなくても、止まっていれば記録を再開するようにした
+  - ネイティブ画面（`ecocapture_native.cpp`）は作り直していない。旧`OilTemp`の欄は`OilTemp`だけを読むので、電圧が℃の欄に出ることはない。3つの電圧は「CANライブ値」の行に単位V付きで出る（「未校正」の印は付かない）
+  - まだのこと：PICへのv8の書き込みと実受信の確認、℃・kPaへの換算（上と同じ）
 
 ## 5. 開発ロードマップ（詳細版）
 

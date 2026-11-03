@@ -283,6 +283,8 @@
     登録は`python tools/sugo_setup/defi_volt_setup.py --apply`（既定は確かめるだけ）。旧式の`OilTemp`（0x600）は消さずに残す（車載ダッシュの油温のゲージ・警告が付いているため）
   - 残り：①本体への反映（了承を取ってから。`EcoCapture-Web/Update-UNOQ.ps1`と、`RaceCapture-UNOQ/rcp_bridge.py`を`/opt/logger-v2-racecapture`へ）→ ②`defi_volt_setup.py --apply` →
     ③PICにv8を書いてつなぎ、0x580が約10Hzで届くこと・CAN2の受信数が増えることを見る → ④**換算**：TEMP1・TEMP2のどちらが油温か、温度のプルアップ抵抗値、油圧の電圧と圧力の関係をLintarohさんと決め、℃・kPaへ直す（そこで初めて車載ダッシュの`OilTemp`のゲージと警告につながる）
+  - 2026-11-03（夜）：**①②済み（UNO Q更新済み）**。信号は16になり、3つの電圧は「通信途絶」（PIC v8がまだ無いため）。旧`OilTemp`は約40℃・正常のまま。退避の場所と確かめたことはARCHITECTURE.md 4章の同日夜の追記。
+    **残りは③④**（PIC v8は未書き込み、PICをつないだ実CANでの確認は未実施）
 - [ ] SG-4-4 （作る場合）取付と校正（Defiメーターの表示と並べて読む）
 - 保留：Defi分岐v2のJLCPCB発注は、**回路図入力と基板レイアウトが未着手**で、発注から到着まで少なくとも10日前後かかるため、SUGOには間に合わない見込み
 

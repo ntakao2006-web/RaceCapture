@@ -17,7 +17,7 @@ class FakeUnoQ:
     """本体の代わり：組み立てたシェルのコマンドを読んで、APIと設定ファイルの退避を真似る"""
     def __init__(self, knows_defi_volt=True):
         self.config = {'schema': 1, 'profile': 'ncec-2005-mt', 'signals': list(SIGNALS)}
-        self.recording = True; self.knows = knows_defi_volt
+        self.recording = True; self.knows = knows_defi_volt; self.stop_reply_lost = False
         self.files = {'config.json': json.dumps(self.config)}; self.posts = []
 
     def __call__(self, command):
@@ -27,6 +27,9 @@ class FakeUnoQ:
             body = json.loads(words[words.index('--data-binary') + 1]) if '--data-binary' in words else None
             if body is not None and 'X-EcoCapture: 1' not in words:
                 return '{"detail":"操作ヘッダーが必要です"}\n403'
+            if path == '/api/log/stop' and self.stop_reply_lost:  # 本体は止めたが、応答がcurlの待ち時間に間に合わない
+                self.recording = False; self.posts.append(path)
+                raise RuntimeError('本体でのコマンドが失敗しました: 000')
             return self.api(path, body)
         if words[0] == 'cd':  # cd DATA || exit 1; [ -e NAME ] || cp -p config.json NAME; ls -l NAME
             self.files.setdefault(words[-1], self.files['config.json'])
@@ -105,6 +108,14 @@ class DefiVoltSetupTests(unittest.TestCase):
         self.device = FakeUnoQ(knows_defi_volt=False)
         with self.assertRaises(RuntimeError):
             defi_volt_setup.main(['--apply'])
+        self.assertEqual(self.device.config['signals'], SIGNALS)
+        self.assertTrue(self.device.recording)
+
+    def test_lost_stop_reply_still_resumes_recording(self):
+        self.device.stop_reply_lost = True
+        with self.assertRaises(RuntimeError):
+            defi_volt_setup.main(['--apply'])
+        self.assertEqual(self.device.posts, ['/api/log/stop', '/api/log/start'])
         self.assertEqual(self.device.config['signals'], SIGNALS)
         self.assertTrue(self.device.recording)
 

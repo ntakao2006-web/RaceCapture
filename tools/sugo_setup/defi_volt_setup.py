@@ -60,7 +60,7 @@ def check(run):
     for name, state in registered(config).items():
         print(f'  {name}: {state}')
     counts = status.get('hardware', {}).get('can_counts', [0, 0])
-    print(f'CAN2の受信: {counts[1]} フレーム（PIC v8がつながっていなければ0のまま）')
+    print(f'CAN2の受信: {counts[1]} フレーム（0x580以外も数える。旧ファームのPICの0x600など）')
     sample = api(run, '/api/telemetry').get('sample') or {}
     for name in NAMES:
         state = (sample.get('can_states') or {}).get(name)
@@ -83,16 +83,18 @@ def save(run, config, status, signals, label):
     (local / 'config.json').write_text(json.dumps(config, ensure_ascii=False, indent=1), encoding='utf-8')
     print(f'今の設定を本体の {backup} と、PCの {local / "config.json"} へ退避しました')
     recording = status['logging']['active']
-    if recording:
-        api(run, '/api/log/stop', {}, wait=50)
-        print('記録を止めました')
     try:
+        if recording:
+            # 停止はSDのファイルに時刻を付け終わるまで返らない（server.pyのstop_log。記録が長いと1分を超える）
+            api(run, '/api/log/stop', {}, wait=180)
+            print('記録を止めました')
         api(run, '/api/config', {**config, 'signals': signals})
         print('設定を保存しました')
     finally:
-        if recording:
+        # 停止の応答を受け取れなかったときも、止まっていれば記録を再開する
+        if recording and not api(run, '/api/status')['logging']['active']:
             # 止めたあとSDのファイルに時刻を付け終わるまでは、記録を始められない（server.pyのstart_log）
-            for _ in range(60):
+            for _ in range(180):
                 if not api(run, '/api/status').get('sd_copy', {}).get('active'):
                     break
                 time.sleep(1)
