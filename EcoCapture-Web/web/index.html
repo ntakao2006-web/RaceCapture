@@ -39,8 +39,9 @@
   <article class="panel"><h2>GNSSデータ</h2><dl id="gnss-values" class="readings gnss-readings"></dl></article>
 </section>
 <section id="imu" class="page" hidden>
-  <div class="page-title"><div><p class="eyebrow">MOTION & CHANNELS</p><h1>IMU / Indicate</h1></div><span>センサ座標</span></div>
-  <div class="split"><article class="panel"><h2>加速度</h2><dl id="accel-values" class="readings"></dl><h2>角速度・姿勢</h2><dl id="gyro-values" class="readings"></dl></article><article class="panel"><h2>G表示</h2><canvas id="g-chart" aria-label="前後左右の加速度"></canvas><p class="muted">横：左右加速度 / 縦：前後加速度 / 外周：1 g</p></article></div>
+  <div class="page-title"><div><p class="eyebrow">MOTION & CHANNELS</p><h1>IMU / Indicate</h1></div><span>X・Y・Z：センサの軸 / 前後・左右・上下：車の軸</span></div>
+  <div class="split"><article class="panel"><h2>加速度</h2><dl id="accel-values" class="readings"></dl><h2>角速度・姿勢</h2><dl id="gyro-values" class="readings"></dl></article><article class="panel"><h2>G表示</h2><canvas id="g-chart" aria-label="前後左右の加速度"></canvas><p class="muted">横：左右加速度（右が＋） / 縦：前後加速度（加速が上） / 外周：1 g</p></article></div>
+  <article class="panel"><div class="panel-title"><h2>取付の校正</h2><div class="button-row"><button type="button" id="imu-level">今の向きで1Gを取る</button><button type="button" id="imu-reset">校正をやり直す（自動に戻す）</button></div></div><p id="imu-mount">受信待ち</p><p class="muted">前後・左右・上下の加速度は、止まっているときの重力の向き（1G）と、走りながら覚えた前方で、センサの軸を車の軸へ直した値です。1Gは停車中（1 km/h未満・2秒揺れない）に自動で取り、前方はGNSSの加速・減速から覚えます。ほかの車へ付け替えたら「校正をやり直す」を押してください。坂の途中では勾配の分が前後加速度に乗ります（5%で約0.05 g）。</p></article>
   <article class="panel"><div class="panel-title"><h2>受信状態</h2><span>実機Bridge経路</span></div><dl id="diagnostics" class="readings"></dl></article>
 </section>
 <section id="logs" class="page" hidden>
@@ -82,7 +83,7 @@
   <article class="panel"><div class="panel-title"><h2>CAN信号定義</h2><div class="button-row"><button type="button" id="add-hub-oil">＋ センサーハブの油温</button><button type="button" id="add-signal">＋ 信号を追加</button></div></div><p class="notice-text">保存したビットレートを両CANに適用します。標準・拡張ID、符号、倍率に対応。送信は行いません。</p><label class="bitrate">ビットレート<select id="config-bitrate"><option value="125000">125 kbit/s</option><option value="250000">250 kbit/s</option><option value="500000">500 kbit/s</option><option value="1000000">1 Mbit/s</option></select></label><dl id="can-live" class="readings"></dl><div id="signal-list"></div></article>
   <div class="button-row"><button class="primary" type="submit" id="save-config">UNO Qに設定を保存</button><span id="config-status" role="status"></span></div></form>
   <article class="panel"><h2>NCEC CANデータ解析</h2><p>1行に「時刻ms CAN-ID(16進) データ(16進)」。時刻順、1回500フレームまで。読み込みは解析のみで、車両への送信やライブ計測への反映はしません。</p><textarea id="ncec-input" rows="6" aria-label="NCEC CANデータ" placeholder="0 201 1F400000271000FF"></textarea><div class="button-row"><button type="button" id="decode-ncec">解析</button><button type="button" id="download-ncec" disabled>解析CSVを保存</button></div><p id="ncec-result" role="status"></p><div class="table-wrap"><table><thead><tr><th>時刻ms</th><th>ID</th><th>信号</th><th>値</th></tr></thead><tbody id="ncec-rows"></tbody></table></div><p>燃料は生値と2秒移動平均を表示します。カウンタ異常は欠落・重複等の候補であり、欠落数を断定しません。</p><p>OBD対応情報：要求0x7E0、応答0x7E8、確認済み20PID。診断要求の送信は未実装です。</p></article>
-  <article class="panel"><h2>記録について</h2><p>IMUは約100 Hz、GNSSは10 Hzで実測します。起動するとSTM32がSDへ自動記録し、Web側は内蔵eMMCへCSVを保存します。Linuxとの通信が切れてもSD記録は続きます。記録停止後にCSVをSDへコピーできます。</p><p>加速度の方向はIMUモジュールの軸です。車体への取付方向とIMU校正は実車設置後に確認してください。LTEは初期状態で電源OFFです。</p><p id="imu-calibration"></p></article>
+  <article class="panel"><h2>記録について</h2><p>IMUは約100 Hz、GNSSは10 Hzで実測します。起動するとSTM32がSDへ自動記録し、Web側は内蔵eMMCへCSVを保存します。Linuxとの通信が切れてもSD記録は続きます。記録停止後にCSVをSDへコピーできます。</p><p>加速度X・Y・Zと角速度はIMUモジュールの軸、前後・左右・上下の加速度は取付の校正で直した車の軸です（IMU / Indicateのページ）。LTEは初期状態で電源OFFです。</p><p id="imu-calibration"></p></article>
 </div>
 <div id="device" role="tabpanel" aria-labelledby="settings-uno-tab" hidden>
   <article class="panel"><div class="panel-title"><h2>Podium センサ共有（LTE / Wi-Fi）</h2><span>目標 10 Hz</span></div>

@@ -26,6 +26,8 @@ docker run --rm --network=none --entrypoint python3 \
   -v "$PWD/test_hardware.py:/app/test_hardware.py:ro" ecocapture-web:0.2.0 -m unittest -v test_hardware
 docker run --rm --network=none --entrypoint python3 \
   -v "$PWD/test_sd_decode.py:/app/test_sd_decode.py:ro" ecocapture-web:0.2.0 /app/test_sd_decode.py
+docker run --rm --network=none --entrypoint python3 \
+  -v "$PWD/test_imu_mount.py:/app/test_imu_mount.py:ro" ecocapture-web:0.2.0 /app/test_imu_mount.py
 if docker container inspect ecocapture-web >/dev/null 2>&1; then
   docker stop -t 15 ecocapture-web
   docker rm ecocapture-web

@@ -25,6 +25,7 @@ from models import CHANNELS, LAP_CHANNELS, Configuration, log_value, signal_colu
 from podium import PodiumSender
 import field
 from lap import LapLine, LapTimer, line_qr
+from imu_mount import ImuMount
 import video_store
 
 ROOT = Path(os.environ.get("ECOCAPTURE_DATA", "/data"))
@@ -92,6 +93,7 @@ class Recorder:
         self.last_sync = 0
         self.last_check = 0
         self.last_state = 0
+        self.last_mount = None
 
     def write_state(self):
         """LOGS/.recording: the log being written, for the recorder and the collector (video_store.py)."""
@@ -104,7 +106,7 @@ class Recorder:
             temp.replace(LOGS / '.recording')
         self.last_state = time.monotonic()
 
-    def start(self, config):
+    def start(self, config, mount=None):
         if self.file:
             return
         # eMMC records independently of the SD card; old logs make room as needed.
@@ -121,12 +123,18 @@ class Recorder:
             "mcu_generation_hz": 100, "linux_poll_target_hz": 20,
             "clock": "host_utc is Linux reception time, not GNSS time; mcu_ms wraps at 2^32",
             "units": {**{k: unit for k, (_, unit) in {**CHANNELS, **LAP_CHANNELS}.items()},
-                      **{s.name: s.unit for s in config.signals if s.name not in CHANNELS}}, "state": "recording"
+                      **{s.name: s.unit for s in config.signals if s.name not in CHANNELS}}, "state": "recording",
+            "imu_axes": "AccelX/Y/Z and GyroX/Y/Z are BNO055 sensor axes. LongAccel (+ accelerating), LatAccel (+ right) "
+                        "and VertAccel (+ up, gravity removed) are the car's axes from the mounting calibration in the "
+                        "imu_mount column (imu_mount.py), written on the first row and whenever it changes. BNO055's own "
+                        "linear acceleration and gravity estimate stay in imu_raw (bytes 32-43).",
+            "imu_mount": mount
         })
         self.file = (LOGS / self.name).open("x", encoding="utf-8", newline="")
         self.can_file = (LOGS / (self.name + ".can.jsonl")).open("x",encoding="utf-8")
         self.writer = csv.writer(self.file)
-        base = ["schema", "demo", "source", "host_utc", "seq", "mcu_ms", *CHANNELS,"gnss_utc","gnss_itow_ms","imu_raw","imu_temperature_C","imu_calibration","quaternion","gnss_hacc_m",*LAP_CHANNELS]
+        base = ["schema", "demo", "source", "host_utc", "seq", "mcu_ms", *CHANNELS,"gnss_utc","gnss_itow_ms","imu_raw","imu_temperature_C","imu_calibration","quaternion","gnss_hacc_m","imu_mount",*LAP_CHANNELS]
+        self.last_mount = None
         # One column per CAN signal (fixed for the file: config cannot change while recording).
         # Signals named like a fixed channel (RPM, Speed, ...) are already written there.
         self.can_columns = [name for name in signal_columns(config) if name not in CHANNELS]
@@ -146,8 +154,12 @@ class Recorder:
                     self.write_state()
                 if self.make_room() < RESERVE_BYTES:
                     raise OSError("Storage reserve reached (256 MiB)")
+            # The calibration only when it changed (it is the same dict object until then).
+            mount = sample.get("imu_mount")
+            mount_text = "" if mount is self.last_mount else json.dumps(mount, separators=(",", ":"))
+            self.last_mount = mount
             self.writer.writerow([1, int(sample["demo"]), sample["source"], sample["host_utc"], sample["seq"], sample["mcu_ms"],
-                                  *(sample["values"][k] for k in CHANNELS),sample.get("gnss_utc"),sample.get("gnss_itow_ms"),sample.get("imu_raw"),sample.get("imu_temperature_C"),json.dumps(sample.get("imu_calibration")),json.dumps(sample.get("quaternion")),sample.get("gnss_hacc_m"),*((sample.get("lap") or {}).get(k) for k in LAP_CHANNELS),
+                                  *(sample["values"][k] for k in CHANNELS),sample.get("gnss_utc"),sample.get("gnss_itow_ms"),sample.get("imu_raw"),sample.get("imu_temperature_C"),json.dumps(sample.get("imu_calibration")),json.dumps(sample.get("quaternion")),sample.get("gnss_hacc_m"),mount_text,*((sample.get("lap") or {}).get(k) for k in LAP_CHANNELS),
                                   *(log_value(sample.get("can_signals",{}).get(k)) for k in self.can_columns)])
             self.rows += 1
             if now - self.last_sync >= 1:
@@ -232,6 +244,8 @@ class Runtime:
         self._frame_text = ''
         self.podium = PodiumSender(ROOT,self)
         self.laps = LapTimer(ROOT)
+        self.mount = ImuMount(ROOT / "imu_mount.json")
+        self.mount_saved_at = time.monotonic()
         self.podium_task = None
         self.podium_checking = False
         self.record_lock = asyncio.Lock()
@@ -252,7 +266,8 @@ class Runtime:
                 "storage_free_bytes": shutil.disk_usage(ROOT).free,
                 "video": video_status(self.recorder.file is not None),
                 "sensors": self.sensors if fresh else {k:"通信待ち" for k in self.sensors}, "hardware": self.hardware,
-                "logging": {**self.recorder.status(),"sd_warning":self.sd_warning()}, "sd_copy": self.sd.status, "podium":self.podium.status()}
+                "logging": {**self.recorder.status(),"sd_warning":self.sd_warning()}, "sd_copy": self.sd.status, "podium":self.podium.status(),
+                "imu_mount": self.mount.public()}
 
     async def wifi_connected(self):
         """NetworkManager state of wlan0 via the host agent (Podium automatic link). None if unknown."""
@@ -288,7 +303,7 @@ class Runtime:
     async def collect(self):
         from telemetry_bridge import TelemetryBridge
         from hardware import HardwareDecoder
-        self.bridge=bridge=TelemetryBridge();decoder=HardwareDecoder()
+        self.bridge=bridge=TelemetryBridge();decoder=HardwareDecoder(self.mount)
         configured=False
         status_at=0.0
         while True:
@@ -317,6 +332,9 @@ class Runtime:
                         self.auto_start_task=asyncio.create_task(self.start_on_boot())
                     self.recorder.append(sample)
                 if samples:self.times.append((self.received_at,len(samples)))
+                # Stops re-take 1 G every 2 s and driving learns forward: keep it across power cuts.
+                if self.mount.dirty and time.monotonic()-self.mount_saved_at>=30:
+                    self.mount.save();self.mount_saved_at=time.monotonic()
                 self.error=None
             except Exception as exc:
                 self.error=str(exc);self.bridge_errors+=1
@@ -402,6 +420,7 @@ async def lifespan(app):
     with suppress(asyncio.CancelledError):
         await public_task
     runtime.recorder.stop()
+    if runtime.mount.dirty:runtime.mount.save()
 
 
 app = FastAPI(title="EcoLogger V2 / EcoCapture-Web", lifespan=lifespan)
@@ -637,6 +656,30 @@ async def lap_reset():
     return runtime.laps.public()
 
 
+@app.get('/api/imu/mount')
+def imu_mount_status():
+    """The mounting calibration (imu_mount.py). The same JSON is what sd_decode.py --mount takes."""
+    return runtime.mount.public()
+
+
+@app.post('/api/imu/mount/level')
+async def imu_mount_level():
+    if not runtime.status()['connected']:raise HTTPException(409,'MCUからの受信を待っています。')
+    if not runtime.mount.level_now():raise HTTPException(409,'揺れています。車を止めて2秒ほど待ってから押してください。')
+    if runtime.mount.error:raise HTTPException(507,runtime.mount.error)
+    runtime.mount_saved_at=time.monotonic()
+    return runtime.mount.public()
+
+
+@app.post('/api/imu/mount/reset')
+async def imu_mount_reset():
+    """Forget 1 G and forward: taken again automatically at the next stop and while driving."""
+    runtime.mount.clear()
+    if runtime.mount.error:raise HTTPException(507,runtime.mount.error)
+    runtime.mount_saved_at=time.monotonic()
+    return runtime.mount.public()
+
+
 @app.get('/api/field/link')
 async def field_link():
     """URLs (with the key) and a QR code that open the phone course-walk screen (field.py)."""
@@ -688,7 +731,7 @@ async def start_log():
         if not runtime.status()["connected"]:
             raise HTTPException(409, "MCUからの受信を確認してから記録を開始してください")
         # eMMC always records; a missing or failing SD card is only a warning.
-        runtime.recorder.start(runtime.config)
+        runtime.recorder.start(runtime.config, runtime.mount.state())
         if runtime.bridge and not runtime.hardware.get('sd_logging'):
             runtime.sd_note=await start_sd()
         return runtime.status()["logging"]
@@ -936,6 +979,13 @@ async def sd_summary(index:int):
             'track':[[lon,lat] for lat,lon in track[::max(1,(len(track)+1999)//2000)]]}
 
 @app.get('/api/sd/decoder')
-def sd_decoder():return FileResponse(Path(__file__).parent/'sd_decode.py',filename='sd_decode.py')
+def sd_decoder():
+    """sd_decode.py with imu_mount.py, which it needs for the car-axis accelerations."""
+    import io,zipfile
+    from fastapi.responses import Response
+    buffer=io.BytesIO()
+    with zipfile.ZipFile(buffer,'w',zipfile.ZIP_DEFLATED) as archive:
+        for name in ('sd_decode.py','imu_mount.py'):archive.write(Path(__file__).parent/name,name)
+    return Response(buffer.getvalue(),media_type='application/zip',headers={'Content-Disposition':'attachment; filename="sd_decode.zip"'})
 
 app.mount("/", StaticFiles(directory=Path(__file__).parent / "web", html=True), name="web")

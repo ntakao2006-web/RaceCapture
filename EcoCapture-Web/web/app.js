@@ -77,6 +77,8 @@ function update(frame) {
   $('sample-seq').textContent=`SEQ ${frame.sample?.seq ?? '—'}`;
   $('storage-free').textContent=`（空き ${format(s.storage_free_bytes/1073741824,2)} GiB）`;
   $('hardware-status').replaceChildren(...Object.entries(s.sensors||{}).map(([k,v])=>{const span=document.createElement('span');span.textContent=`${k.toUpperCase()} ${v}`;return span;}));
+  const mount=s.imu_mount;
+  if($('imu-mount'))$('imu-mount').textContent=mount?mount.message+(Number.isFinite(mount.tilt_deg)?`　取付の傾き ${format(mount.tilt_deg,1)}°`:'')+(mount.error?`　${mount.error}`:''):'受信待ち';
   if($('imu-calibration'))$('imu-calibration').textContent=frame.sample?.imu_calibration?'IMU校正（0〜3）：'+Object.entries(frame.sample.imu_calibration).map(([k,v])=>`${k} ${v}`).join(' / '):'IMU校正：受信待ち';
   const tileRank=signal=>signal.conversion==='sensorhub_oiltemp'?2:signal.conversion==='defi_volt'?1:0;
   const tiles=[...(config?.signals||[])].sort((a,b)=>tileRank(b)-tileRank(a)).slice(0,8);$('signal-tiles').hidden=!tiles.length;
@@ -146,6 +148,8 @@ $('clear-track').onclick=()=>{track=[];draw();};
 $('start-log').onclick=()=>action(async()=>{await api('/api/log/start','POST');message('UNO Qで記録を開始しました。');});
 $('stop-log').onclick=()=>action(async()=>{await api('/api/log/stop','POST');message('記録を停止しました。Loggingからダウンロードできます。');});
 $('refresh-logs').onclick=()=>action(loadLogs);
+$('imu-level').onclick=()=>action(async()=>{await api('/api/imu/mount/level','POST');message('今の向きを1Gにしました。前方は走りながら覚えます。');});
+$('imu-reset').onclick=()=>action(async()=>{await api('/api/imu/mount/reset','POST');message('取付の校正を消しました。次に止まったときに1Gを取り直し、走りながら前方を覚えます。');});
 async function loadLogs(){
   try{const files=await api('/api/sd/logs');$('sd-log-list').replaceChildren();for(const f of files){const p=document.createElement('p');p.textContent=`EL${String(f.index).padStart(6,'0')}.BIN — ${bytes(f.size)} ${f.active?'記録中':''} `;if(!f.active){const a=document.createElement('a');a.href=`/api/sd/logs/${f.index}/download`;a.textContent='ダウンロード';a.download='';p.append(a);}$('sd-log-list').append(p);}}catch(e){$('sd-log-list').textContent=e.message;}
   const list=await api('/api/logs');$('log-list').replaceChildren();$('logs-empty').hidden=!!list.length;

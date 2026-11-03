@@ -273,6 +273,35 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(rows[0]['LapCount'], '2'); self.assertEqual(rows[0]['LapTime'], '1.25'); self.assertEqual(rows[0]['BestLap'], '')
         self.assertTrue(set(LAP_CHANNELS) <= set(rows[0]))
 
+    def test_imu_mount_column_api_and_saved_file(self):
+        mount = self.s.runtime.mount
+        self.assertEqual(self.client.post('/api/imu/mount/level', headers=self.headers).status_code, 409)  # no MCU yet
+        self.connected()
+        self.assertEqual(self.client.post('/api/imu/mount/level', headers=self.headers).status_code, 409)  # no 2 s of rows
+        for _ in range(200): mount.add([0, 0, 9.80665], [0, 0, 0], None)
+        data = self.client.post('/api/imu/mount/level', headers=self.headers).json()
+        self.assertEqual((data['up'], data['manual'], data['tilt_deg']), ([0, 0, 1.0], True, 0.0))
+        self.assertEqual(json.loads((Path(self.temp.name) / 'imu_mount.json').read_text())['up'], [0, 0, 1.0])
+        self.assertEqual(self.client.get('/api/status').json()['imu_mount']['message'][:10], '1G：手動で取った値')
+        self.s.runtime.recorder.start(Configuration(), mount.state())
+        first = self.sample(); first['imu_mount'] = mount.state()
+        same = self.sample(); same['imu_mount'] = mount.state()          # unchanged: the same object, not written again
+        self.s.runtime.recorder.append(first); self.s.runtime.recorder.append(same)
+        self.client.post('/api/imu/mount/reset', headers=self.headers)
+        later = self.sample(); later['imu_mount'] = mount.state()
+        self.s.runtime.recorder.append(later); name = self.s.runtime.recorder.name; self.s.runtime.recorder.stop()
+        with (self.s.LOGS / name).open(encoding='utf-8', newline='') as f:
+            cells = [row['imu_mount'] for row in csv.DictReader(f)]
+        self.assertEqual(json.loads(cells[0])['up'], [0, 0, 1.0]); self.assertEqual(cells[1], ''); self.assertIsNone(json.loads(cells[2])['up'])
+        meta = json.loads((self.s.LOGS / (name + '.meta.json')).read_text(encoding='utf-8'))
+        self.assertEqual(meta['imu_mount']['up'], [0, 0, 1.0]); self.assertIn('LatAccel (+ right)', meta['imu_axes'])
+        self.assertIsNone(json.loads((Path(self.temp.name) / 'imu_mount.json').read_text())['up'])
+
+    def test_sd_decoder_download_carries_imu_mount(self):
+        import io, zipfile
+        response = self.client.get('/api/sd/decoder')
+        self.assertEqual(sorted(zipfile.ZipFile(io.BytesIO(response.content)).namelist()), ['imu_mount.py', 'sd_decode.py'])
+
     def test_can_signals_are_one_column_each(self):
         oil = Signal(name='OilTemp', unit='°C', channel=2, can_id=0x600, byte_offset=0, data_type='int16', scale=.01, conversion='sensorhub_oiltemp')
         rpm = Signal(name='RPM', unit='rpm', can_id=0x201, byte_offset=0, scale=.25)          # a fixed channel: written in RPM, not twice

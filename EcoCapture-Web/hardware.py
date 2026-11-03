@@ -3,6 +3,7 @@ import struct
 import math
 from collections import deque
 from models import CHANNELS
+from imu_mount import ImuMount
 
 OILTEMP_STATES = {0:'正常', 1:'オープン', 2:'短絡', 3:'データ異常', 4:'通信途絶'}
 # PIC v8 voltage inputs: the pull-ups and the pressure curve are not known yet,
@@ -45,7 +46,10 @@ def defivolt_packet(raw, byte_offset):
     return adc, 1 if adc <= 4 else 2 if adc >= 4091 else 0
 
 class HardwareDecoder:
-    def __init__(self):
+    def __init__(self, mount=None):
+        # LongAccel/LatAccel/VertAccel are the car's axes from the mounting calibration
+        # (imu_mount.py), not BNO055's linear acceleration, which stays in imu_raw.
+        self.mount=mount if mount is not None else ImuMount()
         self.distance=0.0
         self.last_itow=None
         self.seen_itow=None
@@ -60,6 +64,7 @@ class HardwareDecoder:
         if self.last_ms is not None and status['mcu_ms'] < self.last_ms:
             self.can_values.clear();self.can_states.clear();self.distance=0;self.last_itow=None
             self.seen_itow=None;self.gnss_hz=None;self.gnss_intervals.clear()
+            self.mount.restart()
         self.last_ms=status['mcu_ms']
         self.last_can=batch.get('can',[])
         self.feed_can(self.last_can,config)
@@ -90,6 +95,7 @@ class HardwareDecoder:
             self.last_itow=itow
             gps['Distance']=self.distance
         else:self.last_itow=None
+        self.mount.on_pvt(nav if valid_nav else None)
         samples=[]
         for seq,stamp,data in batch.get('rows',[]):
             raw=bytes.fromhex(data)
@@ -98,14 +104,18 @@ class HardwareDecoder:
             if not imu_ok:raw=bytes(46)
             x=struct.unpack('<22h',raw[:44]);v=dict.fromkeys(CHANNELS)
             v.update(gps)
+            decoded,can_states=self.can_snapshot(stamp,config)
             if imu_ok:
                 for i,name in enumerate(('AccelX','AccelY','AccelZ')):v[name]=x[i]/100
                 for i,name in enumerate(('GyroX','GyroY','GyroZ')):v[name]=x[6+i]/16
-                v.update(Roll=x[10]/16,Pitch=x[11]/16,LongAccel=x[16]/980.665,LatAccel=x[17]/980.665,VertAccel=x[18]/980.665)
-            decoded,can_states=self.can_snapshot(stamp,config)
+                v.update(Roll=x[10]/16,Pitch=x[11]/16)
+                # Standstill is judged on the vehicle speed when CAN has it, else GNSS.
+                speed=decoded.get('Speed') if isinstance(decoded.get('Speed'),(int,float)) else gps.get('GPSSpeed')
+                car=self.mount.add([x[0]/100,x[1]/100,x[2]/100],[x[6]/16,x[7]/16,x[8]/16],speed)
+                if car:v.update(LongAccel=car[0],LatAccel=car[1],VertAccel=car[2])
             for name,value in decoded.items():
                 if name in v:v[name]=value
-            samples.append({'schema':1,'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':stamp,'values':v,'can_signals':decoded,'can_states':can_states,'gnss_utc':gnss_utc,'gnss_itow_ms':itow,'imu_raw':data,'imu_calibration':({'system':raw[45]>>6,'gyro':raw[45]>>4&3,'accel':raw[45]>>2&3,'mag':raw[45]&3} if imu_ok else None),'imu_temperature_C':(raw[44] if raw[44]<128 else raw[44]-256) if imu_ok else None,'quaternion':[q/16384 for q in x[12:16]] if imu_ok else None,'gnss_hacc_m':struct.unpack_from('<I',nav,40)[0]/1000 if fix else None})
+            samples.append({'schema':1,'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':stamp,'values':v,'can_signals':decoded,'can_states':can_states,'gnss_utc':gnss_utc,'gnss_itow_ms':itow,'imu_raw':data,'imu_calibration':({'system':raw[45]>>6,'gyro':raw[45]>>4&3,'accel':raw[45]>>2&3,'mag':raw[45]&3} if imu_ok else None),'imu_temperature_C':(raw[44] if raw[44]<128 else raw[44]-256) if imu_ok else None,'quaternion':[q/16384 for q in x[12:16]] if imu_ok else None,'gnss_hacc_m':struct.unpack_from('<I',nav,40)[0]/1000 if fix else None,'imu_mount':self.mount.state()})
         return samples,{'imu':'正常' if status['imu_address'] else '未検出','gnss':'測位中' if fix else '測位待ち' if valid_nav else '未受信','can':f"CAN1 {status['can_counts'][0]} フレーム（受信専用） / CAN2 センサーハブ {status['can_counts'][1]} フレーム",'sd':'未検出' if not status['sd_ready'] else '記録欠落あり' if status.get('sd_queue_dropped') else 'FAT32を認識できません' if status.get('sd_mounted') is False or status.get('sd_mounted')==0 else f"記録中 EL{status.get('sd_file',0):06}.BIN" if status.get('sd_logging') else '保存エラー' if status.get('sd_errors') else '認識済み' if status['sd_ready'] else '未検出','lte':'電源OFF / SIM・アンテナ未接続','camera':'未接続'}
 
     def feed_can(self, frames, config):

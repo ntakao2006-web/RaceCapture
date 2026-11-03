@@ -1,0 +1,53 @@
+20261021T125834   122.8 min  vmax   nan  moving 0.00  up [ 0.02 -0.01  1.  ]  tilt  1.3  per-min dir spread max  0.1  can n
+20261021T150230    20.5 min  vmax     1  moving 0.00  up [-0.15 -0.01  0.99]  tilt  8.7  per-min dir spread max  8.8  can n
+20261021T155521    10.2 min  vmax     0  moving 0.00  up [-0.15 -0.    0.99]  tilt  8.7  per-min dir spread max 10.5  can n
+20261021T160732    28.7 min  vmax    50  moving 0.14  up [-0.16  0.01  0.99]  tilt  9.0  per-min dir spread max  2.7  can n
+20261021T163635    10.2 min  vmax    29  moving 0.02  up [-0.16  0.02  0.99]  tilt  9.2  per-min dir spread max  1.0  can n
+20261021T164700     5.7 min  vmax     0  moving 0.00  up [-0.16  0.02  0.99]  tilt  9.4  per-min dir spread max  0.3  can n
+20261021T165258    11.6 min  vmax     0  moving 0.00  up [-0.16  0.02  0.99]  tilt  9.4  per-min dir spread max  0.3  can n
+C:\Users\ntaka\AppData\Local\Temp\claude\C--Users-ntaka-Documents-ClaudeCode-RaceCapture\0c3b198f-a241-48dd-ae63-07ed8f969592\scratchpad\screen_logs.py:27: RuntimeWarning: invalid value encountered in divide
+  m = a[k:k + 60].mean(0); dirs.append(m / np.linalg.norm(m))
+20261021T170450   174.4 min  vmax   123  moving 0.43  up [-0.16  0.01  0.99]  tilt  9.4  per-min dir spread max  nan  can n
+20261022T123329   110.4 min  vmax    56  moving 0.06  up [ 0.28 -0.13  0.95]  tilt 18.1  per-min dir spread max 146.3  can n
+20261022T142425     1.5 min  vmax   nan  moving 0.00  up [ 0.22 -0.01  0.98]  tilt 12.6  per-min dir spread max  0.2  can n
+20261022T142909    10.0 min  vmax   nan  moving 0.00  up [0.34 0.14 0.93]  tilt 21.6  per-min dir spread max  1.3  can n
+20261022T144043     4.6 min  vmax   nan  moving 0.00  up [0.3  0.16 0.94]  tilt 20.0  per-min dir spread max  1.9  can n
+20261022T144538    18.0 min  vmax   nan  moving 0.00  up [ 0.   -0.01  1.  ]  tilt  0.7  per-min dir spread max  6.0  can n
+20261022T150454    51.1 min  vmax   nan  moving 0.00  up [0.02 0.04 1.  ]  tilt  2.7  per-min dir spread max 15.6  can n
+20261022T155638   589.2 min  vmax   nan  moving 0.00  up [ 0.02 -0.01  1.  ]  tilt  1.3  per-min dir spread max 64.1  can n
+20261023T054456     8.8 min  vmax   nan  moving 0.00  up [ 0.11 -0.09  0.99]  tilt  8.3  per-min dir spread max 66.9  can n
+20261023T055353     8.4 min  vmax   nan  moving 0.00  up [ 0.02 -0.06  1.  ]  tilt  3.6  per-min dir spread max 24.7  can n
+20261023T065930    13.1 min  vmax   nan  moving 0.00  up [0.06 0.41 0.91]  tilt 24.6  per-min dir spread max 40.2  can n
+20261023T072330     7.4 min  vmax   nan  moving 0.00  up [-0.   -0.18  0.98]  tilt 10.5  per-min dir spread max 45.5  can n
+20261023T073106   133.2 min  vmax   146  moving 0.39  up [ 0.2  -0.04  0.98]  tilt 12.0  per-min dir spread max  nan  can n
+20261023T102406    25.0 min  vmax     1  moving 0.00  up [ 0.15 -0.01  0.99]  tilt  8.5  per-min dir spread max 40.6  can n
+20261023T104822    79.1 min  vmax   nan  moving 0.00  up [ 0.15 -0.01  0.99]  tilt  8.6  per-min dir spread max  0.9  can n
+20261023T120940    20.1 min  vmax   165  moving 0.98  up [ 0.17 -0.01  0.99]  tilt  9.9  per-min dir spread max  8.0  can n
+20261023T123558    11.6 min  vmax   156  moving 0.97  up [ 0.17 -0.01  0.99]  tilt  9.6  per-min dir spread max  5.5  can n
+20261023T125125    17.5 min  vmax    96  moving 0.87  up [ 0.16 -0.02  0.99]  tilt  9.3  per-min dir spread max  4.5  can n
+20261023T130936    98.6 min  vmax    92  moving 0.26  up [ 0.16 -0.02  0.99]  tilt  9.1  per-min dir spread max  4.5  can n
+20261023T145135    26.3 min  vmax    24  moving 0.08  up [ 0.15 -0.01  0.99]  tilt  8.5  per-min dir spread max  2.8  can n
+20261023T151847    16.3 min  vmax     0  moving 0.00  up [ 0.2  -0.03  0.98]  tilt 11.5  per-min dir spread max  0.4  can n
+20261023T153854    14.4 min  vmax     0  moving 0.00  up [ 0.19 -0.03  0.98]  tilt 11.3  per-min dir spread max  0.3  can n
+20261023T155658     7.2 min  vmax     0  moving 0.00  up [ 0.19 -0.03  0.98]  tilt 11.3  per-min dir spread max  0.4  can n
+20261023T160516    33.0 min  vmax    28  moving 0.09  up [ 0.19 -0.04  0.98]  tilt 10.9  per-min dir spread max  3.7  can n
+20261023T164136     5.5 min  vmax     0  moving 0.00  up [ 0.19 -0.04  0.98]  tilt 11.2  per-min dir spread max  0.4  can n
+20261023T164655    19.6 min  vmax    47  moving 0.22  up [ 0.16 -0.01  0.99]  tilt  9.0  per-min dir spread max  2.6  can n
+20261023T170700     5.5 min  vmax     0  moving 0.00  up [0.15 0.01 0.99]  tilt  8.9  per-min dir spread max  0.1  can n
+20261023T171310    72.0 min  vmax    16  moving 0.04  up [ 0.63 -0.74  0.22]  tilt 77.2  per-min dir spread max 85.2  can n
+20261023T182553   192.9 min  vmax    13  moving 0.00  up [-0.02  0.01  1.  ]  tilt  1.5  per-min dir spread max 107.7  can n
+20261023T213847   139.6 min  vmax    46  moving 0.28  up [ 0.03 -0.23  0.97]  tilt 13.1  per-min dir spread max 82.9  can n
+20261023T235851    80.1 min  vmax   nan  moving 0.00  up [0.01 0.02 1.  ]  tilt  1.0  per-min dir spread max 13.5  can n
+20261024T011851    13.4 min  vmax     0  moving 0.00  up [0.04 0.04 1.  ]  tilt  3.3  per-min dir spread max 11.3  can n
+20261024T013253     4.0 min  vmax     1  moving 0.00  up [0.07 0.18 0.98]  tilt 11.3  per-min dir spread max 23.5  can n
+20261024T013614     4.5 min  vmax     0  moving 0.00  up [-0.18  0.25  0.95]  tilt 18.0  per-min dir spread max 13.1  can n
+20261024T014022    17.3 min  vmax     0  moving 0.00  up [-0.18 -0.04  0.98]  tilt 10.8  per-min dir spread max 22.4  can n
+20261024T015737    78.5 min  vmax    48  moving 0.05  up [ 0.12 -0.03  0.99]  tilt  7.0  per-min dir spread max 50.4  can n
+20261024T031713   310.3 min  vmax    42  moving 0.14  up [ 0.02 -0.04  1.  ]  tilt  2.3  per-min dir spread max 16.4  can n
+20261024T082854     5.4 min  vmax   nan  moving 0.00  up [-0.   -0.04  1.  ]  tilt  2.3  per-min dir spread max  0.2  can n
+20261024T083433     0.9 min  vmax   nan  moving 0.00  up [-0.   -0.04  1.  ]  tilt  2.5  per-min dir spread max  0.0  can n
+20261024T083552   200.9 min  vmax   nan  moving 0.00  up [-0.   -0.04  1.  ]  tilt  2.4  per-min dir spread max  0.2  can n
+20261024T115742    35.7 min  vmax   nan  moving 0.00  up [-0.   -0.04  1.  ]  tilt  2.4  per-min dir spread max  2.9  can n
+20261029T075032    22.1 min  vmax   nan  moving 0.00  up [-0.01 -0.04  1.  ]  tilt  2.5  per-min dir spread max  0.3  can n
+20261029T081317   128.7 min  vmax   nan  moving 0.00  up [-0.01 -0.04  1.  ]  tilt  2.5  per-min dir spread max  0.6  can n
+20261029T102255    53.4 min  vmax   nan  moving 0.00  up [-0.01 -0.04  1.  ]  tilt  2.4  per-min dir spread max  0.3  can n
