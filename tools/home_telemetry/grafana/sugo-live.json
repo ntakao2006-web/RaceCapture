@@ -1,0 +1,492 @@
+{
+  "uid": "sugo-live",
+  "title": "SUGO 120分耐久 Live",
+  "tags": [
+    "ecorun",
+    "sugo"
+  ],
+  "timezone": "browser",
+  "editable": false,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "refresh": "10s",
+  "timepicker": {
+    "refresh_intervals": [
+      "500ms",
+      "1s",
+      "2s",
+      "5s",
+      "10s"
+    ]
+  },
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "name": "room",
+        "label": "Room",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ecorun-vm"
+        },
+        "query": {
+          "query": "label_values(ecorun_Speed, room)",
+          "refId": "room"
+        },
+        "definition": "label_values(ecorun_Speed, room)",
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "text": "majesta",
+          "value": "majesta"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "ラップタイム（この端末の時計で進む）",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 13,
+        "h": 11
+      },
+      "description": "周ごとのラップタイム（新しい周が上）。ベストは紫、ベストより1割以上遅い周（ピット・給油・黄旗など）は灰色。油温・水温・最高速はその周に届いた値の最大（LTEで約1秒に1回なので、最高速は数km/h低く出ることがある）。「通信切れ」はその周の通過が届かなかった周（ロガーは記録している）。経過・残りは、ラップのリセット後に最初にコントロールラインを通ってから120分で数える。油温110℃で黄（注意）・120℃でオレンジ（クーリング開始）・130℃で赤（ピットイン）、水温は100・110・120℃",
+      "options": {
+        "mode": "html",
+        "content": "<iframe src=\"/live/laps?room=$room&race_min=120&oil=110,120,130&water=100,110,120\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
+      },
+      "id": 1
+    },
+    {
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 13,
+        "y": 0,
+        "w": 11,
+        "h": 11
+      },
+      "description": "コース全体を表示（ドラッグ・拡大で動かせる。「追従する」で車を追いかける）",
+      "options": {
+        "mode": "html",
+        "content": "<iframe allow=\"geolocation\" src=\"/live/map?room=$room&zoom=15.75&follow=0&center=38.14042,140.77666\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
+      },
+      "id": 2
+    },
+    {
+      "type": "text",
+      "title": "G（この周の点・灰色は前の周）",
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 8,
+        "h": 5
+      },
+      "description": "前後・左右の加速度。下が加速・上が減速。この周に届いた点を全部残す（灰色は前の周）。LTEで約1秒に1回なので、短いピークは拾えず最大は低めに出る",
+      "options": {
+        "mode": "html",
+        "content": "<iframe src=\"/live/gg?room=$room&lap=1&max=1.25\" style=\"width:100%;height:100%;border:0;display:block\"></iframe>"
+      },
+      "id": 3
+    },
+    {
+      "type": "timeseries",
+      "title": "油温・水温（30分）",
+      "gridPos": {
+        "x": 8,
+        "y": 11,
+        "w": 10,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "interval": "15s",
+      "description": "点線は油温の注意110℃・クーリング開始120℃・ピットイン130℃（水温はそれぞれ10℃下：100・110・120℃）。問い合わせ方式なので回線が遅いと遅れる",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "ecorun_OilTemp{room=\"$room\"}",
+          "instant": false,
+          "range": true,
+          "legendFormat": "油温"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "ecorun_WaterTemp{room=\"$room\"}",
+          "instant": false,
+          "range": true,
+          "legendFormat": "水温"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "decimals": 0,
+          "min": 60,
+          "max": 140,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 110
+              },
+              {
+                "color": "orange",
+                "value": 120
+              },
+              {
+                "color": "red",
+                "value": 130
+              }
+            ]
+          },
+          "custom": {
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "lineWidth": 2,
+            "spanNulls": 60000,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "油温"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "水温"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 4
+    },
+    {
+      "type": "stat",
+      "title": "GPS衛星数",
+      "gridPos": {
+        "x": 18,
+        "y": 11,
+        "w": 3,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "last_over_time(ecorun_GPSSats{room=\"$room\"}[10m])",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "—",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 6
+              },
+              {
+                "color": "green",
+                "value": 10
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "",
+      "id": 5
+    },
+    {
+      "type": "stat",
+      "title": "サーバー到着までの遅れ",
+      "gridPos": {
+        "x": 21,
+        "y": 11,
+        "w": 3,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ecorun-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "expr": "time() - timestamp(ecorun_Interval{room=\"$room\"})",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "受信なし",
+          "unit": "s",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "graphMode": "none",
+        "colorMode": "background",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "description": "ロガーが測った時刻（GNSS）から、そのデータがサーバーに届くまでの秒数。この画面の回線の遅れは含まない（そちらはラップタイムの一番下）",
+      "id": 6
+    },
+    {
+      "type": "row",
+      "title": "詳細（速度・回転数の推移・全チャンネル）　開くと通信量が増えます",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "type": "timeseries",
+          "title": "速度・回転数（30分）",
+          "gridPos": {
+            "x": 0,
+            "y": 17,
+            "w": 24,
+            "h": 7
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "interval": "5s",
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "ecorun-vm"
+              },
+              "expr": "ecorun_Speed{room=\"$room\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "速度"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "ecorun-vm"
+              },
+              "expr": "ecorun_RPM{room=\"$room\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "回転数"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "lineWidth": 1,
+                "showPoints": "never",
+                "spanNulls": 60000
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "回転数"
+                },
+                "properties": [
+                  {
+                    "id": "custom.axisPlacement",
+                    "value": "right"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "rotrpm"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "速度"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "velocitykmh"
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "id": 8
+        },
+        {
+          "id": 9,
+          "type": "table",
+          "title": "全チャンネル（最新）",
+          "gridPos": {
+            "x": 0,
+            "y": 24,
+            "w": 24,
+            "h": 7
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ecorun-vm"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "last_over_time({__name__=~\"ecorun_.+\", room=\"$room\"}[1m])",
+              "instant": true,
+              "format": "table"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "room": true,
+                  "db": true
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "id": 7
+    }
+  ]
+}

@@ -18,9 +18,10 @@ This process follows those files and
      row instead of the whole ~650-byte row;
   3. sends the race clock (start time, limits, laps and line passes) once a second to the
      clock page, which runs the clock on the browser's own time so it keeps going when the
-     pit's link stalls.
+     pit's link stalls, and the same to the circuit timing sheet (laps page, 2026-11-04),
+     which gets the line passes only when they change.
 It also serves the map page at http://<host>:3002/map?room=<room> (G-G at /gg, the
-clock at /clock), and over the
+clock at /clock, the timing sheet at /laps), and over the
 same WebSocket
   - keeps shapes people draw on the map (lines, circles, markers...) per room in
     SQLite, so every viewer sees the same course notes, and
@@ -67,6 +68,7 @@ VIEWER_STALE_S = 60             # a shared viewer position disappears after this
 APP_STALE_S = 15 * 60           # ...but an OwnTracks phone standing still may report only every few minutes
 MAX_HTTP_BODY = 16_000          # one OwnTracks message
 MAX_SHAPE_BYTES = 200_000       # one drawn shape as GeoJSON
+CLOCK_KINDS = ('clock', 'laps')  # pages sent the race state once a second instead of the rows
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -135,6 +137,14 @@ class Pace:
     REG_DISTANCE_M = {3: 6856.72, 7: 16389.68}
     # The lap being driven decides the outlook once it has run this long (before: the lap before).
     OUTLOOK_AFTER_S = 30.0
+    # The highest of these over each lap goes with its pass (2026-11-04, the SUGO endurance's
+    # timing sheet: is the oil getting hotter lap by lap). Only rows that reached the server
+    # count: with the car's CAN on, LTE carries ~1.25 rows/s (EcoCapture-Web/LTE_PODIUM.md),
+    # so the top speed can read a few km/h low.
+    PEAKS = {'vmax': 'Speed', 'oil': 'OilTemp', 'water': 'WaterTemp'}
+    # The live temperatures on the timing sheet are dropped this long after their last value
+    # (the channel is masked out while the sensor reads nothing).
+    LIVE_STALE_MS = 10_000
 
     def __init__(self, split=None):
         # (start, goal) metres past the control line along the way the cars go (--lap-split):
@@ -151,6 +161,8 @@ class Pace:
         self.events = []   # line passes for the timing sheet, taken by Bridge.follow
         self.passes = []   # this race's line passes, kept for the clock page
         self.latest = {}   # last value of the channels the pit clock shows (TimeLimit/Margin come sparse)
+        self.seen = {}     # channel -> time of its last value, for the live temperatures
+        self.peaks = {}    # PEAKS key -> highest value so far in the lap being driven
 
     def clock(self):
         """The pit clock (clock.html, 2026-10-24): the start time, not the elapsed time, so the
@@ -172,7 +184,10 @@ class Pace:
                 'total': None if count is None or left is None else round(count + left),
                 # From ElapsedTime rather than the last pass, so it holds after a bridge restart
                 'lap_start': round(self.last_ts - self.lap_min * 60000) if on and not finished else None,
-                'last_lap': None if self.latest.get('LapTime') is None else round(self.latest['LapTime'] * 60, 1),
+                'last_lap': None if self.latest.get('LapTime') is None else round(self.latest['LapTime'] * 60, 2),
+                # The logger's best lap (it times every lap, also those lost on the way here)
+                'best': None if self.latest.get('BestLap') is None else round(self.latest['BestLap'] * 60, 2),
+                'oil': self.live('OilTemp'), 'water': self.live('WaterTemp'),
                 'passes': passes,
                 'lap_avg': self.latest.get('LapAvgSpeed') if on and not finished else None,
                 'race_avg': self.latest.get('RaceAvgSpeed') if on else None,
@@ -214,6 +229,13 @@ class Pace:
                 'min_kmh': round(remain / (limit - race_s) * 3.6, 2) if limit > race_s else None,
                 'basis': round(basis, 2), 'from_last': from_last}
 
+    def live(self, name):
+        """The last value of `name` (rounded), or None when the newest rows no longer have it."""
+        at = self.seen.get(name)
+        if at is None or self.last_ts is None or self.last_ts - at > self.LIVE_STALE_MS:
+            return None
+        return round(self.latest[name], 1)
+
     def lap_m(self, index, laps=None):
         """Regulation distance of lap `index` (0 = first) by --lap-split, or None without it."""
         if self.split is None:
@@ -243,22 +265,32 @@ class Pace:
         restarted, or a test replay) would divide part of the distance by the whole time."""
         return acc is not None and acc[1] < 0.1
 
-    def event(self, lap, kind, at_ms, lap_s=None, avg=None):
-        """One line pass: lap 0 is the start; kind start/control/goal."""
+    def event(self, lap, kind, at_ms, lap_s=None, avg=None, peaks=None, est=False):
+        """One line pass: lap 0 is the start; kind start/control/goal. `peaks` are the lap's
+        highest PEAKS; `est` marks a pass put in for a lap whose line pass never arrived."""
         self.events.append({'lap': lap, 'kind': kind, 'at_ms': int(at_ms), 'lap_s': lap_s, 'avg': avg,
                             'race': time.strftime('%H:%M', time.localtime(self.start_ms / 1000))})
         if kind == 'start':
             self.passes = []
-        self.passes.append({'n': lap, 'k': kind, 't': int(at_ms),
-                            's': None if lap_s is None else round(lap_s, 1),
-                            'v': None if avg is None else round(avg, 1)})
+        # 0.01 s (2026-11-04, was 0.1: a circuit's lap times differ by tenths). LapTime comes
+        # in minutes to 4 places, 0.006 s, so the last digit can be one off.
+        p = {'n': lap, 'k': kind, 't': int(at_ms),
+             's': None if lap_s is None else round(lap_s, 2),
+             'v': None if avg is None else round(avg, 1)}
+        for key, value in (peaks or {}).items():
+            p[key] = round(value, 1)
+        if est:
+            p['e'] = 1
+        self.passes.append(p)
 
     def add(self, ts_ms, fields):
         speed = fields.get('Speed', fields.get('GPSSpeed'))
         race_min, lap_min = fields.get('RaceTime'), fields.get('ElapsedTime')
-        for name in ('TimeLimit', 'Margin', 'CurrentLap', 'LapsLeft', 'LapCount', 'LapTime'):
+        for name in ('TimeLimit', 'Margin', 'CurrentLap', 'LapsLeft', 'LapCount', 'LapTime', 'BestLap',
+                     'OilTemp', 'WaterTemp'):
             if name in fields:
                 self.latest[name] = fields[name]
+                self.seen[name] = ts_ms
         dt = (ts_ms - self.last_ts) / 1000 if self.last_ts is not None else None
         self.last_ts = ts_ms
         step = 0.0
@@ -294,10 +326,14 @@ class Pace:
             # LapTime is one share. The distance covers all k, so it is shared the same way.
             k = max(1, round(count - self.count))
             avg = self.lap[0] / (k * lap_s / 3600) if self.whole(self.lap) and lap_s else None
+            # The laps put in are estimates (the logger's own lap list does not come over LTE),
+            # and so are the peaks of such a span, which cannot be shared out by lap.
             for i in range(k - 1):
                 n = int(self.count) + 1 + i
-                self.event(n, 'control', at - (k - 1 - i) * lap_s * 1000 if lap_s else at, lap_s, avg)
-            self.event(int(count), 'goal' if finished else 'control', at, lap_s, avg)
+                self.event(n, 'control', at - (k - 1 - i) * lap_s * 1000 if lap_s else at, lap_s, avg, est=True)
+            self.event(int(count), 'goal' if finished else 'control', at, lap_s, avg,
+                       peaks=self.peaks if k == 1 else None)
+            self.peaks = {}
             if avg is not None:
                 self.last_lap_avg = avg   # the goal lap too, which has no next lap to start
         if count is not None:
@@ -310,6 +346,7 @@ class Pace:
             if self.start_ms is None or abs(new_start - self.start_ms) > 2000:   # not just the bridge restarting
                 self.start_ms = new_start
                 self.event(0, 'start', new_start)
+                self.peaks = {}
         elif race_min > self.race_min:   # frozen after the goal: driving to the paddock does not count
             self.race[0] += step
         if lap_min is None:
@@ -321,6 +358,15 @@ class Pace:
         elif not lap_done:
             self.lap[0] += step
         self.race_min, self.lap_min = race_min, lap_min
+        # This row is in the lap being driven (after a pass, already the new one). Before the
+        # first pass (the out lap) nothing is kept.
+        if lap_min is None:
+            self.peaks = {}
+        else:
+            for key, name in self.PEAKS.items():
+                value = speed if name == 'Speed' else fields.get(name)
+                if value is not None and (key not in self.peaks or value > self.peaks[key]):
+                    self.peaks[key] = value
         for name, acc, now in (('RaceAvgSpeed', self.race, race_min), ('LapAvgSpeed', self.lap, lap_min)):
             if self.whole(acc) and now - acc[1] > 0.1:   # 6 s in: too early is only noise
                 fields[name] = acc[0] / ((now - acc[1]) / 60)
@@ -592,7 +638,7 @@ class Bridge:
         msgs = {}   # one encoding per field list asked for
         for ws, r in list(self.clients.items()):
             opts = self.client_opts.get(ws, {})
-            if r != room or opts.get('kind') == 'clock':
+            if r != room or opts.get('kind') in CLOCK_KINDS:
                 continue
             key = opts.get('fields')
             if key not in msgs:
@@ -619,8 +665,9 @@ class Bridge:
         path, _, query = request.path.partition('?')
         if path == '/ws':
             return None  # continue with the WebSocket handshake
-        # gg: the G-G circle (2026-10-23); clock: the race clock (2026-10-24)
-        pages = {'/map': 'map.html', '/gg': 'gg.html', '/clock': 'clock.html'}
+        # gg: the G-G circle (2026-10-23); clock: the race clock (2026-10-24); laps: the circuit
+        # timing sheet (2026-11-04, the SUGO endurance)
+        pages = {'/map': 'map.html', '/gg': 'gg.html', '/clock': 'clock.html', '/laps': 'laps.html'}
         if path.rstrip('/') in pages:
             with open(os.path.join(HERE, pages[path.rstrip('/')]), 'rb') as f:
                 body = f.read()
@@ -649,21 +696,38 @@ class Bridge:
         """Everyone's shared position, every 2 s (a handful of phones: negligible load)."""
         while True:
             await asyncio.sleep(2)
-            for room in {r for ws, r in self.clients.items() if self.client_opts.get(ws, {}).get('kind') != 'clock'}:
+            for room in {r for ws, r in self.clients.items() if self.client_opts.get(ws, {}).get('kind') not in CLOCK_KINDS}:
                 await self.room_send(room, {'viewers': self.viewer_list(room)}, kind=None)
 
     def clock_msg(self, room):
         pace = self.paces.get(room)
         return json.dumps({'clock': pace.clock() if pace else None, 'now': round(time.time() * 1000)})
 
+    def laps_msg(self, ws, room):
+        """The timing sheet's state (laps.html, 2026-11-04): the clock's, but the line passes
+        only when they changed since the last message to this page. A 2-hour race has some 70
+        of them (~7 KB), too much to send every second over the pit's phone. Passes are only
+        added, or start over with a new start time, so the start and the last one tell."""
+        pace = self.paces.get(room)
+        c = pace.clock() if pace else None
+        if c is not None:
+            opts = self.client_opts.setdefault(ws, {})
+            key = (c['start'], len(c['passes']), c['passes'][-1]['t'] if c['passes'] else None)
+            if opts.get('sent') == key:
+                del c['passes']
+            else:
+                opts['sent'] = key
+        return json.dumps({'laps': c, 'now': round(time.time() * 1000)})
+
     async def push_clock(self):
         """The pit clock's state once a second: ~200 bytes, whatever the link."""
         while True:
             await asyncio.sleep(1)
             for ws, opts in list(self.client_opts.items()):
-                if opts.get('kind') == 'clock' and ws in self.clients:
+                if opts.get('kind') in CLOCK_KINDS and ws in self.clients:
+                    room = self.clients[ws]
                     try:
-                        await ws.send(self.clock_msg(self.clients[ws]))
+                        await ws.send(self.clock_msg(room) if opts['kind'] == 'clock' else self.laps_msg(ws, room))
                     except Exception:
                         self.clients.pop(ws, None)
 
@@ -761,7 +825,7 @@ class Bridge:
         return out
 
     async def client(self, ws):
-        """/ws?room=<room>[&kind=clock|gg][&fields=A,B][&history=<s>]: a page asks only for the
+        """/ws?room=<room>[&kind=clock|laps|gg][&fields=A,B][&history=<s>]: a page asks only for the
         channels it draws and as much history as it keeps (2026-10-24, for the pit's slow link:
         the whole rows were ~650 bytes each, and a new map got 5 minutes of them, ~2 MB)."""
         query = urllib.parse.parse_qs(ws.request.path.partition('?')[2])
@@ -778,6 +842,8 @@ class Bridge:
         try:
             if kind == 'clock':
                 await ws.send(self.clock_msg(room))
+            elif kind == 'laps':
+                await ws.send(self.laps_msg(ws, room))
             else:
                 history = list(self.playouts[room].history) if room in self.playouts else []
                 if keep_ms is not None and history:

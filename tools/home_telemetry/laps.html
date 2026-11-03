@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lap Times</title>
+<!--
+  Circuit timing sheet for the pit, embedded in Grafana (2026-11-04, the SUGO 120-minute
+  endurance, task_sugo_20261108_breakdown.md SG-1-5). The eco-run clock (clock.html) is about
+  a time limit and average speeds; an endurance at a circuit is about lap times, so this page
+  lists every lap as it comes, like the timing sheets handed out at a circuit: lap, time, gap
+  to the best, and the lap's highest oil and water temperatures and speed (live_bridge.py
+  Pace.PEAKS), newest on top. Above it the race time, the lap being driven, the last and best
+  laps, and the oil and water temperatures with the team's limits.
+
+  Like clock.html it gets only the race state from live_bridge.py (/ws?room=<room>&kind=laps,
+  the passes only when they change) and runs the clock on the browser's own time, so it keeps
+  going while the pit's link stalls; the clock-offset and data-age logic is clock.html's.
+
+  ?room=<room>            the logger's room
+  ?race_min=<minutes>     race length for "残り" (default 120; 0 hides it). Counted from the first
+                          control-line pass after the lap reset, as the logger's RaceTime
+  ?oil=110,120,130        oil °C for caution / start cooling / pit in (ncec-roadster
+                          track/thermal-limits.md, provisional: the same as the driver's dash,
+                          RaceCapture-UNOQ/configure_sugo_dashboard.py)
+  ?water=100,110,120      the same for the ECU's water temperature (oil ~ water + 10 °C)
+
+  Laps lost on the way (LTE away across the line) come as estimates (`e`) and show no time:
+  the logger times them, but its lap list does not come over LTE. The best lap is the logger's.
+  Laps more than SLOW_RATIO over the best (pit stops, refuelling outside the circuit, yellow
+  flags) are greyed and left out of the recent average.
+-->
+<style>
+  :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --line: #2c3235; --head: #181b1f;
+    --green: #73bf69; --yellow: #fade2a; --orange: #ff9830; --red: #f2495c; --purple: #b877d9; }
+  html, body { margin: 0; height: 100%; background: transparent; color: var(--ink);
+    font: 15px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  #wrap { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 3px; padding: 4px 8px; box-sizing: border-box; }
+  .row { display: flex; align-items: baseline; gap: 0.6em; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  .row.nowrap { flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+  .push { margin-left: auto; }
+  .trio { display: grid; grid-template-columns: 1fr 1.25fr 1.25fr; gap: 2px 14px; font-variant-numeric: tabular-nums; }
+  .cell { display: flex; align-items: baseline; gap: 0.45em; border-top: 1px solid var(--line); padding-top: 1px; min-width: 0; }
+  .label { color: var(--dim); white-space: nowrap; font-size: clamp(12px, min(2.4vw, 4vh), 16px); }
+  .small { font-size: clamp(11px, min(2.2vw, 3.6vh), 15px); color: var(--dim); white-space: nowrap; }
+  #state { font-size: clamp(16px, min(4.2vw, 7vh), 28px); font-weight: 700; color: var(--dim); }
+  #state.run { color: var(--green); }
+  .big { font-size: clamp(18px, min(5.6vw, 8.5vh), 38px); font-weight: 700; }
+  .mid { font-size: clamp(15px, min(4vw, 6vh), 26px); font-weight: 600; }
+  #best { color: var(--purple); }
+  .temp { border-radius: 4px; padding: 0 0.25em; }
+  .lv1 { color: #000; background: var(--yellow); }
+  .lv2 { color: #000; background: var(--orange); }
+  .lv3 { color: #fff; background: var(--red); }
+  #alarm { display: none; font-weight: 700; border-radius: 4px; padding: 1px 8px; font-size: clamp(13px, min(3vw, 4.8vh), 20px); }
+  #alarm.lv1, #alarm.lv2, #alarm.lv3 { display: inline; }
+  #wrap.pit { background: rgba(242, 73, 92, 0.18); box-shadow: inset 0 0 0 4px var(--red); }
+  #sheet { flex: 1; min-height: 0; overflow: auto; border-top: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: clamp(12px, min(2.9vw, 4.4vh), 18px); }
+  th { color: var(--dim); font-weight: normal; text-align: right; position: sticky; top: 0; background: var(--head); padding: 1px 4px; white-space: nowrap;
+    box-shadow: 0 2px 0 var(--head); }   /* covers the coloured cells scrolling under it */
+  td { text-align: right; padding: 1px 4px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  td.time { font-weight: 600; }
+  tr.best td { color: var(--purple); font-weight: 700; }
+  tr.slow td { color: var(--dim); }
+  tr.est td { color: var(--dim); font-style: italic; }
+  td.lv1, td.lv2, td.lv3 { font-weight: 700; }
+  #fresh { font-size: 13px; }
+  #fresh.stale { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
+  #link { font-size: 13px; color: var(--dim); margin-left: auto; }
+  #link.slow { color: #fff; background: var(--red); border-radius: 4px; padding: 1px 6px; }
+  #beep { font-size: 12px; background: transparent; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+  #beep.on { color: #fff; border-color: var(--orange); }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="row">
+    <span id="state">接続中…</span>
+    <span class="label">周回</span><span id="count" class="mid">—</span><span id="current" class="small"></span>
+    <span class="label">経過</span><span id="elapsed" class="mid">--:--</span>
+    <span class="label" id="leftlabel">残り</span><span id="left" class="mid">—</span>
+  </div>
+  <div class="trio">
+    <div class="cell"><span class="label">この周</span><span id="lapnow" class="big">—</span></div>
+    <div class="cell"><span class="label">前の周</span><span id="lastlap" class="big">—</span><span id="lastgap" class="small"></span></div>
+    <div class="cell"><span class="label">ベスト</span><span id="best" class="big">—</span><span id="bestlap" class="small"></span></div>
+  </div>
+  <div class="row nowrap">
+    <span class="label">油温</span><span id="oil" class="mid temp">—</span>
+    <span class="label">水温</span><span id="water" class="mid temp">—</span>
+    <span id="alarm"></span>
+    <span class="label push">直近5周の平均</span><span id="avg5" class="mid">—</span>
+  </div>
+  <div id="sheet"><table>
+    <thead><tr><th>周</th><th>ラップ</th><th>ベスト差</th><th>油温</th><th>水温</th><th>最高速</th><th>通過</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <div class="row nowrap"><span id="fresh"></span><button id="beep" type="button">警告音：切</button>
+    <span id="startat" class="small"></span><span id="link"></span></div>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const room = params.get('room') || 'home-test';
+function limits(name, fallback) {
+  const v = (params.get(name) || '').split(',').map(Number);
+  return v.length === 3 && v.every(Number.isFinite) ? v : fallback;
+}
+const OIL = limits('oil', [110, 120, 130]);
+const WATER = limits('water', [100, 110, 120]);
+const RACE_S = (params.has('race_min') ? Number(params.get('race_min')) : 120) * 60;
+const STALE_S = 10;
+const LINK_SLOW_S = 5;           // the bridge sends once a second
+const OFFSET_WINDOW_MS = 600000; // 10 min (clock.html)
+const SLOW_RATIO = 1.10;         // laps this much over the best are pit stops, yellow flags...
+const RECENT = 5;
+const HOLD_OFF_MS = 5000;        // a temperature level stays this long after dropping below it
+const BEEP_EVERY_MS = 10000;     // while at "pit in"
+const ALARM = ['', '注意', 'クーリング開始', 'ピットイン'];
+let clock = null;          // live_bridge.py Pace.clock()
+let passes = [];           // kept between messages: the bridge sends them only when they change
+let offsets = [];          // [{at, d}] server minus browser time per message (ms)
+let last = null;
+let wallMinusMono = null;
+let shown = '';
+let beepOn = false, audio = null, lastBeep = 0;
+const level = { oil: { lv: 0, below: 0 }, water: { lv: 0, below: 0 } };
+
+function bestOffset() { return offsets.length ? Math.max(...offsets.map(o => o.d)) : 0; }
+function serverNow() { return Date.now() + bestOffset(); }
+function linkDelay() {
+  if (!last) return null;
+  const late = (bestOffset() - last.d) / 1000;
+  const silent = (Date.now() - last.at) / 1000 - 1;
+  return Math.max(late, silent, 0);
+}
+// 1:38.45 (hundredths), or 1:38 without; h:mm:ss past an hour
+function lapText(s, hundredths) {
+  const neg = s < 0; s = Math.abs(s);
+  const h = Math.floor(s / 3600), m = Math.floor((s - h * 3600) / 60), r = s - h * 3600 - m * 60;
+  const sec = hundredths ? r.toFixed(2).padStart(5, '0') : String(Math.floor(r)).padStart(2, '0');
+  return (neg ? '−' : '') + (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + sec;
+}
+function gapText(d) { return (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(2); }
+function hms(ms) { return new Date(ms).toLocaleTimeString('ja-JP', { hour12: false }); }
+function levelOf(v, lim) { return v == null ? 0 : v >= lim[2] ? 3 : v >= lim[1] ? 2 : v >= lim[0] ? 1 : 0; }
+function show(id, text, color) {
+  const el = document.getElementById(id);
+  el.textContent = text; el.style.color = color || '';
+  return el;
+}
+
+function laps() {   // completed laps, oldest first
+  return passes.filter(p => p.k !== 'start');
+}
+function bestS() {
+  if (clock && clock.best != null && clock.best > 0) return clock.best;
+  const t = laps().filter(p => !p.e && p.s != null && p.s > 0).map(p => p.s);
+  return t.length ? Math.min(...t) : null;
+}
+
+function drawSheet(best) {
+  const key = JSON.stringify([passes, best]);
+  if (key === shown) return;
+  shown = key;
+  const body = document.getElementById('rows');
+  body.replaceChildren(...laps().slice().reverse().map(p => {
+    const tr = document.createElement('tr');
+    const real = !p.e && p.s != null && p.s > 0;
+    if (p.e) tr.className = 'est';
+    else if (real && best != null && Math.abs(p.s - best) < 0.006) tr.className = 'best';
+    else if (real && best != null && p.s > best * SLOW_RATIO) tr.className = 'slow';
+    const cells = [
+      [p.n, ''],
+      [p.e ? '（通信切れ）' : real ? lapText(p.s, true) : '—', 'time'],
+      [!real || best == null ? '' : Math.abs(p.s - best) < 0.006 ? 'ベスト' : gapText(p.s - best), ''],
+      [p.oil == null ? '—' : Math.round(p.oil), p.oil == null ? '' : 'lv' + levelOf(p.oil, OIL)],
+      [p.water == null ? '—' : Math.round(p.water), p.water == null ? '' : 'lv' + levelOf(p.water, WATER)],
+      [p.vmax == null ? '—' : Math.round(p.vmax), ''],
+      [hms(p.t), ''],
+    ];
+    for (const [text, cls] of cells) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      if (cls && cls !== 'lv0') td.className = cls;
+      tr.appendChild(td);
+    }
+    return tr;
+  }));
+}
+
+function beep(times) {
+  if (!audio) return;
+  const t = audio.currentTime;
+  for (let i = 0; i < times; i++) {
+    const o = audio.createOscillator(), g = audio.createGain(), at = i * 0.25;
+    o.frequency.value = 880; g.gain.setValueAtTime(0.3, t + at); g.gain.setValueAtTime(0, t + at + 0.15);
+    o.connect(g); g.connect(audio.destination); o.start(t + at); o.stop(t + at + 0.16);
+  }
+}
+
+// A level is entered at once and left HOLD_OFF_MS after the value drops below it
+// (the driver's dash: 1 s / 5 s), so a reading on the line does not flicker.
+function temperature(id, value, lim) {
+  const s = level[id], now = Date.now(), lv = levelOf(value, lim);
+  if (lv >= s.lv) { s.lv = lv; s.below = 0; }
+  else if (!s.below) s.below = now;
+  else if (now - s.below >= HOLD_OFF_MS) { s.lv = lv; s.below = 0; }
+  const el = show(id, value == null ? '—' : Math.round(value) + '℃');
+  el.className = 'mid temp' + (s.lv ? ' lv' + s.lv : '');
+  return s.lv;
+}
+
+function drawTemps() {
+  const before = Math.max(level.oil.lv, level.water.lv);
+  const oil = temperature('oil', clock ? clock.oil : null, OIL);
+  const water = temperature('water', clock ? clock.water : null, WATER);
+  const lv = Math.max(oil, water);
+  const alarm = show('alarm', lv ? `${oil >= water ? '油温' : '水温'}：${ALARM[lv]}` : '');
+  alarm.className = lv ? 'lv' + lv : '';
+  document.getElementById('wrap').classList.toggle('pit', lv === 3);
+  if (beepOn && lv >= 2 && (lv > before || (lv === 3 && Date.now() - lastBeep >= BEEP_EVERY_MS))) {
+    lastBeep = Date.now(); beep(lv);
+  }
+}
+
+function drawLink() {
+  const el = document.getElementById('link');
+  const s = linkDelay();
+  if (s == null) { el.textContent = ''; el.className = ''; return; }
+  el.textContent = s > LINK_SLOW_S ? `回線が${Math.round(s)}秒遅れ` : `回線 ${s.toFixed(1)}秒`;
+  el.className = s > LINK_SLOW_S ? 'slow' : '';
+}
+
+function draw() {
+  const now = serverNow();
+  drawLink();
+  drawTemps();
+  if (!clock) { show('state', `${room}: データなし`); return; }
+  const c = clock, on = c.start != null;
+  const st = show('state', on ? '走行中' : 'スタート前');
+  st.className = on ? 'run' : '';
+  show('count', c.count != null ? String(c.count) : '—');
+  show('current', c.lap != null && on ? `（${c.lap}周目）` : '');
+  const elapsed = on ? (now - c.start) / 1000 : null;
+  show('elapsed', elapsed == null ? '--:--' : lapText(elapsed, false));
+  document.getElementById('leftlabel').style.display = RACE_S > 0 ? '' : 'none';
+  if (RACE_S > 0) {
+    const left = elapsed == null ? null : RACE_S - elapsed;
+    show('left', left == null ? '—' : left <= 0 ? '終了' : lapText(left, false),
+         left == null ? '' : left < 300 ? 'var(--red)' : left < 900 ? 'var(--orange)' : '');
+  } else show('left', '');
+  show('startat', on ? `スタート ${hms(c.start)}（リセット後の最初の通過）` : '');
+  show('lapnow', on && c.lap_start != null ? lapText((now - c.lap_start) / 1000, false) : '—');
+  const done = laps();
+  const prev = done.length ? done[done.length - 1] : null;
+  const lastS = prev && !prev.e && prev.s != null ? prev.s : null;
+  const best = bestS();
+  show('lastlap', lastS != null ? lapText(lastS, true) : '—');
+  show('lastgap', lastS != null && best != null ? (Math.abs(lastS - best) < 0.006 ? 'ベスト' : gapText(lastS - best)) : '');
+  show('best', best != null ? lapText(best, true) : '—');
+  const at = best == null ? null : done.find(p => !p.e && p.s != null && Math.abs(p.s - best) < 0.006);
+  show('bestlap', at ? `${at.n}周目` : '');
+  const recent = done.filter(p => !p.e && p.s != null && p.s > 0 && (best == null || p.s <= best * SLOW_RATIO)).slice(-RECENT);
+  show('avg5', recent.length ? lapText(recent.reduce((a, p) => a + p.s, 0) / recent.length, true) : '—');
+  drawSheet(best);
+  const fresh = document.getElementById('fresh');
+  if (c.data_t == null) { fresh.textContent = ''; fresh.className = ''; return; }
+  const age = (now - c.data_t) / 1000;
+  fresh.textContent = age > STALE_S
+    ? `最新のデータが${Math.round(age)}秒前のまま（時計は進み続けます）`
+    : `この画面のデータ：${age.toFixed(1)}秒前`;
+  fresh.className = age > STALE_S ? 'stale' : '';
+}
+
+function connect() {
+  // Works direct (http://host:3002/laps) and behind the public path (/live/laps), like map.html.
+  const base = location.pathname.replace(/\/laps\/?$/, '');
+  const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}&kind=laps`);
+  ws.onclose = () => { show('state', `${room}: 再接続中…`); setTimeout(connect, 2000); };
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    if (!('laps' in msg)) return;
+    const at = Date.now();
+    const skew = at - performance.now();
+    if (wallMinusMono != null && Math.abs(skew - wallMinusMono) > 1000) offsets = [];
+    wallMinusMono = skew;
+    last = { at, d: msg.now - at };
+    offsets.push(last);
+    offsets = offsets.filter(o => at - o.at < OFFSET_WINDOW_MS);
+    clock = msg.laps;
+    if (clock && clock.passes) passes = clock.passes;
+    if (!clock) passes = [];
+  };
+}
+document.getElementById('beep').onclick = () => {
+  beepOn = !beepOn;
+  if (beepOn && !audio) audio = new AudioContext();
+  if (beepOn) { audio.resume(); beep(1); }   // one beep now, so the pit hears it works
+  const b = document.getElementById('beep');
+  b.textContent = beepOn ? '警告音：入' : '警告音：切'; b.className = beepOn ? 'on' : '';
+};
+connect();
+setInterval(draw, 200);
+</script>
+</body>
+</html>

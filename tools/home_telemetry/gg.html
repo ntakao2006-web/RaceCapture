@@ -10,9 +10,15 @@
   Down = accelerating, up = braking (as the driver is pushed: user's choice 2026-10-23),
   right = LatAccel > 0 (?flip=1 swaps left and right). The number still reads + for accelerating.
   ?max=<g> sets the outer ring (default 0.5 g: eco-run cars rarely pass 0.3 g).
+  ?lap=1 (2026-11-04, the SUGO endurance): every point of the lap being driven stays as a dot,
+  the lap before in grey, with each lap's highest lateral, braking and accelerating g. With the
+  car's CAN on, LTE carries ~1.25 rows/s, so a 3-second trail is a few dots; a lap's ~100 dots
+  show how hard the car is driven. No smoothing in this mode (it would lag ~2 s at that rate),
+  and short peaks between rows are missed, so the highest g reads low.
 -->
 <style>
-  :root { color-scheme: dark; --bg: transparent; --ink: #d8d9da; --dim: #9fa1a8; --ring: #4a4d55; --dot: #f2cc0c; --trail: 242, 204, 12; }
+  :root { color-scheme: dark; --bg: transparent; --ink: #d8d9da; --dim: #9fa1a8; --ring: #4a4d55; --dot: #f2cc0c; --trail: 242, 204, 12;
+    --cloud: 242, 204, 12; --before: 159, 161, 168; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
     font: 13px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
   #wrap { position: absolute; inset: 0; display: flex; }
@@ -21,29 +27,67 @@
   #read { font-size: 14px; }
   #read b { font-size: 18px; }
   #status { position: absolute; right: 8px; bottom: 6px; color: var(--dim); font-size: 11px; }
+  #peaks { display: none; }
+  /* ?lap=1: the circle on the left, the numbers in a column beside it (a wide, low panel) */
+  body.lap #read { left: auto; right: 8px; bottom: auto; top: 4px; font-size: 12px; white-space: nowrap; color: var(--dim); }
+  body.lap #read b { font-size: 14px; color: var(--ink); }
+  body.lap .total { display: none; }
+  body.lap #read, body.lap #peaks { width: 46%; }
+  body.lap #peaks { display: grid; grid-template-columns: auto repeat(3, 1fr); gap: 1px 6px; position: absolute; right: 8px; top: 30px;
+    font-variant-numeric: tabular-nums; font-size: 12px; color: var(--dim); }
+  body.lap #peaks b { color: var(--ink); font-size: 14px; }
 </style>
 </head>
 <body>
 <div id="wrap"><canvas id="c"></canvas></div>
-<div id="read">前後 <b id="lon">—</b>　左右 <b id="lat">—</b>　合成 <b id="tot">—</b></div>
+<div id="peaks"><span>最大</span><span>横</span><span>減速</span><span>加速</span>
+  <span>この周</span><b id="pkLat">—</b><b id="pkBrk">—</b><b id="pkAcc">—</b>
+  <span>前の周</span><span id="pvLat">—</span><span id="pvBrk">—</span><span id="pvAcc">—</span></div>
+<div id="read">前後 <b id="lon">—</b>　左右 <b id="lat">—</b><span class="total">　合成 <b id="tot">—</b></span></div>
 <div id="status">接続中…</div>
 <script>
 const params = new URLSearchParams(location.search);
 const room = params.get('room') || 'home-test';
 const MAX = Math.max(0.1, parseFloat(params.get('max')) || 0.5);
 const FLIP = params.get('flip') === '1' ? -1 : 1;
-const TRAIL_MS = 3000;
-const SMOOTH = 0.35;   // exponential smoothing per sample (~0.3 s at 10/s): IMU jitter hid the shape
+const LAP = params.get('lap') === '1';
+const TRAIL_MS = LAP ? 5000 : 3000;
+const HISTORY_S = LAP ? 600 : TRAIL_MS / 1000;   // enough for this lap and the one before
+const SMOOTH = LAP ? 1 : 0.35;   // exponential smoothing per sample (~0.3 s at 10/s): IMU jitter hid the shape
 let smooth = null;
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 let points = [];   // {at, x: lateral g, y: longitudinal g}
+let cloud = [], before = [], lapNo = null;   // ?lap=1: this lap's points, the lap before's
+if (LAP) document.body.classList.add('lap');
+
+function peaks(list) {   // {lat, brk, acc} in g (y up = braking)
+  return list.reduce((m, p) => ({ lat: Math.max(m.lat, Math.abs(p.x)), brk: Math.max(m.brk, p.y), acc: Math.max(m.acc, -p.y) }),
+                     { lat: 0, brk: 0, acc: 0 });
+}
+function showPeaks() {
+  const g = (v, n) => (n ? v.toFixed(2) + 'G' : '—');
+  const a = peaks(cloud), b = peaks(before);
+  for (const [id, v, n] of [['pkLat', a.lat, cloud.length], ['pkBrk', a.brk, cloud.length], ['pkAcc', a.acc, cloud.length],
+                            ['pvLat', b.lat, before.length], ['pvBrk', b.brk, before.length], ['pvAcc', b.acc, before.length]])
+    document.getElementById(id).textContent = g(v, n);
+}
 
 function add(s, at) {
   if (typeof s.LongAccel !== 'number' || typeof s.LatAccel !== 'number') return;
   const raw = { x: s.LatAccel * FLIP, y: -s.LongAccel };   // y up = braking
   smooth = smooth ? { x: smooth.x + (raw.x - smooth.x) * SMOOTH, y: smooth.y + (raw.y - smooth.y) * SMOOTH } : raw;
   points.push({ at, x: smooth.x, y: smooth.y });
+  if (LAP) {
+    // A lap ends when LapCount goes up; a lap reset (it goes back) starts over too.
+    if (typeof s.LapCount === 'number' && s.LapCount !== lapNo) {
+      before = lapNo != null && s.LapCount > lapNo ? cloud : [];
+      cloud = [];
+      lapNo = s.LapCount;
+    }
+    cloud.push({ x: raw.x, y: raw.y });
+    showPeaks();
+  }
   const sign = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
   document.getElementById('lon').textContent = sign(s.LongAccel) + ' G';
   document.getElementById('lat').textContent = sign(s.LatAccel * FLIP) + ' G';
@@ -59,14 +103,21 @@ function draw() {
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
-  const cx = w / 2, cy = (h - 26) / 2 + 2, r = Math.max(10, Math.min(w - 40, h - 26) / 2 - 20);
+  let cx = w / 2, cy = (h - 26) / 2 + 2, r = Math.max(10, Math.min(w - 40, h - 26) / 2 - 20);
+  if (LAP) {   // left, as tall as the panel allows (the labels above and below), the numbers on the right
+    r = Math.max(10, Math.min(w * 0.5 - 40, h / 2 - 20));
+    cx = r + 24; cy = h / 2;
+  }
   const css = getComputedStyle(document.documentElement);
-  // rings every 0.1 g, the outer one labelled
+  // rings every 0.1 g (0.25 g past 0.6), labelled where there is room; else only 1 G (or the outer one)
   ctx.lineWidth = 1;
   const step = MAX <= 0.6 ? 0.1 : 0.25;
+  const room = r * step / MAX >= 18;
+  const only = MAX >= 1 ? 1 : MAX;
   for (let g = step; g <= MAX + 1e-9; g += step) {
     ctx.strokeStyle = css.getPropertyValue('--ring');
     ctx.beginPath(); ctx.arc(cx, cy, r * g / MAX, 0, 2 * Math.PI); ctx.stroke();
+    if (!room && Math.abs(g - only) > step / 2) continue;
     ctx.fillStyle = css.getPropertyValue('--dim'); ctx.font = '12px system-ui';
     ctx.fillText(g.toFixed(g < 1 && step < 0.25 ? 1 : 2) + 'G', cx + r * g / MAX * 0.707 + 2, cy - r * g / MAX * 0.707 - 2);
   }
@@ -77,10 +128,17 @@ function draw() {
   ctx.textAlign = 'left'; ctx.fillText('右', cx + r + 4, cy + 4);
   ctx.textAlign = 'right'; ctx.fillText('左', cx - r - 4, cy + 4);
   ctx.textAlign = 'left';
+  const clamp = (v) => Math.max(-MAX * 1.1, Math.min(MAX * 1.1, v));
+  // ?lap=1: the lap before in grey, then this lap's points
+  for (const [list, rgb, alpha, size] of [[before, '--before', 0.35, 2], [cloud, '--cloud', 0.6, 2.5]]) {
+    ctx.fillStyle = `rgba(${css.getPropertyValue(rgb)}, ${alpha})`;
+    for (const p of list) {
+      ctx.beginPath(); ctx.arc(cx + r * clamp(p.x) / MAX, cy - r * clamp(p.y) / MAX, size, 0, 2 * Math.PI); ctx.fill();
+    }
+  }
   // trail of the last few seconds, fading, then the current point
   const now = performance.now();
   points = points.filter((p) => now - p.at < TRAIL_MS);
-  const clamp = (v) => Math.max(-MAX * 1.1, Math.min(MAX * 1.1, v));
   const trail = css.getPropertyValue('--trail');
   for (let i = 1; i < points.length; i++) {
     const a = points[i - 1], b = points[i];
@@ -103,7 +161,7 @@ function connect() {
   const base = location.pathname.replace(/\/gg\/?$/, '');
   const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
   const ws = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}` +
-                           `&kind=gg&fields=LongAccel,LatAccel&history=${TRAIL_MS / 1000}`);
+                           `&kind=gg&fields=LongAccel,LatAccel${LAP ? ',LapCount' : ''}&history=${HISTORY_S}`);
   const status = document.getElementById('status');
   ws.onopen = () => { status.textContent = room; };
   ws.onclose = () => { status.textContent = `${room}: 再接続中…`; setTimeout(connect, 2000); };
@@ -112,8 +170,10 @@ function connect() {
     const now = performance.now();
     if (msg.history) {
       const h = msg.history, last = h.length ? h[h.length - 1].t : 0;
-      points = []; smooth = null;
-      for (const s of h) if (last - s.t < TRAIL_MS) add(s, now - (last - s.t));
+      points = []; smooth = null; cloud = []; before = []; lapNo = null;
+      for (const s of h) {
+        add(s, now - (last - s.t));   // the whole history, for ?lap=1's laps; the trail drops what is old
+      }
       return;
     }
     if ('t' in msg) add(msg, now);
