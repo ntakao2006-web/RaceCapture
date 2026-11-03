@@ -79,7 +79,11 @@ def temperatures(at):
 def gps(at):
     """Satellites and the receiver's horizontal accuracy as ±m, one above the other (2026-11-04,
     user: the count alone says little). GPSAcc is added to the Podium rows by podium.py itself."""
-    p = stat('GPS', [target(last('GPSSats'), 'A', '衛星数'), target(last('GPSAcc'), 'B', '位置の誤差（m）')], at,
+    # "or on() vector(-1)": with no data a stat panel shows one bare "—" and neither name, which
+    # looked as if nothing had changed (2026-11-04); -1 is mapped back to "—" under each name.
+    # on() is needed: without it the -1 came as well when there was data (its labels differ).
+    p = stat('GPS', [target(f"{last('GPSSats')} or on() vector(-1)", 'A', '衛星数'),
+                     target(f"{last('GPSAcc')} or on() vector(-1)", 'B', '位置の誤差（m）')], at,
              color_mode='value',
              description='衛星数と、受信機が自分で見積もった水平方向の位置の誤差（±m、小さいほど良い）。'
                          'Ver.2の受信機（MAX-M10M）は10/25のもてぎで±0.1〜0.3mと出ていて、カタログの精度（約1.5m）より'
@@ -96,6 +100,7 @@ def gps(at):
                 {'color': 'green', 'value': None}, {'color': 'orange', 'value': 3}, {'color': 'red', 'value': 8}]}}]},
     ]
     p['fieldConfig']['defaults']['color'] = {'mode': 'thresholds'}
+    p['fieldConfig']['defaults']['mappings'] = [{'type': 'value', 'options': {'-1': {'text': '—', 'color': 'text', 'index': 0}}}]
     p['options']['orientation'] = 'vertical'   # stacked in the narrow panel
     return p
 

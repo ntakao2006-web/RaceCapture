@@ -246,7 +246,7 @@
             "type": "prometheus",
             "uid": "ecorun-vm"
           },
-          "expr": "last_over_time(ecorun_GPSSats{room=\"$room\"}[10m])",
+          "expr": "last_over_time(ecorun_GPSSats{room=\"$room\"}[10m]) or on() vector(-1)",
           "instant": true,
           "range": false,
           "legendFormat": "衛星数"
@@ -257,7 +257,7 @@
             "type": "prometheus",
             "uid": "ecorun-vm"
           },
-          "expr": "last_over_time(ecorun_GPSAcc{room=\"$room\"}[10m])",
+          "expr": "last_over_time(ecorun_GPSAcc{room=\"$room\"}[10m]) or on() vector(-1)",
           "instant": true,
           "range": false,
           "legendFormat": "位置の誤差（m）"
@@ -268,7 +268,19 @@
           "noValue": "—",
           "color": {
             "mode": "thresholds"
-          }
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "text": "—",
+                  "color": "text",
+                  "index": 0
+                }
+              }
+            }
+          ]
         },
         "overrides": [
           {
