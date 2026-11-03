@@ -52,11 +52,11 @@ class DefiTempSetupTests(unittest.TestCase):
         celsius = lambda signal, volt: signal.ntc_celsius(round(volt / 5 * 4095) * signal.scale)  # 公称5 V換算の電圧から
         # Defiのメーターと並べて読んだ点（Temp1・Temp2の30〜60秒平均）。水温はファンの周期で揺れるので平均
         for signal, meter, volt in ((oil, 85, 2.1346), (oil, 86, 2.109), (oil, 72, 2.655),
-                                    (water, 88, 2.035), (water, 70.75, 2.67), (water, 36, 4.0165)):
+                                    (water, 88, 2.035), (water, 70.75, 2.67), (water, 36, 4.0165), (water, 32.5, 4.1318)):
             self.assertAlmostEqual(celsius(signal, volt), meter, delta=1.5)
         # 表の97℃より上は同じβ式を延ばす（警告の110〜130℃）。電圧が下がるほど高温
         self.assertGreater(celsius(oil, 1.6), celsius(oil, 2.1))
-        # Defiの電圧は公称5 Vより高いので、ADCの上限（センサーが外れたとき）は約6℃に出る（警告は鳴らない側）
+        # Defiの電圧は公称5 Vより高いので、ADCの上限（センサーが外れたとき）は約4℃に出る（警告は鳴らない側）
         self.assertLess(celsius(oil, 5.0), 10)
         (t1, r1), (t2, r2) = defi_temp_setup.DEFI_POINTS
         beta = math.log(r1 / r2) / (1 / (t1 + 273.15) - 1 / (t2 + 273.15))
