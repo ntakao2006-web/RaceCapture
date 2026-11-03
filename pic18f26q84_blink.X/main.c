@@ -1,39 +1,23 @@
 #include <xc.h>
-#include <math.h>
 #include <stdint.h>
 
-/*
- * PIC18F26Q84 thermistor bench test.
- * SensorHub.kicad_sch (2026-10-19): J3 Sense0 is RC3/ANC3, pin 14.
- * VDD -- (R1 20 kohm || R2 20 kohm) -- Sense0 -- NTC -- GND.
- * RC6/pin17=TX, RC7/pin18=RX at 115200 baud, 8N1, no flow control.
- * Existing bench: RB2/pin23=CANTX and RB3/pin24=CANRX. The saved schematic
- * uses RB0/pin21 instead; keep the user's existing wire and select TX in software.
- * Classic CAN 2.0, 500 kbit/s, standard ID
- * 0x600, 10 Hz.  Bytes 0..1 are signed oil temperature in 0.01 C,
- * bytes 2..3 are the ADC result, and bytes 4..7 are resistance in ohms.
- * The temperature conversion is a two-point beta fit from the handwritten
- * sensor data: -1 C at 27.6 kohm and 97 C at 1.145 kohm.
+/* PIC18F26Q84, 28-pin package: external voltage inputs only.
+ * PRESS=pin15 RC4/ANC4, TEMP1=pin21 RB0/ANB0, TEMP2=pin22 RB1/ANB1.
+ * No internal pull-ups or assumed external divider/sensor calibration.
+ * UART RC6/RC7 115200; CAN RB2/RB3 500 kbit/s.
+ * CAN 0x580, 10 Hz: three uint16 LE ADC codes, rail flags, version=1.
+ * Legacy thermistor packet 0x600 is deliberately no longer transmitted.
  */
-
 #define _XTAL_FREQ 64000000UL
-#define THERM_PULLUP_OHM 10000UL
-#define THERM_SHORT_ADC_MAX 4u
-#define THERM_OPEN_ADC_MIN 4091u
-#define THERM_INVALID_CENTI_C (-32768L)
-#define CAN_FIFO_BASE 0x2600u /* PIC18F26/46/56Q84 CAN RAM: 0x2600..0x2DFF. */
-/* Existing bench wiring is retained at the user's request. Saved schematic
- * TX is RB0; the earlier wired bench uses RB2. Select in firmware only. */
+#define INPUT_COUNT 3u
+#define ADC_MAX 4095u
+#define ADC_LOW_MAX 4u
+#define ADC_HIGH_MIN 4091u
+#define NOMINAL_VDD_MV 5000UL /* Estimate only; actual VDD is not measured. */
+#define CAN_FIFO_BASE 0x2600u
 #define CAN_TX_BIT 2u
-#if CAN_TX_BIT == 0u
-#define CAN_TX_PPS RB0PPS
-#define CAN_TX_NAME "RB0"
-#elif CAN_TX_BIT == 2u
 #define CAN_TX_PPS RB2PPS
 #define CAN_TX_NAME "RB2"
-#else
-#error Unsupported bench CAN TX pin
-#endif
 
 /* Internal 64 MHz oscillator; no external oscillator required. */
 #pragma config FEXTOSC = OFF
@@ -108,6 +92,9 @@ static void uart_init(void)
     PPSLOCKbits.PPSLOCKED = 0;
     RC6PPS = 0x20; /* Q84 TX1 output function (not the K42 value). */
     U1RXPPS = 0x17; /* RC7. */
+    RB0PPS = 0; /* Remove any digital output assignment on voltage inputs. */
+    RB1PPS = 0;
+    RC4PPS = 0;
     CAN_TX_PPS = 0x46; /* CANTX -> MCP2561 TXD; keep the existing wire. */
     CANRXPPS = 0x0B; /* RB3. */
     PPSLOCK = 0x55;
@@ -157,37 +144,39 @@ static void can_init(void)
     while (C1TXQCONHbits.FRESET) { }
 }
 
-static unsigned char can_send_oil_temperature(int32_t centi_c,
-                                               uint16_t adc,
-                                               uint32_t resistance)
+static uint8_t rail_flags(const uint16_t adc[INPUT_COUNT])
+{
+    uint8_t flags = 0;
+    uint8_t i;
+    for (i = 0; i < INPUT_COUNT; ++i) {
+        if (adc[i] <= ADC_LOW_MAX) flags |= (uint8_t)(1u << i);
+        if (adc[i] >= ADC_HIGH_MIN) flags |= (uint8_t)(1u << (i + 3u));
+    }
+    return flags; /* Rail proximity only, NOT open/short detection. */
+}
+
+static unsigned char can_send_voltages(const uint16_t adc[INPUT_COUNT])
 {
     volatile uint8_t *object;
-    int16_t oil_temp;
-
+    uint8_t i;
     if (!C1TXQSTALbits.TXQNIF) return 0;
-    if (centi_c > 32767) centi_c = 32767;
-    if (centi_c < -32768) centi_c = -32768;
-    oil_temp = (int16_t)centi_c;
     object = (volatile uint8_t *)(uintptr_t)C1TXQUA;
     if (object == 0) return 0;
-
-    object[0] = 0x00; /* Standard identifier 0x600. */
-    object[1] = 0x06;
-    object[2] = 0x00;
-    object[3] = 0x00;
-    object[4] = 0x08; /* DLC=8, standard data frame, Classic CAN. */
-    object[5] = 0x00;
-    object[6] = 0x00;
-    object[7] = 0x00;
-    object[8] = (uint8_t)oil_temp;
-    object[9] = (uint8_t)((uint16_t)oil_temp >> 8);
-    object[10] = (uint8_t)adc;
-    object[11] = (uint8_t)(adc >> 8);
-    object[12] = (uint8_t)resistance;
-    object[13] = (uint8_t)(resistance >> 8);
-    object[14] = (uint8_t)(resistance >> 16);
-    object[15] = (uint8_t)(resistance >> 24);
-    C1TXQCONH = 0x03; /* Increment queue and request transmission. */
+    object[0] = 0x80; /* Standard identifier 0x580. */
+    object[1] = 0x05;
+    object[2] = 0;
+    object[3] = 0;
+    object[4] = 8; /* DLC=8, Classic CAN standard data frame. */
+    object[5] = 0;
+    object[6] = 0;
+    object[7] = 0;
+    for (i = 0; i < INPUT_COUNT; ++i) {
+        object[8u + 2u*i] = (uint8_t)adc[i];
+        object[9u + 2u*i] = (uint8_t)(adc[i] >> 8);
+    }
+    object[14] = rail_flags(adc);
+    object[15] = 1; /* Voltage-only protocol version; no physical calibration. */
+    C1TXQCONH = 0x03;
     return 1;
 }
 
@@ -244,12 +233,14 @@ static void report_can_diagnostics(void)
 static void adc_init(void)
 {
     PMD3bits.ADCMD = 0;
-    TRISCbits.TRISC3 = 1;
-    ANSELCbits.ANSELC3 = 1;
-    WPUCbits.WPUC3 = 0; /* Only the external 10 kohm pull-up sets the divider. */
-
-    ADPCH = 0x13;  /* ANC3 / RC3, Sense0 at J3/1. */
-    ADREF = 0x00;  /* VDD and VSS references: divider result is ratiometric. */
+    TRISCbits.TRISC4 = 1;
+    ANSELCbits.ANSELC4 = 1;
+    WPUCbits.WPUC4 = 0;
+    TRISB |= 0x03u;
+    ANSELB |= 0x03u;
+    WPUB &= (uint8_t)~0x03u;
+    ADPCH = 0x14; /* PRESS: ANC4. */
+    ADREF = 0x00;  /* VDD/VSS reference. Absolute voltage needs the actual VDD. */
     ADCLK = 31;    /* FOSC/64 = 1 MHz ADC clock at 64 MHz FOSC. */
     ADACQ = 64;    /* 64 ADC clocks of acquisition time. */
     ADCON1 = 0x00;
@@ -258,11 +249,15 @@ static void adc_init(void)
     ADCON0 = 0x84; /* ADC on, right justified, FOSC/ADCLK, single conversion. */
 }
 
-static uint16_t adc_read_average(void)
+static uint16_t adc_read_average(uint8_t channel)
 {
     uint32_t sum = 0;
     unsigned char index;
 
+    ADPCH = channel;
+    __delay_us(100); /* Allow the new external source to settle after mux switch. */
+    ADCON0bits.GO = 1; /* Discard the first conversion after changing channel. */
+    while (ADCON0bits.GO) { }
     for (index = 0; index < 32u; ++index) {
         ADCON0bits.GO = 1;
         while (ADCON0bits.GO) { }
@@ -271,88 +266,48 @@ static uint16_t adc_read_average(void)
     return (uint16_t)((sum + 16u) / 32u);
 }
 
-static int32_t thermistor_centi_c(uint32_t resistance_ohm)
+static uint16_t nominal_millivolts(uint16_t adc)
 {
-    const double hot_kelvin = 370.15;
-    const double hot_resistance = 1145.0;
-    const double beta_kelvin = 3271.26933158336;
-    double inverse_kelvin;
-    double centi_c;
-
-    inverse_kelvin = (1.0 / hot_kelvin)
-                   + log((double)resistance_ohm / hot_resistance) / beta_kelvin;
-    centi_c = ((1.0 / inverse_kelvin) - 273.15) * 100.0;
-    return (int32_t)(centi_c + (centi_c >= 0.0 ? 0.5 : -0.5));
+    return (uint16_t)(((uint32_t)adc * NOMINAL_VDD_MV + ADC_MAX / 2u) / ADC_MAX);
 }
 
-static void report_measurement(uint16_t adc, uint32_t resistance,
-                               int32_t centi_c, unsigned char can_sent)
+static void report_voltage(const char *name, uint16_t adc)
 {
-    uint32_t magnitude;
-
-    uart_puts("THERM adc=");
+    uart_puts(name);
+    uart_puts(" adc=");
     uart_put_uint32(adc);
-    if (adc >= THERM_OPEN_ADC_MIN) {
-        uart_puts(" status=OPEN_OR_OVER_RANGE can_0x600=");
-        uart_puts(can_sent ? "queued\r\n" : "busy\r\n");
-        return;
-    }
-    if (adc <= THERM_SHORT_ADC_MAX) {
-        uart_puts(" status=SHORT_OR_UNDER_RANGE can_0x600=");
-        uart_puts(can_sent ? "queued\r\n" : "busy\r\n");
-        return;
-    }
-
-    magnitude = (uint32_t)(centi_c < 0 ? -centi_c : centi_c);
-
-    uart_puts(" r_ohm=");
-    uart_put_uint32(resistance);
-    uart_puts(" temp_c=");
-    if (centi_c < 0) uart_puts("-");
-    uart_put_uint32(magnitude / 100u);
-    uart_puts(".");
-    if ((magnitude % 100u) < 10u) uart_puts("0");
-    uart_put_uint32(magnitude % 100u);
-    uart_puts(" can_0x600=");
-    /* Enqueue success alone does not prove bus acknowledgement or reception. */
-    uart_puts(can_sent ? "queued" : "busy");
+    uart_puts(" mv_nominal=");
+    uart_put_uint32(nominal_millivolts(adc));
+    uart_puts(" status=");
+    uart_puts(adc <= ADC_LOW_MAX ? "LOW_RAIL" :
+              adc >= ADC_HIGH_MIN ? "HIGH_RAIL" : "UNQUALIFIED");
     uart_puts("\r\n");
 }
 
 void main(void)
 {
+    uint8_t cycle = 0;
     uart_init();
     adc_init();
     can_init();
-    uart_puts("READY PIC18F26Q84 OILTEMP SENSE0 RC3 PU10000 CANTX_" CAN_TX_NAME " CANRX_RB3 CAN500 ID600 v7 FAULT_CAN RAM2600\r\n");
-
+    uart_puts("READY PIC18F26Q84 VOLTAGE3 v8 PRESS_RC4 TEMP1_RB0 TEMP2_RB1 "
+              "NO_PULLUPS VDD_NOMINAL_5000mV CANTX_RB2 CANRX_RB3 CAN500 ID580\r\n");
     while (1) {
-        unsigned char cycle;
-        unsigned char sent = 0;
-        for (cycle = 0; cycle < 5u; ++cycle) {
-            uint16_t adc = adc_read_average();
-            uint32_t resistance;
-            int32_t centi_c;
-
-            if (adc <= THERM_SHORT_ADC_MAX || adc >= THERM_OPEN_ADC_MIN) {
-                /* Reserved invalid temperature; ADC and resistance distinguish faults.
-                 * Open: resistance=UINT32_MAX. Short: resistance=0. */
-                resistance = adc >= THERM_OPEN_ADC_MIN ? UINT32_MAX : 0;
-                sent = can_send_oil_temperature(THERM_INVALID_CENTI_C, adc, resistance);
-                if (cycle == 4u) {
-                    report_measurement(adc, resistance, THERM_INVALID_CENTI_C, sent);
-                }
-            } else {
-                resistance = (THERM_PULLUP_OHM * adc + ((4095u - adc) / 2u)) /
-                             (4095u - adc);
-                centi_c = thermistor_centi_c(resistance);
-                sent = can_send_oil_temperature(centi_c, adc, resistance);
-                if (cycle == 4u) {
-                    report_measurement(adc, resistance, centi_c, sent);
-                }
-            }
-            __delay_ms(100);
+        uint16_t adc[INPUT_COUNT];
+        unsigned char sent;
+        adc[0] = adc_read_average(0x14); /* PRESS, pin 15. */
+        adc[1] = adc_read_average(0x08); /* TEMP1, pin 21. */
+        adc[2] = adc_read_average(0x09); /* TEMP2, pin 22. */
+        sent = can_send_voltages(adc);
+        if (++cycle == 5u) {
+            cycle = 0;
+            report_voltage("PRESS", adc[0]);
+            report_voltage("TEMP1", adc[1]);
+            report_voltage("TEMP2", adc[2]);
+            uart_puts("VOLTAGE can_0x580=");
+            uart_puts(sent ? "queued\r\n" : "busy\r\n");
+            report_can_diagnostics();
         }
-        report_can_diagnostics();
+        __delay_ms(100);
     }
 }

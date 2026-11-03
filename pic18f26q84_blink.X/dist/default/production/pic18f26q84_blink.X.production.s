@@ -2466,91 +2466,25 @@ TOSH equ 04FEh ;#
 # 69896 "C:\Users\lintaroh\.mchp_packs\Microchip\PIC18F-Q_DFP\1.30.487\xc8\pic\include\proc/pic18f26q84.h"
 TOSU equ 04FFh ;# 
 	debug_source C
-	FNCALL	_main,___lldiv
-	FNCALL	_main,___lmul
 	FNCALL	_main,_adc_init
 	FNCALL	_main,_adc_read_average
 	FNCALL	_main,_can_init
-	FNCALL	_main,_can_send_oil_temperature
+	FNCALL	_main,_can_send_voltages
 	FNCALL	_main,_report_can_diagnostics
-	FNCALL	_main,_report_measurement
-	FNCALL	_main,_thermistor_centi_c
+	FNCALL	_main,_report_voltage
 	FNCALL	_main,_uart_init
 	FNCALL	_main,_uart_puts
-	FNCALL	_thermistor_centi_c,___fladd
-	FNCALL	_thermistor_centi_c,___fldiv
-	FNCALL	_thermistor_centi_c,___flmul
-	FNCALL	_thermistor_centi_c,___fltol
-	FNCALL	_thermistor_centi_c,___xxtofl
-	FNCALL	_thermistor_centi_c,_logf
-	FNCALL	_logf,___fladd
-	FNCALL	_logf,___fldiv
-	FNCALL	_logf,___flmul
-	FNCALL	_logf,___flsub
-	FNCALL	_logf,___xxtofl
-	FNCALL	___flsub,___fladd
-	FNCALL	_report_measurement,___lldiv
-	FNCALL	_report_measurement,___llmod
-	FNCALL	_report_measurement,_uart_put_uint32
-	FNCALL	_report_measurement,_uart_puts
+	FNCALL	_report_voltage,_nominal_millivolts
+	FNCALL	_report_voltage,_uart_put_uint32
+	FNCALL	_report_voltage,_uart_puts
+	FNCALL	_nominal_millivolts,___lldiv
+	FNCALL	_nominal_millivolts,___lmul
 	FNCALL	_report_can_diagnostics,_uart_put_uint32
 	FNCALL	_report_can_diagnostics,_uart_puts
 	FNCALL	_uart_put_uint32,___lldiv
 	FNCALL	_uart_put_uint32,___llmod
+	FNCALL	_can_send_voltages,_rail_flags
 	FNROOT	_main
-psect	mediumconst,class=MEDIUMCONST,space=0,reloc=2,noexec
-global __pmediumconst
-__pmediumconst:
-	db	0
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-	line	27
-_Lg4:
-	dw	(normalize32(0x3e789e26) & 0ffffh)
-	dw	highword (normalize32(0x3e789e26))
-	global __end_of_Lg4
-__end_of_Lg4:
-psect	mediumconst
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-	line	26
-_Lg3:
-	dw	(normalize32(0x3e91e9ee) & 0ffffh)
-	dw	highword (normalize32(0x3e91e9ee))
-	global __end_of_Lg3
-__end_of_Lg3:
-psect	mediumconst
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-	line	25
-_Lg2:
-	dw	(normalize32(0x3eccce13) & 0ffffh)
-	dw	highword (normalize32(0x3eccce13))
-	global __end_of_Lg2
-__end_of_Lg2:
-psect	mediumconst
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-	line	24
-_Lg1:
-	dw	(normalize32(0x3f2aaaaa) & 0ffffh)
-	dw	highword (normalize32(0x3f2aaaaa))
-	global __end_of_Lg1
-__end_of_Lg1:
-psect	mediumconst
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-	line	22
-_ln2_lo:
-	dw	(normalize32(0x3717f7d1) & 0ffffh)
-	dw	highword (normalize32(0x3717f7d1))
-	global __end_of_ln2_lo
-__end_of_ln2_lo:
-psect	mediumconst
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-	line	21
-_ln2_hi:
-	dw	(normalize32(0x3f317180) & 0ffffh)
-	dw	highword (normalize32(0x3f317180))
-	global __end_of_ln2_hi
-__end_of_ln2_hi:
-	global	logf@F472
-	global	_errno
 	global	_PMD3bits
 _PMD3bits	set	0x63
 	global	_PMD2bits
@@ -2631,6 +2565,12 @@ _U1CON1	set	0x2AC
 _CANRXPPS	set	0x23D
 	global	_RB2PPS
 _RB2PPS	set	0x20B
+	global	_RC4PPS
+_RC4PPS	set	0x215
+	global	_RB1PPS
+_RB1PPS	set	0x20A
+	global	_RB0PPS
+_RB0PPS	set	0x209
 	global	_U1RXPPS
 _U1RXPPS	set	0x272
 	global	_RC6PPS
@@ -2659,6 +2599,8 @@ _ADCLK	set	0x3FA
 _ADREF	set	0x3F8
 	global	_ADPCH
 _ADPCH	set	0x3EC
+	global	_WPUB
+_WPUB	set	0x409
 	global	_WPUCbits
 _WPUCbits	set	0x411
 	global	_ANSELCbits
@@ -2687,8 +2629,13 @@ _TRISA	set	0x4C6
 _LATA	set	0x4BE
 	global	_ANSELA
 _ANSELA	set	0x400
+psect	mediumconst,class=MEDIUMCONST,space=0,reloc=2,noexec
+global __pmediumconst
+__pmediumconst:
+	db	0
 	
-STR_40:
+STR_31:; BSR set to: 3
+
 	db	82	;'R'
 	db	69	;'E'
 	db	65	;'A'
@@ -2707,32 +2654,77 @@ STR_40:
 	db	56	;'8'
 	db	52	;'4'
 	db	32
+	db	86	;'V'
 	db	79	;'O'
-	db	73	;'I'
 	db	76	;'L'
+	db	84	;'T'
+	db	65	;'A'
+	db	71	;'G'
+	db	69	;'E'
+	db	51	;'3'
+	db	32
+	db	118	;'v'
+	db	56	;'8'
+	db	32
+	db	80	;'P'
+	db	82	;'R'
+	db	69	;'E'
+	db	83	;'S'
+	db	83	;'S'
+	db	95	;'_'
+	db	82	;'R'
+	db	67	;'C'
+	db	52	;'4'
+	db	32
 	db	84	;'T'
 	db	69	;'E'
 	db	77	;'M'
 	db	80	;'P'
-	db	32
-	db	83	;'S'
-	db	69	;'E'
-	db	78	;'N'
-	db	83	;'S'
-	db	69	;'E'
+	db	49	;'1'
+	db	95	;'_'
+	db	82	;'R'
+	db	66	;'B'
 	db	48	;'0'
 	db	32
+	db	84	;'T'
+	db	69	;'E'
+	db	77	;'M'
+	db	80	;'P'
+	db	50	;'2'
+	db	95	;'_'
 	db	82	;'R'
-	db	67	;'C'
-	db	51	;'3'
+	db	66	;'B'
+	db	49	;'1'
 	db	32
+	db	78	;'N'
+	db	79	;'O'
+	db	95	;'_'
 	db	80	;'P'
 	db	85	;'U'
-	db	49	;'1'
+	db	76	;'L'
+	db	76	;'L'
+	db	85	;'U'
+	db	80	;'P'
+	db	83	;'S'
+	db	32
+	db	86	;'V'
+	db	68	;'D'
+	db	68	;'D'
+	db	95	;'_'
+	db	78	;'N'
+	db	79	;'O'
+	db	77	;'M'
+	db	73	;'I'
+	db	78	;'N'
+	db	65	;'A'
+	db	76	;'L'
+	db	95	;'_'
+	db	53	;'5'
 	db	48	;'0'
 	db	48	;'0'
 	db	48	;'0'
-	db	48	;'0'
+	db	109	;'m'
+	db	86	;'V'
 	db	32
 	db	67	;'C'
 	db	65	;'A'
@@ -2763,130 +2755,68 @@ STR_40:
 	db	32
 	db	73	;'I'
 	db	68	;'D'
-	db	54	;'6'
-	db	48	;'0'
-	db	48	;'0'
-	db	32
-	db	118	;'v'
-	db	55	;'7'
-	db	32
-	db	70	;'F'
-	db	65	;'A'
-	db	85	;'U'
-	db	76	;'L'
-	db	84	;'T'
-	db	95	;'_'
-	db	67	;'C'
-	db	65	;'A'
-	db	78	;'N'
-	db	32
-	db	82	;'R'
-	db	65	;'A'
-	db	77	;'M'
-	db	50	;'2'
-	db	54	;'6'
-	db	48	;'0'
+	db	53	;'5'
+	db	56	;'8'
 	db	48	;'0'
 	db	13
 	db	10
 	db	0
 	
-STR_28:
-	db	32
-	db	115	;'s'
-	db	116	;'t'
-	db	97	;'a'
-	db	116	;'t'
-	db	117	;'u'
-	db	115	;'s'
-	db	61	;'='
-	db	83	;'S'
-	db	72	;'H'
+STR_35:; BSR set to: 3
+
+	db	86	;'V'
 	db	79	;'O'
-	db	82	;'R'
+	db	76	;'L'
 	db	84	;'T'
+	db	65	;'A'
+	db	71	;'G'
+	db	69	;'E'
+	db	32
+	db	99	;'c'
+	db	97	;'a'
+	db	110	;'n'
 	db	95	;'_'
-	db	79	;'O'
-	db	82	;'R'
+	db	48	;'0'
+	db	120	;'x'
+	db	53	;'5'
+	db	56	;'8'
+	db	48	;'0'
+	db	61	;'='
+	db	0
+	
+STR_25:; BSR set to: 3
+
+	db	32
+	db	109	;'m'
+	db	118	;'v'
 	db	95	;'_'
+	db	110	;'n'
+	db	111	;'o'
+	db	109	;'m'
+	db	105	;'i'
+	db	110	;'n'
+	db	97	;'a'
+	db	108	;'l'
+	db	61	;'='
+	db	0
+	
+STR_29:; BSR set to: 3
+
 	db	85	;'U'
 	db	78	;'N'
+	db	81	;'Q'
+	db	85	;'U'
+	db	65	;'A'
+	db	76	;'L'
+	db	73	;'I'
+	db	70	;'F'
+	db	73	;'I'
+	db	69	;'E'
 	db	68	;'D'
-	db	69	;'E'
-	db	82	;'R'
-	db	95	;'_'
-	db	82	;'R'
-	db	65	;'A'
-	db	78	;'N'
-	db	71	;'G'
-	db	69	;'E'
-	db	32
-	db	99	;'c'
-	db	97	;'a'
-	db	110	;'n'
-	db	95	;'_'
-	db	48	;'0'
-	db	120	;'x'
-	db	54	;'6'
-	db	48	;'0'
-	db	48	;'0'
-	db	61	;'='
 	db	0
 	
-STR_25:
-	db	32
-	db	115	;'s'
-	db	116	;'t'
-	db	97	;'a'
-	db	116	;'t'
-	db	117	;'u'
-	db	115	;'s'
-	db	61	;'='
-	db	79	;'O'
-	db	80	;'P'
-	db	69	;'E'
-	db	78	;'N'
-	db	95	;'_'
-	db	79	;'O'
-	db	82	;'R'
-	db	95	;'_'
-	db	79	;'O'
-	db	86	;'V'
-	db	69	;'E'
-	db	82	;'R'
-	db	95	;'_'
-	db	82	;'R'
-	db	65	;'A'
-	db	78	;'N'
-	db	71	;'G'
-	db	69	;'E'
-	db	32
-	db	99	;'c'
-	db	97	;'a'
-	db	110	;'n'
-	db	95	;'_'
-	db	48	;'0'
-	db	120	;'x'
-	db	54	;'6'
-	db	48	;'0'
-	db	48	;'0'
-	db	61	;'='
-	db	0
-	
-STR_24:
-	db	84	;'T'
-	db	72	;'H'
-	db	69	;'E'
-	db	82	;'R'
-	db	77	;'M'
-	db	32
-	db	97	;'a'
-	db	100	;'d'
-	db	99	;'c'
-	db	61	;'='
-	db	0
-	
-STR_16:
+STR_16:; BSR set to: 3
+
 	db	32
 	db	113	;'q'
 	db	101	;'e'
@@ -2898,7 +2828,21 @@ STR_16:
 	db	61	;'='
 	db	0
 	
-STR_26:
+STR_28:; BSR set to: 3
+
+	db	72	;'H'
+	db	73	;'I'
+	db	71	;'G'
+	db	72	;'H'
+	db	95	;'_'
+	db	82	;'R'
+	db	65	;'A'
+	db	73	;'I'
+	db	76	;'L'
+	db	0
+	
+STR_36:; BSR set to: 3
+
 	db	113	;'q'
 	db	117	;'u'
 	db	101	;'e'
@@ -2909,18 +2853,20 @@ STR_26:
 	db	10
 	db	0
 	
-STR_32:
+STR_26:; BSR set to: 3
+
 	db	32
+	db	115	;'s'
 	db	116	;'t'
-	db	101	;'e'
-	db	109	;'m'
-	db	112	;'p'
-	db	95	;'_'
-	db	99	;'c'
+	db	97	;'a'
+	db	116	;'t'
+	db	117	;'u'
+	db	115	;'s'
 	db	61	;'='
 	db	0
 	
-STR_18:
+STR_18:; BSR set to: 3
+
 	db	32
 	db	100	;'d'
 	db	105	;'i'
@@ -2931,7 +2877,8 @@ STR_18:
 	db	61	;'='
 	db	0
 	
-STR_17:
+STR_17:; BSR set to: 3
+
 	db	32
 	db	100	;'d'
 	db	105	;'i'
@@ -2942,7 +2889,20 @@ STR_17:
 	db	61	;'='
 	db	0
 	
-STR_14:
+STR_27:; BSR set to: 3
+
+	db	76	;'L'
+	db	79	;'O'
+	db	87	;'W'
+	db	95	;'_'
+	db	82	;'R'
+	db	65	;'A'
+	db	73	;'I'
+	db	76	;'L'
+	db	0
+	
+STR_14:; BSR set to: 3
+
 	db	32
 	db	113	;'q'
 	db	115	;'s'
@@ -2952,7 +2912,8 @@ STR_14:
 	db	61	;'='
 	db	0
 	
-STR_22:
+STR_22:; BSR set to: 3
+
 	db	32
 	db	97	;'a'
 	db	110	;'n'
@@ -2962,17 +2923,8 @@ STR_22:
 	db	61	;'='
 	db	0
 	
-STR_31:
-	db	32
-	db	114	;'r'
-	db	95	;'_'
-	db	111	;'o'
-	db	104	;'h'
-	db	109	;'m'
-	db	61	;'='
-	db	0
-	
-STR_1:
+STR_1:; BSR set to: 3
+
 	db	67	;'C'
 	db	65	;'A'
 	db	78	;'N'
@@ -2982,7 +2934,8 @@ STR_1:
 	db	61	;'='
 	db	0
 	
-STR_3:
+STR_3:; BSR set to: 3
+
 	db	32
 	db	114	;'r'
 	db	120	;'x'
@@ -2992,7 +2945,8 @@ STR_3:
 	db	61	;'='
 	db	0
 	
-STR_2:
+STR_2:; BSR set to: 3
+
 	db	32
 	db	116	;'t'
 	db	120	;'x'
@@ -3002,7 +2956,8 @@ STR_2:
 	db	61	;'='
 	db	0
 	
-STR_20:
+STR_20:; BSR set to: 3
+
 	db	32
 	db	114	;'r'
 	db	120	;'x'
@@ -3012,7 +2967,8 @@ STR_20:
 	db	61	;'='
 	db	0
 	
-STR_19:
+STR_19:; BSR set to: 3
+
 	db	32
 	db	116	;'t'
 	db	120	;'x'
@@ -3022,7 +2978,8 @@ STR_19:
 	db	61	;'='
 	db	0
 	
-STR_4:
+STR_4:; BSR set to: 3
+
 	db	32
 	db	116	;'t'
 	db	114	;'r'
@@ -3032,7 +2989,8 @@ STR_4:
 	db	61	;'='
 	db	0
 	
-STR_27:
+STR_37:; BSR set to: 3
+
 	db	98	;'b'
 	db	117	;'u'
 	db	115	;'s'
@@ -3041,7 +2999,8 @@ STR_27:
 	db	10
 	db	0
 	
-STR_15:
+STR_15:; BSR set to: 3
+
 	db	32
 	db	113	;'q'
 	db	99	;'c'
@@ -3050,7 +3009,8 @@ STR_15:
 	db	61	;'='
 	db	0
 	
-STR_13:
+STR_13:; BSR set to: 3
+
 	db	32
 	db	110	;'n'
 	db	109	;'m'
@@ -3059,7 +3019,8 @@ STR_13:
 	db	61	;'='
 	db	0
 	
-STR_9:
+STR_9:; BSR set to: 3
+
 	db	32
 	db	99	;'c'
 	db	111	;'o'
@@ -3068,7 +3029,8 @@ STR_9:
 	db	61	;'='
 	db	0
 	
-STR_8:
+STR_8:; BSR set to: 3
+
 	db	32
 	db	99	;'c'
 	db	111	;'o'
@@ -3077,7 +3039,8 @@ STR_8:
 	db	61	;'='
 	db	0
 	
-STR_21:
+STR_21:; BSR set to: 3
+
 	db	32
 	db	116	;'t'
 	db	114	;'r'
@@ -3086,7 +3049,8 @@ STR_21:
 	db	61	;'='
 	db	0
 	
-STR_11:
+STR_11:; BSR set to: 3
+
 	db	32
 	db	99	;'c'
 	db	111	;'o'
@@ -3095,7 +3059,8 @@ STR_11:
 	db	61	;'='
 	db	0
 	
-STR_10:
+STR_10:; BSR set to: 3
+
 	db	32
 	db	99	;'c'
 	db	111	;'o'
@@ -3104,16 +3069,26 @@ STR_10:
 	db	61	;'='
 	db	0
 	
-STR_37:
-	db	113	;'q'
-	db	117	;'u'
-	db	101	;'e'
-	db	117	;'u'
-	db	101	;'e'
-	db	100	;'d'
+STR_33:; BSR set to: 3
+
+	db	84	;'T'
+	db	69	;'E'
+	db	77	;'M'
+	db	80	;'P'
+	db	49	;'1'
 	db	0
 	
-STR_12:
+STR_34:; BSR set to: 3
+
+	db	84	;'T'
+	db	69	;'E'
+	db	77	;'M'
+	db	80	;'P'
+	db	50	;'2'
+	db	0
+	
+STR_12:; BSR set to: 3
+
 	db	32
 	db	114	;'r'
 	db	98	;'b'
@@ -3121,7 +3096,17 @@ STR_12:
 	db	61	;'='
 	db	0
 	
-STR_6:
+STR_24:; BSR set to: 3
+
+	db	32
+	db	97	;'a'
+	db	100	;'d'
+	db	99	;'c'
+	db	61	;'='
+	db	0
+	
+STR_6:; BSR set to: 3
+
 	db	32
 	db	114	;'r'
 	db	101	;'e'
@@ -3129,7 +3114,8 @@ STR_6:
 	db	61	;'='
 	db	0
 	
-STR_5:
+STR_5:; BSR set to: 3
+
 	db	32
 	db	116	;'t'
 	db	120	;'x'
@@ -3137,36 +3123,24 @@ STR_5:
 	db	61	;'='
 	db	0
 	
-STR_7:
+STR_32:; BSR set to: 3
+
+	db	80	;'P'
+	db	82	;'R'
+	db	69	;'E'
+	db	83	;'S'
+	db	83	;'S'
+	db	0
+	
+STR_7:; BSR set to: 3
+
 	db	32
 	db	117	;'u'
 	db	97	;'a'
 	db	61	;'='
 	db	0
-	
-STR_38:
-	db	98	;'b'
-	db	117	;'u'
-	db	115	;'s'
-	db	121	;'y'
-	db	0
-	
-STR_33:
-	db	45
-	db	0
-	
-STR_34:
-	db	46
-	db	0
-	
-STR_35:
-	db	48	;'0'
-	db	0
-STR_36	equ	STR_28+28
-STR_30	equ	STR_27+0
-STR_29	equ	STR_26+0
-STR_23	equ	STR_40+98
-STR_39	equ	STR_40+98
+STR_23	equ	STR_31+122
+STR_30	equ	STR_31+122
 ; #config settings
 	config pad_punits      = on
 	config apply_mask      = off
@@ -3229,26 +3203,6 @@ start_initialization:
 
 global __initialization
 __initialization:
-psect	bssBANK5,class=BANK5,space=1,noexec,lowdata
-global __pbssBANK5
-__pbssBANK5:
-logf@F472:
-       ds      4
-	global	_errno
-_errno:
-       ds      2
-	file	"pic18f26q84_blink.X\dist\default\production\pic18f26q84_blink.X.production.s"
-	line	#
-psect	cinit
-; Clear objects allocated to BANK5 (6 bytes)
-	global __pbssBANK5
-movlb	5
-clrf	(__pbssBANK5+5)&0xffh,b
-clrf	(__pbssBANK5+4)&0xffh,b
-clrf	(__pbssBANK5+3)&0xffh,b
-clrf	(__pbssBANK5+2)&0xffh,b
-clrf	(__pbssBANK5+1)&0xffh,b
-clrf	(__pbssBANK5+0)&0xffh,b
 psect cinit,class=CODE,delta=1
 global end_of_initialization,__end_of__initialization
 
@@ -3261,108 +3215,12 @@ __end_of__initialization:
 	movwf	tblptru
 movlb 0
 goto _main	;jump to C main() function
-psect	cstackBANK5,class=BANK5,space=1,noexec,lowdata
-global __pcstackBANK5
-__pcstackBANK5:
-??_logf:	; 1 bytes @ 0x0
-	ds   6
-	global	logf@R
-logf@R:	; 4 bytes @ 0x6
-	ds   4
-	global	logf@t1
-logf@t1:	; 4 bytes @ 0xA
-	ds   4
-	global	logf@t2
-logf@t2:	; 4 bytes @ 0xE
-	ds   4
-	global	_logf$1626
-_logf$1626:	; 4 bytes @ 0x12
-	ds   4
-	global	_logf$1627
-_logf$1627:	; 4 bytes @ 0x16
-	ds   4
-	global	_logf$1628
-_logf$1628:	; 4 bytes @ 0x1A
-	ds   4
-	global	_logf$1629
-_logf$1629:	; 4 bytes @ 0x1E
-	ds   4
-	global	logf@k
-logf@k:	; 2 bytes @ 0x22
-	ds   2
-	global	logf@hfsq
-logf@hfsq:	; 4 bytes @ 0x24
-	ds   4
-	global	logf@dk
-logf@dk:	; 4 bytes @ 0x28
-	ds   4
-	global	logf@s
-logf@s:	; 4 bytes @ 0x2C
-	ds   4
-	global	logf@z
-logf@z:	; 4 bytes @ 0x30
-	ds   4
-	global	logf@w
-logf@w:	; 4 bytes @ 0x34
-	ds   4
-	global	_logf$1625
-_logf$1625:	; 4 bytes @ 0x38
-	ds   4
-	global	logf@ux
-logf@ux:	; 4 bytes @ 0x3C
-	ds   4
-	global	?_thermistor_centi_c
-?_thermistor_centi_c:	; 4 bytes @ 0x40
-	global	thermistor_centi_c@resistance_ohm
-thermistor_centi_c@resistance_ohm:	; 4 bytes @ 0x40
-	ds   4
-	global	thermistor_centi_c@hot_kelvin
-thermistor_centi_c@hot_kelvin:	; 4 bytes @ 0x44
-	ds   4
-	global	thermistor_centi_c@hot_resistance
-thermistor_centi_c@hot_resistance:	; 4 bytes @ 0x48
-	ds   4
-	global	thermistor_centi_c@beta_kelvin
-thermistor_centi_c@beta_kelvin:	; 4 bytes @ 0x4C
-	ds   4
-	global	thermistor_centi_c@inverse_kelvin
-thermistor_centi_c@inverse_kelvin:	; 4 bytes @ 0x50
-	ds   4
-	global	_thermistor_centi_c$1621
-_thermistor_centi_c$1621:	; 4 bytes @ 0x54
-	ds   4
-	global	_thermistor_centi_c$1622
-_thermistor_centi_c$1622:	; 4 bytes @ 0x58
-	ds   4
-	global	_thermistor_centi_c$743
-_thermistor_centi_c$743:	; 4 bytes @ 0x5C
-	ds   4
-	global	thermistor_centi_c@centi_c
-thermistor_centi_c@centi_c:	; 4 bytes @ 0x60
-	ds   4
-??_main:	; 1 bytes @ 0x64
-	ds   6
-	global	main@centi_c
-main@centi_c:	; 4 bytes @ 0x6A
-	ds   4
-	global	main@sent
-main@sent:	; 1 bytes @ 0x6E
-	ds   1
-	global	main@cycle
-main@cycle:	; 1 bytes @ 0x6F
-	ds   1
-	global	main@resistance
-main@resistance:	; 4 bytes @ 0x70
-	ds   4
-	global	main@adc
-main@adc:	; 2 bytes @ 0x74
-	ds   2
 psect	cstackCOMRAM,class=COMRAM,space=1,noexec,lowdata
 global __pcstackCOMRAM
 __pcstackCOMRAM:
 ?_uart_init:	; 1 bytes @ 0x0
 ?_can_init:	; 1 bytes @ 0x0
-?_can_send_oil_temperature:	; 1 bytes @ 0x0
+?_rail_flags:	; 1 bytes @ 0x0
 ?_uart_puts:	; 1 bytes @ 0x0
 ?_report_can_diagnostics:	; 1 bytes @ 0x0
 ?_adc_init:	; 1 bytes @ 0x0
@@ -3373,230 +3231,131 @@ __pcstackCOMRAM:
 ?___llmod:	; 4 bytes @ 0x0
 	global	?___lmul
 ?___lmul:	; 4 bytes @ 0x0
-	global	?___xxtofl
-?___xxtofl:	; 4 bytes @ 0x0
+	global	rail_flags@adc
+rail_flags@adc:	; 2 bytes @ 0x0
 	global	uart_puts@text
 uart_puts@text:	; 2 bytes @ 0x0
-	global	can_send_oil_temperature@centi_c
-can_send_oil_temperature@centi_c:	; 4 bytes @ 0x0
 	global	___lmul@multiplier
 ___lmul@multiplier:	; 4 bytes @ 0x0
 	global	___llmod@dividend
 ___llmod@dividend:	; 4 bytes @ 0x0
-	global	___xxtofl@val
-___xxtofl@val:	; 4 bytes @ 0x0
 ??_uart_init:	; 1 bytes @ 0x0
 ??_can_init:	; 1 bytes @ 0x0
 ??_adc_init:	; 1 bytes @ 0x0
 	ds   2
+??_rail_flags:	; 1 bytes @ 0x2
 ??_uart_puts:	; 1 bytes @ 0x2
 ??_adc_read_average:	; 1 bytes @ 0x2
 	ds   2
-	global	can_send_oil_temperature@adc
-can_send_oil_temperature@adc:	; 2 bytes @ 0x4
+	global	rail_flags@flags
+rail_flags@flags:	; 1 bytes @ 0x4
 	global	___lmul@multiplicand
 ___lmul@multiplicand:	; 4 bytes @ 0x4
 	global	___llmod@divisor
 ___llmod@divisor:	; 4 bytes @ 0x4
-??___xxtofl:	; 1 bytes @ 0x4
-	ds   2
-	global	can_send_oil_temperature@resistance
-can_send_oil_temperature@resistance:	; 4 bytes @ 0x6
+	ds   1
+	global	rail_flags@i
+rail_flags@i:	; 1 bytes @ 0x5
+	ds   1
+?_can_send_voltages:	; 1 bytes @ 0x6
+	global	adc_read_average@channel
+adc_read_average@channel:	; 1 bytes @ 0x6
+	global	can_send_voltages@adc
+can_send_voltages@adc:	; 2 bytes @ 0x6
+	ds   1
 	global	adc_read_average@sum
-adc_read_average@sum:	; 4 bytes @ 0x6
-	ds   2
+adc_read_average@sum:	; 4 bytes @ 0x7
+	ds   1
 	global	___llmod@counter
 ___llmod@counter:	; 1 bytes @ 0x8
-	global	___xxtofl@sign
-___xxtofl@sign:	; 1 bytes @ 0x8
 	global	___lmul@product
 ___lmul@product:	; 4 bytes @ 0x8
 ??___llmod:	; 1 bytes @ 0x8
+??_can_send_voltages:	; 1 bytes @ 0x8
 ??___lmul:	; 1 bytes @ 0x8
-	ds   1
-	global	___xxtofl@exp
-___xxtofl@exp:	; 1 bytes @ 0x9
-	ds   1
+	ds   3
 	global	adc_read_average@index
-adc_read_average@index:	; 1 bytes @ 0xA
-	global	can_send_oil_temperature@oil_temp
-can_send_oil_temperature@oil_temp:	; 2 bytes @ 0xA
-	global	___xxtofl@arg
-___xxtofl@arg:	; 4 bytes @ 0xA
-??_can_send_oil_temperature:	; 1 bytes @ 0xA
-	ds   2
+adc_read_average@index:	; 1 bytes @ 0xB
+	ds   1
 	global	?___lldiv
 ?___lldiv:	; 4 bytes @ 0xC
-	global	can_send_oil_temperature@object
-can_send_oil_temperature@object:	; 2 bytes @ 0xC
+	global	can_send_voltages@i
+can_send_voltages@i:	; 1 bytes @ 0xC
 	global	___lldiv@dividend
 ___lldiv@dividend:	; 4 bytes @ 0xC
-	ds   2
-	global	?___fldiv
-?___fldiv:	; 4 bytes @ 0xE
-	global	___fldiv@b
-___fldiv@b:	; 4 bytes @ 0xE
-	ds   2
+	ds   1
+	global	can_send_voltages@object
+can_send_voltages@object:	; 2 bytes @ 0xD
+	ds   3
 	global	___lldiv@divisor
 ___lldiv@divisor:	; 4 bytes @ 0x10
-	ds   2
-	global	___fldiv@a
-___fldiv@a:	; 4 bytes @ 0x12
-	ds   2
+	ds   4
 	global	___lldiv@quotient
 ___lldiv@quotient:	; 4 bytes @ 0x14
 ??___lldiv:	; 1 bytes @ 0x14
-	ds   2
-??___fldiv:	; 1 bytes @ 0x16
-	ds   2
+	ds   4
 	global	___lldiv@counter
 ___lldiv@counter:	; 1 bytes @ 0x18
 	ds   1
-?_uart_put_uint32:	; 1 bytes @ 0x19
+	global	?_nominal_millivolts
+?_nominal_millivolts:	; 2 bytes @ 0x19
+	global	nominal_millivolts@adc
+nominal_millivolts@adc:	; 2 bytes @ 0x19
+	ds   2
+?_uart_put_uint32:	; 1 bytes @ 0x1B
 	global	uart_put_uint32@value
-uart_put_uint32@value:	; 4 bytes @ 0x19
-	ds   1
-	global	___fldiv@rem
-___fldiv@rem:	; 4 bytes @ 0x1A
-	ds   3
+uart_put_uint32@value:	; 4 bytes @ 0x1B
+??_nominal_millivolts:	; 1 bytes @ 0x1B
+	ds   4
 	global	uart_put_uint32@digits
-uart_put_uint32@digits:	; 10 bytes @ 0x1D
-??_uart_put_uint32:	; 1 bytes @ 0x1D
-	ds   1
-	global	___fldiv@sign
-___fldiv@sign:	; 1 bytes @ 0x1E
-	ds   1
-	global	___fldiv@new_exp
-___fldiv@new_exp:	; 2 bytes @ 0x1F
-	ds   2
-	global	___fldiv@grs
-___fldiv@grs:	; 4 bytes @ 0x21
-	ds   4
-	global	___fldiv@bexp
-___fldiv@bexp:	; 1 bytes @ 0x25
-	ds   1
-	global	___fldiv@aexp
-___fldiv@aexp:	; 1 bytes @ 0x26
-	ds   1
-	global	?___fladd
-?___fladd:	; 4 bytes @ 0x27
+uart_put_uint32@digits:	; 10 bytes @ 0x1F
+??_uart_put_uint32:	; 1 bytes @ 0x1F
+	ds   10
 	global	uart_put_uint32@count
-uart_put_uint32@count:	; 1 bytes @ 0x27
-	global	___fladd@b
-___fladd@b:	; 4 bytes @ 0x27
+uart_put_uint32@count:	; 1 bytes @ 0x29
 	ds   1
-?_report_measurement:	; 1 bytes @ 0x28
-	global	report_measurement@adc
-report_measurement@adc:	; 2 bytes @ 0x28
-??_report_can_diagnostics:	; 1 bytes @ 0x28
+?_report_voltage:	; 1 bytes @ 0x2A
+	global	report_voltage@name
+report_voltage@name:	; 2 bytes @ 0x2A
+??_report_can_diagnostics:	; 1 bytes @ 0x2A
 	ds   2
-	global	report_measurement@resistance
-report_measurement@resistance:	; 4 bytes @ 0x2A
-	ds   1
-	global	___fladd@a
-___fladd@a:	; 4 bytes @ 0x2B
-	ds   3
-	global	report_measurement@centi_c
-report_measurement@centi_c:	; 4 bytes @ 0x2E
-	ds   1
-??___fladd:	; 1 bytes @ 0x2F
-	ds   3
-	global	report_measurement@can_sent
-report_measurement@can_sent:	; 1 bytes @ 0x32
-	ds   1
-	global	___fladd@signs
-___fladd@signs:	; 1 bytes @ 0x33
-??_report_measurement:	; 1 bytes @ 0x33
-	ds   1
-	global	___fladd@aexp
-___fladd@aexp:	; 1 bytes @ 0x34
-	ds   1
-	global	___fladd@bexp
-___fladd@bexp:	; 1 bytes @ 0x35
-	ds   1
-	global	___fladd@grs
-___fladd@grs:	; 1 bytes @ 0x36
-	ds   1
-	global	?___flmul
-?___flmul:	; 4 bytes @ 0x37
-	global	?___fltol
-?___fltol:	; 4 bytes @ 0x37
-	global	___fltol@f1
-___fltol@f1:	; 4 bytes @ 0x37
-	global	___flmul@b
-___flmul@b:	; 4 bytes @ 0x37
-	global	_report_measurement$1623
-_report_measurement$1623:	; 4 bytes @ 0x37
-	ds   4
-	global	___flmul@a
-___flmul@a:	; 4 bytes @ 0x3B
-	global	_report_measurement$1624
-_report_measurement$1624:	; 4 bytes @ 0x3B
-??___fltol:	; 1 bytes @ 0x3B
-	ds   4
-	global	___fltol@sign1
-___fltol@sign1:	; 1 bytes @ 0x3F
-	global	_report_measurement$755
-_report_measurement$755:	; 2 bytes @ 0x3F
-??___flmul:	; 1 bytes @ 0x3F
-	ds   1
-	global	___fltol@exp1
-___fltol@exp1:	; 1 bytes @ 0x40
-	ds   1
-	global	_report_measurement$760
-_report_measurement$760:	; 2 bytes @ 0x41
+	global	report_voltage@adc
+report_voltage@adc:	; 2 bytes @ 0x2C
 	ds   2
-	global	___flmul@sign
-___flmul@sign:	; 1 bytes @ 0x43
-	global	_report_measurement$770
-_report_measurement$770:	; 2 bytes @ 0x43
-	ds   1
-	global	___flmul@grs
-___flmul@grs:	; 4 bytes @ 0x44
-	ds   1
-	global	report_measurement@magnitude
-report_measurement@magnitude:	; 4 bytes @ 0x45
-	ds   3
-	global	___flmul@aexp
-___flmul@aexp:	; 1 bytes @ 0x48
-	ds   1
-	global	___flmul@bexp
-___flmul@bexp:	; 1 bytes @ 0x49
-	ds   1
-	global	___flmul@prod
-___flmul@prod:	; 4 bytes @ 0x4A
-	ds   4
-	global	___flmul@temp
-___flmul@temp:	; 2 bytes @ 0x4E
+	global	_report_voltage$753
+_report_voltage$753:	; 2 bytes @ 0x2E
+??_report_voltage:	; 1 bytes @ 0x2E
 	ds   2
-	global	?___flsub
-?___flsub:	; 4 bytes @ 0x50
-	global	___flsub@b
-___flsub@b:	; 4 bytes @ 0x50
-	ds   4
-	global	___flsub@a
-___flsub@a:	; 4 bytes @ 0x54
-	ds   4
-	global	?_logf
-?_logf:	; 4 bytes @ 0x58
-	global	logf@x
-logf@x:	; 4 bytes @ 0x58
-??___flsub:	; 1 bytes @ 0x58
-	ds   4
-??_thermistor_centi_c:	; 1 bytes @ 0x5C
+	global	_report_voltage$754
+_report_voltage$754:	; 2 bytes @ 0x30
+	ds   2
+??_main:	; 1 bytes @ 0x32
+	ds   2
+	global	_main$778
+_main$778:	; 2 bytes @ 0x34
+	ds   2
+	global	main@sent
+main@sent:	; 1 bytes @ 0x36
+	ds   1
+	global	main@cycle
+main@cycle:	; 1 bytes @ 0x37
+	ds   1
+	global	main@adc
+main@adc:	; 6 bytes @ 0x38
+	ds   6
 ;!
 ;!Data Sizes:
-;!    Strings     405
-;!    Constant    24
+;!    Strings     401
+;!    Constant    0
 ;!    Data        0
-;!    BSS         6
+;!    BSS         0
 ;!    Persistent  0
 ;!    Stack       0
 ;!
 ;!Auto Spaces:
 ;!    Space          Size  Autos    Used
-;!    COMRAM           95     92      92
-;!    BANK5           160    118     124
+;!    COMRAM           95     62      62
+;!    BANK5           160      0       0
 ;!    BANK6           256      0       0
 ;!    BANK7           256      0       0
 ;!    BANK8           256      0       0
@@ -3632,51 +3391,55 @@ logf@x:	; 4 bytes @ 0x58
 ;!
 ;!Pointer List with Targets:
 ;!
-;!    can_send_oil_temperature@object	PTR volatile unsigned char  size(2) Largest target is 11775
+;!    can_send_voltages@adc	PTR const unsigned short  size(2) Largest target is 6
+;!		 -> main@adc(COMRAM[6]), 
+;!
+;!    can_send_voltages@object	PTR volatile unsigned char  size(2) Largest target is 11775
 ;!		 -> RAM(DATA[11775]), 
 ;!
-;!    report_measurement$755	PTR const unsigned char  size(2) Largest target is 9
-;!		 -> STR_26(CODE[9]), STR_27(CODE[7]), 
+;!    main$778	PTR const unsigned char  size(2) Largest target is 9
+;!		 -> STR_36(CODE[9]), STR_37(CODE[7]), 
 ;!
-;!    report_measurement$760	PTR const unsigned char  size(2) Largest target is 9
-;!		 -> STR_29(CODE[9]), STR_30(CODE[7]), 
+;!    rail_flags@adc	PTR const unsigned short  size(2) Largest target is 6
+;!		 -> main@adc(COMRAM[6]), 
 ;!
-;!    report_measurement$770	PTR const unsigned char  size(2) Largest target is 7
-;!		 -> STR_37(CODE[7]), STR_38(CODE[5]), 
+;!    report_voltage$753	PTR const unsigned char  size(2) Largest target is 12
+;!		 -> STR_27(CODE[9]), STR_28(CODE[10]), STR_29(CODE[12]), 
 ;!
-;!    uart_puts@text	PTR const unsigned char  size(2) Largest target is 101
+;!    report_voltage$754	PTR const unsigned char  size(2) Largest target is 12
+;!		 -> STR_28(CODE[10]), STR_29(CODE[12]), 
+;!
+;!    report_voltage@name	PTR const unsigned char  size(2) Largest target is 6
+;!		 -> STR_32(CODE[6]), STR_33(CODE[6]), STR_34(CODE[6]), 
+;!
+;!    uart_puts@text	PTR const unsigned char  size(2) Largest target is 125
 ;!		 -> STR_1(CODE[8]), STR_10(CODE[7]), STR_11(CODE[7]), STR_12(CODE[6]), 
 ;!		 -> STR_13(CODE[7]), STR_14(CODE[8]), STR_15(CODE[7]), STR_16(CODE[10]), 
 ;!		 -> STR_17(CODE[9]), STR_18(CODE[9]), STR_19(CODE[8]), STR_2(CODE[8]), 
 ;!		 -> STR_20(CODE[8]), STR_21(CODE[7]), STR_22(CODE[8]), STR_23(CODE[3]), 
-;!		 -> STR_24(CODE[11]), STR_25(CODE[38]), STR_26(CODE[9]), STR_27(CODE[7]), 
-;!		 -> STR_28(CODE[40]), STR_29(CODE[9]), STR_3(CODE[8]), STR_30(CODE[7]), 
-;!		 -> STR_31(CODE[8]), STR_32(CODE[9]), STR_33(CODE[2]), STR_34(CODE[2]), 
-;!		 -> STR_35(CODE[2]), STR_36(CODE[12]), STR_37(CODE[7]), STR_38(CODE[5]), 
-;!		 -> STR_39(CODE[3]), STR_4(CODE[8]), STR_40(CODE[101]), STR_5(CODE[6]), 
-;!		 -> STR_6(CODE[6]), STR_7(CODE[5]), STR_8(CODE[7]), STR_9(CODE[7]), 
+;!		 -> STR_24(CODE[6]), STR_25(CODE[13]), STR_26(CODE[9]), STR_27(CODE[9]), 
+;!		 -> STR_28(CODE[10]), STR_29(CODE[12]), STR_3(CODE[8]), STR_30(CODE[3]), 
+;!		 -> STR_31(CODE[125]), STR_32(CODE[6]), STR_33(CODE[6]), STR_34(CODE[6]), 
+;!		 -> STR_35(CODE[19]), STR_36(CODE[9]), STR_37(CODE[7]), STR_4(CODE[8]), 
+;!		 -> STR_5(CODE[6]), STR_6(CODE[6]), STR_7(CODE[5]), STR_8(CODE[7]), 
+;!		 -> STR_9(CODE[7]), 
 ;!
 
 
 ;!
 ;!Critical Paths under _main in COMRAM
 ;!
-;!    _thermistor_centi_c->_logf
-;!    _logf->___flsub
-;!    ___flsub->___flmul
-;!    ___fladd->___fldiv
-;!    ___flmul->___fladd
-;!    ___fldiv->___xxtofl
-;!    ___fltol->___fladd
-;!    _report_measurement->_uart_put_uint32
+;!    _main->_report_voltage
+;!    _report_voltage->_uart_put_uint32
+;!    _nominal_millivolts->___lldiv
 ;!    _report_can_diagnostics->_uart_put_uint32
-;!    _uart_put_uint32->___lldiv
+;!    _uart_put_uint32->_nominal_millivolts
 ;!    ___lldiv->___lmul
+;!    _can_send_voltages->_rail_flags
 ;!
 ;!Critical Paths under _main in BANK5
 ;!
-;!    _main->_thermistor_centi_c
-;!    _thermistor_centi_c->_logf
+;!    None.
 ;!
 ;!Critical Paths under _main in BANK6
 ;!
@@ -3803,7 +3566,7 @@ logf@x:	; 4 bytes @ 0x58
 ;!    None.
 
 ;;
-;;Main: autosize = 0, tempsize = 6, incstack = 0, save=0
+;;Main: autosize = 0, tempsize = 2, incstack = 0, save=0
 ;;
 
 ;!
@@ -3812,149 +3575,92 @@ logf@x:	; 4 bytes @ 0x58
 ;! ---------------------------------------------------------------------------------
 ;! (Depth) Function   	        Calls       Base Space   Used Autos Params    Refs
 ;! ---------------------------------------------------------------------------------
-;! (0) _main                                                18    18      0   16999
-;!                                            100 BANK5     18    18      0
-;!                            ___lldiv
-;!                             ___lmul
+;! (0) _main                                                12    12      0    2749
+;!                                             50 COMRAM    12    12      0
 ;!                           _adc_init
 ;!                   _adc_read_average
 ;!                           _can_init
-;!           _can_send_oil_temperature
+;!                  _can_send_voltages
 ;!             _report_can_diagnostics
-;!                 _report_measurement
-;!                 _thermistor_centi_c
+;!                     _report_voltage
 ;!                          _uart_init
 ;!                          _uart_puts
 ;! ---------------------------------------------------------------------------------
 ;! (1) _uart_init                                            0     0      0       0
 ;! ---------------------------------------------------------------------------------
-;! (1) _thermistor_centi_c                                  36    32      4   13428
-;!                                             64 BANK5     36    32      4
-;!                            ___fladd
-;!                            ___fldiv
-;!                            ___flmul
-;!                            ___fltol
-;!                           ___xxtofl
-;!                               _logf
+;! (1) _report_voltage                                       8     4      4    1057
+;!                                             42 COMRAM     8     4      4
+;!                 _nominal_millivolts
+;!                    _uart_put_uint32
+;!                          _uart_puts
 ;! ---------------------------------------------------------------------------------
-;! (2) _logf                                                68    64      4    7999
-;!                                             88 COMRAM     4     0      4
-;!                                              0 BANK5     64    64      0
-;!                            ___fladd
-;!                            ___fldiv
-;!                            ___flmul
-;!                            ___flsub
-;!                           ___xxtofl
-;! ---------------------------------------------------------------------------------
-;! (3) ___xxtofl                                            14    10      4     338
-;!                                              0 COMRAM    14    10      4
-;! ---------------------------------------------------------------------------------
-;! (3) ___flsub                                              8     0      8    2057
-;!                                             80 COMRAM     8     0      8
-;!                            ___fladd
-;!                            ___flmul (ARG)
-;! ---------------------------------------------------------------------------------
-;! (4) ___fladd                                             16     8      8    2008
-;!                                             39 COMRAM    16     8      8
-;!                            ___fldiv (ARG)
-;!                           ___xxtofl (ARG)
-;! ---------------------------------------------------------------------------------
-;! (3) ___flmul                                             25    17      8    1492
-;!                                             55 COMRAM    25    17      8
-;!                            ___fladd (ARG)
-;!                            ___fldiv (ARG)
-;! ---------------------------------------------------------------------------------
-;! (3) ___fldiv                                             25    17      8    1131
-;!                                             14 COMRAM    25    17      8
-;!                           ___xxtofl (ARG)
-;! ---------------------------------------------------------------------------------
-;! (2) ___fltol                                             10     6      4     230
-;!                                             55 COMRAM    10     6      4
-;!                            ___fladd (ARG)
-;! ---------------------------------------------------------------------------------
-;! (1) _report_measurement                                  33    22     11    1392
-;!                                             40 COMRAM    33    22     11
+;! (2) _nominal_millivolts                                   2     0      2     283
+;!                                             25 COMRAM     2     0      2
 ;!                            ___lldiv
-;!                            ___llmod
+;!                             ___lmul
+;! ---------------------------------------------------------------------------------
+;! (3) ___lmul                                              12     4      8      94
+;!                                              0 COMRAM    12     4      8
+;! ---------------------------------------------------------------------------------
+;! (1) _report_can_diagnostics                               2     2      0     610
+;!                                             42 COMRAM     2     2      0
 ;!                    _uart_put_uint32
 ;!                          _uart_puts
 ;! ---------------------------------------------------------------------------------
-;! (1) _report_can_diagnostics                               2     2      0     623
-;!                                             40 COMRAM     2     2      0
-;!                    _uart_put_uint32
-;!                          _uart_puts
-;! ---------------------------------------------------------------------------------
-;! (2) _uart_puts                                            2     0      2      82
+;! (2) _uart_puts                                            2     0      2      77
 ;!                                              0 COMRAM     2     0      2
 ;! ---------------------------------------------------------------------------------
-;! (2) _uart_put_uint32                                     15    11      4     541
-;!                                             25 COMRAM    15    11      4
+;! (2) _uart_put_uint32                                     15    11      4     533
+;!                                             27 COMRAM    15    11      4
 ;!                            ___lldiv
 ;!                            ___llmod
+;!                 _nominal_millivolts (ARG)
 ;! ---------------------------------------------------------------------------------
-;! (3) ___llmod                                              9     1      8     165
+;! (3) ___llmod                                              9     1      8     161
 ;!                                              0 COMRAM     9     1      8
 ;! ---------------------------------------------------------------------------------
-;! (3) ___lldiv                                             13     5      8     168
+;! (3) ___lldiv                                             13     5      8     166
 ;!                                             12 COMRAM    13     5      8
 ;!                             ___lmul (ARG)
 ;! ---------------------------------------------------------------------------------
-;! (1) _can_send_oil_temperature                            14     4     10     626
-;!                                              0 COMRAM    14     4     10
+;! (1) _can_send_voltages                                    9     7      2     692
+;!                                              6 COMRAM     9     7      2
+;!                         _rail_flags
+;! ---------------------------------------------------------------------------------
+;! (2) _rail_flags                                           6     4      2     204
+;!                                              0 COMRAM     6     4      2
 ;! ---------------------------------------------------------------------------------
 ;! (1) _can_init                                             0     0      0       0
 ;! ---------------------------------------------------------------------------------
-;! (1) _adc_read_average                                    11     9      2      70
-;!                                              0 COMRAM    11     9      2
+;! (1) _adc_read_average                                    12    10      2      99
+;!                                              0 COMRAM    12    10      2
 ;! ---------------------------------------------------------------------------------
 ;! (1) _adc_init                                             0     0      0       0
 ;! ---------------------------------------------------------------------------------
-;! (1) ___lmul                                              12     4      8      94
-;!                                              0 COMRAM    12     4      8
-;! ---------------------------------------------------------------------------------
-;! Estimated maximum stack depth 4
+;! Estimated maximum stack depth 3
 ;! ---------------------------------------------------------------------------------
 ;!
 ;! Call Graph Graphs:
 ;!
 ;! _main (ROOT)
-;!   ___lldiv
-;!     ___lmul (ARG)
-;!   ___lmul
 ;!   _adc_init
 ;!   _adc_read_average
 ;!   _can_init
-;!   _can_send_oil_temperature
+;!   _can_send_voltages
+;!     _rail_flags
 ;!   _report_can_diagnostics
 ;!     _uart_put_uint32
 ;!       ___lldiv
+;!         ___lmul (ARG)
 ;!       ___llmod
+;!       _nominal_millivolts (ARG)
+;!         ___lldiv
+;!         ___lmul
 ;!     _uart_puts
-;!   _report_measurement
-;!     ___lldiv
-;!     ___llmod
+;!   _report_voltage
+;!     _nominal_millivolts
 ;!     _uart_put_uint32
 ;!     _uart_puts
-;!   _thermistor_centi_c
-;!     ___fladd
-;!       ___fldiv (ARG)
-;!         ___xxtofl (ARG)
-;!       ___xxtofl (ARG)
-;!     ___fldiv
-;!     ___flmul
-;!       ___fladd (ARG)
-;!       ___fldiv (ARG)
-;!     ___fltol
-;!       ___fladd (ARG)
-;!     ___xxtofl
-;!     _logf
-;!       ___fladd
-;!       ___fldiv
-;!       ___flmul
-;!       ___flsub
-;!         ___fladd
-;!         ___flmul (ARG)
-;!       ___xxtofl
 ;!   _uart_init
 ;!   _uart_puts
 ;!
@@ -3962,119 +3668,114 @@ logf@x:	; 4 bytes @ 0x58
 ;!Address spaces:
 
 ;!Name               Size   Autos  Total    Usage
-;!BIGRAM            8191      0       0      0.0%
+;!BITCOMRAM           95      0       0      0.0%
+;!BITBANK5           160      0       0      0.0%
+;!BITBANK6           256      0       0      0.0%
+;!BITBANK7           256      0       0      0.0%
+;!BITBANK8           256      0       0      0.0%
+;!BITBANK9           256      0       0      0.0%
+;!BITBANK10          256      0       0      0.0%
+;!BITBANK11          256      0       0      0.0%
+;!BITBANK12          256      0       0      0.0%
+;!BITBANK13          256      0       0      0.0%
+;!BITBANK14          256      0       0      0.0%
+;!BITBANK15          256      0       0      0.0%
+;!BITBANK16          256      0       0      0.0%
+;!BITBANK17          256      0       0      0.0%
+;!BITBANK18          256      0       0      0.0%
+;!BITBANK19          256      0       0      0.0%
+;!BITBANK20          256      0       0      0.0%
+;!BITBANK21          256      0       0      0.0%
+;!BITBANK22          256      0       0      0.0%
+;!BITBANK23          256      0       0      0.0%
+;!BITBANK24          256      0       0      0.0%
+;!BITBANK25          256      0       0      0.0%
+;!BITBANK26          256      0       0      0.0%
+;!BITBANK27          256      0       0      0.0%
+;!BITBANK28          256      0       0      0.0%
+;!BITBANK29          256      0       0      0.0%
+;!BITBANK30          256      0       0      0.0%
+;!BITBANK31          256      0       0      0.0%
+;!BITBANK32          256      0       0      0.0%
+;!BITBANK33          256      0       0      0.0%
+;!BITBANK34          256      0       0      0.0%
+;!BITBANK35          256      0       0      0.0%
+;!BITBANK36          256      0       0      0.0%
 ;!BITBIGSFR_1       2304      0       0      0.0%
 ;!BITBIGSFRh         939      0       0      0.0%
-;!BITBANK36          256      0       0      0.0%
-;!BANK36             256      0       0      0.0%
-;!BITBANK35          256      0       0      0.0%
-;!BANK35             256      0       0      0.0%
-;!BITBANK34          256      0       0      0.0%
-;!BANK34             256      0       0      0.0%
-;!BITBANK33          256      0       0      0.0%
-;!BANK33             256      0       0      0.0%
-;!BITBANK32          256      0       0      0.0%
-;!BANK32             256      0       0      0.0%
-;!BITBANK31          256      0       0      0.0%
-;!BANK31             256      0       0      0.0%
-;!BITBANK30          256      0       0      0.0%
-;!BANK30             256      0       0      0.0%
-;!BITBANK29          256      0       0      0.0%
-;!BANK29             256      0       0      0.0%
-;!BITBANK28          256      0       0      0.0%
-;!BANK28             256      0       0      0.0%
-;!BITBANK27          256      0       0      0.0%
-;!BANK27             256      0       0      0.0%
-;!BITBANK26          256      0       0      0.0%
-;!BANK26             256      0       0      0.0%
-;!BITBANK25          256      0       0      0.0%
-;!BANK25             256      0       0      0.0%
-;!BITBANK24          256      0       0      0.0%
-;!BANK24             256      0       0      0.0%
-;!BITBANK23          256      0       0      0.0%
-;!BANK23             256      0       0      0.0%
-;!BITBANK22          256      0       0      0.0%
-;!BANK22             256      0       0      0.0%
-;!BITBANK21          256      0       0      0.0%
-;!BANK21             256      0       0      0.0%
-;!BITBANK20          256      0       0      0.0%
-;!BANK20             256      0       0      0.0%
-;!BITBANK19          256      0       0      0.0%
-;!BANK19             256      0       0      0.0%
-;!BITBANK18          256      0       0      0.0%
-;!BANK18             256      0       0      0.0%
-;!BITBANK17          256      0       0      0.0%
-;!BANK17             256      0       0      0.0%
-;!BITBANK16          256      0       0      0.0%
-;!BANK16             256      0       0      0.0%
-;!BITBANK15          256      0       0      0.0%
-;!BANK15             256      0       0      0.0%
-;!BITBANK14          256      0       0      0.0%
-;!BANK14             256      0       0      0.0%
-;!BITBANK13          256      0       0      0.0%
-;!BANK13             256      0       0      0.0%
-;!BITBANK12          256      0       0      0.0%
-;!BANK12             256      0       0      0.0%
-;!BITBANK11          256      0       0      0.0%
-;!BANK11             256      0       0      0.0%
-;!BITBANK10          256      0       0      0.0%
-;!BANK10             256      0       0      0.0%
-;!BITBANK9           256      0       0      0.0%
-;!BANK9              256      0       0      0.0%
-;!BITBANK8           256      0       0      0.0%
-;!BANK8              256      0       0      0.0%
-;!BITBANK7           256      0       0      0.0%
-;!BANK7              256      0       0      0.0%
-;!BITBANK6           256      0       0      0.0%
-;!BANK6              256      0       0      0.0%
-;!BITBANK5           160      0       0      0.0%
-;!BANK5              160    118     124     77.5%
 ;!BITBIGSFRllh       157      0       0      0.0%
 ;!BITBIGSFRlll        98      0       0      0.0%
-;!BITCOMRAM           95      0       0      0.0%
-;!COMRAM              95     92      92     96.8%
 ;!BITBIGSFRlh         82      0       0      0.0%
+;!COMRAM              95     62      62     65.3%
+;!BANK5              160      0       0      0.0%
+;!BANK6              256      0       0      0.0%
+;!BANK7              256      0       0      0.0%
+;!BANK8              256      0       0      0.0%
+;!BANK9              256      0       0      0.0%
+;!BANK10             256      0       0      0.0%
+;!BANK11             256      0       0      0.0%
+;!BANK12             256      0       0      0.0%
+;!BANK13             256      0       0      0.0%
+;!BANK14             256      0       0      0.0%
+;!BANK15             256      0       0      0.0%
+;!BANK16             256      0       0      0.0%
+;!BANK17             256      0       0      0.0%
+;!BANK18             256      0       0      0.0%
+;!BANK19             256      0       0      0.0%
+;!BANK20             256      0       0      0.0%
+;!BANK21             256      0       0      0.0%
+;!BANK22             256      0       0      0.0%
+;!BANK23             256      0       0      0.0%
+;!BANK24             256      0       0      0.0%
+;!BANK25             256      0       0      0.0%
+;!BANK26             256      0       0      0.0%
+;!BANK27             256      0       0      0.0%
+;!BANK28             256      0       0      0.0%
+;!BANK29             256      0       0      0.0%
+;!BANK30             256      0       0      0.0%
+;!BANK31             256      0       0      0.0%
+;!BANK32             256      0       0      0.0%
+;!BANK33             256      0       0      0.0%
+;!BANK34             256      0       0      0.0%
+;!BANK35             256      0       0      0.0%
+;!BANK36             256      0       0      0.0%
+;!BIGRAM            8191      0       0      0.0%
 ;!STACK                0      0       0      0.0%
-;!DATA                 0      0     216      0.0%
+;!DATA                 0      0      62      0.0%
 
 	global	_main
 
 ;; *************** function _main *****************
 ;; Defined at:
-;;		line 320 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 287 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
-;;  resistance      4  112[BANK5 ] unsigned long 
-;;  centi_c         4  106[BANK5 ] long 
-;;  adc             2  116[BANK5 ] unsigned short 
-;;  cycle           1  111[BANK5 ] unsigned char 
-;;  sent            1  110[BANK5 ] unsigned char 
+;;  adc             6   56[COMRAM] unsigned short [3]
+;;  sent            1   54[COMRAM] unsigned char 
+;;  cycle           1   55[COMRAM] unsigned char 
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      void 
 ;; Registers used:
-;;		wreg, fsr2l, fsr2h, status,2, status,0, tblptrl, tblptrh, tblptru, prodl, prodh, cstack
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, tblptrl, tblptrh, tblptru, prodl, prodh, cstack
 ;; Tracked objects:
 ;;		On entry : 0/0
 ;;		On exit  : 0/0
 ;;		Unchanged: 0/0
 ;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
 ;;      Params:         0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         0      12       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          0       6       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:         0      18       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       18 bytes
-;; Hardware stack levels required when called: 4
+;;      Locals:        10       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Temps:          2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Totals:        12       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;Total ram usage:       12 bytes
+;; Hardware stack levels required when called: 3
 ;; This function calls:
-;;		___lldiv
-;;		___lmul
 ;;		_adc_init
 ;;		_adc_read_average
 ;;		_can_init
-;;		_can_send_oil_temperature
+;;		_can_send_voltages
 ;;		_report_can_diagnostics
-;;		_report_measurement
-;;		_thermistor_centi_c
+;;		_report_voltage
 ;;		_uart_init
 ;;		_uart_puts
 ;; This function is called by:
@@ -4083,338 +3784,186 @@ logf@x:	; 4 bytes @ 0x58
 ;;
 psect	text0,class=CODE,space=0,reloc=2,group=0
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	320
+	line	287
 global __ptext0
 __ptext0:
 psect	text0
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	320
+	line	287
 	
 _main:
 ;incstack = 0
-	callstack 123
-	line	322
+	callstack 124
+	line	289
 	
-l3150:
+l1755:
+	clrf	((c:main@cycle))^0500h,c
+	line	290
+	
+l1757:
 	call	_uart_init	;wreg free
-	line	323
-	
-l3152:
+	line	291
 	call	_adc_init	;wreg free
-	line	324
-	
-l3154:
+	line	292
 	call	_can_init	;wreg free
-	line	325
+	line	293
 	
-l3156:
-		movlw	low(STR_40)
+l1759:
+		movlw	low(STR_31)
 	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_40)
+	movlw	high(STR_31)
 	movwf	((c:uart_puts@text+1))^0500h,c
 
 	call	_uart_puts	;wreg free
-	line	329
+	line	298
 	
-l3158:
-	line	330
+l1761:
+	movlw	(014h)&0ffh
 	
-l3160:
-	movlb	5	; () banked
-	clrf	((main@cycle))&0ffh
-	line	331
+	call	_adc_read_average
+	movff	0+?_adc_read_average,(c:main@adc)
+	movff	1+?_adc_read_average,(c:main@adc+1)
+	line	299
 	
-l3166:; BSR set to: 5
-
-	call	_adc_read_average	;wreg free
-	movff	0+?_adc_read_average,(main@adc)
-	movff	1+?_adc_read_average,(main@adc+1)
-	line	335
+l1763:
+	movlw	(08h)&0ffh
 	
-l3168:
-	movlb	5	; () banked
-		movf	((main@adc+1))&0ffh,w
-	bnz	u2830
-	movlw	5
-	subwf	 ((main@adc))&0ffh,w
-	btfss	status,0
-	goto	u2831
-	goto	u2830
-
-u2831:
-	goto	l3172
-u2830:
+	call	_adc_read_average
+	movff	0+?_adc_read_average,0+((c:main@adc)+02h)
+	movff	1+?_adc_read_average,1+((c:main@adc)+02h)
+	line	300
 	
-l3170:; BSR set to: 5
-
-		movlw	251
-	subwf	 ((main@adc))&0ffh,w
-	movlw	15
-	subwfb	((main@adc+1))&0ffh,w
-	btfss	status,0
-	goto	u2841
-	goto	u2840
-
-u2841:
-	goto	l3182
-u2840:
-	line	338
+l1765:
+	movlw	(09h)&0ffh
 	
-l3172:; BSR set to: 5
-
-		movlw	251
-	subwf	 ((main@adc))&0ffh,w
-	movlw	15
-	subwfb	((main@adc+1))&0ffh,w
-	btfsc	status,0
-	goto	u2851
-	goto	u2850
-
-u2851:
-	goto	l238
-u2850:
+	call	_adc_read_average
+	movff	0+?_adc_read_average,0+((c:main@adc)+04h)
+	movff	1+?_adc_read_average,1+((c:main@adc)+04h)
+	line	301
 	
-l3174:; BSR set to: 5
+l1767:
+		movlw	low(main@adc)
+	movwf	((c:can_send_voltages@adc))^0500h,c
+	movlw	high(main@adc)
+	movwf	((c:can_send_voltages@adc+1))^0500h,c
 
-	movlw	low(0)
-	movwf	((main@resistance))&0ffh
-	movlw	high(0)
-	movwf	((main@resistance+1))&0ffh
-	movlw	low highword(0)
-	movwf	((main@resistance+2))&0ffh
-	movlw	high highword(0)
-	movwf	((main@resistance+3))&0ffh
-	goto	l3176
+	call	_can_send_voltages	;wreg free
+	movwf	((c:main@sent))^0500h,c
+	line	302
 	
-l238:; BSR set to: 5
-
-	setf	((main@resistance))&0ffh
-	setf	((main@resistance+1))&0ffh
-	setf	((main@resistance+2))&0ffh
-	setf	((main@resistance+3))&0ffh
-	line	339
-	
-l3176:; BSR set to: 5
-
-	movlw	low(-32768)
-	movwf	((c:can_send_oil_temperature@centi_c))^0500h,c
-	movlw	high(-32768)
-	movwf	((c:can_send_oil_temperature@centi_c+1))^0500h,c
-	movlw	low highword(-32768)
-	movwf	((c:can_send_oil_temperature@centi_c+2))^0500h,c
-	movlw	high highword(-32768)
-	movwf	((c:can_send_oil_temperature@centi_c+3))^0500h,c
-	movff	(main@adc),(c:can_send_oil_temperature@adc)
-	movff	(main@adc+1),(c:can_send_oil_temperature@adc+1)
-	movff	(main@resistance),(c:can_send_oil_temperature@resistance)
-	movff	(main@resistance+1),(c:can_send_oil_temperature@resistance+1)
-	movff	(main@resistance+2),(c:can_send_oil_temperature@resistance+2)
-	movff	(main@resistance+3),(c:can_send_oil_temperature@resistance+3)
-	call	_can_send_oil_temperature	;wreg free
-	movlb	5	; () banked
-	movwf	((main@sent))&0ffh
-	line	340
-	
-l3178:; BSR set to: 5
-
-		movlw	4
-	xorwf	((main@cycle))&0ffh,w
+l1769:
+	incf	((c:main@cycle))^0500h,c
+		movlw	5
+	xorwf	((c:main@cycle))^0500h,c,w
 	btfss	status,2
-	goto	u2861
-	goto	u2860
+	goto	u651
+	goto	u650
 
-u2861:
-	goto	l3192
-u2860:
-	line	341
+u651:
+	goto	l1787
+u650:
+	line	303
 	
-l3180:; BSR set to: 5
+l1771:
+	clrf	((c:main@cycle))^0500h,c
+	line	304
+	
+l1773:
+		movlw	low(STR_32)
+	movwf	((c:report_voltage@name))^0500h,c
+	movlw	high(STR_32)
+	movwf	((c:report_voltage@name+1))^0500h,c
 
-	movff	(main@adc),(c:report_measurement@adc)
-	movff	(main@adc+1),(c:report_measurement@adc+1)
-	movff	(main@resistance),(c:report_measurement@resistance)
-	movff	(main@resistance+1),(c:report_measurement@resistance+1)
-	movff	(main@resistance+2),(c:report_measurement@resistance+2)
-	movff	(main@resistance+3),(c:report_measurement@resistance+3)
-	movlw	low(-32768)
-	movwf	((c:report_measurement@centi_c))^0500h,c
-	movlw	high(-32768)
-	movwf	((c:report_measurement@centi_c+1))^0500h,c
-	movlw	low highword(-32768)
-	movwf	((c:report_measurement@centi_c+2))^0500h,c
-	movlw	high highword(-32768)
-	movwf	((c:report_measurement@centi_c+3))^0500h,c
-	movff	(main@sent),(c:report_measurement@can_sent)
-	call	_report_measurement	;wreg free
-	goto	l3192
-	line	344
-	
-l3182:; BSR set to: 5
+	movff	(c:main@adc),(c:report_voltage@adc)
+	movff	(c:main@adc+1),(c:report_voltage@adc+1)
+	call	_report_voltage	;wreg free
+	line	305
+		movlw	low(STR_33)
+	movwf	((c:report_voltage@name))^0500h,c
+	movlw	high(STR_33)
+	movwf	((c:report_voltage@name+1))^0500h,c
 
-	movlw	low(0FFFh)
-	movwf	(??_main+0)&0ffh
-	movlw	high(0FFFh)
-	movwf	1+(??_main+0)&0ffh
-	movf	((main@adc))&0ffh,w
-	subwf	(??_main+0)&0ffh
-	movf	((main@adc+1))&0ffh,w
-	subwfb	(??_main+0+1)&0ffh
-	bcf	status,0
-	rrcf	(??_main+0+1)&0ffh,w
-	movwf	(??_main+2+1)&0ffh
-	rrcf	(??_main+0)&0ffh,w
-	movwf	(??_main+2)&0ffh
-	movff	(main@adc),(c:___lmul@multiplier)
-	movff	(main@adc+1),(c:___lmul@multiplier+1)
-	clrf	((c:___lmul@multiplier+2))^0500h,c
-	clrf	((c:___lmul@multiplier+3))^0500h,c
-	movlw	low(02710h)
-	movwf	((c:___lmul@multiplicand))^0500h,c
-	movlw	high(02710h)
-	movwf	((c:___lmul@multiplicand+1))^0500h,c
-	movlw	low highword(02710h)
-	movwf	((c:___lmul@multiplicand+2))^0500h,c
-	movlw	high highword(02710h)
-	movwf	((c:___lmul@multiplicand+3))^0500h,c
-	call	___lmul	;wreg free
-	movlb	5	; () banked
-	movf	(??_main+2)&0ffh,w
-	addwf	(0+?___lmul)^0500h,c,w
-	movwf	((c:___lldiv@dividend))^0500h,c
-	movf	(??_main+2+1)&0ffh,w
-	addwfc	(1+?___lmul)^0500h,c,w
-	movwf	1+((c:___lldiv@dividend))^0500h,c
-	
-	movlw	0
-	addwfc	(2+?___lmul)^0500h,c,w
-	movwf	2+((c:___lldiv@dividend))^0500h,c
-	
-	movlw	0
-	addwfc	(3+?___lmul)^0500h,c,w
-	movwf	3+((c:___lldiv@dividend))^0500h,c
-	movlw	low(0FFFh)
-	movwf	(??_main+4)&0ffh
-	movlw	high(0FFFh)
-	movwf	1+(??_main+4)&0ffh
-	movf	((main@adc))&0ffh,w
-	subwf	(??_main+4)&0ffh
-	movf	((main@adc+1))&0ffh,w
-	subwfb	(??_main+4+1)&0ffh
-	movff	??_main+4,(c:___lldiv@divisor)
-	movff	??_main+4+1,(c:___lldiv@divisor+1)
-	clrf	((c:___lldiv@divisor+2))^0500h,c
-	clrf	((c:___lldiv@divisor+3))^0500h,c
-	call	___lldiv	;wreg free
-	movff	0+?___lldiv,(main@resistance)
-	movff	1+?___lldiv,(main@resistance+1)
-	movff	2+?___lldiv,(main@resistance+2)
-	movff	3+?___lldiv,(main@resistance+3)
-	
-	line	346
-	
-l3184:
-	movff	(main@resistance),(thermistor_centi_c@resistance_ohm)
-	movff	(main@resistance+1),(thermistor_centi_c@resistance_ohm+1)
-	movff	(main@resistance+2),(thermistor_centi_c@resistance_ohm+2)
-	movff	(main@resistance+3),(thermistor_centi_c@resistance_ohm+3)
-	call	_thermistor_centi_c	;wreg free
-	movff	0+?_thermistor_centi_c,(main@centi_c)
-	movff	1+?_thermistor_centi_c,(main@centi_c+1)
-	movff	2+?_thermistor_centi_c,(main@centi_c+2)
-	movff	3+?_thermistor_centi_c,(main@centi_c+3)
-	
-	line	347
-	
-l3186:
-	movff	(main@centi_c),(c:can_send_oil_temperature@centi_c)
-	movff	(main@centi_c+1),(c:can_send_oil_temperature@centi_c+1)
-	movff	(main@centi_c+2),(c:can_send_oil_temperature@centi_c+2)
-	movff	(main@centi_c+3),(c:can_send_oil_temperature@centi_c+3)
-	movff	(main@adc),(c:can_send_oil_temperature@adc)
-	movff	(main@adc+1),(c:can_send_oil_temperature@adc+1)
-	movff	(main@resistance),(c:can_send_oil_temperature@resistance)
-	movff	(main@resistance+1),(c:can_send_oil_temperature@resistance+1)
-	movff	(main@resistance+2),(c:can_send_oil_temperature@resistance+2)
-	movff	(main@resistance+3),(c:can_send_oil_temperature@resistance+3)
-	call	_can_send_oil_temperature	;wreg free
-	movlb	5	; () banked
-	movwf	((main@sent))&0ffh
-	line	348
-	
-l3188:; BSR set to: 5
+	movff	0+((c:main@adc)+02h),(c:report_voltage@adc)
+	movff	1+((c:main@adc)+02h),(c:report_voltage@adc+1)
+	call	_report_voltage	;wreg free
+	line	306
+		movlw	low(STR_34)
+	movwf	((c:report_voltage@name))^0500h,c
+	movlw	high(STR_34)
+	movwf	((c:report_voltage@name+1))^0500h,c
 
-		movlw	4
-	xorwf	((main@cycle))&0ffh,w
+	movff	0+((c:main@adc)+04h),(c:report_voltage@adc)
+	movff	1+((c:main@adc)+04h),(c:report_voltage@adc+1)
+	call	_report_voltage	;wreg free
+	line	307
+	
+l1775:
+		movlw	low(STR_35)
+	movwf	((c:uart_puts@text))^0500h,c
+	movlw	high(STR_35)
+	movwf	((c:uart_puts@text+1))^0500h,c
+
+	call	_uart_puts	;wreg free
+	line	308
+	
+l1777:
+	movf	((c:main@sent))^0500h,c,w
 	btfss	status,2
-	goto	u2871
-	goto	u2870
-
-u2871:
-	goto	l3192
-u2870:
-	line	349
+	goto	u661
+	goto	u660
+u661:
+	goto	l1781
+u660:
 	
-l3190:; BSR set to: 5
+l1779:
+		movlw	low(STR_37)
+	movwf	((c:_main$778))^0500h,c
+	movlw	high(STR_37)
+	movwf	((c:_main$778+1))^0500h,c
 
-	movff	(main@adc),(c:report_measurement@adc)
-	movff	(main@adc+1),(c:report_measurement@adc+1)
-	movff	(main@resistance),(c:report_measurement@resistance)
-	movff	(main@resistance+1),(c:report_measurement@resistance+1)
-	movff	(main@resistance+2),(c:report_measurement@resistance+2)
-	movff	(main@resistance+3),(c:report_measurement@resistance+3)
-	movff	(main@centi_c),(c:report_measurement@centi_c)
-	movff	(main@centi_c+1),(c:report_measurement@centi_c+1)
-	movff	(main@centi_c+2),(c:report_measurement@centi_c+2)
-	movff	(main@centi_c+3),(c:report_measurement@centi_c+3)
-	movff	(main@sent),(c:report_measurement@can_sent)
-	call	_report_measurement	;wreg free
-	line	352
+	goto	l1783
 	
-l3192:
+l1781:
+		movlw	low(STR_36)
+	movwf	((c:_main$778))^0500h,c
+	movlw	high(STR_36)
+	movwf	((c:_main$778+1))^0500h,c
+
+	
+l1783:
+		movff	(c:_main$778),(c:uart_puts@text)
+	movff	(c:_main$778+1),(c:uart_puts@text+1)
+
+	call	_uart_puts	;wreg free
+	line	309
+	
+l1785:
+	call	_report_can_diagnostics	;wreg free
+	line	311
+	
+l1787:
 	asmopt push
 asmopt off
 movlw  9
-	movlb	5	; () banked
-movwf	(??_main+0+1)&0ffh
+movwf	(??_main+0+1)^0500h,c
 movlw	30
-movwf	(??_main+0)&0ffh
+movwf	(??_main+0)^0500h,c
 	movlw	228
-u2897:
+u677:
 decfsz	wreg,f
-	bra	u2897
-	decfsz	(??_main+0)&0ffh,f
-	bra	u2897
-	decfsz	(??_main+0+1)&0ffh,f
-	bra	u2897
-	nop
+	bra	u677
+	decfsz	(??_main+0)^0500h,c,f
+	bra	u677
+	decfsz	(??_main+0+1)^0500h,c,f
+	bra	u677
+	nop2
 asmopt pop
 
-	line	330
-	
-l3194:
-	movlb	5	; () banked
-	incf	((main@cycle))&0ffh
-	
-l3196:; BSR set to: 5
-
-		movlw	05h-1
-	cpfsgt	((main@cycle))&0ffh
-	goto	u2881
-	goto	u2880
-
-u2881:
-	goto	l3166
-u2880:
-	line	354
-	
-l3198:; BSR set to: 5
-
-	call	_report_can_diagnostics	;wreg free
-	goto	l3158
+	goto	l1761
 	global	start
 	goto	start
 	callstack 0
-	line	356
+	line	313
 GLOBAL	__end_of_main
 	__end_of_main:
 	signat	_main,89
@@ -4422,7 +3971,7 @@ GLOBAL	__end_of_main
 
 ;; *************** function _uart_init *****************
 ;; Defined at:
-;;		line 90 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 76 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -4449,4168 +3998,181 @@ GLOBAL	__end_of_main
 ;; This function uses a non-reentrant model
 ;;
 psect	text1,class=CODE,space=0,reloc=2,group=0
-	line	90
+	line	76
 global __ptext1
 __ptext1:
 psect	text1
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	90
+	line	76
 	
 _uart_init:
 ;incstack = 0
 	callstack 126
-	line	92
+	line	78
 	
-l2822:
+l1503:
 	movlb	4	; () banked
 	bcf	(0+(0/8)+(1024))&0ffh,(0)&7	;volatile
-	line	93
+	line	79
 	bcf	(0+(0/8)+(c:1214))^0400h,c,(0)&7	;volatile
-	line	94
+	line	80
 	bcf	(0+(0/8)+(c:1222))^0400h,c,(0)&7	;volatile
-	line	96
+	line	82
 	
-l2824:; BSR set to: 4
+l1505:; BSR set to: 4
 
 	movlb	0	; () banked
 	bcf	((102))&0ffh,3	;volatile
-	line	97
+	line	83
 	
-l2826:; BSR set to: 0
+l1507:; BSR set to: 0
 
 	movlw	(03Fh)&0ffh
 	movlb	4	; () banked
 	andwf	((1040))&0ffh	;volatile
-	line	98
+	line	84
 	
-l2828:; BSR set to: 4
+l1509:; BSR set to: 4
 
 	bsf	((c:1216))^0400h,c,6	;volatile
-	line	99
+	line	85
 	
-l2830:; BSR set to: 4
+l1511:; BSR set to: 4
 
 	bcf	((1042))&0ffh,6	;volatile
-	line	100
+	line	86
 	
-l2832:; BSR set to: 4
+l1513:; BSR set to: 4
 
 	bcf	((c:1224))^0400h,c,6	;volatile
-	line	101
+	line	87
 	
-l2834:; BSR set to: 4
+l1515:; BSR set to: 4
 
 	bsf	((c:1224))^0400h,c,7	;volatile
-	line	104
+	line	90
 	
-l2836:; BSR set to: 4
+l1517:; BSR set to: 4
 
 	movlw	low(055h)
 	movlb	2	; () banked
 	movwf	((512))&0ffh	;volsfr
-	line	105
+	line	91
 	
-l2838:; BSR set to: 2
+l1519:; BSR set to: 2
 
 	movlw	low(0AAh)
 	movwf	((512))&0ffh	;volsfr
-	line	106
+	line	92
 	
-l2840:; BSR set to: 2
+l1521:; BSR set to: 2
 
 	bcf	((512))&0ffh,0	;volsfr
-	line	107
+	line	93
 	
-l2842:; BSR set to: 2
+l1523:; BSR set to: 2
 
 	movlw	low(020h)
 	movwf	((535))&0ffh	;volatile
-	line	108
+	line	94
 	
-l2844:; BSR set to: 2
+l1525:; BSR set to: 2
 
 	movlw	low(017h)
 	movwf	((626))&0ffh	;volatile
-	line	109
+	line	95
 	
-l2846:; BSR set to: 2
+l1527:; BSR set to: 2
+
+	clrf	((521))&0ffh	;volatile
+	line	96
+	
+l1529:; BSR set to: 2
+
+	clrf	((522))&0ffh	;volatile
+	line	97
+	
+l1531:; BSR set to: 2
+
+	clrf	((533))&0ffh	;volatile
+	line	98
+	
+l1533:; BSR set to: 2
 
 	movlw	low(046h)
 	movwf	((523))&0ffh	;volatile
-	line	110
+	line	99
 	
-l2848:; BSR set to: 2
+l1535:; BSR set to: 2
 
 	movlw	low(0Bh)
 	movwf	((573))&0ffh	;volatile
-	line	111
+	line	100
 	
-l2850:; BSR set to: 2
+l1537:; BSR set to: 2
 
 	movlw	low(055h)
 	movwf	((512))&0ffh	;volsfr
-	line	112
+	line	101
 	
-l2852:; BSR set to: 2
+l1539:; BSR set to: 2
 
 	movlw	low(0AAh)
 	movwf	((512))&0ffh	;volsfr
-	line	113
+	line	102
 	
-l2854:; BSR set to: 2
+l1541:; BSR set to: 2
 
 	bsf	((512))&0ffh,0	;volsfr
-	line	115
+	line	104
 	
-l2856:; BSR set to: 2
+l1543:; BSR set to: 2
 
 	clrf	((684))&0ffh	;volatile
-	line	116
+	line	105
 	
-l2858:; BSR set to: 2
+l1545:; BSR set to: 2
 
 	movlw	low(0B0h)
 	movwf	((683))&0ffh	;volatile
-	line	117
+	line	106
 	
-l2860:; BSR set to: 2
+l1547:; BSR set to: 2
 
 	movlw	low(080h)
 	movwf	((685))&0ffh	;volatile
-	line	118
+	line	107
 	
-l2862:; BSR set to: 2
+l1549:; BSR set to: 2
 
 	clrf	((686+1))&0ffh	;volatile
 	movlw	low(08Ah)
 	movwf	((686))&0ffh	;volatile
-	line	119
+	line	108
 	
-l2864:; BSR set to: 2
+l1551:; BSR set to: 2
 
 	bsf	((684))&0ffh,7	;volatile
-	line	120
+	line	109
 	
-l143:; BSR set to: 2
+l149:; BSR set to: 2
 
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_uart_init
 	__end_of_uart_init:
 	signat	_uart_init,89
-	global	_thermistor_centi_c
+	global	_report_voltage
 
-;; *************** function _thermistor_centi_c *****************
+;; *************** function _report_voltage *****************
 ;; Defined at:
-;;		line 272 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 274 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
-;;  resistance_o    4   64[BANK5 ] unsigned long 
-;; Auto vars:     Size  Location     Type
-;;  centi_c         4   96[BANK5 ] unsigned long 
-;;  inverse_kelv    4   80[BANK5 ] unsigned long 
-;;  beta_kelvin     4   76[BANK5 ] const 
-;;  hot_resistan    4   72[BANK5 ] const 
-;;  hot_kelvin      4   68[BANK5 ] const 
-;; Return value:  Size  Location     Type
-;;                  4   64[BANK5 ] long 
-;; Registers used:
-;;		wreg, status,2, status,0, prodl, prodh, cstack
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         0       4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         0      32       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:         0      36       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       36 bytes
-;; Hardware stack levels used: 1
-;; Hardware stack levels required when called: 3
-;; This function calls:
-;;		___fladd
-;;		___fldiv
-;;		___flmul
-;;		___fltol
-;;		___xxtofl
-;;		_logf
-;; This function is called by:
-;;		_main
-;; This function uses a non-reentrant model
-;;
-psect	text2,class=CODE,space=0,reloc=2,group=0
-	line	272
-global __ptext2
-__ptext2:
-psect	text2
-	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	272
-	
-_thermistor_centi_c:; BSR set to: 2
-
-;incstack = 0
-	callstack 123
-	line	274
-	
-l3046:
-	movlw	low(normalize32(0x43b91333))
-	movlb	5	; () banked
-	movwf	((thermistor_centi_c@hot_kelvin))&0ffh
-	movlw	high(normalize32(0x43b91333))
-	movwf	((thermistor_centi_c@hot_kelvin+1))&0ffh
-	movlw	low highword(normalize32(0x43b91333))
-	movwf	((thermistor_centi_c@hot_kelvin+2))&0ffh
-	movlw	high highword(normalize32(0x43b91333))
-	movwf	((thermistor_centi_c@hot_kelvin+3))&0ffh
-	line	275
-	movlw	low(normalize32(0x448f2000))
-	movwf	((thermistor_centi_c@hot_resistance))&0ffh
-	movlw	high(normalize32(0x448f2000))
-	movwf	((thermistor_centi_c@hot_resistance+1))&0ffh
-	movlw	low highword(normalize32(0x448f2000))
-	movwf	((thermistor_centi_c@hot_resistance+2))&0ffh
-	movlw	high highword(normalize32(0x448f2000))
-	movwf	((thermistor_centi_c@hot_resistance+3))&0ffh
-	line	276
-	movlw	low(normalize32(0x454c744f))
-	movwf	((thermistor_centi_c@beta_kelvin))&0ffh
-	movlw	high(normalize32(0x454c744f))
-	movwf	((thermistor_centi_c@beta_kelvin+1))&0ffh
-	movlw	low highword(normalize32(0x454c744f))
-	movwf	((thermistor_centi_c@beta_kelvin+2))&0ffh
-	movlw	high highword(normalize32(0x454c744f))
-	movwf	((thermistor_centi_c@beta_kelvin+3))&0ffh
-	line	280
-	
-l3048:; BSR set to: 5
-
-	movff	(thermistor_centi_c@hot_resistance),(c:___fldiv@a)
-	movff	(thermistor_centi_c@hot_resistance+1),(c:___fldiv@a+1)
-	movff	(thermistor_centi_c@hot_resistance+2),(c:___fldiv@a+2)
-	movff	(thermistor_centi_c@hot_resistance+3),(c:___fldiv@a+3)
-	movff	(thermistor_centi_c@resistance_ohm),(c:___xxtofl@val)
-	movff	(thermistor_centi_c@resistance_ohm+1),(c:___xxtofl@val+1)
-	movff	(thermistor_centi_c@resistance_ohm+2),(c:___xxtofl@val+2)
-	movff	(thermistor_centi_c@resistance_ohm+3),(c:___xxtofl@val+3)
-	movlw	(0)&0ffh
-	
-	call	___xxtofl
-	movff	0+?___xxtofl,(c:___fldiv@b)
-	movff	1+?___xxtofl,(c:___fldiv@b+1)
-	movff	2+?___xxtofl,(c:___fldiv@b+2)
-	movff	3+?___xxtofl,(c:___fldiv@b+3)
-	
-	call	___fldiv	;wreg free
-	movff	0+?___fldiv,(_thermistor_centi_c$1621)
-	movff	1+?___fldiv,(_thermistor_centi_c$1621+1)
-	movff	2+?___fldiv,(_thermistor_centi_c$1621+2)
-	movff	3+?___fldiv,(_thermistor_centi_c$1621+3)
-	
-	
-l3050:
-	movff	(_thermistor_centi_c$1621),(c:logf@x)
-	movff	(_thermistor_centi_c$1621+1),(c:logf@x+1)
-	movff	(_thermistor_centi_c$1621+2),(c:logf@x+2)
-	movff	(_thermistor_centi_c$1621+3),(c:logf@x+3)
-	call	_logf	;wreg free
-	movff	0+?_logf,(_thermistor_centi_c$1622)
-	movff	1+?_logf,(_thermistor_centi_c$1622+1)
-	movff	2+?_logf,(_thermistor_centi_c$1622+2)
-	movff	3+?_logf,(_thermistor_centi_c$1622+3)
-	
-	
-l3052:
-	movff	(thermistor_centi_c@hot_kelvin),(c:___fldiv@a)
-	movff	(thermistor_centi_c@hot_kelvin+1),(c:___fldiv@a+1)
-	movff	(thermistor_centi_c@hot_kelvin+2),(c:___fldiv@a+2)
-	movff	(thermistor_centi_c@hot_kelvin+3),(c:___fldiv@a+3)
-	movlw	low(normalize32(0x3f800000))
-	movwf	((c:___fldiv@b))^0500h,c
-	movlw	high(normalize32(0x3f800000))
-	movwf	((c:___fldiv@b+1))^0500h,c
-	movlw	low highword(normalize32(0x3f800000))
-	movwf	((c:___fldiv@b+2))^0500h,c
-	movlw	high highword(normalize32(0x3f800000))
-	movwf	((c:___fldiv@b+3))^0500h,c
-	call	___fldiv	;wreg free
-	movff	0+?___fldiv,(c:___fladd@b)
-	movff	1+?___fldiv,(c:___fladd@b+1)
-	movff	2+?___fldiv,(c:___fladd@b+2)
-	movff	3+?___fldiv,(c:___fladd@b+3)
-	
-	movff	(thermistor_centi_c@beta_kelvin),(c:___fldiv@a)
-	movff	(thermistor_centi_c@beta_kelvin+1),(c:___fldiv@a+1)
-	movff	(thermistor_centi_c@beta_kelvin+2),(c:___fldiv@a+2)
-	movff	(thermistor_centi_c@beta_kelvin+3),(c:___fldiv@a+3)
-	movff	(_thermistor_centi_c$1622),(c:___fldiv@b)
-	movff	(_thermistor_centi_c$1622+1),(c:___fldiv@b+1)
-	movff	(_thermistor_centi_c$1622+2),(c:___fldiv@b+2)
-	movff	(_thermistor_centi_c$1622+3),(c:___fldiv@b+3)
-	call	___fldiv	;wreg free
-	movff	0+?___fldiv,(c:___fladd@a)
-	movff	1+?___fldiv,(c:___fladd@a+1)
-	movff	2+?___fldiv,(c:___fladd@a+2)
-	movff	3+?___fldiv,(c:___fladd@a+3)
-	
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(thermistor_centi_c@inverse_kelvin)
-	movff	1+?___fladd,(thermistor_centi_c@inverse_kelvin+1)
-	movff	2+?___fladd,(thermistor_centi_c@inverse_kelvin+2)
-	movff	3+?___fladd,(thermistor_centi_c@inverse_kelvin+3)
-	
-	line	282
-	
-l3054:
-	movlw	low(normalize32(0xc3889333))
-	movwf	((c:___fladd@a))^0500h,c
-	movlw	high(normalize32(0xc3889333))
-	movwf	((c:___fladd@a+1))^0500h,c
-	movlw	low highword(normalize32(0xc3889333))
-	movwf	((c:___fladd@a+2))^0500h,c
-	movlw	high highword(normalize32(0xc3889333))
-	movwf	((c:___fladd@a+3))^0500h,c
-	movff	(thermistor_centi_c@inverse_kelvin),(c:___fldiv@a)
-	movff	(thermistor_centi_c@inverse_kelvin+1),(c:___fldiv@a+1)
-	movff	(thermistor_centi_c@inverse_kelvin+2),(c:___fldiv@a+2)
-	movff	(thermistor_centi_c@inverse_kelvin+3),(c:___fldiv@a+3)
-	movlw	low(normalize32(0x3f800000))
-	movwf	((c:___fldiv@b))^0500h,c
-	movlw	high(normalize32(0x3f800000))
-	movwf	((c:___fldiv@b+1))^0500h,c
-	movlw	low highword(normalize32(0x3f800000))
-	movwf	((c:___fldiv@b+2))^0500h,c
-	movlw	high highword(normalize32(0x3f800000))
-	movwf	((c:___fldiv@b+3))^0500h,c
-	call	___fldiv	;wreg free
-	movff	0+?___fldiv,(c:___fladd@b)
-	movff	1+?___fldiv,(c:___fladd@b+1)
-	movff	2+?___fldiv,(c:___fladd@b+2)
-	movff	3+?___fldiv,(c:___fladd@b+3)
-	
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(c:___flmul@b)
-	movff	1+?___fladd,(c:___flmul@b+1)
-	movff	2+?___fladd,(c:___flmul@b+2)
-	movff	3+?___fladd,(c:___flmul@b+3)
-	
-	movlw	low(normalize32(0x42c80000))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x42c80000))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x42c80000))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x42c80000))
-	movwf	((c:___flmul@a+3))^0500h,c
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(thermistor_centi_c@centi_c)
-	movff	1+?___flmul,(thermistor_centi_c@centi_c+1)
-	movff	2+?___flmul,(thermistor_centi_c@centi_c+2)
-	movff	3+?___flmul,(thermistor_centi_c@centi_c+3)
-	
-	line	283
-	
-l3056:
-	movlb	5	; () banked
-	btfsc	((thermistor_centi_c@centi_c+3))&0ffh,7
-	goto	u2720
-	goto	u2721
-
-u2721:
-	goto	l3060
-u2720:
-	
-l3058:; BSR set to: 5
-
-	movlw	low(normalize32(0xbf000000))
-	movwf	((_thermistor_centi_c$743))&0ffh
-	movlw	high(normalize32(0xbf000000))
-	movwf	((_thermistor_centi_c$743+1))&0ffh
-	movlw	low highword(normalize32(0xbf000000))
-	movwf	((_thermistor_centi_c$743+2))&0ffh
-	movlw	high highword(normalize32(0xbf000000))
-	movwf	((_thermistor_centi_c$743+3))&0ffh
-	goto	l3062
-	
-l3060:; BSR set to: 5
-
-	movlw	low(normalize32(0x3f000000))
-	movwf	((_thermistor_centi_c$743))&0ffh
-	movlw	high(normalize32(0x3f000000))
-	movwf	((_thermistor_centi_c$743+1))&0ffh
-	movlw	low highword(normalize32(0x3f000000))
-	movwf	((_thermistor_centi_c$743+2))&0ffh
-	movlw	high highword(normalize32(0x3f000000))
-	movwf	((_thermistor_centi_c$743+3))&0ffh
-	
-l3062:; BSR set to: 5
-
-	movff	(thermistor_centi_c@centi_c),(c:___fladd@a)
-	movff	(thermistor_centi_c@centi_c+1),(c:___fladd@a+1)
-	movff	(thermistor_centi_c@centi_c+2),(c:___fladd@a+2)
-	movff	(thermistor_centi_c@centi_c+3),(c:___fladd@a+3)
-	movff	(_thermistor_centi_c$743),(c:___fladd@b)
-	movff	(_thermistor_centi_c$743+1),(c:___fladd@b+1)
-	movff	(_thermistor_centi_c$743+2),(c:___fladd@b+2)
-	movff	(_thermistor_centi_c$743+3),(c:___fladd@b+3)
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(c:___fltol@f1)
-	movff	1+?___fladd,(c:___fltol@f1+1)
-	movff	2+?___fladd,(c:___fltol@f1+2)
-	movff	3+?___fladd,(c:___fltol@f1+3)
-	
-	call	___fltol	;wreg free
-	movff	0+?___fltol,(?_thermistor_centi_c)
-	movff	1+?___fltol,(?_thermistor_centi_c+1)
-	movff	2+?___fltol,(?_thermistor_centi_c+2)
-	movff	3+?___fltol,(?_thermistor_centi_c+3)
-	
-	line	284
-	
-l203:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of_thermistor_centi_c
-	__end_of_thermistor_centi_c:
-	signat	_thermistor_centi_c,4220
-	global	_logf
-
-;; *************** function _logf *****************
-;; Defined at:
-;;		line 29 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-;; Parameters:    Size  Location     Type
-;;  x               4   88[COMRAM] float 
-;; Auto vars:     Size  Location     Type
-;;  ux              4   60[BANK5 ] struct .
-;;  w               4   52[BANK5 ] float 
-;;  z               4   48[BANK5 ] float 
-;;  s               4   44[BANK5 ] float 
-;;  dk              4   40[BANK5 ] float 
-;;  hfsq            4   36[BANK5 ] float 
-;;  t2              4   14[BANK5 ] float 
-;;  t1              4   10[BANK5 ] float 
-;;  R               4    6[BANK5 ] float 
-;;  k               2   34[BANK5 ] int 
-;; Return value:  Size  Location     Type
-;;                  4   88[COMRAM] float 
-;; Registers used:
-;;		wreg, status,2, status,0, prodl, prodh, cstack
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         0      58       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          0       6       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:         4      64       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       68 bytes
-;; Hardware stack levels used: 1
-;; Hardware stack levels required when called: 2
-;; This function calls:
-;;		___fladd
-;;		___fldiv
-;;		___flmul
-;;		___flsub
-;;		___xxtofl
-;; This function is called by:
-;;		_thermistor_centi_c
-;; This function uses a non-reentrant model
-;;
-psect	text3,class=CODE,space=0,reloc=2,group=2
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-	line	29
-global __ptext3
-__ptext3:
-psect	text3
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c"
-	line	29
-	
-_logf:
-;incstack = 0
-	callstack 123
-	line	31
-	
-l2702:
-	movff	(logf@F472),(logf@ux)
-	movff	(logf@F472+1),(logf@ux+1)
-	movff	(logf@F472+2),(logf@ux+2)
-	movff	(logf@F472+3),(logf@ux+3)
-	movff	(c:logf@x),(logf@ux)
-	movff	(c:logf@x+1),(logf@ux+1)
-	movff	(c:logf@x+2),(logf@ux+2)
-	movff	(c:logf@x+3),(logf@ux+3)
-	line	35
-	
-l2704:
-	movlb	5	; () banked
-	clrf	((logf@k+1))&0ffh
-	movlw	low(0)
-	movwf	((logf@k))&0ffh
-	line	36
-	
-l2706:; BSR set to: 5
-
-		movf	((logf@ux+3))&0ffh,w
-	bnz	u2470
-	movlw	128
-	subwf	 ((logf@ux+2))&0ffh,w
-	btfss	status,0
-	goto	u2471
-	goto	u2470
-
-u2471:
-	goto	l2710
-u2470:
-	
-l2708:; BSR set to: 5
-
-	
-	btfss	((logf@ux+3))&0ffh,(31)&7
-	goto	u2481
-	goto	u2480
-u2481:
-	goto	l2728
-u2480:
-	line	37
-	
-l2710:; BSR set to: 5
-
-	bcf	status,0
-	rlcf	((logf@ux))&0ffh,w
-	movwf	(??_logf+0)&0ffh
-	rlcf	((logf@ux+1))&0ffh,w
-	movwf	1+(??_logf+0)&0ffh
-	
-	rlcf	((logf@ux+2))&0ffh,w
-	movwf	2+(??_logf+0)&0ffh
-	
-	rlcf	((logf@ux+3))&0ffh,w
-	movwf	3+(??_logf+0)&0ffh
-	movf	(??_logf+0)&0ffh,w
-iorwf	(??_logf+0+1)&0ffh,w
-iorwf	(??_logf+0+2)&0ffh,w
-iorwf	(??_logf+0+3)&0ffh,w
-	btfss	status,2
-	goto	u2491
-	goto	u2490
-
-u2491:
-	goto	l1052
-u2490:
-	line	39
-	
-l2712:; BSR set to: 5
-
-	movlw	low(0FF800000h)
-	movwf	((logf@ux))&0ffh
-	movlw	high(0FF800000h)
-	movwf	((logf@ux+1))&0ffh
-	movlw	low highword(0FF800000h)
-	movwf	((logf@ux+2))&0ffh
-	movlw	high highword(0FF800000h)
-	movwf	((logf@ux+3))&0ffh
-	line	40
-	
-l2714:; BSR set to: 5
-
-	movff	(logf@ux),(c:?_logf)
-	movff	(logf@ux+1),(c:?_logf+1)
-	movff	(logf@ux+2),(c:?_logf+2)
-	movff	(logf@ux+3),(c:?_logf+3)
-	goto	l1053
-	line	44
-	
-l1052:; BSR set to: 5
-
-	line	45
-	
-	btfss	((logf@ux+3))&0ffh,(31)&7
-	goto	u2501
-	goto	u2500
-u2501:
-	goto	l2724
-u2500:
-	line	47
-	
-l2718:; BSR set to: 5
-
-	clrf	((_errno+1))&0ffh
-	movlw	low(021h)
-	movwf	((_errno))&0ffh
-	line	48
-	movlw	low(07FFFFFFFh)
-	movwf	((logf@ux))&0ffh
-	movlw	high(07FFFFFFFh)
-	movwf	((logf@ux+1))&0ffh
-	movlw	low highword(07FFFFFFFh)
-	movwf	((logf@ux+2))&0ffh
-	movlw	high highword(07FFFFFFFh)
-	movwf	((logf@ux+3))&0ffh
-	goto	l2714
-	line	55
-	
-l2724:; BSR set to: 5
-
-	movlw	low(-25)
-	addwf	((logf@k))&0ffh
-	movlw	high(-25)
-	addwfc	((logf@k+1))&0ffh
-	line	56
-	
-l2726:; BSR set to: 5
-
-	movff	(logf@ux),(c:___flmul@b)
-	movff	(logf@ux+1),(c:___flmul@b+1)
-	movff	(logf@ux+2),(c:___flmul@b+2)
-	movff	(logf@ux+3),(c:___flmul@b+3)
-	movlw	low(normalize32(0x4c000000))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x4c000000))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x4c000000))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x4c000000))
-	movwf	((c:___flmul@a+3))^0500h,c
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(logf@ux)
-	movff	1+?___flmul,(logf@ux+1)
-	movff	2+?___flmul,(logf@ux+2)
-	movff	3+?___flmul,(logf@ux+3)
-	
-	line	57
-	goto	l2740
-	
-l2728:; BSR set to: 5
-
-		movlw	128
-	subwf	 ((logf@ux+2))&0ffh,w
-	movlw	127
-	subwfb	((logf@ux+3))&0ffh,w
-	btfss	status,0
-	goto	u2511
-	goto	u2510
-
-u2511:
-	goto	l2734
-u2510:
-	line	58
-	
-l2730:; BSR set to: 5
-
-	movff	(c:logf@x),(c:?_logf)
-	movff	(c:logf@x+1),(c:?_logf+1)
-	movff	(c:logf@x+2),(c:?_logf+2)
-	movff	(c:logf@x+3),(c:?_logf+3)
-	goto	l1053
-	line	59
-	
-l2734:; BSR set to: 5
-
-		movlw	128
-	xorwf	((logf@ux+2))&0ffh,w
-	bnz	u2521
-	movlw	63
-	xorwf	((logf@ux+3))&0ffh,w
-iorwf	((logf@ux))&0ffh,w
-iorwf	((logf@ux+1))&0ffh,w
-	btfss	status,2
-	goto	u2521
-	goto	u2520
-
-u2521:
-	goto	l2740
-u2520:
-	line	60
-	
-l2736:; BSR set to: 5
-
-	movlw	low(normalize32(0x0))
-	movwf	((c:?_logf))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:?_logf+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:?_logf+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:?_logf+3))^0500h,c
-	goto	l1053
-	line	63
-	
-l2740:
-	movlw	0Dh
-	movlb	5	; () banked
-	addwf	((logf@ux))&0ffh
-	movlw	0FBh
-	addwfc	((logf@ux+1))&0ffh
-	movlw	04Ah
-	addwfc	((logf@ux+2))&0ffh
-	movlw	0
-	addwfc	((logf@ux+3))&0ffh
-	line	64
-	movff	(logf@ux),??_logf+0
-	movff	(logf@ux+1),??_logf+0+1
-	movff	(logf@ux+2),??_logf+0+2
-	movff	(logf@ux+3),??_logf+0+3
-	movlw	017h+1
-	goto	u2530
-u2535:
-	bcf	status,0
-	rrcf	(??_logf+0+3)&0ffh
-	rrcf	(??_logf+0+2)&0ffh
-	rrcf	(??_logf+0+1)&0ffh
-	rrcf	(??_logf+0)&0ffh
-u2530:
-	decfsz	wreg
-	goto	u2535
-	movlw	low(-127)
-	addwf	(??_logf+0)&0ffh,w
-	movwf	(??_logf+4)&0ffh
-	movlw	high(-127)
-	addwfc	(??_logf+0+1)&0ffh,w
-	movwf	1+(??_logf+4)&0ffh
-	movf	(??_logf+4)&0ffh,w
-	addwf	((logf@k))&0ffh
-	movf	(??_logf+4+1)&0ffh,w
-	addwfc	((logf@k+1))&0ffh
-	line	65
-	movlw	0FFh
-	andwf	((logf@ux))&0ffh,w
-	movwf	(??_logf+0)&0ffh
-	movlw	0FFh
-	andwf	((logf@ux+1))&0ffh,w
-	movwf	1+(??_logf+0)&0ffh
-	
-	movlw	07Fh
-	andwf	((logf@ux+2))&0ffh,w
-	movwf	2+(??_logf+0)&0ffh
-	
-	movlw	0
-	andwf	((logf@ux+3))&0ffh,w
-	movwf	3+(??_logf+0)&0ffh
-	movlw	0F3h
-	addwf	(??_logf+0)&0ffh,w
-	movwf	((logf@ux))&0ffh
-	movlw	04h
-	addwfc	(??_logf+0+1)&0ffh,w
-	movwf	1+((logf@ux))&0ffh
-	
-	movlw	035h
-	addwfc	(??_logf+0+2)&0ffh,w
-	movwf	2+((logf@ux))&0ffh
-	
-	movlw	03Fh
-	addwfc	(??_logf+0+3)&0ffh,w
-	movwf	3+((logf@ux))&0ffh
-	line	67
-	
-l2742:; BSR set to: 5
-
-	movff	(logf@ux),(c:___flsub@b)
-	movff	(logf@ux+1),(c:___flsub@b+1)
-	movff	(logf@ux+2),(c:___flsub@b+2)
-	movff	(logf@ux+3),(c:___flsub@b+3)
-	movlw	low(normalize32(0x3f800000))
-	movwf	((c:___flsub@a))^0500h,c
-	movlw	high(normalize32(0x3f800000))
-	movwf	((c:___flsub@a+1))^0500h,c
-	movlw	low highword(normalize32(0x3f800000))
-	movwf	((c:___flsub@a+2))^0500h,c
-	movlw	high highword(normalize32(0x3f800000))
-	movwf	((c:___flsub@a+3))^0500h,c
-	call	___flsub	;wreg free
-	movff	0+?___flsub,(logf@ux)
-	movff	1+?___flsub,(logf@ux+1)
-	movff	2+?___flsub,(logf@ux+2)
-	movff	3+?___flsub,(logf@ux+3)
-	
-	line	68
-	
-l2744:
-	movff	(logf@ux),(c:___fldiv@b)
-	movff	(logf@ux+1),(c:___fldiv@b+1)
-	movff	(logf@ux+2),(c:___fldiv@b+2)
-	movff	(logf@ux+3),(c:___fldiv@b+3)
-	movlw	low(normalize32(0x40000000))
-	movwf	((c:___fladd@a))^0500h,c
-	movlw	high(normalize32(0x40000000))
-	movwf	((c:___fladd@a+1))^0500h,c
-	movlw	low highword(normalize32(0x40000000))
-	movwf	((c:___fladd@a+2))^0500h,c
-	movlw	high highword(normalize32(0x40000000))
-	movwf	((c:___fladd@a+3))^0500h,c
-	movff	(logf@ux),(c:___fladd@b)
-	movff	(logf@ux+1),(c:___fladd@b+1)
-	movff	(logf@ux+2),(c:___fladd@b+2)
-	movff	(logf@ux+3),(c:___fladd@b+3)
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(c:___fldiv@a)
-	movff	1+?___fladd,(c:___fldiv@a+1)
-	movff	2+?___fladd,(c:___fldiv@a+2)
-	movff	3+?___fladd,(c:___fldiv@a+3)
-	
-	call	___fldiv	;wreg free
-	movff	0+?___fldiv,(logf@s)
-	movff	1+?___fldiv,(logf@s+1)
-	movff	2+?___fldiv,(logf@s+2)
-	movff	3+?___fldiv,(logf@s+3)
-	
-	line	69
-	
-l2746:
-	movff	(logf@s),(c:___flmul@b)
-	movff	(logf@s+1),(c:___flmul@b+1)
-	movff	(logf@s+2),(c:___flmul@b+2)
-	movff	(logf@s+3),(c:___flmul@b+3)
-	movff	(logf@s),(c:___flmul@a)
-	movff	(logf@s+1),(c:___flmul@a+1)
-	movff	(logf@s+2),(c:___flmul@a+2)
-	movff	(logf@s+3),(c:___flmul@a+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(logf@z)
-	movff	1+?___flmul,(logf@z+1)
-	movff	2+?___flmul,(logf@z+2)
-	movff	3+?___flmul,(logf@z+3)
-	
-	line	70
-	
-l2748:
-	movff	(logf@z),(c:___flmul@b)
-	movff	(logf@z+1),(c:___flmul@b+1)
-	movff	(logf@z+2),(c:___flmul@b+2)
-	movff	(logf@z+3),(c:___flmul@b+3)
-	movff	(logf@z),(c:___flmul@a)
-	movff	(logf@z+1),(c:___flmul@a+1)
-	movff	(logf@z+2),(c:___flmul@a+2)
-	movff	(logf@z+3),(c:___flmul@a+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(logf@w)
-	movff	1+?___flmul,(logf@w+1)
-	movff	2+?___flmul,(logf@w+2)
-	movff	3+?___flmul,(logf@w+3)
-	
-	line	71
-	
-l2750:
-	movlw	low(normalize32(0x3eccce13))
-	movwf	((c:___fladd@a))^0500h,c
-	movlw	high(normalize32(0x3eccce13))
-	movwf	((c:___fladd@a+1))^0500h,c
-	movlw	low highword(normalize32(0x3eccce13))
-	movwf	((c:___fladd@a+2))^0500h,c
-	movlw	high highword(normalize32(0x3eccce13))
-	movwf	((c:___fladd@a+3))^0500h,c
-	movlw	low(normalize32(0x3e789e26))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x3e789e26))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x3e789e26))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x3e789e26))
-	movwf	((c:___flmul@a+3))^0500h,c
-	movff	(logf@w),(c:___flmul@b)
-	movff	(logf@w+1),(c:___flmul@b+1)
-	movff	(logf@w+2),(c:___flmul@b+2)
-	movff	(logf@w+3),(c:___flmul@b+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(c:___fladd@b)
-	movff	1+?___flmul,(c:___fladd@b+1)
-	movff	2+?___flmul,(c:___fladd@b+2)
-	movff	3+?___flmul,(c:___fladd@b+3)
-	
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(_logf$1625)
-	movff	1+?___fladd,(_logf$1625+1)
-	movff	2+?___fladd,(_logf$1625+2)
-	movff	3+?___fladd,(_logf$1625+3)
-	
-	
-l2752:
-	movff	(_logf$1625),(c:___flmul@b)
-	movff	(_logf$1625+1),(c:___flmul@b+1)
-	movff	(_logf$1625+2),(c:___flmul@b+2)
-	movff	(_logf$1625+3),(c:___flmul@b+3)
-	movff	(logf@w),(c:___flmul@a)
-	movff	(logf@w+1),(c:___flmul@a+1)
-	movff	(logf@w+2),(c:___flmul@a+2)
-	movff	(logf@w+3),(c:___flmul@a+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(logf@t1)
-	movff	1+?___flmul,(logf@t1+1)
-	movff	2+?___flmul,(logf@t1+2)
-	movff	3+?___flmul,(logf@t1+3)
-	
-	line	72
-	
-l2754:
-	movlw	low(normalize32(0x3f2aaaaa))
-	movwf	((c:___fladd@a))^0500h,c
-	movlw	high(normalize32(0x3f2aaaaa))
-	movwf	((c:___fladd@a+1))^0500h,c
-	movlw	low highword(normalize32(0x3f2aaaaa))
-	movwf	((c:___fladd@a+2))^0500h,c
-	movlw	high highword(normalize32(0x3f2aaaaa))
-	movwf	((c:___fladd@a+3))^0500h,c
-	movlw	low(normalize32(0x3e91e9ee))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x3e91e9ee))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x3e91e9ee))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x3e91e9ee))
-	movwf	((c:___flmul@a+3))^0500h,c
-	movff	(logf@w),(c:___flmul@b)
-	movff	(logf@w+1),(c:___flmul@b+1)
-	movff	(logf@w+2),(c:___flmul@b+2)
-	movff	(logf@w+3),(c:___flmul@b+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(c:___fladd@b)
-	movff	1+?___flmul,(c:___fladd@b+1)
-	movff	2+?___flmul,(c:___fladd@b+2)
-	movff	3+?___flmul,(c:___fladd@b+3)
-	
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(_logf$1625)
-	movff	1+?___fladd,(_logf$1625+1)
-	movff	2+?___fladd,(_logf$1625+2)
-	movff	3+?___fladd,(_logf$1625+3)
-	
-	
-l2756:
-	movff	(_logf$1625),(c:___flmul@b)
-	movff	(_logf$1625+1),(c:___flmul@b+1)
-	movff	(_logf$1625+2),(c:___flmul@b+2)
-	movff	(_logf$1625+3),(c:___flmul@b+3)
-	movff	(logf@z),(c:___flmul@a)
-	movff	(logf@z+1),(c:___flmul@a+1)
-	movff	(logf@z+2),(c:___flmul@a+2)
-	movff	(logf@z+3),(c:___flmul@a+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(logf@t2)
-	movff	1+?___flmul,(logf@t2+1)
-	movff	2+?___flmul,(logf@t2+2)
-	movff	3+?___flmul,(logf@t2+3)
-	
-	line	73
-	
-l2758:
-	movff	(logf@t2),(c:___fladd@b)
-	movff	(logf@t2+1),(c:___fladd@b+1)
-	movff	(logf@t2+2),(c:___fladd@b+2)
-	movff	(logf@t2+3),(c:___fladd@b+3)
-	movff	(logf@t1),(c:___fladd@a)
-	movff	(logf@t1+1),(c:___fladd@a+1)
-	movff	(logf@t1+2),(c:___fladd@a+2)
-	movff	(logf@t1+3),(c:___fladd@a+3)
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(logf@R)
-	movff	1+?___fladd,(logf@R+1)
-	movff	2+?___fladd,(logf@R+2)
-	movff	3+?___fladd,(logf@R+3)
-	
-	line	74
-	
-l2760:
-	movlw	low(normalize32(0x3f000000))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x3f000000))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x3f000000))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x3f000000))
-	movwf	((c:___flmul@a+3))^0500h,c
-	movff	(logf@ux),(c:___flmul@b)
-	movff	(logf@ux+1),(c:___flmul@b+1)
-	movff	(logf@ux+2),(c:___flmul@b+2)
-	movff	(logf@ux+3),(c:___flmul@b+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(_logf$1625)
-	movff	1+?___flmul,(_logf$1625+1)
-	movff	2+?___flmul,(_logf$1625+2)
-	movff	3+?___flmul,(_logf$1625+3)
-	
-	
-l2762:
-	movff	(_logf$1625),(c:___flmul@b)
-	movff	(_logf$1625+1),(c:___flmul@b+1)
-	movff	(_logf$1625+2),(c:___flmul@b+2)
-	movff	(_logf$1625+3),(c:___flmul@b+3)
-	movff	(logf@ux),(c:___flmul@a)
-	movff	(logf@ux+1),(c:___flmul@a+1)
-	movff	(logf@ux+2),(c:___flmul@a+2)
-	movff	(logf@ux+3),(c:___flmul@a+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(logf@hfsq)
-	movff	1+?___flmul,(logf@hfsq+1)
-	movff	2+?___flmul,(logf@hfsq+2)
-	movff	3+?___flmul,(logf@hfsq+3)
-	
-	line	75
-	
-l2764:
-	movff	(logf@k),(c:___xxtofl@val)
-	movff	(logf@k+1),(c:___xxtofl@val+1)
-	movlw	0
-	btfsc	((c:___xxtofl@val+1))^0500h,c,7
-	movlw	-1
-	movwf	((c:___xxtofl@val+2))^0500h,c
-	movwf	((c:___xxtofl@val+3))^0500h,c
-	movlw	(01h)&0ffh
-	
-	call	___xxtofl
-	movff	0+?___xxtofl,(logf@dk)
-	movff	1+?___xxtofl,(logf@dk+1)
-	movff	2+?___xxtofl,(logf@dk+2)
-	movff	3+?___xxtofl,(logf@dk+3)
-	
-	line	76
-	
-l2766:
-	movff	(logf@s),(c:___flmul@a)
-	movff	(logf@s+1),(c:___flmul@a+1)
-	movff	(logf@s+2),(c:___flmul@a+2)
-	movff	(logf@s+3),(c:___flmul@a+3)
-	movff	(logf@R),(c:___fladd@a)
-	movff	(logf@R+1),(c:___fladd@a+1)
-	movff	(logf@R+2),(c:___fladd@a+2)
-	movff	(logf@R+3),(c:___fladd@a+3)
-	movff	(logf@hfsq),(c:___fladd@b)
-	movff	(logf@hfsq+1),(c:___fladd@b+1)
-	movff	(logf@hfsq+2),(c:___fladd@b+2)
-	movff	(logf@hfsq+3),(c:___fladd@b+3)
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(c:___flmul@b)
-	movff	1+?___fladd,(c:___flmul@b+1)
-	movff	2+?___fladd,(c:___flmul@b+2)
-	movff	3+?___fladd,(c:___flmul@b+3)
-	
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(_logf$1626)
-	movff	1+?___flmul,(_logf$1626+1)
-	movff	2+?___flmul,(_logf$1626+2)
-	movff	3+?___flmul,(_logf$1626+3)
-	
-	
-l2768:
-	movlw	low(normalize32(0x3717f7d1))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x3717f7d1))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x3717f7d1))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x3717f7d1))
-	movwf	((c:___flmul@a+3))^0500h,c
-	movff	(logf@dk),(c:___flmul@b)
-	movff	(logf@dk+1),(c:___flmul@b+1)
-	movff	(logf@dk+2),(c:___flmul@b+2)
-	movff	(logf@dk+3),(c:___flmul@b+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(c:___fladd@a)
-	movff	1+?___flmul,(c:___fladd@a+1)
-	movff	2+?___flmul,(c:___fladd@a+2)
-	movff	3+?___flmul,(c:___fladd@a+3)
-	
-	movff	(_logf$1626),(c:___fladd@b)
-	movff	(_logf$1626+1),(c:___fladd@b+1)
-	movff	(_logf$1626+2),(c:___fladd@b+2)
-	movff	(_logf$1626+3),(c:___fladd@b+3)
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(_logf$1627)
-	movff	1+?___fladd,(_logf$1627+1)
-	movff	2+?___fladd,(_logf$1627+2)
-	movff	3+?___fladd,(_logf$1627+3)
-	
-	
-l2770:
-	movff	(logf@hfsq),(c:___flsub@a)
-	movff	(logf@hfsq+1),(c:___flsub@a+1)
-	movff	(logf@hfsq+2),(c:___flsub@a+2)
-	movff	(logf@hfsq+3),(c:___flsub@a+3)
-	movff	(_logf$1627),(c:___flsub@b)
-	movff	(_logf$1627+1),(c:___flsub@b+1)
-	movff	(_logf$1627+2),(c:___flsub@b+2)
-	movff	(_logf$1627+3),(c:___flsub@b+3)
-	call	___flsub	;wreg free
-	movff	0+?___flsub,(_logf$1628)
-	movff	1+?___flsub,(_logf$1628+1)
-	movff	2+?___flsub,(_logf$1628+2)
-	movff	3+?___flsub,(_logf$1628+3)
-	
-	
-l2772:
-	movff	(logf@ux),(c:___fladd@a)
-	movff	(logf@ux+1),(c:___fladd@a+1)
-	movff	(logf@ux+2),(c:___fladd@a+2)
-	movff	(logf@ux+3),(c:___fladd@a+3)
-	movff	(_logf$1628),(c:___fladd@b)
-	movff	(_logf$1628+1),(c:___fladd@b+1)
-	movff	(_logf$1628+2),(c:___fladd@b+2)
-	movff	(_logf$1628+3),(c:___fladd@b+3)
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(_logf$1629)
-	movff	1+?___fladd,(_logf$1629+1)
-	movff	2+?___fladd,(_logf$1629+2)
-	movff	3+?___fladd,(_logf$1629+3)
-	
-	
-l2774:
-	movff	(_logf$1629),(c:___fladd@b)
-	movff	(_logf$1629+1),(c:___fladd@b+1)
-	movff	(_logf$1629+2),(c:___fladd@b+2)
-	movff	(_logf$1629+3),(c:___fladd@b+3)
-	movlw	low(normalize32(0x3f317180))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x3f317180))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x3f317180))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x3f317180))
-	movwf	((c:___flmul@a+3))^0500h,c
-	movff	(logf@dk),(c:___flmul@b)
-	movff	(logf@dk+1),(c:___flmul@b+1)
-	movff	(logf@dk+2),(c:___flmul@b+2)
-	movff	(logf@dk+3),(c:___flmul@b+3)
-	call	___flmul	;wreg free
-	movff	0+?___flmul,(c:___fladd@a)
-	movff	1+?___flmul,(c:___fladd@a+1)
-	movff	2+?___flmul,(c:___fladd@a+2)
-	movff	3+?___flmul,(c:___fladd@a+3)
-	
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(c:?_logf)
-	movff	1+?___fladd,(c:?_logf+1)
-	movff	2+?___fladd,(c:?_logf+2)
-	movff	3+?___fladd,(c:?_logf+3)
-	
-	line	77
-	
-l1053:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of_logf
-	__end_of_logf:
-	signat	_logf,4220
-	global	___xxtofl
-
-;; *************** function ___xxtofl *****************
-;; Defined at:
-;;		line 10 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\xxtofl.c"
-;; Parameters:    Size  Location     Type
-;;  sign            1    wreg     unsigned char 
-;;  val             4    0[COMRAM] long 
-;; Auto vars:     Size  Location     Type
-;;  sign            1    8[COMRAM] unsigned char 
-;;  arg             4   10[COMRAM] unsigned long 
-;;  exp             1    9[COMRAM] unsigned char 
-;; Return value:  Size  Location     Type
-;;                  4    0[COMRAM] unsigned char 
-;; Registers used:
-;;		wreg, status,2, status,0
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         6       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        14       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       14 bytes
-;; Hardware stack levels used: 1
-;; This function calls:
-;;		Nothing
-;; This function is called by:
-;;		_thermistor_centi_c
-;;		_logf
-;; This function uses a non-reentrant model
-;;
-psect	text4,class=CODE,space=0,reloc=2,group=1
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\xxtofl.c"
-	line	10
-global __ptext4
-__ptext4:
-psect	text4
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\xxtofl.c"
-	line	10
-	
-___xxtofl:
-;incstack = 0
-	callstack 124
-	line	15
-	movwf	((c:___xxtofl@sign))^0500h,c
-	
-l2634:
-	movf	((c:___xxtofl@sign))^0500h,c,w
-	btfsc	status,2
-	goto	u2321
-	goto	u2320
-u2321:
-	goto	l1014
-u2320:
-	
-l2636:
-	btfsc	((c:___xxtofl@val+3))^0500h,c,7
-	goto	u2330
-	goto	u2331
-
-u2331:
-	goto	l1014
-u2330:
-	line	16
-	
-l2638:
-	movff	(c:___xxtofl@val),??___xxtofl+0
-	movff	(c:___xxtofl@val+1),??___xxtofl+0+1
-	movff	(c:___xxtofl@val+2),??___xxtofl+0+2
-	movff	(c:___xxtofl@val+3),??___xxtofl+0+3
-	comf	(??___xxtofl+0)^0500h,c
-	comf	(??___xxtofl+0+1)^0500h,c
-	comf	(??___xxtofl+0+2)^0500h,c
-	comf	(??___xxtofl+0+3)^0500h,c
-	incf	(??___xxtofl+0)^0500h,c
-	movlw	0
-	addwfc	(??___xxtofl+0+1)^0500h,c
-	addwfc	(??___xxtofl+0+2)^0500h,c
-	addwfc	(??___xxtofl+0+3)^0500h,c
-	movff	??___xxtofl+0,(c:___xxtofl@arg)
-	movff	??___xxtofl+0+1,(c:___xxtofl@arg+1)
-	movff	??___xxtofl+0+2,(c:___xxtofl@arg+2)
-	movff	??___xxtofl+0+3,(c:___xxtofl@arg+3)
-	line	17
-	goto	l2640
-	line	18
-	
-l1014:
-	line	19
-	movff	(c:___xxtofl@val),(c:___xxtofl@arg)
-	movff	(c:___xxtofl@val+1),(c:___xxtofl@arg+1)
-	movff	(c:___xxtofl@val+2),(c:___xxtofl@arg+2)
-	movff	(c:___xxtofl@val+3),(c:___xxtofl@arg+3)
-	line	21
-	
-l2640:
-	movf	((c:___xxtofl@val))^0500h,c,w
-iorwf	((c:___xxtofl@val+1))^0500h,c,w
-iorwf	((c:___xxtofl@val+2))^0500h,c,w
-iorwf	((c:___xxtofl@val+3))^0500h,c,w
-	btfss	status,2
-	goto	u2341
-	goto	u2340
-
-u2341:
-	goto	l2646
-u2340:
-	line	22
-	
-l2642:
-	movlw	low(normalize32(0x0))
-	movwf	((c:?___xxtofl))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:?___xxtofl+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:?___xxtofl+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:?___xxtofl+3))^0500h,c
-	goto	l1017
-	line	23
-	
-l2646:
-	movlw	low(096h)
-	movwf	((c:___xxtofl@exp))^0500h,c
-	line	24
-	goto	l2650
-	line	25
-	
-l2648:
-	incf	((c:___xxtofl@exp))^0500h,c
-	line	26
-	bcf	status,0
-	rrcf	((c:___xxtofl@arg+3))^0500h,c
-	rrcf	((c:___xxtofl@arg+2))^0500h,c
-	rrcf	((c:___xxtofl@arg+1))^0500h,c
-	rrcf	((c:___xxtofl@arg))^0500h,c
-	line	24
-	
-l2650:
-	movlw	0
-	andwf	((c:___xxtofl@arg))^0500h,c,w
-	movwf	(??___xxtofl+0)^0500h,c
-	movlw	0
-	andwf	((c:___xxtofl@arg+1))^0500h,c,w
-	movwf	1+(??___xxtofl+0)^0500h,c
-	
-	movlw	0
-	andwf	((c:___xxtofl@arg+2))^0500h,c,w
-	movwf	2+(??___xxtofl+0)^0500h,c
-	
-	movlw	0FEh
-	andwf	((c:___xxtofl@arg+3))^0500h,c,w
-	movwf	3+(??___xxtofl+0)^0500h,c
-	movf	(??___xxtofl+0)^0500h,c,w
-iorwf	(??___xxtofl+0+1)^0500h,c,w
-iorwf	(??___xxtofl+0+2)^0500h,c,w
-iorwf	(??___xxtofl+0+3)^0500h,c,w
-	btfss	status,2
-	goto	u2351
-	goto	u2350
-
-u2351:
-	goto	l2648
-u2350:
-	goto	l1021
-	line	29
-	
-l2652:
-	incf	((c:___xxtofl@exp))^0500h,c
-	line	30
-	
-l2654:
-	movlw	low(01h)
-	addwf	((c:___xxtofl@arg))^0500h,c
-	movlw	0
-	addwfc	((c:___xxtofl@arg+1))^0500h,c
-	addwfc	((c:___xxtofl@arg+2))^0500h,c
-	addwfc	((c:___xxtofl@arg+3))^0500h,c
-	line	31
-	
-l2656:
-	bcf	status,0
-	rrcf	((c:___xxtofl@arg+3))^0500h,c
-	rrcf	((c:___xxtofl@arg+2))^0500h,c
-	rrcf	((c:___xxtofl@arg+1))^0500h,c
-	rrcf	((c:___xxtofl@arg))^0500h,c
-	line	32
-	
-l1021:
-	line	28
-	movlw	0
-	andwf	((c:___xxtofl@arg))^0500h,c,w
-	movwf	(??___xxtofl+0)^0500h,c
-	movlw	0
-	andwf	((c:___xxtofl@arg+1))^0500h,c,w
-	movwf	1+(??___xxtofl+0)^0500h,c
-	
-	movlw	0
-	andwf	((c:___xxtofl@arg+2))^0500h,c,w
-	movwf	2+(??___xxtofl+0)^0500h,c
-	
-	movlw	0FFh
-	andwf	((c:___xxtofl@arg+3))^0500h,c,w
-	movwf	3+(??___xxtofl+0)^0500h,c
-	movf	(??___xxtofl+0)^0500h,c,w
-iorwf	(??___xxtofl+0+1)^0500h,c,w
-iorwf	(??___xxtofl+0+2)^0500h,c,w
-iorwf	(??___xxtofl+0+3)^0500h,c,w
-	btfss	status,2
-	goto	u2361
-	goto	u2360
-
-u2361:
-	goto	l2652
-u2360:
-	goto	l2660
-	line	34
-	
-l2658:
-	decf	((c:___xxtofl@exp))^0500h,c
-	line	35
-	bcf	status,0
-	rlcf	((c:___xxtofl@arg))^0500h,c
-	rlcf	((c:___xxtofl@arg+1))^0500h,c
-	rlcf	((c:___xxtofl@arg+2))^0500h,c
-	rlcf	((c:___xxtofl@arg+3))^0500h,c
-	line	33
-	
-l2660:
-	
-	btfsc	((c:___xxtofl@arg+2))^0500h,c,(23)&7
-	goto	u2371
-	goto	u2370
-u2371:
-	goto	l1028
-u2370:
-	
-l2662:
-		movlw	02h-0
-	cpfslt	((c:___xxtofl@exp))^0500h,c
-	goto	u2381
-	goto	u2380
-
-u2381:
-	goto	l2658
-u2380:
-	
-l1028:
-	line	37
-	
-	btfsc	((c:___xxtofl@exp))^0500h,c,(0)&7
-	goto	u2391
-	goto	u2390
-u2391:
-	goto	l2666
-u2390:
-	line	38
-	
-l2664:
-	bcf	(0+(23/8)+(c:___xxtofl@arg))^0500h,c,(23)&7
-	line	39
-	
-l2666:
-	bcf status,0
-	rrcf	((c:___xxtofl@exp))^0500h,c
-
-	line	40
-	
-l2668:
-	movff	(c:___xxtofl@exp),??___xxtofl+0
-	clrf	(??___xxtofl+0+1)^0500h,c
-	clrf	(??___xxtofl+0+2)^0500h,c
-	clrf	(??___xxtofl+0+3)^0500h,c
-	movff	??___xxtofl+0,??___xxtofl+0+3
-	clrf	(??___xxtofl+0+2)^0500h,c
-	clrf	(??___xxtofl+0+1)^0500h,c
-	clrf	(??___xxtofl+0)^0500h,c
-	movf	(??___xxtofl+0)^0500h,c,w
-	iorwf	((c:___xxtofl@arg))^0500h,c
-	movf	(??___xxtofl+0+1)^0500h,c,w
-	iorwf	((c:___xxtofl@arg+1))^0500h,c
-	movf	(??___xxtofl+0+2)^0500h,c,w
-	iorwf	((c:___xxtofl@arg+2))^0500h,c
-	movf	(??___xxtofl+0+3)^0500h,c,w
-	iorwf	((c:___xxtofl@arg+3))^0500h,c
-
-	line	41
-	
-l2670:
-	movf	((c:___xxtofl@sign))^0500h,c,w
-	btfsc	status,2
-	goto	u2401
-	goto	u2400
-u2401:
-	goto	l2676
-u2400:
-	
-l2672:
-	btfsc	((c:___xxtofl@val+3))^0500h,c,7
-	goto	u2410
-	goto	u2411
-
-u2411:
-	goto	l2676
-u2410:
-	line	42
-	
-l2674:
-	bsf	(0+(31/8)+(c:___xxtofl@arg))^0500h,c,(31)&7
-	line	43
-	
-l2676:
-	movff	(c:___xxtofl@arg),(c:?___xxtofl)
-	movff	(c:___xxtofl@arg+1),(c:?___xxtofl+1)
-	movff	(c:___xxtofl@arg+2),(c:?___xxtofl+2)
-	movff	(c:___xxtofl@arg+3),(c:?___xxtofl+3)
-	line	44
-	
-l1017:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of___xxtofl
-	__end_of___xxtofl:
-	signat	___xxtofl,8316
-	global	___flsub
-
-;; *************** function ___flsub *****************
-;; Defined at:
-;;		line 245 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcadd.c"
-;; Parameters:    Size  Location     Type
-;;  b               4   80[COMRAM] unsigned char 
-;;  a               4   84[COMRAM] unsigned char 
+;;  name            2   42[COMRAM] PTR const unsigned char 
+;;		 -> STR_34(6), STR_33(6), STR_32(6), 
+;;  adc             2   44[COMRAM] unsigned short 
 ;; Auto vars:     Size  Location     Type
 ;;		None
-;; Return value:  Size  Location     Type
-;;                  4   80[COMRAM] unsigned char 
-;; Registers used:
-;;		wreg, status,2, status,0, cstack
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         8       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:         8       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:        8 bytes
-;; Hardware stack levels used: 1
-;; Hardware stack levels required when called: 1
-;; This function calls:
-;;		___fladd
-;; This function is called by:
-;;		_logf
-;; This function uses a non-reentrant model
-;;
-psect	text5,class=CODE,space=0,reloc=2,group=1
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcadd.c"
-	line	245
-global __ptext5
-__ptext5:
-psect	text5
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcadd.c"
-	line	245
-	
-___flsub:
-;incstack = 0
-	callstack 123
-	line	248
-	
-l2612:
-	movlw	0
-	xorwf	((c:___flsub@a))^0500h,c
-	movlw	0
-	xorwf	((c:___flsub@a+1))^0500h,c
-	movlw	0
-	xorwf	((c:___flsub@a+2))^0500h,c
-	movlw	080h
-	xorwf	((c:___flsub@a+3))^0500h,c
-	line	249
-	
-l2614:
-	movff	(c:___flsub@b),(c:___fladd@b)
-	movff	(c:___flsub@b+1),(c:___fladd@b+1)
-	movff	(c:___flsub@b+2),(c:___fladd@b+2)
-	movff	(c:___flsub@b+3),(c:___fladd@b+3)
-	movff	(c:___flsub@a),(c:___fladd@a)
-	movff	(c:___flsub@a+1),(c:___fladd@a+1)
-	movff	(c:___flsub@a+2),(c:___fladd@a+2)
-	movff	(c:___flsub@a+3),(c:___fladd@a+3)
-	call	___fladd	;wreg free
-	movff	0+?___fladd,(c:?___flsub)
-	movff	1+?___fladd,(c:?___flsub+1)
-	movff	2+?___fladd,(c:?___flsub+2)
-	movff	3+?___fladd,(c:?___flsub+3)
-	
-	line	250
-	
-l929:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of___flsub
-	__end_of___flsub:
-	signat	___flsub,8316
-	global	___fladd
-
-;; *************** function ___fladd *****************
-;; Defined at:
-;;		line 10 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcadd.c"
-;; Parameters:    Size  Location     Type
-;;  b               4   39[COMRAM] unsigned char 
-;;  a               4   43[COMRAM] unsigned char 
-;; Auto vars:     Size  Location     Type
-;;  grs             1   54[COMRAM] unsigned char 
-;;  bexp            1   53[COMRAM] unsigned char 
-;;  aexp            1   52[COMRAM] unsigned char 
-;;  signs           1   51[COMRAM] unsigned char 
-;; Return value:  Size  Location     Type
-;;                  4   39[COMRAM] unsigned char 
-;; Registers used:
-;;		wreg, status,2, status,0
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         8       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        16       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       16 bytes
-;; Hardware stack levels used: 1
-;; This function calls:
-;;		Nothing
-;; This function is called by:
-;;		_thermistor_centi_c
-;;		___flsub
-;;		_logf
-;; This function uses a non-reentrant model
-;;
-psect	text6,class=CODE,space=0,reloc=2,group=1
-	line	10
-global __ptext6
-__ptext6:
-psect	text6
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcadd.c"
-	line	10
-	
-___fladd:
-;incstack = 0
-	callstack 123
-	line	21
-	
-l2132:
-	movf	(0+((c:___fladd@b)+03h))^0500h,c,w
-	andlw	low(080h)
-	movwf	((c:___fladd@signs))^0500h,c
-	line	22
-	movf	(0+((c:___fladd@b)+03h))^0500h,c,w
-	addwf	(0+((c:___fladd@b)+03h))^0500h,c,w
-	movwf	((c:___fladd@bexp))^0500h,c
-	line	23
-	
-l2134:
-	
-	btfss	(0+((c:___fladd@b)+02h))^0500h,c,(7)&7
-	goto	u1451
-	goto	u1450
-u1451:
-	goto	l2138
-u1450:
-	line	24
-	
-l2136:
-	bsf	(0+(0/8)+(c:___fladd@bexp))^0500h,c,(0)&7
-	line	28
-	
-l2138:
-	movf	((c:___fladd@bexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1461
-	goto	u1460
-u1461:
-	goto	l2148
-u1460:
-	line	30
-	
-l2140:
-		incf	((c:___fladd@bexp))^0500h,c,w
-	btfss	status,2
-	goto	u1471
-	goto	u1470
-
-u1471:
-	goto	l2144
-u1470:
-	line	32
-	
-l2142:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___fladd@b))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___fladd@b+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___fladd@b+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___fladd@b+3))^0500h,c
-	line	35
-	
-l2144:
-	bsf	(0+(23/8)+(c:___fladd@b))^0500h,c,(23)&7
-	line	37
-	
-l2146:
-	clrf	(0+((c:___fladd@b)+03h))^0500h,c
-	line	38
-	goto	l2150
-	line	41
-	
-l2148:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___fladd@b))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___fladd@b+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___fladd@b+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___fladd@b+3))^0500h,c
-	line	44
-	
-l2150:
-	movf	(0+((c:___fladd@a)+03h))^0500h,c,w
-	andlw	low(080h)
-	movwf	((c:___fladd@aexp))^0500h,c
-	line	46
-	
-l2152:
-	movf	((c:___fladd@signs))^0500h,c,w
-xorwf	((c:___fladd@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1481
-	goto	u1480
-
-u1481:
-	goto	l2156
-u1480:
-	line	47
-	
-l2154:
-	bsf	(0+(6/8)+(c:___fladd@signs))^0500h,c,(6)&7
-	line	49
-	
-l2156:
-	movf	(0+((c:___fladd@a)+03h))^0500h,c,w
-	addwf	(0+((c:___fladd@a)+03h))^0500h,c,w
-	movwf	((c:___fladd@aexp))^0500h,c
-	line	50
-	
-l2158:
-	
-	btfss	(0+((c:___fladd@a)+02h))^0500h,c,(7)&7
-	goto	u1491
-	goto	u1490
-u1491:
-	goto	l2162
-u1490:
-	line	51
-	
-l2160:
-	bsf	(0+(0/8)+(c:___fladd@aexp))^0500h,c,(0)&7
-	line	55
-	
-l2162:
-	movf	((c:___fladd@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1501
-	goto	u1500
-u1501:
-	goto	l2172
-u1500:
-	line	57
-	
-l2164:
-		incf	((c:___fladd@aexp))^0500h,c,w
-	btfss	status,2
-	goto	u1511
-	goto	u1510
-
-u1511:
-	goto	l2168
-u1510:
-	line	59
-	
-l2166:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___fladd@a))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___fladd@a+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___fladd@a+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___fladd@a+3))^0500h,c
-	line	62
-	
-l2168:
-	bsf	(0+(23/8)+(c:___fladd@a))^0500h,c,(23)&7
-	line	64
-	
-l2170:
-	clrf	(0+((c:___fladd@a)+03h))^0500h,c
-	line	65
-	goto	l2174
-	line	68
-	
-l2172:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___fladd@a))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___fladd@a+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___fladd@a+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___fladd@a+3))^0500h,c
-	line	75
-	
-l2174:
-		movf	((c:___fladd@bexp))^0500h,c,w
-	subwf	((c:___fladd@aexp))^0500h,c,w
-	btfsc	status,0
-	goto	u1521
-	goto	u1520
-
-u1521:
-	goto	l2210
-u1520:
-	line	77
-	
-l2176:
-	
-	btfss	((c:___fladd@signs))^0500h,c,(6)&7
-	goto	u1531
-	goto	u1530
-u1531:
-	goto	l2180
-u1530:
-	line	78
-	
-l2178:
-	movlw	(080h)&0ffh
-	xorwf	((c:___fladd@signs))^0500h,c
-	line	81
-	
-l2180:
-	movff	(c:___fladd@bexp),(c:___fladd@grs)
-	line	82
-	
-l2182:
-	movff	(c:___fladd@aexp),(c:___fladd@bexp)
-	line	83
-	
-l2184:
-	movff	(c:___fladd@grs),(c:___fladd@aexp)
-	line	84
-	
-l2186:
-	movff	(c:___fladd@b),(c:___fladd@grs)
-	line	85
-	
-l2188:
-	movff	(c:___fladd@a),(c:___fladd@b)
-	line	86
-	
-l2190:
-	movff	(c:___fladd@grs),(c:___fladd@a)
-	line	87
-	
-l2192:
-	movff	0+((c:___fladd@b)+01h),(c:___fladd@grs)
-	line	88
-	
-l2194:
-	movff	0+((c:___fladd@a)+01h),0+((c:___fladd@b)+01h)
-	line	89
-	
-l2196:
-	movff	(c:___fladd@grs),0+((c:___fladd@a)+01h)
-	line	90
-	
-l2198:
-	movff	0+((c:___fladd@b)+02h),(c:___fladd@grs)
-	line	91
-	
-l2200:
-	movff	0+((c:___fladd@a)+02h),0+((c:___fladd@b)+02h)
-	line	92
-	
-l2202:
-	movff	(c:___fladd@grs),0+((c:___fladd@a)+02h)
-	line	93
-	
-l2204:
-	movff	0+((c:___fladd@b)+03h),(c:___fladd@grs)
-	line	94
-	
-l2206:
-	movff	0+((c:___fladd@a)+03h),0+((c:___fladd@b)+03h)
-	line	95
-	
-l2208:
-	movff	(c:___fladd@grs),0+((c:___fladd@a)+03h)
-	line	98
-	
-l2210:
-	clrf	((c:___fladd@grs))^0500h,c
-	line	100
-	movf	((c:___fladd@bexp))^0500h,c,w
-	movff	(c:___fladd@aexp),??___fladd+0
-	clrf	(??___fladd+0+1)^0500h,c
-	subwf	(??___fladd+0)^0500h,c
-	movlw	0
-	subwfb	(??___fladd+0+1)^0500h,c
-	btfsc	(??___fladd+0+1)^0500h,c,7
-	goto	u1541
-	movf	(??___fladd+0+1)^0500h,c,w
-	bnz	u1540
-	movlw	26
-	subwf	 (??___fladd+0)^0500h,c,w
-	btfss	status,0
-	goto	u1541
-	goto	u1540
-
-u1541:
-	goto	l888
-u1540:
-	line	101
-	
-l2212:
-	movf	((c:___fladd@b))^0500h,c,w
-iorwf	((c:___fladd@b+1))^0500h,c,w
-iorwf	((c:___fladd@b+2))^0500h,c,w
-iorwf	((c:___fladd@b+3))^0500h,c,w
-	btfss	status,2
-	goto	u1551
-	goto	u1550
-
-u1551:
-	movlw	1
-	goto	u1560
-u1550:
-	movlw	0
-u1560:
-	movwf	((c:___fladd@grs))^0500h,c
-	line	102
-	
-l2214:
-	movlw	low(0)
-	movwf	((c:___fladd@b))^0500h,c
-	movlw	high(0)
-	movwf	((c:___fladd@b+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___fladd@b+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___fladd@b+3))^0500h,c
-	line	103
-	
-l2216:
-	movff	(c:___fladd@aexp),(c:___fladd@bexp)
-	line	104
-	goto	l887
-	line	106
-	
-l889:
-	line	109
-	
-	btfss	((c:___fladd@grs))^0500h,c,(0)&7
-	goto	u1571
-	goto	u1570
-u1571:
-	goto	l2220
-u1570:
-	line	110
-	
-l2218:
-	bcf	status,0
-	rrcf	((c:___fladd@grs))^0500h,c,w
-	iorlw	low(01h)
-	movwf	((c:___fladd@grs))^0500h,c
-	line	111
-	goto	l2222
-	line	113
-	
-l2220:
-	bcf status,0
-	rrcf	((c:___fladd@grs))^0500h,c
-
-	line	115
-	
-l2222:
-	
-	btfss	((c:___fladd@b))^0500h,c,(0)&7
-	goto	u1581
-	goto	u1580
-u1581:
-	goto	l2226
-u1580:
-	line	116
-	
-l2224:
-	bsf	(0+(7/8)+(c:___fladd@grs))^0500h,c,(7)&7
-	line	118
-	
-l2226:
-	rlcf	((c:___fladd@b+3))^0500h,c,w
-	rrcf	((c:___fladd@b+3))^0500h,c
-	rrcf	((c:___fladd@b+2))^0500h,c
-	rrcf	((c:___fladd@b+1))^0500h,c
-	rrcf	((c:___fladd@b))^0500h,c
-	line	119
-	
-l2228:
-	incf	((c:___fladd@bexp))^0500h,c
-	line	120
-	
-l888:
-	line	106
-		movf	((c:___fladd@aexp))^0500h,c,w
-	subwf	((c:___fladd@bexp))^0500h,c,w
-	btfss	status,0
-	goto	u1591
-	goto	u1590
-
-u1591:
-	goto	l889
-u1590:
-	line	121
-	
-l887:
-	line	124
-	
-	btfsc	((c:___fladd@signs))^0500h,c,(6)&7
-	goto	u1601
-	goto	u1600
-u1601:
-	goto	l2254
-u1600:
-	line	127
-	
-l2230:
-	movf	((c:___fladd@bexp))^0500h,c,w
-	btfss	status,2
-	goto	u1611
-	goto	u1610
-u1611:
-	goto	l2236
-u1610:
-	line	128
-	
-l2232:
-	movlw	low(normalize32(0x0))
-	movwf	((c:?___fladd))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:?___fladd+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:?___fladd+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:?___fladd+3))^0500h,c
-	goto	l896
-	line	132
-	
-l2236:
-	movf	((c:___fladd@a))^0500h,c,w
-	addwf	((c:___fladd@b))^0500h,c
-	movf	((c:___fladd@a+1))^0500h,c,w
-	addwfc	((c:___fladd@b+1))^0500h,c
-	movf	((c:___fladd@a+2))^0500h,c,w
-	addwfc	((c:___fladd@b+2))^0500h,c
-	movf	((c:___fladd@a+3))^0500h,c,w
-	addwfc	((c:___fladd@b+3))^0500h,c
-	line	134
-	
-l2238:
-	
-	btfss	((c:___fladd@b+3))^0500h,c,(24)&7
-	goto	u1621
-	goto	u1620
-u1621:
-	goto	l901
-u1620:
-	line	135
-	
-l2240:
-	
-	btfss	((c:___fladd@grs))^0500h,c,(0)&7
-	goto	u1631
-	goto	u1630
-u1631:
-	goto	l2244
-u1630:
-	line	136
-	
-l2242:
-	bcf	status,0
-	rrcf	((c:___fladd@grs))^0500h,c,w
-	iorlw	low(01h)
-	movwf	((c:___fladd@grs))^0500h,c
-	line	137
-	goto	l2246
-	line	139
-	
-l2244:
-	bcf status,0
-	rrcf	((c:___fladd@grs))^0500h,c
-
-	line	141
-	
-l2246:
-	
-	btfss	((c:___fladd@b))^0500h,c,(0)&7
-	goto	u1641
-	goto	u1640
-u1641:
-	goto	l2250
-u1640:
-	line	142
-	
-l2248:
-	bsf	(0+(7/8)+(c:___fladd@grs))^0500h,c,(7)&7
-	line	144
-	
-l2250:
-	rlcf	((c:___fladd@b+3))^0500h,c,w
-	rrcf	((c:___fladd@b+3))^0500h,c
-	rrcf	((c:___fladd@b+2))^0500h,c
-	rrcf	((c:___fladd@b+1))^0500h,c
-	rrcf	((c:___fladd@b))^0500h,c
-	line	145
-	
-l2252:
-	incf	((c:___fladd@bexp))^0500h,c
-	goto	l901
-	line	153
-	
-l2254:
-		movf	((c:___fladd@a))^0500h,c,w
-	subwf	((c:___fladd@b))^0500h,c,w
-	movf	((c:___fladd@a+1))^0500h,c,w
-	subwfb	((c:___fladd@b+1))^0500h,c,w
-	movf	((c:___fladd@a+2))^0500h,c,w
-	subwfb	((c:___fladd@b+2))^0500h,c,w
-	movf	((c:___fladd@b+3))^0500h,c,w
-	xorlw	80h
-	movwf	(??___fladd+0)^0500h,c
-	movf	((c:___fladd@a+3))^0500h,c,w
-	xorlw	80h
-	subwfb	(??___fladd+0)^0500h,c,w
-	btfsc	status,0
-	goto	u1651
-	goto	u1650
-
-u1651:
-	goto	l2264
-u1650:
-	line	154
-	
-l2256:
-	movf	((c:___fladd@b))^0500h,c,w
-	subwf	((c:___fladd@a))^0500h,c,w
-	movwf	(??___fladd+0)^0500h,c
-	movf	((c:___fladd@b+1))^0500h,c,w
-	subwfb	((c:___fladd@a+1))^0500h,c,w
-	movwf	1+(??___fladd+0)^0500h,c
-	
-	movf	((c:___fladd@b+2))^0500h,c,w
-	subwfb	((c:___fladd@a+2))^0500h,c,w
-	movwf	2+(??___fladd+0)^0500h,c
-	
-	movf	((c:___fladd@b+3))^0500h,c,w
-	subwfb	((c:___fladd@a+3))^0500h,c,w
-	movwf	3+(??___fladd+0)^0500h,c
-	movlw	0FFh
-	addwf	(??___fladd+0)^0500h,c,w
-	movwf	((c:___fladd@b))^0500h,c
-	movlw	0FFh
-	addwfc	(??___fladd+0+1)^0500h,c,w
-	movwf	1+((c:___fladd@b))^0500h,c
-	
-	movlw	0FFh
-	addwfc	(??___fladd+0+2)^0500h,c,w
-	movwf	2+((c:___fladd@b))^0500h,c
-	
-	movlw	0FFh
-	addwfc	(??___fladd+0+3)^0500h,c,w
-	movwf	3+((c:___fladd@b))^0500h,c
-	line	155
-	movlw	(080h)&0ffh
-	xorwf	((c:___fladd@signs))^0500h,c
-	line	156
-	
-l2258:
-	negf	((c:___fladd@grs))^0500h,c
-	line	157
-	
-l2260:
-	movf	((c:___fladd@grs))^0500h,c,w
-	btfss	status,2
-	goto	u1661
-	goto	u1660
-u1661:
-	goto	l904
-u1660:
-	line	158
-	
-l2262:
-	movlw	low(01h)
-	addwf	((c:___fladd@b))^0500h,c
-	movlw	0
-	addwfc	((c:___fladd@b+1))^0500h,c
-	addwfc	((c:___fladd@b+2))^0500h,c
-	addwfc	((c:___fladd@b+3))^0500h,c
-	goto	l904
-	line	162
-	
-l2264:
-	movf	((c:___fladd@a))^0500h,c,w
-	subwf	((c:___fladd@b))^0500h,c
-	movf	((c:___fladd@a+1))^0500h,c,w
-	subwfb	((c:___fladd@b+1))^0500h,c
-	movf	((c:___fladd@a+2))^0500h,c,w
-	subwfb	((c:___fladd@b+2))^0500h,c
-	movf	((c:___fladd@a+3))^0500h,c,w
-	subwfb	((c:___fladd@b+3))^0500h,c
-	line	163
-	
-l904:
-	line	166
-	movf	((c:___fladd@b))^0500h,c,w
-iorwf	((c:___fladd@b+1))^0500h,c,w
-iorwf	((c:___fladd@b+2))^0500h,c,w
-iorwf	((c:___fladd@b+3))^0500h,c,w
-	btfss	status,2
-	goto	u1671
-	goto	u1670
-
-u1671:
-	goto	l2288
-u1670:
-	
-l2266:
-	movf	((c:___fladd@grs))^0500h,c,w
-	btfss	status,2
-	goto	u1681
-	goto	u1680
-u1681:
-	goto	l2288
-u1680:
-	line	167
-	
-l2268:
-	movlw	low(normalize32(0x0))
-	movwf	((c:?___fladd))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:?___fladd+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:?___fladd+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:?___fladd+3))^0500h,c
-	goto	l896
-	line	172
-	
-l2272:
-	bcf	status,0
-	rlcf	((c:___fladd@b))^0500h,c
-	rlcf	((c:___fladd@b+1))^0500h,c
-	rlcf	((c:___fladd@b+2))^0500h,c
-	rlcf	((c:___fladd@b+3))^0500h,c
-	line	173
-	
-l2274:
-	
-	btfss	((c:___fladd@grs))^0500h,c,(7)&7
-	goto	u1691
-	goto	u1690
-u1691:
-	goto	l2278
-u1690:
-	line	174
-	
-l2276:
-	bsf	(0+(0/8)+(c:___fladd@b))^0500h,c,(0)&7
-	line	176
-	
-l2278:
-	
-	btfss	((c:___fladd@grs))^0500h,c,(0)&7
-	goto	u1701
-	goto	u1700
-u1701:
-	goto	l2282
-u1700:
-	line	177
-	
-l2280:
-	bsf	status,0
-	
-	rlcf	((c:___fladd@grs))^0500h,c
-	line	178
-	goto	l2284
-	line	180
-	
-l2282:
-	bcf status,0
-	rlcf	((c:___fladd@grs))^0500h,c
-
-	line	182
-	
-l2284:
-	movf	((c:___fladd@bexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1711
-	goto	u1710
-u1711:
-	goto	l2288
-u1710:
-	line	183
-	
-l2286:
-	decf	((c:___fladd@bexp))^0500h,c
-	line	171
-	
-l2288:
-	
-	btfss	((c:___fladd@b+2))^0500h,c,(23)&7
-	goto	u1721
-	goto	u1720
-u1721:
-	goto	l2272
-u1720:
-	line	186
-	
-l901:
-	line	192
-	clrf	((c:___fladd@aexp))^0500h,c
-	line	193
-	
-	btfss	((c:___fladd@grs))^0500h,c,(7)&7
-	goto	u1731
-	goto	u1730
-u1731:
-	goto	l913
-u1730:
-	line	194
-	
-l2290:
-	movff	(c:___fladd@grs),??___fladd+0
-	movlw	07Fh
-	andwf	(??___fladd+0)^0500h,c
-	btfsc	status,2
-	goto	u1741
-	goto	u1740
-u1741:
-	goto	l914
-u1740:
-	line	195
-	
-l2292:
-	movlw	low(01h)
-	movwf	((c:___fladd@aexp))^0500h,c
-	line	196
-	goto	l913
-	line	197
-	
-l914:
-	line	198
-	
-	btfss	((c:___fladd@b))^0500h,c,(0)&7
-	goto	u1751
-	goto	u1750
-u1751:
-	goto	l913
-u1750:
-	goto	l2292
-	line	202
-	
-l913:
-	line	203
-	movf	((c:___fladd@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1761
-	goto	u1760
-u1761:
-	goto	l2304
-u1760:
-	line	204
-	
-l2296:
-	movlw	low(01h)
-	addwf	((c:___fladd@b))^0500h,c
-	movlw	0
-	addwfc	((c:___fladd@b+1))^0500h,c
-	addwfc	((c:___fladd@b+2))^0500h,c
-	addwfc	((c:___fladd@b+3))^0500h,c
-	line	205
-	
-l2298:
-	
-	btfss	((c:___fladd@b+3))^0500h,c,(24)&7
-	goto	u1771
-	goto	u1770
-u1771:
-	goto	l2304
-u1770:
-	line	206
-	
-l2300:
-	movff	(c:___fladd@b),??___fladd+0
-	movff	(c:___fladd@b+1),??___fladd+0+1
-	movff	(c:___fladd@b+2),??___fladd+0+2
-	movff	(c:___fladd@b+3),??___fladd+0+3
-	rlcf	(??___fladd+0+3)^0500h,c,w
-	rrcf	(??___fladd+0+3)^0500h,c
-	rrcf	(??___fladd+0+2)^0500h,c
-	rrcf	(??___fladd+0+1)^0500h,c
-	rrcf	(??___fladd+0)^0500h,c
-	movff	??___fladd+0,(c:___fladd@b)
-	movff	??___fladd+0+1,(c:___fladd@b+1)
-	movff	??___fladd+0+2,(c:___fladd@b+2)
-	movff	??___fladd+0+3,(c:___fladd@b+3)
-	line	207
-		incf	((c:___fladd@bexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1781
-	goto	u1780
-
-u1781:
-	goto	l2304
-u1780:
-	line	208
-	
-l2302:
-	incf	((c:___fladd@bexp))^0500h,c
-	line	215
-	
-l2304:
-		incf	((c:___fladd@bexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1791
-	goto	u1790
-
-u1791:
-	goto	l2308
-u1790:
-	
-l2306:
-	movf	((c:___fladd@bexp))^0500h,c,w
-	btfss	status,2
-	goto	u1801
-	goto	u1800
-u1801:
-	goto	l920
-u1800:
-	line	216
-	
-l2308:
-	movlw	low(0)
-	movwf	((c:___fladd@b))^0500h,c
-	movlw	high(0)
-	movwf	((c:___fladd@b+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___fladd@b+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___fladd@b+3))^0500h,c
-	line	218
-	movf	((c:___fladd@bexp))^0500h,c,w
-	btfss	status,2
-	goto	u1811
-	goto	u1810
-u1811:
-	goto	l920
-u1810:
-	line	219
-	
-l2310:
-	clrf	((c:___fladd@signs))^0500h,c
-	line	221
-	
-l920:
-	line	225
-	
-	btfss	((c:___fladd@bexp))^0500h,c,(0)&7
-	goto	u1821
-	goto	u1820
-u1821:
-	goto	l2314
-u1820:
-	line	226
-	
-l2312:
-	bsf	(0+(7/8)+0+((c:___fladd@b)+02h))^0500h,c,(7)&7
-	line	227
-	goto	l2316
-	line	230
-	
-l2314:
-	bcf	(0+(7/8)+0+((c:___fladd@b)+02h))^0500h,c,(7)&7
-	line	232
-	
-l2316:
-	bcf	status,0
-	rrcf	((c:___fladd@bexp))^0500h,c,w
-	movwf	(0+((c:___fladd@b)+03h))^0500h,c
-	line	233
-	
-l2318:
-	
-	btfss	((c:___fladd@signs))^0500h,c,(7)&7
-	goto	u1831
-	goto	u1830
-u1831:
-	goto	l2322
-u1830:
-	line	234
-	
-l2320:
-	bsf	(0+(7/8)+0+((c:___fladd@b)+03h))^0500h,c,(7)&7
-	line	236
-	
-l2322:
-	movff	(c:___fladd@b),(c:?___fladd)
-	movff	(c:___fladd@b+1),(c:?___fladd+1)
-	movff	(c:___fladd@b+2),(c:?___fladd+2)
-	movff	(c:___fladd@b+3),(c:?___fladd+3)
-	line	237
-	
-l896:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of___fladd
-	__end_of___fladd:
-	signat	___fladd,8316
-	global	___flmul
-
-;; *************** function ___flmul *****************
-;; Defined at:
-;;		line 8 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcmul.c"
-;; Parameters:    Size  Location     Type
-;;  b               4   55[COMRAM] unsigned char 
-;;  a               4   59[COMRAM] unsigned char 
-;; Auto vars:     Size  Location     Type
-;;  prod            4   74[COMRAM] struct .
-;;  grs             4   68[COMRAM] unsigned long 
-;;  temp            2   78[COMRAM] struct .
-;;  bexp            1   73[COMRAM] unsigned char 
-;;  aexp            1   72[COMRAM] unsigned char 
-;;  sign            1   67[COMRAM] unsigned char 
-;; Return value:  Size  Location     Type
-;;                  4   55[COMRAM] unsigned char 
-;; Registers used:
-;;		wreg, status,2, status,0, prodl, prodh
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         8       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:        13       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        25       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       25 bytes
-;; Hardware stack levels used: 1
-;; This function calls:
-;;		Nothing
-;; This function is called by:
-;;		_thermistor_centi_c
-;;		_logf
-;; This function uses a non-reentrant model
-;;
-psect	text7,class=CODE,space=0,reloc=2,group=1
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcmul.c"
-	line	8
-global __ptext7
-__ptext7:
-psect	text7
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcmul.c"
-	line	8
-	
-___flmul:
-;incstack = 0
-	callstack 124
-	line	17
-	
-l2484:
-	movf	(0+((c:___flmul@b)+03h))^0500h,c,w
-	andlw	low(080h)
-	movwf	((c:___flmul@sign))^0500h,c
-	line	18
-	movf	(0+((c:___flmul@b)+03h))^0500h,c,w
-	addwf	(0+((c:___flmul@b)+03h))^0500h,c,w
-	movwf	((c:___flmul@bexp))^0500h,c
-	line	19
-	
-l2486:
-	
-	btfss	(0+((c:___flmul@b)+02h))^0500h,c,(7)&7
-	goto	u2101
-	goto	u2100
-u2101:
-	goto	l2490
-u2100:
-	line	20
-	
-l2488:
-	bsf	(0+(0/8)+(c:___flmul@bexp))^0500h,c,(0)&7
-	line	24
-	
-l2490:
-	movf	((c:___flmul@bexp))^0500h,c,w
-	btfsc	status,2
-	goto	u2111
-	goto	u2110
-u2111:
-	goto	l2498
-u2110:
-	line	26
-	
-l2492:
-		incf	((c:___flmul@bexp))^0500h,c,w
-	btfss	status,2
-	goto	u2121
-	goto	u2120
-
-u2121:
-	goto	l2496
-u2120:
-	line	28
-	
-l2494:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___flmul@b))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___flmul@b+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___flmul@b+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___flmul@b+3))^0500h,c
-	line	31
-	
-l2496:
-	bsf	(0+(23/8)+(c:___flmul@b))^0500h,c,(23)&7
-	line	33
-	goto	l2500
-	line	36
-	
-l2498:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___flmul@b))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___flmul@b+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___flmul@b+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___flmul@b+3))^0500h,c
-	line	39
-	
-l2500:
-	movf	(0+((c:___flmul@a)+03h))^0500h,c,w
-	andlw	low(080h)
-	xorwf	((c:___flmul@sign))^0500h,c
-	line	40
-	
-l2502:
-	movf	(0+((c:___flmul@a)+03h))^0500h,c,w
-	addwf	(0+((c:___flmul@a)+03h))^0500h,c,w
-	movwf	((c:___flmul@aexp))^0500h,c
-	line	41
-	
-l2504:
-	
-	btfss	(0+((c:___flmul@a)+02h))^0500h,c,(7)&7
-	goto	u2131
-	goto	u2130
-u2131:
-	goto	l2508
-u2130:
-	line	42
-	
-l2506:
-	bsf	(0+(0/8)+(c:___flmul@aexp))^0500h,c,(0)&7
-	line	45
-	
-l2508:
-	movf	((c:___flmul@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u2141
-	goto	u2140
-u2141:
-	goto	l2516
-u2140:
-	line	48
-	
-l2510:
-		incf	((c:___flmul@aexp))^0500h,c,w
-	btfss	status,2
-	goto	u2151
-	goto	u2150
-
-u2151:
-	goto	l2514
-u2150:
-	line	50
-	
-l2512:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___flmul@a+3))^0500h,c
-	line	53
-	
-l2514:
-	bsf	(0+(23/8)+(c:___flmul@a))^0500h,c,(23)&7
-	line	54
-	goto	l973
-	line	57
-	
-l2516:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___flmul@a))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___flmul@a+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___flmul@a+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___flmul@a+3))^0500h,c
-	line	58
-	
-l973:
-	line	65
-	movf	((c:___flmul@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u2161
-	goto	u2160
-u2161:
-	goto	l2520
-u2160:
-	
-l2518:
-	movf	((c:___flmul@bexp))^0500h,c,w
-	btfss	status,2
-	goto	u2171
-	goto	u2170
-u2171:
-	goto	l2524
-u2170:
-	line	66
-	
-l2520:
-	movlw	low(normalize32(0x0))
-	movwf	((c:?___flmul))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:?___flmul+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:?___flmul+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:?___flmul+3))^0500h,c
-	goto	l977
-	line	95
-	
-l2524:
-	movf	(0+((c:___flmul@a)+02h))^0500h,c,w
-	mulwf	((c:___flmul@b))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	96
-	
-l2526:
-	movf	((c:___flmul@temp))^0500h,c,w
-	movwf	((c:___flmul@grs))^0500h,c
-	clrf	((c:___flmul@grs+1))^0500h,c
-	clrf	((c:___flmul@grs+2))^0500h,c
-	clrf	((c:___flmul@grs+3))^0500h,c
-
-	line	97
-	
-l2528:
-	movf	(0+((c:___flmul@temp)+01h))^0500h,c,w
-	movwf	((c:___flmul@prod))^0500h,c
-	clrf	((c:___flmul@prod+1))^0500h,c
-	clrf	((c:___flmul@prod+2))^0500h,c
-	clrf	((c:___flmul@prod+3))^0500h,c
-
-	line	98
-	movf	(0+((c:___flmul@a)+01h))^0500h,c,w
-	mulwf	(0+((c:___flmul@b)+01h))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	99
-	
-l2530:
-	movf	((c:___flmul@temp))^0500h,c,w
-	addwf	((c:___flmul@grs))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@grs+1))^0500h,c
-	addwfc	((c:___flmul@grs+2))^0500h,c
-	addwfc	((c:___flmul@grs+3))^0500h,c
-	line	100
-	
-l2532:
-	movf	(0+((c:___flmul@temp)+01h))^0500h,c,w
-	addwf	((c:___flmul@prod))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@prod+1))^0500h,c
-	addwfc	((c:___flmul@prod+2))^0500h,c
-	addwfc	((c:___flmul@prod+3))^0500h,c
-	line	101
-	movf	((c:___flmul@a))^0500h,c,w
-	mulwf	(0+((c:___flmul@b)+02h))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	102
-	
-l2534:
-	movf	((c:___flmul@temp))^0500h,c,w
-	addwf	((c:___flmul@grs))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@grs+1))^0500h,c
-	addwfc	((c:___flmul@grs+2))^0500h,c
-	addwfc	((c:___flmul@grs+3))^0500h,c
-	line	103
-	
-l2536:
-	movf	(0+((c:___flmul@temp)+01h))^0500h,c,w
-	addwf	((c:___flmul@prod))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@prod+1))^0500h,c
-	addwfc	((c:___flmul@prod+2))^0500h,c
-	addwfc	((c:___flmul@prod+3))^0500h,c
-	line	104
-	
-l2538:
-	movff	(c:___flmul@grs+2),(c:___flmul@grs+3)
-	movff	(c:___flmul@grs+1),(c:___flmul@grs+2)
-	movff	(c:___flmul@grs),(c:___flmul@grs+1)
-	clrf	((c:___flmul@grs))^0500h,c
-	line	105
-	
-l2540:
-	movf	((c:___flmul@a))^0500h,c,w
-	mulwf	(0+((c:___flmul@b)+01h))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	106
-	
-l2542:
-	movf	((c:___flmul@temp))^0500h,c,w
-	addwf	((c:___flmul@grs))^0500h,c
-	movf	((c:___flmul@temp+1))^0500h,c,w
-	addwfc	((c:___flmul@grs+1))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@grs+2))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@grs+3))^0500h,c
-
-	line	107
-	
-l2544:
-	movf	(0+((c:___flmul@a)+01h))^0500h,c,w
-	mulwf	((c:___flmul@b))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	108
-	
-l2546:
-	movf	((c:___flmul@temp))^0500h,c,w
-	addwf	((c:___flmul@grs))^0500h,c
-	movf	((c:___flmul@temp+1))^0500h,c,w
-	addwfc	((c:___flmul@grs+1))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@grs+2))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@grs+3))^0500h,c
-
-	line	109
-	
-l2548:
-	movff	(c:___flmul@grs+2),(c:___flmul@grs+3)
-	movff	(c:___flmul@grs+1),(c:___flmul@grs+2)
-	movff	(c:___flmul@grs),(c:___flmul@grs+1)
-	clrf	((c:___flmul@grs))^0500h,c
-	line	110
-	movf	((c:___flmul@a))^0500h,c,w
-	mulwf	((c:___flmul@b))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	111
-	
-l2550:
-	movf	((c:___flmul@temp))^0500h,c,w
-	addwf	((c:___flmul@grs))^0500h,c
-	movf	((c:___flmul@temp+1))^0500h,c,w
-	addwfc	((c:___flmul@grs+1))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@grs+2))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@grs+3))^0500h,c
-
-	line	112
-	
-l2552:
-	movf	(0+((c:___flmul@a)+02h))^0500h,c,w
-	mulwf	(0+((c:___flmul@b)+01h))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	113
-	movf	((c:___flmul@temp))^0500h,c,w
-	addwf	((c:___flmul@prod))^0500h,c
-	movf	((c:___flmul@temp+1))^0500h,c,w
-	addwfc	((c:___flmul@prod+1))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@prod+2))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@prod+3))^0500h,c
-
-	line	114
-	
-l2554:
-	movf	(0+((c:___flmul@a)+01h))^0500h,c,w
-	mulwf	(0+((c:___flmul@b)+02h))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	115
-	
-l2556:
-	movf	((c:___flmul@temp))^0500h,c,w
-	addwf	((c:___flmul@prod))^0500h,c
-	movf	((c:___flmul@temp+1))^0500h,c,w
-	addwfc	((c:___flmul@prod+1))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@prod+2))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@prod+3))^0500h,c
-
-	line	116
-	movf	(0+((c:___flmul@a)+02h))^0500h,c,w
-	mulwf	(0+((c:___flmul@b)+02h))^0500h,c
-	movff	prodl,(c:___flmul@temp)
-	movff	prodh,(c:___flmul@temp+1)
-	line	117
-	
-l2558:
-	movf	((c:___flmul@temp))^0500h,c,w
-	movwf	(??___flmul+0)^0500h,c
-	movf	((c:___flmul@temp+1))^0500h,c,w
-	movwf	1+(??___flmul+0)^0500h,c
-	
-	clrf	2+(??___flmul+0)^0500h,c
-	
-	clrf	3+(??___flmul+0)^0500h,c
-	movff	??___flmul+0+2,??___flmul+0+3
-	movff	??___flmul+0+1,??___flmul+0+2
-	movff	??___flmul+0,??___flmul+0+1
-	clrf	(??___flmul+0)^0500h,c
-	movf	(??___flmul+0)^0500h,c,w
-	addwf	((c:___flmul@prod))^0500h,c
-	movf	(??___flmul+0+1)^0500h,c,w
-	addwfc	((c:___flmul@prod+1))^0500h,c
-	movf	(??___flmul+0+2)^0500h,c,w
-	addwfc	((c:___flmul@prod+2))^0500h,c
-	movf	(??___flmul+0+3)^0500h,c,w
-	addwfc	((c:___flmul@prod+3))^0500h,c
-
-	line	145
-	
-l2560:
-	movff	(c:___flmul@grs),??___flmul+0
-	movff	(c:___flmul@grs+1),??___flmul+0+1
-	movff	(c:___flmul@grs+2),??___flmul+0+2
-	movff	(c:___flmul@grs+3),??___flmul+0+3
-	movlw	018h+1
-	goto	u2180
-u2185:
-	bcf	status,0
-	rrcf	(??___flmul+0+3)^0500h,c
-	rrcf	(??___flmul+0+2)^0500h,c
-	rrcf	(??___flmul+0+1)^0500h,c
-	rrcf	(??___flmul+0)^0500h,c
-u2180:
-	decfsz	wreg
-	goto	u2185
-	movf	(??___flmul+0)^0500h,c,w
-	addwf	((c:___flmul@prod))^0500h,c
-	movf	(??___flmul+0+1)^0500h,c,w
-	addwfc	((c:___flmul@prod+1))^0500h,c
-	movf	(??___flmul+0+2)^0500h,c,w
-	addwfc	((c:___flmul@prod+2))^0500h,c
-	movf	(??___flmul+0+3)^0500h,c,w
-	addwfc	((c:___flmul@prod+3))^0500h,c
-
-	line	146
-	
-l2562:
-	movff	(c:___flmul@grs+2),(c:___flmul@grs+3)
-	movff	(c:___flmul@grs+1),(c:___flmul@grs+2)
-	movff	(c:___flmul@grs),(c:___flmul@grs+1)
-	clrf	((c:___flmul@grs))^0500h,c
-	line	149
-	
-l2564:
-	movf	((c:___flmul@aexp))^0500h,c,w
-	movff	(c:___flmul@bexp),??___flmul+0
-	clrf	(??___flmul+0+1)^0500h,c
-	addwf	(??___flmul+0)^0500h,c
-	movlw	0
-	addwfc	(??___flmul+0+1)^0500h,c
-	movlw	low(-126)
-	addwf	(??___flmul+0)^0500h,c,w
-	movwf	((c:___flmul@temp))^0500h,c
-	movlw	high(-126)
-	addwfc	(??___flmul+0+1)^0500h,c,w
-	movwf	1+((c:___flmul@temp))^0500h,c
-	line	152
-	goto	l2572
-	line	153
-	
-l2566:
-	bcf	status,0
-	rlcf	((c:___flmul@prod))^0500h,c
-	rlcf	((c:___flmul@prod+1))^0500h,c
-	rlcf	((c:___flmul@prod+2))^0500h,c
-	rlcf	((c:___flmul@prod+3))^0500h,c
-	line	154
-	
-l2568:
-	
-	btfss	((c:___flmul@grs+3))^0500h,c,(31)&7
-	goto	u2191
-	goto	u2190
-u2191:
-	goto	l980
-u2190:
-	line	155
-	
-l2570:
-	bsf	(0+(0/8)+(c:___flmul@prod))^0500h,c,(0)&7
-	line	156
-	
-l980:
-	line	157
-	bcf	status,0
-	rlcf	((c:___flmul@grs))^0500h,c
-	rlcf	((c:___flmul@grs+1))^0500h,c
-	rlcf	((c:___flmul@grs+2))^0500h,c
-	rlcf	((c:___flmul@grs+3))^0500h,c
-	line	158
-	decf	((c:___flmul@temp))^0500h,c
-	btfss	status,0
-	decf	((c:___flmul@temp+1))^0500h,c
-	line	152
-	
-l2572:
-	
-	btfss	((c:___flmul@prod+2))^0500h,c,(23)&7
-	goto	u2201
-	goto	u2200
-u2201:
-	goto	l2566
-u2200:
-	
-l981:
-	line	163
-	clrf	((c:___flmul@aexp))^0500h,c
-	line	164
-	
-	btfss	((c:___flmul@grs+3))^0500h,c,(31)&7
-	goto	u2211
-	goto	u2210
-u2211:
-	goto	l982
-u2210:
-	line	165
-	
-l2574:
-	movlw	0FFh
-	andwf	((c:___flmul@grs))^0500h,c,w
-	movwf	(??___flmul+0)^0500h,c
-	movlw	0FFh
-	andwf	((c:___flmul@grs+1))^0500h,c,w
-	movwf	1+(??___flmul+0)^0500h,c
-	
-	movlw	0FFh
-	andwf	((c:___flmul@grs+2))^0500h,c,w
-	movwf	2+(??___flmul+0)^0500h,c
-	
-	movlw	07Fh
-	andwf	((c:___flmul@grs+3))^0500h,c,w
-	movwf	3+(??___flmul+0)^0500h,c
-	movf	(??___flmul+0)^0500h,c,w
-iorwf	(??___flmul+0+1)^0500h,c,w
-iorwf	(??___flmul+0+2)^0500h,c,w
-iorwf	(??___flmul+0+3)^0500h,c,w
-	btfsc	status,2
-	goto	u2221
-	goto	u2220
-
-u2221:
-	goto	l983
-u2220:
-	line	166
-	
-l2576:
-	movlw	low(01h)
-	movwf	((c:___flmul@aexp))^0500h,c
-	line	167
-	goto	l982
-	line	168
-	
-l983:
-	line	169
-	
-	btfss	((c:___flmul@prod))^0500h,c,(0)&7
-	goto	u2231
-	goto	u2230
-u2231:
-	goto	l982
-u2230:
-	goto	l2576
-	line	173
-	
-l982:
-	line	174
-	movf	((c:___flmul@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u2241
-	goto	u2240
-u2241:
-	goto	l2588
-u2240:
-	line	175
-	
-l2580:
-	movlw	low(01h)
-	addwf	((c:___flmul@prod))^0500h,c
-	movlw	0
-	addwfc	((c:___flmul@prod+1))^0500h,c
-	addwfc	((c:___flmul@prod+2))^0500h,c
-	addwfc	((c:___flmul@prod+3))^0500h,c
-	line	176
-	
-l2582:
-	
-	btfss	((c:___flmul@prod+3))^0500h,c,(24)&7
-	goto	u2251
-	goto	u2250
-u2251:
-	goto	l2588
-u2250:
-	line	177
-	
-l2584:
-	movff	(c:___flmul@prod),??___flmul+0
-	movff	(c:___flmul@prod+1),??___flmul+0+1
-	movff	(c:___flmul@prod+2),??___flmul+0+2
-	movff	(c:___flmul@prod+3),??___flmul+0+3
-	rlcf	(??___flmul+0+3)^0500h,c,w
-	rrcf	(??___flmul+0+3)^0500h,c
-	rrcf	(??___flmul+0+2)^0500h,c
-	rrcf	(??___flmul+0+1)^0500h,c
-	rrcf	(??___flmul+0)^0500h,c
-	movff	??___flmul+0,(c:___flmul@prod)
-	movff	??___flmul+0+1,(c:___flmul@prod+1)
-	movff	??___flmul+0+2,(c:___flmul@prod+2)
-	movff	??___flmul+0+3,(c:___flmul@prod+3)
-	line	178
-	
-l2586:
-	infsnz	((c:___flmul@temp))^0500h,c
-	incf	((c:___flmul@temp+1))^0500h,c
-	line	183
-	
-l2588:
-	btfsc	((c:___flmul@temp+1))^0500h,c,7
-	goto	u2261
-	movf	((c:___flmul@temp+1))^0500h,c,w
-	bnz	u2260
-	incf	((c:___flmul@temp))^0500h,c,w
-	btfss	status,0
-	goto	u2261
-	goto	u2260
-
-u2261:
-	goto	l2592
-u2260:
-	line	184
-	
-l2590:
-	movlw	low(07F800000h)
-	movwf	((c:___flmul@prod))^0500h,c
-	movlw	high(07F800000h)
-	movwf	((c:___flmul@prod+1))^0500h,c
-	movlw	low highword(07F800000h)
-	movwf	((c:___flmul@prod+2))^0500h,c
-	movlw	high highword(07F800000h)
-	movwf	((c:___flmul@prod+3))^0500h,c
-	line	185
-	goto	l2606
-	line	187
-	
-l2592:
-	btfsc	((c:___flmul@temp+1))^0500h,c,7
-	goto	u2270
-	movf	((c:___flmul@temp+1))^0500h,c,w
-	bnz	u2271
-	decf	((c:___flmul@temp))^0500h,c,w
-	btfsc	status,0
-	goto	u2271
-	goto	u2270
-
-u2271:
-	goto	l990
-u2270:
-	line	188
-	
-l2594:
-	movlw	low(0)
-	movwf	((c:___flmul@prod))^0500h,c
-	movlw	high(0)
-	movwf	((c:___flmul@prod+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___flmul@prod+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___flmul@prod+3))^0500h,c
-	line	190
-	
-l2596:
-	clrf	((c:___flmul@sign))^0500h,c
-	line	191
-	goto	l2606
-	line	192
-	
-l990:
-	line	194
-	movff	(c:___flmul@temp),(c:___flmul@bexp)
-	line	195
-	
-l2598:
-	movlw	0FFh
-	andwf	((c:___flmul@prod))^0500h,c
-	movlw	0FFh
-	andwf	((c:___flmul@prod+1))^0500h,c
-	movlw	07Fh
-	andwf	((c:___flmul@prod+2))^0500h,c
-	movlw	0
-	andwf	((c:___flmul@prod+3))^0500h,c
-	line	196
-	
-l2600:
-	
-	btfss	((c:___flmul@bexp))^0500h,c,(0)&7
-	goto	u2281
-	goto	u2280
-u2281:
-	goto	l2604
-u2280:
-	line	197
-	
-l2602:
-	bsf	(0+(7/8)+0+((c:___flmul@prod)+02h))^0500h,c,(7)&7
-	line	199
-	
-l2604:
-	bcf	status,0
-	rrcf	((c:___flmul@bexp))^0500h,c,w
-	movwf	(0+((c:___flmul@prod)+03h))^0500h,c
-	line	201
-	
-l2606:
-	movf	((c:___flmul@sign))^0500h,c,w
-	iorwf	(0+((c:___flmul@prod)+03h))^0500h,c
-	line	203
-	
-l2608:
-	movff	(c:___flmul@prod),(c:?___flmul)
-	movff	(c:___flmul@prod+1),(c:?___flmul+1)
-	movff	(c:___flmul@prod+2),(c:?___flmul+2)
-	movff	(c:___flmul@prod+3),(c:?___flmul+3)
-	line	205
-	
-l977:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of___flmul
-	__end_of___flmul:
-	signat	___flmul,8316
-	global	___fldiv
-
-;; *************** function ___fldiv *****************
-;; Defined at:
-;;		line 11 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcdiv.c"
-;; Parameters:    Size  Location     Type
-;;  b               4   14[COMRAM] unsigned char 
-;;  a               4   18[COMRAM] unsigned char 
-;; Auto vars:     Size  Location     Type
-;;  grs             4   33[COMRAM] unsigned long 
-;;  rem             4   26[COMRAM] unsigned long 
-;;  new_exp         2   31[COMRAM] short 
-;;  aexp            1   38[COMRAM] unsigned char 
-;;  bexp            1   37[COMRAM] unsigned char 
-;;  sign            1   30[COMRAM] unsigned char 
-;; Return value:  Size  Location     Type
-;;                  4   14[COMRAM] unsigned char 
-;; Registers used:
-;;		wreg, status,2, status,0
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         8       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:        13       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        25       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       25 bytes
-;; Hardware stack levels used: 1
-;; This function calls:
-;;		Nothing
-;; This function is called by:
-;;		_thermistor_centi_c
-;;		_logf
-;; This function uses a non-reentrant model
-;;
-psect	text8,class=CODE,space=0,reloc=2,group=1
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcdiv.c"
-	line	11
-global __ptext8
-__ptext8:
-psect	text8
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcdiv.c"
-	line	11
-	
-___fldiv:
-;incstack = 0
-	callstack 124
-	line	26
-	
-l2348:
-	movf	(0+((c:___fldiv@b)+03h))^0500h,c,w
-	andlw	low(080h)
-	movwf	((c:___fldiv@sign))^0500h,c
-	line	27
-	movf	(0+((c:___fldiv@b)+03h))^0500h,c,w
-	addwf	(0+((c:___fldiv@b)+03h))^0500h,c,w
-	movwf	((c:___fldiv@bexp))^0500h,c
-	line	28
-	
-l2350:
-	
-	btfss	(0+((c:___fldiv@b)+02h))^0500h,c,(7)&7
-	goto	u1871
-	goto	u1870
-u1871:
-	goto	l2354
-u1870:
-	line	29
-	
-l2352:
-	bsf	(0+(0/8)+(c:___fldiv@bexp))^0500h,c,(0)&7
-	line	33
-	
-l2354:
-	movf	((c:___fldiv@bexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1881
-	goto	u1880
-u1881:
-	goto	l2364
-u1880:
-	line	35
-	
-l2356:
-		incf	((c:___fldiv@bexp))^0500h,c,w
-	btfss	status,2
-	goto	u1891
-	goto	u1890
-
-u1891:
-	goto	l2360
-u1890:
-	line	37
-	
-l2358:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___fldiv@b))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___fldiv@b+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___fldiv@b+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___fldiv@b+3))^0500h,c
-	line	40
-	
-l2360:
-	bsf	(0+(23/8)+(c:___fldiv@b))^0500h,c,(23)&7
-	line	42
-	
-l2362:
-	clrf	(0+((c:___fldiv@b)+03h))^0500h,c
-	line	43
-	goto	l2366
-	line	46
-	
-l2364:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___fldiv@b))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___fldiv@b+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___fldiv@b+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___fldiv@b+3))^0500h,c
-	line	49
-	
-l2366:
-	movf	(0+((c:___fldiv@a)+03h))^0500h,c,w
-	andlw	low(080h)
-	xorwf	((c:___fldiv@sign))^0500h,c
-	line	50
-	
-l2368:
-	movf	(0+((c:___fldiv@a)+03h))^0500h,c,w
-	addwf	(0+((c:___fldiv@a)+03h))^0500h,c,w
-	movwf	((c:___fldiv@aexp))^0500h,c
-	line	51
-	
-l2370:
-	
-	btfss	(0+((c:___fldiv@a)+02h))^0500h,c,(7)&7
-	goto	u1901
-	goto	u1900
-u1901:
-	goto	l2374
-u1900:
-	line	52
-	
-l2372:
-	bsf	(0+(0/8)+(c:___fldiv@aexp))^0500h,c,(0)&7
-	line	56
-	
-l2374:
-	movf	((c:___fldiv@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1911
-	goto	u1910
-u1911:
-	goto	l2384
-u1910:
-	line	58
-	
-l2376:
-		incf	((c:___fldiv@aexp))^0500h,c,w
-	btfss	status,2
-	goto	u1921
-	goto	u1920
-
-u1921:
-	goto	l2380
-u1920:
-	line	60
-	
-l2378:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___fldiv@a))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___fldiv@a+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___fldiv@a+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___fldiv@a+3))^0500h,c
-	line	63
-	
-l2380:
-	bsf	(0+(23/8)+(c:___fldiv@a))^0500h,c,(23)&7
-	line	65
-	
-l2382:
-	clrf	(0+((c:___fldiv@a)+03h))^0500h,c
-	line	66
-	goto	l2386
-	line	69
-	
-l2384:
-	movlw	low(normalize32(0x0))
-	movwf	((c:___fldiv@a))^0500h,c
-	movlw	high(normalize32(0x0))
-	movwf	((c:___fldiv@a+1))^0500h,c
-	movlw	low highword(normalize32(0x0))
-	movwf	((c:___fldiv@a+2))^0500h,c
-	movlw	high highword(normalize32(0x0))
-	movwf	((c:___fldiv@a+3))^0500h,c
-	line	75
-	
-l2386:
-	movf	((c:___fldiv@a))^0500h,c,w
-iorwf	((c:___fldiv@a+1))^0500h,c,w
-iorwf	((c:___fldiv@a+2))^0500h,c,w
-iorwf	((c:___fldiv@a+3))^0500h,c,w
-	btfss	status,2
-	goto	u1931
-	goto	u1930
-
-u1931:
-	goto	l2398
-u1930:
-	line	76
-	
-l2388:
-	movlw	low(0)
-	movwf	((c:___fldiv@b))^0500h,c
-	movlw	high(0)
-	movwf	((c:___fldiv@b+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___fldiv@b+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___fldiv@b+3))^0500h,c
-	line	77
-	
-l2390:
-	movlw	low(07F80h)
-	iorwf	(0+((c:___fldiv@b)+02h))^0500h,c
-	movlw	high(07F80h)
-	iorwf	(1+((c:___fldiv@b)+02h))^0500h,c
-	line	78
-	
-l2392:
-	movf	((c:___fldiv@sign))^0500h,c,w
-	iorwf	(0+((c:___fldiv@b)+03h))^0500h,c
-	line	79
-	
-l2394:
-	movff	(c:___fldiv@b),(c:?___fldiv)
-	movff	(c:___fldiv@b+1),(c:?___fldiv+1)
-	movff	(c:___fldiv@b+2),(c:?___fldiv+2)
-	movff	(c:___fldiv@b+3),(c:?___fldiv+3)
-	goto	l941
-	line	83
-	
-l2398:
-	movf	((c:___fldiv@bexp))^0500h,c,w
-	btfss	status,2
-	goto	u1941
-	goto	u1940
-u1941:
-	goto	l2406
-u1940:
-	line	84
-	
-l2400:
-	line	85
-	
-l2402:
-	movlw	low(0)
-	movwf	((c:?___fldiv))^0500h,c
-	movlw	high(0)
-	movwf	((c:?___fldiv+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:?___fldiv+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:?___fldiv+3))^0500h,c
-	goto	l941
-	line	89
-	
-l2406:
-	movf	((c:___fldiv@aexp))^0500h,c,w
-	movff	(c:___fldiv@bexp),??___fldiv+0
-	clrf	(??___fldiv+0+1)^0500h,c
-	subwf	(??___fldiv+0)^0500h,c
-	movlw	0
-	subwfb	(??___fldiv+0+1)^0500h,c
-	movlw	low(07Fh)
-	addwf	(??___fldiv+0)^0500h,c,w
-	movwf	((c:___fldiv@new_exp))^0500h,c
-	movlw	high(07Fh)
-	addwfc	(??___fldiv+0+1)^0500h,c,w
-	movwf	1+((c:___fldiv@new_exp))^0500h,c
-	line	92
-	
-l2408:
-	movff	(c:___fldiv@b),(c:___fldiv@rem)
-	movff	(c:___fldiv@b+1),(c:___fldiv@rem+1)
-	movff	(c:___fldiv@b+2),(c:___fldiv@rem+2)
-	movff	(c:___fldiv@b+3),(c:___fldiv@rem+3)
-	line	93
-	
-l2410:
-	movlw	low(0)
-	movwf	((c:___fldiv@b))^0500h,c
-	movlw	high(0)
-	movwf	((c:___fldiv@b+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___fldiv@b+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___fldiv@b+3))^0500h,c
-	line	94
-	
-l2412:
-	movlw	low(0)
-	movwf	((c:___fldiv@grs))^0500h,c
-	movlw	high(0)
-	movwf	((c:___fldiv@grs+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___fldiv@grs+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___fldiv@grs+3))^0500h,c
-	line	96
-	
-l2414:
-	clrf	((c:___fldiv@aexp))^0500h,c
-	line	97
-	goto	l943
-	line	100
-	
-l2416:
-	movf	((c:___fldiv@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u1951
-	goto	u1950
-u1951:
-	goto	l2424
-u1950:
-	line	101
-	
-l2418:
-	bcf	status,0
-	rlcf	((c:___fldiv@rem))^0500h,c
-	rlcf	((c:___fldiv@rem+1))^0500h,c
-	rlcf	((c:___fldiv@rem+2))^0500h,c
-	rlcf	((c:___fldiv@rem+3))^0500h,c
-	line	102
-	bcf	status,0
-	rlcf	((c:___fldiv@b))^0500h,c
-	rlcf	((c:___fldiv@b+1))^0500h,c
-	rlcf	((c:___fldiv@b+2))^0500h,c
-	rlcf	((c:___fldiv@b+3))^0500h,c
-	line	103
-	
-l2420:
-	
-	btfss	((c:___fldiv@grs+3))^0500h,c,(31)&7
-	goto	u1961
-	goto	u1960
-u1961:
-	goto	l946
-u1960:
-	line	104
-	
-l2422:
-	bsf	(0+(0/8)+(c:___fldiv@b))^0500h,c,(0)&7
-	line	105
-	
-l946:
-	line	106
-	bcf	status,0
-	rlcf	((c:___fldiv@grs))^0500h,c
-	rlcf	((c:___fldiv@grs+1))^0500h,c
-	rlcf	((c:___fldiv@grs+2))^0500h,c
-	rlcf	((c:___fldiv@grs+3))^0500h,c
-	line	112
-	
-l2424:
-		movf	((c:___fldiv@a))^0500h,c,w
-	subwf	((c:___fldiv@rem))^0500h,c,w
-	movf	((c:___fldiv@a+1))^0500h,c,w
-	subwfb	((c:___fldiv@rem+1))^0500h,c,w
-	movf	((c:___fldiv@a+2))^0500h,c,w
-	subwfb	((c:___fldiv@rem+2))^0500h,c,w
-	movf	((c:___fldiv@a+3))^0500h,c,w
-	subwfb	((c:___fldiv@rem+3))^0500h,c,w
-	btfss	status,0
-	goto	u1971
-	goto	u1970
-
-u1971:
-	goto	l2430
-u1970:
-	line	115
-	
-l2426:
-	bsf	(0+(30/8)+(c:___fldiv@grs))^0500h,c,(30)&7
-	line	116
-	
-l2428:
-	movf	((c:___fldiv@a))^0500h,c,w
-	subwf	((c:___fldiv@rem))^0500h,c
-	movf	((c:___fldiv@a+1))^0500h,c,w
-	subwfb	((c:___fldiv@rem+1))^0500h,c
-	movf	((c:___fldiv@a+2))^0500h,c,w
-	subwfb	((c:___fldiv@rem+2))^0500h,c
-	movf	((c:___fldiv@a+3))^0500h,c,w
-	subwfb	((c:___fldiv@rem+3))^0500h,c
-	line	118
-	
-l2430:
-	incf	((c:___fldiv@aexp))^0500h,c
-	line	119
-	
-l943:
-	line	97
-		movlw	01Ah-1
-	cpfsgt	((c:___fldiv@aexp))^0500h,c
-	goto	u1981
-	goto	u1980
-
-u1981:
-	goto	l2416
-u1980:
-	line	122
-	
-l2432:
-	movf	((c:___fldiv@rem))^0500h,c,w
-iorwf	((c:___fldiv@rem+1))^0500h,c,w
-iorwf	((c:___fldiv@rem+2))^0500h,c,w
-iorwf	((c:___fldiv@rem+3))^0500h,c,w
-	btfsc	status,2
-	goto	u1991
-	goto	u1990
-
-u1991:
-	goto	l2442
-u1990:
-	line	123
-	
-l2434:
-	bsf	(0+(0/8)+(c:___fldiv@grs))^0500h,c,(0)&7
-	goto	l2442
-	line	128
-	
-l2436:
-	bcf	status,0
-	rlcf	((c:___fldiv@b))^0500h,c
-	rlcf	((c:___fldiv@b+1))^0500h,c
-	rlcf	((c:___fldiv@b+2))^0500h,c
-	rlcf	((c:___fldiv@b+3))^0500h,c
-	line	129
-	
-l2438:
-	
-	btfss	((c:___fldiv@grs+3))^0500h,c,(31)&7
-	goto	u2001
-	goto	u2000
-u2001:
-	goto	l952
-u2000:
-	line	130
-	
-l2440:
-	bsf	(0+(0/8)+(c:___fldiv@b))^0500h,c,(0)&7
-	line	131
-	
-l952:
-	line	132
-	bcf	status,0
-	rlcf	((c:___fldiv@grs))^0500h,c
-	rlcf	((c:___fldiv@grs+1))^0500h,c
-	rlcf	((c:___fldiv@grs+2))^0500h,c
-	rlcf	((c:___fldiv@grs+3))^0500h,c
-	line	133
-	decf	((c:___fldiv@new_exp))^0500h,c
-	btfss	status,0
-	decf	((c:___fldiv@new_exp+1))^0500h,c
-	line	127
-	
-l2442:
-	
-	btfss	((c:___fldiv@b+2))^0500h,c,(23)&7
-	goto	u2011
-	goto	u2010
-u2011:
-	goto	l2436
-u2010:
-	
-l953:
-	line	139
-	clrf	((c:___fldiv@aexp))^0500h,c
-	line	140
-	
-	btfss	((c:___fldiv@grs+3))^0500h,c,(31)&7
-	goto	u2021
-	goto	u2020
-u2021:
-	goto	l954
-u2020:
-	line	141
-	
-l2444:
-	movlw	0FFh
-	andwf	((c:___fldiv@grs))^0500h,c,w
-	movwf	(??___fldiv+0)^0500h,c
-	movlw	0FFh
-	andwf	((c:___fldiv@grs+1))^0500h,c,w
-	movwf	1+(??___fldiv+0)^0500h,c
-	
-	movlw	0FFh
-	andwf	((c:___fldiv@grs+2))^0500h,c,w
-	movwf	2+(??___fldiv+0)^0500h,c
-	
-	movlw	07Fh
-	andwf	((c:___fldiv@grs+3))^0500h,c,w
-	movwf	3+(??___fldiv+0)^0500h,c
-	movf	(??___fldiv+0)^0500h,c,w
-iorwf	(??___fldiv+0+1)^0500h,c,w
-iorwf	(??___fldiv+0+2)^0500h,c,w
-iorwf	(??___fldiv+0+3)^0500h,c,w
-	btfsc	status,2
-	goto	u2031
-	goto	u2030
-
-u2031:
-	goto	l955
-u2030:
-	line	142
-	
-l2446:
-	movlw	low(01h)
-	movwf	((c:___fldiv@aexp))^0500h,c
-	line	143
-	goto	l954
-	line	144
-	
-l955:
-	line	145
-	
-	btfss	((c:___fldiv@b))^0500h,c,(0)&7
-	goto	u2041
-	goto	u2040
-u2041:
-	goto	l954
-u2040:
-	goto	l2446
-	line	149
-	
-l954:
-	line	150
-	movf	((c:___fldiv@aexp))^0500h,c,w
-	btfsc	status,2
-	goto	u2051
-	goto	u2050
-u2051:
-	goto	l2458
-u2050:
-	line	151
-	
-l2450:
-	movlw	low(01h)
-	addwf	((c:___fldiv@b))^0500h,c
-	movlw	0
-	addwfc	((c:___fldiv@b+1))^0500h,c
-	addwfc	((c:___fldiv@b+2))^0500h,c
-	addwfc	((c:___fldiv@b+3))^0500h,c
-	line	152
-	
-l2452:
-	
-	btfss	((c:___fldiv@b+3))^0500h,c,(24)&7
-	goto	u2061
-	goto	u2060
-u2061:
-	goto	l2458
-u2060:
-	line	153
-	
-l2454:
-	movff	(c:___fldiv@b),??___fldiv+0
-	movff	(c:___fldiv@b+1),??___fldiv+0+1
-	movff	(c:___fldiv@b+2),??___fldiv+0+2
-	movff	(c:___fldiv@b+3),??___fldiv+0+3
-	rlcf	(??___fldiv+0+3)^0500h,c,w
-	rrcf	(??___fldiv+0+3)^0500h,c
-	rrcf	(??___fldiv+0+2)^0500h,c
-	rrcf	(??___fldiv+0+1)^0500h,c
-	rrcf	(??___fldiv+0)^0500h,c
-	movff	??___fldiv+0,(c:___fldiv@b)
-	movff	??___fldiv+0+1,(c:___fldiv@b+1)
-	movff	??___fldiv+0+2,(c:___fldiv@b+2)
-	movff	??___fldiv+0+3,(c:___fldiv@b+3)
-	line	154
-	
-l2456:
-	infsnz	((c:___fldiv@new_exp))^0500h,c
-	incf	((c:___fldiv@new_exp+1))^0500h,c
-	line	159
-	
-l2458:
-	btfsc	((c:___fldiv@new_exp+1))^0500h,c,7
-	goto	u2071
-	movf	((c:___fldiv@new_exp+1))^0500h,c,w
-	bnz	u2070
-	incf	((c:___fldiv@new_exp))^0500h,c,w
-	btfss	status,0
-	goto	u2071
-	goto	u2070
-
-u2071:
-	goto	l2462
-u2070:
-	line	160
-	
-l2460:
-	movlw	high(0FFh)
-	movwf	((c:___fldiv@new_exp+1))^0500h,c
-	setf	((c:___fldiv@new_exp))^0500h,c
-	line	161
-	movlw	low(0)
-	movwf	((c:___fldiv@b))^0500h,c
-	movlw	high(0)
-	movwf	((c:___fldiv@b+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___fldiv@b+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___fldiv@b+3))^0500h,c
-	line	165
-	
-l2462:
-	btfsc	((c:___fldiv@new_exp+1))^0500h,c,7
-	goto	u2080
-	movf	((c:___fldiv@new_exp+1))^0500h,c,w
-	bnz	u2081
-	decf	((c:___fldiv@new_exp))^0500h,c,w
-	btfsc	status,0
-	goto	u2081
-	goto	u2080
-
-u2081:
-	goto	l2468
-u2080:
-	line	166
-	
-l2464:
-	clrf	((c:___fldiv@new_exp+1))^0500h,c
-	movlw	low(0)
-	movwf	((c:___fldiv@new_exp))^0500h,c
-	line	167
-	movlw	low(0)
-	movwf	((c:___fldiv@b))^0500h,c
-	movlw	high(0)
-	movwf	((c:___fldiv@b+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___fldiv@b+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___fldiv@b+3))^0500h,c
-	line	169
-	
-l2466:
-	clrf	((c:___fldiv@sign))^0500h,c
-	line	173
-	
-l2468:
-	movff	(c:___fldiv@new_exp),(c:___fldiv@bexp)
-	line	175
-	
-l2470:
-	
-	btfss	((c:___fldiv@bexp))^0500h,c,(0)&7
-	goto	u2091
-	goto	u2090
-u2091:
-	goto	l2474
-u2090:
-	line	176
-	
-l2472:
-	bsf	(0+(7/8)+0+((c:___fldiv@b)+02h))^0500h,c,(7)&7
-	line	177
-	goto	l2476
-	line	180
-	
-l2474:
-	bcf	(0+(7/8)+0+((c:___fldiv@b)+02h))^0500h,c,(7)&7
-	line	182
-	
-l2476:
-	bcf	status,0
-	rrcf	((c:___fldiv@bexp))^0500h,c,w
-	movwf	(0+((c:___fldiv@b)+03h))^0500h,c
-	goto	l2392
-	line	185
-	
-l941:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of___fldiv
-	__end_of___fldiv:
-	signat	___fldiv,8316
-	global	___fltol
-
-;; *************** function ___fltol *****************
-;; Defined at:
-;;		line 43 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\fltol.c"
-;; Parameters:    Size  Location     Type
-;;  f1              4   55[COMRAM] unsigned char 
-;; Auto vars:     Size  Location     Type
-;;  exp1            1   64[COMRAM] unsigned char 
-;;  sign1           1   63[COMRAM] unsigned char 
-;; Return value:  Size  Location     Type
-;;                  4   55[COMRAM] long 
-;; Registers used:
-;;		wreg, status,2, status,0
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        10       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       10 bytes
-;; Hardware stack levels used: 1
-;; This function calls:
-;;		Nothing
-;; This function is called by:
-;;		_thermistor_centi_c
-;; This function uses a non-reentrant model
-;;
-psect	text9,class=CODE,space=0,reloc=2,group=1
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\fltol.c"
-	line	43
-global __ptext9
-__ptext9:
-psect	text9
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\fltol.c"
-	line	43
-	
-___fltol:
-;incstack = 0
-	callstack 125
-	line	47
-	
-l2778:
-	rlcf	((c:___fltol@f1+2))^0500h,c,w
-	rlcf	((c:___fltol@f1+3))^0500h,c,w
-	movwf	((c:___fltol@exp1))^0500h,c
-	movf	((c:___fltol@exp1))^0500h,c,w
-	btfss	status,2
-	goto	u2541
-	goto	u2540
-u2541:
-	goto	l2784
-u2540:
-	line	48
-	
-l2780:
-	movlw	low(0)
-	movwf	((c:?___fltol))^0500h,c
-	movlw	high(0)
-	movwf	((c:?___fltol+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:?___fltol+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:?___fltol+3))^0500h,c
-	goto	l656
-	line	49
-	
-l2784:
-	movff	(c:___fltol@f1),??___fltol+0
-	movff	(c:___fltol@f1+1),??___fltol+0+1
-	movff	(c:___fltol@f1+2),??___fltol+0+2
-	movff	(c:___fltol@f1+3),??___fltol+0+3
-	movlw	01Fh+1
-	goto	u2550
-u2555:
-	bcf	status,0
-	rrcf	(??___fltol+0+3)^0500h,c
-	rrcf	(??___fltol+0+2)^0500h,c
-	rrcf	(??___fltol+0+1)^0500h,c
-	rrcf	(??___fltol+0)^0500h,c
-u2550:
-	decfsz	wreg
-	goto	u2555
-	movf	(??___fltol+0)^0500h,c,w
-	movwf	((c:___fltol@sign1))^0500h,c
-	line	50
-	
-l2786:
-	bsf	(0+(23/8)+(c:___fltol@f1))^0500h,c,(23)&7
-	line	51
-	
-l2788:
-	movlw	0FFh
-	andwf	((c:___fltol@f1))^0500h,c
-	movlw	0FFh
-	andwf	((c:___fltol@f1+1))^0500h,c
-	movlw	0FFh
-	andwf	((c:___fltol@f1+2))^0500h,c
-	movlw	0
-	andwf	((c:___fltol@f1+3))^0500h,c
-	line	52
-	
-l2790:
-	movlw	(096h)&0ffh
-	subwf	((c:___fltol@exp1))^0500h,c
-	line	53
-	
-l2792:
-	btfsc	((c:___fltol@exp1))^0500h,c,7
-	goto	u2560
-	goto	u2561
-
-u2561:
-	goto	l2804
-u2560:
-	line	54
-	
-l2794:
-		movf	((c:___fltol@exp1))^0500h,c,w
-	xorlw	80h
-	addlw	-(80h^-23)
-	btfsc	status,0
-	goto	u2571
-	goto	u2570
-
-u2571:
-	goto	l2800
-u2570:
-	goto	l2780
-	line	57
-	
-l2800:
-	bcf	status,0
-	rrcf	((c:___fltol@f1+3))^0500h,c
-	rrcf	((c:___fltol@f1+2))^0500h,c
-	rrcf	((c:___fltol@f1+1))^0500h,c
-	rrcf	((c:___fltol@f1))^0500h,c
-	line	58
-	
-l2802:
-	incfsz	((c:___fltol@exp1))^0500h,c
-	
-	goto	l2800
-	goto	l2814
-	line	60
-	
-l2804:
-		movlw	020h-1
-	cpfsgt	((c:___fltol@exp1))^0500h,c
-	goto	u2581
-	goto	u2580
-
-u2581:
-	goto	l2812
-u2580:
-	goto	l2780
-	line	63
-	
-l2810:
-	bcf	status,0
-	rlcf	((c:___fltol@f1))^0500h,c
-	rlcf	((c:___fltol@f1+1))^0500h,c
-	rlcf	((c:___fltol@f1+2))^0500h,c
-	rlcf	((c:___fltol@f1+3))^0500h,c
-	line	64
-	decf	((c:___fltol@exp1))^0500h,c
-	line	62
-	
-l2812:
-	movf	((c:___fltol@exp1))^0500h,c,w
-	btfss	status,2
-	goto	u2591
-	goto	u2590
-u2591:
-	goto	l2810
-u2590:
-	line	67
-	
-l2814:
-	movf	((c:___fltol@sign1))^0500h,c,w
-	btfsc	status,2
-	goto	u2601
-	goto	u2600
-u2601:
-	goto	l2818
-u2600:
-	line	68
-	
-l2816:
-	comf	((c:___fltol@f1+3))^0500h,c
-	comf	((c:___fltol@f1+2))^0500h,c
-	comf	((c:___fltol@f1+1))^0500h,c
-	negf	((c:___fltol@f1))^0500h,c
-	movlw	0
-	addwfc	((c:___fltol@f1+1))^0500h,c
-	addwfc	((c:___fltol@f1+2))^0500h,c
-	addwfc	((c:___fltol@f1+3))^0500h,c
-	line	69
-	
-l2818:
-	movff	(c:___fltol@f1),(c:?___fltol)
-	movff	(c:___fltol@f1+1),(c:?___fltol+1)
-	movff	(c:___fltol@f1+2),(c:?___fltol+2)
-	movff	(c:___fltol@f1+3),(c:?___fltol+3)
-	line	70
-	
-l656:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of___fltol
-	__end_of___fltol:
-	signat	___fltol,4220
-	global	_report_measurement
-
-;; *************** function _report_measurement *****************
-;; Defined at:
-;;		line 286 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-;; Parameters:    Size  Location     Type
-;;  adc             2   40[COMRAM] unsigned short 
-;;  resistance      4   42[COMRAM] unsigned long 
-;;  centi_c         4   46[COMRAM] long 
-;;  can_sent        1   50[COMRAM] unsigned char 
-;; Auto vars:     Size  Location     Type
-;;  magnitude       4   69[COMRAM] unsigned long 
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      void 
 ;; Registers used:
@@ -8620,405 +4182,375 @@ GLOBAL	__end_of___fltol
 ;;		On exit  : 0/0
 ;;		Unchanged: 0/0
 ;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:        11       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:        18       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        33       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       33 bytes
+;;      Params:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Locals:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Totals:         8       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;Total ram usage:        8 bytes
 ;; Hardware stack levels used: 1
-;; Hardware stack levels required when called: 1
+;; Hardware stack levels required when called: 2
 ;; This function calls:
-;;		___lldiv
-;;		___llmod
+;;		_nominal_millivolts
 ;;		_uart_put_uint32
 ;;		_uart_puts
 ;; This function is called by:
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text10,class=CODE,space=0,reloc=2,group=0
+psect	text2,class=CODE,space=0,reloc=2,group=0
+	line	274
+global __ptext2
+__ptext2:
+psect	text2
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	286
-global __ptext10
-__ptext10:
-psect	text10
-	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	286
+	line	274
 	
-_report_measurement:
+_report_voltage:; BSR set to: 2
+
 ;incstack = 0
-	callstack 125
-	line	291
+	callstack 124
+	line	276
 	
-l3066:
+l1733:
+		movff	(c:report_voltage@name),(c:uart_puts@text)
+	movff	(c:report_voltage@name+1),(c:uart_puts@text+1)
+
+	call	_uart_puts	;wreg free
+	line	277
 		movlw	low(STR_24)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_24)
 	movwf	((c:uart_puts@text+1))^0500h,c
 
 	call	_uart_puts	;wreg free
-	line	292
+	line	278
 	
-l3068:
-	movff	(c:report_measurement@adc),(c:uart_put_uint32@value)
-	movff	(c:report_measurement@adc+1),(c:uart_put_uint32@value+1)
+l1735:
+	movff	(c:report_voltage@adc),(c:uart_put_uint32@value)
+	movff	(c:report_voltage@adc+1),(c:uart_put_uint32@value+1)
 	clrf	((c:uart_put_uint32@value+2))^0500h,c
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 	call	_uart_put_uint32	;wreg free
-	line	293
+	line	279
 	
-l3070:
-		movlw	251
-	subwf	 ((c:report_measurement@adc))^0500h,c,w
-	movlw	15
-	subwfb	((c:report_measurement@adc+1))^0500h,c,w
-	btfss	status,0
-	goto	u2731
-	goto	u2730
-
-u2731:
-	goto	l3084
-u2730:
-	line	294
-	
-l3072:
+l1737:
 		movlw	low(STR_25)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_25)
 	movwf	((c:uart_puts@text+1))^0500h,c
 
 	call	_uart_puts	;wreg free
-	line	295
+	line	280
+	movff	(c:report_voltage@adc),(c:nominal_millivolts@adc)
+	movff	(c:report_voltage@adc+1),(c:nominal_millivolts@adc+1)
+	call	_nominal_millivolts	;wreg free
+	movff	0+?_nominal_millivolts,(c:uart_put_uint32@value)
+	movff	1+?_nominal_millivolts,(c:uart_put_uint32@value+1)
+	clrf	((c:uart_put_uint32@value+2))^0500h,c
+	clrf	((c:uart_put_uint32@value+3))^0500h,c
+	call	_uart_put_uint32	;wreg free
+	line	281
 	
-l3074:
-	movf	((c:report_measurement@can_sent))^0500h,c,w
-	btfss	status,2
-	goto	u2741
-	goto	u2740
-u2741:
-	goto	l3078
-u2740:
-	
-l3076:
-		movlw	low(STR_27)
-	movwf	((c:_report_measurement$755))^0500h,c
-	movlw	high(STR_27)
-	movwf	((c:_report_measurement$755+1))^0500h,c
-
-	goto	l3080
-	
-l3078:
+l1739:
 		movlw	low(STR_26)
-	movwf	((c:_report_measurement$755))^0500h,c
+	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_26)
-	movwf	((c:_report_measurement$755+1))^0500h,c
-
-	
-l3080:
-		movff	(c:_report_measurement$755),(c:uart_puts@text)
-	movff	(c:_report_measurement$755+1),(c:uart_puts@text+1)
+	movwf	((c:uart_puts@text+1))^0500h,c
 
 	call	_uart_puts	;wreg free
-	goto	l211
-	line	298
+	line	282
 	
-l3084:
-		movf	((c:report_measurement@adc+1))^0500h,c,w
-	bnz	u2751
+l1741:
+		movf	((c:report_voltage@adc+1))^0500h,c,w
+	bnz	u630
 	movlw	5
-	subwf	 ((c:report_measurement@adc))^0500h,c,w
+	subwf	 ((c:report_voltage@adc))^0500h,c,w
+	btfss	status,0
+	goto	u631
+	goto	u630
+
+u631:
+	goto	l1749
+u630:
+	
+l1743:
+		movlw	251
+	subwf	 ((c:report_voltage@adc))^0500h,c,w
+	movlw	15
+	subwfb	((c:report_voltage@adc+1))^0500h,c,w
 	btfsc	status,0
-	goto	u2751
-	goto	u2750
+	goto	u641
+	goto	u640
 
-u2751:
-	goto	l3098
-u2750:
-	line	299
+u641:
+	goto	l1747
+u640:
 	
-l3086:
-		movlw	low(STR_28)
-	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_28)
-	movwf	((c:uart_puts@text+1))^0500h,c
-
-	call	_uart_puts	;wreg free
-	line	300
-	
-l3088:
-	movf	((c:report_measurement@can_sent))^0500h,c,w
-	btfss	status,2
-	goto	u2761
-	goto	u2760
-u2761:
-	goto	l3092
-u2760:
-	
-l3090:
-		movlw	low(STR_30)
-	movwf	((c:_report_measurement$760))^0500h,c
-	movlw	high(STR_30)
-	movwf	((c:_report_measurement$760+1))^0500h,c
-
-	goto	l3094
-	
-l3092:
+l1745:
 		movlw	low(STR_29)
-	movwf	((c:_report_measurement$760))^0500h,c
+	movwf	((c:_report_voltage$754))^0500h,c
 	movlw	high(STR_29)
-	movwf	((c:_report_measurement$760+1))^0500h,c
+	movwf	((c:_report_voltage$754+1))^0500h,c
+
+	goto	l225
+	
+l1747:
+		movlw	low(STR_28)
+	movwf	((c:_report_voltage$754))^0500h,c
+	movlw	high(STR_28)
+	movwf	((c:_report_voltage$754+1))^0500h,c
 
 	
-l3094:
-		movff	(c:_report_measurement$760),(c:uart_puts@text)
-	movff	(c:_report_measurement$760+1),(c:uart_puts@text+1)
+l225:
+		movff	(c:_report_voltage$754),(c:_report_voltage$753)
+	movff	(c:_report_voltage$754+1),(c:_report_voltage$753+1)
+
+	goto	l1751
+	
+l1749:
+		movlw	low(STR_27)
+	movwf	((c:_report_voltage$753))^0500h,c
+	movlw	high(STR_27)
+	movwf	((c:_report_voltage$753+1))^0500h,c
+
+	
+l1751:
+		movff	(c:_report_voltage$753),(c:uart_puts@text)
+	movff	(c:_report_voltage$753+1),(c:uart_puts@text+1)
 
 	call	_uart_puts	;wreg free
-	goto	l211
-	line	304
+	line	284
 	
-l3098:
-	btfsc	((c:report_measurement@centi_c+3))^0500h,c,7
-	goto	u2771
-	goto	u2770
-
-u2771:
-	goto	l3102
-u2770:
-	
-l3100:
-	movff	(c:report_measurement@centi_c),(c:report_measurement@magnitude)
-	movff	(c:report_measurement@centi_c+1),(c:report_measurement@magnitude+1)
-	movff	(c:report_measurement@centi_c+2),(c:report_measurement@magnitude+2)
-	movff	(c:report_measurement@centi_c+3),(c:report_measurement@magnitude+3)
-	goto	l3104
-	
-l3102:
-	movff	(c:report_measurement@centi_c),??_report_measurement+0
-	movff	(c:report_measurement@centi_c+1),??_report_measurement+0+1
-	movff	(c:report_measurement@centi_c+2),??_report_measurement+0+2
-	movff	(c:report_measurement@centi_c+3),??_report_measurement+0+3
-	comf	(??_report_measurement+0)^0500h,c
-	comf	(??_report_measurement+0+1)^0500h,c
-	comf	(??_report_measurement+0+2)^0500h,c
-	comf	(??_report_measurement+0+3)^0500h,c
-	incf	(??_report_measurement+0)^0500h,c
-	movlw	0
-	addwfc	(??_report_measurement+0+1)^0500h,c
-	addwfc	(??_report_measurement+0+2)^0500h,c
-	addwfc	(??_report_measurement+0+3)^0500h,c
-	movff	??_report_measurement+0,(c:report_measurement@magnitude)
-	movff	??_report_measurement+0+1,(c:report_measurement@magnitude+1)
-	movff	??_report_measurement+0+2,(c:report_measurement@magnitude+2)
-	movff	??_report_measurement+0+3,(c:report_measurement@magnitude+3)
-	line	306
-	
-l3104:
-		movlw	low(STR_31)
+l1753:
+		movlw	low(STR_30)
 	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_31)
+	movlw	high(STR_30)
 	movwf	((c:uart_puts@text+1))^0500h,c
 
 	call	_uart_puts	;wreg free
-	line	307
+	line	285
 	
-l3106:
-	movff	(c:report_measurement@resistance),(c:uart_put_uint32@value)
-	movff	(c:report_measurement@resistance+1),(c:uart_put_uint32@value+1)
-	movff	(c:report_measurement@resistance+2),(c:uart_put_uint32@value+2)
-	movff	(c:report_measurement@resistance+3),(c:uart_put_uint32@value+3)
-	call	_uart_put_uint32	;wreg free
-	line	308
-	
-l3108:
-		movlw	low(STR_32)
-	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_32)
-	movwf	((c:uart_puts@text+1))^0500h,c
-
-	call	_uart_puts	;wreg free
-	line	309
-	
-l3110:
-	btfsc	((c:report_measurement@centi_c+3))^0500h,c,7
-	goto	u2780
-	goto	u2781
-
-u2781:
-	goto	l3114
-u2780:
-	
-l3112:
-		movlw	low(STR_33)
-	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_33)
-	movwf	((c:uart_puts@text+1))^0500h,c
-
-	call	_uart_puts	;wreg free
-	line	310
-	
-l3114:
-	movff	(c:report_measurement@magnitude),(c:___lldiv@dividend)
-	movff	(c:report_measurement@magnitude+1),(c:___lldiv@dividend+1)
-	movff	(c:report_measurement@magnitude+2),(c:___lldiv@dividend+2)
-	movff	(c:report_measurement@magnitude+3),(c:___lldiv@dividend+3)
-	movlw	low(064h)
-	movwf	((c:___lldiv@divisor))^0500h,c
-	movlw	high(064h)
-	movwf	((c:___lldiv@divisor+1))^0500h,c
-	movlw	low highword(064h)
-	movwf	((c:___lldiv@divisor+2))^0500h,c
-	movlw	high highword(064h)
-	movwf	((c:___lldiv@divisor+3))^0500h,c
-	call	___lldiv	;wreg free
-	movff	0+?___lldiv,(c:_report_measurement$1623)
-	movff	1+?___lldiv,(c:_report_measurement$1623+1)
-	movff	2+?___lldiv,(c:_report_measurement$1623+2)
-	movff	3+?___lldiv,(c:_report_measurement$1623+3)
-	
-	
-l3116:
-	movff	(c:_report_measurement$1623),(c:uart_put_uint32@value)
-	movff	(c:_report_measurement$1623+1),(c:uart_put_uint32@value+1)
-	movff	(c:_report_measurement$1623+2),(c:uart_put_uint32@value+2)
-	movff	(c:_report_measurement$1623+3),(c:uart_put_uint32@value+3)
-	call	_uart_put_uint32	;wreg free
-	line	311
-	
-l3118:
-		movlw	low(STR_34)
-	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_34)
-	movwf	((c:uart_puts@text+1))^0500h,c
-
-	call	_uart_puts	;wreg free
-	line	312
-	
-l3120:
-	movff	(c:report_measurement@magnitude),(c:___llmod@dividend)
-	movff	(c:report_measurement@magnitude+1),(c:___llmod@dividend+1)
-	movff	(c:report_measurement@magnitude+2),(c:___llmod@dividend+2)
-	movff	(c:report_measurement@magnitude+3),(c:___llmod@dividend+3)
-	movlw	low(064h)
-	movwf	((c:___llmod@divisor))^0500h,c
-	movlw	high(064h)
-	movwf	((c:___llmod@divisor+1))^0500h,c
-	movlw	low highword(064h)
-	movwf	((c:___llmod@divisor+2))^0500h,c
-	movlw	high highword(064h)
-	movwf	((c:___llmod@divisor+3))^0500h,c
-	call	___llmod	;wreg free
-		movf	(3+?___llmod)^0500h,c,w
-	iorwf	(2+?___llmod)^0500h,c,w
-	iorwf	(1+?___llmod)^0500h,c,w
-	bnz	u2791
-	movlw	10
-	subwf	 (0+?___llmod)^0500h,c,w
-	btfsc	status,0
-	goto	u2791
-	goto	u2790
-
-u2791:
-	goto	l3124
-u2790:
-	
-l3122:
-		movlw	low(STR_35)
-	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_35)
-	movwf	((c:uart_puts@text+1))^0500h,c
-
-	call	_uart_puts	;wreg free
-	line	313
-	
-l3124:
-	movff	(c:report_measurement@magnitude),(c:___llmod@dividend)
-	movff	(c:report_measurement@magnitude+1),(c:___llmod@dividend+1)
-	movff	(c:report_measurement@magnitude+2),(c:___llmod@dividend+2)
-	movff	(c:report_measurement@magnitude+3),(c:___llmod@dividend+3)
-	movlw	low(064h)
-	movwf	((c:___llmod@divisor))^0500h,c
-	movlw	high(064h)
-	movwf	((c:___llmod@divisor+1))^0500h,c
-	movlw	low highword(064h)
-	movwf	((c:___llmod@divisor+2))^0500h,c
-	movlw	high highword(064h)
-	movwf	((c:___llmod@divisor+3))^0500h,c
-	call	___llmod	;wreg free
-	movff	0+?___llmod,(c:_report_measurement$1624)
-	movff	1+?___llmod,(c:_report_measurement$1624+1)
-	movff	2+?___llmod,(c:_report_measurement$1624+2)
-	movff	3+?___llmod,(c:_report_measurement$1624+3)
-	
-	
-l3126:
-	movff	(c:_report_measurement$1624),(c:uart_put_uint32@value)
-	movff	(c:_report_measurement$1624+1),(c:uart_put_uint32@value+1)
-	movff	(c:_report_measurement$1624+2),(c:uart_put_uint32@value+2)
-	movff	(c:_report_measurement$1624+3),(c:uart_put_uint32@value+3)
-	call	_uart_put_uint32	;wreg free
-	line	314
-	
-l3128:
-		movlw	low(STR_36)
-	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_36)
-	movwf	((c:uart_puts@text+1))^0500h,c
-
-	call	_uart_puts	;wreg free
-	line	316
-	
-l3130:
-	movf	((c:report_measurement@can_sent))^0500h,c,w
-	btfss	status,2
-	goto	u2801
-	goto	u2800
-u2801:
-	goto	l3134
-u2800:
-	
-l3132:
-		movlw	low(STR_38)
-	movwf	((c:_report_measurement$770))^0500h,c
-	movlw	high(STR_38)
-	movwf	((c:_report_measurement$770+1))^0500h,c
-
-	goto	l3136
-	
-l3134:
-		movlw	low(STR_37)
-	movwf	((c:_report_measurement$770))^0500h,c
-	movlw	high(STR_37)
-	movwf	((c:_report_measurement$770+1))^0500h,c
-
-	
-l3136:
-		movff	(c:_report_measurement$770),(c:uart_puts@text)
-	movff	(c:_report_measurement$770+1),(c:uart_puts@text+1)
-
-	call	_uart_puts	;wreg free
-	line	317
-	
-l3138:
-		movlw	low(STR_39)
-	movwf	((c:uart_puts@text))^0500h,c
-	movlw	high(STR_39)
-	movwf	((c:uart_puts@text+1))^0500h,c
-
-	call	_uart_puts	;wreg free
-	line	318
-	
-l211:
+l226:
 	return	;funcret
 	callstack 0
-GLOBAL	__end_of_report_measurement
-	__end_of_report_measurement:
-	signat	_report_measurement,16505
+GLOBAL	__end_of_report_voltage
+	__end_of_report_voltage:
+	signat	_report_voltage,8313
+	global	_nominal_millivolts
+
+;; *************** function _nominal_millivolts *****************
+;; Defined at:
+;;		line 269 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;; Parameters:    Size  Location     Type
+;;  adc             2   25[COMRAM] unsigned short 
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  2   25[COMRAM] unsigned short 
+;; Registers used:
+;;		wreg, status,2, status,0, cstack
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
+;;      Params:         2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Totals:         2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;Total ram usage:        2 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 1
+;; This function calls:
+;;		___lldiv
+;;		___lmul
+;; This function is called by:
+;;		_report_voltage
+;; This function uses a non-reentrant model
+;;
+psect	text3,class=CODE,space=0,reloc=2,group=0
+	line	269
+global __ptext3
+__ptext3:
+psect	text3
+	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+	line	269
+	
+_nominal_millivolts:
+;incstack = 0
+	callstack 124
+	line	271
+	
+l1499:
+	movff	(c:nominal_millivolts@adc),(c:___lmul@multiplier)
+	movff	(c:nominal_millivolts@adc+1),(c:___lmul@multiplier+1)
+	clrf	((c:___lmul@multiplier+2))^0500h,c
+	clrf	((c:___lmul@multiplier+3))^0500h,c
+	movlw	low(01388h)
+	movwf	((c:___lmul@multiplicand))^0500h,c
+	movlw	high(01388h)
+	movwf	((c:___lmul@multiplicand+1))^0500h,c
+	movlw	low highword(01388h)
+	movwf	((c:___lmul@multiplicand+2))^0500h,c
+	movlw	high highword(01388h)
+	movwf	((c:___lmul@multiplicand+3))^0500h,c
+	call	___lmul	;wreg free
+	movlw	0FFh
+	addwf	(0+?___lmul)^0500h,c,w
+	movwf	((c:___lldiv@dividend))^0500h,c
+	movlw	07h
+	addwfc	(1+?___lmul)^0500h,c,w
+	movwf	1+((c:___lldiv@dividend))^0500h,c
+	
+	movlw	0
+	addwfc	(2+?___lmul)^0500h,c,w
+	movwf	2+((c:___lldiv@dividend))^0500h,c
+	
+	movlw	0
+	addwfc	(3+?___lmul)^0500h,c,w
+	movwf	3+((c:___lldiv@dividend))^0500h,c
+	movlw	low(0FFFh)
+	movwf	((c:___lldiv@divisor))^0500h,c
+	movlw	high(0FFFh)
+	movwf	((c:___lldiv@divisor+1))^0500h,c
+	movlw	low highword(0FFFh)
+	movwf	((c:___lldiv@divisor+2))^0500h,c
+	movlw	high highword(0FFFh)
+	movwf	((c:___lldiv@divisor+3))^0500h,c
+	call	___lldiv	;wreg free
+	movff	0+?___lldiv,(c:?_nominal_millivolts)
+	movff	1+?___lldiv,(c:?_nominal_millivolts+1)
+	line	272
+	
+l215:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_nominal_millivolts
+	__end_of_nominal_millivolts:
+	signat	_nominal_millivolts,4218
+	global	___lmul
+
+;; *************** function ___lmul *****************
+;; Defined at:
+;;		line 15 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul32.c"
+;; Parameters:    Size  Location     Type
+;;  multiplier      4    0[COMRAM] unsigned long 
+;;  multiplicand    4    4[COMRAM] unsigned long 
+;; Auto vars:     Size  Location     Type
+;;  product         4    8[COMRAM] unsigned long 
+;; Return value:  Size  Location     Type
+;;                  4    0[COMRAM] unsigned long 
+;; Registers used:
+;;		wreg, status,2, status,0
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
+;;      Params:         8       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Locals:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Totals:        12       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;Total ram usage:       12 bytes
+;; Hardware stack levels used: 1
+;; This function calls:
+;;		Nothing
+;; This function is called by:
+;;		_nominal_millivolts
+;; This function uses a non-reentrant model
+;;
+psect	text4,class=CODE,space=0,reloc=2,group=1
+	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul32.c"
+	line	15
+global __ptext4
+__ptext4:
+psect	text4
+	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul32.c"
+	line	15
+	
+___lmul:
+;incstack = 0
+	callstack 124
+	line	119
+	
+l1407:
+	movlw	low(0)
+	movwf	((c:___lmul@product))^0500h,c
+	movlw	high(0)
+	movwf	((c:___lmul@product+1))^0500h,c
+	movlw	low highword(0)
+	movwf	((c:___lmul@product+2))^0500h,c
+	movlw	high highword(0)
+	movwf	((c:___lmul@product+3))^0500h,c
+	line	121
+	
+l1409:
+	
+	btfss	((c:___lmul@multiplier))^0500h,c,(0)&7
+	goto	u341
+	goto	u340
+u341:
+	goto	l1413
+u340:
+	line	122
+	
+l1411:
+	movf	((c:___lmul@multiplicand))^0500h,c,w
+	addwf	((c:___lmul@product))^0500h,c
+	movf	((c:___lmul@multiplicand+1))^0500h,c,w
+	addwfc	((c:___lmul@product+1))^0500h,c
+	movf	((c:___lmul@multiplicand+2))^0500h,c,w
+	addwfc	((c:___lmul@product+2))^0500h,c
+	movf	((c:___lmul@multiplicand+3))^0500h,c,w
+	addwfc	((c:___lmul@product+3))^0500h,c
+	line	123
+	
+l1413:
+	bcf	status,0
+	rlcf	((c:___lmul@multiplicand))^0500h,c
+	rlcf	((c:___lmul@multiplicand+1))^0500h,c
+	rlcf	((c:___lmul@multiplicand+2))^0500h,c
+	rlcf	((c:___lmul@multiplicand+3))^0500h,c
+	line	124
+	
+l1415:
+	bcf	status,0
+	rrcf	((c:___lmul@multiplier+3))^0500h,c
+	rrcf	((c:___lmul@multiplier+2))^0500h,c
+	rrcf	((c:___lmul@multiplier+1))^0500h,c
+	rrcf	((c:___lmul@multiplier))^0500h,c
+	line	125
+	movf	((c:___lmul@multiplier))^0500h,c,w
+iorwf	((c:___lmul@multiplier+1))^0500h,c,w
+iorwf	((c:___lmul@multiplier+2))^0500h,c,w
+iorwf	((c:___lmul@multiplier+3))^0500h,c,w
+	btfss	status,2
+	goto	u351
+	goto	u350
+
+u351:
+	goto	l1409
+u350:
+	
+l253:
+	line	128
+	movff	(c:___lmul@product),(c:?___lmul)
+	movff	(c:___lmul@product+1),(c:?___lmul+1)
+	movff	(c:___lmul@product+2),(c:?___lmul+2)
+	movff	(c:___lmul@product+3),(c:?___lmul+3)
+	line	129
+	
+l254:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of___lmul
+	__end_of___lmul:
+	signat	___lmul,8316
 	global	_report_can_diagnostics
 
 ;; *************** function _report_can_diagnostics *****************
 ;; Defined at:
-;;		line 215 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 206 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -9046,20 +4578,21 @@ GLOBAL	__end_of_report_measurement
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text11,class=CODE,space=0,reloc=2,group=0
-	line	215
-global __ptext11
-__ptext11:
-psect	text11
+psect	text5,class=CODE,space=0,reloc=2,group=0
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	215
+	line	206
+global __ptext5
+__ptext5:
+psect	text5
+	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+	line	206
 	
 _report_can_diagnostics:
 ;incstack = 0
 	callstack 124
-	line	217
+	line	208
 	
-l2954:
+l1629:
 		movlw	low(STR_1)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_1)
@@ -9067,7 +4600,7 @@ l2954:
 
 	call	_uart_puts	;wreg free
 	
-l2956:
+l1631:
 	movlb	1	; () banked
 	swapf	((258))&0ffh,w	;volatile
 	rrcf	wreg,f
@@ -9080,9 +4613,9 @@ l2956:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	218
+	line	209
 	
-l2958:
+l1633:
 		movlw	low(STR_2)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_2)
@@ -9097,9 +4630,9 @@ l2958:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	219
+	line	210
 	
-l2960:
+l1635:
 		movlw	low(STR_3)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_3)
@@ -9107,7 +4640,7 @@ l2960:
 
 	call	_uart_puts	;wreg free
 	
-l2962:
+l1637:
 	movlb	1	; () banked
 	movf	((308))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9116,7 +4649,7 @@ l2962:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	220
+	line	211
 		movlw	low(STR_4)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_4)
@@ -9124,7 +4657,7 @@ l2962:
 
 	call	_uart_puts	;wreg free
 	
-l2964:
+l1639:
 	movlb	1	; () banked
 	movf	((310))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9133,9 +4666,9 @@ l2964:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	221
+	line	212
 	
-l2966:
+l1641:
 		movlw	low(STR_5)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_5)
@@ -9150,9 +4683,9 @@ l2966:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	222
+	line	213
 	
-l2968:
+l1643:
 		movlw	low(STR_6)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_6)
@@ -9160,7 +4693,7 @@ l2968:
 
 	call	_uart_puts	;wreg free
 	
-l2970:
+l1645:
 	movlb	1	; () banked
 	movf	((337))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9169,7 +4702,7 @@ l2970:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	223
+	line	214
 		movlw	low(STR_7)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_7)
@@ -9177,15 +4710,15 @@ l2970:
 
 	call	_uart_puts	;wreg free
 	
-l2972:
+l1647:
 	movff	(344),(c:uart_put_uint32@value)	;volatile
 	movff	(344+1),(c:uart_put_uint32@value+1)	;volatile
 	movff	(344+2),(c:uart_put_uint32@value+2)	;volatile
 	movff	(344+3),(c:uart_put_uint32@value+3)	;volatile
 	call	_uart_put_uint32	;wreg free
-	line	224
+	line	215
 	
-l2974:
+l1649:
 		movlw	low(STR_8)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_8)
@@ -9200,9 +4733,9 @@ l2974:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	225
+	line	216
 	
-l2976:
+l1651:
 		movlw	low(STR_9)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_9)
@@ -9210,7 +4743,7 @@ l2976:
 
 	call	_uart_puts	;wreg free
 	
-l2978:
+l1653:
 	movlb	1	; () banked
 	movf	((257))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9219,7 +4752,7 @@ l2978:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	226
+	line	217
 		movlw	low(STR_10)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_10)
@@ -9227,7 +4760,7 @@ l2978:
 
 	call	_uart_puts	;wreg free
 	
-l2980:
+l1655:
 	movlb	1	; () banked
 	movf	((258))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9236,9 +4769,9 @@ l2980:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	227
+	line	218
 	
-l2982:
+l1657:
 		movlw	low(STR_11)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_11)
@@ -9253,9 +4786,9 @@ l2982:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	228
+	line	219
 	
-l2984:
+l1659:
 		movlw	low(STR_12)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_12)
@@ -9263,17 +4796,17 @@ l2984:
 
 	call	_uart_puts	;wreg free
 	
-l2986:
+l1661:
 	btfsc	((c:1231))^0400h,c,3	;volatile
-	goto	u2681
-	goto	u2680
-u2681:
+	goto	u581
+	goto	u580
+u581:
 	clrf	(??_report_can_diagnostics+0)^0500h,c
 	incf	(??_report_can_diagnostics+0)^0500h,c
-	goto	u2688
-u2680:
+	goto	u588
+u580:
 	clrf	(??_report_can_diagnostics+0)^0500h,c
-u2688:
+u588:
 	movf	(??_report_can_diagnostics+0)^0500h,c,w
 	movwf	((c:uart_put_uint32@value))^0500h,c
 	clrf	((c:uart_put_uint32@value+1))^0500h,c
@@ -9281,7 +4814,7 @@ u2688:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	229
+	line	220
 		movlw	low(STR_13)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_13)
@@ -9289,7 +4822,7 @@ u2688:
 
 	call	_uart_puts	;wreg free
 	
-l2988:
+l1663:
 	movlb	1	; () banked
 	movf	((317))&0ffh,w	;volatile
 	movwf	(??_report_can_diagnostics+0+1)^0500h,c
@@ -9300,9 +4833,9 @@ l2988:
 	clrf	((c:uart_put_uint32@value+2))^0500h,c
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 	call	_uart_put_uint32	;wreg free
-	line	230
+	line	221
 	
-l2990:
+l1665:
 		movlw	low(STR_14)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_14)
@@ -9317,9 +4850,9 @@ l2990:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	231
+	line	222
 	
-l2992:
+l1667:
 		movlw	low(STR_15)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_15)
@@ -9327,7 +4860,7 @@ l2992:
 
 	call	_uart_puts	;wreg free
 	
-l2994:
+l1669:
 	movlb	1	; () banked
 	movf	((338))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9336,7 +4869,7 @@ l2994:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	232
+	line	223
 		movlw	low(STR_16)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_16)
@@ -9344,7 +4877,7 @@ l2994:
 
 	call	_uart_puts	;wreg free
 	
-l2996:
+l1671:
 	movlb	1	; () banked
 	movf	((336))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9353,9 +4886,9 @@ l2996:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	233
+	line	224
 	
-l2998:
+l1673:
 		movlw	low(STR_17)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_17)
@@ -9370,9 +4903,9 @@ l2998:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	234
+	line	225
 	
-l3000:
+l1675:
 		movlw	low(STR_18)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_18)
@@ -9380,7 +4913,7 @@ l3000:
 
 	call	_uart_puts	;wreg free
 	
-l3002:
+l1677:
 	movlb	1	; () banked
 	movf	((319))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9389,7 +4922,7 @@ l3002:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	235
+	line	226
 		movlw	low(STR_19)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_19)
@@ -9397,7 +4930,7 @@ l3002:
 
 	call	_uart_puts	;wreg free
 	
-l3004:
+l1679:
 	movlb	2	; () banked
 	movf	((523))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9406,9 +4939,9 @@ l3004:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	236
+	line	227
 	
-l3006:
+l1681:
 		movlw	low(STR_20)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_20)
@@ -9423,9 +4956,9 @@ l3006:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	237
+	line	228
 	
-l3008:
+l1683:
 		movlw	low(STR_21)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_21)
@@ -9433,7 +4966,7 @@ l3008:
 
 	call	_uart_puts	;wreg free
 	
-l3010:
+l1685:
 	movf	((c:1223))^0400h,c,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
 	clrf	((c:uart_put_uint32@value+1))^0500h,c
@@ -9441,7 +4974,7 @@ l3010:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	238
+	line	229
 		movlw	low(STR_22)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_22)
@@ -9449,7 +4982,7 @@ l3010:
 
 	call	_uart_puts	;wreg free
 	
-l3012:
+l1687:
 	movlb	4	; () banked
 	movf	((1032))&0ffh,w	;volatile
 	movwf	((c:uart_put_uint32@value))^0500h,c
@@ -9458,18 +4991,18 @@ l3012:
 	clrf	((c:uart_put_uint32@value+3))^0500h,c
 
 	call	_uart_put_uint32	;wreg free
-	line	239
+	line	230
 	
-l3014:
+l1689:
 		movlw	low(STR_23)
 	movwf	((c:uart_puts@text))^0500h,c
 	movlw	high(STR_23)
 	movwf	((c:uart_puts@text+1))^0500h,c
 
 	call	_uart_puts	;wreg free
-	line	240
+	line	231
 	
-l185:
+l198:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_report_can_diagnostics
@@ -9479,19 +5012,19 @@ GLOBAL	__end_of_report_can_diagnostics
 
 ;; *************** function _uart_puts *****************
 ;; Defined at:
-;;		line 192 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 183 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
 ;;  text            2    0[COMRAM] PTR const unsigned char 
-;;		 -> STR_40(101), STR_39(3), STR_38(5), STR_37(7), 
-;;		 -> STR_36(12), STR_35(2), STR_34(2), STR_33(2), 
-;;		 -> STR_32(9), STR_31(8), STR_30(7), STR_29(9), 
-;;		 -> STR_28(40), STR_27(7), STR_26(9), STR_25(38), 
-;;		 -> STR_24(11), STR_23(3), STR_22(8), STR_21(7), 
-;;		 -> STR_20(8), STR_19(8), STR_18(9), STR_17(9), 
-;;		 -> STR_16(10), STR_15(7), STR_14(8), STR_13(7), 
-;;		 -> STR_12(6), STR_11(7), STR_10(7), STR_9(7), 
-;;		 -> STR_8(7), STR_7(5), STR_6(6), STR_5(6), 
-;;		 -> STR_4(8), STR_3(8), STR_2(8), STR_1(8), 
+;;		 -> STR_37(7), STR_36(9), STR_35(19), STR_34(6), 
+;;		 -> STR_33(6), STR_32(6), STR_31(125), STR_30(3), 
+;;		 -> STR_29(12), STR_28(10), STR_27(9), STR_26(9), 
+;;		 -> STR_25(13), STR_24(6), STR_23(3), STR_22(8), 
+;;		 -> STR_21(7), STR_20(8), STR_19(8), STR_18(9), 
+;;		 -> STR_17(9), STR_16(10), STR_15(7), STR_14(8), 
+;;		 -> STR_13(7), STR_12(6), STR_11(7), STR_10(7), 
+;;		 -> STR_9(7), STR_8(7), STR_7(5), STR_6(6), 
+;;		 -> STR_5(6), STR_4(8), STR_3(8), STR_2(8), 
+;;		 -> STR_1(8), 
 ;; Auto vars:     Size  Location     Type
 ;;		None
 ;; Return value:  Size  Location     Type
@@ -9513,38 +5046,38 @@ GLOBAL	__end_of_report_can_diagnostics
 ;;		Nothing
 ;; This function is called by:
 ;;		_report_can_diagnostics
-;;		_report_measurement
+;;		_report_voltage
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text12,class=CODE,space=0,reloc=2,group=0
-	line	192
-global __ptext12
-__ptext12:
-psect	text12
+psect	text6,class=CODE,space=0,reloc=2,group=0
+	line	183
+global __ptext6
+__ptext6:
+psect	text6
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	192
+	line	183
 	
 _uart_puts:
 ;incstack = 0
 	callstack 125
-	line	194
+	line	185
 	
-l2680:
-	goto	l2686
-	line	195
+l1477:
+	goto	l1483
+	line	186
 	
-l167:
+l180:
 	movlb	2	; () banked
 	btfsc	((688))&0ffh,4	;volatile
-	goto	u2421
-	goto	u2420
-u2421:
-	goto	l167
-u2420:
-	line	196
+	goto	u471
+	goto	u470
+u471:
+	goto	l180
+u470:
+	line	187
 	
-l2682:; BSR set to: 2
+l1479:; BSR set to: 2
 
 	movff	(c:uart_puts@text),tblptrl
 	movff	(c:uart_puts@text+1),tblptrh
@@ -9560,13 +5093,13 @@ movlw	low highword(__mediumconst)
 	
 	movff	tablat,(675)	;volatile
 	
-l2684:; BSR set to: 2
+l1481:; BSR set to: 2
 
 	infsnz	((c:uart_puts@text))^0500h,c
 	incf	((c:uart_puts@text+1))^0500h,c
-	line	194
+	line	185
 	
-l2686:
+l1483:
 	movff	(c:uart_puts@text),tblptrl
 	movff	(c:uart_puts@text+1),tblptrh
 	if	0	;tblptru may be non-zero
@@ -9582,14 +5115,14 @@ movlw	low highword(__mediumconst)
 	movf	tablat,w
 	iorlw	0
 	btfss	status,2
-	goto	u2431
-	goto	u2430
-u2431:
-	goto	l167
-u2430:
-	line	198
+	goto	u481
+	goto	u480
+u481:
+	goto	l180
+u480:
+	line	189
 	
-l171:
+l184:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_uart_puts
@@ -9599,12 +5132,12 @@ GLOBAL	__end_of_uart_puts
 
 ;; *************** function _uart_put_uint32 *****************
 ;; Defined at:
-;;		line 200 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 191 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
-;;  value           4   25[COMRAM] unsigned long 
+;;  value           4   27[COMRAM] unsigned long 
 ;; Auto vars:     Size  Location     Type
-;;  digits         10   29[COMRAM] unsigned char [10]
-;;  count           1   39[COMRAM] unsigned char 
+;;  digits         10   31[COMRAM] unsigned char [10]
+;;  count           1   41[COMRAM] unsigned char 
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      void 
 ;; Registers used:
@@ -9625,27 +5158,27 @@ GLOBAL	__end_of_uart_puts
 ;;		___llmod
 ;; This function is called by:
 ;;		_report_can_diagnostics
-;;		_report_measurement
+;;		_report_voltage
 ;; This function uses a non-reentrant model
 ;;
-psect	text13,class=CODE,space=0,reloc=2,group=0
-	line	200
-global __ptext13
-__ptext13:
-psect	text13
+psect	text7,class=CODE,space=0,reloc=2,group=0
+	line	191
+global __ptext7
+__ptext7:
+psect	text7
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	200
+	line	191
 	
 _uart_put_uint32:
 ;incstack = 0
 	callstack 125
-	line	203
+	line	194
 	
-l2688:
+l1485:
 	clrf	((c:uart_put_uint32@count))^0500h,c
-	line	206
+	line	197
 	
-l2690:
+l1487:
 	movlw	low(uart_put_uint32@digits)
 	addwf	((c:uart_put_uint32@count))^0500h,c,w
 	movwf	c:fsr2l
@@ -9670,11 +5203,11 @@ l2690:
 	movwf	indf2,c
 
 	
-l2692:
+l1489:
 	incf	((c:uart_put_uint32@count))^0500h,c
-	line	207
+	line	198
 	
-l2694:
+l1491:
 	movff	(c:uart_put_uint32@value),(c:___lldiv@dividend)
 	movff	(c:uart_put_uint32@value+1),(c:___lldiv@dividend+1)
 	movff	(c:uart_put_uint32@value+2),(c:___lldiv@dividend+2)
@@ -9693,34 +5226,34 @@ l2694:
 	movff	2+?___lldiv,(c:uart_put_uint32@value+2)
 	movff	3+?___lldiv,(c:uart_put_uint32@value+3)
 	
-	line	208
+	line	199
 	
-l2696:
+l1493:
 	movf	((c:uart_put_uint32@value))^0500h,c,w
 iorwf	((c:uart_put_uint32@value+1))^0500h,c,w
 iorwf	((c:uart_put_uint32@value+2))^0500h,c,w
 iorwf	((c:uart_put_uint32@value+3))^0500h,c,w
 	btfss	status,2
-	goto	u2441
-	goto	u2440
+	goto	u491
+	goto	u490
 
-u2441:
-	goto	l2690
-u2440:
-	goto	l2700
-	line	210
+u491:
+	goto	l1487
+u490:
+	goto	l1497
+	line	201
 	
-l178:
+l191:
 	movlb	2	; () banked
 	btfsc	((688))&0ffh,4	;volatile
-	goto	u2451
-	goto	u2450
-u2451:
-	goto	l178
-u2450:
-	line	211
+	goto	u501
+	goto	u500
+u501:
+	goto	l191
+u500:
+	line	202
 	
-l2698:; BSR set to: 2
+l1495:; BSR set to: 2
 
 	decf	((c:uart_put_uint32@count))^0500h,c
 	movlw	low(uart_put_uint32@digits)
@@ -9731,19 +5264,19 @@ l2698:; BSR set to: 2
 	addwfc	1+c:fsr2l
 	movf	indf2,w
 	movwf	((675))&0ffh	;volatile
-	line	209
+	line	200
 	
-l2700:
+l1497:
 	movf	((c:uart_put_uint32@count))^0500h,c,w
 	btfss	status,2
-	goto	u2461
-	goto	u2460
-u2461:
-	goto	l178
-u2460:
-	line	213
+	goto	u511
+	goto	u510
+u511:
+	goto	l191
+u510:
+	line	204
 	
-l182:
+l195:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_uart_put_uint32
@@ -9778,15 +5311,14 @@ GLOBAL	__end_of_uart_put_uint32
 ;;		Nothing
 ;; This function is called by:
 ;;		_uart_put_uint32
-;;		_report_measurement
 ;; This function uses a non-reentrant model
 ;;
-psect	text14,class=CODE,space=0,reloc=2,group=1
+psect	text8,class=CODE,space=0,reloc=2,group=1
 	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\llmod.c"
 	line	7
-global __ptext14
-__ptext14:
-psect	text14
+global __ptext8
+__ptext8:
+psect	text8
 	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\llmod.c"
 	line	7
 	
@@ -9795,28 +5327,28 @@ ___llmod:
 	callstack 124
 	line	12
 	
-l2618:
+l1439:
 	movf	((c:___llmod@divisor))^0500h,c,w
 iorwf	((c:___llmod@divisor+1))^0500h,c,w
 iorwf	((c:___llmod@divisor+2))^0500h,c,w
 iorwf	((c:___llmod@divisor+3))^0500h,c,w
 	btfsc	status,2
-	goto	u2291
-	goto	u2290
+	goto	u391
+	goto	u390
 
-u2291:
-	goto	l779
-u2290:
+u391:
+	goto	l772
+u390:
 	line	13
 	
-l2620:
+l1441:
 	movlw	low(01h)
 	movwf	((c:___llmod@counter))^0500h,c
 	line	14
-	goto	l2624
+	goto	l1445
 	line	15
 	
-l2622:
+l1443:
 	bcf	status,0
 	rlcf	((c:___llmod@divisor))^0500h,c
 	rlcf	((c:___llmod@divisor+1))^0500h,c
@@ -9826,17 +5358,17 @@ l2622:
 	incf	((c:___llmod@counter))^0500h,c
 	line	14
 	
-l2624:
+l1445:
 	
 	btfss	((c:___llmod@divisor+3))^0500h,c,(31)&7
-	goto	u2301
-	goto	u2300
-u2301:
-	goto	l2622
-u2300:
+	goto	u401
+	goto	u400
+u401:
+	goto	l1443
+u400:
 	line	19
 	
-l2626:
+l1447:
 		movf	((c:___llmod@divisor))^0500h,c,w
 	subwf	((c:___llmod@dividend))^0500h,c,w
 	movf	((c:___llmod@divisor+1))^0500h,c,w
@@ -9846,15 +5378,15 @@ l2626:
 	movf	((c:___llmod@divisor+3))^0500h,c,w
 	subwfb	((c:___llmod@dividend+3))^0500h,c,w
 	btfss	status,0
-	goto	u2311
-	goto	u2310
+	goto	u411
+	goto	u410
 
-u2311:
-	goto	l2630
-u2310:
+u411:
+	goto	l1451
+u410:
 	line	20
 	
-l2628:
+l1449:
 	movf	((c:___llmod@divisor))^0500h,c,w
 	subwf	((c:___llmod@dividend))^0500h,c
 	movf	((c:___llmod@divisor+1))^0500h,c,w
@@ -9865,7 +5397,7 @@ l2628:
 	subwfb	((c:___llmod@dividend+3))^0500h,c
 	line	21
 	
-l2630:
+l1451:
 	bcf	status,0
 	rrcf	((c:___llmod@divisor+3))^0500h,c
 	rrcf	((c:___llmod@divisor+2))^0500h,c
@@ -9873,13 +5405,13 @@ l2630:
 	rrcf	((c:___llmod@divisor))^0500h,c
 	line	22
 	
-l2632:
+l1453:
 	decfsz	((c:___llmod@counter))^0500h,c
 	
-	goto	l2626
+	goto	l1447
 	line	23
 	
-l779:
+l772:
 	line	24
 	movff	(c:___llmod@dividend),(c:?___llmod)
 	movff	(c:___llmod@dividend+1),(c:?___llmod+1)
@@ -9887,7 +5419,7 @@ l779:
 	movff	(c:___llmod@dividend+3),(c:?___llmod+3)
 	line	25
 	
-l786:
+l779:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of___llmod
@@ -9923,16 +5455,15 @@ GLOBAL	__end_of___llmod
 ;;		Nothing
 ;; This function is called by:
 ;;		_uart_put_uint32
-;;		_report_measurement
-;;		_main
+;;		_nominal_millivolts
 ;; This function uses a non-reentrant model
 ;;
-psect	text15,class=CODE,space=0,reloc=2,group=1
+psect	text9,class=CODE,space=0,reloc=2,group=1
 	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\__lldiv.c"
 	line	7
-global __ptext15
-__ptext15:
-psect	text15
+global __ptext9
+__ptext9:
+psect	text9
 	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\__lldiv.c"
 	line	7
 	
@@ -9941,7 +5472,7 @@ ___lldiv:
 	callstack 124
 	line	13
 	
-l2326:
+l1417:
 	movlw	low(0)
 	movwf	((c:___lldiv@quotient))^0500h,c
 	movlw	high(0)
@@ -9952,28 +5483,28 @@ l2326:
 	movwf	((c:___lldiv@quotient+3))^0500h,c
 	line	14
 	
-l2328:
+l1419:
 	movf	((c:___lldiv@divisor))^0500h,c,w
 iorwf	((c:___lldiv@divisor+1))^0500h,c,w
 iorwf	((c:___lldiv@divisor+2))^0500h,c,w
 iorwf	((c:___lldiv@divisor+3))^0500h,c,w
 	btfsc	status,2
-	goto	u1841
-	goto	u1840
+	goto	u361
+	goto	u360
 
-u1841:
-	goto	l276
-u1840:
+u361:
+	goto	l269
+u360:
 	line	15
 	
-l2330:
+l1421:
 	movlw	low(01h)
 	movwf	((c:___lldiv@counter))^0500h,c
 	line	16
-	goto	l2334
+	goto	l1425
 	line	17
 	
-l2332:
+l1423:
 	bcf	status,0
 	rlcf	((c:___lldiv@divisor))^0500h,c
 	rlcf	((c:___lldiv@divisor+1))^0500h,c
@@ -9983,17 +5514,17 @@ l2332:
 	incf	((c:___lldiv@counter))^0500h,c
 	line	16
 	
-l2334:
+l1425:
 	
 	btfss	((c:___lldiv@divisor+3))^0500h,c,(31)&7
-	goto	u1851
-	goto	u1850
-u1851:
-	goto	l2332
-u1850:
+	goto	u371
+	goto	u370
+u371:
+	goto	l1423
+u370:
 	line	21
 	
-l2336:
+l1427:
 	bcf	status,0
 	rlcf	((c:___lldiv@quotient))^0500h,c
 	rlcf	((c:___lldiv@quotient+1))^0500h,c
@@ -10001,7 +5532,7 @@ l2336:
 	rlcf	((c:___lldiv@quotient+3))^0500h,c
 	line	22
 	
-l2338:
+l1429:
 		movf	((c:___lldiv@divisor))^0500h,c,w
 	subwf	((c:___lldiv@dividend))^0500h,c,w
 	movf	((c:___lldiv@divisor+1))^0500h,c,w
@@ -10011,15 +5542,15 @@ l2338:
 	movf	((c:___lldiv@divisor+3))^0500h,c,w
 	subwfb	((c:___lldiv@dividend+3))^0500h,c,w
 	btfss	status,0
-	goto	u1861
-	goto	u1860
+	goto	u381
+	goto	u380
 
-u1861:
-	goto	l2344
-u1860:
+u381:
+	goto	l1435
+u380:
 	line	23
 	
-l2340:
+l1431:
 	movf	((c:___lldiv@divisor))^0500h,c,w
 	subwf	((c:___lldiv@dividend))^0500h,c
 	movf	((c:___lldiv@divisor+1))^0500h,c,w
@@ -10030,11 +5561,11 @@ l2340:
 	subwfb	((c:___lldiv@dividend+3))^0500h,c
 	line	24
 	
-l2342:
+l1433:
 	bsf	(0+(0/8)+(c:___lldiv@quotient))^0500h,c,(0)&7
 	line	26
 	
-l2344:
+l1435:
 	bcf	status,0
 	rrcf	((c:___lldiv@divisor+3))^0500h,c
 	rrcf	((c:___lldiv@divisor+2))^0500h,c
@@ -10042,13 +5573,13 @@ l2344:
 	rrcf	((c:___lldiv@divisor))^0500h,c
 	line	27
 	
-l2346:
+l1437:
 	decfsz	((c:___lldiv@counter))^0500h,c
 	
-	goto	l2336
+	goto	l1427
 	line	28
 	
-l276:
+l269:
 	line	29
 	movff	(c:___lldiv@quotient),(c:?___lldiv)
 	movff	(c:___lldiv@quotient+1),(c:?___lldiv+1)
@@ -10056,353 +5587,449 @@ l276:
 	movff	(c:___lldiv@quotient+3),(c:?___lldiv+3)
 	line	30
 	
-l283:
+l276:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of___lldiv
 	__end_of___lldiv:
 	signat	___lldiv,8316
-	global	_can_send_oil_temperature
+	global	_can_send_voltages
 
-;; *************** function _can_send_oil_temperature *****************
+;; *************** function _can_send_voltages *****************
 ;; Defined at:
 ;;		line 158 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
-;;  centi_c         4    0[COMRAM] long 
-;;  adc             2    4[COMRAM] unsigned short 
-;;  resistance      4    6[COMRAM] unsigned long 
+;;  adc             2    6[COMRAM] PTR const unsigned short
+;;		 -> main@adc(6), 
 ;; Auto vars:     Size  Location     Type
-;;  object          2   12[COMRAM] PTR volatile unsigned ch
+;;  object          2   13[COMRAM] PTR volatile unsigned ch
 ;;		 -> RAM(11775), 
-;;  oil_temp        2   10[COMRAM] short 
+;;  i               1   12[COMRAM] unsigned char 
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      unsigned char 
 ;; Registers used:
-;;		wreg, fsr2l, fsr2h, status,2, status,0
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, prodl, prodh, cstack
 ;; Tracked objects:
 ;;		On entry : 0/0
 ;;		On exit  : 0/0
 ;;		Unchanged: 0/0
 ;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:        10       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        14       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       14 bytes
+;;      Params:         2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Locals:         3       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Temps:          4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Totals:         9       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;Total ram usage:        9 bytes
 ;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 1
 ;; This function calls:
-;;		Nothing
+;;		_rail_flags
 ;; This function is called by:
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text16,class=CODE,space=0,reloc=2,group=0
+psect	text10,class=CODE,space=0,reloc=2,group=0
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 	line	158
-global __ptext16
-__ptext16:
-psect	text16
+global __ptext10
+__ptext10:
+psect	text10
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 	line	158
 	
-_can_send_oil_temperature:
+_can_send_voltages:
 ;incstack = 0
-	callstack 126
-	line	165
+	callstack 125
+	line	162
 	
-l2892:
+l1579:
 	movlb	1	; () banked
 	btfsc	((340))&0ffh,0	;volatile
-	goto	u2641
-	goto	u2640
-u2641:
-	goto	l2898
-u2640:
+	goto	u551
+	goto	u550
+u551:
+	goto	l1585
+u550:
 	
-l2894:; BSR set to: 1
+l1581:; BSR set to: 1
 
 	movlw	(0)&0ffh
-	goto	l159
+	goto	l172
+	line	163
+	
+l1585:; BSR set to: 1
+
+		movff	(344),(c:can_send_voltages@object)	;volatile
+	movff	(344+1),(c:can_send_voltages@object+1)	;volatile
+
+	line	164
+	movf	((c:can_send_voltages@object))^0500h,c,w
+iorwf	((c:can_send_voltages@object+1))^0500h,c,w
+	btfss	status,2
+	goto	u561
+	goto	u560
+
+u561:
+	goto	l1591
+u560:
+	goto	l1581
+	line	165
+	
+l1591:; BSR set to: 1
+
+	movff	(c:can_send_voltages@object),fsr2l
+	movff	(c:can_send_voltages@object+1),fsr2h
+	movlw	low(080h)
+	movwf	indf2
 	line	166
 	
-l2898:; BSR set to: 1
-
-	btfsc	((c:can_send_oil_temperature@centi_c+3))^0500h,c,7
-	goto	u2651
-	movf	((c:can_send_oil_temperature@centi_c+3))^0500h,c,w
-	iorwf	((c:can_send_oil_temperature@centi_c+2))^0500h,c,w
-	bnz	u2650
-	movlw	128
-	subwf	 ((c:can_send_oil_temperature@centi_c+1))^0500h,c,w
-	btfss	status,0
-	goto	u2651
-	goto	u2650
-
-u2651:
-	goto	l2902
-u2650:
-	
-l2900:; BSR set to: 1
-
-	movlw	low(07FFFh)
-	movwf	((c:can_send_oil_temperature@centi_c))^0500h,c
-	movlw	high(07FFFh)
-	movwf	((c:can_send_oil_temperature@centi_c+1))^0500h,c
-	movlw	low highword(07FFFh)
-	movwf	((c:can_send_oil_temperature@centi_c+2))^0500h,c
-	movlw	high highword(07FFFh)
-	movwf	((c:can_send_oil_temperature@centi_c+3))^0500h,c
-	line	167
-	
-l2902:; BSR set to: 1
-
-	btfss	((c:can_send_oil_temperature@centi_c+3))^0500h,c,7
-	goto	u2661
-	movlw	128
-	subwf	 ((c:can_send_oil_temperature@centi_c+1))^0500h,c,w
-	movlw	255
-	subwfb	((c:can_send_oil_temperature@centi_c+2))^0500h,c,w
-	movlw	255
-	subwfb	((c:can_send_oil_temperature@centi_c+3))^0500h,c,w
-	btfsc	status,0
-	goto	u2661
-	goto	u2660
-
-u2661:
-	goto	l2906
-u2660:
-	
-l2904:; BSR set to: 1
-
-	movlw	low(-32768)
-	movwf	((c:can_send_oil_temperature@centi_c))^0500h,c
-	movlw	high(-32768)
-	movwf	((c:can_send_oil_temperature@centi_c+1))^0500h,c
-	movlw	low highword(-32768)
-	movwf	((c:can_send_oil_temperature@centi_c+2))^0500h,c
-	movlw	high highword(-32768)
-	movwf	((c:can_send_oil_temperature@centi_c+3))^0500h,c
-	line	168
-	
-l2906:; BSR set to: 1
-
-	movff	(c:can_send_oil_temperature@centi_c),(c:can_send_oil_temperature@oil_temp)
-	movff	(c:can_send_oil_temperature@centi_c+1),(c:can_send_oil_temperature@oil_temp+1)
-	line	169
-	
-l2908:; BSR set to: 1
-
-		movff	(344),(c:can_send_oil_temperature@object)	;volatile
-	movff	(344+1),(c:can_send_oil_temperature@object+1)	;volatile
-
-	line	170
-	
-l2910:; BSR set to: 1
-
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-iorwf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	btfss	status,2
-	goto	u2671
-	goto	u2670
-
-u2671:
-	goto	l2916
-u2670:
-	goto	l2894
-	line	172
-	
-l2916:; BSR set to: 1
-
-	movff	(c:can_send_oil_temperature@object),fsr2l
-	movff	(c:can_send_oil_temperature@object+1),fsr2h
-	clrf	indf2
-	line	173
-	
-l2918:; BSR set to: 1
+l1593:; BSR set to: 1
 
 	lfsr	2,01h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
+	movf	((c:can_send_voltages@object))^0500h,c,w
 	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
 	addwfc	fsr2h
-	movlw	low(06h)
+	movlw	low(05h)
 	movwf	indf2
-	line	174
+	line	167
 	
-l2920:; BSR set to: 1
+l1595:; BSR set to: 1
 
 	lfsr	2,02h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
+	movf	((c:can_send_voltages@object))^0500h,c,w
 	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
 	addwfc	fsr2h
 	clrf	indf2
-	line	175
+	line	168
 	
-l2922:; BSR set to: 1
+l1597:; BSR set to: 1
 
 	lfsr	2,03h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
+	movf	((c:can_send_voltages@object))^0500h,c,w
 	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
 	addwfc	fsr2h
 	clrf	indf2
-	line	176
+	line	169
 	
-l2924:; BSR set to: 1
+l1599:; BSR set to: 1
 
 	lfsr	2,04h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
+	movf	((c:can_send_voltages@object))^0500h,c,w
 	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
 	addwfc	fsr2h
 	movlw	low(08h)
 	movwf	indf2
-	line	177
+	line	170
 	
-l2926:; BSR set to: 1
+l1601:; BSR set to: 1
 
 	lfsr	2,05h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
+	movf	((c:can_send_voltages@object))^0500h,c,w
 	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
 	addwfc	fsr2h
 	clrf	indf2
-	line	178
+	line	171
 	
-l2928:; BSR set to: 1
+l1603:; BSR set to: 1
 
 	lfsr	2,06h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
+	movf	((c:can_send_voltages@object))^0500h,c,w
 	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
 	addwfc	fsr2h
 	clrf	indf2
-	line	179
+	line	172
 	
-l2930:; BSR set to: 1
+l1605:; BSR set to: 1
 
 	lfsr	2,07h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
+	movf	((c:can_send_voltages@object))^0500h,c,w
 	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
 	addwfc	fsr2h
 	clrf	indf2
+	line	173
+	
+l1607:; BSR set to: 1
+
+	clrf	((c:can_send_voltages@i))^0500h,c
+	line	174
+	
+l1613:
+	movf	((c:can_send_voltages@i))^0500h,c,w
+	mullw	02h
+	movf	(prodl)^0400h,c,w
+	addwf	((c:can_send_voltages@adc))^0500h,c,w
+	movwf	c:fsr2l
+	movf	(prodh)^0400h,c,w
+	addwfc	((c:can_send_voltages@adc+1))^0500h,c,w
+	movwf	1+c:fsr2l
+	movf	((c:can_send_voltages@i))^0500h,c,w
+	mullw	02h
+	movf	(prodl)^0400h,c,w
+	addwf	((c:can_send_voltages@object))^0500h,c,w
+	movwf	(??_can_send_voltages+0)^0500h,c
+	movf	(prodh)^0400h,c,w
+	addwfc	((c:can_send_voltages@object+1))^0500h,c,w
+	movwf	1+(??_can_send_voltages+0)^0500h,c
+	movlw	low(08h)
+	addwf	(??_can_send_voltages+0)^0500h,c,w
+	movwf	c:fsr1l
+	movlw	high(08h)
+	addwfc	(??_can_send_voltages+0+1)^0500h,c,w
+	movwf	1+c:fsr1l
+	movff	indf2,indf1
+	line	175
+	movf	((c:can_send_voltages@i))^0500h,c,w
+	mullw	02h
+	movf	(prodl)^0400h,c,w
+	addwf	((c:can_send_voltages@object))^0500h,c,w
+	movwf	(??_can_send_voltages+0)^0500h,c
+	movf	(prodh)^0400h,c,w
+	addwfc	((c:can_send_voltages@object+1))^0500h,c,w
+	movwf	1+(??_can_send_voltages+0)^0500h,c
+	movlw	low(09h)
+	addwf	(??_can_send_voltages+0)^0500h,c,w
+	movwf	c:fsr2l
+	movlw	high(09h)
+	addwfc	(??_can_send_voltages+0+1)^0500h,c,w
+	movwf	1+c:fsr2l
+	movf	((c:can_send_voltages@i))^0500h,c,w
+	mullw	02h
+	movf	(prodl)^0400h,c,w
+	addwf	((c:can_send_voltages@adc))^0500h,c,w
+	movwf	c:fsr1l
+	movf	(prodh)^0400h,c,w
+	addwfc	((c:can_send_voltages@adc+1))^0500h,c,w
+	movwf	1+c:fsr1l
+	movff	postinc1,??_can_send_voltages+2
+	movff	postdec1,??_can_send_voltages+2+1
+	movff	??_can_send_voltages+2+1,??_can_send_voltages+2
+	clrf	(??_can_send_voltages+2+1)^0500h,c
+	movf	(??_can_send_voltages+2)^0500h,c,w
+	movwf	indf2,c
+
+	line	173
+	
+l1615:
+	incf	((c:can_send_voltages@i))^0500h,c
+	
+l1617:
+		movlw	03h-1
+	cpfsgt	((c:can_send_voltages@i))^0500h,c
+	goto	u571
+	goto	u570
+
+u571:
+	goto	l1613
+u570:
+	line	177
+	
+l1619:
+		movff	(c:can_send_voltages@adc),(c:rail_flags@adc)
+	movff	(c:can_send_voltages@adc+1),(c:rail_flags@adc+1)
+
+	call	_rail_flags	;wreg free
+	movwf	(??_can_send_voltages+0)^0500h,c
+	lfsr	2,0Eh
+	movf	((c:can_send_voltages@object))^0500h,c,w
+	addwf	fsr2l
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
+	addwfc	fsr2h
+	movff	(??_can_send_voltages+0),indf2
+
+	line	178
+	
+l1621:
+	lfsr	2,0Fh
+	movf	((c:can_send_voltages@object))^0500h,c,w
+	addwf	fsr2l
+	movf	((c:can_send_voltages@object+1))^0500h,c,w
+	addwfc	fsr2h
+	movlw	low(01h)
+	movwf	indf2
+	line	179
+	
+l1623:
+	movlw	low(03h)
+	movlb	1	; () banked
+	movwf	((337))&0ffh	;volatile
 	line	180
 	
-l2932:; BSR set to: 1
-
-	lfsr	2,08h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	addwfc	fsr2h
-	movff	(c:can_send_oil_temperature@oil_temp),indf2
-
-	line	181
-	
-l2934:; BSR set to: 1
-
-	lfsr	2,09h
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	addwfc	fsr2h
-	movf	((c:can_send_oil_temperature@oil_temp+1))^0500h,c,w
-	movwf	indf2,c
-
-	line	182
-	
-l2936:; BSR set to: 1
-
-	lfsr	2,0Ah
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	addwfc	fsr2h
-	movff	(c:can_send_oil_temperature@adc),indf2
-
-	line	183
-	
-l2938:; BSR set to: 1
-
-	lfsr	2,0Bh
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	addwfc	fsr2h
-	movf	((c:can_send_oil_temperature@adc+1))^0500h,c,w
-	movwf	indf2,c
-
-	line	184
-	
-l2940:; BSR set to: 1
-
-	lfsr	2,0Ch
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	addwfc	fsr2h
-	movff	(c:can_send_oil_temperature@resistance),indf2
-
-	line	185
-	
-l2942:; BSR set to: 1
-
-	lfsr	2,0Dh
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	addwfc	fsr2h
-	movff	0+1+(c:can_send_oil_temperature@resistance),indf2
-
-	line	186
-	
-l2944:; BSR set to: 1
-
-	lfsr	2,0Eh
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	addwfc	fsr2h
-	movff	0+2+(c:can_send_oil_temperature@resistance),indf2
-
-	line	187
-	
-l2946:; BSR set to: 1
-
-	lfsr	2,0Fh
-	movf	((c:can_send_oil_temperature@object))^0500h,c,w
-	addwf	fsr2l
-	movf	((c:can_send_oil_temperature@object+1))^0500h,c,w
-	addwfc	fsr2h
-	movff	0+3+(c:can_send_oil_temperature@resistance),indf2
-
-	line	188
-	
-l2948:; BSR set to: 1
-
-	movlw	low(03h)
-	movwf	((337))&0ffh	;volatile
-	line	189
-	
-l2950:; BSR set to: 1
+l1625:; BSR set to: 1
 
 	movlw	(01h)&0ffh
-	line	190
+	line	181
 	
-l159:; BSR set to: 1
+l172:; BSR set to: 1
 
 	return	;funcret
 	callstack 0
-GLOBAL	__end_of_can_send_oil_temperature
-	__end_of_can_send_oil_temperature:
-	signat	_can_send_oil_temperature,12409
+GLOBAL	__end_of_can_send_voltages
+	__end_of_can_send_voltages:
+	signat	_can_send_voltages,4217
+	global	_rail_flags
+
+;; *************** function _rail_flags *****************
+;; Defined at:
+;;		line 147 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;; Parameters:    Size  Location     Type
+;;  adc             2    0[COMRAM] PTR const unsigned short
+;;		 -> main@adc(6), 
+;; Auto vars:     Size  Location     Type
+;;  i               1    5[COMRAM] unsigned char 
+;;  flags           1    4[COMRAM] unsigned char 
+;; Return value:  Size  Location     Type
+;;                  1    wreg      unsigned char 
+;; Registers used:
+;;		wreg, fsr2l, fsr2h, status,2, status,0, prodl, prodh
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
+;;      Params:         2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Locals:         2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Temps:          2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Totals:         6       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;Total ram usage:        6 bytes
+;; Hardware stack levels used: 1
+;; This function calls:
+;;		Nothing
+;; This function is called by:
+;;		_can_send_voltages
+;; This function uses a non-reentrant model
+;;
+psect	text11,class=CODE,space=0,reloc=2,group=0
+	line	147
+global __ptext11
+__ptext11:
+psect	text11
+	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+	line	147
+	
+_rail_flags:; BSR set to: 1
+
+;incstack = 0
+	callstack 125
+	line	149
+	
+l1455:
+	clrf	((c:rail_flags@flags))^0500h,c
+	line	151
+	clrf	((c:rail_flags@i))^0500h,c
+	line	152
+	
+l1461:
+	movf	((c:rail_flags@i))^0500h,c,w
+	mullw	02h
+	movf	(prodl)^0400h,c,w
+	addwf	((c:rail_flags@adc))^0500h,c,w
+	movwf	c:fsr2l
+	movf	(prodh)^0400h,c,w
+	addwfc	((c:rail_flags@adc+1))^0500h,c,w
+	movwf	1+c:fsr2l
+		movlw	1
+	movf	plusw2,w
+	bnz	u421
+	movlw	5
+	subwf	 postinc2,w
+	btfsc	status,0
+	goto	u421
+	goto	u420
+
+u421:
+	goto	l1465
+u420:
+	
+l1463:
+	movff	(c:rail_flags@i),??_rail_flags+0
+	movlw	(01h)&0ffh
+	movwf	(??_rail_flags+1)^0500h,c
+	incf	(??_rail_flags+0)^0500h,c
+	goto	u434
+u435:
+	bcf	status,0
+	rlcf	((??_rail_flags+1))^0500h,c
+u434:
+	decfsz	(??_rail_flags+0)^0500h,c
+	goto	u435
+	movf	((??_rail_flags+1))^0500h,c,w
+	iorwf	((c:rail_flags@flags))^0500h,c
+	line	153
+	
+l1465:
+	movf	((c:rail_flags@i))^0500h,c,w
+	mullw	02h
+	movf	(prodl)^0400h,c,w
+	addwf	((c:rail_flags@adc))^0500h,c,w
+	movwf	c:fsr2l
+	movf	(prodh)^0400h,c,w
+	addwfc	((c:rail_flags@adc+1))^0500h,c,w
+	movwf	1+c:fsr2l
+		movlw	251
+	subwf	 postinc2,w
+	movlw	15
+	subwfb	postinc2,w
+	btfss	status,0
+	goto	u441
+	goto	u440
+
+u441:
+	goto	l1469
+u440:
+	
+l1467:
+	movff	(c:rail_flags@i),??_rail_flags+0
+	movlw	03h
+	addwf	(??_rail_flags+0)^0500h,c
+	movlw	(01h)&0ffh
+	movwf	(??_rail_flags+1)^0500h,c
+	incf	(??_rail_flags+0)^0500h,c
+	goto	u454
+u455:
+	bcf	status,0
+	rlcf	((??_rail_flags+1))^0500h,c
+u454:
+	decfsz	(??_rail_flags+0)^0500h,c
+	goto	u455
+	movf	((??_rail_flags+1))^0500h,c,w
+	iorwf	((c:rail_flags@flags))^0500h,c
+	line	151
+	
+l1469:
+	incf	((c:rail_flags@i))^0500h,c
+	
+l1471:
+		movlw	03h-1
+	cpfsgt	((c:rail_flags@i))^0500h,c
+	goto	u461
+	goto	u460
+
+u461:
+	goto	l1461
+u460:
+	line	155
+	
+l1473:
+	movf	((c:rail_flags@flags))^0500h,c,w
+	line	156
+	
+l168:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_rail_flags
+	__end_of_rail_flags:
+	signat	_rail_flags,4217
 	global	_can_init
 
 ;; *************** function _can_init *****************
 ;; Defined at:
-;;		line 122 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 111 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -10428,163 +6055,162 @@ GLOBAL	__end_of_can_send_oil_temperature
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text17,class=CODE,space=0,reloc=2,group=0
-	line	122
-global __ptext17
-__ptext17:
-psect	text17
+psect	text12,class=CODE,space=0,reloc=2,group=0
+	line	111
+global __ptext12
+__ptext12:
+psect	text12
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	122
+	line	111
 	
-_can_init:; BSR set to: 1
-
+_can_init:
 ;incstack = 0
 	callstack 126
-	line	124
+	line	113
 	
-l2866:
+l1553:
 	movlb	0	; () banked
 	bcf	((98))&0ffh,7	;volatile
-	line	125
+	line	114
 	
-l2868:; BSR set to: 0
+l1555:; BSR set to: 0
 
 	movlw	(0F3h)&0ffh
 	movlb	4	; () banked
 	andwf	((1032))&0ffh	;volatile
-	line	126
+	line	115
 	
-l2870:; BSR set to: 4
+l1557:; BSR set to: 4
 
 	bsf	(0+(2/8)+(c:1215))^0400h,c,(2)&7	;volatile
-	line	127
+	line	116
 	
-l2872:; BSR set to: 4
+l1559:; BSR set to: 4
 
 	bcf	(0+(2/8)+(c:1223))^0400h,c,(2)&7	;volatile
-	line	128
+	line	117
 	
-l2874:; BSR set to: 4
+l1561:; BSR set to: 4
 
 	bsf	((c:1223))^0400h,c,3	;volatile
-	line	130
+	line	119
 	
-l2876:; BSR set to: 4
+l1563:; BSR set to: 4
 
 	movlb	1	; () banked
 	bsf	((257))&0ffh,7	;volatile
-	line	131
+	line	120
 	
-l2878:; BSR set to: 1
+l1565:; BSR set to: 1
 
 	movlw	low(04h)
 	movwf	((259))&0ffh	;volatile
-	line	132
+	line	121
 	
-l2880:; BSR set to: 1
+l1567:; BSR set to: 1
 
 	movlw	low(090h)
 	movwf	((258))&0ffh	;volatile
-	line	133
+	line	122
 	
-l2882:; BSR set to: 1
+l1569:; BSR set to: 1
 
 	movf	((259))&0ffh,w	;volatile
 	andlw	not (((1<<3)-1)<<0)
 	iorlw	(04h & ((1<<3)-1))<<0
 	movwf	((259))&0ffh	;volatile
-	line	134
+	line	123
 	
-l2884:; BSR set to: 1
+l1571:; BSR set to: 1
 
 	swapf	((258))&0ffh,w	;volatile
 	rrcf	wreg,f
 	andlw	(1<<3)-1
 	xorlw	04h
 	btfss	status,2
-	goto	u2611
-	goto	u2610
-u2611:
-	goto	l2884
-u2610:
+	goto	u521
+	goto	u520
+u521:
+	goto	l1571
+u520:
 	
-l148:; BSR set to: 1
+l154:; BSR set to: 1
 
-	line	136
+	line	125
 	clrf	((332))&0ffh	;volatile
-	line	137
+	line	126
 	
-l2886:; BSR set to: 1
+l1573:; BSR set to: 1
 
 	movlw	low(026h)
 	movwf	((333))&0ffh	;volatile
-	line	138
+	line	127
 	movlw	low(087h)
 	movwf	((257))&0ffh	;volatile
-	line	139
+	line	128
 	movlw	low(060h)
 	movwf	((256))&0ffh	;volatile
-	line	140
+	line	129
 	movlw	low(010h)
 	movwf	((258))&0ffh	;volatile
-	line	143
+	line	132
 	movlw	low(01Ah)
 	movwf	((260))&0ffh	;volatile
-	line	144
+	line	133
 	movlw	low(01Ah)
 	movwf	((261))&0ffh	;volatile
-	line	145
+	line	134
 	movlw	low(063h)
 	movwf	((262))&0ffh	;volatile
-	line	146
+	line	135
 	
-l2888:; BSR set to: 1
+l1575:; BSR set to: 1
 
 	clrf	((263))&0ffh	;volatile
-	line	148
+	line	137
 	movlw	low(080h)
 	movwf	((336))&0ffh	;volatile
-	line	149
+	line	138
 	movlw	low(04h)
 	movwf	((337))&0ffh	;volatile
-	line	150
+	line	139
 	movlw	low(060h)
 	movwf	((338))&0ffh	;volatile
-	line	151
+	line	140
 	movlw	low(01h)
 	movwf	((339))&0ffh	;volatile
-	line	153
+	line	142
 	movf	((259))&0ffh,w	;volatile
 	andlw	not (((1<<3)-1)<<0)
 	iorlw	(06h & ((1<<3)-1))<<0
 	movwf	((259))&0ffh	;volatile
-	line	154
+	line	143
 	
-l2890:; BSR set to: 1
+l1577:; BSR set to: 1
 
 	swapf	((258))&0ffh,w	;volatile
 	rrcf	wreg,f
 	andlw	(1<<3)-1
 	xorlw	06h
 	btfss	status,2
-	goto	u2621
-	goto	u2620
-u2621:
-	goto	l2890
-u2620:
-	line	155
+	goto	u531
+	goto	u530
+u531:
+	goto	l1577
+u530:
+	line	144
 	
-l152:; BSR set to: 1
+l158:; BSR set to: 1
 
 	btfsc	((337))&0ffh,2	;volatile
-	goto	u2631
-	goto	u2630
-u2631:
-	goto	l152
-u2630:
-	line	156
+	goto	u541
+	goto	u540
+u541:
+	goto	l158
+u540:
+	line	145
 	
-l155:; BSR set to: 1
+l161:; BSR set to: 1
 
 	return	;funcret
 	callstack 0
@@ -10595,12 +6221,13 @@ GLOBAL	__end_of_can_init
 
 ;; *************** function _adc_read_average *****************
 ;; Defined at:
-;;		line 259 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 252 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
-;;		None
+;;  channel         1    wreg     unsigned char 
 ;; Auto vars:     Size  Location     Type
-;;  sum             4    6[COMRAM] unsigned long 
-;;  index           1   10[COMRAM] unsigned char 
+;;  channel         1    6[COMRAM] unsigned char 
+;;  sum             4    7[COMRAM] unsigned long 
+;;  index           1   11[COMRAM] unsigned char 
 ;; Return value:  Size  Location     Type
 ;;                  2    0[COMRAM] unsigned short 
 ;; Registers used:
@@ -10611,10 +6238,10 @@ GLOBAL	__end_of_can_init
 ;;		Unchanged: 0/0
 ;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
 ;;      Params:         2       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         5       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;      Locals:         6       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
 ;;      Temps:          4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        11       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       11 bytes
+;;      Totals:        12       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
+;;Total ram usage:       12 bytes
 ;; Hardware stack levels used: 1
 ;; This function calls:
 ;;		Nothing
@@ -10622,21 +6249,22 @@ GLOBAL	__end_of_can_init
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text18,class=CODE,space=0,reloc=2,group=0
-	line	259
-global __ptext18
-__ptext18:
-psect	text18
+psect	text13,class=CODE,space=0,reloc=2,group=0
+	line	252
+global __ptext13
+__ptext13:
+psect	text13
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	259
+	line	252
 	
 _adc_read_average:; BSR set to: 1
 
 ;incstack = 0
 	callstack 126
-	line	261
+	line	254
+	movwf	((c:adc_read_average@channel))^0500h,c
 	
-l3028:
+l1711:
 	movlw	low(0)
 	movwf	((c:adc_read_average@sum))^0500h,c
 	movlw	high(0)
@@ -10645,28 +6273,63 @@ l3028:
 	movwf	((c:adc_read_average@sum+2))^0500h,c
 	movlw	high highword(0)
 	movwf	((c:adc_read_average@sum+3))^0500h,c
-	line	264
+	line	257
 	
-l3030:
-	clrf	((c:adc_read_average@index))^0500h,c
+l1713:
+	movff	(c:adc_read_average@channel),(1004)	;volatile
+	line	258
 	
-l191:
-	line	265
+l1715:
+	asmopt push
+asmopt off
+	movlw	228
+u687:
+	nop2
+	nop2
+decfsz	wreg,f
+	bra	u687
+	nop2
+	nop2
+asmopt pop
+
+	line	259
+	
+l1717:
 	movlb	3	; () banked
 	bsf	((1011))&0ffh,0	;volatile
-	line	266
+	line	260
 	
-l193:; BSR set to: 3
+l204:; BSR set to: 3
 
 	btfsc	((1011))&0ffh,0	;volatile
-	goto	u2691
-	goto	u2690
-u2691:
-	goto	l193
-u2690:
-	line	267
+	goto	u591
+	goto	u590
+u591:
+	goto	l204
+u590:
 	
-l3036:; BSR set to: 3
+l206:; BSR set to: 3
+
+	line	261
+	clrf	((c:adc_read_average@index))^0500h,c
+	
+l207:; BSR set to: 3
+
+	line	262
+	bsf	((1011))&0ffh,0	;volatile
+	line	263
+	
+l209:; BSR set to: 3
+
+	btfsc	((1011))&0ffh,0	;volatile
+	goto	u601
+	goto	u600
+u601:
+	goto	l209
+u600:
+	line	264
+	
+l1723:; BSR set to: 3
 
 	movlw	0FFh
 	andwf	((1002))&0ffh,w	;volatile
@@ -10683,25 +6346,25 @@ l3036:; BSR set to: 3
 	movlw	0
 	addwfc	((c:adc_read_average@sum+3))^0500h,c
 
-	line	264
+	line	261
 	
-l3038:; BSR set to: 3
+l1725:; BSR set to: 3
 
 	incf	((c:adc_read_average@index))^0500h,c
 	
-l3040:; BSR set to: 3
+l1727:; BSR set to: 3
 
 		movlw	020h-1
 	cpfsgt	((c:adc_read_average@index))^0500h,c
-	goto	u2701
-	goto	u2700
+	goto	u611
+	goto	u610
 
-u2701:
-	goto	l191
-u2700:
-	line	269
+u611:
+	goto	l207
+u610:
+	line	266
 	
-l3042:; BSR set to: 3
+l1729:; BSR set to: 3
 
 	movlw	010h
 	addwf	((c:adc_read_average@sum))^0500h,c,w
@@ -10718,32 +6381,32 @@ l3042:; BSR set to: 3
 	addwfc	((c:adc_read_average@sum+3))^0500h,c,w
 	movwf	3+(??_adc_read_average+0)^0500h,c
 	movlw	05h+1
-	goto	u2710
-u2715:
+	goto	u620
+u625:
 	bcf	status,0
 	rrcf	(??_adc_read_average+0+3)^0500h,c
 	rrcf	(??_adc_read_average+0+2)^0500h,c
 	rrcf	(??_adc_read_average+0+1)^0500h,c
 	rrcf	(??_adc_read_average+0)^0500h,c
-u2710:
+u620:
 	decfsz	wreg
-	goto	u2715
+	goto	u625
 	movff	??_adc_read_average+0,(c:?_adc_read_average)
 	movff	??_adc_read_average+0+1,(c:?_adc_read_average+1)
-	line	270
+	line	267
 	
-l196:; BSR set to: 3
+l212:; BSR set to: 3
 
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_adc_read_average
 	__end_of_adc_read_average:
-	signat	_adc_read_average,90
+	signat	_adc_read_average,4218
 	global	_adc_init
 
 ;; *************** function _adc_init *****************
 ;; Defined at:
-;;		line 242 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
+;;		line 233 in file "C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -10751,7 +6414,7 @@ GLOBAL	__end_of_adc_read_average
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      void 
 ;; Registers used:
-;;		wreg, status,2
+;;		wreg, status,2, status,0
 ;; Tracked objects:
 ;;		On entry : 0/0
 ;;		On exit  : 0/0
@@ -10769,195 +6432,97 @@ GLOBAL	__end_of_adc_read_average
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text19,class=CODE,space=0,reloc=2,group=0
-	line	242
-global __ptext19
-__ptext19:
-psect	text19
+psect	text14,class=CODE,space=0,reloc=2,group=0
+	line	233
+global __ptext14
+__ptext14:
+psect	text14
 	file	"C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c"
-	line	242
+	line	233
 	
 _adc_init:; BSR set to: 3
 
 ;incstack = 0
 	callstack 126
-	line	244
+	line	235
 	
-l3016:
+l1691:
 	movlb	0	; () banked
 	bcf	((99))&0ffh,5	;volatile
-	line	245
-	bsf	((c:1224))^0400h,c,3	;volatile
-	line	246
+	line	236
+	bsf	((c:1224))^0400h,c,4	;volatile
+	line	237
 	movlb	4	; () banked
-	bsf	((1040))&0ffh,3	;volatile
-	line	247
-	bcf	((1041))&0ffh,3	;volatile
-	line	249
+	bsf	((1040))&0ffh,4	;volatile
+	line	238
+	bcf	((1041))&0ffh,4	;volatile
+	line	239
 	
-l3018:; BSR set to: 4
+l1693:; BSR set to: 4
 
-	movlw	low(013h)
+	movlw	(03h)&0ffh
+	iorwf	((c:1223))^0400h,c	;volatile
+	line	240
+	movlw	(03h)&0ffh
+	iorwf	((1032))&0ffh	;volatile
+	line	241
+	movlw	(0FCh)&0ffh
+	andwf	((1033))&0ffh	;volatile
+	line	242
+	
+l1695:; BSR set to: 4
+
+	movlw	low(014h)
 	movlb	3	; () banked
 	movwf	((1004))&0ffh	;volatile
-	line	250
+	line	243
 	
-l3020:; BSR set to: 3
+l1697:; BSR set to: 3
 
 	clrf	((1016))&0ffh	;volatile
-	line	251
+	line	244
+	
+l1699:; BSR set to: 3
+
 	movlw	low(01Fh)
 	movwf	((1018))&0ffh	;volatile
-	line	252
+	line	245
+	
+l1701:; BSR set to: 3
+
 	clrf	((1006+1))&0ffh	;volatile
 	movlw	low(040h)
 	movwf	((1006))&0ffh	;volatile
-	line	253
+	line	246
 	
-l3022:; BSR set to: 3
+l1703:; BSR set to: 3
 
 	clrf	((1012))&0ffh	;volatile
-	line	254
+	line	247
 	
-l3024:; BSR set to: 3
+l1705:; BSR set to: 3
 
 	clrf	((1013))&0ffh	;volatile
-	line	255
+	line	248
 	
-l3026:; BSR set to: 3
+l1707:; BSR set to: 3
 
 	clrf	((1014))&0ffh	;volatile
-	line	256
+	line	249
+	
+l1709:; BSR set to: 3
+
 	movlw	low(084h)
 	movwf	((1011))&0ffh	;volatile
-	line	257
+	line	250
 	
-l188:; BSR set to: 3
+l201:; BSR set to: 3
 
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_adc_init
 	__end_of_adc_init:
 	signat	_adc_init,89
-	global	___lmul
-
-;; *************** function ___lmul *****************
-;; Defined at:
-;;		line 15 in file "C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul32.c"
-;; Parameters:    Size  Location     Type
-;;  multiplier      4    0[COMRAM] unsigned long 
-;;  multiplicand    4    4[COMRAM] unsigned long 
-;; Auto vars:     Size  Location     Type
-;;  product         4    8[COMRAM] unsigned long 
-;; Return value:  Size  Location     Type
-;;                  4    0[COMRAM] unsigned long 
-;; Registers used:
-;;		wreg, status,2, status,0
-;; Tracked objects:
-;;		On entry : 0/0
-;;		On exit  : 0/0
-;;		Unchanged: 0/0
-;; Data sizes:     COMRAM   BANK5   BANK6   BANK7   BANK8   BANK9  BANK10  BANK11  BANK12  BANK13  BANK14  BANK15  BANK16  BANK17  BANK18  BANK19  BANK20  BANK21  BANK22  BANK23  BANK24  BANK25  BANK26  BANK27  BANK28  BANK29  BANK30  BANK31  BANK32  BANK33  BANK34  BANK35  BANK36
-;;      Params:         8       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Locals:         4       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Temps:          0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;      Totals:        12       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0
-;;Total ram usage:       12 bytes
-;; Hardware stack levels used: 1
-;; This function calls:
-;;		Nothing
-;; This function is called by:
-;;		_main
-;; This function uses a non-reentrant model
-;;
-psect	text20,class=CODE,space=0,reloc=2,group=1
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul32.c"
-	line	15
-global __ptext20
-__ptext20:
-psect	text20
-	file	"C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul32.c"
-	line	15
-	
-___lmul:; BSR set to: 3
-
-;incstack = 0
-	callstack 126
-	line	119
-	
-l3140:
-	movlw	low(0)
-	movwf	((c:___lmul@product))^0500h,c
-	movlw	high(0)
-	movwf	((c:___lmul@product+1))^0500h,c
-	movlw	low highword(0)
-	movwf	((c:___lmul@product+2))^0500h,c
-	movlw	high highword(0)
-	movwf	((c:___lmul@product+3))^0500h,c
-	line	121
-	
-l3142:
-	
-	btfss	((c:___lmul@multiplier))^0500h,c,(0)&7
-	goto	u2811
-	goto	u2810
-u2811:
-	goto	l3146
-u2810:
-	line	122
-	
-l3144:
-	movf	((c:___lmul@multiplicand))^0500h,c,w
-	addwf	((c:___lmul@product))^0500h,c
-	movf	((c:___lmul@multiplicand+1))^0500h,c,w
-	addwfc	((c:___lmul@product+1))^0500h,c
-	movf	((c:___lmul@multiplicand+2))^0500h,c,w
-	addwfc	((c:___lmul@product+2))^0500h,c
-	movf	((c:___lmul@multiplicand+3))^0500h,c,w
-	addwfc	((c:___lmul@product+3))^0500h,c
-	line	123
-	
-l3146:
-	bcf	status,0
-	rlcf	((c:___lmul@multiplicand))^0500h,c
-	rlcf	((c:___lmul@multiplicand+1))^0500h,c
-	rlcf	((c:___lmul@multiplicand+2))^0500h,c
-	rlcf	((c:___lmul@multiplicand+3))^0500h,c
-	line	124
-	
-l3148:
-	bcf	status,0
-	rrcf	((c:___lmul@multiplier+3))^0500h,c
-	rrcf	((c:___lmul@multiplier+2))^0500h,c
-	rrcf	((c:___lmul@multiplier+1))^0500h,c
-	rrcf	((c:___lmul@multiplier))^0500h,c
-	line	125
-	movf	((c:___lmul@multiplier))^0500h,c,w
-iorwf	((c:___lmul@multiplier+1))^0500h,c,w
-iorwf	((c:___lmul@multiplier+2))^0500h,c,w
-iorwf	((c:___lmul@multiplier+3))^0500h,c,w
-	btfss	status,2
-	goto	u2821
-	goto	u2820
-
-u2821:
-	goto	l3142
-u2820:
-	
-l260:
-	line	128
-	movff	(c:___lmul@product),(c:?___lmul)
-	movff	(c:___lmul@product+1),(c:?___lmul+1)
-	movff	(c:___lmul@product+2),(c:?___lmul+2)
-	movff	(c:___lmul@product+3),(c:?___lmul+3)
-	line	129
-	
-l261:
-	return	;funcret
-	callstack 0
-GLOBAL	__end_of___lmul
-	__end_of___lmul:
-	signat	___lmul,8316
 psect	mediumconst
 	db 0	; dummy byte at the end
 	global	__smallconst

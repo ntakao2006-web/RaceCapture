@@ -1,82 +1,79 @@
-# PIC18F26Q84 oil-temperature sensor hub
+# PIC18F26Q84 Defi voltage-input firmware (v8, 2026-11-01)
 
-This project reads the Sense0 thermistor and publishes it to LoggerV2 CAN2 as the
-oil-temperature channel used by RaceCapture.
+## v8 files published on 2026-11-03
 
-## Behavior and wiring
+- Source: [main.c](main.c)
+- Ready-to-program HEX: [pic18f26q84_blink.X.production.hex](dist/default/production/pic18f26q84_blink.X.production.hex)
+- UNO Q handoff: [Defi voltage-input handoff](../UNOQ_Defi電圧入力対応_引継ぎ.md)
+- HEX SHA-256: `F4238F8361CE4D4A2475EC8BCACC12AB2C6E32A040AD6FC2DE612291688B6E6E`
 
-- Device: PIC18F26Q84
-- Clock: internal HFINTOSC at 64 MHz
-- Schematic baseline: `circuit/SensorHub/SensorHub.kicad_sch`, saved 2026-10-19
-- Divider: +5V -> R1/R2 (20 kOhm each in parallel = 10 kOhm) ->
-  J3 pin 1 / Sense0 / RC3/ANC3 (PIC pin 14) -> NTC -> J3 pin 2 / GND
-- ADC: 12-bit, VDD/VSS reference, 32-sample averaging
-- Calibration: -1 C at 27.6 kOhm and 97 C at 1.145 kOhm
-- UART: 115200 baud, 8N1, no flow control; reports every 500 ms
-- CAN: Classic CAN 2.0 at 500 kbit/s, deployed bench RB2/TX (pin 23, MCP2561 pin 1)
-  and RB3/RX (pin 24, MCP2561 pin 4), 10 Hz including fault notifications
-- CAN standard ID `0x600`: signed little-endian `int16` oil temperature at
-  bytes 0..1 with 0.01 C/bit; ADC at bytes 2..3; resistance ohms at bytes 4..7
-- PIC pin 17 RC6/TX -> Snap pin 7
-- PIC pin 18 RC7/RX <- Snap pin 8
-- RA0 is held low; the former LED blink is not retained
-- Programmer: MPLAB Snap
+The published HEX matches the original handoff hash. On 2026-11-03 its Intel
+HEX record checksums and embedded `VOLTAGE3 v8` banner were verified. XC8 was
+unavailable in the publishing environment, so the existing HEX was preserved
+without rebuilding. Publication does not mean the PIC has been programmed or
+that v8 has passed hardware validation. The latest GitHub UNO Q receiver
+changes were retained when publishing these files.
 
-The old RC5 input (pin 16) is unconnected in this schematic. RB2 (pin 23)
-is drawn as the 74LS595 clock in the saved schematic. The actual bench CAN
-wire was retained at the user's request: V7 uses RB2 as CANTX and does not
-operate the 74LS595. The current saved schematic instead specifies RB0 TX;
-`CAN_TX_BIT` can select RB0 when the physical hardware is changed to match.
-Sense1..4 use RA1..4 and manually switched 2.2 kOhm pull-ups; they are not
-sampled by this single-channel firmware. The 74LS595 is not used to control
-the Sense0 pull-up: R1/R2 are permanently connected to +5V.
+Current wiring supersedes the historical thermistor bench configuration below.
+Only the PIC firmware project is changed; KiCad and logger software are untouched.
 
-An open Sense0 should read close to VDD (about 5 V with a 5 V supply).
-ADC >= 4091 is reported as `OPEN_OR_OVER_RANGE`; ADC <= 4 is reported as
-`SHORT_OR_UNDER_RANGE`. These are rail proximity checks, not a proof of the
-particular electrical fault. V6 sends a reserved int16 temperature of -32768
-in CAN 0x600 on faults. Open has ADC >=4091 and resistance 0xffffffff;
-short has ADC <=4 and resistance 0. These are status packets, not -327.68 C.
-The matching logger conversion `sensorhub_oiltemp` invalidates temperature
-immediately and exposes a Japanese status label plus OilTempState and
-OilTempOpen channels. After 1 second without a frame, the state is LINK loss
-and temperature/Open flag are invalid. State codes: 0=OK, 1=OPEN, 2=SHORT,
-3=bad packet, 4=LINK loss. OilTempOpen is 1 for OPEN and 0 for OK/SHORT.
-The ADC is ratiometric and does not measure the absolute supply voltage.
+| Signal | PIC physical pin (28-pin package) | GPIO / ADC selector |
+| --- | --- | --- |
+| PRESS | 15 | RC4 / ANC4 / 0x14 |
+| TEMP1 | 21 | RB0 / ANB0 / 0x08 |
+| TEMP2 | 22 | RB1 / ANB1 / 0x09 |
 
-ID 0x600 and its payload are retained for compatibility with the existing
-OilTemp bench receiver. This is the legacy bench protocol, not the newer
-generic SensorHub protocol/0x500 ID allocation in `sensorhub_generic_spec.md`.
+All three pins are analog inputs with weak pull-ups disabled. No internal
+pull-up, resistance measurement, thermistor conversion, or pressure calibration
+is applied. External pull-ups and sensors are currently absent: a floating
+input can produce any ADC value, including apparently plausible values. The
+firmware cannot identify an open circuit without an external bias network.
+HIGH_RAIL and LOW_RAIL report only rail proximity, never a confirmed open/short.
 
-The firmware emits `THERM adc=... r_ohm=... temp_c=... can_0x600=queued|busy`
-or `THERM adc=... status=... can_0x600=queued|busy` every 500 ms.
-`queued` means accepted by the PIC transmit queue; it does not prove CAN ACK
-or reception by LoggerV2. `read_thermistor.py --seconds 10` accepts valid
-measurements and fault reports. The
-temperature is a two-point beta-model estimate from the handwritten sensor data;
-it is not a production calibration. With a nearby reference thermometer at
-24.3 C after about 10 minutes, the firmware reported about 23.6--23.7 C on
-2026-10-03. The UART wiring and Snap CDC path are validated; evidence is under
-`snap_uart_setup`.
+ADC: 12 bit, VDD/VSS reference, 100 us mux settling, one discarded conversion,
+then 32-sample rounded average per channel. UART reports nominal millivolts as
+round(ADC * 5000 / 4095); actual input voltage is ADC * actual VDD / 4095.
+VDD is not measured, so nominal millivolts are an estimate, not a calibrated
+absolute voltage. Unknown external pull-up values and pressure transfer curves
+are deliberately not inferred from the Defi gauge's display ranges.
 
-## Installed official toolchain
+## Output
 
-- MPLAB X IDE / IPE 6.35
-- MPLAB XC8 4.00
-- Microchip PIC18F-Q_DFP 1.30.487
+CAN: Classic CAN, 500 kbit/s, RB2 pin23 TX / RB3 pin24 RX unchanged.
+Standard ID **0x580**, DLC 8, approximately 10 Hz. This uses the Defi accessory
+allocation in `sensorhub_generic_spec.md`, not its generic discovery protocol.
 
-Run `build.ps1` to rebuild the HEX file. Run `program.ps1` to rebuild and
-program the target through the connected Snap (MPLAB mode required). Restore
-Snap CMSIS mode afterward for UART measurement with
-`snap_uart_setup/read_thermistor.py --seconds 10`.
-`test_uart.py` is for the former UART challenge/response firmware and is not
-compatible with the current thermistor firmware.
+| Bytes | Meaning |
+| --- | --- |
+| 0..1 | PRESS unsigned 12-bit ADC code in uint16 little-endian |
+| 2..3 | TEMP1 unsigned ADC code, same format |
+| 4..5 | TEMP2 unsigned ADC code, same format |
+| 6 | bits 0/1/2: PRESS/TEMP1/TEMP2 <=4; bits 3/4/5: >=4091; bits 6/7 zero |
+| 7 | Voltage-only payload version 1; no physical-unit calibration |
 
-V6 fixes the inherited CAN FIFO base address: PIC18F26/46/56Q84 CAN RAM is
-0x2600..0x2dff. The previous 0x3800 address belongs to the larger x7Q84 memory
-map and is unimplemented on this device. The TX queue uses two 8-byte objects
-at 0x2600 and 0x2610. CAN diagnostic UART lines expose mode, error counters,
-queue state and message count for future fault isolation.
+Legacy oil-temperature ID **0x600 is no longer sent**: the old OilTemp decoder
+must not interpret an uncalibrated voltage as temperature. The existing logger
+has not been configured for 0x580 by this change. Three readings arrive together
+in one frame, so a two-object transmit queue does not drop the third channel.
+UART RC6 pin17 TX / RC7 pin18 RX stays at 115200 8N1. Every five cycles it emits
+PRESS/TEMP1/TEMP2 adc=... mv_nominal=... status=UNQUALIFIED|LOW_RAIL|HIGH_RAIL,
+then enqueue state and CAN diagnostics. `queued` does not prove CAN reception.
+The historical `read_thermistor.py` parser is not compatible with v8 output;
+use a plain serial terminal for voltage reports.
+
+## Build and validation
+
+Run `build.ps1` with XC8 4.00 / PIC18F-Q_DFP 1.30.487 to generate
+`dist/default/production/pic18f26q84_blink.X.production.hex`.
+`program.ps1` builds, programs and verifies through Snap in MPLAB mode.
+This revision was built successfully; host tests exercised the actual packet
+encoder, queue-busy/null-address behavior, all rail boundaries, and nominal
+voltage monotonicity for all 4096 ADC codes. No device programming or hardware
+voltage accuracy/CAN-reception validation was performed for v8.
+
+Defi reference: https://defi.nippon-seiki.co.jp/wp-content/uploads/2025/03/manual_dinstyle21_98.pdf
+
+## Historical evidence (earlier firmware, superseded)
 
 ## 2026-10-19 hardware check
 

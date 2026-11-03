@@ -25,8 +25,6 @@
 [v ___fleq __fleq `(b  1 e 0 0 ]
 "62 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\float.c
 [v ___ftpack __ftpack `(f  1 e 4 0 ]
-"43 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\fltol.c
-[v ___fltol __fltol `(l  1 e 4 0 ]
 "86 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\ftadd.c
 [v ___ftadd __ftadd `(f  1 e 4 0 ]
 "54 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\ftdiv.c
@@ -39,8 +37,6 @@
 [v ___llmod __llmod `(ul  1 e 4 0 ]
 "9 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\lodiv.c
 [v ___lodiv __lodiv `(uo  1 e 8 0 ]
-"29 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c
-[v _logf logf `(f  1 e 4 0 ]
 "9 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\lomod.c
 [v ___lomod __lomod `(uo  1 e 8 0 ]
 "7 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\ltdiv.c
@@ -67,42 +63,42 @@
 [v ___lmul __lmul `(ul  1 e 4 0 ]
 "91 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul64.c
 [v ___omul __omul `(uo  1 e 8 0 ]
-"10 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\xxtofl.c
-[v ___xxtofl __xxtofl `(d  1 e 4 0 ]
-"90 C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c
+"76 C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c
 [v _uart_init uart_init `(v  1 s 1 uart_init ]
-"122
+"111
 [v _can_init can_init `(v  1 s 1 can_init ]
+"147
+[v _rail_flags rail_flags `(uc  1 s 1 rail_flags ]
 "158
-[v _can_send_oil_temperature can_send_oil_temperature `(uc  1 s 1 can_send_oil_temperature ]
-"192
+[v _can_send_voltages can_send_voltages `(uc  1 s 1 can_send_voltages ]
+"183
 [v _uart_puts uart_puts `(v  1 s 1 uart_puts ]
-"200
+"191
 [v _uart_put_uint32 uart_put_uint32 `(v  1 s 1 uart_put_uint32 ]
-"215
+"206
 [v _report_can_diagnostics report_can_diagnostics `(v  1 s 1 report_can_diagnostics ]
-"242
+"233
 [v _adc_init adc_init `(v  1 s 1 adc_init ]
-"259
+"252
 [v _adc_read_average adc_read_average `(us  1 s 2 adc_read_average ]
-"272
-[v _thermistor_centi_c thermistor_centi_c `(l  1 s 4 thermistor_centi_c ]
-"286
-[v _report_measurement report_measurement `(v  1 s 1 report_measurement ]
-"320
+"269
+[v _nominal_millivolts nominal_millivolts `(us  1 s 2 nominal_millivolts ]
+"274
+[v _report_voltage report_voltage `(v  1 s 1 report_voltage ]
+"287
 [v _main main `(v  1 e 1 0 ]
-[s S164 . 1 `uc 1 TU16AMD 1 0 :1:0 
+[s S167 . 1 `uc 1 TU16AMD 1 0 :1:0 
 `uc 1 TU16BMD 1 0 :1:1 
 `uc 1 . 1 0 :5:2 
 `uc 1 CANMD 1 0 :1:7 
 ]
 "1411 C:\Users\lintaroh\.mchp_packs\Microchip\PIC18F-Q_DFP\1.30.487\xc8\pic\include\proc/pic18f26q84.h
-[s S169 . 1 `uc 1 TU1MD 1 0 :1:0 
+[s S172 . 1 `uc 1 TU1MD 1 0 :1:0 
 `uc 1 TU2MD 1 0 :1:1 
 ]
-[u S172 . 1 `S164 1 . 1 0 `S169 1 . 1 0 ]
-[v _PMD2bits PMD2bits `VES172  1 e 1 @98 ]
-[s S425 . 1 `uc 1 ZCDMD 1 0 :1:0 
+[u S175 . 1 `S167 1 . 1 0 `S172 1 . 1 0 ]
+[v _PMD2bits PMD2bits `VES175  1 e 1 @98 ]
+[s S428 . 1 `uc 1 ZCDMD 1 0 :1:0 
 `uc 1 CM1MD 1 0 :1:1 
 `uc 1 CM2MD 1 0 :1:2 
 `uc 1 . 1 0 :2:3 
@@ -111,8 +107,8 @@
 `uc 1 ACTMD 1 0 :1:7 
 ]
 "1457
-[u S433 . 1 `S425 1 . 1 0 ]
-[v _PMD3bits PMD3bits `VES433  1 e 1 @99 ]
+[u S436 . 1 `S428 1 . 1 0 ]
+[v _PMD3bits PMD3bits `VES436  1 e 1 @99 ]
 [s S27 . 1 `uc 1 I2C1MD 1 0 :1:0 
 `uc 1 SPI1MD 1 0 :1:1 
 `uc 1 SPI2MD 1 0 :1:2 
@@ -129,7 +125,7 @@
 [v _C1CONL C1CONL `VEuc  1 e 1 @256 ]
 "8941
 [v _C1CONH C1CONH `VEuc  1 e 1 @257 ]
-[s S208 . 1 `uc 1 WAKFIL 1 0 :1:0 
+[s S211 . 1 `uc 1 WAKFIL 1 0 :1:0 
 `uc 1 WFT 1 0 :2:1 
 `uc 1 BUSY 1 0 :1:3 
 `uc 1 BRSDIS 1 0 :1:4 
@@ -138,15 +134,15 @@
 `uc 1 ON 1 0 :1:7 
 ]
 "8962
-[s S216 . 1 `uc 1 . 1 0 :1:0 
+[s S219 . 1 `uc 1 . 1 0 :1:0 
 `uc 1 WFT0 1 0 :1:1 
 `uc 1 WFT1 1 0 :1:2 
 ]
-[u S220 . 1 `S208 1 . 1 0 `S216 1 . 1 0 ]
-[v _C1CONHbits C1CONHbits `VES220  1 e 1 @257 ]
+[u S223 . 1 `S211 1 . 1 0 `S219 1 . 1 0 ]
+[v _C1CONHbits C1CONHbits `VES223  1 e 1 @257 ]
 "9012
 [v _C1CONU C1CONU `VEuc  1 e 1 @258 ]
-[s S268 . 1 `uc 1 RTXAT 1 0 :1:0 
+[s S271 . 1 `uc 1 RTXAT 1 0 :1:0 
 `uc 1 ESIGM 1 0 :1:1 
 `uc 1 SERR2LOM 1 0 :1:2 
 `uc 1 STEF 1 0 :1:3 
@@ -154,21 +150,21 @@
 `uc 1 OPMOD 1 0 :3:5 
 ]
 "9033
-[s S275 . 1 `uc 1 . 1 0 :5:0 
+[s S278 . 1 `uc 1 . 1 0 :5:0 
 `uc 1 OPMOD0 1 0 :1:5 
 `uc 1 OPMOD1 1 0 :1:6 
 `uc 1 OPMOD2 1 0 :1:7 
 ]
-[u S280 . 1 `S268 1 . 1 0 `S275 1 . 1 0 ]
-[v _C1CONUbits C1CONUbits `VES280  1 e 1 @258 ]
+[u S283 . 1 `S271 1 . 1 0 `S278 1 . 1 0 ]
+[v _C1CONUbits C1CONUbits `VES283  1 e 1 @258 ]
 "9083
 [v _C1CONT C1CONT `VEuc  1 e 1 @259 ]
-[s S238 . 1 `uc 1 REQOP 1 0 :3:0 
+[s S241 . 1 `uc 1 REQOP 1 0 :3:0 
 `uc 1 ABAT 1 0 :1:3 
 `uc 1 TXBWS 1 0 :4:4 
 ]
 "9105
-[s S242 . 1 `uc 1 REQOP0 1 0 :1:0 
+[s S245 . 1 `uc 1 REQOP0 1 0 :1:0 
 `uc 1 REQOP1 1 0 :1:1 
 `uc 1 REQOP2 1 0 :1:2 
 `uc 1 . 1 0 :1:3 
@@ -177,8 +173,8 @@
 `uc 1 TXBWS2 1 0 :1:6 
 `uc 1 TXBWS3 1 0 :1:7 
 ]
-[u S251 . 1 `S238 1 . 1 0 `S242 1 . 1 0 ]
-[v _C1CONTbits C1CONTbits `VES251  1 e 1 @259 ]
+[u S254 . 1 `S241 1 . 1 0 `S245 1 . 1 0 ]
+[v _C1CONTbits C1CONTbits `VES254  1 e 1 @259 ]
 "9160
 [v _C1NBTCFGL C1NBTCFGL `VEuc  1 e 1 @260 ]
 "9224
@@ -209,20 +205,20 @@
 [v _C1TXQCONL C1TXQCONL `VEuc  1 e 1 @336 ]
 "13487
 [v _C1TXQCONH C1TXQCONH `VEuc  1 e 1 @337 ]
-[s S308 . 1 `uc 1 UINC 1 0 :1:0 
+[s S311 . 1 `uc 1 UINC 1 0 :1:0 
 `uc 1 TXREQ 1 0 :1:1 
 `uc 1 FRESET 1 0 :1:2 
 ]
 "13499
-[u S312 . 1 `S308 1 . 1 0 ]
-[v _C1TXQCONHbits C1TXQCONHbits `VES312  1 e 1 @337 ]
+[u S315 . 1 `S311 1 . 1 0 ]
+[v _C1TXQCONHbits C1TXQCONHbits `VES315  1 e 1 @337 ]
 "13519
 [v _C1TXQCONU C1TXQCONU `VEuc  1 e 1 @338 ]
 "13589
 [v _C1TXQCONT C1TXQCONT `VEuc  1 e 1 @339 ]
 "13665
 [v _C1TXQSTAL C1TXQSTAL `VEuc  1 e 1 @340 ]
-[s S319 . 1 `uc 1 TXQNIF 1 0 :1:0 
+[s S322 . 1 `uc 1 TXQNIF 1 0 :1:0 
 `uc 1 . 1 0 :1:1 
 `uc 1 TXQEIF 1 0 :1:2 
 `uc 1 . 1 0 :1:3 
@@ -232,8 +228,8 @@
 `uc 1 TXABT 1 0 :1:7 
 ]
 "13682
-[u S328 . 1 `S319 1 . 1 0 ]
-[v _C1TXQSTALbits C1TXQSTALbits `VES328  1 e 1 @340 ]
+[u S331 . 1 `S322 1 . 1 0 ]
+[v _C1TXQSTALbits C1TXQSTALbits `VES331  1 e 1 @340 ]
 "13783
 [v _C1TXQUA C1TXQUA `VEul  1 e 4 @344 ]
 "23673
@@ -243,8 +239,14 @@
 "23683
 [u S115 . 1 `S113 1 . 1 0 ]
 [v _PPSLOCKbits PPSLOCKbits `VES115  1 e 1 @512 ]
+"24093
+[v _RB0PPS RB0PPS `VEuc  1 e 1 @521 ]
+"24143
+[v _RB1PPS RB1PPS `VEuc  1 e 1 @522 ]
 "24193
 [v _RB2PPS RB2PPS `VEuc  1 e 1 @523 ]
+"24693
+[v _RC4PPS RC4PPS `VEuc  1 e 1 @533 ]
 "24793
 [v _RC6PPS RC6PPS `VEuc  1 e 1 @535 ]
 "24893
@@ -257,7 +259,7 @@
 [v _U1CON0 U1CON0 `VEuc  1 e 1 @683 ]
 "31655
 [v _U1CON1 U1CON1 `VEuc  1 e 1 @684 ]
-[s S128 . 1 `uc 1 SENDB 1 0 :1:0 
+[s S131 . 1 `uc 1 SENDB 1 0 :1:0 
 `uc 1 BRKOVR 1 0 :1:1 
 `uc 1 . 1 0 :1:2 
 `uc 1 RXBIMD 1 0 :1:3 
@@ -266,7 +268,7 @@
 `uc 1 ON 1 0 :1:7 
 ]
 "31680
-[s S136 . 1 `uc 1 U1SENDB 1 0 :1:0 
+[s S139 . 1 `uc 1 U1SENDB 1 0 :1:0 
 `uc 1 U1BRKOVR 1 0 :1:1 
 `uc 1 . 1 0 :1:2 
 `uc 1 U1RXBIMD 1 0 :1:3 
@@ -274,13 +276,13 @@
 `uc 1 . 1 0 :2:5 
 `uc 1 U1ON 1 0 :1:7 
 ]
-[u S144 . 1 `S128 1 . 1 0 `S136 1 . 1 0 ]
-[v _U1CON1bits U1CON1bits `VES144  1 e 1 @684 ]
+[u S147 . 1 `S131 1 . 1 0 `S139 1 . 1 0 ]
+[v _U1CON1bits U1CON1bits `VES147  1 e 1 @684 ]
 "31735
 [v _U1CON2 U1CON2 `VEuc  1 e 1 @685 ]
 "31877
 [v _U1BRG U1BRG `VEus  1 e 2 @686 ]
-[s S341 . 1 `uc 1 RXBF 1 0 :1:0 
+[s S344 . 1 `uc 1 RXBF 1 0 :1:0 
 `uc 1 RXBE 1 0 :1:1 
 `uc 1 XON 1 0 :1:2 
 `uc 1 RXIDL 1 0 :1:3 
@@ -290,7 +292,7 @@
 `uc 1 TXWRE 1 0 :1:7 
 ]
 "31959
-[s S350 . 1 `uc 1 U1RXBF 1 0 :1:0 
+[s S353 . 1 `uc 1 U1RXBF 1 0 :1:0 
 `uc 1 U1RXBE 1 0 :1:1 
 `uc 1 U1XON 1 0 :1:2 
 `uc 1 U1RXIDL 1 0 :1:3 
@@ -299,14 +301,14 @@
 `uc 1 U1STPMD 1 0 :1:6 
 `uc 1 U1TXWRE 1 0 :1:7 
 ]
-[s S359 . 1 `uc 1 . 1 0 :3:0 
+[s S362 . 1 `uc 1 . 1 0 :3:0 
 `uc 1 U1RCIDL 1 0 :1:3 
 ]
-[s S362 . 1 `uc 1 . 1 0 :3:0 
+[s S365 . 1 `uc 1 . 1 0 :3:0 
 `uc 1 RCIDL 1 0 :1:3 
 ]
-[u S365 . 1 `S341 1 . 1 0 `S350 1 . 1 0 `S359 1 . 1 0 `S362 1 . 1 0 ]
-[v _U1FIFObits U1FIFObits `VES365  1 e 1 @688 ]
+[u S368 . 1 `S344 1 . 1 0 `S353 1 . 1 0 `S362 1 . 1 0 `S365 1 . 1 0 ]
+[v _U1FIFObits U1FIFObits `VES368  1 e 1 @688 ]
 "57223
 [v _ADRES ADRES `VEus  1 e 2 @1002 ]
 "57478
@@ -315,7 +317,7 @@
 [v _ADACQ ADACQ `VEus  1 e 2 @1006 ]
 "58042
 [v _ADCON0 ADCON0 `VEuc  1 e 1 @1011 ]
-[s S494 . 1 `uc 1 GO 1 0 :1:0 
+[s S504 . 1 `uc 1 GO 1 0 :1:0 
 `uc 1 . 1 0 :1:1 
 `uc 1 FM 1 0 :2:2 
 `uc 1 CS 1 0 :1:4 
@@ -324,7 +326,7 @@
 `uc 1 ON 1 0 :1:7 
 ]
 "58080
-[s S502 . 1 `uc 1 ADGO 1 0 :1:0 
+[s S512 . 1 `uc 1 ADGO 1 0 :1:0 
 `uc 1 . 1 0 :1:1 
 `uc 1 ADFM 1 0 :2:2 
 `uc 1 ADCS 1 0 :1:4 
@@ -333,23 +335,23 @@
 `uc 1 ADON 1 0 :1:7 
 ]
 "58080
-[s S510 . 1 `uc 1 DONE 1 0 :1:0 
+[s S520 . 1 `uc 1 DONE 1 0 :1:0 
 `uc 1 . 1 0 :1:1 
 `uc 1 FM0 1 0 :1:2 
 ]
 "58080
-[s S514 . 1 `uc 1 GO_NOT_DONE 1 0 :1:0 
+[s S524 . 1 `uc 1 GO_NOT_DONE 1 0 :1:0 
 ]
 "58080
-[s S516 . 1 `uc 1 GO_nDONE 1 0 :1:0 
+[s S526 . 1 `uc 1 GO_nDONE 1 0 :1:0 
 `uc 1 . 1 0 :1:1 
 `uc 1 ADFM0 1 0 :1:2 
 ]
 "58080
-[u S520 . 1 `S494 1 . 1 0 `S502 1 . 1 0 `S510 1 . 1 0 `S514 1 . 1 0 `S516 1 . 1 0 ]
+[u S530 . 1 `S504 1 . 1 0 `S512 1 . 1 0 `S520 1 . 1 0 `S524 1 . 1 0 `S526 1 . 1 0 ]
 "58080
 "58080
-[v _ADCON0bits ADCON0bits `VES520  1 e 1 @1011 ]
+[v _ADCON0bits ADCON0bits `VES530  1 e 1 @1011 ]
 "58170
 [v _ADCON1 ADCON1 `VEuc  1 e 1 @1012 ]
 "58236
@@ -364,9 +366,11 @@
 [v _ANSELA ANSELA `VEuc  1 e 1 @1024 ]
 "59633
 [v _ANSELB ANSELB `VEuc  1 e 1 @1032 ]
+"59695
+[v _WPUB WPUB `VEuc  1 e 1 @1033 ]
 "60129
 [v _ANSELC ANSELC `VEuc  1 e 1 @1040 ]
-[s S444 . 1 `uc 1 ANSELC0 1 0 :1:0 
+[s S447 . 1 `uc 1 ANSELC0 1 0 :1:0 
 `uc 1 ANSELC1 1 0 :1:1 
 `uc 1 ANSELC2 1 0 :1:2 
 `uc 1 ANSELC3 1 0 :1:3 
@@ -376,11 +380,11 @@
 `uc 1 ANSELC7 1 0 :1:7 
 ]
 "60146
-[u S453 . 1 `S444 1 . 1 0 ]
+[u S456 . 1 `S447 1 . 1 0 ]
 "60146
 "60146
-[v _ANSELCbits ANSELCbits `VES453  1 e 1 @1040 ]
-[s S465 . 1 `uc 1 WPUC0 1 0 :1:0 
+[v _ANSELCbits ANSELCbits `VES456  1 e 1 @1040 ]
+[s S468 . 1 `uc 1 WPUC0 1 0 :1:0 
 `uc 1 WPUC1 1 0 :1:1 
 `uc 1 WPUC2 1 0 :1:2 
 `uc 1 WPUC3 1 0 :1:3 
@@ -390,10 +394,10 @@
 `uc 1 WPUC7 1 0 :1:7 
 ]
 "60208
-[u S474 . 1 `S465 1 . 1 0 ]
+[u S477 . 1 `S468 1 . 1 0 ]
 "60208
 "60208
-[v _WPUCbits WPUCbits `VES474  1 e 1 @1041 ]
+[v _WPUCbits WPUCbits `VES477  1 e 1 @1041 ]
 [s S70 . 1 `uc 1 ODCC0 1 0 :1:0 
 `uc 1 ODCC1 1 0 :1:1 
 `uc 1 ODCC2 1 0 :1:2 
@@ -430,7 +434,7 @@
 [v _TRISA TRISA `VEuc  1 e 1 @1222 ]
 "68282
 [v _TRISB TRISB `VEuc  1 e 1 @1223 ]
-[s S187 . 1 `uc 1 TRISB0 1 0 :1:0 
+[s S190 . 1 `uc 1 TRISB0 1 0 :1:0 
 `uc 1 TRISB1 1 0 :1:1 
 `uc 1 TRISB2 1 0 :1:2 
 `uc 1 TRISB3 1 0 :1:3 
@@ -440,10 +444,10 @@
 `uc 1 TRISB7 1 0 :1:7 
 ]
 "68299
-[u S196 . 1 `S187 1 . 1 0 ]
+[u S199 . 1 `S190 1 . 1 0 ]
 "68299
 "68299
-[v _TRISBbits TRISBbits `VES196  1 e 1 @1223 ]
+[v _TRISBbits TRISBbits `VES199  1 e 1 @1223 ]
 [s S91 . 1 `uc 1 TRISC0 1 0 :1:0 
 `uc 1 TRISC1 1 0 :1:1 
 `uc 1 TRISC2 1 0 :1:2 
@@ -458,7 +462,7 @@
 "68361
 "68361
 [v _TRISCbits TRISCbits `VES100  1 e 1 @1224 ]
-[s S400 . 1 `uc 1 RB0 1 0 :1:0 
+[s S403 . 1 `uc 1 RB0 1 0 :1:0 
 `uc 1 RB1 1 0 :1:1 
 `uc 1 RB2 1 0 :1:2 
 `uc 1 RB3 1 0 :1:3 
@@ -468,200 +472,72 @@
 `uc 1 RB7 1 0 :1:7 
 ]
 "68506
-[u S409 . 1 `S400 1 . 1 0 ]
+[u S412 . 1 `S403 1 . 1 0 ]
 "68506
 "68506
-[v _PORTBbits PORTBbits `VES409  1 e 1 @1231 ]
-"3 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\errno.c
-[v _errno errno `i  1 e 2 0 ]
-"320 C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c
+[v _PORTBbits PORTBbits `VES412  1 e 1 @1231 ]
+"287 C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c
 [v _main main `(v  1 e 1 0 ]
 {
-"327
+"289
+[v main@cycle cycle `uc  1 a 1 55 ]
+"295
 {
-"328
-[v main@cycle cycle `uc  1 a 1 111 ]
-"329
-[v main@sent sent `uc  1 a 1 110 ]
-"330
-{
-"331
-[v main@adc adc `us  1 a 2 116 ]
-"332
-[v main@resistance resistance `ul  1 a 4 112 ]
-"333
-[v main@centi_c centi_c `l  1 a 4 106 ]
-"353
+"296
+[v main@adc adc `[3]us  1 a 6 56 ]
+"297
+[v main@sent sent `uc  1 a 1 54 ]
+"312
 }
-"355
-}
-"356
+"313
 } 0
-"90
+"76
 [v _uart_init uart_init `(v  1 s 1 uart_init ]
 {
-"120
+"109
 } 0
-"272
-[v _thermistor_centi_c thermistor_centi_c `(l  1 s 4 thermistor_centi_c ]
-{
-[v thermistor_centi_c@resistance_ohm resistance_ohm `ul  1 p 4 64 ]
 "274
-[v thermistor_centi_c@hot_kelvin hot_kelvin `Cd  1 a 4 68 ]
-"275
-[v thermistor_centi_c@hot_resistance hot_resistance `Cd  1 a 4 72 ]
-"276
-[v thermistor_centi_c@beta_kelvin beta_kelvin `Cd  1 a 4 76 ]
-"277
-[v thermistor_centi_c@inverse_kelvin inverse_kelvin `d  1 a 4 80 ]
-"278
-[v thermistor_centi_c@centi_c centi_c `d  1 a 4 96 ]
-"284
+[v _report_voltage report_voltage `(v  1 s 1 report_voltage ]
+{
+[v report_voltage@name name `*.32Cuc  1 p 2 42 ]
+[v report_voltage@adc adc `us  1 p 2 44 ]
+"285
 } 0
-"29 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\logf.c
-[v _logf logf `(f  1 e 4 0 ]
+"269
+[v _nominal_millivolts nominal_millivolts `(us  1 s 2 nominal_millivolts ]
 {
-[v logf@x x `f  1 p 4 88 ]
-[u S1378 . 4 `f 1 f 4 0 `ul 1 i 4 0 ]
-"30
-[v logf@F472 F472 `S1378  1 s 4 F472 ]
-"31
-[v logf@ux ux `S1378  1 a 4 60 ]
-"32
-[v logf@hfsq hfsq `f  1 a 4 36 ]
-[v logf@s s `f  1 a 4 44 ]
-[v logf@z z `f  1 a 4 48 ]
-[v logf@R R `f  1 a 4 6 ]
-[v logf@w w `f  1 a 4 52 ]
-[v logf@t1 t1 `f  1 a 4 10 ]
-[v logf@t2 t2 `f  1 a 4 14 ]
-[v logf@dk dk `f  1 a 4 40 ]
-"33
-[v logf@k k `i  1 a 2 34 ]
-"77
+[v nominal_millivolts@adc adc `us  1 p 2 25 ]
+"272
 } 0
-"10 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\xxtofl.c
-[v ___xxtofl __xxtofl `(d  1 e 4 0 ]
+"15 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul32.c
+[v ___lmul __lmul `(ul  1 e 4 0 ]
 {
-[v ___xxtofl@sign sign `uc  1 p 1 wreg ]
-[v ___xxtofl@val val `l  1 p 4 0 ]
-"12
-[v ___xxtofl@exp exp `uc  1 a 1 9 ]
-"13
-[v ___xxtofl@arg arg `ul  1 a 4 10 ]
-"15
-{
-[v ___xxtofl@sign sign `uc  1 p 1 8 ]
+[v ___lmul@multiplier multiplier `ul  1 p 4 0 ]
+[v ___lmul@multiplicand multiplicand `ul  1 p 4 4 ]
 "17
-}
-"44
-} 1
-"245 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcadd.c
-[v ___flsub __flsub `(d  1 e 4 0 ]
-{
-[v ___flsub@b b `d  1 p 4 80 ]
-[v ___flsub@a a `d  1 p 4 84 ]
-"250
+[v ___lmul@product product `ul  1 a 4 8 ]
+"129
 } 0
-"10
-[v ___fladd __fladd `(d  1 e 4 0 ]
-{
-[v ___fladd@b b `d  1 p 4 39 ]
-[v ___fladd@a a `d  1 p 4 43 ]
-"13
-[v ___fladd@signs signs `uc  1 a 1 51 ]
-"15
-[v ___fladd@bexp bexp `uc  1 a 1 53 ]
-"16
-[v ___fladd@aexp aexp `uc  1 a 1 52 ]
-"17
-[v ___fladd@grs grs `uc  1 a 1 54 ]
-"237
-} 0
-"8 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcmul.c
-[v ___flmul __flmul `(d  1 e 4 0 ]
-{
-[v ___flmul@b b `d  1 p 4 55 ]
-[v ___flmul@a a `d  1 p 4 59 ]
-"9
-[v ___flmul@sign sign `uc  1 a 1 67 ]
-"10
-[v ___flmul@bexp bexp `uc  1 a 1 73 ]
-"11
-[v ___flmul@aexp aexp `uc  1 a 1 72 ]
-"12
-[v ___flmul@grs grs `ul  1 a 4 68 ]
-"13
-[s S1243 . 4 `uc 1 a 1 0 `uc 1 b 1 1 `uc 1 c 1 2 `uc 1 d 1 3 ]
-[s S1248 . 4 `s 1 wordA 2 0 `s 1 wordB 2 2 ]
-[u S1251 . 4 `l 1 i 4 0 `d 1 f 4 0 `S1243 1 fAsBytes 4 0 `S1248 1 fAsWords 4 0 ]
-[v ___flmul@prod prod `S1251  1 a 4 74 ]
-"14
-[s S1319 . 2 `uc 1 a 1 0 `uc 1 b 1 1 ]
-[u S1322 . 2 `s 1 i 2 0 `us 1 n 2 0 `S1319 1 nAsBytes 2 0 ]
-[v ___flmul@temp temp `S1322  1 a 2 78 ]
-"205
-} 0
-"11 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\sprcdiv.c
-[v ___fldiv __fldiv `(d  1 e 4 0 ]
-{
-[v ___fldiv@b b `d  1 p 4 14 ]
-[v ___fldiv@a a `d  1 p 4 18 ]
-"16
-[v ___fldiv@sign sign `uc  1 a 1 30 ]
-"18
-[v ___fldiv@bexp bexp `uc  1 a 1 37 ]
-"19
-[v ___fldiv@aexp aexp `uc  1 a 1 38 ]
-"20
-[v ___fldiv@new_exp new_exp `s  1 a 2 31 ]
-"21
-[v ___fldiv@grs grs `ul  1 a 4 33 ]
-"22
-[v ___fldiv@rem rem `ul  1 a 4 26 ]
-"185
-} 0
-"43 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\fltol.c
-[v ___fltol __fltol `(l  1 e 4 0 ]
-{
-[v ___fltol@f1 f1 `d  1 p 4 55 ]
-"45
-[v ___fltol@sign1 sign1 `uc  1 a 1 63 ]
-[v ___fltol@exp1 exp1 `uc  1 a 1 64 ]
-"70
-} 0
-"286 C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c
-[v _report_measurement report_measurement `(v  1 s 1 report_measurement ]
-{
-[v report_measurement@adc adc `us  1 p 2 40 ]
-[v report_measurement@resistance resistance `ul  1 p 4 42 ]
-[v report_measurement@centi_c centi_c `l  1 p 4 46 ]
-"287
-[v report_measurement@can_sent can_sent `uc  1 p 1 50 ]
-"289
-[v report_measurement@magnitude magnitude `ul  1 a 4 69 ]
-"318
-} 0
-"215
+"206 C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c
 [v _report_can_diagnostics report_can_diagnostics `(v  1 s 1 report_can_diagnostics ]
 {
-"240
+"231
 } 0
-"192
+"183
 [v _uart_puts uart_puts `(v  1 s 1 uart_puts ]
 {
 [v uart_puts@text text `*.32Cuc  1 p 2 0 ]
-"198
+"189
 } 0
-"200
+"191
 [v _uart_put_uint32 uart_put_uint32 `(v  1 s 1 uart_put_uint32 ]
 {
-[v uart_put_uint32@value value `ul  1 p 4 25 ]
-"202
-[v uart_put_uint32@digits digits `[10]uc  1 a 10 29 ]
-"203
-[v uart_put_uint32@count count `uc  1 a 1 39 ]
-"213
+[v uart_put_uint32@value value `ul  1 p 4 27 ]
+"193
+[v uart_put_uint32@digits digits `[10]uc  1 a 10 31 ]
+"194
+[v uart_put_uint32@count count `uc  1 a 1 41 ]
+"204
 } 0
 "7 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\llmod.c
 [v ___llmod __llmod `(ul  1 e 4 0 ]
@@ -684,43 +560,44 @@
 "30
 } 0
 "158 C:\Users\lintaroh\Documents\RaceCapture\pic18f26q84_blink.X\main.c
-[v _can_send_oil_temperature can_send_oil_temperature `(uc  1 s 1 can_send_oil_temperature ]
+[v _can_send_voltages can_send_voltages `(uc  1 s 1 can_send_voltages ]
 {
-[v can_send_oil_temperature@centi_c centi_c `l  1 p 4 0 ]
-[v can_send_oil_temperature@adc adc `us  1 p 2 4 ]
-"159
-[v can_send_oil_temperature@resistance resistance `ul  1 p 4 6 ]
-"162
-[v can_send_oil_temperature@object object `*.39VEuc  1 a 2 12 ]
-"163
-[v can_send_oil_temperature@oil_temp oil_temp `s  1 a 2 10 ]
-"190
+[v can_send_voltages@adc adc `*.39Cus  1 p 2 6 ]
+"160
+[v can_send_voltages@object object `*.39VEuc  1 a 2 13 ]
+"161
+[v can_send_voltages@i i `uc  1 a 1 12 ]
+"181
 } 0
-"122
-[v _can_init can_init `(v  1 s 1 can_init ]
+"147
+[v _rail_flags rail_flags `(uc  1 s 1 rail_flags ]
 {
+[v rail_flags@adc adc `*.39Cus  1 p 2 0 ]
+"149
+[v rail_flags@flags flags `uc  1 a 1 4 ]
+"150
+[v rail_flags@i i `uc  1 a 1 5 ]
 "156
 } 0
-"259
+"111
+[v _can_init can_init `(v  1 s 1 can_init ]
+{
+"145
+} 0
+"252
 [v _adc_read_average adc_read_average `(us  1 s 2 adc_read_average ]
 {
-"261
-[v adc_read_average@sum sum `ul  1 a 4 6 ]
-"262
-[v adc_read_average@index index `uc  1 a 1 10 ]
-"270
-} 0
-"242
+[v adc_read_average@channel channel `uc  1 p 1 wreg ]
+"254
+[v adc_read_average@sum sum `ul  1 a 4 7 ]
+"255
+[v adc_read_average@index index `uc  1 a 1 11 ]
+"254
+[v adc_read_average@channel channel `uc  1 p 1 6 ]
+"267
+} 1
+"233
 [v _adc_init adc_init `(v  1 s 1 adc_init ]
 {
-"257
-} 0
-"15 C:\Users\lintaroh\AppData\Local\Microchip\xc8\xc8-v4.00\pic\sources\c99\common\Umul32.c
-[v ___lmul __lmul `(ul  1 e 4 0 ]
-{
-[v ___lmul@multiplier multiplier `ul  1 p 4 0 ]
-[v ___lmul@multiplicand multiplicand `ul  1 p 4 4 ]
-"17
-[v ___lmul@product product `ul  1 a 4 8 ]
-"129
+"250
 } 0

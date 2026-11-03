@@ -1,7 +1,7 @@
 
 
 Microchip MPLAB XC8 Assembler V4.00 build 20260614213421 
-                                                                                                           Mon Oct 19 18:17:13 2026
+                                                                                                           Sun Nov  1 21:46:16 2026
 
 
      1                           	processor	18F26Q84
@@ -175,7 +175,7 @@ Microchip MPLAB XC8 Assembler V4.00 build 20260614213421
    168                           	psect	init
    169   00FFFC                     start:
    170                           	callstack 0
-   171   00FFFC  EFD2  F06F         	goto	start_initialization	;jump to C runtime clear & initialization
+   171   00FFFC  EF43  F07A         	goto	start_initialization	;jump to C runtime clear & initialization
    172                           
    173                           	psect	text
    174   000000                     intlevel0:
@@ -256,12 +256,12 @@ Microchip MPLAB XC8 Assembler V4.00 build 20260614213421
 
 
 Microchip Technology PIC18 Macro Assembler V4.00 build 20260614213421 
-Symbol Table                                                                                               Mon Oct 19 18:17:13 2026
+Symbol Table                                                                                               Sun Nov  1 21:46:16 2026
 
-                __S1 05DC                 ___sp 0000                 _main E8D6                 start FFFC  
+                __S1 053F                 ___sp 0000                 _main F9B2                 start FFFC  
               __HRAM 0000                __LRAM 0001               isa$std 0001     ___inthi_stack_hi 0000  
    ___inthi_stack_lo 0000               stackhi 0000               stacklo 0000           __accesstop 0560  
          ___inthi_sp 0000           ___intlo_sp 0000           ___stack_hi 0000           ___stack_lo 0000  
-   ___intlo_stack_hi 0000     ___intlo_stack_lo 0000              __ramtop 2E00  start_initialization DFA4  
+   ___intlo_stack_hi 0000     ___intlo_stack_lo 0000              __ramtop 2E00  start_initialization F486  
           ___heap_hi 0000            ___heap_lo 0000             isa$xinst 0000             intlevel0 0000  
            intlevel1 0000             intlevel2 0000             intlevel3 0000             reset_vec 0000  
