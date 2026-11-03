@@ -9,8 +9,9 @@ shown is worked out in dash_model.py. Settings: ~/.config/ecocapture-dash.json (
   ecocapture_dash.py                    the dash
   ecocapture_dash.py --demo             a made-up drive (laps, the gap, a pit stop, oil heating up to 130 C)
   ecocapture_dash.py --state warn120    one fixed screen: normal start pit warn110 warn120 warn130 lost stale
-  ecocapture_dash.py --sound warn       play one warning sound and exit (warn / pit)
+  ecocapture_dash.py --sound warn       play one warning sound and exit (warn / pit; --volume 0.3)
   --size 1920x1080 --snapshot out.png   window size, and save the first frame as PNG then exit
+  --no-pause                            leave the other display apps alone (checking on a running UNO Q)
 """
 from __future__ import annotations
 
@@ -44,6 +45,13 @@ class Sound:
     def __init__(self, config):
         self.config = config['sound']
         self.proc = None
+        for control in self.config.get('route', []) if self.config.get('enabled', True) else []:
+            # the mixer path to the speaker (dash_model.DEFAULTS)
+            try:
+                subprocess.run(['amixer', '-q', '-c', self.config.get('card', '0'), 'cset', f'name={control}', '1'],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+            except (OSError, subprocess.SubprocessError):
+                pass
         self.folder = Path(tempfile.mkdtemp(prefix='ecocapture-dash-'))
         atexit.register(shutil.rmtree, self.folder, True)
         self.files = {}
@@ -424,7 +432,7 @@ def run_gui(args, config):
     dash = Dash()
     dash.show_all()
     dash.stale.set_visible(False)
-    sound = Sound(config)
+    sound = None if args.state or args.snapshot else Sound(config)  # a layout check never makes a sound
     lock = threading.Lock()
     latest = {}
 
@@ -439,7 +447,7 @@ def run_gui(args, config):
                 started = time.monotonic()
                 frame = demo.frame(started) if demo else fetch(config['api'])
                 state, kind = model.update(frame, time.monotonic())
-                if kind:
+                if kind and sound:
                     sound.play(kind)
                 with lock:
                     latest['state'] = state
@@ -453,12 +461,13 @@ def run_gui(args, config):
             dash.show_state(state)
         return True
 
-    try:  # the covered admin window, as touch_launcher.py does (no-op off the UNO Q)
-        from display_load_control import resume_all, set_paused
-        set_paused('ecocapture-native', True)
-        atexit.register(resume_all)
-    except Exception:
-        pass
+    if not args.no_pause and not args.snapshot:  # the covered admin window, as touch_launcher.py does
+        try:
+            from display_load_control import set_paused
+            set_paused('ecocapture-native', True)
+            atexit.register(set_paused, 'ecocapture-native', False)
+        except Exception:
+            pass
 
     def stop(*_args):
         GLib.idle_add(Gtk.main_quit)
@@ -488,10 +497,15 @@ def main(argv=None):
     parser.add_argument('--sound', choices=['warn', 'pit'])
     parser.add_argument('--size')
     parser.add_argument('--snapshot')
+    parser.add_argument('--no-pause', action='store_true')
+    parser.add_argument('--volume', type=float, help='with --sound: 0 (silent, checks the path) to 1')
     args = parser.parse_args(argv)
     config = load_config(args.config)
     if args.sound:
-        proc = Sound({**config, 'sound': {**config['sound'], 'enabled': True}}).play(args.sound)
+        sound = {**config['sound'], 'enabled': True}
+        if args.volume is not None:
+            sound['volume'] = args.volume
+        proc = Sound({**config, 'sound': sound}).play(args.sound)
         return 0 if proc is not None and proc.wait() == 0 else 1
     run_gui(args, config)
     return 0

@@ -275,10 +275,21 @@
     - 自動起動：`ecocapture-dash.service`。RaceCaptureアプリ・タッチの切り替えバーと同時には動かない（片方を起動するともう片方が止まる）。記録・SD・RCPには触らない
     - 戻し方：PCから`tools/sugo_setup/Show-RaceCapture.cmd`（DASHに戻すのは`Show-Dash.cmd`。`--boot`を付けると次の電源ONからもそちら）。本体では`dash_switch.sh`
     - 確かめたこと：PC（WSLの仮想画面）で全部の状態（通常・スタート待ち・ピットの周・110/120/130℃・センサー途絶・ロガーの値が来ない）を1920×1080と1280×720で描いて崩れないこと。作り物の走行で、2周目からベスト比が出て、120℃で音1回、130℃で4秒ごとに音が鳴る順に動くこと。ラップの試験27件・DASHの試験14件・`sugo_setup`の試験5件が通る
+  - 2026-11-04 本体へは入れずに、本体の上で確かめた（`tools/sugo_setup/dash_check.py`。本体の`/tmp`に置いて動かし、終わったら消した。サービス・記録・設定は変えていない）。結果と画像は`outputs/dash_check_20261104_0305/`：
+    - 本体のPython 3.13でDASHの試験15件が通る。本体のGTK 3.24で全部の状態を描ける（日本語の字も出る）
+    - 本物の走行データで、前周・ベスト・周・経過・時刻・記録中・GNSS・「油温センサー途絶」（PICの値が来ていない今の状態）が実際の値どおりに出る。ラップの記録はエコラン大会のまま（7周、前周5:30.46）で、SUGO用への切り替え（SG-1-2の`--apply`）はまだ
+    - 負荷：作り物の走行で30秒、DASHは1コアの12%・63MB（同じ間のRaceCaptureアプリも12%。HDMIが外れていたため、画面に出しているときより軽い）。本体の温度48℃
+    - **音の出口**：本体のサウンドの定義（デバイスツリー`sound/hdmi-i2s-dai-link`）に「HDMI/I2S Playback」があり、映像変換チップANX7625（I2Cの0x58）にHDMIの音を受ける部品がつながっていた。経路`SEC_MI2S_RX Audio Mixer MultiMedia4`は最初からON。この出口（`plughw:CARD=ArduinoImolaHPH,DEV=3`）へ無音を流すと、モニターが外れていても誤りなく流れた。**本当にHD7Hから聞こえるかは、モニターをつないで鳴らすまで分からない**。PipeWireはこのサウンドを使っていない（Dummy Outputだけ）ので、DASHが`aplay`で直接鳴らす
+  - **モニターをつなぐ日の手順**（机の上でよい。ドックとHD7Hは本体の電源を入れる前につなぐ）：
+    1. HD7Hの音量を確かめてから、`python tools/sugo_setup/dash_check.py --sound warn --volume 0.3`（ピッ×3、約1秒。鳴らす前に周りへ予告する）→ 聞こえたら`--sound pit`（2音の警報、約2秒）。大きさは`~/.config/ecocapture-dash.json`の`sound.volume`で決める（既定0.8）
+    2. 聞こえなければ：HD7Hのミュート・音量・メニューの「音」を見る → それでもだめなら、USBのオーディオ（エコランで使った「USB Lavalier Mic Pro」）とスピーカーへ切り替える（`sound.device`）。スピーカーは買う必要がある
+    3. 了承を取ってから`python tools/sugo_setup/dash_check.py --install`（今と次の電源ONからDASHになる）→ HD7HにDASHが1080pで出るか、黒い帯が無いか、数字が動くか
+    4. `Show-RaceCapture.cmd`でRaceCaptureに戻り、`Show-Dash.cmd`でDASHに戻ることを1回ずつ確かめる
+    5. `EcoCapture-Web`を更新して`lap.py`を入れる（記録が一瞬止まる）→ `python tools/sugo_setup/sugo_setup.py --apply`（SUGOのライン＋ピットの値）。これをしないと、DASHは動くが前周比・「PIT」・「ピットアウト」が出ない
   - 残り：
-    - [ ] 本体へ入れる（了承を取ってから）：`EcoCapture-Web`の更新（`lap.py`）→ `RaceCapture-UNOQ`を本体へ置いて`install-dash.sh`（rootが要る）→ `sugo_setup.py --apply`（ピットの値を足す）
-    - [ ] **音がHDMIから出るか**：UNO QのUSB-Cの映像は映像変換チップ（ANX7625）を通るので、本体側から音をHDMIへ送れるかは未確認（本体のサウンドは1枚だけで、`DISPLAY_PORT_RX`の経路を足す必要がありそう）。HD7Hをつないで、予告してから小さい音で試す。出なければ、USBのオーディオとスピーカーで鳴らす（部品が要るので早めに判断）
-    - [ ] 本体のCPU・温度（RaceCaptureアプリは1コアの約71%だった）、HD7Hに実物が出ること、運転席から読めること
+    - [ ] 上の手順1〜2（**音がHDMIから聞こえるか**）。聞こえなければUSBのスピーカーを手配（11/8に間に合う日に）
+    - [ ] 上の手順3〜5（本体へ入れる。了承を取ってから）
+    - [ ] 画面に出しているときのCPU・温度、運転席から読めること（取付のとき）
     - [ ] 11/7の走行会：ベスト比・前周比が実走で合うか、ピットを通った周に「PIT」と出るか（出なければ記録の位置・速度から値を直す）
     - [ ] 当日の手順書（SG-5-1）に、DASHが出なかったときの戻し方を足す
 

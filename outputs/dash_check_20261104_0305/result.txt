@@ -1,0 +1,13 @@
+1. 本体での試験: 通った（Ran 15 tests in 2.033s OK）
+2. 画面 :2 の大きさと、HDMI: 1280x800 / disconnected
+   normal: 描けた
+   start: 描けた
+   pit: 描けた
+   warn110: 描けた
+   warn120: 描けた
+   warn130: 描けた
+   lost: 描けた
+   stale: 描けた
+3. 本物の走行データで: 描けた（live.png）
+4. 負荷（30秒）: DASH 1コアの12%・63MB、同じ間のRaceCaptureアプリ 12%、本体の温度 48℃
+5. HDMIへの音の出口（無音）: 流せた（: values=on rc=0）

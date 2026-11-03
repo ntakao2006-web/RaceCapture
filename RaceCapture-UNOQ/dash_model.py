@@ -40,7 +40,11 @@ DEFAULTS = {
     'hold_off_s': 5.0,
     'delta_full_scale_s': 2.0,
     'stale_s': 2.0,
-    'sound': {'enabled': True, 'device': 'default', 'volume': 0.8, 'repeat_s': 4.0},
+    # The UNO Q's one sound card: its 4th front end (MultiMedia4) is routed to SEC_MI2S_RX, the I2S
+    # link to the ANX7625 (the USB-C video bridge) and so to the monitor's speaker over HDMI
+    # (device tree: sound/hdmi-i2s-dai-link, port 18; checked 2026-11-04). PipeWire does not use the card.
+    'sound': {'enabled': True, 'device': 'plughw:CARD=ArduinoImolaHPH,DEV=3', 'volume': 0.8, 'repeat_s': 4.0,
+              'card': 'ArduinoImolaHPH', 'route': ['SEC_MI2S_RX Audio Mixer MultiMedia4']},
 }
 
 WARN_TEXT = {1: '注意', 2: 'クーリング開始', 3: 'ピットイン'}

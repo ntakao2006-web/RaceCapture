@@ -56,6 +56,16 @@ SUGO 120分耐久向けに、HDMIにはRaceCaptureアプリの代わりに見る
 
 PCでは、WSLなどGTKのあるLinuxで`GDK_BACKEND=x11 python3 ecocapture_dash.py --state warn130 --size 1920x1080`のように見た目を確かめられます。
 
+本体での確かめ方と入れ方は`tools/sugo_setup/dash_check.py`（PCから`ssh unoq`で動かす）：
+
+| コマンド | すること |
+|---|---|
+| `python dash_check.py` | 入れずに確かめる。本体の`/tmp`で試験・全部の状態の描画・本物の走行データでの1枚・30秒の負荷・HDMIへの音の出口を無音で開ける。画像は`outputs/dash_check_<日時>/` |
+| `python dash_check.py --sound warn --volume 0.3` | モニターをつないで、HDMIから警告音を1回鳴らす（`pit`で130℃の音）。3秒数えてから鳴る |
+| `python dash_check.py --install` | 本体へ入れて、今と次の電源ONからDASHにする（rootはEcoCaptureのDockerイメージからnsenter） |
+
+音は、本体のサウンドの4番目の出口（`plughw:CARD=ArduinoImolaHPH,DEV=3`、内部の経路`SEC_MI2S_RX Audio Mixer MultiMedia4`）から、映像変換チップANX7625のI2Sを通ってHDMIへ出す作りです（デバイスツリーの`sound/hdmi-i2s-dai-link`、2026-11-04に確認）。DASHは起動時にこの経路をつなぎ直します。PipeWireはこのサウンドを使っていません。
+
 ## 確認範囲と制限
 
 実測ストリーム、実アプリの数値更新、アプリ内DB記録、USBブラウザ表示、既定ブラウザ起動を検証しています。証拠は `../outputs/racecapture_unoq_20261002/`。

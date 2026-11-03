@@ -7,7 +7,8 @@ SRC=/home/arduino/RaceCapture-UNOQ
 DEST=/opt/logger-v2-racecapture
 install -m 755 "$SRC/ecocapture_dash.py" "$DEST/"
 install -m 644 "$SRC/dash_model.py" "$DEST/"
-install -m 644 "$SRC/display_load_control.py" "$DEST/"
+# Already there from install.sh (and maybe newer): only the pause helper is used.
+[ -e "$DEST/display_load_control.py" ] || install -m 644 "$SRC/display_load_control.py" "$DEST/"
 install -m 755 "$SRC/dash_switch.sh" "$DEST/"
 install -m 644 "$SRC/ecocapture-dash.service" /etc/systemd/system/
 install -m 440 "$SRC/ecocapture-dash.sudoers" /etc/sudoers.d/ecocapture-dash.tmp
