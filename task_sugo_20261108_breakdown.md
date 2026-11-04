@@ -402,7 +402,11 @@
     油圧の警告（回転数に対して低いとき）・警告を並べて出す・出てから1分の点滅・約10秒の警報音・右下の「油温・油圧」。Ver.2からスマホへ送る`dash`に`press`（`OilPress`）・`rpm`（`RPM`）を足した（`field.py`）。
     確かめたこと：Kotlinの単体テスト全86件（新しい5件。Gradleではなく単体のKotlinコンパイラで）、アプリのソース全体がAndroid 36に対してコンパイルできる、`test_field`・`test_lap`34件。
     鳴っている途中に新しい警告が出ると、スマホは最初から鳴り直す（DASHもこれに合わせた。SG-2-6）
-    - [ ] PCで`./gradlew testDebugUnitTest assembleDebug`（86件）と、エミュレーターで油圧・並べた帯・点滅を見る（`circuit_mock.py`の`press=70`など。手順は引継ぎ資料の4章）
+    - [x] PCで`./gradlew testDebugUnitTest assembleDebug`（86件）と、エミュレーターで油圧・並べた帯・点滅を見る（`circuit_mock.py`の`press=70`など。手順は引継ぎ資料の4章）
+      - 2026-11-04 済み（PC）：Gradleでビルドが通り、単体テスト86件すべて通過。`test_field`・`test_lap`34件、`test_dash_model`22件も通過。
+        エミュレーターで`press=70`→「油圧 70kPa」の帯・警報音（アラームの音で再生）、`oil=125,press=70`→2つ並び、`oil=128,water=113,press=70`→3つ並び（はみ出さない）、油圧を戻すと5秒で油圧だけ消える、`nopress`→右下が黄の「油圧センサー途絶」。
+        点滅は出てから1分の間だけ明るい赤（224,20,20）と暗い赤（82,8,8）が交互になり、1分たつと明るい赤のまま止まり、新しい警告が加わるとまた点滅した。暗い側でも白い文字は読める。設定画面の説明と「警報音を鳴らしてみる（約10秒）」も出る。画像は`outputs/circuit_check_20261104/`の`press_*.png`・`warn2.png`・`warn3.png`・`settings_warnings.png`
+      - 見え方の注意：温度が下がる途中は、120℃を切ってから5秒たつまで帯が今の値（例：114℃）のまま残る（DASHと同じ決まり）
 
 ## SG-3 インジケーター
 
