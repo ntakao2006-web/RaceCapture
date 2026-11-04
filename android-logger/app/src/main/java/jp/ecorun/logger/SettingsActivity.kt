@@ -48,10 +48,14 @@ class SettingsActivity : Activity() {
         }
         val scroll = ScrollView(this).apply { setBackgroundColor(bg); addView(column) }
         // Edge-to-edge (target SDK 35+): keep the content clear of the status, navigation and keyboard areas.
-        scroll.setOnApplyWindowInsetsListener { v, insets ->
-            val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars() or
-                android.view.WindowInsets.Type.displayCutout() or android.view.WindowInsets.Type.ime())
-            v.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
+        // WindowInsets.Type is API 30+. Android 10 does not force edge-to-edge, so the system already keeps
+        // the content clear of the bars there and no listener is needed.
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            scroll.setOnApplyWindowInsetsListener { v, insets ->
+                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars() or
+                    android.view.WindowInsets.Type.displayCutout() or android.view.WindowInsets.Type.ime())
+                v.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
+            }
         }
         setContentView(scroll)
         build()

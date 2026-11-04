@@ -14,6 +14,7 @@ import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.WindowManager
 import android.widget.Button
@@ -71,10 +72,32 @@ class MainActivity : Activity() {
         dashboard.bottomReservePx = 64 * dp
         setContentView(root)
         // Full screen: the status bar would cover the top strip. A swipe from the edge brings it back briefly.
-        window.insetsController?.let {
-            it.hide(android.view.WindowInsets.Type.systemBars())
-            it.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        // insetsController is API 30+. Android 10 (e.g. the Huawei P30 lite used as the spare in-car screen)
+        // crashes on it with NoSuchMethodError, so fall back to the old immersive flags there.
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            window.insetsController?.let {
+                it.hide(android.view.WindowInsets.Type.systemBars())
+                it.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            hideBarsLegacy()
         }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun hideBarsLegacy() {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            or View.SYSTEM_UI_FLAG_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+    }
+
+    // The legacy flags are cleared when the window loses focus (dialogs, returning from settings).
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && android.os.Build.VERSION.SDK_INT < 30) hideBarsLegacy()
     }
 
     private fun button(text: String, color: Int) = Button(this).apply {
