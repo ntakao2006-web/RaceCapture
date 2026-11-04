@@ -18,9 +18,10 @@ class FakeRuntime:
         self.sample = None
         self.connected = True
         self.logging = {'active': True, 'error': None, 'sd_warning': None}
+        self.video = None
 
     def status(self):
-        return {'connected': self.connected, 'logging': self.logging}
+        return {'connected': self.connected, 'logging': self.logging, 'video': self.video}
 
     def feed(self, sample):
         self.laps.update(sample)
@@ -91,6 +92,26 @@ class FieldTests(unittest.TestCase):
             frame = ws.receive_json()
         self.assertFalse(frame['connected'])
         self.assertIsNone(frame['lat'])
+        self.assertIsNone(frame['dash'])
+
+    def test_live_stream_carries_what_the_dash_shows(self):
+        # The phone's circuit screen (android-logger Circuit.kt) shows what EcoCapture DASH does.
+        sample = fix(1500, 10.0, speed=0.0)
+        sample['can_signals'] = {'OilTemp': 121.5, 'WaterTemp': float('nan'), 'Speed': 42.0}
+        sample['values']['WaterTemp'] = 96.0
+        sample['gnss_utc'] = '2026-11-08T02:16:15Z'
+        self.runtime.feed(sample)
+        sample['lap'] = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapTime': 1.87, 'BestLap': 1.85, 'RaceTime': 20.0,
+                         'LapDiffS': 0.41, 'LastLapPit': True, 'LapStartPit': True, 'LapsLeft': None}
+        self.runtime.video = {'recording': True, 'minutes_left': 148}
+        with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
+            dash = ws.receive_json()['dash']
+        self.assertEqual(dash['lap'], sample['lap'])
+        self.assertEqual((dash['oil'], dash['water'], dash['speed']), (121.5, 96.0, 0.0))  # the CAN first, NaN skipped
+        self.assertEqual((dash['utc'], dash['video']), ('2026-11-08T02:16:15Z', {'recording': True, 'minutes_left': 148}))
+        del sample['values']['GPSSpeed']
+        with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
+            self.assertEqual(ws.receive_json()['dash']['speed'], 42.0)  # no GNSS speed: the car's
 
     def test_page_is_served_without_admin_routes(self):
         page = self.client.get('/')
