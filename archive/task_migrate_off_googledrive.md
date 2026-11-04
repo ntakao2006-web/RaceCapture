@@ -1,6 +1,6 @@
 # タスク: 作業環境を Google Drive からローカルドライブへ移行
 
-> 親ドキュメント: [`ARCHITECTURE.md`](ARCHITECTURE.md)(プロジェクト全体のマスター。4章「現状ステータス」にこの移行の開始を追記済み)
+> 親ドキュメント: [`ARCHITECTURE.md`](../ARCHITECTURE.md)(プロジェクト全体のマスター。4章「現状ステータス」にこの移行の開始を追記済み)
 > 実行手順(サブタスク・チェックリスト): [`task_migrate_off_googledrive_checklist.md`](task_migrate_off_googledrive_checklist.md)
 
 ## 背景・目的
