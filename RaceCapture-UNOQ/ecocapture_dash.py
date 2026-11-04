@@ -40,6 +40,7 @@ LAPREF_PATH = Path.home() / '.cache' / 'ecocapture-dash' / 'lapref.json'
 FONT_NUM = "'DejaVu Sans', 'Noto Sans CJK JP', sans-serif"
 FONT_TEXT = "'Noto Sans CJK JP', 'DejaVu Sans', sans-serif"
 WARN_SCALE = {1: 1.0, 2: 0.75, 3: 0.55}  # the warnings in the band, by how many are on (they share its width)
+FLASH_PERIOD_S = 0.5  # bright and dark red twice a second while flashing (under 3 a second: photosensitivity)
 
 
 class Sound:
@@ -189,6 +190,7 @@ def css_for(w, h):
     .notice-none {{ background-color: transparent; color: transparent; }}
     .notice-pit {{ background-color: #1f64c8; color: #ffffff; }}
     .banner {{ background-color: #e01414; border-radius: {rad}px; }}
+    .banner.banner-dim {{ background-color: #520808; }}
     .banner label {{ color: #ffffff; font-weight: bold; }}
     .banner .warn-name {{ font-family: {FONT_TEXT}; }}
     .banner .warn-val {{ font-family: {FONT_NUM}; }}
@@ -397,6 +399,9 @@ def run_gui(args, config):
                 self.stale_sub.set_text('' if waited is None else f'最後に受け取ってから {int(waited)} 秒')
             warns = s['warns'][:len(self.warn_items)]
             self.stack.set_visible_child_name('banner' if warns else 'normal')
+            # flashing just after a warning comes on: dark red half the time, the white text stays
+            dim = bool(s.get('warn_flash')) and time.monotonic() % FLASH_PERIOD_S >= FLASH_PERIOD_S / 2
+            classes(self.banner, 'banner', *(('banner-dim',) if dim else ()))
             n, w = max(1, len(warns)), self.size[0]
             self.warn_row.set_spacing(int(0.04 * w))
             for k, (item, name, value) in enumerate(self.warn_items):

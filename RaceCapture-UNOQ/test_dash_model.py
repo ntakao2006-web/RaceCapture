@@ -221,6 +221,19 @@ class ModelTests(unittest.TestCase):
         self.assertEqual((s['warn'], s['warns'], s['notice']), (True, [{'label': '油温', 'value': '122', 'unit': '℃'}], 'PIT OUT'))
         self.assertEqual([x for x in sounds if x], ['warn'])
 
+    def test_the_band_flashes_for_ten_seconds_after_each_new_warning(self):
+        w = Warning(config())
+        w.update(0.0, 122, 100); w.update(1.0, 122, 100)  # the oil comes on at 1.0
+        self.assertTrue(w.flashing(1.0)); self.assertTrue(w.flashing(10.9))
+        self.assertFalse(w.flashing(11.0))  # then steady red
+        w.update(20.0, 122, 100, 120.0, 5000); w.update(20.5, 122, 100, 120.0, 5000)  # the oil pressure joins
+        self.assertTrue(w.flashing(20.5)); self.assertFalse(w.flashing(30.5))
+        self.assertFalse(Warning(config(flash_s=0)).flashing(0.0))
+        m = DashModel(config())
+        states = [m.update(frame(oil=125), k * 0.5)[0] for k in range(30)]
+        self.assertEqual([s['warn_flash'] for s in states if s['warn']][:2], [True, True])
+        self.assertEqual((states[-1]['warn'], states[-1]['warn_flash']), (True, False))
+
     def test_the_band_lists_every_warning_and_the_sensor_light(self):
         m = DashModel(config())
         s, _ = m.update(frame(oil=98), 0.0)

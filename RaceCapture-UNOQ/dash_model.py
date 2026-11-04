@@ -19,7 +19,9 @@ Three warnings, not tied to what to do about them (the driver decides), each on 
 Every warning that is on is shown side by side in one red band over the middle row (oil pressure
 first, smaller when there are more), with one alarm sound each time a warning comes on. A warning
 comes on after its hold time above the limit (press_hold_on_s, hold_on_s) and goes off after
-hold_off_s below it.
+hold_off_s below it. For flash_s after a warning comes on, the band flashes bright and dark red (the
+white text always readable), to catch the eye from the side; then it stays bright red, as a long hot
+stint flashing all the time would only make the numbers harder to read.
 
 The gap to the best lap is the algorithm of tools/unoq_overlay_enc/lap_ref.h (the burnt-in video
 HUD), ported so both show the same number: the best lap's track is kept, and the running lap's
@@ -52,6 +54,7 @@ DEFAULTS = {
     'hold_on_s': 1.0,
     'press_hold_on_s': 0.5,  # pressure gone does harm quicker than heat
     'hold_off_s': 5.0,
+    'flash_s': 10.0,  # the band flashes this long after a warning comes on (0: never)
     'delta_full_scale_s': 2.0,
     'stale_s': 2.0,
     # The burnt-in video (EcoCapture /api/status 'video', unoq_video_check_procedure.md 5-17): fewer minutes
@@ -233,6 +236,7 @@ class Alarm:
         self.label, self.unit = label, unit
         self.hold_on_s, self.hold_off_s = hold_on_s, hold_off_s
         self.on, self.value, self._since = False, None, None
+        self.on_at = None  # when it last came on
 
     def update(self, now, bad, value):
         """True at the moment it comes on."""
@@ -245,6 +249,8 @@ class Alarm:
         if now - self._since < (self.hold_on_s if bad else self.hold_off_s):
             return False
         self.on, self._since = bad, None
+        if bad:
+            self.on_at = now
         return bad
 
 
@@ -275,6 +281,10 @@ class Warning:
     def active(self):
         """The warnings that are on, in the order the band shows them (oil pressure first)."""
         return [alarm for alarm in self.alarms.values() if alarm.on]
+
+    def flashing(self, now):
+        """A warning came on less than flash_s ago (a new one flashes the band again)."""
+        return any(a.on and a.on_at is not None and now - a.on_at < self.config['flash_s'] for a in self.alarms.values())
 
 
 class DashModel:
@@ -355,6 +365,7 @@ class DashModel:
             'press_sensor': press is not None if self.press_seen else None,
             'sensor': sensor_light(oil is not None, press is not None if self.press_seen else None),
             'warn': self.warning.on,
+            'warn_flash': self.warning.flashing(now),
             'warns': [{'label': a.label, 'value': '--' if a.value is None else f'{a.value:.0f}', 'unit': a.unit}
                       for a in self.warning.active()],
         }
