@@ -6,7 +6,8 @@ import unittest
 import wave
 from pathlib import Path
 
-from dash_model import DEFAULTS, DashModel, LapRef, Warning, fmt_hms, fmt_lap, fmt_signed, load_config, tone_wav
+from dash_model import (DEFAULTS, DashModel, LapRef, Warning, fmt_hms, fmt_lap, fmt_signed, load_config, press_limit,
+                        sensor_light, tone_wav)
 
 LAT0, LON0, RADIUS = 38.14, 140.77, 400.0
 
@@ -23,10 +24,17 @@ def on_circle(fraction):
             LON0 + RADIUS * math.cos(angle) / (111320.0 * math.cos(math.radians(LAT0))))
 
 
-def frame(lap=None, oil=98.0, water=88.0, lat=LAT0, lon=LON0, connected=True, logging=True):
+def frame(lap=None, oil=98.0, water=88.0, lat=LAT0, lon=LON0, connected=True, logging=True, press=None, rpm=None):
+    can = {'OilTemp': oil, 'WaterTemp': water}
+    if press is not None:
+        can['OilPress'] = press
     return {'status': {'connected': connected, 'logging': {'active': logging}},
-            'sample': {'values': {'Lat': lat, 'Lon': lon}, 'can_signals': {'OilTemp': oil, 'WaterTemp': water},
+            'sample': {'values': {'Lat': lat, 'Lon': lon, 'RPM': rpm}, 'can_signals': can,
                        'gnss_utc': '2026-11-08T02:16:15Z', 'lap': lap or {}}}
+
+
+def shown(w):
+    return [(a.label, a.value) for a in w.active()]
 
 
 class FormatTests(unittest.TestCase):
@@ -52,10 +60,10 @@ class WarningTests(unittest.TestCase):
         self.assertIsNone(w.update(0.0, 121, 100))
         self.assertIsNone(w.update(0.5, 121, 100)); self.assertFalse(w.on)
         self.assertEqual(w.update(1.0, 121, 100), 'warn'); self.assertTrue(w.on)
-        self.assertEqual((w.label, w.value), ('油温', 121))
+        self.assertEqual(shown(w), [('油温', 121)])
         for t in (1.1, 5.0, 9.0):
             self.assertIsNone(w.update(t, 135, 100))  # no second level, no repeat
-        self.assertEqual(w.value, 135)
+        self.assertEqual(shown(w), [('油温', 135)])
 
     def test_off_five_seconds_after_and_a_short_dip_keeps_it(self):
         w = Warning(config())
@@ -72,7 +80,42 @@ class WarningTests(unittest.TestCase):
         self.assertFalse(w.on)  # no caution level below the warning any more
         w2 = Warning(config())
         w2.update(0.0, None, 112); self.assertEqual(w2.update(1.0, None, 112), 'warn')
-        self.assertEqual((w2.on, w2.label, w2.value), (True, '水温', 112))
+        self.assertEqual((w2.on, shown(w2)), (True, [('水温', 112)]))
+
+    def test_oil_pressure_line_follows_the_engine_speed(self):
+        c = config()
+        self.assertIsNone(press_limit(c, None))
+        self.assertIsNone(press_limit(c, 900))     # idle: 80 kPa hot is normal
+        self.assertIsNone(press_limit(c, 1499))
+        self.assertEqual(press_limit(c, 1500), 100)
+        self.assertAlmostEqual(press_limit(c, 2250), 150)
+        self.assertEqual((press_limit(c, 3000), press_limit(c, 7200)), (200, 200))  # flat above 3000 rpm
+        self.assertIsNone(press_limit(config(oil_press_warn='broken'), 4000))   # a bad setting never stops the dash
+
+    def test_oil_pressure_warns_after_half_a_second_only_with_the_engine_running(self):
+        w = Warning(config())
+        self.assertIsNone(w.update(0.0, 98, 88, 0.0, 0.0))     # engine off: 0 kPa, no warning
+        self.assertIsNone(w.update(5.0, 98, 88, 60.0, 1000))   # idle
+        self.assertIsNone(w.update(9.0, 98, 88, 60.0, 1000)); self.assertFalse(w.on)
+        self.assertIsNone(w.update(10.0, 98, 88, 150.0, 5000))
+        self.assertIsNone(w.update(10.4, 98, 88, 150.0, 5000)); self.assertFalse(w.on)
+        self.assertEqual(w.update(10.5, 98, 88, 150.0, 5000), 'warn')
+        self.assertEqual(shown(w), [('油圧', 150.0)])
+        self.assertIsNone(w.update(11.0, 98, 88, 380.0, 5000)); self.assertTrue(w.on)  # off 5 s after
+        self.assertIsNone(w.update(16.0, 98, 88, 380.0, 5000)); self.assertFalse(w.on)
+        self.assertIsNone(w.update(20.0, 98, 88, None, 5000)); self.assertFalse(w.on)  # no sensor: nothing
+
+    def test_warnings_side_by_side_each_with_its_sound(self):
+        w = Warning(config())
+        w.update(0.0, 122, 100, 380.0, 5000)
+        self.assertEqual(w.update(1.0, 122, 100, 380.0, 5000), 'warn')
+        w.update(2.0, 124, 104, 120.0, 5000)
+        self.assertEqual(w.update(2.5, 124, 104, 120.0, 5000), 'warn')  # the oil pressure comes on: a new sound
+        self.assertEqual(shown(w), [('油圧', 120.0), ('油温', 124)])      # oil pressure first
+        w.update(3.0, 125, 111, 120.0, 5000)
+        self.assertEqual(w.update(4.0, 125, 111, 120.0, 5000), 'warn')
+        self.assertEqual([a.label for a in w.active()], ['油圧', '油温', '水温'])
+        self.assertIsNone(w.update(4.1, 126, 112, 110.0, 5000))  # all on already: no more sound
 
 
 class LapRefTests(unittest.TestCase):
@@ -175,8 +218,23 @@ class ModelTests(unittest.TestCase):
         out_lap = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapStartPit': True, 'LastLapPit': True}
         sounds = [m.update(frame(out_lap, oil=122), k * 0.1)[1] for k in range(12)]
         s, _ = m.update(frame(out_lap, oil=122), 1.2)
-        self.assertEqual((s['warn'], s['warn_label'], s['warn_value'], s['notice']), (True, '油温', '122℃', 'PIT OUT'))
+        self.assertEqual((s['warn'], s['warns'], s['notice']), (True, [{'label': '油温', 'value': '122', 'unit': '℃'}], 'PIT OUT'))
         self.assertEqual([x for x in sounds if x], ['warn'])
+
+    def test_the_band_lists_every_warning_and_the_sensor_light(self):
+        m = DashModel(config())
+        s, _ = m.update(frame(oil=98), 0.0)
+        self.assertEqual((s['press_sensor'], s['sensor']), (None, ('油温センサー', True)))  # oil pressure not wired yet
+        for k in range(12):
+            s, _ = m.update(frame(oil=123, press=110.0, rpm=5200.0), 0.1 + k * 0.1)
+        self.assertEqual(s['warns'], [{'label': '油圧', 'value': '110', 'unit': 'kPa'},
+                                      {'label': '油温', 'value': '123', 'unit': '℃'}])
+        self.assertEqual((s['press_sensor'], s['sensor']), (True, ('油温・油圧', True)))
+        s, _ = m.update(frame(oil=98), 2.0)  # the oil pressure lost after it had come
+        self.assertEqual((s['press_sensor'], s['sensor']), (False, ('油圧センサー途絶', False)))
+        self.assertEqual(s['warns'][0], {'label': '油圧', 'value': '110', 'unit': 'kPa'})  # last value until it goes off
+        self.assertEqual([sensor_light(False, None), sensor_light(False, True), sensor_light(False, False)],
+                         [('油温センサー途絶', False), ('油温センサー途絶', False), ('油温・油圧途絶', False)])
 
     def test_no_warning_from_values_of_a_dead_link(self):
         m = DashModel(config())
@@ -199,6 +257,11 @@ class SoundAndConfigTests(unittest.TestCase):
             self.assertEqual((c['sound']['device'], c['sound']['volume']), ('hdmi', 0.8))
             self.assertNotIn('unknown', c)
         self.assertEqual(load_config('/nonexistent.json')['water_warn'], 110.0)
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'dash.json'
+            path.write_text(json.dumps({'oil_press_warn': [[2000, 150], [4000, 250]], 'oil_press_min_rpm': 2000}))
+            c = load_config(path)
+            self.assertEqual((press_limit(c, 1900), press_limit(c, 3000), press_limit(c, 6000)), (None, 200, 250))
 
 
 if __name__ == '__main__':

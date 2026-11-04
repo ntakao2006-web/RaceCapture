@@ -7,8 +7,10 @@ touched; the EcoCapture admin window underneath is paused as touch_launcher.py d
 shown is worked out in dash_model.py. Settings: ~/.config/ecocapture-dash.json (dash_model.DEFAULTS).
 
   ecocapture_dash.py                    the dash
-  ecocapture_dash.py --demo             a made-up drive (laps, the gap, a pit stop, oil heating up to 130 C)
-  ecocapture_dash.py --state warn120    one fixed screen: normal start pit pitbox warn lost stale
+  ecocapture_dash.py --demo             a made-up drive (laps, the gap, a pit stop, oil heating up to 130 C,
+                                        two oil pressure drops: one alone, one with the temperatures)
+  ecocapture_dash.py --state warn       one fixed screen: normal start pit pitbox warn warnpress warn2 warn3
+                                        lost stale (warn2: oil pressure + oil, warn3: all three warnings)
   ecocapture_dash.py --sound warn       play the warning sound once and exit (--volume 0.3)
   --size 1920x1080 --snapshot out.png   window size, and save the first frame as PNG then exit
   --no-pause                            leave the other display apps alone (checking on a running UNO Q)
@@ -37,6 +39,7 @@ CONFIG_PATH = Path.home() / '.config' / 'ecocapture-dash.json'
 LAPREF_PATH = Path.home() / '.cache' / 'ecocapture-dash' / 'lapref.json'
 FONT_NUM = "'DejaVu Sans', 'Noto Sans CJK JP', sans-serif"
 FONT_TEXT = "'Noto Sans CJK JP', 'DejaVu Sans', sans-serif"
+WARN_SCALE = {1: 1.0, 2: 0.75, 3: 0.55}  # the warnings in the band, by how many are on (they share its width)
 
 
 class Sound:
@@ -84,7 +87,8 @@ def fetch(url):
 
 class DemoFeed:
     """A made-up drive on a 2.5 km circle (not a real course): laps of about 1:53, the oil
-    heating from 95 C to 133 C over eight minutes, a pit lap every seventh lap."""
+    heating from 95 C to 133 C over eight minutes, a pit lap every seventh lap, and in every ten minutes
+    two six-second oil pressure drops (at 200 s alone, at 440 s with the oil and water over their limits)."""
     LAT0, LON0, RADIUS = 38.14, 140.77, 400.0
 
     def __init__(self, start):
@@ -113,11 +117,14 @@ class DemoFeed:
                 lap.update(LapTime=times[-1] / 60, BestLap=min(times) / 60, LastLapPit=pit(k - 1))
                 if len(times) >= 2 and not pit(k - 1) and not pit(k - 2):
                     lap['LapDiffS'] = round(times[-1] - times[-2], 3)
-        oil = 95 + 38 * ((now - self.t0) % 600) / 480 if (now - self.t0) % 600 < 480 else 133 - 30 * ((now - self.t0) % 600 - 480) / 120
+        cycle = (now - self.t0) % 600
+        oil = 95 + 38 * cycle / 480 if cycle < 480 else 133 - 30 * (cycle - 480) / 120
+        rpm = 4800 + 1600 * math.sin(now - self.t0)
+        press = 70.0 if 200 <= cycle < 206 or 440 <= cycle < 446 else min(480.0, 60 + 0.07 * rpm)
         return {'status': {'connected': True, 'logging': {'active': True},
                            'video': {'recording': True, 'minutes_left': max(0, 150 - (now - self.t0) / 60)}},
-                'sample': {'values': {'Lat': lat, 'Lon': lon, 'GPSSpeed': 80.0},
-                           'can_signals': {'OilTemp': oil, 'WaterTemp': oil - 10},
+                'sample': {'values': {'Lat': lat, 'Lon': lon, 'GPSSpeed': 80.0, 'RPM': rpm},
+                           'can_signals': {'OilTemp': oil, 'WaterTemp': oil - 10, 'OilPress': press},
                            'gnss_utc': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'lap': lap}}
 
 
@@ -125,8 +132,11 @@ def fixed_state(config, name):
     """One screen for checking the layout (the gap is filled in by hand: it needs a best lap's track)."""
     lap = {'CurrentLap': 23, 'LapCount': 22, 'ElapsedTime': 72.3 / 60, 'LapTime': 112.34 / 60, 'BestLap': 111.12 / 60,
            'RaceTime': 2175 / 60, 'LapDiffS': 0.41, 'LastLapPit': False}
-    temps = {'normal': (98, 88), 'start': (92, 84), 'pit': (101, 91), 'pitbox': (101, 91), 'warn': (122, 111),
-             'lost': (None, 93), 'stale': (98, 88)}[name]
+    # oil C, water C, oil pressure kPa (at 5200 rpm; idling in the box): warn is the oil alone,
+    # warnpress the pressure alone, warn2 pressure and oil, warn3 all three
+    temps = {'normal': (98, 88, 420), 'start': (92, 84, 430), 'pit': (101, 91, 410), 'pitbox': (101, 91, 150),
+             'warn': (122, 104, 400), 'warnpress': (104, 94, 85), 'warn2': (124, 105, 150), 'warn3': (128, 113, 140),
+             'lost': (None, 93, 420), 'stale': (98, 88, 420)}[name]
     if name == 'start':
         lap.update(CurrentLap=0, LapCount=0, ElapsedTime=None, LapTime=None, BestLap=None, RaceTime=None, LapDiffS=None, LastLapPit=None)
     if name in ('pit', 'pitbox'):  # the in lap was a pit lap, the running lap started in the pit lane
@@ -134,8 +144,9 @@ def fixed_state(config, name):
     # before the start the video light is yellow: 108 minutes left is short of the race
     frame = {'status': {'connected': True, 'logging': {'active': True},
                         'video': {'recording': True, 'minutes_left': 108 if name == 'start' else 150}},
-             'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777, 'GPSSpeed': 0.0 if name == 'pitbox' else 120.0},
-                        'can_signals': {'OilTemp': temps[0], 'WaterTemp': temps[1]},
+             'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777, 'GPSSpeed': 0.0 if name == 'pitbox' else 120.0,
+                                   'RPM': 900.0 if name == 'pitbox' else 5200.0},
+                        'can_signals': {'OilTemp': temps[0], 'WaterTemp': temps[1], 'OilPress': temps[2]},
                         'gnss_utc': '2026-11-08T02:16:15Z', 'lap': lap}}
     model = DashModel(config)
     for k in range(80):  # past the warning hold time
@@ -179,8 +190,10 @@ def css_for(w, h):
     .notice-pit {{ background-color: #1f64c8; color: #ffffff; }}
     .banner {{ background-color: #e01414; border-radius: {rad}px; }}
     .banner label {{ color: #ffffff; font-weight: bold; }}
-    .banner .warn-name {{ font-family: {FONT_TEXT}; font-size: {int(mid * 0.9)}px; }}
-    .banner .warn-val {{ font-family: {FONT_NUM}; font-size: {big}px; }}
+    .banner .warn-name {{ font-family: {FONT_TEXT}; }}
+    .banner .warn-val {{ font-family: {FONT_NUM}; }}
+    {''.join(f'.banner .warn-name.n{n} {{ font-size: {int(mid * 0.9 * k)}px; }} .banner .warn-val.n{n} {{ font-size: {int(big * k)}px; }} '
+             for n, k in WARN_SCALE.items())}
     .stale {{ background-color: #1a1a1a; }}
     .stale label {{ color: #d8d8d8; font-family: {FONT_TEXT}; }}
     .stale-big {{ font-size: {int(mid * 0.6)}px; font-weight: bold; }}
@@ -273,11 +286,22 @@ def run_gui(args, config):
             for cell, value in ((self.cell_now, self.lap_now), (self.cell_delta, self.delta), (self.cell_last, self.last),
                                 (self.cell_best, self.best), (self.cell_lap, self.lap_no)):
                 cell.set_child_packing(value, True, True, 0, Gtk.PackType.START)  # the number centred below its caption
-            # The temperature warning: a red band over the middle row, the temperature big. The running lap,
-            # the gap and the bottom row stay readable (never the whole screen: the pit must see the rest).
-            self.banner_name, self.banner_value = label('', 'warn-name'), label('', 'warn-val')
+            # The warnings: a red band over the middle row, each warning that is on side by side with its
+            # value big (oil pressure first). The running lap, the gap and the bottom row stay readable
+            # (never the whole screen: the pit must see the rest).
+            self.warn_items = []
+            self.warn_row = Gtk.Box(homogeneous=True)
+            for _ in range(len(WARN_SCALE)):
+                name, value = label('', 'warn-name'), label('', 'warn-val')
+                for widget in (name, value):
+                    widget.set_ellipsize(Pango.EllipsizeMode.NONE)
+                    widget.set_valign(Gtk.Align.CENTER)
+                item = box(False, name, value)
+                item.set_halign(Gtk.Align.CENTER)
+                self.warn_row.pack_start(item, True, True, 0)
+                self.warn_items.append((item, name, value))
             self.banner = box(False, cls='banner')
-            self.banner.set_center_widget(box(False, self.banner_name, self.banner_value, spacing=int(0.025 * self.size[0])))
+            self.banner.set_center_widget(self.warn_row)
             self.stack = Gtk.Stack()
             self.stack.add_named(self.row2, 'normal')
             self.stack.add_named(self.banner, 'banner')
@@ -371,10 +395,20 @@ def run_gui(args, config):
                 waited = s.get('stale_s')
                 self.stale_big.set_text('ロガーの値を待っています' if waited is None else 'ロガーの値が来ていません')
                 self.stale_sub.set_text('' if waited is None else f'最後に受け取ってから {int(waited)} 秒')
-            self.stack.set_visible_child_name('banner' if s['warn'] else 'normal')
-            if s['warn']:
-                self.banner_name.set_text(s['warn_label'] or '')
-                self.banner_value.set_text(s['warn_value'] or '')
+            warns = s['warns'][:len(self.warn_items)]
+            self.stack.set_visible_child_name('banner' if warns else 'normal')
+            n, w = max(1, len(warns)), self.size[0]
+            self.warn_row.set_spacing(int(0.04 * w))
+            for k, (item, name, value) in enumerate(self.warn_items):
+                item.set_visible(k < len(warns))
+                if k >= len(warns):
+                    continue
+                item.set_spacing(int(0.025 * w * WARN_SCALE[n]))
+                name.set_text(warns[k]['label'])
+                # the unit smaller, as the s of the gap: the number is the thing to read
+                value.set_markup(f"{warns[k]['value']}<span size=\"60%\">{warns[k]['unit']}</span>")
+                classes(name, 'warn-name', f'n{n}')
+                classes(value, 'warn-val', f'n{n}')
             self.notice.set_text(s['notice'])
             classes(self.notice, 'notice', 'notice-pit' if s['notice'] else 'notice-none')
 
@@ -416,12 +450,11 @@ def run_gui(args, config):
                 classes(self.chip_rec, 'chip', 'chip-ok')
             self.chip_gnss.set_text('GNSS' if s['gnss'] else 'GNSS未測位')
             classes(self.chip_gnss, 'chip', 'chip-ok' if s['gnss'] else 'chip-warn')
-            if s['oil_sensor']:
-                self.chip_oil.set_text('油温センサー')
-                classes(self.chip_oil, 'chip', 'chip-ok')
-            else:
-                self.chip_oil.set_text('油温センサー途絶')  # the water temperature still warns
-                classes(self.chip_oil, 'chip', 'chip-warn')
+            # the oil sensors (the oil pressure only once it has come): yellow when one is lost
+            # (the water temperature still warns for a lost oil temperature)
+            text, ok = s['sensor']
+            self.chip_oil.set_text(text)
+            classes(self.chip_oil, 'chip', 'chip-ok' if ok else 'chip-warn')
 
     dash = Dash()
     dash.show_all()
@@ -487,7 +520,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description='EcoCapture DASH')
     parser.add_argument('--config', default=str(CONFIG_PATH))
     parser.add_argument('--demo', action='store_true')
-    parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'warn', 'lost', 'stale'])
+    parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'warn', 'warnpress', 'warn2', 'warn3',
+                                            'lost', 'stale'])
     parser.add_argument('--sound', choices=['warn'])
     parser.add_argument('--size')
     parser.add_argument('--snapshot')
