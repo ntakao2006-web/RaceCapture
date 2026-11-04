@@ -53,6 +53,9 @@ DEFAULTS = {
     # so a hot engine at high revs does not set it off. A pump, leak or starvation in a long corner does.
     'oil_press_warn': [[1500, 100], [3000, 200]],
     'oil_press_min_rpm': 1500,
+    # Lower than this is no reading, not low pressure: the sensor gives about 0 kPa (+-22) at no pressure, and
+    # a harness off or the sensor without the Defi's 5 V reads 0 V, -142 kPa (tools/sugo_setup/defi_press_setup.py)
+    'oil_press_valid_min': -50.0,
     'hold_on_s': 1.0,
     'press_hold_on_s': 0.5,  # pressure gone does harm quicker than heat
     'hold_off_s': 5.0,
@@ -317,6 +320,8 @@ class DashModel:
         race = minutes('RaceTime')
         oil, water = (pick('OilTemp'), pick('WaterTemp')) if live else (None, None)
         press, rpm = (pick('OilPress'), pick('RPM')) if live else (None, None)
+        if press is not None and press < self.config['oil_press_valid_min']:
+            press = None  # the sensor lost: its light says so, no low-pressure warning
         self.press_seen = self.press_seen or press is not None
         sound = self.warning.update(now, oil, water, press, rpm)
         delta = self.lapref.update(lat, lon, number(lap.get('CurrentLap')), elapsed, last, best) if live else None
