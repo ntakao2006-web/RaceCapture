@@ -105,6 +105,18 @@ class WarningTests(unittest.TestCase):
         self.assertIsNone(w.update(16.0, 98, 88, 380.0, 5000)); self.assertFalse(w.on)
         self.assertIsNone(w.update(20.0, 98, 88, None, 5000)); self.assertFalse(w.on)  # no sensor: nothing
 
+    def test_a_pressure_far_below_zero_is_a_lost_sensor_not_a_warning(self):
+        m = DashModel(config())
+        s, _ = m.update(frame(press=380.0, rpm=5000.0), 0.0)
+        self.assertEqual(s['sensor'], ('油温・油圧', True))
+        for k in range(12):  # the harness off at 5000 rpm: 0 V, -142 kPa
+            s, sound = m.update(frame(press=-142.0, rpm=5000.0), 0.1 + k * 0.1)
+            self.assertIsNone(sound)
+        self.assertEqual((s['warn'], s['press_sensor'], s['sensor']), (False, False, ('油圧センサー途絶', False)))
+        for k in range(12):  # a real loss reads about 0 kPa: it warns
+            s, _ = m.update(frame(press=-10.0, rpm=5000.0), 2.0 + k * 0.1)
+        self.assertEqual([w['label'] for w in s['warns']], ['油圧'])
+
     def test_warnings_side_by_side_each_with_its_sound(self):
         w = Warning(config())
         w.update(0.0, 122, 100, 380.0, 5000)

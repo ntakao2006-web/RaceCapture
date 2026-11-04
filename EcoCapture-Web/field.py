@@ -196,6 +196,11 @@ def live_frame(runtime):
             'dash': dash_frame(status, sample)}
 
 
+# Lower than this is no reading, not low pressure (dash_model.DEFAULTS oil_press_valid_min): a harness off reads
+# 0 V, -142 kPa, which the phone must not take as a pressure loss.
+PRESS_VALID_MIN_KPA = -50.0
+
+
 def dash_frame(status, sample):
     """What EcoCapture DASH reads from /api/telemetry (RaceCapture-UNOQ/dash_model.py), for the dash
     phone's circuit screen (android-logger Circuit.kt), its spare when the monitor fails: the lap
@@ -208,9 +213,10 @@ def dash_frame(status, sample):
     number = lambda v: v if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) else None
     pick = lambda name: number(can.get(name)) if number(can.get(name)) is not None else number(values.get(name))
     speed = number(values.get('GPSSpeed'))
+    press = pick('OilPress')  # None until the oil pressure is wired (SG-4-3)
     lap = {k: v for k, v in (sample.get('lap') or {}).items() if v is None or isinstance(v, bool) or number(v) is not None}
     return {'lap': lap, 'oil': pick('OilTemp'), 'water': pick('WaterTemp'),
-            'press': pick('OilPress'), 'rpm': pick('RPM'),  # None until the oil pressure is wired (SG-4-3)
+            'press': press if press is not None and press >= PRESS_VALID_MIN_KPA else None, 'rpm': pick('RPM'),
             'speed': speed if speed is not None else pick('Speed'),
             'utc': sample.get('gnss_utc') or sample.get('host_utc'), 'video': status.get('video')}
 

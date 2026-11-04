@@ -117,6 +117,9 @@ class FieldTests(unittest.TestCase):
             dash = ws.receive_json()['dash']
         self.assertEqual(dash['speed'], 42.0)  # no GNSS speed: the car's
         self.assertIsNone(dash['press'])  # not wired: no oil pressure, so no warning on the phone
+        sample['can_signals']['OilPress'] = -142.0  # the harness off: 0 V
+        with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
+            self.assertIsNone(ws.receive_json()['dash']['press'])  # no reading, not a pressure loss
 
     def test_page_is_served_without_admin_routes(self):
         page = self.client.get('/')
