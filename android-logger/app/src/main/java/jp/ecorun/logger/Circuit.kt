@@ -23,6 +23,10 @@ import kotlin.math.sin
  * DASH fails. It shows what the DASH shows, worked out the same way from the same values, which
  * the Ver.2 logger sends in the `dash` block of its course-walk stream (EcoCapture-Web field.py
  * dash_frame). The laps are the logger's own (lap.py): this phone times nothing here.
+ *
+ * The warnings as the DASH: oil pressure low for the engine speed, oil 120 C, water 110 C, each on
+ * or off by itself and shown side by side in one red band (oil pressure first); a new one sounds
+ * about ten seconds of alarm and flashes the band for a minute (a straight comes in that time).
  */
 
 /** One frame of the logger (field.py's live frame and its `dash` block); times as lap.py sends them, in minutes. */
@@ -42,6 +46,9 @@ data class CircuitInput(
     val startPit: Boolean = false,
     val oil: Double? = null,
     val water: Double? = null,
+    /** Oil pressure (kPa, OilPress) and the engine speed it is judged against; null until wired. */
+    val press: Double? = null,
+    val rpm: Double? = null,
     val utc: String? = null,
     /** null from an EcoCapture without the video summary. */
     val video: CircuitVideo? = null,
@@ -55,6 +62,15 @@ data class CircuitConfig(
     val waterWarn: Double = 110.0,
     val holdOnS: Double = 1.0,
     val holdOffS: Double = 5.0,
+    /**
+     * Oil pressure (kPa) too low for the engine speed (dash_model oil_press_warn): (rpm, kPa) points,
+     * straight between them and flat outside; not judged below [oilPressMinRpm] (a hot idle is 80-100 kPa).
+     */
+    val oilPressWarn: List<Pair<Double, Double>> = listOf(1500.0 to 100.0, 3000.0 to 200.0),
+    val oilPressMinRpm: Double = 1500.0,
+    val pressHoldOnS: Double = 0.5,
+    /** The band flashes this long after a warning comes on (0: never); a minute takes in a straight. */
+    val flashS: Double = 60.0,
     val deltaFullScaleS: Double = 2.0,
     val staleS: Double = 2.0,
     /** Fewer minutes of video left than this (a 120-minute race with the grid and the cool-down lap): yellow. */
@@ -62,6 +78,9 @@ data class CircuitConfig(
 )
 
 enum class Kind { FASTER, SLOWER, EVEN, PIT, OK, WARN }
+
+/** One warning in the band: 油圧 85 kPa, 油温 122 ℃. */
+data class WarnItem(val label: String, val value: String, val unit: String)
 
 /** Everything the circuit screen shows (dash_model.DashModel.update's state). */
 data class CircuitState(
@@ -84,9 +103,15 @@ data class CircuitState(
     val videoKind: Kind? = null,
     val gnss: Boolean = false,
     val oilSensor: Boolean = false,
+    /** Null until the oil pressure has come once (not wired): its light then says nothing of it. */
+    val pressSensor: Boolean? = null,
+    /** The oil sensors' light: its text and whether all is well. */
+    val sensor: Pair<String, Boolean> = "油温センサー途絶" to false,
     val warn: Boolean = false,
-    val warnLabel: String? = null,
-    val warnValue: String? = null,
+    /** A warning came on less than flashS ago: the band flashes. */
+    val warnFlash: Boolean = false,
+    /** Every warning that is on, oil pressure first. */
+    val warns: List<WarnItem> = emptyList(),
 ) {
     companion object { const val WAITING = "スタート待ち" }
 }
@@ -220,35 +245,83 @@ open class LapRef(private val file: File? = null) {
     }
 }
 
-/** dash_model.Warning: the oil / water temperature warning with its hold times. */
-class TempWarning(private val config: CircuitConfig) {
+/** dash_model.press_limit: the lowest oil pressure (kPa) taken as healthy at this engine speed; null where it is not judged. */
+fun pressLimit(config: CircuitConfig, rpm: Double?): Double? {
+    if (rpm == null || rpm < config.oilPressMinRpm) return null
+    val pts = config.oilPressWarn.sortedBy { it.first }
+    if (pts.isEmpty()) return null
+    if (rpm <= pts[0].first) return pts[0].second
+    for (i in 0 until pts.size - 1) {
+        val (r0, p0) = pts[i]; val (r1, p1) = pts[i + 1]
+        if (rpm <= r1) return if (r1 <= r0) p1 else p0 + (p1 - p0) * (rpm - r0) / (r1 - r0)
+    }
+    return pts.last().second
+}
+
+/** dash_model.Alarm: one warning, on or off with its hold times; [value] the latest reading (kept while the sensor is lost). */
+class WarnAlarm(val label: String, val unit: String, private val holdOnS: Double, private val holdOffS: Double) {
     var on = false
-        private set
-    var label: String? = null
         private set
     var value: Double? = null
         private set
+    /** When it last came on. */
+    var onAt: Double? = null
+        private set
     private var since: Double? = null
 
-    /** True at the moment the warning comes on (its one sound). */
-    fun update(now: Double, oil: Double?, water: Double?): Boolean {
-        val hotOil = oil != null && oil >= config.oilWarn
-        val hotWater = water != null && water >= config.waterWarn
-        // what the band shows: the one over its limit (oil first), else the oil while it is read
-        if (hotOil || (oil != null && !hotWater)) { label = "油温"; value = oil } else { label = "水温"; value = water }
-        val hot = hotOil || hotWater
-        if (hot == on) { since = null; return false }
+    /** True at the moment it comes on. */
+    fun update(now: Double, bad: Boolean, reading: Double?): Boolean {
+        if (reading != null) value = reading
+        if (bad == on) { since = null; return false }
         val s = since ?: now.also { since = it }
-        if (now - s < if (hot) config.holdOnS else config.holdOffS) return false
-        on = hot; since = null
-        return hot
+        if (now - s < if (bad) holdOnS else holdOffS) return false
+        on = bad; since = null
+        if (bad) onAt = now
+        return bad
     }
+}
+
+/** dash_model.Warning: the oil pressure, oil temperature and water temperature warnings. */
+class Warnings(private val config: CircuitConfig) {
+    val press = WarnAlarm("油圧", "kPa", config.pressHoldOnS, config.holdOffS)
+    val oil = WarnAlarm("油温", "℃", config.holdOnS, config.holdOffS)
+    val water = WarnAlarm("水温", "℃", config.holdOnS, config.holdOffS)
+    private val all = listOf(press, oil, water) // the order of the band
+
+    /** True at the moment any warning comes on (one sound each). */
+    fun update(now: Double, oil: Double?, water: Double?, press: Double? = null, rpm: Double? = null): Boolean {
+        val limit = pressLimit(config, rpm)
+        val new = listOf( // all three updated, never cut short
+            this.press.update(now, press != null && limit != null && press < limit, press),
+            this.oil.update(now, oil != null && oil >= config.oilWarn, oil),
+            this.water.update(now, water != null && water >= config.waterWarn, water))
+        return new.any { it }
+    }
+
+    val on: Boolean get() = all.any { it.on }
+
+    fun active(): List<WarnAlarm> = all.filter { it.on }
+
+    /** A warning came on less than flashS ago (a new one flashes the band again). */
+    fun flashing(now: Double): Boolean = all.any { a -> a.on && a.onAt.let { it != null && now - it < config.flashS } }
+}
+
+/** The oil sensors' light (dash_model.sensor_light); [press] null: no oil pressure yet (not wired), so not mentioned. */
+fun sensorLight(oil: Boolean, press: Boolean?): Pair<String, Boolean> = when {
+    press == null -> if (oil) "油温センサー" to true else "油温センサー途絶" to false
+    oil && press -> "油温・油圧" to true
+    oil -> "油圧センサー途絶" to false
+    press -> "油温センサー途絶" to false
+    else -> "油温・油圧途絶" to false
 }
 
 /** dash_model.DashModel: [update] once per frame (or with null when none came), times in seconds. */
 class CircuitModel(val config: CircuitConfig = CircuitConfig(), val lapRef: LapRef = LapRef()) {
-    val warning = TempWarning(config)
+    val warning = Warnings(config)
     var lastGood: Double? = null
+        private set
+    /** The oil pressure has come at least once (until then its light says nothing). */
+    var pressSeen = false
         private set
 
     /** The screen for this frame, and whether the warning sound starts now. */
@@ -261,7 +334,10 @@ class CircuitModel(val config: CircuitConfig = CircuitConfig(), val lapRef: LapR
         val elapsed = minutes(f?.elapsedMin); val last = minutes(f?.lastMin); val best = minutes(f?.bestMin)
         val race = minutes(f?.raceMin)
         val oil = if (live) f?.oil else null; val water = if (live) f?.water else null
-        val sound = warning.update(now, oil, water)
+        val press = if (live) f?.press else null; val rpm = if (live) f?.rpm else null
+        if (press != null) pressSeen = true
+        val pressSensor = if (pressSeen) press != null else null
+        val sound = warning.update(now, oil, water, press, rpm)
         var delta = if (live) lapRef.update(f?.lat, f?.lon, f?.currentLap, elapsed, last, best) else null
         val stopped = f?.speedKmh?.let { it < STOPPED_KMH } ?: false
         val outLap = f?.startPit == true
@@ -304,9 +380,11 @@ class CircuitModel(val config: CircuitConfig = CircuitConfig(), val lapRef: LapR
             video = videoText, videoKind = videoKind,
             gnss = lat != null && lon != null && !(lat == 0.0 && lon == 0.0),
             oilSensor = oil != null,
+            pressSensor = pressSensor,
+            sensor = sensorLight(oil != null, pressSensor),
             warn = warning.on,
-            warnLabel = warning.label,
-            warnValue = warning.value?.let { "%.0f℃".format(Locale.ROOT, it) },
+            warnFlash = warning.flashing(now),
+            warns = warning.active().map { a -> WarnItem(a.label, a.value?.let { "%.0f".format(Locale.ROOT, it) } ?: "--", a.unit) },
         ) to sound
     }
 
@@ -317,12 +395,16 @@ class CircuitModel(val config: CircuitConfig = CircuitConfig(), val lapRef: LapR
     }
 }
 
-/** dash_model.tone_wav's warning: a two-tone alarm of two seconds, as 16-bit mono samples. */
+/**
+ * dash_model.tone_wav's warning, as 16-bit mono samples: [repeat] bursts of a two-tone alarm, 1.5 s
+ * each and 0.25 s apart (six: about ten seconds; a break between bursts is heard better than one long tone).
+ */
 object AlarmTone {
     const val RATE = 22050
 
-    fun samples(volume: Double = 0.8): ShortArray {
-        val parts = List(4) { listOf(1000 to .25, 750 to .25) }.flatten()
+    fun samples(volume: Double = 0.8, repeat: Int = 6): ShortArray {
+        val burst = List(3) { listOf(1000 to .25, 750 to .25) }.flatten()
+        val parts = (0 until max(1, repeat)).flatMap { if (it == 0) burst else listOf(0 to .25) + burst }
         val amp = volume.coerceIn(0.0, 1.0) * 32000
         val fade = (RATE * .005).toInt()
         val out = ShortArray(parts.sumOf { (RATE * it.second).toInt() })

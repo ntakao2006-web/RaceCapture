@@ -4,6 +4,10 @@ the emulator: EcoCapture-Web field.py's real app, fed with ecocapture_dash.DemoF
 The mode file (one word) changes what it sends while it runs:
   normal | mcu (the logger has no MCU: connected false) | nodash (an EcoCapture before the circuit
   screen: no dash block) | stop (speed 0) | oil=125 (the oil temperature)
+  | press=70 (the oil pressure, kPa; DemoFeed runs 4800+-1600 rpm, so under 200 kPa warns)
+  | water=113 | nopress (no oil pressure: not wired)
+Values can be put together with commas: oil=125,press=70 (two warnings side by side), or
+oil=128,water=113,press=70 (all three).
 """
 import argparse
 import sys
@@ -46,11 +50,15 @@ class Runtime:
     def sample(self):
         s = self.frame()['sample']
         s['values'].update(GPSFix=3, GPSSats=14)
-        m = self.mode()
-        if m.startswith('oil='):
-            s['can_signals']['OilTemp'] = float(m[4:])
-        if m == 'stop':
-            s['values']['GPSSpeed'] = 0.0
+        names = {'oil': 'OilTemp', 'water': 'WaterTemp', 'press': 'OilPress'}
+        for m in self.mode().split(','):
+            key, _, value = m.strip().partition('=')
+            if key in names and value:
+                s['can_signals'][names[key]] = float(value)
+            if key == 'nopress':
+                s['can_signals'].pop('OilPress', None)
+            if key == 'stop':
+                s['values']['GPSSpeed'] = 0.0
         return s
 
 

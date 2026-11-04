@@ -262,7 +262,7 @@ class SettingsActivity : Activity() {
      */
     private fun buildCircuit(running: Boolean) {
         note("DASH（HD7Hのモニター）と同じ画面を、Ver.2から受け取った値で出す：今の周・ベスト比・前周と前周比・ベスト・周・経過・時刻、" +
-            "油温${"%.0f".format(settings.oilWarn)}℃（水温${"%.0f".format(settings.waterWarn)}℃）を超えたら赤い帯と警報音。" +
+            "油圧が回転数に対して低いとき・油温${"%.0f".format(settings.oilWarn)}℃・水温${"%.0f".format(settings.waterWarn)}℃を超えたら赤い帯（重なったら並べる）と警報音。" +
             "周回はVer.2が数える。このスマホはサーバー・Podiumへ送らない（Ver.2が同じキーで送っているため）。スマホのGNSS・IMUの記録は残す")
         loggerSection(running, true)
 
@@ -270,7 +270,8 @@ class SettingsActivity : Activity() {
         val oil = field("油温の警告（℃）", "%.0f".format(settings.oilWarn), "120", !running, InputType.TYPE_CLASS_NUMBER)
         val water = field("水温の警告（℃、油温センサーが途絶えても警告が出るように）", "%.0f".format(settings.waterWarn), "110", !running, InputType.TYPE_CLASS_NUMBER)
         val volume = field("警報音の大きさ（0〜100%、スマホの「アラーム」の音量でも変わる）", "%.0f".format(settings.alarmVolume * 100), "80", true, InputType.TYPE_CLASS_NUMBER)
-        note("DASHと同じく、1秒続けて超えたら出て音を1回（2音、約2秒）、5秒続けて下回ったら消える。数値はDASHの設定（oil_warn・water_warn）と同じにしておく")
+        note("DASHと同じく、温度は1秒・油圧は0.5秒続けたら出て、警報音（2音の警報を6回、約10秒）を1回鳴らし、帯を1分点滅させる。5秒続けて戻ったら消える。" +
+            "油圧は1500rpm未満では見ない（1500rpmで100kPa、3000rpm以上で200kPaを下回ったら）。温度の数値はDASHの設定（oil_warn・water_warn）と同じにしておく")
         val warnButtons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         warnButtons.addView(button("保存") {
             val o = oil.text.toString().trim().toDoubleOrNull(); val wt = water.text.toString().trim().toDoubleOrNull()
@@ -282,7 +283,7 @@ class SettingsActivity : Activity() {
             if (v != null) settings.alarmVolume = (v / 100).coerceIn(0.0, 1.0)
             toast(if (running) "音の大きさを保存しました（記録を始め直すと効く）" else "保存しました"); build()
         })
-        warnButtons.addView(button("警報音を鳴らしてみる（約2秒）") {
+        warnButtons.addView(button("警報音を鳴らしてみる（約10秒）") {
             val v = volume.text.toString().trim().toDoubleOrNull()?.let { (it / 100).coerceIn(0.0, 1.0) } ?: settings.alarmVolume
             Alarm.play(v)
         })
