@@ -41,8 +41,39 @@ class Settings(context: Context) {
     var loggerKey: String
         get() = prefs.getString("loggerKey", "") ?: ""
         set(v) = prefs.edit().putString("loggerKey", v.trim()).apply()
-    val loggerConfigured: Boolean get() = loggerSsid.isNotEmpty() && loggerKey.isNotEmpty()
-    val loggerHostOrDefault: String get() = loggerHost.ifEmpty { DEFAULT_LOGGER_HOST }
+    /**
+     * How the phone reaches the logger: false = the logger's own access point (joined for this
+     * app only); true = a Wi-Fi both are on, or this phone's hotspot with the logger as a client
+     * (SUGO: the UNO Q joins the Pixel's tethering), where the logger is found by [Discovery].
+     */
+    var loggerLan: Boolean
+        get() = prefs.getBoolean("loggerLan", false)
+        set(v) = prefs.edit().putBoolean("loggerLan", v).apply()
+    /** Where [Discovery] last found the logger, tried first next time. */
+    var loggerFound: String
+        get() = prefs.getString("loggerFound", "") ?: ""
+        set(v) = prefs.edit().putString("loggerFound", v).apply()
+    val loggerConfigured: Boolean get() = loggerKey.isNotEmpty() && (loggerLan || loggerSsid.isNotEmpty())
+    val loggerHostOrDefault: String get() = loggerHost.ifEmpty { if (loggerLan) "" else DEFAULT_LOGGER_HOST }
+
+    /**
+     * The circuit screen ([Circuit], the spare of EcoCapture DASH) instead of the Eco Mileage
+     * one. Only shows the logger's values: nothing is sent to the servers or Podium, the Ver.2
+     * logger does that with the same key.
+     */
+    var circuit: Boolean
+        get() = prefs.getString("profile", "ecorun") == "circuit"
+        set(v) = prefs.edit().putString("profile", if (v) "circuit" else "ecorun").apply()
+    var oilWarn: Double
+        get() = prefs.getFloat("oilWarn", 120f).toDouble()
+        set(v) = prefs.edit().putFloat("oilWarn", v.toFloat()).apply()
+    var waterWarn: Double
+        get() = prefs.getFloat("waterWarn", 110f).toDouble()
+        set(v) = prefs.edit().putFloat("waterWarn", v.toFloat()).apply()
+    /** The warning sound's loudness (0 to 1) on the alarm stream; the DASH's default. */
+    var alarmVolume: Double
+        get() = prefs.getFloat("alarmVolume", 0.8f).toDouble()
+        set(v) = prefs.edit().putFloat("alarmVolume", v.toFloat()).apply()
 
     val urls: List<String> get() = listOf(primaryUrl, backupUrl).filter { it.startsWith("ws://") || it.startsWith("wss://") }
 

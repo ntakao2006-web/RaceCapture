@@ -69,21 +69,23 @@ class SettingsActivity : Activity() {
         header.addView(button("戻る") { finish() })
         column.addView(header)
 
-        // Checks first: they decide whether the run can be trusted.
-        section("点検")
-        val pm = getSystemService(PowerManager::class.java)
-        val ignoring = pm.isIgnoringBatteryOptimizations(packageName)
-        row(if (ignoring) "電池の最適化：外してあります" else "電池の最適化：有効（画面を消すと止められることがあります）",
-            if (ignoring) null else "外す" to {
-                startActivity(Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                    Uri.parse("package:$packageName")))
-            })
-        note("記録ファイル：端末の Download/EcoLogger/ に走行ごとに1つ")
-
-        section("画面")
-        toggle("この画面を開いている間は画面を消さない（記録していなくても）", settings.keepScreenOn) { settings.keepScreenOn = it }
-        toggle("記録中は画面を最大の明るさにする（日なたで読めるように。電池は減りやすい）", settings.fullBrightness) { settings.fullBrightness = it }
-        note("記録中は設定に関係なく画面を消さない。ほかのアプリ（Discordなど）を前に出していると、そのアプリの設定で暗くなるので、走行中はこのアプリを前に出しておく")
+        section("使い方")
+        for ((circuit, label) in listOf(false to "エコラン（平均速度・規定時間。このスマホで周回を数えてサーバーへ送る）",
+                                        true to "サーキット（SUGO：Ver.2の車載画面DASHの予備。Ver.2の値を出すだけ）")) {
+            column.addView(button((if (settings.circuit == circuit) "✓ " else "　") + label) {
+                when {
+                    settings.circuit == circuit -> {}
+                    running -> toast("記録を止めてから切り替えてください")
+                    else -> { settings.circuit = circuit; toast(if (circuit) "サーキットにしました" else "エコランにしました"); build() }
+                }
+            }.apply {
+                (background as GradientDrawable).setColor(if (settings.circuit == circuit) Color.rgb(35, 134, 54) else Color.rgb(48, 54, 61))
+                gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+                textSize = 16f
+            }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
+        }
+        checks()
+        if (settings.circuit) { buildCircuit(running); return }
 
         section("取付けの向き（前後・左右・上下のG）")
         note(Imu.describe())
@@ -125,27 +127,7 @@ class SettingsActivity : Activity() {
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
         if (running) note("記録中は変えられません（止めてから変えてください）")
 
-        section("Ver.2ロガーの位置を使う（車のダッシュ用）")
-        note("ロガーのWi-Fi（インターネットなし）にこのアプリだけがつなぎ、ロガーの位置で周回・速度を出す。スマホのほかのアプリ（Discord）はLTEのまま。" +
-            "ロガーから2秒届かなければスマホのGNSSに切り替え、画面に「ロガー未接続」を出す。Wi-Fi名が空なら使わない")
-        val lSsid = field("ロガーのWi-Fi名", settings.loggerSsid, "空欄ならロガーを使わない", !running, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
-        val lPass = field("ロガーのWi-Fiのパスワード", settings.loggerPass, "", !running,
-            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
-        val lKey = field("コースウォーク画面の合言葉（URLの k= の後ろ。URLごと貼ってもよい）", settings.loggerKey, "", !running,
-            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
-        val lHost = field("ロガーのアドレス", settings.loggerHost, "空欄なら ${Settings.DEFAULT_LOGGER_HOST}", !running)
-        if (!running) column.addView(button("ロガーの設定を保存") {
-            var key = lKey.text.toString().trim(); var host = lHost.text.toString().trim()
-            // A pasted course-walk URL (http://<host>:8082/?k=<key>) gives both.
-            Regex("""^https?://([^/:?]+)(?::\d+)?/?\?(?:.*&)?k=([^&\s]+)""").find(key)?.let { m ->
-                key = m.groupValues[2]; if (host.isEmpty()) host = m.groupValues[1]
-            }
-            settings.loggerSsid = lSsid.text.toString(); settings.loggerPass = lPass.text.toString()
-            settings.loggerKey = key; settings.loggerHost = host
-            toast(if (settings.loggerConfigured) "保存しました（記録を始めるとロガーへつなぎます）" else "保存しました（ロガーは使いません）"); build()
-        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
-        if (running) note(if (Status.fromLogger) "いまはロガーの位置を使っています" else "いまはスマホのGNSSです：" +
-            (if (settings.loggerConfigured) LoggerFeed.reason() + LoggerFeed.error.takeIf { it.isNotEmpty() }?.let { "（$it）" }.orEmpty() else "ロガー未設定"))
+        loggerSection(running, false)
         if (settings.loggerConfigured) {
             note("走行前（周回の計測が始まる前）は、ロガーにつながるとロガーのラインを自動で読み込み、このアプリの規定周回数をロガーへ書き込む。規定時間・余裕は大会の設定をロックしている間だけ書き込む（ピットのGrafanaはロガーの値を表示する）。" +
                 "「ラップをリセット」はロガーの周回もリセットする。計測が始まったら、どちらも変えない")
@@ -256,13 +238,127 @@ class SettingsActivity : Activity() {
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
     }
 
+    /** Checks first (they decide whether the run can be trusted), then the screen: both profiles. */
+    private fun checks() {
+        section("点検")
+        val pm = getSystemService(PowerManager::class.java)
+        val ignoring = pm.isIgnoringBatteryOptimizations(packageName)
+        row(if (ignoring) "電池の最適化：外してあります" else "電池の最適化：有効（画面を消すと止められることがあります）",
+            if (ignoring) null else "外す" to {
+                startActivity(Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    Uri.parse("package:$packageName")))
+            })
+        note("記録ファイル：端末の Download/EcoLogger/ に走行ごとに1つ")
+
+        section("画面")
+        toggle("この画面を開いている間は画面を消さない（記録していなくても）", settings.keepScreenOn) { settings.keepScreenOn = it }
+        toggle("記録中は画面を最大の明るさにする（日なたで読めるように。電池は減りやすい）", settings.fullBrightness) { settings.fullBrightness = it }
+        note("記録中は設定に関係なく画面を消さない。ほかのアプリ（Discordなど）を前に出していると、そのアプリの設定で暗くなるので、走行中はこのアプリを前に出しておく")
+    }
+
+    /**
+     * The circuit profile (SUGO): the spare of EcoCapture DASH. The phone shows the Ver.2 logger's
+     * values only, so there is nothing of the Eco Mileage race here: no class, lines or phone laps.
+     */
+    private fun buildCircuit(running: Boolean) {
+        note("DASH（HD7Hのモニター）と同じ画面を、Ver.2から受け取った値で出す：今の周・ベスト比・前周と前周比・ベスト・周・経過・時刻、" +
+            "油温${"%.0f".format(settings.oilWarn)}℃（水温${"%.0f".format(settings.waterWarn)}℃）を超えたら赤い帯と警報音。" +
+            "周回はVer.2が数える。このスマホはサーバー・Podiumへ送らない（Ver.2が同じキーで送っているため）。スマホのGNSS・IMUの記録は残す")
+        loggerSection(running, true)
+
+        section("警告")
+        val oil = field("油温の警告（℃）", "%.0f".format(settings.oilWarn), "120", !running, InputType.TYPE_CLASS_NUMBER)
+        val water = field("水温の警告（℃、油温センサーが途絶えても警告が出るように）", "%.0f".format(settings.waterWarn), "110", !running, InputType.TYPE_CLASS_NUMBER)
+        val volume = field("警報音の大きさ（0〜100%、スマホの「アラーム」の音量でも変わる）", "%.0f".format(settings.alarmVolume * 100), "80", true, InputType.TYPE_CLASS_NUMBER)
+        note("DASHと同じく、1秒続けて超えたら出て音を1回（2音、約2秒）、5秒続けて下回ったら消える。数値はDASHの設定（oil_warn・water_warn）と同じにしておく")
+        val warnButtons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        warnButtons.addView(button("保存") {
+            val o = oil.text.toString().trim().toDoubleOrNull(); val wt = water.text.toString().trim().toDoubleOrNull()
+            val v = volume.text.toString().trim().toDoubleOrNull()
+            if (!running) {
+                if (o == null || o !in 60.0..200.0 || wt == null || wt !in 60.0..200.0) { toast("温度は60〜200℃で入れてください"); return@button }
+                settings.oilWarn = o; settings.waterWarn = wt
+            }
+            if (v != null) settings.alarmVolume = (v / 100).coerceIn(0.0, 1.0)
+            toast(if (running) "音の大きさを保存しました（記録を始め直すと効く）" else "保存しました"); build()
+        })
+        warnButtons.addView(button("警報音を鳴らしてみる（約2秒）") {
+            val v = volume.text.toString().trim().toDoubleOrNull()?.let { (it / 100).coerceIn(0.0, 1.0) } ?: settings.alarmVolume
+            Alarm.play(v)
+        })
+        column.addView(warnButtons)
+        if (running) note("温度は記録中は変えられません（止めてから変えてください）")
+
+        section("ロガーの周回")
+        val st = Circuit.state
+        note(if (!running) "記録を始めると、ロガーの周回がここに出る"
+            else if (!LoggerFeed.fresh()) "ロガーにつながっていません：" + LoggerFeed.reason()
+            else "周 ${st.lapNo}　前周 ${st.last}　ベスト ${st.best}　経過 ${st.elapsed}" +
+                (if (st.elapsed != CircuitState.WAITING) "（計測中）" else "（スタート前）"))
+        note("予選のあと決勝の前に、ロガーの周回をリセットする（経過はリセット後に最初にコントロールラインを通った時から数える）。" +
+            "PCの Reset-Laps.cmd と同じ（ラインはそのまま）")
+        column.addView(button("ロガーの周回をリセット（予選のあと・決勝の前）") {
+            AlertDialog.Builder(this).setMessage("Ver.2ロガーの周回の記録（前周・ベスト・経過）を消して、スタート前に戻します。ラインはそのまま。よいですか？")
+                .setPositiveButton("リセット") { _, _ -> resetLogger(circuit = true) }
+                .setNegativeButton("やめる", null).show()
+        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(8) })
+    }
+
+    /** The Ver.2 logger: how to reach it, its key and address; the race notes only for the Eco Mileage profile. */
+    private fun loggerSection(running: Boolean, circuit: Boolean) {
+        section(if (circuit) "Ver.2ロガーにつなぐ" else "Ver.2ロガーの位置を使う（車のダッシュ用）")
+        if (!circuit) note("ロガーのWi-Fi（インターネットなし）にこのアプリだけがつなぎ、ロガーの位置で周回・速度を出す。スマホのほかのアプリ（Discord）はLTEのまま。" +
+            "ロガーから2秒届かなければスマホのGNSSに切り替え、画面に「ロガー未接続」を出す。合言葉が空なら使わない")
+        var lan = settings.loggerLan
+        val via = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        column.addView(via)
+        val lSsid: EditText; val lPass: EditText
+        fun showVia() {
+            via.removeAllViews()
+            for ((value, label) in listOf(true to "このスマホのテザリング・同じWi-Fi（ロガーが子機。SUGOはこちら）",
+                                          false to "ロガーのWi-Fi（ロガーが親機。エコラン大会の形）")) {
+                via.addView(button((if (lan == value) "✓ " else "　") + label) { if (!running) { lan = value; showVia() } }.apply {
+                    (background as GradientDrawable).setColor(if (lan == value) Color.rgb(35, 134, 54) else Color.rgb(48, 54, 61))
+                    gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+                    textSize = 15f
+                }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
+            }
+        }
+        showVia()
+        note("テザリング・同じWi-Fi：アドレスが空なら、このスマホのWi-Fi・テザリングの中を自動で探す（数秒）。" +
+            "ロガーのWi-Fi：インターネットのないロガーのWi-Fiにこのアプリだけがつなぐ（ほかのアプリはLTEのまま）。Wi-Fi名・パスワードはこちらだけで使う")
+        lSsid = field("ロガーのWi-Fi名（ロガーのWi-Fiのときだけ）", settings.loggerSsid, "例：ecologger-dash", !running, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
+        lPass = field("ロガーのWi-Fiのパスワード（同上）", settings.loggerPass, "", !running,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+        val lKey = field("コースウォーク画面の合言葉（URLの k= の後ろ。URLごと貼ってもよい）", settings.loggerKey, "空欄ならロガーを使わない", !running,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+        val lHost = field("ロガーのアドレス", settings.loggerHost, "空欄なら、テザリングは自動で探す・ロガーのWi-Fiは ${Settings.DEFAULT_LOGGER_HOST}", !running)
+        if (!running) column.addView(button("ロガーの設定を保存") {
+            var key = lKey.text.toString().trim(); var host = lHost.text.toString().trim()
+            // A pasted course-walk URL (http://<host>:8082/?k=<key>) gives both.
+            Regex("""^https?://([^/:?]+)(?::\d+)?/?\?(?:.*&)?k=([^&\s]+)""").find(key)?.let { m ->
+                key = m.groupValues[2]; if (host.isEmpty() && !lan) host = m.groupValues[1]
+            }
+            settings.loggerLan = lan
+            settings.loggerSsid = lSsid.text.toString(); settings.loggerPass = lPass.text.toString()
+            settings.loggerKey = key; settings.loggerHost = host
+            toast(if (settings.loggerConfigured) "保存しました（記録を始めるとロガーへつなぎます）" else "保存しました（ロガーは使いません）"); build()
+        }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
+        if (running) note(if (circuit) (if (LoggerFeed.fresh()) "ロガーにつながっています" + LoggerFeed.host.takeIf { it.isNotEmpty() }?.let { "（$it）" }.orEmpty()
+                else "ロガーにつながっていません：" + LoggerFeed.reason() + LoggerFeed.error.takeIf { it.isNotEmpty() }?.let { "（$it）" }.orEmpty())
+            else if (Status.fromLogger) "いまはロガーの位置を使っています" else "いまはスマホのGNSSです：" +
+            (if (settings.loggerConfigured) LoggerFeed.reason() + LoggerFeed.error.takeIf { it.isNotEmpty() }?.let { "（$it）" }.orEmpty() else "ロガー未設定"))
+    }
+
     /** The phone's lap reset also resets the Ver.2 logger's laps (over its Wi-Fi), and says whether it did. */
-    private fun resetLogger() {
-        if (!settings.loggerConfigured) return
+    private fun resetLogger(circuit: Boolean = false) {
+        if (!settings.loggerConfigured) { if (circuit) toast("ロガーの設定がまだです"); return }
         val link = LoggerLink.current
         val result = { ok: Boolean, msg: String ->
             LoggerFeed.syncNote = if (ok) "ロガーの周回もリセットしました" else "ロガーの周回はリセットできていません（$msg）"
-            AlertDialog.Builder(this).setMessage("アプリの周回をリセットしました。\n" + LoggerFeed.syncNote +
+            AlertDialog.Builder(this).setMessage(if (circuit) (if (ok) "ロガーの周回をリセットしました。" else "ロガーの周回はリセットできていません（$msg）。" +
+                    "\nロガーにつないでからもう一度押すか、PCの Reset-Laps.cmd を使ってください。")
+                else "アプリの周回をリセットしました。\n" + LoggerFeed.syncNote +
                 if (ok) "" else "\nロガーにつないでからもう一度リセットするか、コースウォーク画面で「周回数をリセット」を押してください。")
                 .setPositiveButton("OK", null).show()
             build()

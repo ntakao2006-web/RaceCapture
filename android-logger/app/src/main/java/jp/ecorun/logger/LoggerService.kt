@@ -70,14 +70,18 @@ class LoggerService : Service() {
         Race.init(this)
         Imu.init(this)
         handler.post {
+            // The circuit screen only shows the logger's values: the Ver.2 logger sends to the
+            // servers and Podium with the same key, so this phone sends nothing (it still logs).
+            val circuit = settings.circuit
+            if (circuit) Circuit.start(this) else Circuit.stop()
             hub = SensorHub(this, handler).also { it.start() }
             try { log = LogWriter(this, settings.carName) } catch (e: Exception) { logError = e.toString() }
-            relay = if (settings.urls.isEmpty()) null
+            relay = if (settings.urls.isEmpty() || circuit) null
                     else RelayClient(settings.urls, settings.carName.ifEmpty { "android" }, handler).also { it.start() }
-            podiumKey = settings.podiumKey
+            podiumKey = if (circuit) "" else settings.podiumKey
             link = if (!settings.loggerConfigured) null
                    else LoggerLink(this, settings.loggerSsid, settings.loggerPass, settings.loggerHostOrDefault,
-                                   settings.loggerKey, handler).also { it.start() }
+                                   settings.loggerKey, handler, settings.loggerLan, circuit).also { it.start() }
             startedAt = SystemClock.elapsedRealtime()
             nextTick = SystemClock.uptimeMillis()
             Status.startedAt = startedAt
@@ -93,6 +97,7 @@ class LoggerService : Service() {
         send(PodiumEncoder.row(row))
         rows++
         publish(row)
+        Circuit.tick()
         // Fixed 100 ms grid; after a stall skip ahead instead of bursting.
         nextTick = maxOf(nextTick + 100, SystemClock.uptimeMillis())
         handler.postAtTime({ tick() }, nextTick)
@@ -150,6 +155,7 @@ class LoggerService : Service() {
         handler.post {
             hub.stop()
             link?.stop()
+            Circuit.stop()
             relay?.stop()
             direct?.stop()
             try { log?.close() } catch (_: Exception) {}

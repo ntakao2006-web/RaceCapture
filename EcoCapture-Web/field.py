@@ -4,7 +4,8 @@ The USB admin UI (server.app) only answers on localhost, so a phone cannot open
 it, and it should not: it can change Wi-Fi, delete logs and so on. This second
 app listens on the LAN with only what the course walk needs: GNSS state, the
 three lap lines registered at the current position, the required lap count,
-the lap reset and the line QR code for the Android loggers.
+the lap reset, the line QR code for the Android loggers and the live values
+for the car's dash phone (read only: nothing there changes a setting).
 
 Every API call needs the key from `field_token` in the data directory. The
 admin UI shows the URL with the key as a QR code; the phone page keeps the key
@@ -13,6 +14,7 @@ in its URL and in localStorage.
 import asyncio
 import hmac
 import json
+import math
 import os
 import secrets
 from contextlib import contextmanager
@@ -190,7 +192,25 @@ def live_frame(runtime):
             'line_id': code_id, 'line_code': code, 'total_laps': line.total_laps,
             'time_limit_s': line.time_limit_s, 'margin_s': line.margin_s,
             'lap': {'count': state['count'], 'laps_left': lap['LapsLeft'], 'finished': state['finished'],
-                    'running': state['lap_start_ms'] is not None or state['race_start_ms'] is not None}}
+                    'running': state['lap_start_ms'] is not None or state['race_start_ms'] is not None},
+            'dash': dash_frame(status, sample)}
+
+
+def dash_frame(status, sample):
+    """What EcoCapture DASH reads from /api/telemetry (RaceCapture-UNOQ/dash_model.py), for the dash
+    phone's circuit screen (android-logger Circuit.kt), its spare when the monitor fails: the lap
+    values, the temperatures for the warning (the CAN signal first, as the DASH picks them), the speed
+    that tells a stop, the time of the sample and the burnt-in video. None without a sample."""
+    if not sample:
+        return None
+    values, can = sample.get('values') or {}, sample.get('can_signals') or {}
+    number = lambda v: v if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) else None
+    pick = lambda name: number(can.get(name)) if number(can.get(name)) is not None else number(values.get(name))
+    speed = number(values.get('GPSSpeed'))
+    lap = {k: v for k, v in (sample.get('lap') or {}).items() if v is None or isinstance(v, bool) or number(v) is not None}
+    return {'lap': lap, 'oil': pick('OilTemp'), 'water': pick('WaterTemp'),
+            'speed': speed if speed is not None else pick('Speed'),
+            'utc': sample.get('gnss_utc') or sample.get('host_utc'), 'video': status.get('video')}
 
 
 class FieldServer(uvicorn.Server):

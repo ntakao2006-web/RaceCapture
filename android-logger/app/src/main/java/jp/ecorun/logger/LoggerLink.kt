@@ -21,7 +21,9 @@ import java.util.concurrent.TimeUnit
 /** What the Ver.2 logger last sent; written by [LoggerLink], read by the service, SensorHub and the screens. */
 object LoggerFeed {
     @Volatile var configured = false
-    @Volatile var wifi = false            // the logger's Wi-Fi is joined (for this app only)
+    @Volatile var lan = false             // reached on a shared Wi-Fi or this phone's hotspot, not its access point
+    @Volatile var wifi = false            // the logger's Wi-Fi is joined (for this app only), or the logger found (lan)
+    @Volatile var host = ""               // where the logger was found (lan)
     @Volatile var socket = false          // the live stream is open
     @Volatile var lastFrameAt = 0L        // elapsedRealtime of the last frame
     @Volatile var lastFixAt = 0L          // elapsedRealtime of the last new fix handed to Race
@@ -52,6 +54,7 @@ object LoggerFeed {
 
     /** Why the phone's GNSS is in use, for the warning strip. */
     fun reason(now: Long = SystemClock.elapsedRealtime()): String = when {
+        !wifi && lan -> "ロガーを探しています（同じWi-Fi・このスマホのテザリング）"
         !wifi -> "ロガーのWi-Fiにつながっていません"
         !socket || now - lastFrameAt > STALE_MS -> "ロガーから受信できていません"
         !mcu -> "ロガーの本体（MCU）からの受信待ち"
@@ -59,7 +62,7 @@ object LoggerFeed {
         else -> "ロガーの位置が届いていません"
     }
 
-    fun reset() { wifi = false; socket = false; lastFrameAt = 0; lastFixAt = 0; mcu = false; fix = 0; sats = 0
+    fun reset() { wifi = false; host = ""; socket = false; lastFrameAt = 0; lastFixAt = 0; mcu = false; fix = 0; sats = 0
         accuracyM = null; speedKmh = null; rec = false; lineId = null; error = ""
         lapCount = null; lapsLeft = null; lapFinished = false; lapRunning = false; totalLaps = null
         timeLimitS = null; marginS = null }
@@ -76,10 +79,16 @@ object LoggerFeed {
  * (field.py `/api/field/live`, 10 Hz) go to [Race] while they are fresh;
  * when they stop, [SensorHub] feeds the phone's own GNSS (see [LoggerFeed.live]).
  *
+ * With [lan] the logger is instead on a Wi-Fi the phone is on, or a client of
+ * this phone's hotspot (SUGO: the UNO Q on the Pixel's tethering); [Discovery]
+ * finds it unless [host] is given. With [circuit] the frames go to [Circuit]
+ * only: no lap timing here, and nothing is written to the logger.
+ *
  * All methods run on [handler]'s thread; network and OkHttp callbacks are posted onto it.
  */
-class LoggerLink(context: Context, private val ssid: String, private val pass: String,
-                 private val host: String, private val key: String, private val handler: Handler) {
+class LoggerLink(private val context: Context, private val ssid: String, private val pass: String,
+                 private val host: String, private val key: String, private val handler: Handler,
+                 private val lan: Boolean = false, private val circuit: Boolean = false) {
     private val cm = context.getSystemService(ConnectivityManager::class.java)
     private var network: Network? = null
     private var client: OkHttpClient? = null
@@ -88,6 +97,11 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
     private var requested = false
     private var generation = 0
     private var lastUtc = 0L
+    /** lan: the logger's address and the Wi-Fi to bind to (null on this phone's hotspot). */
+    private var target = host
+    private var lanNetwork: Network? = null
+    private var failures = 0
+    private var searching = false
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(n: Network) { handler.post { if (!stopped) { network = n; LoggerFeed.wifi = true; LoggerFeed.error = ""; open() } } }
@@ -100,8 +114,33 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
     fun start() {
         LoggerFeed.reset()
         LoggerFeed.configured = true
+        LoggerFeed.lan = lan
         current = this
-        request()
+        if (lan) find() else request()
+    }
+
+    /** lan: looks for the logger off this thread, then opens the stream there. */
+    private fun find() {
+        if (stopped || searching) return
+        searching = true
+        val first = host.ifEmpty { Settings(context).loggerFound }
+        Thread {
+            val r = Discovery.find(context, key, first)
+            handler.post {
+                searching = false
+                if (stopped) return@post
+                when (r) {
+                    is Discovery.Result.Found -> {
+                        target = r.host; lanNetwork = r.network; failures = 0
+                        if (host.isEmpty()) Settings(context).loggerFound = r.host
+                        LoggerFeed.wifi = true; LoggerFeed.host = r.host; LoggerFeed.error = ""
+                        open()
+                    }
+                    is Discovery.Result.WrongKey -> { LoggerFeed.error = "合言葉が違います（${r.host}）"; handler.postDelayed({ find() }, 10_000) }
+                    is Discovery.Result.NotFound -> { LoggerFeed.error = "ロガーが見つかりません（${r.searched}）"; handler.postDelayed({ find() }, 5000) }
+                }
+            }
+        }.start()
     }
 
     fun stop() {
@@ -139,19 +178,23 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
     }
 
     private fun open() {
-        val n = network ?: return
+        val n = if (lan) lanNetwork else network ?: return
         close()
         val gen = ++generation
         val c = OkHttpClient.Builder()
-            .socketFactory(n.socketFactory) // this Wi-Fi only, whatever the default network is
-            .dns(object : okhttp3.Dns { override fun lookup(hostname: String) = n.getAllByName(hostname).toList() })
+            .apply {
+                if (n != null) {
+                    socketFactory(n.socketFactory) // this Wi-Fi only, whatever the default network is
+                    dns(object : okhttp3.Dns { override fun lookup(hostname: String) = n.getAllByName(hostname).toList() })
+                } // else this phone's hotspot: its clients are routed without binding to a network
+            }
             .pingInterval(2, TimeUnit.SECONDS)
             .connectTimeout(3, TimeUnit.SECONDS)
             .build()
         client = c
-        val request = Request.Builder().url("ws://$host:8082/api/field/live?k=$key").build()
+        val request = Request.Builder().url("ws://$target:8082/api/field/live?k=$key").build()
         socket = c.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) { post(gen) { LoggerFeed.socket = true; LoggerFeed.error = "" } }
+            override fun onOpen(webSocket: WebSocket, response: Response) { post(gen) { LoggerFeed.socket = true; LoggerFeed.error = ""; failures = 0 } }
             override fun onMessage(webSocket: WebSocket, text: String) { post(gen) { frame(text) } }
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 post(gen) {
@@ -170,7 +213,13 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
 
     private fun retry() {
         close()
-        handler.postDelayed({ if (network != null && socket == null) open() }, 1000)
+        // lan: the hotspot may have given the logger a new address; search again after a few misses
+        if (lan && host.isEmpty() && ++failures >= 3) {
+            LoggerFeed.wifi = false
+            handler.postDelayed({ if (socket == null) find() }, 1000)
+            return
+        }
+        handler.postDelayed({ if ((lan || network != null) && socket == null) open() }, 1000)
     }
 
     private fun close() {
@@ -182,6 +231,7 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
 
     private fun frame(text: String) {
         val j = try { JSONObject(text) } catch (_: Exception) { return }
+        if (circuit) Circuit.onFrame(j)
         val now = SystemClock.elapsedRealtime()
         fun num(k: String): Double? = if (j.isNull(k)) null else j.optDouble(k).takeIf { !it.isNaN() }
         LoggerFeed.lastFrameAt = now
@@ -208,9 +258,10 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
         if (utc != null && lat != null && lon != null && LoggerFeed.fix != 0 && utc != lastUtc) {
             lastUtc = utc
             LoggerFeed.lastFixAt = now
-            Race.onFix(Fix(utc, lat, lon, LoggerFeed.accuracyM, LoggerFeed.speedKmh, num("yaw")))
+            if (!circuit) Race.onFix(Fix(utc, lat, lon, LoggerFeed.accuracyM, LoggerFeed.speedKmh, num("yaw")))
         }
-        follow(if (j.isNull("line_code")) null else j.optString("line_code"), now)
+        // The circuit screen only reads: the logger's lines and race options are SUGO's, not this phone's.
+        if (!circuit) follow(if (j.isNull("line_code")) null else j.optString("line_code"), now)
     }
 
     /**
@@ -259,7 +310,7 @@ class LoggerLink(context: Context, private val ssid: String, private val pass: S
     private fun send(path: String, body: JSONObject, done: (Boolean, String) -> Unit) {
         val c = client
         if (c == null || !LoggerFeed.socket) { done(false, "ロガーにつながっていません"); return }
-        val request = Request.Builder().url("http://$host:8082$path")
+        val request = Request.Builder().url("http://$target:8082$path")
             .header("X-Field-Key", key).header("X-EcoCapture", "1")
             .post(body.toString().toRequestBody("application/json".toMediaType())).build()
         c.newCall(request).enqueue(object : okhttp3.Callback {

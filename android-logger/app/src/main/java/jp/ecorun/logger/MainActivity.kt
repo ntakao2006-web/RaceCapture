@@ -24,10 +24,13 @@ import android.widget.Toast
 /**
  * The driver screen (landscape). Start is one tap; stop needs a long press so a
  * brush against the phone cannot end the recording. While recording the screen
- * stays on and shows over the lock screen.
+ * stays on and shows over the lock screen. The circuit profile shows [CircuitView]
+ * (the spare of EcoCapture DASH) in place of the Eco Mileage [DashboardView].
  */
 class MainActivity : Activity() {
     private lateinit var dashboard: DashboardView
+    private lateinit var root: FrameLayout
+    private var circuitView: CircuitView? = null
     private lateinit var startStop: Button
     private lateinit var settingsButton: Button
     private val ui = Handler(Looper.getMainLooper())
@@ -49,7 +52,7 @@ class MainActivity : Activity() {
         settingsButton = button("設定", Color.rgb(48, 54, 61)).apply {
             // During the race the settings open only on a long press, so a brush cannot change anything.
             setOnClickListener {
-                if (Race.racing()) toast("走行中は長押しで開きます")
+                if (racing()) toast("走行中は長押しで開きます")
                 else startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
             }
             setOnLongClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)); true }
@@ -62,7 +65,7 @@ class MainActivity : Activity() {
             addView(settingsButton, LinearLayout.LayoutParams(0, MATCH_PARENT, 1f).apply { marginEnd = m })
             addView(startStop, LinearLayout.LayoutParams(0, MATCH_PARENT, 3f))
         }
-        val root = FrameLayout(this)
+        root = FrameLayout(this)
         root.addView(dashboard, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         root.addView(bar, FrameLayout.LayoutParams(MATCH_PARENT, (64 * dp).toInt(), Gravity.BOTTOM))
         dashboard.bottomReservePx = 64 * dp
@@ -82,7 +85,24 @@ class MainActivity : Activity() {
         background = GradientDrawable().apply { setColor(color); cornerRadius = 14 * resources.displayMetrics.density }
     }
 
-    override fun onResume() { super.onResume(); refresh() }
+    override fun onResume() { super.onResume(); showProfile(); refresh() }
+
+    /** The screen of the profile chosen in the settings (changed there while this activity waited). */
+    private fun showProfile() {
+        val circuit = Settings(this).circuit
+        if (circuit == (circuitView != null)) return
+        val full = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+        if (circuit) {
+            root.removeView(dashboard)
+            circuitView = CircuitView(this).also { it.bottomReservePx = dashboard.bottomReservePx; root.addView(it, 0, full) }
+        } else {
+            root.removeView(circuitView); circuitView = null
+            root.addView(dashboard, 0, full)
+        }
+    }
+
+    /** During the race the settings open only on a long press: on the circuit screen, once the logger's race time runs. */
+    private fun racing() = if (circuitView != null) LoggerFeed.fresh() && Circuit.state.elapsed != CircuitState.WAITING else Race.racing()
     override fun onPause() { ui.removeCallbacksAndMessages(null); super.onPause() }
 
     private fun later() = ui.postDelayed({ refresh() }, 300)
@@ -107,6 +127,13 @@ class MainActivity : Activity() {
         val plugged = (battery?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
 
         val now = SystemClock.elapsedRealtime()
+        circuitView?.let { v ->
+            v.screen = CircuitScreen(Circuit.state, cover(running, settings, now),
+                if (level >= 0) level * 100 / scale else null, plugged)
+            ui.removeCallbacksAndMessages(null)
+            ui.postDelayed({ refresh() }, 100) // the logger's values come 10 times a second
+            return
+        }
         if (!running || Status.fix != 0) noFixSince = now
         dashboard.dash = Dash(
             running = running,
@@ -126,6 +153,20 @@ class MainActivity : Activity() {
         )
         ui.removeCallbacksAndMessages(null)
         ui.postDelayed({ refresh() }, 200)
+    }
+
+    /** Why the circuit screen has no live values (title, details), null while they come. */
+    private fun cover(running: Boolean, settings: Settings, now: Long): Pair<String, String>? {
+        val where = LoggerFeed.reason(now) + LoggerFeed.error.takeIf { it.isNotEmpty() }?.let { "\n$it" }.orEmpty()
+        val since = Circuit.lastGoodAt.takeIf { it > 0 }?.let { "最後に受け取ってから ${(now - it) / 1000} 秒\n" }.orEmpty()
+        return when {
+            !running -> "記録を始めると、ロガーにつなぎます" to "下の「● 記録を始める」を押す\nこのスマホは表示だけ（周回はVer.2が数え、サーバー・Podiumへは送らない）"
+            !settings.loggerConfigured -> "ロガーの設定がまだです" to "設定 → 「Ver.2ロガーにつなぐ」で合言葉を入れて保存する"
+            !LoggerFeed.fresh(now) -> (if (Circuit.lastGoodAt == 0L) "ロガーの値を待っています" else "ロガーの値が来ていません") to since + where
+            Circuit.oldLogger -> "本体のEcoCaptureが古い版です" to "ロガー（${LoggerFeed.host.ifEmpty { settings.loggerHostOrDefault }}）にはつながったが、画面の値が来ない\n本体のEcoCapture（field.py）を新しい版にする"
+            now - Circuit.lastGoodAt > 2000 -> "ロガーの値が来ていません" to since + "ロガーの本体（MCU）からの受信待ち"
+            else -> null
+        }
     }
 
     /** The logger's own lap count while its frames arrive, for comparing with the phone's. */
