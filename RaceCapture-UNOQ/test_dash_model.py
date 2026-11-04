@@ -258,8 +258,8 @@ class ModelTests(unittest.TestCase):
 
 class SoundAndConfigTests(unittest.TestCase):
     def test_tones(self):
-        with wave.open(io.BytesIO(tone_wav('warn')), 'rb') as w:  # three bursts of 1.5 s, 0.25 s apart
-            self.assertAlmostEqual(w.getnframes() / w.getframerate(), 5.0, places=2)
+        with wave.open(io.BytesIO(tone_wav('warn')), 'rb') as w:  # six bursts of 1.5 s, 0.25 s apart
+            self.assertAlmostEqual(w.getnframes() / w.getframerate(), 10.25, places=2)
         with wave.open(io.BytesIO(tone_wav('warn', repeat=1)), 'rb') as w:
             self.assertAlmostEqual(w.getnframes() / w.getframerate(), 1.5, places=2)
 

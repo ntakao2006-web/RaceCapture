@@ -22,8 +22,8 @@ comes on after its hold time above the limit (press_hold_on_s, hold_on_s) and go
 hold_off_s below it. For flash_s (a minute) after a warning comes on, the band flashes bright and dark
 red (the white text always readable), to catch the eye from the side wherever on the lap it came on:
 a minute takes in the home or the back straight. Then it stays bright red, as a long hot stint
-flashing all the time would only make the numbers harder to read. The sound is about five seconds:
-three bursts of the two-tone alarm, so one of them gets through the helmet and the engine.
+flashing all the time would only make the numbers harder to read. The sound is about ten seconds:
+six bursts of the two-tone alarm, so one of them gets through the helmet and the engine.
 
 The gap to the best lap is the algorithm of tools/unoq_overlay_enc/lap_ref.h (the burnt-in video
 HUD), ported so both show the same number: the best lap's track is kept, and the running lap's
@@ -65,8 +65,8 @@ DEFAULTS = {
     # The UNO Q's one sound card: its 4th front end (MultiMedia4) is routed to SEC_MI2S_RX, the I2S
     # link to the ANX7625 (the USB-C video bridge) and so to the monitor's speaker over HDMI
     # (device tree: sound/hdmi-i2s-dai-link, port 18; checked 2026-11-04). PipeWire does not use the card.
-    # repeat: bursts of the two-tone alarm (1.5 s each, 0.25 s apart; 3 is about five seconds)
-    'sound': {'enabled': True, 'device': 'plughw:CARD=ArduinoImolaHPH,DEV=3', 'volume': 0.8, 'repeat': 3,
+    # repeat: bursts of the two-tone alarm (1.5 s each, 0.25 s apart; 6 is about ten seconds)
+    'sound': {'enabled': True, 'device': 'plughw:CARD=ArduinoImolaHPH,DEV=3', 'volume': 0.8, 'repeat': 6,
               'card': 'ArduinoImolaHPH', 'route': ['SEC_MI2S_RX Audio Mixer MultiMedia4']},
 }
 
@@ -384,9 +384,9 @@ def sensor_light(oil, press):
     return ('油圧センサー途絶' if oil else '油温センサー途絶' if press else '油温・油圧途絶'), False
 
 
-def tone_wav(kind, volume=0.8, rate=22050, repeat=3):
+def tone_wav(kind, volume=0.8, rate=22050, repeat=6):
     """The warning sound as WAV bytes: 'warn' bursts of a two-tone alarm, 1.5 s each and 0.25 s apart
-    (three: about five seconds; a break between bursts is heard better than one long tone)."""
+    (six: about ten seconds; a break between bursts is heard better than one long tone)."""
     if kind != 'warn':
         raise ValueError(kind)
     burst = [(1000, .25), (750, .25)] * 3

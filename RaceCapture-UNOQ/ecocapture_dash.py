@@ -61,7 +61,7 @@ class Sound:
         self.files = {}
         for kind in ('warn',):
             path = self.folder / f'{kind}.wav'
-            path.write_bytes(tone_wav(kind, self.config.get('volume', 0.8), repeat=self.config.get('repeat', 3)))
+            path.write_bytes(tone_wav(kind, self.config.get('volume', 0.8), repeat=self.config.get('repeat', 6)))
             self.files[kind] = path
 
     def play(self, kind):
