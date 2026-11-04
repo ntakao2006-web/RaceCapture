@@ -44,7 +44,9 @@ FLASH_PERIOD_S = 0.5  # bright and dark red twice a second while flashing (under
 
 
 class Sound:
-    """Plays the warning WAVs with aplay (on the UNO Q: HDMI to the monitor's speaker)."""
+    """Plays the warning WAVs with aplay (on the UNO Q: HDMI to the monitor's speaker). A new warning
+    while one is sounding starts it again from the top (as the phone's circuit screen does), so the
+    ear hears that something more has come."""
 
     def __init__(self, config):
         self.config = config['sound']
@@ -67,8 +69,12 @@ class Sound:
     def play(self, kind):
         if not self.config.get('enabled', True) or kind not in self.files:
             return None
-        if self.proc and self.proc.poll() is None:
-            return None
+        if self.proc and self.proc.poll() is None:  # still sounding: from the top again
+            self.proc.terminate()
+            try:
+                self.proc.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
         command = [part.format(device=self.config.get('device', 'default'), file=self.files[kind])
                    for part in self.config.get('command', ['aplay', '-q', '-D', '{device}', '{file}'])]
         try:

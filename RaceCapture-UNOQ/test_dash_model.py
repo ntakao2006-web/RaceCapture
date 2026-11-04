@@ -257,6 +257,17 @@ class ModelTests(unittest.TestCase):
 
 
 class SoundAndConfigTests(unittest.TestCase):
+    def test_a_new_warning_starts_the_sound_again(self):
+        from ecocapture_dash import Sound  # no GTK needed for the sound
+        sound = Sound({'sound': {**DEFAULTS['sound'], 'route': [], 'repeat': 1, 'volume': 0.0, 'command': ['sleep', '5']}})
+        first = sound.play('warn')
+        second = sound.play('warn')  # while the first is still sounding
+        try:
+            self.assertIsNotNone(first.poll())  # stopped
+            self.assertIsNone(second.poll())    # the new one sounds from the top
+        finally:
+            second.kill(); second.wait()
+
     def test_tones(self):
         with wave.open(io.BytesIO(tone_wav('warn')), 'rb') as w:  # six bursts of 1.5 s, 0.25 s apart
             self.assertAlmostEqual(w.getnframes() / w.getframerate(), 10.25, places=2)
