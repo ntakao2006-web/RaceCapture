@@ -221,16 +221,16 @@ class ModelTests(unittest.TestCase):
         self.assertEqual((s['warn'], s['warns'], s['notice']), (True, [{'label': '油温', 'value': '122', 'unit': '℃'}], 'PIT OUT'))
         self.assertEqual([x for x in sounds if x], ['warn'])
 
-    def test_the_band_flashes_for_ten_seconds_after_each_new_warning(self):
+    def test_the_band_flashes_for_a_minute_after_each_new_warning(self):
         w = Warning(config())
         w.update(0.0, 122, 100); w.update(1.0, 122, 100)  # the oil comes on at 1.0
-        self.assertTrue(w.flashing(1.0)); self.assertTrue(w.flashing(10.9))
-        self.assertFalse(w.flashing(11.0))  # then steady red
-        w.update(20.0, 122, 100, 120.0, 5000); w.update(20.5, 122, 100, 120.0, 5000)  # the oil pressure joins
-        self.assertTrue(w.flashing(20.5)); self.assertFalse(w.flashing(30.5))
+        self.assertTrue(w.flashing(1.0)); self.assertTrue(w.flashing(60.9))
+        self.assertFalse(w.flashing(61.0))  # then steady red
+        w.update(80.0, 122, 100, 120.0, 5000); w.update(80.5, 122, 100, 120.0, 5000)  # the oil pressure joins
+        self.assertTrue(w.flashing(80.5)); self.assertFalse(w.flashing(140.5))
         self.assertFalse(Warning(config(flash_s=0)).flashing(0.0))
         m = DashModel(config())
-        states = [m.update(frame(oil=125), k * 0.5)[0] for k in range(30)]
+        states = [m.update(frame(oil=125), k * 0.5)[0] for k in range(130)]
         self.assertEqual([s['warn_flash'] for s in states if s['warn']][:2], [True, True])
         self.assertEqual((states[-1]['warn'], states[-1]['warn_flash']), (True, False))
 
@@ -258,8 +258,10 @@ class ModelTests(unittest.TestCase):
 
 class SoundAndConfigTests(unittest.TestCase):
     def test_tones(self):
-        with wave.open(io.BytesIO(tone_wav('warn')), 'rb') as w:
-            self.assertAlmostEqual(w.getnframes() / w.getframerate(), 2.0, places=2)
+        with wave.open(io.BytesIO(tone_wav('warn')), 'rb') as w:  # three bursts of 1.5 s, 0.25 s apart
+            self.assertAlmostEqual(w.getnframes() / w.getframerate(), 5.0, places=2)
+        with wave.open(io.BytesIO(tone_wav('warn', repeat=1)), 'rb') as w:
+            self.assertAlmostEqual(w.getnframes() / w.getframerate(), 1.5, places=2)
 
     def test_config_file_overrides_defaults(self):
         with tempfile.TemporaryDirectory() as folder:
