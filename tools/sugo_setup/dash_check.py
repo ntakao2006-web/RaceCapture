@@ -7,7 +7,7 @@
   4. 作り物の走行で30秒動かして、CPU・メモリを測る（同じ間のRaceCaptureアプリと比べる）
   5. HDMIへの音の出口を無音で開け、流せるかだけを見る（音は出ない）
   終わったら /tmp の一式を消す。画像と結果は outputs/dash_check_<日時>/ へ。
---sound warn     : モニターをつないだ状態で、HDMIから警告音（2音の警報、約2秒）を1回鳴らす（--volume 既定0.3）。鳴らす前に3秒数える
+--sound warn     : モニターをつないだ状態で、HDMIから警告音（2音の警報を6回、約10秒）を1回鳴らす（--volume 既定0.3）。鳴らす前に3秒数える
 --install        : 本体へ入れて、今と次の電源ONからDASHにする（rootが要るので、EcoCaptureのDockerイメージから
                    nsenterで install-dash.sh を流す）。戻すのは Show-RaceCapture.cmd --boot
 
@@ -33,7 +33,7 @@ WORK = '/tmp/ecocapture-dash-check'
 CHECK_FILES = ['ecocapture_dash.py', 'dash_model.py', 'test_dash_model.py', 'display_load_control.py']
 INSTALL_FILES = ['ecocapture_dash.py', 'dash_model.py', 'display_load_control.py', 'dash_switch.sh',
                  'ecocapture-dash.service', 'ecocapture-dash.sudoers', 'install-dash.sh']
-STATES = ['normal', 'start', 'pit', 'pitbox', 'warn', 'lost', 'stale']
+STATES = ['normal', 'start', 'pit', 'pitbox', 'warn', 'warnpress', 'warn2', 'warn3', 'lost', 'stale']
 SOUND_DEVICE = 'plughw:CARD=ArduinoImolaHPH,DEV=3'
 SOUND_ROUTE = 'SEC_MI2S_RX Audio Mixer MultiMedia4'
 # root on the UNO Q without a password (memory: project_unoq_adb_access): the EcoCapture image, nsenter into PID 1
@@ -137,7 +137,7 @@ amixer -c ArduinoImolaHPH cget name='{SOUND_ROUTE}' | tail -1; aplay -q -D {SOUN
 def sound(dev, kind, volume):
     dev.run(f'rm -rf {WORK}')
     stage(dev, ['ecocapture_dash.py', 'dash_model.py'], WORK)
-    length = '2音の警報（約2秒）'
+    length = '2音の警報を6回（約10秒）'
     for k in (3, 2, 1):
         print(f'{k}秒後に本体のHDMIから鳴らします：{length}、音量{volume}')
         time.sleep(1)

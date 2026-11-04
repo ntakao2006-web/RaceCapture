@@ -199,8 +199,9 @@ def live_frame(runtime):
 def dash_frame(status, sample):
     """What EcoCapture DASH reads from /api/telemetry (RaceCapture-UNOQ/dash_model.py), for the dash
     phone's circuit screen (android-logger Circuit.kt), its spare when the monitor fails: the lap
-    values, the temperatures for the warning (the CAN signal first, as the DASH picks them), the speed
-    that tells a stop, the time of the sample and the burnt-in video. None without a sample."""
+    values, the temperatures and the oil pressure with the engine speed for the warnings (the CAN signal
+    first, as the DASH picks them), the speed that tells a stop, the time of the sample and the burnt-in
+    video. None without a sample."""
     if not sample:
         return None
     values, can = sample.get('values') or {}, sample.get('can_signals') or {}
@@ -209,6 +210,7 @@ def dash_frame(status, sample):
     speed = number(values.get('GPSSpeed'))
     lap = {k: v for k, v in (sample.get('lap') or {}).items() if v is None or isinstance(v, bool) or number(v) is not None}
     return {'lap': lap, 'oil': pick('OilTemp'), 'water': pick('WaterTemp'),
+            'press': pick('OilPress'), 'rpm': pick('RPM'),  # None until the oil pressure is wired (SG-4-3)
             'speed': speed if speed is not None else pick('Speed'),
             'utc': sample.get('gnss_utc') or sample.get('host_utc'), 'video': status.get('video')}
 

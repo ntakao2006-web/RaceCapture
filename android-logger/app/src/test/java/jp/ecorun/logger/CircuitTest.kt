@@ -24,10 +24,12 @@ class CircuitTest {
     private fun frame(oil: Double? = 98.0, water: Double? = 88.0, connected: Boolean = true, speed: Double? = null,
                       currentLap: Double? = null, elapsed: Double? = null, last: Double? = null, best: Double? = null,
                       race: Double? = null, diff: Double? = null, lastPit: Boolean = false, startPit: Boolean = false,
-                      video: CircuitVideo? = null) =
+                      video: CircuitVideo? = null, press: Double? = null, rpm: Double? = null) =
         CircuitInput(connected = connected, rec = true, lat = lat0, lon = lon0, speedKmh = speed, currentLap = currentLap,
             elapsedMin = elapsed, lastMin = last, bestMin = best, raceMin = race, diffS = diff, lastPit = lastPit,
-            startPit = startPit, oil = oil, water = water, utc = "2026-11-08T02:16:15Z", video = video)
+            startPit = startPit, oil = oil, water = water, press = press, rpm = rpm, utc = "2026-11-08T02:16:15Z", video = video)
+
+    private fun shown(w: Warnings) = w.active().map { it.label to it.value }
 
     @Test
     fun times() {
@@ -58,18 +60,18 @@ class CircuitTest {
 
     @Test
     fun warningOnAfterOneSecondWithOneSound() {
-        val w = TempWarning(CircuitConfig())
+        val w = Warnings(CircuitConfig())
         assertFalse(w.update(0.0, 121.0, 100.0))
         assertFalse(w.update(0.5, 121.0, 100.0)); assertFalse(w.on)
         assertTrue(w.update(1.0, 121.0, 100.0)); assertTrue(w.on)
-        assertEquals("油温" to 121.0, w.label to w.value)
+        assertEquals(listOf("油温" to 121.0), shown(w))
         for (t in listOf(1.1, 5.0, 9.0)) assertFalse(w.update(t, 135.0, 100.0)) // no second level, no repeat
-        assertEquals(135.0, w.value)
+        assertEquals(listOf("油温" to 135.0), shown(w))
     }
 
     @Test
     fun warningOffFiveSecondsAfterAndAShortDipKeepsIt() {
-        val w = TempWarning(CircuitConfig())
+        val w = Warnings(CircuitConfig())
         w.update(0.0, 125.0, 100.0); w.update(1.0, 125.0, 100.0)
         w.update(2.0, 118.0, 100.0)
         assertFalse(w.update(4.0, 124.0, 100.0)); assertTrue(w.on) // back up before 5 s: no new sound
@@ -80,12 +82,84 @@ class CircuitTest {
 
     @Test
     fun below120NothingAndWaterWarnsWhenTheOilSensorIsLost() {
-        val w = TempWarning(CircuitConfig())
+        val w = Warnings(CircuitConfig())
         w.update(0.0, 119.0, 109.0); w.update(2.0, 119.0, 109.0)
         assertFalse(w.on)
-        val w2 = TempWarning(CircuitConfig())
+        val w2 = Warnings(CircuitConfig())
         w2.update(0.0, null, 112.0); assertTrue(w2.update(1.0, null, 112.0))
-        assertEquals(Triple(true, "水温", 112.0), Triple(w2.on, w2.label, w2.value))
+        assertEquals(true to listOf("水温" to 112.0), w2.on to shown(w2))
+    }
+
+    @Test
+    fun oilPressureLineFollowsTheEngineSpeed() {
+        val c = CircuitConfig()
+        assertNull(pressLimit(c, null))
+        assertNull(pressLimit(c, 900.0))   // idle: 80 kPa hot is normal
+        assertNull(pressLimit(c, 1499.0))
+        assertEquals(100.0, pressLimit(c, 1500.0)!!, 1e-9)
+        assertEquals(150.0, pressLimit(c, 2250.0)!!, 1e-9)
+        assertEquals(200.0 to 200.0, pressLimit(c, 3000.0) to pressLimit(c, 7200.0)) // flat above 3000 rpm
+        val other = CircuitConfig(oilPressWarn = listOf(2000.0 to 150.0, 4000.0 to 250.0), oilPressMinRpm = 2000.0)
+        assertEquals(listOf(null, 200.0, 250.0), listOf(pressLimit(other, 1900.0), pressLimit(other, 3000.0), pressLimit(other, 6000.0)))
+    }
+
+    @Test
+    fun oilPressureWarnsAfterHalfASecondOnlyWithTheEngineRunning() {
+        val w = Warnings(CircuitConfig())
+        assertFalse(w.update(0.0, 98.0, 88.0, 0.0, 0.0))      // engine off: 0 kPa, no warning
+        assertFalse(w.update(5.0, 98.0, 88.0, 60.0, 1000.0))  // idle
+        assertFalse(w.update(9.0, 98.0, 88.0, 60.0, 1000.0)); assertFalse(w.on)
+        assertFalse(w.update(10.0, 98.0, 88.0, 150.0, 5000.0))
+        assertFalse(w.update(10.4, 98.0, 88.0, 150.0, 5000.0)); assertFalse(w.on)
+        assertTrue(w.update(10.5, 98.0, 88.0, 150.0, 5000.0))
+        assertEquals(listOf("油圧" to 150.0), shown(w))
+        assertFalse(w.update(11.0, 98.0, 88.0, 380.0, 5000.0)); assertTrue(w.on) // off 5 s after
+        assertFalse(w.update(16.0, 98.0, 88.0, 380.0, 5000.0)); assertFalse(w.on)
+        assertFalse(w.update(20.0, 98.0, 88.0, null, 5000.0)); assertFalse(w.on) // no sensor: nothing
+    }
+
+    @Test
+    fun warningsSideBySideEachWithItsSound() {
+        val w = Warnings(CircuitConfig())
+        w.update(0.0, 122.0, 100.0, 380.0, 5000.0)
+        assertTrue(w.update(1.0, 122.0, 100.0, 380.0, 5000.0))
+        w.update(2.0, 124.0, 104.0, 120.0, 5000.0)
+        assertTrue(w.update(2.5, 124.0, 104.0, 120.0, 5000.0)) // the oil pressure comes on: a new sound
+        assertEquals(listOf("油圧" to 120.0, "油温" to 124.0), shown(w)) // oil pressure first
+        w.update(3.0, 125.0, 111.0, 120.0, 5000.0)
+        assertTrue(w.update(4.0, 125.0, 111.0, 120.0, 5000.0))
+        assertEquals(listOf("油圧", "油温", "水温"), w.active().map { it.label })
+        assertFalse(w.update(4.1, 126.0, 112.0, 110.0, 5000.0)) // all on already: no more sound
+    }
+
+    @Test
+    fun theBandFlashesForAMinuteAfterEachNewWarning() {
+        val w = Warnings(CircuitConfig())
+        w.update(0.0, 122.0, 100.0); w.update(1.0, 122.0, 100.0) // the oil comes on at 1.0
+        assertTrue(w.flashing(1.0)); assertTrue(w.flashing(60.9))
+        assertFalse(w.flashing(61.0)) // then steady red
+        w.update(80.0, 122.0, 100.0, 120.0, 5000.0); w.update(80.5, 122.0, 100.0, 120.0, 5000.0) // the oil pressure joins
+        assertTrue(w.flashing(80.5)); assertFalse(w.flashing(140.5))
+        assertFalse(Warnings(CircuitConfig(flashS = 0.0)).flashing(0.0))
+        val m = CircuitModel()
+        val states = (0 until 130).map { m.update(frame(oil = 125.0), it * 0.5).first }
+        assertEquals(listOf(true, true), states.filter { it.warn }.take(2).map { it.warnFlash })
+        assertEquals(true to false, states.last().warn to states.last().warnFlash)
+    }
+
+    @Test
+    fun theBandListsEveryWarningAndTheSensorLight() {
+        val m = CircuitModel()
+        var s = m.update(frame(oil = 98.0), 0.0).first
+        assertEquals(null to ("油温センサー" to true), s.pressSensor to s.sensor) // oil pressure not wired yet
+        for (k in 0 until 12) s = m.update(frame(oil = 123.0, press = 110.0, rpm = 5200.0), 0.1 + k * 0.1).first
+        assertEquals(listOf(WarnItem("油圧", "110", "kPa"), WarnItem("油温", "123", "℃")), s.warns)
+        assertEquals(true to ("油温・油圧" to true), s.pressSensor to s.sensor)
+        s = m.update(frame(oil = 98.0), 2.0).first // the oil pressure lost after it had come
+        assertEquals(false to ("油圧センサー途絶" to false), s.pressSensor to s.sensor)
+        assertEquals(WarnItem("油圧", "110", "kPa"), s.warns[0]) // last value until it goes off
+        assertEquals(listOf("油温センサー途絶" to false, "油温センサー途絶" to false, "油温・油圧途絶" to false),
+            listOf(sensorLight(false, null), sensorLight(false, true), sensorLight(false, false)))
     }
 
     /** Laps of the given durations round the circle; LapTime/BestLap as lap.py reports them. */
@@ -196,7 +270,7 @@ class CircuitTest {
         val out = { t: Double -> m.update(frame(oil = 122.0, currentLap = 9.0, elapsed = 0.5, startPit = true, lastPit = true), t) }
         val sounds = (0 until 12).map { out(it * 0.1).second }
         val s = out(1.2).first
-        assertEquals(listOf<Any?>(true, "油温", "122℃", "PIT OUT"), listOf(s.warn, s.warnLabel, s.warnValue, s.notice))
+        assertEquals(listOf<Any?>(true, listOf(WarnItem("油温", "122", "℃")), "PIT OUT"), listOf(s.warn, s.warns, s.notice))
         assertEquals(1, sounds.count { it })
     }
 
@@ -209,7 +283,10 @@ class CircuitTest {
     }
 
     @Test
-    fun toneLastsTwoSeconds() {
-        assertEquals(2.0, AlarmTone.samples().size / AlarmTone.RATE.toDouble(), 0.01)
+    fun toneIsSixBurstsOfAboutTenSeconds() {
+        assertEquals(10.25, AlarmTone.samples().size / AlarmTone.RATE.toDouble(), 0.01) // 1.5 s each, 0.25 s apart
+        assertEquals(1.5, AlarmTone.samples(repeat = 1).size / AlarmTone.RATE.toDouble(), 0.01)
+        val gap = AlarmTone.samples().copyOfRange((AlarmTone.RATE * 1.55).toInt(), (AlarmTone.RATE * 1.7).toInt())
+        assertTrue(gap.all { it.toInt() == 0 }) // the break between bursts is silent
     }
 }

@@ -97,8 +97,9 @@ class FieldTests(unittest.TestCase):
     def test_live_stream_carries_what_the_dash_shows(self):
         # The phone's circuit screen (android-logger Circuit.kt) shows what EcoCapture DASH does.
         sample = fix(1500, 10.0, speed=0.0)
-        sample['can_signals'] = {'OilTemp': 121.5, 'WaterTemp': float('nan'), 'Speed': 42.0}
+        sample['can_signals'] = {'OilTemp': 121.5, 'WaterTemp': float('nan'), 'Speed': 42.0, 'OilPress': 85.0}
         sample['values']['WaterTemp'] = 96.0
+        sample['values']['RPM'] = 5200.0
         sample['gnss_utc'] = '2026-11-08T02:16:15Z'
         self.runtime.feed(sample)
         sample['lap'] = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapTime': 1.87, 'BestLap': 1.85, 'RaceTime': 20.0,
@@ -108,10 +109,14 @@ class FieldTests(unittest.TestCase):
             dash = ws.receive_json()['dash']
         self.assertEqual(dash['lap'], sample['lap'])
         self.assertEqual((dash['oil'], dash['water'], dash['speed']), (121.5, 96.0, 0.0))  # the CAN first, NaN skipped
+        self.assertEqual((dash['press'], dash['rpm']), (85.0, 5200.0))  # the oil pressure warning, against the engine speed
         self.assertEqual((dash['utc'], dash['video']), ('2026-11-08T02:16:15Z', {'recording': True, 'minutes_left': 148}))
         del sample['values']['GPSSpeed']
+        del sample['can_signals']['OilPress']
         with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
-            self.assertEqual(ws.receive_json()['dash']['speed'], 42.0)  # no GNSS speed: the car's
+            dash = ws.receive_json()['dash']
+        self.assertEqual(dash['speed'], 42.0)  # no GNSS speed: the car's
+        self.assertIsNone(dash['press'])  # not wired: no oil pressure, so no warning on the phone
 
     def test_page_is_served_without_admin_routes(self):
         page = self.client.get('/')

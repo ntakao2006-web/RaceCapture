@@ -70,6 +70,7 @@ object Circuit {
             bestMin = lap.num("BestLap"), raceMin = lap.num("RaceTime"), diffS = lap.num("LapDiffS"),
             lastPit = lap.optBoolean("LastLapPit", false), startPit = lap.optBoolean("LapStartPit", false),
             oil = d?.num("oil"), water = d?.num("water"),
+            press = d?.num("press"), rpm = d?.num("rpm"), // from an EcoCapture without them: null, no oil pressure warning
             utc = d?.optString("utc")?.takeIf { d.has("utc") && !d.isNull("utc") },
             video = video?.let { CircuitVideo(it.optBoolean("recording"), it.num("minutes_left")) },
         )

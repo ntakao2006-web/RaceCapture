@@ -66,6 +66,7 @@ RaceCapture互換の車載データロガーを自作するプロジェクト。
 - `kart_parts_list_20261028.md`：カート用ロガー試作0号の**部品リスト**（KT-2-1。DigiKey・秋月・Amazonの品番・価格・リンク、ステアリング角の部品込みで約4.9万円、センサー無しの最小構成なら約2.6万円）。**基板は正規の店（DigiKey・Mouser・RS等）だけで買う**（Amazonは基板以外のみ）。マイコンはAdafruit ESP32-S3 Feather、GNSSはu-blox NEO-M9N単体を自作の載せ台基板に載せる（4種類の衛星で25Hz）。**画面（Adafruit 4694）とNEO-M9Nは国内在庫が無く先行注文が要る**
 - `kart_gnss_carrier_design.md`：カート用ロガーの**GNSSの載せ台基板**（KT-3-2）の回路と配置の案。NEO-M9N単体＋Taoglasの25mm角パッシブパッチを載せる40×40mmの2層基板、ピン全24本のつなぎ先、部品表（DigiKey・秋月）、アンテナの線の寸法、組み立て・確かめ方、Lintarohさんに見てほしい点。配置図は`kart_gnss_carrier_layout.svg`
 - `task_kart_20261129_breakdown.md`：カート用ロガー試作0号を**2026-11-29に富士スピードウェイ カートコース**で使うための分解と日程（KT-x）。11/3は下見だけ、11/8まではSUGO優先
+- `android_circuit_handoff_20261104.md`：予備の車載画面（EcoLoggerアプリの「サーキット」、SG-2-8）を、DASHの油圧の警告・同時表示・1分の点滅・約10秒の警報音に合わせた分の引継ぎ。**PCでやること**（Gradleでのビルドと試験86件、エミュレーターで`circuit_mock.py`の`press=70`などを見る、スマホへの導入、本体への`field.py`）と、DASHと違うところ
 - `ncec_next_session_checklist.md`：**NCECに実車接続する前に必ず開く**。実車が無いと解けない宿題の一覧
 - `task_phaseX_breakdown.md`：各フェーズのサブタスク分解（1チャット=1タスク粒度）
 - `firmware/`：ESP32（Seeed Studio XIAO ESP32C3）向けPlatformIO（ESP-IDF）プロジェクト

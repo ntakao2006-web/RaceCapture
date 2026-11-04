@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.SystemClock
 import android.view.View
 import kotlin.math.max
 import kotlin.math.min
@@ -23,8 +24,9 @@ data class CircuitScreen(
 /**
  * The circuit screen (landscape), laid out as EcoCapture DASH (ecocapture_dash.py, the same
  * shares, sizes and colours, so a driver who knows one reads the other): the running lap and the
- * gap to the best on top, the last lap, best and lap number in the middle (a red band with the
- * temperature over them while it warns), the race time, the clock and the lights at the bottom.
+ * gap to the best on top, the last lap, best and lap number in the middle (a red band over them
+ * while a warning is on: every one that is on side by side, oil pressure first, flashing bright and
+ * dark red for a minute after one comes on), the race time, the clock and the lights at the bottom.
  * The bottom [bottomReservePx] is left for the activity's buttons.
  */
 class CircuitView(context: Context) : View(context) {
@@ -45,6 +47,7 @@ class CircuitView(context: Context) : View(context) {
     private val barSlower = Color.rgb(0xe8, 0x3a, 0x3a)
     private val pitBlue = Color.rgb(0x1f, 0x64, 0xc8)
     private val banner = Color.rgb(0xe0, 0x14, 0x14)
+    private val bannerDim = Color.rgb(0x52, 0x08, 0x08) // the dark half of the flash; the white text stays
     private val coverBg = Color.rgb(0x1a, 0x1a, 0x1a)
     private val coverText = Color.rgb(0xd8, 0xd8, 0xd8)
     private val chipColors = mapOf(
@@ -101,17 +104,31 @@ class CircuitView(context: Context) : View(context) {
         val markW = max(2f, 0.003f * w)
         c.drawRect(centre - markW / 2, barY, centre + markW / 2, barY + barH, paint.apply { color = barMid })
 
-        // Middle: last lap (and its note), best, lap number; or the temperature band over them.
+        // Middle: last lap (and its note), best, lap number; or the warning band over them.
         val y2 = y1 + r1 + gap
-        if (s.warn) {
-            fill(c, pad, y2, innerW, r2, rad, banner)
-            val name = s.warnLabel.orEmpty(); val value = s.warnValue.orEmpty()
-            paint.typeface = textBold; paint.textSize = mid * 0.9f; val nameW = paint.measureText(name)
-            paint.typeface = numFace; paint.textSize = big; val valueW = paint.measureText(value)
-            val space = 0.025f * w
-            val left = pad + (innerW - nameW - space - valueW) / 2
-            label(c, name, left, y2 + r2 / 2, mid * 0.9f, nameW + 1, Color.WHITE, textBold)
-            number(c, value, left + nameW + space, y2 + r2 / 2, big, valueW + 1, Color.WHITE)
+        if (s.warns.isNotEmpty()) {
+            // flashing just after a warning comes on: dark red half the time (twice a second), the white text stays
+            val dim = s.warnFlash && SystemClock.uptimeMillis() % FLASH_PERIOD_MS >= FLASH_PERIOD_MS / 2
+            fill(c, pad, y2, innerW, r2, rad, if (dim) bannerDim else banner)
+            val items = s.warns.take(WARN_SCALE.size)
+            var k = WARN_SCALE[items.size - 1]
+            val between = 0.04f * w
+            // side by side in equal slots (as the DASH's homogeneous row), all smaller if they would not fit
+            fun widths(k: Float) = items.map {
+                paint.typeface = textBold; paint.textSize = mid * 0.9f * k
+                paint.measureText(it.label) + 0.025f * w * k + numberWidth(it.value, big * k, it.unit, UNIT_SCALE)
+            }
+            fun total(v: List<Float>) = v.max() * v.size + between * (v.size - 1)
+            var ws = widths(k)
+            if (total(ws) > innerW * 0.96f) { k *= innerW * 0.96f / total(ws); ws = widths(k) }
+            val slot = ws.max()
+            var sx = pad + (innerW - total(ws)) / 2
+            for ((i, it) in items.withIndex()) {
+                val x0 = sx + (slot - ws[i]) / 2
+                val nameW = label(c, it.label, x0, y2 + r2 / 2, mid * 0.9f * k, w, Color.WHITE, textBold)
+                number(c, it.value, x0 + nameW + 0.025f * w * k, y2 + r2 / 2, big * k, w, Color.WHITE, it.unit, UNIT_SCALE)
+                sx += slot + between
+            }
         } else {
             val avail = innerW - 2 * gap
             val cells = listOf(Triple("前周", s.last, .42f), Triple("ベスト", s.best, .34f), Triple("周", s.lapNo, .24f))
@@ -147,7 +164,8 @@ class CircuitView(context: Context) : View(context) {
         val lights = listOf(
             (if (d.charging) "充電 " else "電池 ") + (d.batteryPct?.let { "$it%" } ?: "--") to
                 (if (d.charging) Kind.OK else Kind.WARN),
-            (if (s.oilSensor) "油温センサー" else "油温センサー途絶") to (if (s.oilSensor) Kind.OK else Kind.WARN), // the water temperature still warns
+            // the oil sensors (the oil pressure only once it has come); the water temperature still warns for a lost oil one
+            s.sensor.first to (if (s.sensor.second) Kind.OK else Kind.WARN),
             (if (s.gnss) "GNSS" else "GNSS未測位") to (if (s.gnss) Kind.OK else Kind.WARN),
             // the log stopped, else the burnt-in video short of time or not recording, else all well
             when { !s.rec -> "記録停止" to Kind.SLOWER; s.videoKind == Kind.WARN -> s.video to Kind.WARN; else -> "記録中" to Kind.OK },
@@ -202,11 +220,21 @@ class CircuitView(context: Context) : View(context) {
         return paint.measureText(s).also { paint.textAlign = Paint.Align.LEFT }
     }
 
+    /** The width [number] would draw [s] with its [unit] at [size]. */
+    private fun numberWidth(s: String, size: Float, unit: String?, unitScale: Float = 0.55f): Float {
+        paint.typeface = numFace
+        paint.textSize = size * unitScale
+        val unitW = unit?.let { paint.measureText(it) } ?: 0f
+        paint.textSize = size
+        return paint.measureText(s) + unitW
+    }
+
     /** Digits centred on [cy] by their own height (no descenders), with an optional smaller [unit]; returns the width. */
-    private fun number(c: Canvas, s: String, x: Float, cy: Float, size: Float, maxW: Float, color: Int, unit: String? = null): Float {
+    private fun number(c: Canvas, s: String, x: Float, cy: Float, size: Float, maxW: Float, color: Int, unit: String? = null,
+                       unitScale: Float = 0.55f): Float {
         paint.typeface = numFace; paint.textAlign = Paint.Align.LEFT; paint.color = color
         paint.textSize = size
-        var unitW = unit?.let { paint.textSize = size * 0.55f; paint.measureText(it) } ?: 0f
+        var unitW = unit?.let { paint.textSize = size * unitScale; paint.measureText(it) } ?: 0f
         paint.textSize = size
         var numW = paint.measureText(s)
         var scale = 1f
@@ -215,7 +243,14 @@ class CircuitView(context: Context) : View(context) {
         paint.getTextBounds("0", 0, 1, bounds)
         val base = cy + bounds.height() / 2f
         c.drawText(s, x, base, paint)
-        if (unit != null) { paint.textSize = size * 0.55f * scale; c.drawText(unit, x + numW, base, paint) }
+        if (unit != null) { paint.textSize = size * unitScale * scale; c.drawText(unit, x + numW, base, paint) }
         return numW + unitW
+    }
+
+    companion object {
+        /** The warnings in the band, by how many are on (ecocapture_dash.WARN_SCALE). */
+        val WARN_SCALE = floatArrayOf(1.0f, 0.75f, 0.55f)
+        const val UNIT_SCALE = 0.6f // kPa / ℃ after the value, as the DASH
+        const val FLASH_PERIOD_MS = 500L // bright and dark red twice a second (under 3 a second: photosensitivity)
     }
 }

@@ -3,17 +3,27 @@
 The driver screen for the SUGO 120-minute endurance (2026-11-08, task_sugo_20261108_breakdown.md
 SG-2-6): the running lap, the gap to the best lap, the last lap with its difference from the lap
 before (or PIT), the best lap and lap number, the time since the first control-line pass after the
-lap reset, the clock, and small lights for recording, GNSS and the oil temperature sensor. Oil and
+lap reset, the clock, and small lights for recording, GNSS and the oil sensors. Oil pressure, oil and
 water temperatures are not shown as gauges (the Defi meters are there): only their warnings are.
 
 A normal pit stop is not a warning: the lap begun in the pit lane gets a blue strip (PIT IN while
 stopped, PIT OUT once moving) and a pit lap PIT in blue; and the gap to the best lap is not shown on the out lap or while stopped (it would be a big red
 number that looks like an alarm). Red is only for the slower gap and the temperature warnings.
 
-One temperature warning, not tied to what to do about it (the driver decides): oil 120 C, the
-warning of ncec-roadster track/thermal-limits.md; water 10 C lower (oil ~ water + 10 C through the
-heat exchanger), so the ECU water temperature still warns when the oil sensor is lost. A big red
-band with the temperature and one alarm sound; on after hold_on_s above, off after hold_off_s below.
+Three warnings, not tied to what to do about them (the driver decides), each on or off by itself:
+- oil pressure (OilPress, kPa) low for the engine speed: below the line of oil_press_warn, judged only
+  at oil_press_min_rpm and above (a hot idle is 80-100 kPa, a stopped or stalling engine reads 0);
+- oil temperature 120 C, the warning of ncec-roadster track/thermal-limits.md;
+- water temperature 110 C (oil ~ water + 10 C through the heat exchanger), so the ECU water
+  temperature still warns when the oil sensor is lost.
+Every warning that is on is shown side by side in one red band over the middle row (oil pressure
+first, smaller when there are more), with one alarm sound each time a warning comes on. A warning
+comes on after its hold time above the limit (press_hold_on_s, hold_on_s) and goes off after
+hold_off_s below it. For flash_s (a minute) after a warning comes on, the band flashes bright and dark
+red (the white text always readable), to catch the eye from the side wherever on the lap it came on:
+a minute takes in the home or the back straight. Then it stays bright red, as a long hot stint
+flashing all the time would only make the numbers harder to read. The sound is about ten seconds:
+six bursts of the two-tone alarm, so one of them gets through the helmet and the engine.
 
 The gap to the best lap is the algorithm of tools/unoq_overlay_enc/lap_ref.h (the burnt-in video
 HUD), ported so both show the same number: the best lap's track is kept, and the running lap's
@@ -36,8 +46,17 @@ DEFAULTS = {
     'api': 'http://127.0.0.1:8080/api/telemetry',
     'oil_warn': 120.0,
     'water_warn': 110.0,
+    # Oil pressure (kPa) too low for the engine speed: [rpm, kPa] points, straight between them and flat
+    # outside. 1500-3000 rpm follows the rule of thumb of about 10 psi per 1000 rpm (HP Academy), 100 kPa
+    # being also Defi's danger line for a hot idle; above 3000 rpm it stays at 200 kPa, well under the
+    # NC's 337-591 kPa at 3000 rpm with oil at 100 C (service data) and its relief valve's 420-520 kPa,
+    # so a hot engine at high revs does not set it off. A pump, leak or starvation in a long corner does.
+    'oil_press_warn': [[1500, 100], [3000, 200]],
+    'oil_press_min_rpm': 1500,
     'hold_on_s': 1.0,
+    'press_hold_on_s': 0.5,  # pressure gone does harm quicker than heat
     'hold_off_s': 5.0,
+    'flash_s': 60.0,  # the band flashes this long after a warning comes on (0: never); a minute: one straight
     'delta_full_scale_s': 2.0,
     'stale_s': 2.0,
     # The burnt-in video (EcoCapture /api/status 'video', unoq_video_check_procedure.md 5-17): fewer minutes
@@ -46,7 +65,8 @@ DEFAULTS = {
     # The UNO Q's one sound card: its 4th front end (MultiMedia4) is routed to SEC_MI2S_RX, the I2S
     # link to the ANX7625 (the USB-C video bridge) and so to the monitor's speaker over HDMI
     # (device tree: sound/hdmi-i2s-dai-link, port 18; checked 2026-11-04). PipeWire does not use the card.
-    'sound': {'enabled': True, 'device': 'plughw:CARD=ArduinoImolaHPH,DEV=3', 'volume': 0.8,
+    # repeat: bursts of the two-tone alarm (1.5 s each, 0.25 s apart; 6 is about ten seconds)
+    'sound': {'enabled': True, 'device': 'plughw:CARD=ArduinoImolaHPH,DEV=3', 'volume': 0.8, 'repeat': 6,
               'card': 'ArduinoImolaHPH', 'route': ['SEC_MI2S_RX Audio Mixer MultiMedia4']},
 }
 
@@ -194,29 +214,80 @@ class LapRef:
         return self.delta
 
 
+def press_limit(config, rpm):
+    """The lowest oil pressure (kPa) taken as healthy at this engine speed; None where it is not judged."""
+    if rpm is None or rpm < config['oil_press_min_rpm']:
+        return None
+    try:
+        pts = sorted((float(r), float(p)) for r, p in config['oil_press_warn'])
+    except (TypeError, ValueError):
+        return None
+    if not pts:
+        return None
+    if rpm <= pts[0][0]:
+        return pts[0][1]
+    for (r0, p0), (r1, p1) in zip(pts, pts[1:]):
+        if rpm <= r1:
+            return p1 if r1 <= r0 else p0 + (p1 - p0) * (rpm - r0) / (r1 - r0)
+    return pts[-1][1]
+
+
+class Alarm:
+    """One warning, on or off with its hold times; value is the latest reading (kept while the sensor is lost)."""
+
+    def __init__(self, label, unit, hold_on_s, hold_off_s):
+        self.label, self.unit = label, unit
+        self.hold_on_s, self.hold_off_s = hold_on_s, hold_off_s
+        self.on, self.value, self._since = False, None, None
+        self.on_at = None  # when it last came on
+
+    def update(self, now, bad, value):
+        """True at the moment it comes on."""
+        if value is not None:
+            self.value = value
+        if bad == self.on:
+            self._since = None
+            return False
+        self._since = now if self._since is None else self._since
+        if now - self._since < (self.hold_on_s if bad else self.hold_off_s):
+            return False
+        self.on, self._since = bad, None
+        if bad:
+            self.on_at = now
+        return bad
+
+
 class Warning:
-    """The oil / water temperature warning (on or off) with the hold times, and when to sound."""
+    """The oil pressure, oil temperature and water temperature warnings, and when to sound."""
 
     def __init__(self, config):
         self.config = config
-        self.on, self.label, self.value = False, None, None
-        self._since = None
+        c = config
+        self.alarms = {'press': Alarm('油圧', 'kPa', c['press_hold_on_s'], c['hold_off_s']),
+                       'oil': Alarm('油温', '℃', c['hold_on_s'], c['hold_off_s']),
+                       'water': Alarm('水温', '℃', c['hold_on_s'], c['hold_off_s'])}
 
-    def update(self, now, oil, water):
-        """Returns 'warn' at the moment the warning comes on (its one sound), else None."""
-        hot_oil = oil is not None and oil >= self.config['oil_warn']
-        hot_water = water is not None and water >= self.config['water_warn']
-        # what the band shows: the one over its limit (oil first), else the oil while it is read
-        self.label, self.value = ('油温', oil) if hot_oil or (oil is not None and not hot_water) else ('水温', water)
-        hot = hot_oil or hot_water
-        if hot == self.on:
-            self._since = None
-            return None
-        self._since = now if self._since is None else self._since
-        if now - self._since < self.config['hold_on_s' if hot else 'hold_off_s']:
-            return None
-        self.on, self._since = hot, None
-        return 'warn' if hot else None
+    def update(self, now, oil, water, press=None, rpm=None):
+        """Returns 'warn' at the moment any warning comes on (one sound each), else None."""
+        limit = press_limit(self.config, rpm)
+        bad = {'press': press is not None and limit is not None and press < limit,
+               'oil': oil is not None and oil >= self.config['oil_warn'],
+               'water': water is not None and water >= self.config['water_warn']}
+        reading = {'press': press, 'oil': oil, 'water': water}
+        new = [alarm.update(now, bad[key], reading[key]) for key, alarm in self.alarms.items()]
+        return 'warn' if any(new) else None
+
+    @property
+    def on(self):
+        return any(alarm.on for alarm in self.alarms.values())
+
+    def active(self):
+        """The warnings that are on, in the order the band shows them (oil pressure first)."""
+        return [alarm for alarm in self.alarms.values() if alarm.on]
+
+    def flashing(self, now):
+        """A warning came on less than flash_s ago (a new one flashes the band again)."""
+        return any(a.on and a.on_at is not None and now - a.on_at < self.config['flash_s'] for a in self.alarms.values())
 
 
 class DashModel:
@@ -225,6 +296,7 @@ class DashModel:
         self.lapref = LapRef(lapref_path)
         self.warning = Warning(config)
         self.last_good = None  # monotonic time of the last frame with live values
+        self.press_seen = False  # the oil pressure has come at least once (until then its light says nothing)
 
     def update(self, frame, now, wall=None):
         """frame: the /api/telemetry envelope (None when it could not be read). Returns (state, sound)."""
@@ -244,7 +316,9 @@ class DashModel:
         elapsed, last, best = minutes('ElapsedTime'), minutes('LapTime'), minutes('BestLap')
         race = minutes('RaceTime')
         oil, water = (pick('OilTemp'), pick('WaterTemp')) if live else (None, None)
-        sound = self.warning.update(now, oil, water)
+        press, rpm = (pick('OilPress'), pick('RPM')) if live else (None, None)
+        self.press_seen = self.press_seen or press is not None
+        sound = self.warning.update(now, oil, water, press, rpm)
         delta = self.lapref.update(lat, lon, number(lap.get('CurrentLap')), elapsed, last, best) if live else None
         stopped = speed is not None and speed < STOPPED_KMH
         if out_lap or stopped:
@@ -291,18 +365,34 @@ class DashModel:
             'video': video_text, 'video_kind': video_kind,
             'gnss': lat is not None and lon is not None and not (lat == 0 and lon == 0),
             'oil_sensor': oil is not None,
+            'press_sensor': press is not None if self.press_seen else None,
+            'sensor': sensor_light(oil is not None, press is not None if self.press_seen else None),
             'warn': self.warning.on,
-            'warn_label': self.warning.label,
-            'warn_value': None if self.warning.value is None else f'{self.warning.value:.0f}℃',
+            'warn_flash': self.warning.flashing(now),
+            'warns': [{'label': a.label, 'value': '--' if a.value is None else f'{a.value:.0f}', 'unit': a.unit}
+                      for a in self.warning.active()],
         }
         return state, sound
 
 
-def tone_wav(kind, volume=0.8, rate=22050):
-    """The warning sound as WAV bytes: 'warn' a two-tone alarm of two seconds."""
+def sensor_light(oil, press):
+    """(text, ok) of the oil sensors' light; press None: no oil pressure yet (not wired), so not mentioned."""
+    if press is None:
+        return ('油温センサー', True) if oil else ('油温センサー途絶', False)
+    if oil and press:
+        return '油温・油圧', True
+    return ('油圧センサー途絶' if oil else '油温センサー途絶' if press else '油温・油圧途絶'), False
+
+
+def tone_wav(kind, volume=0.8, rate=22050, repeat=6):
+    """The warning sound as WAV bytes: 'warn' bursts of a two-tone alarm, 1.5 s each and 0.25 s apart
+    (six: about ten seconds; a break between bursts is heard better than one long tone)."""
     if kind != 'warn':
         raise ValueError(kind)
-    parts = [(1000, .25), (750, .25)] * 4
+    burst = [(1000, .25), (750, .25)] * 3
+    parts = burst
+    for _ in range(max(1, int(repeat)) - 1):
+        parts = parts + [(0, .25)] + burst
     frames = bytearray()
     amp = max(0.0, min(1.0, volume)) * 32000
     fade = int(rate * .005)
