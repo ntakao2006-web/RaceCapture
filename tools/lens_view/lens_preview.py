@@ -65,6 +65,39 @@ def dash_active():
         return False
 
 
+# The RaceCapture app's switcher bar (touch_launcher.py) raises itself every 0.5 s and fights the preview for the top
+# of the screen (the buttons flicker). While the preview is open, freeze the display apps the way
+# display_load_control.py does (SIGSTOP; logging and recording are other services), and thaw only what was running.
+FREEZE_SERVICES = ('racecapture-touch', 'racecapture-app', 'ecocapture-native')
+
+
+def freeze_display_apps():
+    frozen = []
+    for service in FREEZE_SERVICES:
+        try:
+            pids = [int(v) for v in open(f'/sys/fs/cgroup/system.slice/{service}.service/cgroup.procs').read().split()]
+        except (OSError, ValueError):
+            continue
+        for pid in pids:
+            try:
+                with open(f'/proc/{pid}/stat') as fp:
+                    state = fp.read().rsplit(')', 1)[1].split()[0]
+                if state != 'T':  # leave alone what is already paused (the covered app)
+                    os.kill(pid, signal.SIGSTOP)
+                    frozen.append(pid)
+            except (OSError, IndexError):
+                continue
+    return frozen
+
+
+def thaw(pids):
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGCONT)
+        except OSError:
+            pass
+
+
 def recorder_running():
     try:
         return subprocess.run(['pgrep', '-x', 'overlay_rec'], capture_output=True, timeout=5).returncode == 0
@@ -385,11 +418,13 @@ def main():
         if not systemctl('stop', DASH):
             print('★DASHを止められませんでした（DASHの上に重ねて出します）', file=sys.stderr)
     closed = []
+    frozen = []
 
     def restore():
         if closed:
             return
         closed.append(1)
+        thaw(frozen)
         try:
             os.remove(PV_REQ)
         except OSError:
@@ -409,6 +444,7 @@ def main():
               + ('' if raw is not None else '（lens.json が無かったので仮の値で補正を始める。やめると補正なしに戻す）'))
         if raw is None:  # what is on the screen must be what the numbers say
             write_lens(vals)
+        frozen.extend(freeze_display_apps())  # after the handlers above, so a signal always thaws them again
         win = Preview(vals, raw, restore)
         win.show_all()
         Gtk.main()
