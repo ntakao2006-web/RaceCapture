@@ -315,6 +315,31 @@ static const char *FS_CAM_UV =
     "#version 300 es\nprecision highp float; uniform sampler2D tu; uniform sampler2D tv; uniform vec2 sc; uniform vec2 os; out vec4 o;\n"
     "void main(){ vec2 q=gl_FragCoord.xy/os*sc;\n"
     "  o=vec4(0.5+0.8784*(texture(tu,q).r-0.5), 0.5+0.8784*(texture(tv,q).r-0.5), 0.0, 1.0); }\n";
+// レンズの歪みの補正＋ズーム（lens.json があるときだけこちらを使う。PCの tools/lens_view/lens_view.py と同じ計算で、
+// OpenCVの initUndistortRectifyMap の k1・k2 だけのモデル）。出力の点 p（0〜1、上が0）から、カメラの絵のどこを取るかを求める。
+// lk=(k1, k2, f, zoom)・lc=(カメラの幅, 高さ, shift_x, shift_y)。f は画素。絵の外は黒（Y=16・UV=128）
+#define LENS_GLSL \
+    "uniform vec4 lk; uniform vec4 lc;\n" \
+    "bool lens(vec2 p, out vec2 s){ vec2 c=lc.xy*0.5-lc.zw*lc.xy*lk.w; vec2 n=(p*lc.xy-c)/(lk.z*lk.w);\n" \
+    "  float r2=dot(n,n); n*=1.0+lk.x*r2+lk.y*r2*r2; s=(n*lk.z+lc.xy*0.5)/lc.xy;\n" \
+    "  return s.x>=0.0 && s.y>=0.0 && s.x<=1.0 && s.y<=1.0; }\n"
+static const char *FS_CAM_Y_LENS =
+    "#version 300 es\nprecision highp float; uniform sampler2D ty; uniform vec2 sy; uniform vec2 os; out vec4 o;\n" LENS_GLSL
+    "void main(){ vec2 s; float y=lens(gl_FragCoord.xy/os,s) ? texture(ty,s*sy).r : 0.0; o=vec4(0.0627+0.8588*y,0.0,0.0,1.0); }\n";
+static const char *FS_CAM_UV_LENS =
+    "#version 300 es\nprecision highp float; uniform sampler2D tu; uniform sampler2D tv; uniform vec2 sc; uniform vec2 os; out vec4 o;\n" LENS_GLSL
+    "void main(){ vec2 s; if(!lens(gl_FragCoord.xy/os,s)){ o=vec4(0.5,0.5,0.0,1.0); return; } vec2 q=s*sc;\n"
+    "  o=vec4(0.5+0.8784*(texture(tu,q).r-0.5), 0.5+0.8784*(texture(tv,q).r-0.5), 0.0, 1.0); }\n";
+// 画角を決めるときのプレビュー（tools/lens_view/lens_preview.py が頼んでいる間だけ）。録る絵（エンコーダのY面・UV面、
+// 計器込み）を小さくしてRGBに戻す。pp=(幅, 高さ, 映像の行数/面の行数)。面の行0が絵の上端
+static const char *FS_PREVIEW =
+    "#version 300 es\nprecision highp float; uniform sampler2D py; uniform sampler2D puv; uniform vec3 pp; out vec4 o;\n"
+    "void main(){ vec2 p=gl_FragCoord.xy/pp.xy; p.y*=pp.z; float y=1.1644*(texture(py,p).r-0.0627); vec2 c=texture(puv,p).rg-0.5;\n"
+    "  o=vec4(y+1.596*c.y, y-0.392*c.x-0.813*c.y, y+2.017*c.x, 1.0); }\n";
+#define PV_W 640
+#define PV_H 360
+#define PV_REQ "/dev/shm/ecologger-preview.req"   // プレビューが1秒ごとに触る。4秒触られなければ書き出しをやめる
+#define PV_OUT "/dev/shm/ecologger-preview.rgba"  // "EPV1"・幅・高さ（各4バイト）・通し番号（4バイト）＋RGBA
 // 計器（1920x1080の上での座標・上端が0。出力が720pでもそのまま縮む）。1枚分の四角形をためて、面ごとに1回で描く。
 // 頂点ごとに色を持ち、一覧表の座標が負なら塗りつぶし、そうでなければ一覧表の濃さを不透明度にする（文字）。
 // 色はRGBで持ち、描く面（plane：0=Y、1=UV）の値（BT.601 limited range）へここで直す。YもUVもRGBの一次式なので、
@@ -421,6 +446,57 @@ static void hud_check(void) {
         else { fprintf(stderr, "hud: %s\n", e2); strcat(err, "（元の配置も読めないので、計器を描かずに録っている）"); }
     } else strcat(err, "（計器を描かずに録っている）");
     hud_write_status(err);
+}
+
+// ---- レンズの歪みの補正＋ズーム（OVERLAY_LENS の lens.json。PCの tools/lens_view/ で決めて保存したもの）。
+// ファイルが無い・読めない・値が範囲の外なら補正しない（今までと同じ描き方）。録画中も約1秒ごとに見て、変われば次のコマから
+static const char *lens_path;
+static struct stat lens_st;
+static int lens_on, lens_seen, lens_missing;  // lens_seen：前に見たときファイルがあったか・lens_missing：無いことを書いた
+static float lens_k[4], lens_c[4];  // シェーダーの lk・lc
+
+static int lens_load(const char *path, char *msg, size_t n) {
+    char js[2048]; FILE *f = fopen(path, "r");
+    if (!f) { snprintf(msg, n, "開けない"); return 0; }
+    size_t len = fread(js, 1, sizeof js - 1, f); fclose(f); js[len] = 0;
+    const double k1 = jnum(js, NULL, "k1"), k2 = jnum(js, NULL, "k2"), zoom = jnum(js, NULL, "zoom"),
+                 fr = jnum(js, NULL, "f_ratio"), sx = jnum(js, NULL, "shift_x"), sy = jnum(js, NULL, "shift_y");
+    if (!(k1 >= -1 && k1 <= 1 && k2 >= -1 && k2 <= 1 && zoom >= 1 && zoom <= 4 && fr >= .2 && fr <= 3 &&
+          sx >= -.5 && sx <= .5 && sy >= -.5 && sy <= .5)) {
+        snprintf(msg, n, "値が無いか範囲の外（k1=%g k2=%g zoom=%g f_ratio=%g shift=%g,%g）", k1, k2, zoom, fr, sx, sy);
+        return 0;
+    }
+    lens_k[0] = k1; lens_k[1] = k2; lens_k[2] = fr * CAM_W; lens_k[3] = zoom;
+    lens_c[0] = CAM_W; lens_c[1] = CAM_H; lens_c[2] = sx; lens_c[3] = sy;
+    snprintf(msg, n, "k1=%.3f k2=%.3f zoom=%.2f f_ratio=%.2f shift=%.2f,%.2f", k1, k2, zoom, fr, sx, sy);
+    return 1;
+}
+
+// 読んだ結果を <lens.json>.status へ書く（PCの Apply-Lens.cmd が、送ったファイルを読めたかをこれで確かめる）
+static void lens_write_status(const struct stat *st, const char *msg) {
+    char sp[600]; snprintf(sp, sizeof sp, "%s.status", lens_path);
+    FILE *f = fopen(sp, "w"); if (!f) return;
+    time_t t = time(NULL); char at[32]; strftime(at, sizeof at, "%Y-%m-%d %H:%M:%S", localtime(&t));
+    fprintf(f, "on=%d\nino=%lu\nsize=%lld\nat=%s\nmsg=%s\n", lens_on,
+            st ? (unsigned long)st->st_ino : 0UL, st ? (long long)st->st_size : -1LL, at, msg);
+    fclose(f);
+}
+
+static void lens_check(void) {
+    struct stat st;
+    if (!lens_path) return;
+    if (stat(lens_path, &st)) {
+        if (lens_seen || lens_on) fprintf(stderr, "lens: %s が無いので補正しない\n", lens_path);
+        if (!lens_missing) { lens_missing = 1; lens_seen = lens_on = 0; lens_write_status(NULL, "ファイルが無い（補正しない）"); }
+        return;
+    }
+    lens_missing = 0;
+    if (lens_seen && same_file(&st, &lens_st)) return;
+    lens_seen = 1; lens_st = st;
+    char msg[256];
+    lens_on = lens_load(lens_path, msg, sizeof msg);
+    fprintf(stderr, "lens: %s %s\n", lens_on ? "補正する" : "補正しない：", msg);
+    lens_write_status(&st, msg);
 }
 
 // ---------------------------------------------------------------- 保存（MPEG-TS／素のH.264）と1秒ごとの時刻
@@ -906,6 +982,7 @@ int main(int argc, char **argv) {
     rfd = open("/dev/dri/renderD128", O_RDWR | O_CLOEXEC); if (rfd < 0) DIE("open renderD128");
     cam_open(argv[1]);
     hud_check();  // 走行データのスレッドが値の名前を使うので、その前に読む
+    lens_path = getenv("OVERLAY_LENS"); lens_check();
     pthread_t tel_th; pthread_create(&tel_th, NULL, telemetry, NULL);
 
     // ---- EGL（画面を使わない surfaceless）
@@ -922,6 +999,14 @@ int main(int argc, char **argv) {
     const GLint u_sy = glGetUniformLocation(p_cy, "sy"), u_osy = glGetUniformLocation(p_cy, "os");
     glUseProgram(p_cuv); glUniform1i(glGetUniformLocation(p_cuv, "tu"), 1); glUniform1i(glGetUniformLocation(p_cuv, "tv"), 2);
     const GLint u_sc = glGetUniformLocation(p_cuv, "sc"), u_osuv = glGetUniformLocation(p_cuv, "os");
+    // 歪みの補正つき（lens.json があるときだけ使う）。テクスチャの番号は上と同じ
+    GLuint pl_y = program(VS_FULL, FS_CAM_Y_LENS), pl_uv = program(VS_FULL, FS_CAM_UV_LENS);
+    glUseProgram(pl_y); glUniform1i(glGetUniformLocation(pl_y, "ty"), 0);
+    const GLint ul_sy = glGetUniformLocation(pl_y, "sy"), ul_osy = glGetUniformLocation(pl_y, "os"),
+                ul_ky = glGetUniformLocation(pl_y, "lk"), ul_cy = glGetUniformLocation(pl_y, "lc");
+    glUseProgram(pl_uv); glUniform1i(glGetUniformLocation(pl_uv, "tu"), 1); glUniform1i(glGetUniformLocation(pl_uv, "tv"), 2);
+    const GLint ul_sc = glGetUniformLocation(pl_uv, "sc"), ul_osuv = glGetUniformLocation(pl_uv, "os"),
+                ul_kuv = glGetUniformLocation(pl_uv, "lk"), ul_cuv = glGetUniformLocation(pl_uv, "lc");
     p_hud = program(VS_HUD, FS_HUD); u_plane = glGetUniformLocation(p_hud, "plane");
     glUseProgram(p_hud); glUniform1i(glGetUniformLocation(p_hud, "atlas"), 3);
     GLuint t_c[2][3] = {{0}};  // カメラの絵（共有メモリをそのまま取り込む。2組を交互に使う）
@@ -965,7 +1050,7 @@ int main(int argc, char **argv) {
     const int nout = rq.count < NOUT ? rq.count : NOUT;
     PFNEGLCREATEIMAGEKHRPROC mkimg = (void *)eglGetProcAddress("eglCreateImageKHR");
     PFNGLEGLIMAGETARGETTEXTURE2DOESPROC img2tex = (void *)eglGetProcAddress("glEGLImageTargetTexture2DOES");
-    GLuint f_dy[NOUT], f_duv[NOUT];
+    GLuint f_dy[NOUT], f_duv[NOUT], t_dy[NOUT], t_duv[NOUT];
     for (int i = 0; i < nout; i++) {
         struct v4l2_plane pl[1] = {0};
         struct v4l2_buffer b = { .type = t1, .memory = V4L2_MEMORY_MMAP, .index = i, .length = 1, .m.planes = pl };
@@ -983,7 +1068,10 @@ int main(int argc, char **argv) {
             EGLImageKHR im = mkimg(dpy, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, NULL, at);
             if (im == EGL_NO_IMAGE_KHR) DIE("eglCreateImage plane%d err=0x%x", p, eglGetError());
             GLuint t; glGenTextures(1, &t); glBindTexture(GL_TEXTURE_2D, t); img2tex(GL_TEXTURE_2D, im);
-            if (p) f_duv[i] = fbo_for(t); else f_dy[i] = fbo_for(t);
+            // プレビューで読むとき用（描く先としては使わない設定）。既定のミップマップ付きのままだと読めない
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            if (p) { t_duv[i] = t; f_duv[i] = fbo_for(t); } else { t_dy[i] = t; f_dy[i] = fbo_for(t); }
         }
         // 下の余りの行（と最初の中身）を黒にしておく。毎回描くのは映像の行だけ
         glBindFramebuffer(GL_FRAMEBUFFER, f_dy[i]); glViewport(0, 0, ow, ah);
@@ -991,6 +1079,14 @@ int main(int argc, char **argv) {
         glBindFramebuffer(GL_FRAMEBUFFER, f_duv[i]); glViewport(0, 0, ow / 2, ah / 2);
         glClearColor(.5f, .5f, 0, 1); glClear(GL_COLOR_BUFFER_BIT);
     }
+    // プレビュー（頼まれている間だけ、10コマに1回＝約3枚/秒、PV_OUTへ書く。頼まれていなければ何もしない）
+    GLuint p_pv = program(VS_FULL, FS_PREVIEW);
+    glUseProgram(p_pv); glUniform1i(glGetUniformLocation(p_pv, "py"), 4); glUniform1i(glGetUniformLocation(p_pv, "puv"), 5);
+    const GLint u_pp = glGetUniformLocation(p_pv, "pp");
+    const GLuint f_pv = fbo_for(tex(GL_RGBA8, PV_W, PV_H, GL_NEAREST));
+    uint8_t *pv_buf = malloc(16 + PV_W * PV_H * 4);
+    uint32_t pv_seq = 0;
+    int pv_on = 0;
     glFinish();
     rq = (struct v4l2_requestbuffers){ .count = NCAP, .type = t2, .memory = V4L2_MEMORY_MMAP };
     if (xioctl(fd, VIDIOC_REQBUFS, &rq)) DIE("REQBUFS cap");
@@ -1043,7 +1139,7 @@ int main(int argc, char **argv) {
         if (profile) glFinish();
         double b1 = now(); s_up += b1 - a;
 
-        if (f && f % 30 == 0) hud_check();  // 設定ファイルが書き換わっていれば読み直す（約1秒ごと）
+        if (f && f % 30 == 0) { hud_check(); lens_check(); }  // 設定ファイルが書き換わっていれば読み直す（約1秒ごと）
         struct tele t; double v[HUD_REFS];
         pthread_mutex_lock(&tmu); t = tl; memcpy(v, tvals, sizeof v); pthread_mutex_unlock(&tmu);
         static struct hud_track trk;
@@ -1076,10 +1172,20 @@ int main(int argc, char **argv) {
             glViewport(0, 0, plane ? ow / 2 : ow, plane ? oh / 2 : oh);
             glDisable(GL_BLEND);
             if (!plane) {
-                glUseProgram(p_cy); glUniform2f(u_sy, (float)CAM_W / pw[0], (float)CAM_H / ph[0]); glUniform2f(u_osy, ow, oh);
+                if (lens_on) {
+                    glUseProgram(pl_y); glUniform2f(ul_sy, (float)CAM_W / pw[0], (float)CAM_H / ph[0]); glUniform2f(ul_osy, ow, oh);
+                    glUniform4fv(ul_ky, 1, lens_k); glUniform4fv(ul_cy, 1, lens_c);
+                } else {
+                    glUseProgram(p_cy); glUniform2f(u_sy, (float)CAM_W / pw[0], (float)CAM_H / ph[0]); glUniform2f(u_osy, ow, oh);
+                }
                 glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, t_c[s][0]);
             } else {
-                glUseProgram(p_cuv); glUniform2f(u_sc, chroma_w / pw[1], chroma_h / ph[1]); glUniform2f(u_osuv, ow / 2, oh / 2);
+                if (lens_on) {
+                    glUseProgram(pl_uv); glUniform2f(ul_sc, chroma_w / pw[1], chroma_h / ph[1]); glUniform2f(ul_osuv, ow / 2, oh / 2);
+                    glUniform4fv(ul_kuv, 1, lens_k); glUniform4fv(ul_cuv, 1, lens_c);
+                } else {
+                    glUseProgram(p_cuv); glUniform2f(u_sc, chroma_w / pw[1], chroma_h / ph[1]); glUniform2f(u_osuv, ow / 2, oh / 2);
+                }
                 glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, t_c[s][1]);
                 glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, t_c[s][2]);
                 glActiveTexture(GL_TEXTURE0);
@@ -1091,8 +1197,31 @@ int main(int argc, char **argv) {
             if (profile && !plane) { glFinish(); double c = now(); s_draw += c - b1; b1 = c; }
         }
         glDisable(GL_BLEND);
+        if (f % 10 == 0) {  // プレビューを頼まれているか（lens_preview.py が1秒ごとに PV_REQ を触る）
+            struct stat ps;
+            pv_on = !stat(PV_REQ, &ps) && time(NULL) - ps.st_mtime < 4;
+        }
+        const int pv_now = pv_on && f % 10 == 0;
+        if (pv_now) {  // 録る絵（計器込み）を小さくしてRGBへ
+            glBindFramebuffer(GL_FRAMEBUFFER, f_pv); glViewport(0, 0, PV_W, PV_H);
+            glUseProgram(p_pv); glUniform3f(u_pp, PV_W, PV_H, (float)oh / ah);
+            glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D, t_dy[bi]);
+            glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D, t_duv[bi]);
+            glActiveTexture(GL_TEXTURE0);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
         glFinish();  // エンコーダへ渡す前にGPUの書き込みを終わらせる
         pthread_mutex_lock(&mu); filled[s] = 0; pthread_cond_broadcast(&cv); pthread_mutex_unlock(&mu);  // GPUが読み終えたので展開スレッドへ返す
+        if (pv_now) {  // 書きかけを読まれないよう、別の名前で書いてから入れ替える
+            glReadPixels(0, 0, PV_W, PV_H, GL_RGBA, GL_UNSIGNED_BYTE, pv_buf + 16);
+            uint32_t hdr[4] = { 0x31565045u /* "EPV1" */, PV_W, PV_H, ++pv_seq };
+            memcpy(pv_buf, hdr, 16);
+            FILE *pf = fopen(PV_OUT ".tmp", "wb");
+            if (pf) {
+                const int ok = fwrite(pv_buf, 1, 16 + PV_W * PV_H * 4, pf) == 16 + PV_W * PV_H * 4;
+                if (!fclose(pf) && ok) rename(PV_OUT ".tmp", PV_OUT);
+            }
+        }
         double bd = now(); s_conv += bd - b1;
 
         // ③ エンコーダへ。時刻はカメラの時刻（最初の枚からのµs）
