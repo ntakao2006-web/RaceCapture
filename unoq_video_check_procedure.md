@@ -989,6 +989,57 @@ PCで見た目を確かめてから本体へ送る。**SUGO（11/8）は今の�
 
 **まだ確かめていないこと**：車に付けた状態でのズームの量（ユーザーがプレビューで決める）。プレビューでのマウス・キーボードの操作（キーボードは認識済み、マウスは未接続）。
 
+### 5-20. 音（カメラ内蔵のマイク）と、横Gの向き・夜のコマ数（2026-11-06、ユーザー依頼）
+
+**きっかけ**（ユーザー）：吸い出した動画（11/5 23:48からの走行の4章目）を見て、横Gが逆に見える・音が入っていない・メーターの針がカクつく。
+
+**横Gの向き**：記録の値は`LatAccel`が車の右向きの加速度で＋、`LongAccel`が加速で＋（`EcoCapture-Web/imu_mount.py`）。Gボールは横の＋を右、前後の＋を下へ描く。
+このため前後は「体が振られる向き」（減速で上・加速で下）なのに、横だけ「加速度の向き」（右へ曲がると右）になっていた。
+→ `tools/video_hud/hud.ini`と`hud_default.ini`のGボールに`flip_x = 1`を足し、右へ曲がると点が左へ動くようにした（縦と同じ「体が振られる向き」）。値そのものは変えていない（記録・DASH・Podiumはそのまま）。
+
+**針のカクつき**：その動画は**10分間ずっと16.7コマ/秒**（1コマ60ms）だった。5-13のとおり、暗いとカメラの自動露出がコマ数を落とす（`exposure_dynamic_framerate=0`は効かない）。昼間は30コマ/秒の見込み。
+加えて、録画は走行データを約10回/秒で読み、コマの間をつながない（[overlay_rec.c](tools/unoq_overlay_enc/overlay_rec.c)の`telemetry`）ので、30コマでも針は約3コマごとに次の値へ飛ぶ。
+どちらも今回は直していない。滑らかにするなら値の補間、夜も30コマ出すなら録画プログラムが露出時間を33ms以下で調整する（自動露出を使わない）。
+
+**音のしくみ**（[audio_cap.h](tools/unoq_overlay_enc/audio_cap.h)・[ts_mux.h](tools/unoq_overlay_enc/ts_mux.h)）：
+
+| 項目 | 中身 |
+|---|---|
+| マイク | `run-video.sh`が、カメラと同じUSB機器にある音の入力を探す（ELPは内蔵）。`~/ecologger-video/audio_off`を置くと録らない。`~/ecologger-video/audio`にALSAの名前を書くとそのマイク |
+| 形式 | `arecord`の生PCM（48kHz・モノラル）を**MP2（MPEG-1 Layer II）128kbps**にして、`.ts`へ映像と一緒に入れる（PID 0x101）。映像10Mbpsの約1.3%で、録れる長さは約2時間45分→約2時間43分 |
+| 道具 | 本体にはMP2を作る道具が無いので、Debian公式の`libtwolame0`（約130KB、libcだけに依存）を録画プログラムが実行時に読む。**無ければ音なしで、前と同じに録る** |
+| 時刻 | 映像と同じ`CLOCK_MONOTONIC`。「読み終えた時刻−読んだサンプル数÷48000」の一番早いもの（遅れの一番少ないもの）を録り始めの時刻とし、5秒ごとにマイクの時計のずれを追う。1フレーム（24ms）ごとの時刻は前＋24msから±1%しか動かさない。録り始めの1秒は捨てる |
+| 録れないとき | マイクが無い・抜けた・`arecord`が落ちたときは、2秒・4秒…30秒おきにやり直す。**どの場合も映像は止めない**。録画プログラムが落ちると`arecord`も一緒に終わる |
+
+TSの書き出し（`put`・`ts_tables`・`ts_frame`）は`overlay_rec.c`から`ts_mux.h`へ移し、音のPES（`ts_audio_pes`）を足した。PMTに音を載せるのは録り始めに音を使うと決まったときだけ。
+
+**PCで確かめたこと（WSLのUbuntu、x86）**：
+- 音なしのときの`.ts`は、前の版（`git`のHEAD）の書き出しと**バイト単位で同じ**（大きい枚・キーフレーム・表を含む200枚）
+- `overlay_rec.c`全体が組み立てられる（`-ldl`を足した。警告は前からあるものだけ）
+- [audio_mux_test.c](tools/unoq_overlay_enc/audio_mux_test.c)：11/5の録画の映像を録ったときの速さで書き直し、マイクの代わりに試験音（[audio_beep.py](tools/unoq_overlay_enc/audio_beep.py)、`CLOCK_MONOTONIC`の毎秒の頭にピッ）を混ぜて、[audio_mux_check.py](tools/unoq_overlay_enc/audio_mux_check.py)で確かめた
+
+  | 場面 | 結果 |
+  |---|---|
+  | 30秒 | ffmpegで誤り無し、音のフレームの抜け・重なり0、ピッ29回の**ずれはすべて−2ms** |
+  | 6秒でマイクが止まる | 映像は最後まで録れ、音は約3秒後に戻った。ピッ10回のずれ−1ms（戻った後も） |
+  | マイクが無い | 8秒おきにやり直すだけで、映像は正常 |
+
+- Windowsの**VLCで音が出る**（29.5秒・ピッの大きさも元どおり）、OpenCVで映像501コマを全部読める、回収アプリの試験10件が通り、音入りの`.ts`でも映像の時刻を正しく読む
+- 計器の試験（`tools/video_hud`の26件）が通る。元の配置の正解（`testdata/default_*.golden`）のうち、横Gの向きで動いたGボールの点の6頂点だけを、WSLで組み立てた`hud_dump.c`の値に差し替えた（ほかは本体で作った正解のまま。本体とWSLの数字の差は最大0.0001）
+
+**まだ確かめていないこと**：本体でのCPU（twolameの重さ。1コアの数%の見込み）とコマ数、カメラのマイクの音質・音量（走行中の風・エンジンの音でどう聞こえるか）、Windowsの「メディア プレーヤー」での再生。
+
+**本体へ入れる手順**（Pixelのテザリングで`ssh unoq`、またはUSBのadb。rootは`ecocapture-web:0.2.0`のnsenter）：
+1. 確かめる：`ls /usr/lib/aarch64-linux-gnu/libtwolame.so.0`、`command -v arecord`、`arecord -l`にカメラのマイクがあるか、`id arduino`に`audio`があるか、
+   `cat /proc/asound/card*/pcm0c/sub0/status`でカメラのマイクを誰も開いていないか（EcoCaptureの音声はマイクと再生の両方があるUSBオーディオを選ぶので、ふつうは取り合わない。Bluetoothのヘッドホンで音だけ流すときは、入力だけのUSBの機器も拾いうる）
+2. `libtwolame0`が無ければ、rootで`apt-get install -y libtwolame0`（ネットが要る。通らなければPCでDebianの公式から`.deb`を取って送る）
+3. 戻す用に`/opt/ecologger-video/overlay_rec`・`run-video.sh`を`*.pre-audio-20261106`、`~/video_test/install/`を`install.pre-audio-20261106/`として写す
+4. `~/video_test/install/`へ`tools/unoq_overlay_enc/`の`overlay_rec.c`・`hud_layout.h`・`lap_ref.h`・`video_store.h`・**`ts_mux.h`・`audio_cap.h`**・`hud_default.ini`・`hud_font_64.pgm`・`run-video.sh`・`ecologger-video.service`・`install-video.sh`を置く
+5. rootで`install-video.sh`を動かす（録画は入れ替えの間だけ止まり、新しい章になる）。`audio: libtwolame0 found`と出ること
+6. `journalctl -u ecologger-video -n 30`に`audio: plughw:CARD=…`・`audio: MP2 128 kbps`・`audio: first data`が出ること。1分ほど録ってから、書いている章の頭をPCへ写し、WSLの`ffprobe`で`mp2 48000Hz 1ch`があること・`ffmpeg`で誤りが無いこと・聞いて音が入っていることを確かめる。`top`で録画プログラムのCPU
+7. `tools/video_hud/Apply-HUD.cmd`で`hud.ini`（横Gの`flip_x`）を送る
+8. 音だけやめるとき：`touch ~/ecologger-video/audio_off`して`systemctl restart ecologger-video.service`（root）。全部戻すとき：3で写したものを元の名前へ戻して再起動
+
 ---
 
 ## 6. V-4：GPUのOpenGL ESが有効か（ダッシュGUI描画用）

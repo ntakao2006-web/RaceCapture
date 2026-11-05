@@ -7,8 +7,12 @@ set -eu
 src=${1:-/home/arduino/video_test/install}
 dst=/opt/ecologger-video
 mkdir -p "$dst"
-# overlay_rec.c と同じ場所に hud_layout.h・lap_ref.h・video_store.h が要る
-gcc -O2 -o "$dst/overlay_rec" "$src/overlay_rec.c" -lEGL -lGLESv2 -ljpeg -lm -lpthread
+# overlay_rec.c と同じ場所に hud_layout.h・lap_ref.h・video_store.h・ts_mux.h・audio_cap.h が要る
+# 音（MP2）は録画プログラムが実行時に libtwolame.so.0 を読んで固める（ヘッダーは要らない）。
+# 無ければ音なしで録る（前と同じ動き）。入れるとき：apt-get install -y libtwolame0（Debianの公式、libcだけに依存。手順書5-20）
+ls /usr/lib/*/libtwolame.so.0 >/dev/null 2>&1 && echo "audio: libtwolame0 found" || echo "audio: libtwolame0 not installed (recording without audio)"
+command -v arecord >/dev/null || echo "audio: arecord not found (recording without audio)"
+gcc -O2 -o "$dst/overlay_rec" "$src/overlay_rec.c" -lEGL -lGLESv2 -ljpeg -lm -lpthread -ldl
 install -m 0644 "$src/hud_font_64.pgm" "$dst/"
 # 元の計器の配置（自分の配置 /home/arduino/ecologger-video/hud.ini が無いときに使う）
 install -m 0644 "$src/hud_default.ini" "$dst/"

@@ -70,6 +70,7 @@
 #include "hud_layout.h"
 #include "lap_ref.h"
 #include "video_store.h"
+#include "ts_mux.h"
 
 #define W 1920  // 計器を描く座標の大きさ（出力の既定の大きさでもある）
 #define H 1080
@@ -93,6 +94,7 @@ static int xioctl(int fd, unsigned long req, void *arg) {
 
 static volatile sig_atomic_t quit;
 static void on_signal(int s) { (void)s; quit = 1; }
+#include "audio_cap.h"  // quit・now() を使う
 
 // ---------------------------------------------------------------- 走行データ（EcoCaptureのAPI）
 struct tele {
@@ -500,80 +502,21 @@ static void lens_check(void) {
 }
 
 // ---------------------------------------------------------------- 保存（MPEG-TS／素のH.264）と1秒ごとの時刻
-#define PID_PMT 0x1000
-#define PID_VID 0x0100
-static FILE *out, *csv;
+static FILE *csv;  // out（.tsの書き出し先）と put・ts_frame 等は ts_mux.h
 static const char *out_pat;
 static char out_name[512];
 static int ts_mode, seg_on, low_space, seg_frames, encoded, idr_count, header_inserted;
 static double seg_len = 600, seg_t0, min_free_mb = 1024, bitrate_mbps = 10;
 static int64_t seg_us0;
-static size_t bytes;
-static uint8_t seq_hdr[256], cc_pat, cc_pmt, cc_vid;
+static uint8_t seq_hdr[256];
 static size_t seq_len;
 // エンコーダへ渡した時刻（µs）→ その枚のカメラの時刻（CLOCK_MONOTONIC）と、本体の時計でのUTC
 static struct { int64_t us; double mono, host; } stamps[64];
 // 走行（%の書式のとき）：置き場・名前の書式（拡張子を除く）と拡張子・今の走行の名前・章の番号・起動の番号
 static char vdir[512], ldir[600], name_pat[256], name_ext[16] = ".ts", sess[64], boot_id[64];  // ldir：走行記録の置き場
 static int chapter, sess_gnss, clock_announced;  // sess_gnss：走行の名前がGNSSの時刻か
+static double rec_cam_t0;  // 映像の最初の枚のカメラの時刻（CLOCK_MONOTONIC）。音の時刻をこれからの秒にする
 static double sess_mono, rec_written = -1e9;      // 走行の最初の枚の時刻（CLOCK_MONOTONIC。同じ起動なら別の録画とも比べられる）
-
-static void put(const void *p, size_t n) { fwrite(p, 1, n, out); bytes += n; }
-
-static uint32_t crc32_mpeg(const uint8_t *p, int n) {
-    uint32_t c = 0xffffffff;
-    while (n--) { c ^= (uint32_t)*p++ << 24; for (int k = 0; k < 8; k++) c = c & 0x80000000 ? (c << 1) ^ 0x04c11db7 : c << 1; }
-    return c;
-}
-
-static void ts_section(int pid, uint8_t *cc, uint8_t *sec, int n) {  // secの最後の4バイトにCRCを入れて1パケットで出す
-    uint32_t c = crc32_mpeg(sec, n - 4);
-    sec[n - 4] = c >> 24; sec[n - 3] = c >> 16; sec[n - 2] = c >> 8; sec[n - 1] = c;
-    uint8_t pk[188]; memset(pk, 0xff, sizeof pk);
-    pk[0] = 0x47; pk[1] = 0x40 | pid >> 8; pk[2] = pid & 0xff; pk[3] = 0x10 | ((*cc)++ & 0x0f);
-    pk[4] = 0;  // pointer_field
-    memcpy(pk + 5, sec, n); put(pk, sizeof pk);
-}
-
-// PAT・PMT（番組1つ、H.264が1本）。キーフレームの前に毎回出し、途中から読んでも分かるようにする
-static void ts_tables(void) {
-    uint8_t pat[16] = { 0x00, 0xb0, 13, 0x00, 0x01, 0xc1, 0x00, 0x00, 0x00, 0x01, 0xe0 | PID_PMT >> 8, PID_PMT & 0xff };
-    uint8_t pmt[21] = { 0x02, 0xb0, 18, 0x00, 0x01, 0xc1, 0x00, 0x00, 0xe0 | PID_VID >> 8, PID_VID & 0xff, 0xf0, 0x00,
-                        0x1b, 0xe0 | PID_VID >> 8, PID_VID & 0xff, 0xf0, 0x00 };
-    ts_section(0, &cc_pat, pat, sizeof pat);
-    ts_section(PID_PMT, &cc_pmt, pmt, sizeof pmt);
-}
-
-// 1枚（アクセスユニット）をPES（PTSのみ。Bフレームは無い）にしてTSのパケットへ。pts・pcrは90kHz
-static void ts_frame(const uint8_t *es, size_t n, uint64_t pts, uint64_t pcr, int key) {
-    const uint8_t hd[20] = { 0, 0, 1, 0xe0, 0, 0, 0x80, 0x80, 5,
-        0x21 | (pts >> 29 & 0x0e), pts >> 22 & 0xff, 0x01 | (pts >> 14 & 0xfe), pts >> 7 & 0xff, 0x01 | (pts << 1 & 0xfe),
-        0, 0, 0, 1, 0x09, 0xf0 };  // PESの頭＋AUD（区切りのNAL。TSのH.264では付ける決まり）
-    size_t total = sizeof hd + n, off = 0;
-    for (int first = 1; off < total; first = 0) {
-        uint8_t pk[188], af[184]; size_t L = 0; int has_af = 0;
-        if (first) {  // 1枚目のパケットにPCR（とキーフレームの印）
-            af[L++] = (key ? 0x40 : 0) | 0x10;
-            af[L++] = pcr >> 25; af[L++] = pcr >> 17; af[L++] = pcr >> 9; af[L++] = pcr >> 1;
-            af[L++] = (pcr & 1) << 7 | 0x7e; af[L++] = 0;
-            has_af = 1;
-        }
-        size_t cap = has_af ? 183 - L : 184, left = total - off;
-        if (left < cap) {  // 最後のパケットは詰め物で188バイトにする
-            size_t s = cap - left;
-            if (!has_af) { has_af = 1; s--; if (s) { af[L++] = 0x00; s--; } }
-            memset(af + L, 0xff, s); L += s; cap = left;
-        }
-        pk[0] = 0x47; pk[1] = (first ? 0x40 : 0) | PID_VID >> 8; pk[2] = PID_VID & 0xff;
-        pk[3] = (has_af ? 0x30 : 0x10) | (cc_vid++ & 0x0f);
-        size_t p = 4;
-        if (has_af) { pk[p++] = L; memcpy(pk + p, af, L); p += L; }
-        size_t a = off, m = cap;
-        if (a < sizeof hd) { size_t c = sizeof hd - a < m ? sizeof hd - a : m; memcpy(pk + p, hd + a, c); p += c; a += c; m -= c; }
-        if (m) memcpy(pk + p, es + (a - sizeof hd), m);
-        put(pk, sizeof pk); off += cap;
-    }
-}
 
 // その枚のUTC。GNSSの時刻が分かっていればそれで（*gnss=1）、無ければ本体の時計で。*hostは本体の時計でのUTC
 static double frame_utc(int64_t us, int *gnss, double *host, double *mono_out) {
@@ -710,6 +653,11 @@ static double free_mb(void) {
     return fstatvfs(fileno(out), &sv) ? 1e18 : (double)sv.f_bavail * sv.f_frsize / 1048576.0;
 }
 
+// 音（audio_cap.h）をTSへ。t：その頭の時刻（CLOCK_MONOTONIC）。映像と同じく、最初の枚からの時刻＋0.5秒をPTSにする
+static void ac_write(const uint8_t *es, size_t n, double t) {
+    if (out) ts_audio_pes(es, n, (uint64_t)llround((t - rec_cam_t0) * 90000) + 45000);
+}
+
 // エンコーダから出た1枚分。キーフレームの所でファイルの切り替え・書き出しの促し・空きの確認・時刻の記録をする
 static void emit(const uint8_t *p, size_t n, int64_t us) {
     int has_sps = 0, idr = 0, slice = 0;
@@ -753,6 +701,7 @@ static void emit(const uint8_t *p, size_t n, int64_t us) {
     if (idr && !has_sps && seq_len && n + seq_len <= sizeof tmp) {  // SPS・PPSが付いていないIDRには控えを前に付ける
         memcpy(tmp, seq_hdr, seq_len); memcpy(tmp + seq_len, p, n); p = tmp; n += seq_len; header_inserted++;
     }
+    if (ts_audio) ac_drain(rec_cam_t0, 0, ac_write);  // たまった音を、この枚の前に書く
     if (ts_mode) { uint64_t t90 = (uint64_t)us * 9 / 100; ts_frame(p, n, t90 + 45000, t90, idr); }  // PTSはPCRより0.5秒先
     else put(p, n);
     seg_frames++;
@@ -983,6 +932,7 @@ int main(int argc, char **argv) {
     cam_open(argv[1]);
     hud_check();  // 走行データのスレッドが値の名前を使うので、その前に読む
     lens_path = getenv("OVERLAY_LENS"); lens_check();
+    ts_audio = ts_mode && ac_start();  // 音（OVERLAY_AUDIO。run-video.sh がカメラのマイクを探して渡す）。録れなくても映像は録る
     pthread_t tel_th; pthread_create(&tel_th, NULL, telemetry, NULL);
 
     // ---- EGL（画面を使わない surfaceless）
@@ -1225,7 +1175,7 @@ int main(int argc, char **argv) {
         double bd = now(); s_conv += bd - b1;
 
         // ③ エンコーダへ。時刻はカメラの時刻（最初の枚からのµs）
-        if (!f) cam_t0 = cam_ts;
+        if (!f) cam_t0 = rec_cam_t0 = cam_ts;
         int64_t us = llround((cam_ts - cam_t0) * 1e6);
         if (us <= last_us) us = last_us + 1;
         last_us = us;
@@ -1246,6 +1196,8 @@ int main(int argc, char **argv) {
     struct v4l2_encoder_cmd ec = { .cmd = V4L2_ENC_CMD_STOP };
     xioctl(fd, VIDIOC_ENCODER_CMD, &ec);
     double tend = now() + 3; while (!eos && now() < tend) drain(1);
+    ac_stop();
+    if (ts_audio && out) ac_drain(rec_cam_t0, 1, ac_write);  // 残りの音
     double el = now() - t0;
     if (out) fclose(out);
     if (csv) fclose(csv);
@@ -1262,6 +1214,7 @@ int main(int argc, char **argv) {
     struct rusage ru; getrusage(RUSAGE_SELF, &ru);
     double cpu = ru.ru_utime.tv_sec + ru.ru_utime.tv_usec * 1e-6 + ru.ru_stime.tv_sec + ru.ru_stime.tv_usec * 1e-6;
     printf("process CPU: %.1f%% of one core\n", cpu / el * 100);
+    if (ts_audio) printf("audio: frames=%ld written=%ld dropped=%ld restarts=%ld\n", ac_frames, ac_written, ac_dropped, ac_restarts);
     if (low_space) { fprintf(stderr, "空きが%.0fMBを切ったので止めた\n", min_free_mb); return 3; }
     return 0;
 }
