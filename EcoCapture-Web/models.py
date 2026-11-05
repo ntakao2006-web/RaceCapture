@@ -3,6 +3,14 @@ import math
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+# An NTC reading outside this range is not a temperature but a lost bias: the Defi
+# unit is powered with the ignition while the logger and PIC v8 stay on, so after the
+# engine is switched off its thermistor voltage reads about 0 V (1 ADC count = 2513 °C,
+# heard as an oil temperature alarm on 2026-11-06), and a short circuit does the same.
+# No oil or coolant gets near 200 °C (Defi's oil gauge ends at 150 °C), so a real
+# overheat still passes and keeps its warning.
+NTC_VALID_C = (-40.0, 200.0)
+
 class Signal(BaseModel):
     channel: Literal[1,2] = 1
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
@@ -63,7 +71,8 @@ class Signal(BaseModel):
         lo, hi = next(((a, b) for a, b in pairs if resistance >= b[1]), pairs[-1])
         x = lambda t: 1 / (t + 273.15)
         f = (math.log(resistance) - math.log(lo[1])) / (math.log(hi[1]) - math.log(lo[1]))
-        return 1 / (x(lo[0]) + f * (x(hi[0]) - x(lo[0]))) - 273.15
+        celsius = 1 / (x(lo[0]) + f * (x(hi[0]) - x(lo[0]))) - 273.15
+        return celsius if NTC_VALID_C[0] <= celsius <= NTC_VALID_C[1] else None  # sensor unpowered / shorted / open
 
 class Configuration(BaseModel):
     model_config = ConfigDict(extra="forbid", serialize_by_alias=True, validate_by_name=True)

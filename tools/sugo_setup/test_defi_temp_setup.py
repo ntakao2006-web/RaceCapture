@@ -1,4 +1,5 @@
 import math
+import struct
 import sys
 import tempfile
 import unittest
@@ -63,6 +64,37 @@ class DefiTempSetupTests(unittest.TestCase):
         for celsius in (97, 120, 130):
             ohm = r2 * math.exp(beta * (1 / (celsius + 273.15) - 1 / (t2 + 273.15)))
             self.assertAlmostEqual(oil.ntc_celsius(ohm / (ohm + oil.pullup_ohm)), celsius, places=3)
+
+    def test_defi_switched_off_is_not_a_temperature(self):
+        """エンジンを切るとDefiだけ電源が落ち、電圧が約0 Vになる（2026-11-06、油温2513℃で警報が鳴った）"""
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'EcoCapture-Web'))
+        try:
+            from hardware import HardwareDecoder
+            from models import Configuration, Signal
+        except ImportError as error:  # pydanticが無いPC
+            self.skipTest(str(error))
+        water, oil = (Signal(**s) for s in defi_temp_setup.temp_signals())
+        for adc in range(0, 290):  # 0〜289カウント＝200℃より上に出る電圧
+            self.assertIsNone(oil.ntc_celsius(adc * oil.scale), adc)
+        self.assertAlmostEqual(oil.ntc_celsius(992 * oil.scale), 120, delta=0.2)  # 本物の過熱は通る（警告の120℃）
+        self.assertGreater(oil.ntc_celsius(300 * oil.scale), 195)
+
+        def decode(press, temp1, temp2):
+            adcs = (press, temp1, temp2)
+            flags = sum(1 << i for i, a in enumerate(adcs) if a <= 4) | sum(8 << i for i, a in enumerate(adcs) if a >= 4091)
+            frame = struct.pack('<3H', *adcs) + bytes([flags, 1])
+            state = {'mcu_ms': 2000, 'gnss_at': 0, 'nav': '00' * 92, 'imu_address': 40, 'sd_ready': 1, 'can_counts': [0, 0]}
+            raw = bytearray(46); struct.pack_into('<h', raw, 4, 981); struct.pack_into('<h', raw, 24, 16384)
+            batch = {'rows': [[1, 2000, raw.hex()]], 'can': [[1990, 2, 0x580, 0, 0, frame.hex()]]}
+            samples, _ = HardwareDecoder().decode(state, batch, Configuration(signals=[water, oil]))
+            return samples[0]['can_signals']
+
+        running = decode(400, 1700, 1750)  # 走行中（水温・油温とも80℃台）
+        self.assertTrue(70 < running['OilTemp'] < 100 and 70 < running['WaterTempDefi'] < 100)
+        for adc in (1, 2, 3, 30):  # Defiの電源が落ちた後・落ちる途中
+            off = decode(adc, adc, adc)
+            self.assertIsNone(off.get('OilTemp'), adc)
+            self.assertIsNone(off.get('WaterTempDefi'), adc)
 
 
 if __name__ == '__main__':
