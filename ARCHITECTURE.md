@@ -1815,6 +1815,7 @@
 - 2026-11-05追記: **焼き込み録画に、レンズの歪みの補正とズームを足し、本体のモニターで録る絵を見ながら画角を決めるプレビューを作った（ユーザー依頼）。本体へ入れ、PCで決めた歪みの値で録っている。ズームの量は車に付けてからプレビューで決める。** `lens.json`が無ければ前と同じ描き方で、補正とプレビューを足しても約30fpsのまま。前の版は`/opt/ecologger-video/*.pre-lens-20261105`。道具は`tools/lens_view/`、詳細は`unoq_video_check_procedure.md`5-19
 - 2026-11-05追記: **EcoCapture DASHを本体へ入れた（ユーザー了承、18:18）。HDMIの画面は今と次の電源ONからDASHになり、RaceCaptureアプリは起動しない。** ラップの`lap.py`とSUGOのラインはまだ（`task_sugo_20261108_breakdown.md`SG-2-6の手順5）。戻すのは`tools/sugo_setup/Show-RaceCapture.cmd --boot`
 - 2026-11-05追記: **LTEのSIMをユーザー本人のSORACOM planX3へ差し替え、11/3から止めていたLTE送信をONにした（ユーザー：ずっとオンでよい）。** 屋内では基地局への登録が時間切れを繰り返している。詳細は`task_sugo_20261108_breakdown.md`SG-1-7
+- 2026-11-06追記: **エンジンを切ると油温が2513℃と出て車載ダッシュの警報が鳴る件を直し、本体へ入れた（ユーザー報告・了承）。** DefiはIGで電源が入り、ロガーとPIC v8は常時電源なので、エンジンを切るとDefiの温度の電圧が0 Vになり、約1分に1回1カウント（2513℃）へ揺れて約1秒続き、油温の警告（1秒）が出ていた。換算`ntc`が-40〜200℃の外を値なしにする（`EcoCapture-Web/models.py`）。本体でエンジンを切った2分半に揺れは54回あったが油温は出なかった。前の版は`ecocapture-web:pre-ntcrange-20261106`・`~/EcoCapture-Web/.bak-ntcrange-20261106/`。詳細は`task_sugo_20261108_breakdown.md`SG-4-3
 
 ## 5. 開発ロードマップ（詳細版）
 
