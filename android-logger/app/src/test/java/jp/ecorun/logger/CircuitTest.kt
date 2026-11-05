@@ -288,5 +288,13 @@ class CircuitTest {
         assertEquals(1.5, AlarmTone.samples(repeat = 1).size / AlarmTone.RATE.toDouble(), 0.01)
         val gap = AlarmTone.samples().copyOfRange((AlarmTone.RATE * 1.55).toInt(), (AlarmTone.RATE * 1.7).toInt())
         assertTrue(gap.all { it.toInt() == 0 }) // the break between bursts is silent
+        val one = AlarmTone.samples(repeat = 1)
+        val rate = AlarmTone.RATE
+        // 15 beeps of 0.05 s, each followed by 0.05 s of silence
+        for (i in 0 until 15) {
+            assertTrue(one.copyOfRange((rate * (i * .1 + .01)).toInt(), (rate * (i * .1 + .04)).toInt()).any { it.toInt() != 0 })
+            assertTrue(one.copyOfRange((rate * (i * .1 + .051)).toInt(), (rate * (i * .1 + .099)).toInt()).all { it.toInt() == 0 })
+        }
+        assertTrue(AlarmTone.samples(volume = 1.0).maxOf { kotlin.math.abs(it.toInt()) } <= 32000) // no clipping
     }
 }

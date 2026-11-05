@@ -274,7 +274,7 @@ class SettingsActivity : Activity() {
         val oil = field("油温の警告（℃）", "%.0f".format(settings.oilWarn), "120", !running, InputType.TYPE_CLASS_NUMBER)
         val water = field("水温の警告（℃、油温センサーが途絶えても警告が出るように）", "%.0f".format(settings.waterWarn), "110", !running, InputType.TYPE_CLASS_NUMBER)
         val volume = field("警報音の大きさ（0〜100%、スマホの「アラーム」の音量でも変わる）", "%.0f".format(settings.alarmVolume * 100), "80", true, InputType.TYPE_CLASS_NUMBER)
-        note("DASHと同じく、温度は1秒・油圧は0.5秒続けたら出て、警報音（2音の警報を6回、約10秒）を1回鳴らし、帯を1分点滅させる。5秒続けて戻ったら消える。" +
+        note("DASHと同じく、温度は1秒・油圧は0.5秒続けたら出て、警報音（高い「ピピピ…」を6回、約10秒）を1回鳴らし、帯を1分点滅させる。5秒続けて戻ったら消える。" +
             "油圧は1500rpm未満では見ない（1500rpmで100kPa、3000rpm以上で200kPaを下回ったら）。温度の数値はDASHの設定（oil_warn・water_warn）と同じにしておく")
         val warnButtons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         warnButtons.addView(button("保存") {

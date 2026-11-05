@@ -1,6 +1,7 @@
 import io
 import json
 import math
+import struct
 import tempfile
 import unittest
 import wave
@@ -273,6 +274,16 @@ class SoundAndConfigTests(unittest.TestCase):
             self.assertAlmostEqual(w.getnframes() / w.getframerate(), 10.25, places=2)
         with wave.open(io.BytesIO(tone_wav('warn', repeat=1)), 'rb') as w:
             self.assertAlmostEqual(w.getnframes() / w.getframerate(), 1.5, places=2)
+            rate = w.getframerate()
+            pcm = struct.unpack(f'<{w.getnframes()}h', w.readframes(w.getnframes()))
+        for i in range(15):  # 15 beeps of 0.05 s, each followed by 0.05 s of silence
+            self.assertTrue(any(pcm[int(rate * (i * .1 + .01)):int(rate * (i * .1 + .04))]))
+            self.assertFalse(any(pcm[int(rate * (i * .1 + .051)):int(rate * (i * .1 + .099))]))
+        with wave.open(io.BytesIO(tone_wav('warn', volume=1.0)), 'rb') as w:
+            loud = struct.unpack(f'<{w.getnframes()}h', w.readframes(w.getnframes()))
+            gap = loud[int(rate * 1.55):int(rate * 1.7)]
+        self.assertLessEqual(max(abs(v) for v in loud), 32000)  # no clipping
+        self.assertFalse(any(gap))  # the break between bursts is silent
 
     def test_config_file_overrides_defaults(self):
         with tempfile.TemporaryDirectory() as folder:

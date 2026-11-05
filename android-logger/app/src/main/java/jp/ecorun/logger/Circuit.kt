@@ -396,27 +396,39 @@ class CircuitModel(val config: CircuitConfig = CircuitConfig(), val lapRef: LapR
 }
 
 /**
- * dash_model.tone_wav's warning, as 16-bit mono samples: [repeat] bursts of a two-tone alarm, 1.5 s
- * each and 0.25 s apart (six: about ten seconds; a break between bursts is heard better than one long tone).
+ * dash_model.tone_wav's warning, as 16-bit mono samples: [repeat] bursts, 1.5 s each and 0.25 s apart
+ * (six: about ten seconds; a break between bursts is heard better than one long tone). A burst is 15 rapid
+ * beeps of a 2500 Hz square wave, 0.05 s on and 0.05 s off (picked by ear on 2026-11-05 over the old
+ * 1000/750 Hz sine two-tone, which sounded like a household alarm rather than a race dash).
  */
 object AlarmTone {
-    const val RATE = 22050
+    const val RATE = 44100
+    const val FREQ = 2500.0
+    const val BEEP_S = .05
+    const val BEEPS_PER_BURST = 15
+    const val GAP_S = .25
+
+    /** One beep: a band-limited square (odd harmonics below Nyquist), peak at most [amp]. */
+    private fun beep(amp: Double): ShortArray {
+        val n = (RATE * BEEP_S).toInt()
+        val fade = (RATE * .004).toInt()
+        return ShortArray(n) { k ->
+            var s = 0.0
+            var h = 1
+            while (h * FREQ < RATE / 2 * 0.9) { s += sin(2 * PI * h * FREQ * k / RATE) / h; h += 2 }
+            val gain = min(1.0, min(k.toDouble() / fade, (n - 1 - k).toDouble() / fade))
+            (amp * gain * s * 4 / PI / 1.2).toInt().toShort() // 1.2: the square's overshoot, so no clipping
+        }
+    }
 
     fun samples(volume: Double = 0.8, repeat: Int = 6): ShortArray {
-        val burst = List(3) { listOf(1000 to .25, 750 to .25) }.flatten()
-        val parts = (0 until max(1, repeat)).flatMap { if (it == 0) burst else listOf(0 to .25) + burst }
-        val amp = volume.coerceIn(0.0, 1.0) * 32000
-        val fade = (RATE * .005).toInt()
-        val out = ShortArray(parts.sumOf { (RATE * it.second).toInt() })
-        var k0 = 0
-        for ((freq, length) in parts) {
-            val n = (RATE * length).toInt()
-            for (k in 0 until n) {
-                val gain = min(1.0, min(k.toDouble() / fade, (n - 1 - k).toDouble() / fade))
-                out[k0 + k] = (amp * gain * sin(2 * PI * freq * k / RATE)).toInt().toShort()
-            }
-            k0 += n
-        }
+        val on = beep(volume.coerceIn(0.0, 1.0) * 32000)
+        val step = 2 * on.size                            // beep, then as long silent
+        val burst = step * BEEPS_PER_BURST                // 1.5 s
+        val gap = (RATE * GAP_S).toInt()
+        val n = max(1, repeat)
+        val out = ShortArray(n * burst + (n - 1) * gap)
+        for (b in 0 until n) for (i in 0 until BEEPS_PER_BURST) on.copyInto(out, b * (burst + gap) + i * step)
         return out
     }
 }

@@ -384,23 +384,27 @@ def sensor_light(oil, press):
     return ('油圧センサー途絶' if oil else '油温センサー途絶' if press else '油温・油圧途絶'), False
 
 
-def tone_wav(kind, volume=0.8, rate=22050, repeat=6):
-    """The warning sound as WAV bytes: 'warn' bursts of a two-tone alarm, 1.5 s each and 0.25 s apart
-    (six: about ten seconds; a break between bursts is heard better than one long tone)."""
+def tone_wav(kind, volume=0.8, rate=44100, repeat=6):
+    """The warning sound as WAV bytes: 'warn' bursts, 1.5 s each and 0.25 s apart (six: about ten
+    seconds; a break between bursts is heard better than one long tone). A burst is 15 rapid beeps of
+    a 2500 Hz square wave, 0.05 s on and 0.05 s off (picked by ear on 2026-11-05 over the old
+    1000/750 Hz sine two-tone, which sounded like a household alarm rather than a race dash).
+    Same samples as AlarmTone in the phone app (Circuit.kt)."""
     if kind != 'warn':
         raise ValueError(kind)
-    burst = [(1000, .25), (750, .25)] * 3
-    parts = burst
-    for _ in range(max(1, int(repeat)) - 1):
-        parts = parts + [(0, .25)] + burst
-    frames = bytearray()
+    freq, beep_s, beeps, gap_s = 2500.0, .05, 15, .25
     amp = max(0.0, min(1.0, volume)) * 32000
-    fade = int(rate * .005)
-    for freq, length in parts:
-        n = int(rate * length)
-        for k in range(n):
-            gain = min(1.0, k / fade, (n - 1 - k) / fade) if freq else 0.0
-            frames += struct.pack('<h', int(amp * gain * math.sin(2 * math.pi * freq * k / rate)))
+    n = int(rate * beep_s)
+    fade = int(rate * .004)
+    harmonics = list(range(1, int(rate / 2 * 0.9 / freq) + 1, 2))  # band-limited square: odd, below Nyquist
+    on = bytearray()
+    for k in range(n):
+        s = sum(math.sin(2 * math.pi * h * freq * k / rate) / h for h in harmonics)
+        gain = min(1.0, k / fade, (n - 1 - k) / fade)
+        on += struct.pack('<h', int(amp * gain * s * 4 / math.pi / 1.2))  # 1.2: the overshoot, no clipping
+    burst = (bytes(on) + bytes(len(on))) * beeps                       # 1.5 s
+    gap = bytes(2 * int(rate * gap_s))
+    frames = gap.join([burst] * max(1, int(repeat)))
     out = io.BytesIO()
     with wave.open(out, 'wb') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(bytes(frames))
