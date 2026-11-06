@@ -53,6 +53,36 @@ static int ac_kbps = 128;
 static char ac_cmd[600];
 static long ac_frames, ac_dropped, ac_restarts, ac_written;
 
+// MP2にする前の処理（手順書5-23）。走行中はエンジン・路面・風の低い唸り（20〜100Hz）が音の力の9割以上を占め、
+// そのまま大きく録ると割れる（11/6の章で7.7%のサンプルが上限に張りついた）。
+//   1. 低音カット：2次のバターワース（OVERLAY_AUDIO_HPF Hz、既定100。0で無し。30Hzは約−21dB、200Hzはほぼそのまま）
+//   2. 音量：OVERLAY_AUDIO_GAIN_DB（既定0。割れはカメラの中で起きるので、下げるならまずマイクの音量＝run-video.shのmic_volume）
+//   3. リミッター：上限の0.7（−3dB）を超えそうな所だけ瞬時に下げ、0.3秒かけて戻す（OVERLAY_AUDIO_LIMIT=0で無し）。
+//      MP2にしたあとで上限を超えて割れないようにする。カメラの中で割れた音は元に戻せない
+static double ac_hpf_hz = 100, ac_gain_db = 0;
+static int ac_limit = 1;
+struct ac_dsp { double b0, b1, b2, a1, a2, x1, x2, y1, y2, env, rel, g; int hpf; };
+static void ac_dsp_init(struct ac_dsp *d) {
+    memset(d, 0, sizeof *d);
+    d->g = pow(10, ac_gain_db / 20);
+    d->rel = exp(-1.0 / (0.3 * AC_RATE));
+    if (ac_hpf_hz > 0 && ac_hpf_hz < AC_RATE / 4) {  // RBJの式、Q=1/√2
+        const double w = 2 * M_PI * ac_hpf_hz / AC_RATE, c = cos(w), al = sin(w) / (2 * M_SQRT1_2), a0 = 1 + al;
+        d->b0 = (1 + c) / 2 / a0; d->b1 = -(1 + c) / a0; d->b2 = d->b0; d->a1 = -2 * c / a0; d->a2 = (1 - al) / a0; d->hpf = 1;
+    }
+}
+static void ac_dsp_run(struct ac_dsp *d, short *p, int n) {
+    const double T = 0.7;
+    for (int i = 0; i < n; i++) {
+        double x = p[i] / 32768.0, y = x;
+        if (d->hpf) { y = d->b0 * x + d->b1 * d->x1 + d->b2 * d->x2 - d->a1 * d->y1 - d->a2 * d->y2; d->x2 = d->x1; d->x1 = x; d->y2 = d->y1; d->y1 = y; }
+        y *= d->g;
+        if (ac_limit) { const double a = fabs(y); d->env = a > d->env ? a : d->env * d->rel; if (d->env > T) y *= T / d->env; }
+        y = y > 0.999 ? 0.999 : y < -0.999 ? -0.999 : y;
+        p[i] = (short)lrint(y * 32767);
+    }
+}
+
 static int ac_on;
 static volatile pid_t ac_pid;
 static pthread_t ac_th;
@@ -132,6 +162,7 @@ static void *ac_loop(void *arg) {
             twl.set_bitrate(tw, ac_kbps);
         }
         const int fd = !tw || twl.init_params(tw) ? -1 : ac_spawn();
+        struct ac_dsp dsp; ac_dsp_init(&dsp);
         double start = NAN, t_first = 0, blk = INFINITY, last = NAN; long long got = 0, fo = 0; size_t have = 0; int nb = 0;
         const double D = (double)AC_SPF / AC_RATE;
         while (fd >= 0 && !quit) {
@@ -146,6 +177,7 @@ static void *ac_loop(void *arg) {
             if (got <= 5 * AC_RATE) { if (isnan(start) || est < start) start = est; }
             else if (blk = fmin(blk, est), ++nb >= 5 * AC_RATE / AC_SPF) { start += (blk - start) * 0.5; blk = INFINITY; nb = 0; }
             if (got == AC_SPF) { t_first = t; if (!said++) { printf("audio: first data (%s)\n", ac_cmd); fflush(stdout); } }
+            ac_dsp_run(&dsp, pcm, AC_SPF);
             const int n = twl.encode_buffer_interleaved(tw, pcm, AC_SPF, mp2, sizeof mp2);
             for (int o = 0; n > 0 && o + 4 <= n;) {
                 const int L = mp2_len(mp2 + o);
@@ -180,9 +212,17 @@ static void *ac_loop(void *arg) {
 static int ac_start(void) {
     const char *cmd = getenv("OVERLAY_AUDIO_CMD"), *dev = getenv("OVERLAY_AUDIO");
     if (getenv("OVERLAY_AUDIO_KBPS")) ac_kbps = atoi(getenv("OVERLAY_AUDIO_KBPS"));
+    const char *e;
+    if ((e = getenv("OVERLAY_AUDIO_HPF")) && *e) ac_hpf_hz = atof(e);
+    if ((e = getenv("OVERLAY_AUDIO_GAIN_DB")) && *e) ac_gain_db = atof(e);
+    if ((e = getenv("OVERLAY_AUDIO_LIMIT")) && *e) ac_limit = atoi(e) != 0;
     if (cmd && *cmd) snprintf(ac_cmd, sizeof ac_cmd, "%s", cmd);
     else if (dev && *dev && strcmp(dev, "off") && !strchr(dev, '\'')) {
-        snprintf(ac_cmd, sizeof ac_cmd, "exec arecord -q -D '%s' -f S16_LE -r %d -c 1 -t raw --buffer-time=500000 --period-time=50000", dev, AC_RATE);
+        // OVERLAY_AUDIO_PRE：arecord の前に毎回動かすコマンド（マイクの音量を決める mic-volume.sh。カメラを挿し直すと音量が元に戻るため）。
+        // 標準出力は音のパイプなので、出力は標準エラー（journal）へ回す
+        const char *pre = getenv("OVERLAY_AUDIO_PRE");
+        snprintf(ac_cmd, sizeof ac_cmd, "%s%s%sexec arecord -q -D '%s' -f S16_LE -r %d -c 1 -t raw --buffer-time=500000 --period-time=50000",
+                 pre && *pre ? "{ " : "", pre && *pre ? pre : "", pre && *pre ? "; } 1>&2; " : "", dev, AC_RATE);
     } else return 0;
     if (!tl_load()) {
         fprintf(stderr, "audio: libtwolame.so.0 not found, recording without audio (apt-get install libtwolame0)\n"); fflush(stderr);
@@ -190,7 +230,8 @@ static int ac_start(void) {
     }
     if (pthread_create(&ac_th, NULL, ac_loop, NULL)) return 0;
     ac_on = 1;
-    printf("audio: MP2 %d kbps from %s\n", ac_kbps, ac_cmd); fflush(stdout);
+    printf("audio: MP2 %d kbps from %s\n", ac_kbps, ac_cmd);
+    printf("audio: highpass %g Hz, gain %g dB, limiter %s\n", ac_hpf_hz, ac_gain_db, ac_limit ? "on" : "off"); fflush(stdout);
     return 1;
 }
 

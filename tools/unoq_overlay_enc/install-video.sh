@@ -17,6 +17,8 @@ install -m 0644 "$src/hud_font_64.pgm" "$dst/"
 # 元の計器の配置（自分の配置 /home/arduino/ecologger-video/hud.ini が無いときに使う）
 install -m 0644 "$src/hud_default.ini" "$dst/"
 install -m 0755 "$src/run-video.sh" "$dst/"
+# マイクの音量を決める（録画プログラムが arecord の前に毎回呼ぶ。手順書5-23）。CRを落として置く
+tr -d '\r' < "$src/mic-volume.sh" > "$dst/mic-volume.sh"; chmod 0755 "$dst/mic-volume.sh"
 # .serviceはWindowsで取り出すとCRLFになることがあるので、CRを落として置く
 tr -d '\r' < "$src/ecologger-video.service" > /etc/systemd/system/ecologger-video.service
 systemctl daemon-reload

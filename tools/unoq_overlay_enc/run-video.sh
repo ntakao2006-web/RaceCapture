@@ -25,6 +25,13 @@ cam_mic() {  # $1：カメラの /dev/v4l/by-id/… 。同じUSB機器（イン�
         [ -e "$c/device" ] && [ "$(readlink -f "$c/device/..")" = "$up" ] && [ -e "/dev/snd/pcmC${c##*card}D0c" ] && { echo "plughw:CARD=$(cat "$c/id"),DEV=0"; return; }
     done
 }
+# 音の調整（$hud/audio.ini。無い・書いていない項目は既定。読むのは録画の起動時だけ。手順書5-23）
+#   mic_volume = -15dB マイクの音量（amixer の値。dBで書く。ELPは0dBが最大、%は生の目盛りで30%は−66dB）。空なら触らない。大きいとカメラの中で割れ、後から直せない
+#   mic_agc = off     カメラの自動の音量調整（on・off。空なら触らない）
+#   highpass_hz = 100 この周波数より下（エンジン・路面・風の唸り）を削る。0で削らない
+#   gain_db = 0       録画プログラムで足す音量（dB）。limiter = 1 で上限を超えそうな所だけ下げる（0で無し）
+mic_volume_default=-15dB  # 11/6はカメラの既定の0dB（最大）で走行中に割れた。手順書5-23
+ini() { [ -f "$hud/audio.ini" ] && sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*\([^#]*\).*/\1/p" "$hud/audio.ini" | tr -d '\r' | sed 's/[[:space:]]*$//' | tail -n 1; }
 while :; do
     for d in /dev/v4l/by-id/*-video-index0; do
         [ -e "$d" ] || continue
@@ -33,6 +40,11 @@ while :; do
         else OVERLAY_AUDIO=$(cam_mic "$d"); fi
         export OVERLAY_AUDIO
         echo "audio: ${OVERLAY_AUDIO:-none (no microphone on the camera)}"
+        if grep -q '^[[:space:]]*mic_volume[[:space:]]*=' "$hud/audio.ini" 2>/dev/null; then mv=$(ini mic_volume); else mv=$mic_volume_default; fi
+        ma=$(ini mic_agc); card=${OVERLAY_AUDIO#*CARD=}; card=${card%%,*}
+        case "$OVERLAY_AUDIO" in *CARD=*) ;; *) card= ;; esac
+        export OVERLAY_AUDIO_PRE= OVERLAY_AUDIO_HPF="$(ini highpass_hz)" OVERLAY_AUDIO_GAIN_DB="$(ini gain_db)" OVERLAY_AUDIO_LIMIT="$(ini limiter)"
+        case "$card$mv$ma" in *\'*) ;; *) [ -n "$card" ] && [ -n "$mv$ma" ] && OVERLAY_AUDIO_PRE="sh $bin/mic-volume.sh '$card' '$mv' '$ma'" ;; esac
         exec "$bin/overlay_rec" "$d" "$dir/%Y%m%d_%H%M%S.ts" 0 "$bin/hud_font_64.pgm"
     done
     sleep 5
