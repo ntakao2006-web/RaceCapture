@@ -371,7 +371,7 @@ RELAY_SILENT_S={'lte':15.0,'wifi':8.0}
 # Voice from the relay: the server's logger mix (8 kHz mono Opus, one packet per 120 ms).
 VOICE_FORMAT={'sample_rate':8000,'channels':1,'frame_ms':120}
 # While voice is arriving the relay is polled this often (on LTE each poll is an
-# AT+CARECV of at most 512 bytes; ~700 B/s of voice needs about two a second).
+# AT+CARECV of at most 1460 bytes, read again while full; ~700 B/s of voice needs about two a second).
 # With nobody talking the normal, slow poll applies, so silence costs nothing.
 VOICE_POLL_S={'lte':.5,'wifi':.12}
 VOICE_ACTIVE_S=3.0

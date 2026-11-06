@@ -8,6 +8,13 @@ import json
 import re
 import time
 
+# AT+CARECV reads at most 1460 bytes (SIM7070 AT manual). It was 512 until 2026-11-06:
+# one 512-byte read per 2 s poll is ~256 B/s, below what the relay can send (its echo of
+# the logger's own telemetry is ~1 kB/s on the team image), so pongs queued behind it and
+# the link dropped every ~20 s. The MCU's LTE receive ring is 4096 bytes.
+CARECV_MAX=1460
+CARECV_DRAIN=4
+
 class LTEUART:
     def __init__(self,bridge):self.bridge=bridge;self.overflow=None
     async def power(self,on):
@@ -187,19 +194,26 @@ class SIM7070:
             if csq:radio['csq']=int(csq[1])
         self.radio=radio
     async def receive(self,until):
-        response=await self.command('AT+CARECV=0,512')
+        response=await self.command(f'AT+CARECV=0,{CARECV_MAX}')
         # SIMCom V1.03 uses +CARECV: <length>,<raw payload>, not a line string.
         match=re.search(rb'\+CARECV:\s*(\d+),',response)
         if not match:return b''
         n=int(match[1])
-        if n>512:raise ValueError('Invalid socket receive length')
+        if n>CARECV_MAX:raise ValueError('Invalid socket receive length')
         while len(self.buffer)<match.end()+n:
             if time.monotonic()>until:raise TimeoutError('Truncated socket payload')
             await self.pump()
         return bytes(self.buffer[match.end():match.end()+n])
     async def read_some(self,wait=0):
-        # One AT+CARECV poll; `wait` only mirrors the socket transport's signature.
-        data=bytes(self.stream)+await self.receive(time.monotonic()+20);self.stream.clear()
+        # One relay poll; `wait` only mirrors the socket transport's signature. Read until the
+        # modem has nothing left (up to CARECV_DRAIN reads): a relay that sends more than one
+        # read per poll otherwise builds a backlog that delays its pongs past the silent limit
+        # (2026-11-06, ~1 kB/s of echoed telemetry). The modem hands out about one TCP segment
+        # per read (~1 kB seen), so a short read does not mean the backlog is empty.
+        data=bytes(self.stream);self.stream.clear();until=time.monotonic()+20
+        for _ in range(CARECV_DRAIN):
+            part=await self.receive(until);data+=part
+            if not part:break
         return data
     async def readline(self):
         until=time.monotonic()+20

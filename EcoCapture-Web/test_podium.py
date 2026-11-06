@@ -149,7 +149,9 @@ class FakeUART:
             if command.startswith('AT+CAOPEN='):
                 self.outgoing.extend(b'\r\nOK\r\n+CAOPEN: 0,0\r\n');continue
             if command.startswith('AT+CARECV='):
-                n=min(11,len(self.network));payload=bytes(self.network[:n]);del self.network[:n]
+                # By default only 11 bytes per read (fragmentation); recv_cap=None honours the length asked.
+                asked=int(command.split(',')[1]);cap=getattr(self,'recv_cap',11)
+                n=min(asked if cap is None else cap,len(self.network));payload=bytes(self.network[:n]);del self.network[:n]
                 self.outgoing.extend(f'\r\n+CARECV: {n},'.encode()+payload+b'\r\nOK\r\n');continue
             if command=='AT+CASTATE?':response='+CASTATE: 0,1\r\n'
             if command=='AT+CPSI?':response='+CPSI: LTE CAT-M1,Online,440-10,0x1A2B,12345678,123,EUTRAN-BAND19,6150,3,3,-11,-97,-68,7\r\n'
@@ -311,6 +313,25 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('AT+CASSLCFG=0,"SSL",1',uart.commands)
         self.assertEqual(uart.commands[-1],'AT+CAOPEN=0,0,"TCP","car.example.ts.net",443')
         uart.network.extend(b'abc');self.assertEqual(await modem.read_some(),b'abc')
+
+    async def test_lte_poll_drains_a_backlog_in_full_reads(self):
+        # 2026-11-06: the relay sent ~1 kB/s while one 512-byte read per 2 s poll took
+        # ~256 B/s, so pongs waited behind the backlog and the link dropped every ~20 s.
+        uart=FakeUART();uart.recv_cap=None;modem=SIM7070(uart=uart)
+        await modem.connect(PodiumConfig(apn='test.apn',hardware_ready=True),('car.example.ts.net',443,True))
+        backlog=bytes(range(256))*16+b'\r\nOK\r\n'*3   # 4114 bytes, binary, with OK inside
+        uart.network.extend(backlog);uart.commands.clear()
+        self.assertEqual(await modem.read_some(),backlog)        # 1460+1460+1194 in one poll
+        self.assertEqual(uart.commands,['AT+CARECV=0,1460']*4)   # the 4th found it empty
+        uart.network.extend(b'x'*7000);uart.commands.clear()
+        self.assertEqual(len(await modem.read_some()),4*1460)     # bounded: at most 4 reads a poll
+        self.assertEqual(len(uart.commands),4)
+        self.assertEqual(len(await modem.read_some()),7000-4*1460)
+        uart.commands.clear();self.assertEqual(await modem.read_some(),b'')   # idle: one read
+        self.assertEqual(uart.commands,['AT+CARECV=0,1460'])
+        # The real modem returns about one TCP segment per read (~1 kB), short of the 1460 asked.
+        uart.recv_cap=1000;uart.network.extend(b'y'*3000)
+        self.assertEqual(await modem.read_some(),b'y'*3000)
 
     async def test_connect_records_phase_times_and_modem_mode(self):
         uart=FakeUART();modem=SIM7070(uart=uart)
