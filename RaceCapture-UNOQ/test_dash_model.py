@@ -107,31 +107,41 @@ class RpmSpeedTests(unittest.TestCase):
 
 
 class WarningTests(unittest.TestCase):
-    def test_on_after_one_second_with_one_sound(self):
+    def test_on_after_five_seconds_with_one_sound(self):
         w = Warning(config())
         self.assertIsNone(w.update(0.0, 121, 100))
-        self.assertIsNone(w.update(0.5, 121, 100)); self.assertFalse(w.on)
-        self.assertEqual(w.update(1.0, 121, 100), 'warn'); self.assertTrue(w.on)
+        self.assertIsNone(w.update(4.9, 121, 100)); self.assertFalse(w.on)
+        self.assertEqual(w.update(5.0, 121, 100), 'warn'); self.assertTrue(w.on)
         self.assertEqual(shown(w), [('油温', 121)])
-        for t in (1.1, 5.0, 9.0):
+        for t in (5.1, 9.0, 13.0):
             self.assertIsNone(w.update(t, 135, 100))  # no second level, no repeat
         self.assertEqual(shown(w), [('油温', 135)])
 
+    def test_the_defi_voltage_falling_at_key_off_does_not_warn(self):
+        # 2026-11-07 00:17:34 JST as logged at 100 Hz: the Defi unit lost its power with the key, the oil
+        # temperature read 132 C (197 C seen on the screen) for 1.03 s, then nothing (the voltage near 0 V)
+        w = Warning(config())
+        t, sounds = 0.0, []
+        for oil in [82.0] * 100 + [132.3] * 103 + [None] * 600 + [83.0] * 500:
+            sounds.append(w.update(t, oil, 83.0)); t += 0.01
+        self.assertEqual([x for x in sounds if x], [])
+        self.assertFalse(w.on)
+
     def test_off_five_seconds_after_and_a_short_dip_keeps_it(self):
         w = Warning(config())
-        w.update(0.0, 125, 100); w.update(1.0, 125, 100)
-        w.update(2.0, 118, 100)
-        self.assertIsNone(w.update(4.0, 124, 100)); self.assertTrue(w.on)  # back up before 5 s: no new sound
-        w.update(5.0, 115, 100)
-        self.assertIsNone(w.update(9.9, 115, 100)); self.assertTrue(w.on)
-        self.assertIsNone(w.update(10.0, 115, 100)); self.assertFalse(w.on)
+        w.update(0.0, 125, 100); w.update(5.0, 125, 100)
+        w.update(6.0, 118, 100)
+        self.assertIsNone(w.update(8.0, 124, 100)); self.assertTrue(w.on)  # back up before 5 s: no new sound
+        w.update(9.0, 115, 100)
+        self.assertIsNone(w.update(13.9, 115, 100)); self.assertTrue(w.on)
+        self.assertIsNone(w.update(14.0, 115, 100)); self.assertFalse(w.on)
 
     def test_below_120_nothing_and_water_warns_when_the_oil_sensor_is_lost(self):
         w = Warning(config())
-        w.update(0.0, 119, 109); w.update(2.0, 119, 109)
+        w.update(0.0, 119, 109); w.update(6.0, 119, 109)
         self.assertFalse(w.on)  # no caution level below the warning any more
         w2 = Warning(config())
-        w2.update(0.0, None, 112); self.assertEqual(w2.update(1.0, None, 112), 'warn')
+        w2.update(0.0, None, 112); self.assertEqual(w2.update(5.0, None, 112), 'warn')
         self.assertEqual((w2.on, shown(w2)), (True, [('水温', 112)]))
 
     def test_oil_pressure_line_follows_the_engine_speed(self):
@@ -160,14 +170,14 @@ class WarningTests(unittest.TestCase):
     def test_warnings_side_by_side_each_with_its_sound(self):
         w = Warning(config())
         w.update(0.0, 122, 100, 380.0, 5000)
-        self.assertEqual(w.update(1.0, 122, 100, 380.0, 5000), 'warn')
-        w.update(2.0, 124, 104, 120.0, 5000)
-        self.assertEqual(w.update(2.5, 124, 104, 120.0, 5000), 'warn')  # the oil pressure comes on: a new sound
+        self.assertEqual(w.update(5.0, 122, 100, 380.0, 5000), 'warn')
+        w.update(6.0, 124, 104, 120.0, 5000)
+        self.assertEqual(w.update(6.5, 124, 104, 120.0, 5000), 'warn')  # the oil pressure comes on: a new sound
         self.assertEqual(shown(w), [('油圧', 120.0), ('油温', 124)])      # oil pressure first
-        w.update(3.0, 125, 111, 120.0, 5000)
-        self.assertEqual(w.update(4.0, 125, 111, 120.0, 5000), 'warn')
+        w.update(7.0, 125, 111, 120.0, 5000)
+        self.assertEqual(w.update(12.0, 125, 111, 120.0, 5000), 'warn')
         self.assertEqual([a.label for a in w.active()], ['油圧', '油温', '水温'])
-        self.assertIsNone(w.update(4.1, 126, 112, 110.0, 5000))  # all on already: no more sound
+        self.assertIsNone(w.update(12.1, 126, 112, 110.0, 5000))  # all on already: no more sound
 
 
 class LapRefTests(unittest.TestCase):
@@ -268,21 +278,21 @@ class ModelTests(unittest.TestCase):
     def test_the_temperature_warning_is_apart_from_the_pit_strip(self):
         m = DashModel(config())
         out_lap = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapStartPit': True, 'LastLapPit': True}
-        sounds = [m.update(frame(out_lap, oil=122), k * 0.1)[1] for k in range(12)]
-        s, _ = m.update(frame(out_lap, oil=122), 1.2)
+        sounds = [m.update(frame(out_lap, oil=122), k * 0.1)[1] for k in range(52)]
+        s, _ = m.update(frame(out_lap, oil=122), 5.2)
         self.assertEqual((s['warn'], s['warns'], s['notice']), (True, [{'label': '油温', 'value': '122', 'unit': '℃'}], 'PIT OUT'))
         self.assertEqual([x for x in sounds if x], ['warn'])
 
     def test_the_band_flashes_for_a_minute_after_each_new_warning(self):
         w = Warning(config())
-        w.update(0.0, 122, 100); w.update(1.0, 122, 100)  # the oil comes on at 1.0
-        self.assertTrue(w.flashing(1.0)); self.assertTrue(w.flashing(60.9))
-        self.assertFalse(w.flashing(61.0))  # then steady red
+        w.update(0.0, 122, 100); w.update(5.0, 122, 100)  # the oil comes on at 5.0
+        self.assertTrue(w.flashing(5.0)); self.assertTrue(w.flashing(64.9))
+        self.assertFalse(w.flashing(65.0))  # then steady red
         w.update(80.0, 122, 100, 120.0, 5000); w.update(80.5, 122, 100, 120.0, 5000)  # the oil pressure joins
         self.assertTrue(w.flashing(80.5)); self.assertFalse(w.flashing(140.5))
         self.assertFalse(Warning(config(flash_s=0)).flashing(0.0))
         m = DashModel(config())
-        states = [m.update(frame(oil=125), k * 0.5)[0] for k in range(130)]
+        states = [m.update(frame(oil=125), k * 0.5)[0] for k in range(140)]
         self.assertEqual([s['warn_flash'] for s in states if s['warn']][:2], [True, True])
         self.assertEqual((states[-1]['warn'], states[-1]['warn_flash']), (True, False))
 
@@ -290,12 +300,12 @@ class ModelTests(unittest.TestCase):
         m = DashModel(config())
         s, _ = m.update(frame(oil=98), 0.0)
         self.assertEqual((s['press_sensor'], s['sensor']), (None, ('油温センサー', True)))  # oil pressure not wired yet
-        for k in range(12):
+        for k in range(52):
             s, _ = m.update(frame(oil=123, press=110.0, rpm=5200.0), 0.1 + k * 0.1)
         self.assertEqual(s['warns'], [{'label': '油圧', 'value': '110', 'unit': 'kPa'},
                                       {'label': '油温', 'value': '123', 'unit': '℃'}])
         self.assertEqual((s['press_sensor'], s['sensor']), (True, ('油温・油圧', True)))
-        s, _ = m.update(frame(oil=98), 2.0)  # the oil pressure lost after it had come
+        s, _ = m.update(frame(oil=98), 6.0)  # the oil pressure lost after it had come
         self.assertEqual((s['press_sensor'], s['sensor']), (False, ('油圧センサー途絶', False)))
         self.assertEqual(s['warns'][0], {'label': '油圧', 'value': '110', 'unit': 'kPa'})  # last value until it goes off
         self.assertEqual([sensor_light(False, None), sensor_light(False, True), sensor_light(False, False)],

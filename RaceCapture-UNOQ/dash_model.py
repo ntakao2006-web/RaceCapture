@@ -18,7 +18,8 @@ Three warnings, not tied to what to do about them (the driver decides), each on 
   temperature still warns when the oil sensor is lost.
 Every warning that is on is shown side by side in one red band over the middle row (oil pressure
 first, smaller when there are more), with one alarm sound each time a warning comes on. A warning
-comes on after its hold time above the limit (press_hold_on_s, hold_on_s) and goes off after
+comes on after its hold time above the limit (press_hold_on_s 0.5 s, hold_on_s 5 s for the temperatures, so
+the Defi unit's voltage falling when the key is turned off does not set it off) and goes off after
 hold_off_s below it. For flash_s (a minute) after a warning comes on, the band flashes bright and dark
 red (the white text always readable), to catch the eye from the side wherever on the lap it came on:
 a minute takes in the home or the back straight. Then it stays bright red, as a long hot stint
@@ -64,7 +65,11 @@ DEFAULTS = {
     # so a hot engine at high revs does not set it off. A pump, leak or starvation in a long corner does.
     'oil_press_warn': [[1500, 100], [3000, 200]],
     'oil_press_min_rpm': 1500,
-    'hold_on_s': 1.0,
+    # The temperatures (oil, water) must stay at the limit this long. 5 s, not 1 s (2026-11-07): when the key
+    # is turned off the Defi unit loses its power before the logger, so its thermistor voltage falls from
+    # about 2.3 V to 0 in about a second, and on the way the oil temperature read 132-197 C for 1.03 s (with
+    # the 1 s the last value is kept), which sounded the warning. A real overheat takes minutes.
+    'hold_on_s': 5.0,
     'press_hold_on_s': 0.5,  # pressure gone does harm quicker than heat
     'hold_off_s': 5.0,
     'flash_s': 60.0,  # the band flashes this long after a warning comes on (0: never); a minute: one straight
