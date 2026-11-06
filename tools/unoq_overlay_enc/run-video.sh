@@ -14,6 +14,9 @@ export OVERLAY_HUD="$hud/hud.ini" OVERLAY_HUD_DEFAULT="$bin/hud_default.ini" OVE
 export OVERLAY_LAPREF="$hud/lap_ref.txt"
 # レンズの歪みの補正＋ズーム（PCの tools/lens_view/ で決めて Apply-Lens.cmd が置く）。無ければ補正しない。録画中も約1秒ごとに見る
 export OVERLAY_LENS="$hud/lens.json"
+# 露出：窓の範囲の明るさで録画プログラムが決める（カメラ任せだと明るい日の外が白く飛ぶ）。ファイルが無ければ既定の値。
+# カメラ任せに戻すときは $hud/exposure.ini に「mode = camera」と書く。録画中も約1秒ごとに見る。今の値は exposure.ini.status（手順書5-21）
+export OVERLAY_EXPOSURE="$hud/exposure.ini"
 # 音：カメラと同じUSB機器のマイク（ELPは内蔵）を探して録る（MP2・128kbps、手順書5-20）。録れなくても映像は録る。
 # 止めたいときは $hud/audio_off を置く。別のマイクにしたいときは $hud/audio にALSAの名前（例 plughw:CARD=Pro,DEV=0）を書く
 cam_mic() {  # $1：カメラの /dev/v4l/by-id/… 。同じUSB機器（インターフェースの親）にある音の入力のALSAの名前

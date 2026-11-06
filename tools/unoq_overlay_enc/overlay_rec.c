@@ -10,9 +10,12 @@
 //   無いか読めなければ OVERLAY_HUD_DEFAULT（既定は文字の一覧表と同じ場所の hud_default.ini）を使う。録画中も約1秒ごとに見て、
 //   書き換わっていれば次のコマから新しい配置で描く（誤りがあれば前の配置のまま）。読んだ結果は OVERLAY_HUD_STATUS のファイルへ書く
 //   PCでの見た目の確認と本体への送り方は tools/video_hud/（手順書5-14）
+//   露出はカメラ任せにせず、窓の範囲（auto_exposure.h の roi）の明るさを見てこのプログラムが露出時間とゲインを決める
+//   （カメラ任せだと暗い車内に引っぱられて明るい日の外が白く飛ぶため）。設定は OVERLAY_EXPOSURE のファイル（無ければ既定の値、
+//   mode = camera でカメラ任せ）、今の値は <ファイル>.status（手順書5-21）
 //   ベストとの差（calc.Delta 等）とコース図の線は、走行データの位置・ラップから lap_ref.h で作る。ベストの周の軌跡は
 //   OVERLAY_LAPREF のファイルへ書き、録画をやり直しても lap.BestLap と同じ時間なら続きから使う（手順書5-16）
-// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h・lap_ref.h・video_store.h を同じ場所に置く）
+// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h・lap_ref.h・video_store.h・ts_mux.h・audio_cap.h・auto_exposure.h を同じ場所に置く）
 // 実行: ./overlay_rec <入力> <出力> [seconds=60、0は止めるまで] [font=hud_font_64.pgm]
 //   入力：/dev/videoN（カメラ）か file:xxx.jpg（同じJPEGを30fpsで繰り返す。カメラ無しで試す用）
 //   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むとき（本番は <置き場>/%Y%m%d_%H%M%S.ts）はGoProと同じく、
@@ -71,6 +74,7 @@
 #include "lap_ref.h"
 #include "video_store.h"
 #include "ts_mux.h"
+#include "auto_exposure.h"
 
 #define W 1920  // 計器を描く座標の大きさ（出力の既定の大きさでもある）
 #define H 1080
@@ -867,6 +871,158 @@ static void cam_frame(int s, double *t_wait, double *t_dec, double *t_copy) {
     *t_copy += now() - d;
 }
 
+// ---------------------------------------------------------------- 露出（auto_exposure.h、手順書5-21）
+// 展開スレッドが period 枚ごとに窓の範囲の明るさを測って渡し、露出のスレッドが次の露出・ゲインを決めてカメラへ送る
+// （UVCの設定はUSBのやりとりで数msかかることがあるので、展開スレッドでは送らない）。
+// 設定は OVERLAY_EXPOSURE のファイル（無ければ既定の値。mode = camera でカメラ任せ）。約1秒ごとに見て、書き換わっていれば読み直す。
+// 今の値は <ファイル>.status へ約5秒ごとに書く。止めるときはカメラ任せへ戻す
+static const char *ae_path;
+static struct ae_cfg ae_c;
+static struct ae_cam ae_k;
+static struct ae_state ae_s;
+static struct ae_stats ae_last;
+static int ae_new, ae_manual, ae_gain_ok, ae_gain_def;  // ae_manual：カメラを手動にしてある
+static volatile int ae_on;  // 展開スレッドが測る
+static pthread_mutex_t ae_mu = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t ae_cv = PTHREAD_COND_INITIALIZER;
+
+static int cam_set(uint32_t id, int v, const char *name) {
+    struct v4l2_control c = { .id = id, .value = v };
+    if (!xioctl(cfd, VIDIOC_S_CTRL, &c)) return 1;
+    static int warned; if (warned++ < 20) fprintf(stderr, "ae: %s=%d を送れない (errno=%d)\n", name, v, errno);
+    return 0;
+}
+
+static int cam_range(uint32_t id, int *mn, int *mx, int *def) {
+    struct v4l2_queryctrl q = { .id = id };
+    if (xioctl(cfd, VIDIOC_QUERYCTRL, &q) || (q.flags & V4L2_CTRL_FLAG_DISABLED)) return 0;
+    *mn = q.minimum; *mx = q.maximum; *def = q.default_value; return 1;
+}
+
+static void ae_send(void) {
+    cam_set(V4L2_CID_EXPOSURE_ABSOLUTE, ae_s.exp, "exposure_time_absolute");
+    if (ae_gain_ok) cam_set(V4L2_CID_GAIN, ae_s.gain, "gain");
+}
+
+// mode（own／camera）に合わせてカメラを手動・自動にする
+static void ae_set_mode(int own) {
+    if (own && !ae_manual) {
+        struct v4l2_control e = { .id = V4L2_CID_EXPOSURE_ABSOLUTE };
+        const int cur = xioctl(cfd, VIDIOC_G_CTRL, &e) ? 100 : e.value;
+        if (!cam_set(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL, "exposure_auto")) { ae_on = 0; return; }
+        cam_set(V4L2_CID_EXPOSURE_AUTO_PRIORITY, 0, "exposure_dynamic_framerate");
+        ae_manual = 1;
+        pthread_mutex_lock(&ae_mu); ae_init(&ae_s, &ae_c, &ae_k, cur); pthread_mutex_unlock(&ae_mu);
+        ae_send();
+        fprintf(stderr, "ae: 録画プログラムが露出を決める（始め %.1fms・ゲイン%d）\n", ae_s.exp / 10.0, ae_s.gain);
+    } else if (!own && ae_manual) {
+        cam_set(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_APERTURE_PRIORITY, "exposure_auto");
+        if (ae_gain_ok) cam_set(V4L2_CID_GAIN, ae_gain_def, "gain");
+        ae_manual = 0;
+        fprintf(stderr, "ae: カメラ任せの露出に戻した\n");
+    }
+    ae_on = own && ae_manual;
+}
+
+static void ae_status(const char *msg) {
+    if (!ae_path) return;
+    char sp[600], tmp[610]; snprintf(sp, sizeof sp, "%s.status", ae_path); snprintf(tmp, sizeof tmp, "%s.tmp", sp);
+    FILE *f = fopen(tmp, "w"); if (!f) return;
+    time_t t = time(NULL); char at[32]; strftime(at, sizeof at, "%Y-%m-%d %H:%M:%S", localtime(&t));
+    pthread_mutex_lock(&ae_mu); struct ae_stats s = ae_last; pthread_mutex_unlock(&ae_mu);
+    fprintf(f, "at=%s\nmode=%s\nexposure_ms=%.1f\ngain=%d\ngain_range=%d-%d\nroi_mean=%.0f\nroi_hi=%.0f\nwant=%.2f\nmsg=%s\n", at,
+            ae_manual ? "own" : "camera", ae_s.exp / 10.0, ae_s.gain, ae_k.gain_min, ae_k.gain_max, s.mean, s.hi, ae_s.last_ratio, msg);
+    fclose(f); rename(tmp, sp);
+}
+
+static void *ae_main(void *arg) {
+    (void)arg;
+    struct stat st0; int seen = 0;
+    char msg[256] = "設定ファイルが無いので既定の値";
+    double next_chk = 0, next_st = 0, next_log = 0;
+    while (!quit) {
+        pthread_mutex_lock(&ae_mu);
+        if (!ae_new) {
+            struct timespec ts; clock_gettime(CLOCK_REALTIME, &ts);
+            ts.tv_nsec += 300000000; if (ts.tv_nsec >= 1000000000) { ts.tv_sec++; ts.tv_nsec -= 1000000000; }
+            pthread_cond_timedwait(&ae_cv, &ae_mu, &ts);
+        }
+        const int have = ae_new; const struct ae_stats s = ae_last; ae_new = 0;
+        pthread_mutex_unlock(&ae_mu);
+        if (quit) break;
+        const double t = now();
+        if (t >= next_chk) {  // 設定ファイル（約1秒ごと）
+            next_chk = t + 1;
+            struct stat st;
+            if (!ae_path || stat(ae_path, &st)) {
+                if (seen) {
+                    seen = 0; struct ae_cfg d; ae_defaults(&d);
+                    pthread_mutex_lock(&ae_mu); ae_c = d; pthread_mutex_unlock(&ae_mu);
+                    snprintf(msg, sizeof msg, "設定ファイルが無いので既定の値");
+                    fprintf(stderr, "ae: %s\n", msg); next_st = 0;
+                }
+            } else if (!seen || !same_file(&st, &st0)) {
+                seen = 1; st0 = st;
+                char txt[4096]; size_t n = 0; FILE *f = fopen(ae_path, "r");
+                if (f) { n = fread(txt, 1, sizeof txt - 1, f); fclose(f); }
+                txt[n] = 0;
+                struct ae_cfg c; ae_defaults(&c);  // 書いていない名前は既定の値
+                char err[160];
+                if (!f) snprintf(msg, sizeof msg, "設定ファイルを開けない（前の値のまま）");
+                else if (ae_parse(&c, txt, err, sizeof err)) {
+                    pthread_mutex_lock(&ae_mu); ae_c = c; pthread_mutex_unlock(&ae_mu);
+                    snprintf(msg, sizeof msg, "設定ファイルを読んだ");
+                } else snprintf(msg, sizeof msg, "設定ファイルの誤り（前の値のまま）：%s", err);
+                fprintf(stderr, "ae: %s\n", msg); next_st = 0;
+            }
+            static int first = 1;
+            if (first && !ae_c.own)  // 前の録画が手動のまま落ちていても、camera ならカメラ任せへ戻す
+                cam_set(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_APERTURE_PRIORITY, "exposure_auto");
+            first = 0;
+            if (ae_c.own != ae_manual) { ae_set_mode(ae_c.own); next_st = 0; }
+        }
+        if (have && ae_manual) {
+            pthread_mutex_lock(&ae_mu); const int ch = ae_update(&ae_s, &ae_c, &ae_k, &s); pthread_mutex_unlock(&ae_mu);
+            if (ch) ae_send();
+        }
+        if (t >= next_st) { ae_status(msg); next_st = t + 5; }
+        if (t >= next_log) {  // サービスの記録（journal）へ1分ごと
+            if (next_log) fprintf(stderr, "ae: %s 露出%.1fms ゲイン%d 窓の平均%.0f 上位%.0f\n",
+                                  ae_manual ? "own" : "camera", ae_s.exp / 10.0, ae_s.gain, s.mean, s.hi);
+            next_log = t + 60;
+        }
+    }
+    if (ae_manual) ae_set_mode(0);  // 次にカメラを使うもの（録画以外）が暗い・明るいまま固まらないように
+    ae_status("止めた（カメラ任せに戻した）");
+    return NULL;
+}
+
+// カメラを開いたあとに呼ぶ。露出の範囲が取れないカメラなら何もしない（カメラ任せのまま）
+static int ae_start(pthread_t *th) {
+    if (cfd < 0) return 0;
+    ae_path = getenv("OVERLAY_EXPOSURE");
+    ae_defaults(&ae_c);
+    int d;
+    if (!cam_range(V4L2_CID_EXPOSURE_ABSOLUTE, &ae_k.exp_min, &ae_k.exp_max, &d)) {
+        fprintf(stderr, "ae: カメラに露出時間の設定が無いので、カメラ任せのまま\n"); return 0;
+    }
+    if (ae_k.exp_min < 1) ae_k.exp_min = 1;
+    ae_gain_ok = cam_range(V4L2_CID_GAIN, &ae_k.gain_min, &ae_k.gain_max, &ae_gain_def);
+    if (!ae_gain_ok) ae_k.gain_min = ae_k.gain_max = 0;
+    fprintf(stderr, "ae: 露出 %d〜%d（100µs単位）・ゲイン %d〜%d\n", ae_k.exp_min, ae_k.exp_max, ae_k.gain_min, ae_k.gain_max);
+    pthread_create(th, NULL, ae_main, NULL);
+    return 1;
+}
+
+// 展開スレッドから毎枚呼ぶ。period 枚ごとに窓の範囲を測って露出のスレッドへ渡す
+static void ae_after_frame(int f) {
+    if (!ae_on) return;
+    pthread_mutex_lock(&ae_mu); const struct ae_cfg c = ae_c; pthread_mutex_unlock(&ae_mu);
+    if (f % c.period) return;
+    struct ae_stats s; ae_measure(scratch[0], pw[0], CAM_W, CAM_H, &c, &s);
+    pthread_mutex_lock(&ae_mu); ae_last = s; ae_new = 1; pthread_cond_signal(&ae_cv); pthread_mutex_unlock(&ae_mu);
+}
+
 static pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
 static int filled[2], dec_frames;
@@ -878,6 +1034,7 @@ static void *decoder(void *arg) {
         pthread_mutex_lock(&mu); while (filled[s] && !quit) pthread_cond_wait(&cv, &mu); pthread_mutex_unlock(&mu);
         if (quit) break;
         cam_frame(s, &d_wait, &d_dec, &d_copy);
+        ae_after_frame(f);
         pthread_mutex_lock(&mu); filled[s] = 1; pthread_cond_broadcast(&cv); pthread_mutex_unlock(&mu);
     }
     return NULL;
@@ -932,6 +1089,7 @@ int main(int argc, char **argv) {
     cam_open(argv[1]);
     hud_check();  // 走行データのスレッドが値の名前を使うので、その前に読む
     lens_path = getenv("OVERLAY_LENS"); lens_check();
+    pthread_t ae_th; const int ae_run = ae_start(&ae_th);  // 露出（OVERLAY_EXPOSURE。run-video.sh が置き場を渡す）
     ts_audio = ts_mode && ac_start();  // 音（OVERLAY_AUDIO。run-video.sh がカメラのマイクを探して渡す）。録れなくても映像は録る
     pthread_t tel_th; pthread_create(&tel_th, NULL, telemetry, NULL);
 
@@ -1203,6 +1361,7 @@ int main(int argc, char **argv) {
     if (csv) fclose(csv);
     rec_state();  // 止まった時刻を残す（ここからVS_GAP_S以内にやり直せば同じ走行の続き）
     pthread_join(dec_th, NULL); pthread_join(tel_th, NULL);
+    if (ae_run) pthread_join(ae_th, NULL);  // カメラ任せへ戻してから終わる
 
     printf("output %dx%d\n", ow, oh);
     printf("frames=%d encoded=%d bytes=%zu elapsed=%.2fs fps=%.1f idr=%d sps_pps_inserted=%d video_s=%.2f\n",

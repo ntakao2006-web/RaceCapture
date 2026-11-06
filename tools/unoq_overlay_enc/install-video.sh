@@ -7,7 +7,7 @@ set -eu
 src=${1:-/home/arduino/video_test/install}
 dst=/opt/ecologger-video
 mkdir -p "$dst"
-# overlay_rec.c と同じ場所に hud_layout.h・lap_ref.h・video_store.h・ts_mux.h・audio_cap.h が要る
+# overlay_rec.c と同じ場所に hud_layout.h・lap_ref.h・video_store.h・ts_mux.h・audio_cap.h・auto_exposure.h が要る
 # 音（MP2）は録画プログラムが実行時に libtwolame.so.0 を読んで固める（ヘッダーは要らない）。
 # 無ければ音なしで録る（前と同じ動き）。入れるとき：apt-get install -y libtwolame0（Debianの公式、libcだけに依存。手順書5-20）
 ls /usr/lib/*/libtwolame.so.0 >/dev/null 2>&1 && echo "audio: libtwolame0 found" || echo "audio: libtwolame0 not installed (recording without audio)"
