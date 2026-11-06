@@ -34,7 +34,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from dash_model import RPM_SEGMENTS, SEGMENT_COLOURS, DashModel, load_config, tone_wav  # noqa: E402
+from dash_model import DashModel, load_config, rpm_segments, segment_colours, tone_wav  # noqa: E402
 
 CONFIG_PATH = Path.home() / '.config' / 'ecocapture-dash.json'
 LAPREF_PATH = Path.home() / '.cache' / 'ecocapture-dash' / 'lapref.json'
@@ -137,8 +137,9 @@ class DemoFeed:
                            'gnss_utc': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'lap': lap}}
 
 
-def fixed_state(config, name):
-    """One screen for checking the layout (the gap is filled in by hand: it needs a best lap's track)."""
+def fixed_state(config, name, rpm=None):
+    """One screen for checking the layout (the gap is filled in by hand: it needs a best lap's track).
+    rpm: the engine speed instead of the state's own (to see the bar at a given point)."""
     lap = {'CurrentLap': 23, 'LapCount': 22, 'ElapsedTime': 72.3 / 60, 'LapTime': 112.34 / 60, 'BestLap': 111.12 / 60,
            'RaceTime': 2175 / 60, 'LapDiffS': 0.41, 'LastLapPit': False}
     # oil C, water C, oil pressure kPa (at 5200 rpm; idling in the box): warn is the oil alone,
@@ -156,7 +157,8 @@ def fixed_state(config, name):
                         'video': {'recording': True, 'minutes_left': 108 if name == 'start' else 150}},
              'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777,
                                    'GPSSpeed': {'pitbox': 0.0, 'pitlane': 63.0, 'shift': 131.0, 'limit': 133.0}.get(name, 120.0),
-                                   'RPM': {'pitbox': 900.0, 'pitlane': 3900.0, 'shift': 7760.0, 'limit': 8010.0}.get(name, 6400.0)},
+                                   'RPM': rpm if rpm is not None else
+                                   {'pitbox': 900.0, 'pitlane': 3900.0, 'shift': 7760.0, 'limit': 8010.0}.get(name, 6400.0)},
                         'can_signals': {'OilTemp': temps[0], 'WaterTemp': temps[1], 'OilPress': temps[2]},
                         'gnss_utc': '2026-11-08T02:16:15Z', 'lap': lap}}
     model = DashModel(config)
@@ -277,10 +279,11 @@ def run_gui(args, config):
             self.connect('destroy', lambda _w: Gtk.main_quit())
 
         def build(self):
-            # The top row: the engine speed bar (ten segments, as an AiM's shift lights), the engine speed and the speed
+            # The top row: the engine speed bar (segments as an AiM's shift lights), the engine speed and the speed
             self.segs = []
+            self.seg_colours = segment_colours(rpm_segments(config))
             self.seg_row = Gtk.Box(homogeneous=True)
-            for _ in range(RPM_SEGMENTS):
+            for _ in self.seg_colours:
                 seg = Gtk.Box()
                 seg.get_style_context().add_class('seg')
                 seg.set_valign(Gtk.Align.CENTER)
@@ -395,7 +398,8 @@ def run_gui(args, config):
             self.stack.set_size_request(inner_w, r2)
             self.row3.set_size_request(inner_w, inner_h - r0 - r1 - r2)
             self.row0.set_spacing(gap)
-            self.seg_row.set_spacing(max(3, int(0.004 * w)))
+            # the gaps narrower for more segments (ten: 0.4% of the width, twenty: 0.28%), so the lit part reads as one bar
+            self.seg_row.set_spacing(max(2, int(0.004 * w * (10 / len(self.segs)) ** 0.5)))
             for seg in self.segs:
                 seg.set_size_request(-1, int(r0 * 0.78))
             self.rpm_box.set_size_request(int(0.17 * inner_w), r0)
@@ -467,7 +471,7 @@ def run_gui(args, config):
             lit, mode = s.get('rpm_lit', 0), s.get('rpm_mode')
             dark = mode is not None and time.monotonic() % FLASH_PERIOD_S >= FLASH_PERIOD_S / 2
             for k, seg in enumerate(self.segs):
-                colour = ('dark' if dark else 'r') if mode else SEGMENT_COLOURS[k] if k < lit else 'off'
+                colour = ('dark' if dark else 'r') if mode else self.seg_colours[k] if k < lit else 'off'
                 classes(seg, 'seg', 'seg-' + colour)
             self.rpm.set_text(s.get('rpm', '--'))
             classes(self.rpm, 'rpm', *(('rpm-limit',) if mode == 'limit' else ()))
@@ -530,7 +534,7 @@ def run_gui(args, config):
     latest = {}
 
     if args.state:
-        latest['state'] = fixed_state(config, args.state)
+        latest['state'] = fixed_state(config, args.state, args.rpm)
     else:
         model = DashModel(config, None if args.demo else LAPREF_PATH)
         demo = DemoFeed(time.monotonic()) if args.demo else None
@@ -589,6 +593,7 @@ def main(argv=None):
     parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'pitlane', 'shift', 'limit', 'warn',
                                             'warnpress', 'warn2', 'warn3', 'lost', 'stale'])
     parser.add_argument('--sound', choices=['warn'])
+    parser.add_argument('--rpm', type=float, help='with --state: this engine speed instead of the state\'s own')
     parser.add_argument('--size')
     parser.add_argument('--snapshot')
     parser.add_argument('--no-pause', action='store_true')

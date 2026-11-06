@@ -75,6 +75,9 @@ DEFAULTS = {
     # RPM above 3439 is still to be checked against the stock tachometer).
     'rpm_bar_start': 4000,
     'shift_rpm': 7500,
+    # segments in the bar, coloured green 40%, yellow 30%, red 30% (segment_colours). The user's call on
+    # 2026-11-07 from 10/20/30 drawn side by side: 30 (117 rpm a segment; the full bar at 7384, close to the flashing)
+    'rpm_segments': 30,
     'limit_rpm': 7950,
     # The speed in the pit lane (km/h): SUGO's pit lane limit is 60
     'pit_speed_limit_kmh': 60,
@@ -92,8 +95,16 @@ DEFAULTS = {
               'card': 'ArduinoImolaHPH', 'route': ['SEC_MI2S_RX Audio Mixer MultiMedia4']},
 }
 
-RPM_SEGMENTS = 10
-SEGMENT_COLOURS = ('g',) * 4 + ('y',) * 3 + ('r',) * 3  # as an AiM's ten shift lights
+def rpm_segments(config):
+    """The number of segments in the bar (at least 3: one of each colour)."""
+    return max(3, int(config.get('rpm_segments', 10)))
+
+
+def segment_colours(n):
+    """'g' / 'y' / 'r' for each of n segments: green 40%, yellow 30%, red 30% (ten: 4-3-3 as an AiM's ten
+    shift lights; twenty: 8-6-6)."""
+    green, yellow = max(1, round(n * 0.4)), max(1, round(n * 0.3))
+    return ('g',) * green + ('y',) * yellow + ('r',) * (n - green - yellow)
 STOPPED_KMH = 10.0  # slower than this the gap to the best lap means nothing (in the pit, on the grid)
 
 # lap_ref.h
@@ -257,16 +268,17 @@ def press_limit(config, rpm):
 
 
 def rpm_bar(config, rpm):
-    """(segments lit 0-10, 'shift' / 'limit' / None). The first segment lights at rpm_bar_start, the tenth one
+    """(segments lit 0-n, 'shift' / 'limit' / None). The first segment lights at rpm_bar_start, the last one
     step below shift_rpm, so the full bar comes just before the flashing."""
     if rpm is None:
         return 0, None
+    n = rpm_segments(config)
     start, shift, limit = (float(config[k]) for k in ('rpm_bar_start', 'shift_rpm', 'limit_rpm'))
     if rpm >= shift:
-        return RPM_SEGMENTS, 'limit' if rpm >= limit else 'shift'
+        return n, 'limit' if rpm >= limit else 'shift'
     if rpm < start or shift <= start:
         return 0, None
-    return min(RPM_SEGMENTS, 1 + int((rpm - start) * RPM_SEGMENTS / (shift - start))), None
+    return min(n, 1 + int((rpm - start) * n / (shift - start))), None
 
 
 class Alarm:

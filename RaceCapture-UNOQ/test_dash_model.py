@@ -8,7 +8,7 @@ import wave
 from pathlib import Path
 
 from dash_model import (DEFAULTS, DashModel, LapRef, Warning, fmt_hms, fmt_lap, fmt_signed, load_config, press_limit,
-                        rpm_bar, sensor_light, tone_wav)
+                        rpm_bar, segment_colours, sensor_light, tone_wav)
 
 LAT0, LON0, RADIUS = 38.14, 140.77, 400.0
 
@@ -57,7 +57,7 @@ class FormatTests(unittest.TestCase):
 
 class RpmSpeedTests(unittest.TestCase):
     def test_bar_fills_to_the_shift_point_then_shift_and_limit(self):
-        c = config()
+        c = config(rpm_segments=10)
         self.assertEqual(rpm_bar(c, None), (0, None))
         self.assertEqual(rpm_bar(c, 3999), (0, None))
         self.assertEqual(rpm_bar(c, 4000), (1, None))      # the first segment at rpm_bar_start
@@ -68,12 +68,31 @@ class RpmSpeedTests(unittest.TestCase):
         self.assertEqual(rpm_bar(c, 7500), (10, 'shift'))  # the red flashing, 500 short of the limiter
         self.assertEqual(rpm_bar(c, 7949), (10, 'shift'))
         self.assertEqual(rpm_bar(c, 8000), (10, 'limit'))
-        self.assertEqual(rpm_bar(config(shift_rpm=7200, limit_rpm=7800), 7300), (10, 'shift'))
+        self.assertEqual(rpm_bar(config(rpm_segments=10, shift_rpm=7200, limit_rpm=7800), 7300), (10, 'shift'))
+
+    def test_default_bar_is_thirty_segments(self):
+        c = config()
+        self.assertEqual(rpm_bar(c, 4000), (1, None))
+        self.assertEqual(rpm_bar(c, 7382), (29, None))
+        self.assertEqual(rpm_bar(c, 7384), (30, None))     # 116.7 rpm a segment
+        self.assertEqual(rpm_bar(c, 7500), (30, 'shift'))
+
+    def test_finer_bar(self):
+        c = config(rpm_segments=20)
+        self.assertEqual(rpm_bar(c, 3999), (0, None))
+        self.assertEqual(rpm_bar(c, 4000), (1, None))
+        self.assertEqual(rpm_bar(c, 4175), (2, None))      # 175 rpm a segment
+        self.assertEqual(rpm_bar(c, 7324), (19, None))
+        self.assertEqual(rpm_bar(c, 7325), (20, None))
+        self.assertEqual(rpm_bar(c, 7500), (20, 'shift'))
+        self.assertEqual(segment_colours(10), ('g',) * 4 + ('y',) * 3 + ('r',) * 3)
+        self.assertEqual(segment_colours(20), ('g',) * 8 + ('y',) * 6 + ('r',) * 6)
+        self.assertEqual(segment_colours(30), ('g',) * 12 + ('y',) * 9 + ('r',) * 9)
 
     def test_state_has_rpm_and_speed(self):
         m = DashModel(config())
         s, _ = m.update(frame(rpm=7712.4, speed=127.6), 0.0)
-        self.assertEqual((s['rpm'], s['rpm_lit'], s['rpm_mode'], s['speed'], s['speed_kind']), ('7712', 10, 'shift', '128', None))
+        self.assertEqual((s['rpm'], s['rpm_lit'], s['rpm_mode'], s['speed'], s['speed_kind']), ('7712', 30, 'shift', '128', None))
         s, _ = m.update(frame(connected=False), 10.0)
         self.assertEqual((s['rpm'], s['rpm_lit'], s['rpm_mode'], s['speed']), ('--', 0, None, '--'))
 
