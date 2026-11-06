@@ -22,6 +22,7 @@ struct ae_cfg {
     float target;     // 範囲の平均の目標（0〜255）
     float hi_pct;     // 明るい側として見る順位（%、95なら明るいほうから5%の所）
     float hi_target;  // その値の上限（これを超えると暗くする）
+    float clip;       // 明るい側がこの値以上なら飛んでいるとみなし、必ず暗くする（このカメラの白は240前後で頭打ち。255にはならない）
     float max_ms;     // 露出時間の上限（ms）。33より長いとコマ数が落ちる
     float flicker_hz; // 照明のちらつきの周波数（0は合わせない）
     float gain_stops; // ゲインを最小から最大まで上げたときに明るくなる段数（カメラごとの見込み。外れていても繰り返しで合う）
@@ -32,12 +33,13 @@ static void ae_defaults(struct ae_cfg *c) {
     c->own = 1;
     c->roi[0] = .05f; c->roi[1] = .25f; c->roi[2] = .95f; c->roi[3] = .62f;  // ロードスターに付けたときのフロントガラス
     c->target = 115; c->hi_pct = 95; c->hi_target = 225;  // 11/6のトンネル内（よく写っていた）で平均約118・上位5%約218
+    c->clip = 236;  // 11/6夜の本体：飛んだ所は239〜242で止まった（250にはならないので、前の「250以上」は一度も効かなかった）
     c->max_ms = 30; c->flicker_hz = 100; c->gain_stops = 3; c->period = 4;
 }
 
 // 設定ファイル：1行に「名前 = 値」。#から後ろは注釈。書かなかった名前は既定の値
 //   mode = own | camera     own：録画プログラムが決める（既定）、camera：カメラ任せ
-//   roi = 0.05 0.25 0.95 0.62   target = 115   hi_pct = 95   hi_target = 225
+//   roi = 0.05 0.25 0.95 0.62   target = 115   hi_pct = 95   hi_target = 225   clip = 236
 //   max_ms = 30   flicker_hz = 100   gain_stops = 3   period = 4
 // 読めない行・範囲の外の値があれば err に書いて0を返す（そのときcは変えない）
 static int ae_parse(struct ae_cfg *out, const char *text, char *err, size_t errn) {
@@ -71,6 +73,7 @@ static int ae_parse(struct ae_cfg *out, const char *text, char *err, size_t errn
         } else if (!strcmp(k, "target") && x >= 20 && x <= 230) c.target = x;
         else if (!strcmp(k, "hi_pct") && x >= 50 && x <= 99.9) c.hi_pct = x;
         else if (!strcmp(k, "hi_target") && x >= 100 && x <= 254) c.hi_target = x;
+        else if (!strcmp(k, "clip") && x >= 150 && x <= 255) c.clip = x;
         else if (!strcmp(k, "max_ms") && x >= 1 && x <= 200) c.max_ms = x;
         else if (!strcmp(k, "flicker_hz") && (x == 0 || (x >= 50 && x <= 120))) c.flicker_hz = x;
         else if (!strcmp(k, "gain_stops") && x >= .5 && x <= 8) c.gain_stops = x;
@@ -146,7 +149,7 @@ static int ae_update(struct ae_state *st, const struct ae_cfg *c, const struct a
     const double rh = c->hi_target / (s->hi > 1 ? s->hi : 1);
     if (rh < r) r = rh;
     double l = log2(r);
-    if (s->hi >= 250 && l > -.25) l = -.25;  // 明るい側が飛んでいるあいだは必ず暗くする
+    if (s->hi >= c->clip && l > -.25) l = -.25;  // 明るい側が飛んでいるあいだは必ず暗くする（飛ぶと値が頭打ちになり、比だけでは暗くし足りない）
     st->last_ratio = (float)pow(2, l);
     if (fabs(l) < .12) return 0;  // 約8%以内なら変えない（行ったり来たりしないように）
     l *= .7;  // カメラの遅れ・飛んだ値の見誤りで行き過ぎないように控えめに

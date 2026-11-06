@@ -1,4 +1,4 @@
-// auto_exposure.h の試験。カメラの模型（露出・ゲインが2コマ遅れて効く、明るさはガンマ2.2、255で飽和）を相手に、
+// auto_exposure.h の試験。カメラの模型（露出・ゲインが2コマ遅れて効く、明るさはガンマ2.2、白=255か、本物と同じ240で頭打ち）を相手に、
 // 明るい日・もっと明るい日・トンネルの出入り・夜で、収まるまでの速さ・行ったり来たりしないこと・白飛びの量を見る
 // ビルド・実行（WSLか本体）: gcc -O2 -Wall -o auto_exposure_test auto_exposure_test.c -lm && ./auto_exposure_test
 #include "auto_exposure.h"
@@ -20,10 +20,11 @@ static void make_scene(void) {
 }
 
 // 明るさ S の景色を、明るさ total（100µs単位の露出×ゲイン）で写した絵
+static double white = 255;  // カメラの白（本物のELPは240前後で頭打ち）
 static void shoot(double S, double total) {
     for (int i = 0; i < IW * IH; i++) {
         double lin = scene[i] * S * total * .018;  // 道（1）が total=10（1ms）のとき0.18 → 117
-        double v = 255 * pow(lin > 1 ? 1 : lin, 1 / 2.2);
+        double v = white * pow(lin > 1 ? 1 : lin, 1 / 2.2);
         img[i] = (uint8_t)(v > 255 ? 255 : v);
     }
 }
@@ -49,7 +50,7 @@ static struct run run_scene(struct ae_state *st, const struct ae_cfg *c, const s
     R.frames_to_settle = last_change;
     int clip = 0, n = 0;
     for (int j = (int)(c->roi[1] * IH); j < (int)(c->roi[3] * IH); j++)
-        for (int i = (int)(c->roi[0] * IW); i < (int)(c->roi[2] * IW); i++) { clip += img[j * IW + i] >= 250; n++; }
+        for (int i = (int)(c->roi[0] * IW); i < (int)(c->roi[2] * IW); i++) { clip += img[j * IW + i] >= white - 2; n++; }
     R.clip = 100.f * clip / n; R.exp = st->exp; R.gain = st->gain;
     return R;
 }
@@ -59,20 +60,9 @@ static void show(const char *name, struct run R) {
            name, R.exp / 10.0, R.gain, R.mean, R.hi, R.clip, R.frames_to_settle, R.changes_last60);
 }
 
-int main(void) {
-    make_scene();
-    struct ae_cfg c; ae_defaults(&c);
-    const struct ae_cam k = { 1, 5000, 0, 100 };
-
-    // ---- 測り方：決まった絵で平均と上位の値
-    memset(img, 100, sizeof img);
-    for (int j = 0; j < IH; j++) for (int i = 0; i < IW; i++) if ((i / 8 + j / 8) % 10 == 0) img[j * IW + i] = 250;  // 1割を250
-    struct ae_stats s; ae_measure(img, IW, IW, IH, &c, &s);
-    CHECK(s.n > 4000, "測った点が少ない %d", s.n);
-    CHECK(fabsf(s.mean - 115) < 2, "平均 %.1f（115のはず）", s.mean);
-    CHECK(s.hi == 250, "上位5%%の値 %.0f（250のはず）", s.hi);
-
-    // ---- 場面の続き：屋内から出て、明るい日→とても明るい日→トンネル→出口→夜
+static void sequence(const struct ae_cfg *cp, const struct ae_cam *kp) {
+    const struct ae_cfg c = *cp; const struct ae_cam k = *kp;
+    printf("-- カメラの白=%.0f\n", white);
     struct ae_state st; ae_init(&st, &c, &k, 300);  // 始めは30ms（屋内の明るさ）
     struct run R;
     R = run_scene(&st, &c, &k, 1, 150); show("明るい日（道に1ms）", R);
@@ -91,6 +81,26 @@ int main(void) {
     R = run_scene(&st, &c, &k, 1 / 2000.0, 150); show("夜（÷2000、足りなくて暗い）", R);
     CHECK(R.exp == 300 && R.gain == 100, "夜は露出30ms・ゲイン最大のはず（%d・%d）", R.exp, R.gain);
 
+}
+
+int main(void) {
+    make_scene();
+    struct ae_cfg c; ae_defaults(&c);
+    const struct ae_cam k = { 1, 5000, 0, 100 };
+
+    // ---- 測り方：決まった絵で平均と上位の値
+    memset(img, 100, sizeof img);
+    for (int j = 0; j < IH; j++) for (int i = 0; i < IW; i++) if ((i / 8 + j / 8) % 10 == 0) img[j * IW + i] = 250;  // 1割を250
+    struct ae_stats s; ae_measure(img, IW, IW, IH, &c, &s);
+    CHECK(s.n > 4000, "測った点が少ない %d", s.n);
+    CHECK(fabsf(s.mean - 115) < 2, "平均 %.1f（115のはず）", s.mean);
+    CHECK(s.hi == 250, "上位5%%の値 %.0f（250のはず）", s.hi);
+
+    // ---- 場面の続き：屋内から出て、明るい日→とても明るい日→トンネル→出口→夜（白=255と、本物と同じ240）
+    white = 255; sequence(&c, &k);
+    white = 240; sequence(&c, &k);
+
+    struct ae_state st; struct run R;
     // ---- ゲインが無いカメラ、ちらつき合わせ無し
     struct ae_cam k2 = { 1, 5000, 0, 0 }; struct ae_cfg c2 = c; c2.flicker_hz = 0;
     ae_init(&st, &c2, &k2, 50);
