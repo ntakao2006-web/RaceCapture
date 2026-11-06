@@ -434,6 +434,10 @@
         IPでつなぐときも鍵は`uno-q.local`の名前で照合する（`HostKeyAlias`）ので、別の機械には入らない。
         `sugo_setup.py`（`Reset-Laps.cmd`・`podium_channels_setup.py`・`defi_*_setup.py`も同じ`runner`）・`dash_check.py`・`Show-Dash.cmd`・`Show-RaceCapture.cmd`・`hud_apply.py`（`Apply-HUD.cmd`・`lens_apply.py`）・`lens_preview_remote.py`・回収アプリのテザリングのsshをこれ経由にした。
         名前を引けなくした場合で、探して見つかるまで約2.5秒、前回のIPなら約0.6秒、前回のIPが古いと約5秒（Git BashのsshとWindowsのOpenSSHの両方で確かめた）
+      - **2026-11-06 道具を1つのメニューにまとめ、デスクトップに「EcoLogger Ver.2」を置いた**（ユーザー依頼）：`tools/ecologger_menu/`（`ecologger_menu.py`、作り直しは`Make-Shortcut.cmd`）。
+        上に本体の状態（記録・受信・測位・SD・録画・空き・LTE・ラップ・HDMIの画面・温度）を30秒ごとに読んで出し、下のボタンで回収・HUD・レンズ・電波の`.cmd`を開く。
+        つなぎ方は回収アプリと同じ（USBのadb→テザリングのssh）で、`--adb`を受ける道具にはUSBのときだけ付ける。メニュー自身が書き込むのはHDMIの画面の切り替え（`dash_switch.sh`）だけで、
+        ラップのリセットは確かめてから`Reset-Laps.cmd`を開く。USBで状態の読み取り（約0.4秒）・DASHへの切り替え（すでにDASHのまま）を確かめた。テザリングだけのときはまだ試していない
     - [ ] 画面に出しているときのCPU・温度、運転席から読めること（取付のとき）
     - [x] 回転数の帯・速度（11/6にPCで作った）を本体へ入れる。**2026-11-06 14:18 入れた（ユーザー依頼「つながったら入れておいて」）**。
       入れる前の本体の2つのファイルはリポジトリの前の版と同じだった。控えは本体の`/opt/logger-v2-racecapture/*.pre-rpm-20261106`（戻すときはこれを戻して`systemctl restart ecocapture-dash`）。
