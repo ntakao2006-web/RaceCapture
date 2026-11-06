@@ -1029,6 +1029,10 @@ TSの書き出し（`put`・`ts_tables`・`ts_frame`）は`overlay_rec.c`から`
 
 **まだ確かめていないこと**：本体でのCPU（twolameの重さ。1コアの数%の見込み）とコマ数、カメラのマイクの音質・音量（走行中の風・エンジンの音でどう聞こえるか）、Windowsの「メディア プレーヤー」での再生。
 
+**本体へ入れた（2026-11-06 13:07、車に付けた状態）**：下の手順の1〜7のとおり。`libtwolame0`は最初から入っていた。録画プログラムのCPUは1コアの約33%（入れる前の章の終わりで約42%）で、重くはなっていない。
+入れたあとの章の頭（約30秒）はMP2 48kHz・モノラルの音が入り、平均−15.6dB・**最大0dB**（大きい音で割れているかもしれない。耳ではまだ聞いていない）。
+本体の作業用フォルダー（`~/video_test/install/`）はレンズの補正の前の版のまま残っていた（`/opt`はレンズ入り）ので、比べるときは`/opt`の方と照合する。
+
 **本体へ入れる手順**（Pixelのテザリングで`ssh unoq`、またはUSBのadb。rootは`ecocapture-web:0.2.0`のnsenter）：
 1. 確かめる：`ls /usr/lib/aarch64-linux-gnu/libtwolame.so.0`、`command -v arecord`、`arecord -l`にカメラのマイクがあるか、`id arduino`に`audio`があるか、
    `cat /proc/asound/card*/pcm0c/sub0/status`でカメラのマイクを誰も開いていないか（EcoCaptureの音声はマイクと再生の両方があるUSBオーディオを選ぶので、ふつうは取り合わない。Bluetoothのヘッドホンで音だけ流すときは、入力だけのUSBの機器も拾いうる）
