@@ -33,7 +33,7 @@ WORK = '/tmp/ecocapture-dash-check'
 CHECK_FILES = ['ecocapture_dash.py', 'dash_model.py', 'test_dash_model.py', 'display_load_control.py']
 INSTALL_FILES = ['ecocapture_dash.py', 'dash_model.py', 'display_load_control.py', 'dash_switch.sh',
                  'ecocapture-dash.service', 'ecocapture-dash.sudoers', 'install-dash.sh']
-STATES = ['normal', 'start', 'pit', 'pitbox', 'warn', 'warnpress', 'warn2', 'warn3', 'lost', 'stale']
+STATES = ['normal', 'start', 'pit', 'pitbox', 'pitlane', 'shift', 'limit', 'warn', 'warnpress', 'warn2', 'warn3', 'lost', 'stale']
 SOUND_DEVICE = 'plughw:CARD=ArduinoImolaHPH,DEV=3'
 SOUND_ROUTE = 'SEC_MI2S_RX Audio Mixer MultiMedia4'
 # root on the UNO Q without a password (memory: project_unoq_adb_access): the EcoCapture image, nsenter into PID 1
