@@ -111,7 +111,7 @@ class HardwareDecoder:
                 v.update(Roll=x[10]/16,Pitch=x[11]/16)
                 # Standstill is judged on the vehicle speed when CAN has it, else GNSS.
                 speed=decoded.get('Speed') if isinstance(decoded.get('Speed'),(int,float)) else gps.get('GPSSpeed')
-                car=self.mount.add([x[0]/100,x[1]/100,x[2]/100],[x[6]/16,x[7]/16,x[8]/16],speed)
+                car=self.mount.add([x[0]/100,x[1]/100,x[2]/100],[x[6]/16,x[7]/16,x[8]/16],speed,stamp)
                 if car:v.update(LongAccel=car[0],LatAccel=car[1],VertAccel=car[2])
             for name,value in decoded.items():
                 if name in v:v[name]=value

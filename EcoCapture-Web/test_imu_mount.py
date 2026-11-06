@@ -83,6 +83,32 @@ class ImuMountTests(unittest.TestCase):
         m.on_pvt(bytes(nav));self.assertEqual(m.last_fix[:2],(5000,8.0))
         m.on_pvt(None);self.assertIsNone(m.last_fix)
 
+class LowPassTests(unittest.TestCase):
+    """The G outputs are low-passed so the screens' G ball does not shake with the car."""
+    def leveled(self):
+        m=ImuMount();rows(m,UP,20);return m
+    def test_vibration_is_removed_and_a_steady_g_is_kept(self):
+        m=self.leveled();out=[]
+        for k in range(300):  # 0.3 G lateral + 0.5 G of 40 Hz shaking (NCEC on the road)
+            out.append(m.add([0,-0.3*G+0.5*G*math.sin(2*math.pi*40*k/100),G],[0,0,0],50.0)[1])
+        tail=out[200:]
+        self.assertAlmostEqual(sum(tail)/len(tail),0.3,delta=0.005)
+        self.assertLess(max(tail)-min(tail),0.02)  # 1.0 G peak to peak in, under 0.02 G out
+    def test_a_step_takes_about_a_tenth_of_a_second(self):
+        m=self.leveled();out=[m.add([0.5*G,0,G],[0,0,0],50.0)[0] for _ in range(100)]
+        half=next(i for i,v in enumerate(out) if v>=0.25)
+        self.assertTrue(8<=half<=15,half)  # 2 Hz Butterworth: half way after about 0.11 s
+        self.assertLess(max(out),0.5*1.06);self.assertAlmostEqual(out[-1],0.5,delta=0.005)
+    def test_starts_from_the_first_row_and_after_a_gap(self):
+        m=ImuMount();rows(m,UP,20)
+        m.restart();self.assertAlmostEqual(m.add([0.4*G,0,G],[0,0,0],50.0,ms=1000)[0],0.4,delta=1e-9)
+        m.add([0.4*G,0,G],[0,0,0],50.0,ms=1010)
+        self.assertAlmostEqual(m.add([-0.2*G,0,G],[0,0,0],50.0,ms=1500)[0],-0.2,delta=1e-9)  # 490 ms gap
+        self.assertGreater(m.add([0.4*G,0,G],[0,0,0],50.0,ms=1510)[0],-0.2)  # 10 ms: filtered again
+    def test_the_vertical_has_no_start_up_transient(self):
+        m=ImuMount();out=[m.add([0,0,G],[0,0,0],0.0) for _ in range(400)]
+        self.assertTrue(all(abs(o[2])<1e-9 for o in out if o))
+
 class DecoderTests(unittest.TestCase):
     def test_hardware_decoder_writes_car_axes_and_the_calibration(self):
         from hardware import HardwareDecoder

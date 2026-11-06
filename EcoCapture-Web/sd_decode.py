@@ -98,7 +98,7 @@ def convert(source,target,config=None,decoder=None,mount=None):
                 row.update(zip(['GyroX','GyroY','GyroZ'],(v/16 for v in x[6:9])))
                 row.update(Roll=x[10]/16,Pitch=x[11]/16,imu_raw=data.hex(),imu_calibration=data[45])
                 speed=decoded.get('Speed') if isinstance(decoded.get('Speed'),(int,float)) else row.get('GPSSpeed')
-                car=imu.add([x[0]/100,x[1]/100,x[2]/100],[x[6]/16,x[7]/16,x[8]/16],speed)
+                car=imu.add([x[0]/100,x[1]/100,x[2]/100],[x[6]/16,x[7]/16,x[8]/16],speed,stamp)
                 if car:row.update(LongAccel=car[0],LatAccel=car[1],VertAccel=car[2])
                 state=imu.state()
                 if state is not last_mount:row['imu_mount']=json.dumps(state,separators=(',',':'));last_mount=state

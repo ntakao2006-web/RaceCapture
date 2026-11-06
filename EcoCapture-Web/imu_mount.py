@@ -18,6 +18,14 @@ Here gravity is fixed instead:
 Output in G: LongAccel + accelerating, LatAccel + towards the car's right, VertAccel
 + up with gravity removed (0 at rest). Road slope is not removed: on a 5 % grade
 LongAccel reads about 0.05 G.
+
+The three outputs are low-passed (2nd-order Butterworth, 2 Hz, about 0.1 s behind):
+the logger shakes with the car at 20-50 Hz (NCEC 2026-11-06: 29 Hz at idle = the
+engine's 2nd order, about 40 Hz on the road, over 85 % of the accel power above
+10 Hz), which made the G ball jump when the screens pick one 100 Hz row about every
+0.1 s. The filter runs on the raw accel in sensor axes, so the calibration can
+change without a jump; AccelX/Y/Z and imu_raw stay unfiltered. vehicle() itself
+is the unfiltered projection.
 """
 import json
 import math
@@ -32,6 +40,33 @@ STILL_ROWS = 20            # 2 s of 0.1 s means
 MOVED_DEG = 10.0
 MIN_FORWARD_WEIGHT = 3.0   # about a dozen 0.5 m/s² speed changes
 FIX_MS = 1000              # GNSS fixes used for learning: about 1 s apart (10 Hz receiver)
+ROW_HZ = 100.0             # BNO055 rows (the STM32 reads every 10 ms; NDOF updates accel at 100 Hz)
+LOWPASS_HZ = 2.0           # G output filter: 5 Hz shook visibly, 1.5 Hz lags 0.15 s
+GAP_MS = 200               # a longer gap between rows starts the filter again from the new row
+
+
+class LowPass:
+    """2nd-order Butterworth low-pass (bilinear) on a 3-vector, started at the first row so
+    there is no transient from zero (gravity is in the input)."""
+    def __init__(self, fc=LOWPASS_HZ, fs=ROW_HZ):
+        k = math.tan(math.pi * fc / fs); q = math.sqrt(2.0); n = 1.0 / (1.0 + q * k + k * k)
+        self.b0 = k * k * n; self.b1 = 2.0 * self.b0
+        self.a1 = 2.0 * (k * k - 1.0) * n; self.a2 = (1.0 - q * k + k * k) * n
+        self.reset()
+
+    def reset(self):
+        self.state = None  # per axis: x[n-1], x[n-2], y[n-1], y[n-2]
+
+    def __call__(self, x):
+        if self.state is None:
+            self.state = [[v, v, v, v] for v in x]
+            return list(x)
+        out = []
+        for v, s in zip(x, self.state):
+            y = self.b0 * (v + s[1]) + self.b1 * s[0] - self.a1 * s[2] - self.a2 * s[3]
+            s[1] = s[0]; s[0] = v; s[3] = s[2]; s[2] = y
+            out.append(y)
+        return out
 
 
 def dot(a, b): return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
@@ -70,6 +105,7 @@ class ImuMount:
         self.interval = [0.0, 0.0, 0.0]; self.interval_n = 0
         self.last_fix = None  # (itow_ms, speed m/s, heading °)
         self.pvt_itow = None
+        self.lowpass = LowPass(); self.last_row_ms = None
 
     def load(self, data):
         up = data.get('up')
@@ -107,9 +143,14 @@ class ImuMount:
             self.error = f'取付の校正を保存できません: {exc}'
 
     # -- input ----------------------------------------------------------------
-    def add(self, accel, gyro, speed_kmh):
-        """One 100 Hz row: raw accel (m/s², gravity included), gyro (°/s), speed (km/h, CAN or GNSS) if known.
-        Returns (LongAccel, LatAccel, VertAccel) in G for this row, or None before the 1 G calibration."""
+    def add(self, accel, gyro, speed_kmh, ms=None):
+        """One 100 Hz row: raw accel (m/s², gravity included), gyro (°/s), speed (km/h, CAN or GNSS) if known,
+        and the row's MCU time (ms) when known, so a gap restarts the filter.
+        Returns the low-passed (LongAccel, LatAccel, VertAccel) in G, or None before the 1 G calibration."""
+        if ms is not None:
+            if self.last_row_ms is not None and (ms - self.last_row_ms) % 2**32 > GAP_MS: self.lowpass.reset()
+            self.last_row_ms = ms
+        smooth = self.lowpass(accel)
         for i in range(3):
             self.bucket[i] += accel[i]; self.bucket[3 + i] += gyro[i]; self.interval[i] += accel[i]
         self.bucket_n += 1; self.interval_n += 1
@@ -118,7 +159,7 @@ class ImuMount:
             n = self.bucket_n
             self._row([v / n for v in self.bucket[:3]], [v / n for v in self.bucket[3:]], self.bucket_speed)
             self.bucket = [0.0] * 6; self.bucket_n = 0
-        return self.vehicle(accel)
+        return self.vehicle(smooth)
 
     def _row(self, accel, gyro, speed_kmh):
         self.window.append(accel)
