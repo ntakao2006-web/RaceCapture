@@ -46,9 +46,18 @@ V1_NAME = re.compile(r'^(.+_)?L[0-9A-F]{8}_\d{4}(_can\.csv|\.csv|\.meta\.json|\.
 V2_SD_NAME = re.compile(r'^EL\d{6}\.BIN$', re.I)
 PHONE_NAME = re.compile(r'^EL_[A-Za-z0-9_-]+_\d{8}_\d{6}\.csv$')
 DEFAULT_URLS = ['http://127.0.0.1:8080/', 'http://uno-q.local:8080/']
-ADB_CANDIDATES = [Path(os.environ.get('LOCALAPPDATA', '')) / 'Android' / 'Sdk' / 'platform-tools' / 'adb.exe',
-                  Path(os.environ.get('LOCALAPPDATA', '')) / 'AndroidSdkTools' / 'platform-tools' / 'adb.exe',
-                  REPO / 'other' / 'uno_q_tools' / 'platform-tools' / 'adb.exe']
+def local_appdata_dirs():
+    """%LOCALAPPDATA% と、Claude のアプリが振り替えて使っている同じ場所。
+    Claude のアプリ（デスクトップ版）の中から入れたもの（Android SDK など）は、Windows がアプリ専用の
+    Packages\\Claude_*\\LocalCache\\Local に置き、アプリの中からだけ %LOCALAPPDATA% の下に見える。
+    デスクトップのショートカットから開いた道具からは見えず、adb が無いことになって USB を飛ばしていた（2026-11-07）"""
+    local = Path(os.environ.get('LOCALAPPDATA', ''))
+    return [local, *sorted(local.glob('Packages/Claude_*/LocalCache/Local'))]
+
+
+ADB_CANDIDATES = [d / sub / 'platform-tools' / 'adb.exe' for d in local_appdata_dirs()
+                  for sub in ('Android/Sdk', 'AndroidSdkTools')] + \
+                 [REPO / 'other' / 'uno_q_tools' / 'platform-tools' / 'adb.exe']
 
 
 def candidate_drives():

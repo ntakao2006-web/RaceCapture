@@ -39,7 +39,8 @@ REFRESH_S = 30
 READ_LIMIT_S = 120  # 1回の読み取りがこれより長引いたら見捨てて読み直す（窓が止まったままにならないように）
 LOCK_WAIT_S = 90    # 前の操作が終わるのを待つ上限
 # pythonw で開くと画面の外のエラーがどこにも出ないので、つなぎ方・失敗・例外はここに残す
-LOG_FILE = Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'EcoLogger' / 'ecologger_menu.log'
+# （%LOCALAPPDATA% は Claude のアプリから開いたときだけ別の場所に振り替えられるので、ホームの下に置く）
+LOG_FILE = Path.home() / '.ecologger' / 'ecologger_menu.log'
 LOG_KEEP = 3000  # 行
 
 _log_lock = threading.Lock()

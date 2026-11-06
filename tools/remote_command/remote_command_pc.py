@@ -14,7 +14,7 @@
 はじめに1回だけ、本体をUSB（またはテザリング）でつないで合言葉を作って入れる:
     python remote_command_pc.py setup
 
-合言葉と中継のURLはPCの %LOCALAPPDATA%\\EcoLogger\\remote_command.json と本体の
+合言葉と中継のURLはPCの %USERPROFILE%\\.ecologger\\remote_command.json と本体の
 private/remote_command.json にだけ置く（リポジトリには入れない）。合言葉そのものは送らず、
 命令ごとの署名（HMAC-SHA256）だけが流れる。同じ命令は2回効かない。
 """
@@ -39,7 +39,10 @@ sys.path.insert(0, str(REPO / 'tools' / 'collect_logs'))
 
 from remote_command import sign  # noqa: E402  本体と同じ署名の作り方
 
-LOCAL = Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'EcoLogger' / 'remote_command.json'
+# PCの置き場はホームの下。%LOCALAPPDATA% は Claude のアプリから動かしたときだけアプリ専用の場所へ振り替えられ、
+# setup をそこで済ませるとデスクトップのショートカットから開いたメニューには合言葉が見えなかった（2026-11-07）
+LOCAL = Path.home() / '.ecologger' / 'remote_command.json'
+OLD_LOCALS = [Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'EcoLogger' / 'remote_command.json']
 DEVICE_PRIVATE = '/home/arduino/ecocapture-v2-data/private'
 OPS = {'status': 'status', 'lap-reset': 'lap_reset', 'lap-count': 'lap_count', 'lap-start': 'lap_start', 'log-start': 'log_start'}
 OP_LABEL = {'status': '状態を聞く', 'lap_reset': 'ラップを0周に戻す', 'lap_count': '周回数を直す',
@@ -56,10 +59,18 @@ REFUSED = {'bad signature': '署名が合いません（PCと本体の合言葉�
 
 # ---------------------------------------------------------------- 設定
 def load_local():
-    try:
-        return json.loads(LOCAL.read_text(encoding='utf-8'))
-    except (OSError, ValueError):
-        return {}
+    for path in (LOCAL, *OLD_LOCALS):
+        try:
+            data = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        if path != LOCAL:  # 前の置き場にだけあれば、新しい置き場へ移す
+            try:
+                save_local(data)
+            except OSError:
+                pass
+        return data
+    return {}
 
 
 def save_local(data):

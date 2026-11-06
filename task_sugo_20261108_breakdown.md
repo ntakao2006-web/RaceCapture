@@ -509,6 +509,13 @@
           そこで、1回の読み取りが120秒を超えたら見捨てて読み直し（遅れて返った結果は捨てる、持ったままの鍵も待たない）、30秒ごとの読み直しが例外で途切れないようにした。
           テザリングでIPを探して見つからなかった結果を覚えっぱなしにしない、本体を探した時刻を見出しに出す、adb・sshの黒い窓を出さない、という変更も入れた。
           つなぎ方・失敗・例外は`%LOCALAPPDATA%\EcoLogger\ecologger_menu.log`に残すので、次に起きたらそこで原因が分かる。試験は3件足して7件
+        - **2026-11-07 本当の原因：ショートカットから開いたメニューにはadbが見えていなかった**（ユーザー指摘「USBでつないでいるのにつながっていない・テザリングになる」）。
+          Android SDK（adb）は以前Claudeのアプリの中から入れたもので、Windowsがアプリ専用の`%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Local\Android\Sdk`に置いていた。
+          そのためClaudeから動かすと`%LOCALAPPDATA%\Android\Sdk`に見えるが、デスクトップのショートカットやエクスプローラーから開いた道具からは見えない。
+          メニューはadbが無いと判断してUSBを飛ばし、テザリングのsshへ行っていた（11/6夜の「つながっていません」もこれ。記録には0:41〜0:48の失敗が並んでいた）。
+          Claudeの中の試験では毎回見えていたので気づかなかった。`collect_logs.py`の`ADB_CANDIDATES`（回収アプリ・HUD・レンズ・露出・SUGOの道具が使う）と`radio_walk_pc.py`が、その場所も探すようにした。
+          同じ理由で、PC側の合言葉・前回のIP・メニューの記録も、Claudeから作ったものはショートカットからは見えない。置き場を`%USERPROFILE%\.ecologger\`に移した
+          （ここは振り替えられない。合言葉は前の置き場にあれば自動で移す）。エクスプローラー経由で開いた（Claudeの外の）`--once`で、USB（0.6秒）で読め、合言葉も見えることを確かめた
       - **2026-11-06 LTE経由の命令を作った**（ユーザー依頼：周回数の誤作動・スタートできていないときにLTEでいじりたい）。命令は`status`・`lap_reset`・`lap_count N`・`lap_start`（いまのGNSS時刻から計測、計測中なら何もしない）・`log_start`だけ。
         本体が5Bの中継へつないだままの`logger.config`に載せ（中継サーバーは変えない）、本体は`EcoCapture-Web/remote_command.py`で確かめて実行し、結果と状態を返す。
         中継の`/ws/audio/<部屋>`は鍵なしで誰でもつなげロガーのふりもできるので、合言葉（本体の`private/remote_command.json`とPCの`%LOCALAPPDATA%\EcoLogger\remote_command.json`だけ）でHMAC-SHA256の署名、IDは1回限り（再起動しても覚える）、GNSS時刻が分かるときは10分より古い命令を断る。

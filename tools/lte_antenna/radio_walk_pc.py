@@ -14,7 +14,10 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 SCRIPT = '/home/arduino/antenna_compare/radio_walk_log.py'
-ADB_CANDIDATES = [Path(os.environ.get('LOCALAPPDATA', '')) / 'Android' / 'Sdk' / 'platform-tools' / 'adb.exe']
+# Claude のアプリの中から入れた SDK はアプリ専用の場所にあり、ショートカットから開くと %LOCALAPPDATA% の下に見えない
+_LOCAL = Path(os.environ.get('LOCALAPPDATA', ''))
+ADB_CANDIDATES = [d / 'Android' / 'Sdk' / 'platform-tools' / 'adb.exe'
+                  for d in [_LOCAL, *sorted(_LOCAL.glob('Packages/Claude_*/LocalCache/Local'))]]
 
 
 def adb_shell():

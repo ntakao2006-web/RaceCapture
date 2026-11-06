@@ -5,7 +5,7 @@
 そのときは次の順に探して、見つかったIPアドレスで同じ `unoq` の設定（ユーザー・鍵）のままつなぐ：
 
   1. いつもどおり `ssh unoq`
-  2. 前回見つけたIPアドレス（%LOCALAPPDATA%\\EcoLogger\\unoq_ip.txt）
+  2. 前回見つけたIPアドレス（%USERPROFILE%\\.ecologger\\unoq_ip.txt）
   3. PCと同じネットワーク（/24）で ssh の口（22番）が開いている機械を探し、
      `hostname` が uno-q と答えたもの
 
@@ -34,7 +34,10 @@ from pathlib import Path
 ALIAS = 'unoq'              # ~/.ssh/config の Host
 MDNS_NAME = 'uno-q.local'   # 同じ Host の HostName（本体の鍵はこの名前で known_hosts にある）
 HOSTNAME = 'uno-q'          # 本体の hostname
-CACHE = Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'EcoLogger' / 'unoq_ip.txt'
+# PCの道具の置き場は %USERPROFILE%\.ecologger。%LOCALAPPDATA% は Claude のアプリから動かしたときだけ
+# アプリ専用の場所へ振り替えられ、ショートカットから開いた道具と別のファイルになっていた（2026-11-07）
+CACHE = Path.home() / '.ecologger' / 'unoq_ip.txt'
+OLD_CACHES = [Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'EcoLogger' / 'unoq_ip.txt']
 
 _found = {}  # host -> ssh の追加オプション（1回のプログラムの中では1回だけ探す）
 
@@ -100,10 +103,12 @@ def ssh_ports_open(net, own, timeout=0.6):
 
 
 def read_cache():
-    try:
-        return CACHE.read_text(encoding='utf-8').strip() or None
-    except OSError:
-        return None
+    for path in (CACHE, *OLD_CACHES):
+        try:
+            return path.read_text(encoding='utf-8').strip() or None
+        except OSError:
+            continue
+    return None
 
 
 def write_cache(ip):
