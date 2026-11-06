@@ -83,6 +83,33 @@ class ImuMountTests(unittest.TestCase):
         m.on_pvt(bytes(nav));self.assertEqual(m.last_fix[:2],(5000,8.0))
         m.on_pvt(None);self.assertIsNone(m.last_fix)
 
+class RemountTests(unittest.TestCase):
+    """The logger is taken out and put back between drives, a few degrees off each time."""
+    def saved(self,tmp):
+        path=Path(tmp)/'imu_mount.json';m=ImuMount(path);rows(m,UP,20);ImuMountTests.drive(None,m,[0,-1,0],steps=90);m.save()
+        self.assertGreater(m.forward_weight,10);return path
+    def test_first_stop_after_a_start_replaces_the_level(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            m=ImuMount(self.saved(tmp));self.assertTrue(m.fresh)
+            a=math.radians(5);rows(m,[0,G*math.sin(a),G*math.cos(a)],20)  # put back 5° off
+            near(self,[0,math.sin(a),math.cos(a)],m.up,1e-9);self.assertFalse(m.fresh)
+            self.assertTrue(m.forward_learned)  # under 10°: not a re-mount, forward kept
+            rows(m,UP,20);self.assertTrue(0<m.up[1]<math.sin(a))  # later stops blend in again
+    def test_saved_forward_is_only_a_light_start(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            m=ImuMount(self.saved(tmp))
+            self.assertAlmostEqual(m.forward_weight,10.0);self.assertTrue(m.forward_learned)
+            near(self,[0,-1,0],m.forward(),1e-6)  # same direction until new driving says otherwise
+            rows(m,UP,20)
+            a=math.radians(8);turned=[math.sin(a),-math.cos(a),0]  # put back turned 8° about up
+            ImuMountTests.drive(None,m,turned,steps=150)  # weight about 45: a minute or two of real driving
+            self.assertLess(math.degrees(math.acos(min(1,sum(x*y for x,y in zip(m.forward(),turned))))),2.0)
+    def test_a_manual_level_is_not_replaced(self):
+        m=ImuMount();rows(m,[G,0,0],20,speed=None);m.level_now();m.new_mounting()
+        self.assertFalse(m.fresh);rows(m,UP,20);near(self,[1,0,0],m.up,1e-9)
+    def test_nothing_saved_starts_as_before(self):
+        m=ImuMount();self.assertFalse(m.fresh);rows(m,UP,20);near(self,[0,0,1],m.up,1e-9)
+
 class LowPassTests(unittest.TestCase):
     """The G outputs are low-passed so the screens' G ball does not shake with the car."""
     def leveled(self):

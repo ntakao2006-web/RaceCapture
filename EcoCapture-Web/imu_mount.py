@@ -14,6 +14,11 @@ Here gravity is fixed instead:
   stretches the horizontal accel between two fixes about 1 s apart, weighted by the
   speed change, is summed, so the sum points forward. Turning the logger in place
   (same up, another forward) is not detected: reset the calibration after moving it.
+- The logger is taken out and put back between drives, a few degrees off each time.
+  So after each start (power on, EcoCapture restart) the first still level replaces
+  the saved one instead of being blended in, and the saved forward is kept only as a
+  light start (weight FORWARD_KEEP, a few seconds of braking): the first accelerations
+  and brakes of the new drive decide it.
 
 Output in G: LongAccel + accelerating, LatAccel + towards the car's right, VertAccel
 + up with gravity removed (0 at rest). Road slope is not removed: on a 5 % grade
@@ -39,6 +44,7 @@ BUCKET_ROWS = 10           # the calibration works on 0.1 s means of the 100 Hz 
 STILL_ROWS = 20            # 2 s of 0.1 s means
 MOVED_DEG = 10.0
 MIN_FORWARD_WEIGHT = 3.0   # about a dozen 0.5 m/s² speed changes
+FORWARD_KEEP = 10.0        # saved forward weight kept at each start: about 10 s at 1 m/s² of speed change
 FIX_MS = 1000              # GNSS fixes used for learning: about 1 s apart (10 Hz receiver)
 ROW_HZ = 100.0             # BNO055 rows (the STM32 reads every 10 ms; NDOF updates accel at 100 Hz)
 LOWPASS_HZ = 2.0           # G output filter: 5 Hz shook visibly, 1.5 Hz lags 0.15 s
@@ -88,10 +94,20 @@ class ImuMount:
             except (ValueError, OSError, TypeError, KeyError, IndexError, ZeroDivisionError):
                 self.clear(save=False)
                 self.error = '取付の校正を読めませんでした。停車中に自動で取り直します。'
+        self.new_mounting()
+
+    def new_mounting(self):
+        """A new start: the logger may have been put back slightly differently. The first still
+        level replaces the saved up, and the saved forward only starts the learning."""
+        self.fresh = self.up is not None and not self.manual
+        if self.forward_weight > FORWARD_KEEP:
+            k = FORWARD_KEEP / self.forward_weight
+            self.forward_sum = [v * k for v in self.forward_sum]; self.forward_weight = FORWARD_KEEP
+            self._changed()
 
     # -- state ----------------------------------------------------------------
     def clear(self, save=True):
-        self.up = None; self.g = G; self.manual = False; self.moved = False
+        self.fresh = False; self.up = None; self.g = G; self.manual = False; self.moved = False
         self.forward_sum = [0.0, 0.0, 0.0]; self.forward_weight = 0.0
         self.restart()
         self._changed()
@@ -177,8 +193,12 @@ class ImuMount:
         if self.up is None or angle_deg(self.up, u) > MOVED_DEG:
             # First calibration, or the logger was re-mounted: start over.
             self.up = u; self.g = norm(mean); self.forward_sum = [0.0, 0.0, 0.0]; self.forward_weight = 0.0
+        elif self.fresh:
+            # First stop since the start: put back a few degrees off, take this level as it is.
+            self.up = u; self.g = norm(mean)
         else:
             self.up = unit([self.up[i] * 0.8 + u[i] * 0.2 for i in range(3)]); self.g = self.g * 0.8 + norm(mean) * 0.2
+        self.fresh = False
         self._changed()
 
     def on_pvt(self, nav):
@@ -228,7 +248,7 @@ class ImuMount:
         u = unit(mean)
         if self.up is None or angle_deg(self.up, u) > MOVED_DEG:
             self.forward_sum = [0.0, 0.0, 0.0]; self.forward_weight = 0.0  # re-mounted: learn forward again
-        self.up = u; self.g = norm(mean); self.manual = True; self.moved = False
+        self.up = u; self.g = norm(mean); self.manual = True; self.moved = False; self.fresh = False
         self._changed(); self.save()
         return True
 
