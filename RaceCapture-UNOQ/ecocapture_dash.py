@@ -9,8 +9,9 @@ shown is worked out in dash_model.py. Settings: ~/.config/ecocapture-dash.json (
   ecocapture_dash.py                    the dash
   ecocapture_dash.py --demo             a made-up drive (laps, the gap, a pit stop, oil heating up to 130 C,
                                         two oil pressure drops: one alone, one with the temperatures)
-  ecocapture_dash.py --state warn       one fixed screen: normal start pit pitbox warn warnpress warn2 warn3
-                                        lost stale (warn2: oil pressure + oil, warn3: all three warnings)
+  ecocapture_dash.py --state warn       one fixed screen: normal start pit pitbox pitlane shift limit warn
+                                        warnpress warn2 warn3 lost stale (warn2: oil pressure + oil, warn3: all
+                                        three warnings; pitlane: 63 km/h after the line in the pit lane)
   ecocapture_dash.py --sound warn       play the warning sound once and exit (--volume 0.3)
   --size 1920x1080 --snapshot out.png   window size, and save the first frame as PNG then exit
   --no-pause                            leave the other display apps alone (checking on a running UNO Q)
@@ -33,7 +34,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from dash_model import DashModel, load_config, tone_wav  # noqa: E402
+from dash_model import RPM_SEGMENTS, SEGMENT_COLOURS, DashModel, load_config, tone_wav  # noqa: E402
 
 CONFIG_PATH = Path.home() / '.config' / 'ecocapture-dash.json'
 LAPREF_PATH = Path.home() / '.cache' / 'ecocapture-dash' / 'lapref.json'
@@ -126,11 +127,12 @@ class DemoFeed:
                     lap['LapDiffS'] = round(times[-1] - times[-2], 3)
         cycle = (now - self.t0) % 600
         oil = 95 + 38 * cycle / 480 if cycle < 480 else 133 - 30 * (cycle - 480) / 120
-        rpm = 4800 + 1600 * math.sin(now - self.t0)
+        # pulling through the gears: 5200 to 8050 rpm in six seconds, so the shift and the limiter come by
+        rpm = 5200 + 2850 * ((now - self.t0) % 6.0) / 6.0
         press = 70.0 if 200 <= cycle < 206 or 440 <= cycle < 446 else min(480.0, 60 + 0.07 * rpm)
         return {'status': {'connected': True, 'logging': {'active': True},
                            'video': {'recording': True, 'minutes_left': max(0, 150 - (now - self.t0) / 60)}},
-                'sample': {'values': {'Lat': lat, 'Lon': lon, 'GPSSpeed': 80.0, 'RPM': rpm},
+                'sample': {'values': {'Lat': lat, 'Lon': lon, 'GPSSpeed': 80.0 + 0.012 * (rpm - 5200), 'RPM': rpm},
                            'can_signals': {'OilTemp': oil, 'WaterTemp': oil - 10, 'OilPress': press},
                            'gnss_utc': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'lap': lap}}
 
@@ -143,16 +145,18 @@ def fixed_state(config, name):
     # warnpress the pressure alone, warn2 pressure and oil, warn3 all three
     temps = {'normal': (98, 88, 420), 'start': (92, 84, 430), 'pit': (101, 91, 410), 'pitbox': (101, 91, 150),
              'warn': (122, 104, 400), 'warnpress': (104, 94, 85), 'warn2': (124, 105, 150), 'warn3': (128, 113, 140),
-             'lost': (None, 93, 420), 'stale': (98, 88, 420)}[name]
+             'lost': (None, 93, 420), 'stale': (98, 88, 420), 'pitlane': (101, 91, 300),
+             'shift': (98, 88, 450), 'limit': (98, 88, 460)}[name]
     if name == 'start':
         lap.update(CurrentLap=0, LapCount=0, ElapsedTime=None, LapTime=None, BestLap=None, RaceTime=None, LapDiffS=None, LastLapPit=None)
-    if name in ('pit', 'pitbox'):  # the in lap was a pit lap, the running lap started in the pit lane
+    if name in ('pit', 'pitbox', 'pitlane'):  # the in lap was a pit lap, the running lap started in the pit lane
         lap.update(ElapsedTime=21.4 / 60, LapTime=221.07 / 60, LapDiffS=None, LastLapPit=True, LapStartPit=True)
     # before the start the video light is yellow: 108 minutes left is short of the race
     frame = {'status': {'connected': True, 'logging': {'active': True},
                         'video': {'recording': True, 'minutes_left': 108 if name == 'start' else 150}},
-             'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777, 'GPSSpeed': 0.0 if name == 'pitbox' else 120.0,
-                                   'RPM': 900.0 if name == 'pitbox' else 5200.0},
+             'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777,
+                                   'GPSSpeed': {'pitbox': 0.0, 'pitlane': 63.0, 'shift': 131.0, 'limit': 133.0}.get(name, 120.0),
+                                   'RPM': {'pitbox': 900.0, 'pitlane': 3900.0, 'shift': 7760.0, 'limit': 8010.0}.get(name, 6400.0)},
                         'can_signals': {'OilTemp': temps[0], 'WaterTemp': temps[1], 'OilPress': temps[2]},
                         'gnss_utc': '2026-11-08T02:16:15Z', 'lap': lap}}
     model = DashModel(config)
@@ -160,13 +164,13 @@ def fixed_state(config, name):
         state, _ = model.update(frame, 100.0 + k * 0.1)
     if name == 'stale':
         state, _ = model.update(None, 100.0 + 8 + 12)
-    if name not in ('start', 'stale', 'pit', 'pitbox'):
+    if name not in ('start', 'stale', 'pit', 'pitbox', 'pitlane'):
         state.update(delta='−0.84', delta_kind='faster', delta_frac=-0.42)
     return state
 
 
 def css_for(w, h):
-    big = int(min(0.195 * h, 0.11 * w))
+    big = int(min(0.15 * h, 0.105 * w))
     mid, small = int(big * 0.6), int(big * 0.44)
     cap, chip = int(max(16, 0.042 * h)), int(max(16, 0.036 * h))
     rad, cp = int(0.012 * h), int(0.012 * h)
@@ -202,6 +206,17 @@ def css_for(w, h):
     .banner .warn-val {{ font-family: {FONT_NUM}; }}
     {''.join(f'.banner .warn-name.n{n} {{ font-size: {int(mid * 0.9 * k)}px; }} .banner .warn-val.n{n} {{ font-size: {int(big * k)}px; }} '
              for n, k in WARN_SCALE.items())}
+    .seg {{ border-radius: {max(2, rad // 2)}px; }}
+    .seg-off {{ background-color: #262626; }}
+    .seg-g {{ background-color: #2fc64c; }}
+    .seg-y {{ background-color: #f2c418; }}
+    .seg-r {{ background-color: #ec3030; }}
+    .seg-dark {{ background-color: #3a0606; }}
+    .rpm {{ color: #f4f4f4; font-family: {FONT_NUM}; font-weight: bold; font-size: {mid}px; padding: 0 {int(cp * 0.8)}px; border-radius: {rad}px; }}
+    .rpm-limit {{ color: #000000; background-color: #ffffff; }}
+    .spd {{ color: #f4f4f4; font-family: {FONT_NUM}; font-weight: bold; font-size: {mid}px; padding: 0 {int(cp * 0.8)}px; border-radius: {rad}px; }}
+    .spd-warn {{ color: #ffd060; }}
+    .spd-over {{ color: #ffffff; background-color: #e01414; }}
     .stale {{ background-color: #1a1a1a; }}
     .stale label {{ color: #d8d8d8; font-family: {FONT_TEXT}; }}
     .stale-big {{ font-size: {int(mid * 0.6)}px; font-weight: bold; }}
@@ -262,6 +277,27 @@ def run_gui(args, config):
             self.connect('destroy', lambda _w: Gtk.main_quit())
 
         def build(self):
+            # The top row: the engine speed bar (ten segments, as an AiM's shift lights), the engine speed and the speed
+            self.segs = []
+            self.seg_row = Gtk.Box(homogeneous=True)
+            for _ in range(RPM_SEGMENTS):
+                seg = Gtk.Box()
+                seg.get_style_context().add_class('seg')
+                seg.set_valign(Gtk.Align.CENTER)
+                self.seg_row.pack_start(seg, True, True, 0)
+                self.segs.append(seg)
+            self.rpm = label('--', 'rpm', xalign=1.0)
+            self.spd = label('--', 'spd', xalign=1.0)
+            for widget in (self.rpm, self.spd):
+                widget.set_ellipsize(Pango.EllipsizeMode.NONE)
+                widget.set_valign(Gtk.Align.CENTER)
+            self.rpm_box, self.spd_box = box(False), box(False)
+            self.rpm_box.pack_end(self.rpm, False, False, 0)
+            self.spd_box.pack_end(self.spd, False, False, 0)
+            self.row0 = Gtk.Box(spacing=0)
+            self.row0.pack_start(self.seg_row, True, True, 0)
+            self.row0.pack_start(self.rpm_box, False, False, 0)
+            self.row0.pack_start(self.spd_box, False, False, 0)
             self.lap_now = label('--', 'num', 'big')
             self.delta = label('--', 'num', 'big')
             self.bar = Gtk.Fixed()
@@ -331,7 +367,7 @@ def run_gui(args, config):
                 chip.set_valign(Gtk.Align.CENTER)
                 self.row3.pack_end(chip, False, False, 0)
 
-            self.root = box(True, self.row1, self.stack, self.row3, cls='root')
+            self.root = box(True, self.row0, self.row1, self.stack, self.row3, cls='root')
             self.stale_big = label('', 'stale-big', xalign=0.5)
             self.stale_sub = label('', 'stale-sub', xalign=0.5)
             self.stale = box(True, cls='stale')
@@ -348,15 +384,22 @@ def run_gui(args, config):
             except GLib.Error as exc:  # an older GTK without a property: keep going with the rest
                 print('css:', exc, file=sys.stderr)
             pad, gap = int(0.015 * h), int(0.011 * h)
-            inner_w, inner_h = w - 2 * pad, h - 2 * pad - 2 * gap
+            inner_w, inner_h = w - 2 * pad, h - 2 * pad - 3 * gap
             self.root.set_spacing(gap)
             self.root.set_margin_top(pad); self.root.set_margin_bottom(pad)
             self.root.set_margin_start(pad); self.root.set_margin_end(pad)
             self.row1.set_spacing(gap); self.row2.set_spacing(gap)
-            r1, r2 = int(inner_h * 0.45), int(inner_h * 0.33)
+            r0, r1, r2 = int(inner_h * 0.15), int(inner_h * 0.38), int(inner_h * 0.29)
+            self.row0.set_size_request(inner_w, r0)
             self.row1.set_size_request(inner_w, r1)
             self.stack.set_size_request(inner_w, r2)
-            self.row3.set_size_request(inner_w, inner_h - r1 - r2)
+            self.row3.set_size_request(inner_w, inner_h - r0 - r1 - r2)
+            self.row0.set_spacing(gap)
+            self.seg_row.set_spacing(max(3, int(0.004 * w)))
+            for seg in self.segs:
+                seg.set_size_request(-1, int(r0 * 0.78))
+            self.rpm_box.set_size_request(int(0.17 * inner_w), r0)
+            self.spd_box.set_size_request(int(0.22 * inner_w), r0)
             avail = inner_w - 2 * gap
             for cell, share in ((self.cell_last, .42), (self.cell_best, .34), (self.cell_lap, .24)):
                 cell.set_size_request(int(avail * share), r2)
@@ -368,7 +411,7 @@ def run_gui(args, config):
             self.bar_w = int((inner_w - gap) / 2 - 2 * cell_pad)
             self.bar_h = max(10, int(0.028 * h))
             self.bar.set_size_request(self.bar_w, self.bar_h)
-            strip_h = int(0.105 * h)
+            strip_h = int(0.09 * h)
             self.notice.set_size_request(-1, strip_h)
             self.bar_holder.set_size_request(-1, strip_h)
             self.bar_bg.set_size_request(self.bar_w, self.bar_h)
@@ -420,6 +463,18 @@ def run_gui(args, config):
                 value.set_markup(f"{warns[k]['value']}<span size=\"60%\">{warns[k]['unit']}</span>")
                 classes(name, 'warn-name', f'n{n}')
                 classes(value, 'warn-val', f'n{n}')
+            # The engine speed bar: lit up to the shift point, then the whole bar red, flashing twice a second
+            lit, mode = s.get('rpm_lit', 0), s.get('rpm_mode')
+            dark = mode is not None and time.monotonic() % FLASH_PERIOD_S >= FLASH_PERIOD_S / 2
+            for k, seg in enumerate(self.segs):
+                colour = ('dark' if dark else 'r') if mode else SEGMENT_COLOURS[k] if k < lit else 'off'
+                classes(seg, 'seg', 'seg-' + colour)
+            self.rpm.set_text(s.get('rpm', '--'))
+            classes(self.rpm, 'rpm', *(('rpm-limit',) if mode == 'limit' else ()))
+            speed = s.get('speed', '--')
+            self.spd.set_markup(speed if speed == '--' else speed + '<span size="45%"> km/h</span>')
+            kind = s.get('speed_kind')
+            classes(self.spd, 'spd', *(('spd-' + kind,) if kind else ()))
             self.notice.set_text(s['notice'])
             classes(self.notice, 'notice', 'notice-pit' if s['notice'] else 'notice-none')
 
@@ -531,8 +586,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description='EcoCapture DASH')
     parser.add_argument('--config', default=str(CONFIG_PATH))
     parser.add_argument('--demo', action='store_true')
-    parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'warn', 'warnpress', 'warn2', 'warn3',
-                                            'lost', 'stale'])
+    parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'pitlane', 'shift', 'limit', 'warn',
+                                            'warnpress', 'warn2', 'warn3', 'lost', 'stale'])
     parser.add_argument('--sound', choices=['warn'])
     parser.add_argument('--size')
     parser.add_argument('--snapshot')

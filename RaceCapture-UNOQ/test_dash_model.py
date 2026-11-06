@@ -8,7 +8,7 @@ import wave
 from pathlib import Path
 
 from dash_model import (DEFAULTS, DashModel, LapRef, Warning, fmt_hms, fmt_lap, fmt_signed, load_config, press_limit,
-                        sensor_light, tone_wav)
+                        rpm_bar, sensor_light, tone_wav)
 
 LAT0, LON0, RADIUS = 38.14, 140.77, 400.0
 
@@ -25,12 +25,12 @@ def on_circle(fraction):
             LON0 + RADIUS * math.cos(angle) / (111320.0 * math.cos(math.radians(LAT0))))
 
 
-def frame(lap=None, oil=98.0, water=88.0, lat=LAT0, lon=LON0, connected=True, logging=True, press=None, rpm=None):
+def frame(lap=None, oil=98.0, water=88.0, lat=LAT0, lon=LON0, connected=True, logging=True, press=None, rpm=None, speed=None):
     can = {'OilTemp': oil, 'WaterTemp': water}
     if press is not None:
         can['OilPress'] = press
     return {'status': {'connected': connected, 'logging': {'active': logging}},
-            'sample': {'values': {'Lat': lat, 'Lon': lon, 'RPM': rpm}, 'can_signals': can,
+            'sample': {'values': {'Lat': lat, 'Lon': lon, 'RPM': rpm, 'GPSSpeed': speed}, 'can_signals': can,
                        'gnss_utc': '2026-11-08T02:16:15Z', 'lap': lap or {}}}
 
 
@@ -53,6 +53,37 @@ class FormatTests(unittest.TestCase):
         self.assertEqual(fmt_signed(0.001), '0.00')
         self.assertEqual((fmt_signed(38.42), fmt_signed(-123.4)), ('+38.4', '−123'))
         self.assertEqual(fmt_signed(None), '--')
+
+
+class RpmSpeedTests(unittest.TestCase):
+    def test_bar_fills_to_the_shift_point_then_shift_and_limit(self):
+        c = config()
+        self.assertEqual(rpm_bar(c, None), (0, None))
+        self.assertEqual(rpm_bar(c, 4999), (0, None))
+        self.assertEqual(rpm_bar(c, 5000), (1, None))      # the first segment at rpm_bar_start
+        self.assertEqual(rpm_bar(c, 6350), (6, None))      # 270 rpm a segment
+        self.assertEqual(rpm_bar(c, 7429), (9, None))
+        self.assertEqual(rpm_bar(c, 7430), (10, None))     # the full bar just before the shift
+        self.assertEqual(rpm_bar(c, 7700), (10, 'shift'))
+        self.assertEqual(rpm_bar(c, 7949), (10, 'shift'))
+        self.assertEqual(rpm_bar(c, 8000), (10, 'limit'))
+        self.assertEqual(rpm_bar(config(shift_rpm=7500, limit_rpm=7800), 7600), (10, 'shift'))
+
+    def test_state_has_rpm_and_speed(self):
+        m = DashModel(config())
+        s, _ = m.update(frame(rpm=7712.4, speed=127.6), 0.0)
+        self.assertEqual((s['rpm'], s['rpm_lit'], s['rpm_mode'], s['speed'], s['speed_kind']), ('7712', 10, 'shift', '128', None))
+        s, _ = m.update(frame(connected=False), 10.0)
+        self.assertEqual((s['rpm'], s['rpm_lit'], s['rpm_mode'], s['speed']), ('--', 0, None, '--'))
+
+    def test_pit_lane_speed_after_the_line_until_out_of_the_pit_lane(self):
+        m = DashModel(config())
+        kinds = lambda lap, *speeds: [m.update(frame(lap=lap, speed=v), 0.0)[0]['speed_kind'] for v in speeds]
+        out = {'CurrentLap': 5, 'LapStartPit': True}
+        self.assertEqual(kinds(out, 0, 40, 55.4, 55.6, 60.4, 60.6, 75), [None, None, None, 'warn', 'warn', 'over', 'over'])
+        self.assertEqual(kinds(out, 81, 60, 58), [None, None, None])     # on the track now: not the pit lane any more
+        self.assertEqual(kinds({'CurrentLap': 6}, 58), [None])           # a lap not begun in the pit lane
+        self.assertEqual(kinds({'CurrentLap': 9, 'LapStartPit': True}, 62), ['over'])  # the next pit stop arms it again
 
 
 class WarningTests(unittest.TestCase):

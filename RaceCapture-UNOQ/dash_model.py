@@ -25,6 +25,17 @@ a minute takes in the home or the back straight. Then it stays bright red, as a 
 flashing all the time would only make the numbers harder to read. The sound is about ten seconds:
 six bursts of the two-tone alarm, so one of them gets through the helmet and the engine.
 
+Engine speed and speed along the top (added 2026-11-06 for the NCEC: the stock speedometer is not to be
+trusted and the tuned ECU revs to 8000 rpm, past the stock tachometer): ten segments as the ten shift
+lights of an AiM dash (there are no LEDs, so they are drawn), lit green, yellow then red from
+rpm_bar_start up to the last one below shift_rpm; from shift_rpm the whole bar flashes red (the usual
+sign of a shift light; the user's call on 2026-11-06 over blue: the warnings are red too, but in the
+middle band, so the place tells them apart) and from limit_rpm the engine speed number is shown inverted
+as well (the limiter itself is felt; the bar is there to shift before it). No sound for either. The speed is GPSSpeed. On the
+lap begun in the pit lane, until the car is faster than pit_lane_max_kmh, the speed turns yellow from
+pit_speed_warn_kmh and red above pit_speed_limit_kmh (SUGO: 60 km/h, a drive-through over it). The pit
+lane before the control line is not known, so there the speed stays white.
+
 The gap to the best lap is the algorithm of tools/unoq_overlay_enc/lap_ref.h (the burnt-in video
 HUD), ported so both show the same number: the best lap's track is kept, and the running lap's
 elapsed time is compared with the best lap's at the nearest point of that track.
@@ -58,6 +69,17 @@ DEFAULTS = {
     'hold_off_s': 5.0,
     'flash_s': 60.0,  # the band flashes this long after a warning comes on (0: never); a minute: one straight
     'delta_full_scale_s': 2.0,
+    # The engine speed bar (rpm). The NCEC's limiter is 8000 rpm (NOPRO MZ-TUNE+); the power falls off past
+    # about 7000 (stock NC 2.0: 170 ps at 7000), yet in every gear shifting near the limit is still about as
+    # quick, so the shift is 7700: about 0.25 s ahead of the cut in second gear. To be set per gear from the
+    # logs of 2026-11-07 (and the RPM above 3439 is still to be checked against the stock tachometer).
+    'rpm_bar_start': 5000,
+    'shift_rpm': 7700,
+    'limit_rpm': 7950,
+    # The speed in the pit lane (km/h): SUGO's pit lane limit is 60
+    'pit_speed_limit_kmh': 60,
+    'pit_speed_warn_kmh': 56,
+    'pit_lane_max_kmh': 80,  # on the out lap, faster than this is out of the pit lane (as lap.py's pit_max_kmh)
     'stale_s': 2.0,
     # The burnt-in video (EcoCapture /api/status 'video', unoq_video_check_procedure.md 5-17): fewer minutes
     # left than this (a 120-minute race with the grid and the cool-down lap) is shown in yellow
@@ -70,6 +92,8 @@ DEFAULTS = {
               'card': 'ArduinoImolaHPH', 'route': ['SEC_MI2S_RX Audio Mixer MultiMedia4']},
 }
 
+RPM_SEGMENTS = 10
+SEGMENT_COLOURS = ('g',) * 4 + ('y',) * 3 + ('r',) * 3  # as an AiM's ten shift lights
 STOPPED_KMH = 10.0  # slower than this the gap to the best lap means nothing (in the pit, on the grid)
 
 # lap_ref.h
@@ -232,6 +256,19 @@ def press_limit(config, rpm):
     return pts[-1][1]
 
 
+def rpm_bar(config, rpm):
+    """(segments lit 0-10, 'shift' / 'limit' / None). The first segment lights at rpm_bar_start, the tenth one
+    step below shift_rpm, so the full bar comes just before the flashing."""
+    if rpm is None:
+        return 0, None
+    start, shift, limit = (float(config[k]) for k in ('rpm_bar_start', 'shift_rpm', 'limit_rpm'))
+    if rpm >= shift:
+        return RPM_SEGMENTS, 'limit' if rpm >= limit else 'shift'
+    if rpm < start or shift <= start:
+        return 0, None
+    return min(RPM_SEGMENTS, 1 + int((rpm - start) * RPM_SEGMENTS / (shift - start))), None
+
+
 class Alarm:
     """One warning, on or off with its hold times; value is the latest reading (kept while the sensor is lost)."""
 
@@ -297,6 +334,21 @@ class DashModel:
         self.warning = Warning(config)
         self.last_good = None  # monotonic time of the last frame with live values
         self.press_seen = False  # the oil pressure has come at least once (until then its light says nothing)
+        self.pit_lane, self.pit_lap = False, None  # still in the pit lane on the lap begun there
+
+    def pit_speed(self, out_lap, lap_no, speed):
+        """'warn' / 'over' / None for the speed in the pit lane after the line (see the module notes)."""
+        if not out_lap:
+            self.pit_lane, self.pit_lap = False, None
+            return None
+        if lap_no != self.pit_lap:  # a new lap begun in the pit lane
+            self.pit_lane, self.pit_lap = True, lap_no
+        if speed is not None and speed > self.config['pit_lane_max_kmh']:
+            self.pit_lane = False
+        if not self.pit_lane or speed is None:
+            return None
+        shown = round(speed)
+        return 'over' if shown > self.config['pit_speed_limit_kmh'] else 'warn' if shown >= self.config['pit_speed_warn_kmh'] else None
 
     def update(self, frame, now, wall=None):
         """frame: the /api/telemetry envelope (None when it could not be read). Returns (state, sound)."""
@@ -320,6 +372,8 @@ class DashModel:
         self.press_seen = self.press_seen or press is not None
         sound = self.warning.update(now, oil, water, press, rpm)
         delta = self.lapref.update(lat, lon, number(lap.get('CurrentLap')), elapsed, last, best) if live else None
+        speed_kind = self.pit_speed(out_lap, number(lap.get('CurrentLap')), speed if live else None)
+        lit, rpm_mode = rpm_bar(self.config, rpm)
         stopped = speed is not None and speed < STOPPED_KMH
         if out_lap or stopped:
             delta = None  # still tracked above, so the reference keeps its place
@@ -350,6 +404,10 @@ class DashModel:
             video_kind = 'ok' if left is None or left >= self.config['video_warn_min'] else 'warn'
         state = {
             'stale': stale,
+            'rpm': '--' if rpm is None else f'{int(round(rpm))}',
+            'rpm_lit': lit, 'rpm_mode': rpm_mode,
+            'speed': '--' if speed is None or not live else f'{int(round(speed))}',
+            'speed_kind': speed_kind,
             'stale_s': None if self.last_good is None else now - self.last_good,
             'lap_now': fmt_lap(elapsed, 1),
             'notice': notice,
