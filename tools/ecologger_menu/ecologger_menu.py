@@ -59,6 +59,8 @@ TOOL_GROUPS = [
         ('レンズをPCで見る', 'lens_view/Lens-View.cmd', [], False, 'カメラをPCにつないで補正・ズームを決める'),
         ('レンズを本体のモニターで決める', 'lens_view/Lens-Preview.cmd', [], True, '録画に写る絵を本体のモニターに出す'),
         ('レンズの値を本体へ送る', 'lens_view/Apply-Lens.cmd', [], True, 'lens.json を本体の録画へ'),
+        ('露出（明るさ）を見る・切り替える', 'video_exposure/Exposure.cmd', [], True,
+         '白飛び対策／カメラ任せに戻す／明るく・暗く'),
     ]),
     ('LTEの電波（コースウォーク）', [
         ('電波の記録を始める', 'lte_antenna/Start-RadioWalk.cmd', [], False, '30分'),

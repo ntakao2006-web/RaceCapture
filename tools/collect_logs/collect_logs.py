@@ -220,6 +220,26 @@ def find_adb():
     return shutil.which('adb') or next((str(p) for p in ADB_CANDIDATES if p.is_file()), None)
 
 
+def _uno_q_serial():
+    sys.path.insert(0, str(REPO / 'tools' / 'video_collect'))
+    import video_collect
+    link = video_collect.find_link(None)
+    return link.serial if link else None
+
+
+def adb_command():
+    """USBでつないだUNO Qへの adb の頭（[adb, '-s', 番号]）。見つからなければ None。
+    HUD・レンズ・露出・SUGOの道具の --adb が使う（11/4の回収アプリの作り直しで一度消えて、--adb が動かなくなっていた。
+    スマホもadbにつながっていることがあるので、番号を付けてUNO Qを選ぶ）"""
+    adb, serial = find_adb(), _uno_q_serial()
+    return [adb, '-s', serial] if adb and serial else None
+
+
+def list_uno_q_videos(adb=None):
+    """(UNO Qの番号, None, None)。前の版と同じ形（呼ぶ側は番号だけ使う）"""
+    return _uno_q_serial(), None, None
+
+
 def video_link():
     """動画を吸い出す相手（USBのadbでつないだUNO Qだけ。試験では差し替える）"""
     import video_collect
