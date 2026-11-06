@@ -1,5 +1,11 @@
 import json
+import sys
+import tempfile
+import time
+import types
 import unittest
+from pathlib import Path
+from unittest import mock
 
 import ecologger_menu as m
 
@@ -49,6 +55,67 @@ class SummarizeTests(unittest.TestCase):
         rows = self.rows(status=STATUS, lap=LAP,
                          screen='ecocapture-dash: inactive (power-on: disabled)\nracecapture-app: active (power-on: enabled)')
         self.assertEqual(rows['HDMIの画面'], ('RaceCaptureアプリ', False))
+
+
+class FakeLink:
+    def __init__(self, out='ok'):
+        self.out = out
+
+    def run(self, script, timeout=60):
+        return self.out
+
+    def label(self):
+        return 'USB（テスト）'
+
+
+class Conn:
+    def __init__(self):
+        self.text = ''
+
+    def configure(self, text='', foreground=None):
+        self.text = text
+
+
+class StuckReadTests(unittest.TestCase):
+    """11/6：開いたメニューが最初に「つながっていません」になったあと二度と読み直さなかった件の再発防止"""
+
+    def setUp(self):
+        self.log_patch = mock.patch.object(m, 'LOG_FILE', Path(tempfile.mkdtemp()) / 'menu.log')
+        self.log_patch.start()
+
+    def tearDown(self):
+        self.log_patch.stop()
+
+    def test_failed_ssh_search_is_forgotten_so_tethering_can_be_found_later(self):
+        fake_ssh = types.SimpleNamespace(_found={'unoq': None})
+        with mock.patch.dict(sys.modules, {'unoq_ssh': fake_ssh}), \
+                mock.patch.object(m.video_collect, 'find_link', return_value=None):
+            self.assertIsNone(m.Device(print).find())
+        self.assertNotIn('unoq', fake_ssh._found)
+
+    def test_a_held_lock_does_not_block_after_abandon(self):
+        device = m.Device(print)
+        device.lock.acquire()  # 返ってこない前の操作が鍵を持ったまま
+        device.abandon()
+        device.link = FakeLink('state')
+        self.assertEqual(device.run('x'), 'state')
+
+    def test_a_read_that_never_returns_is_abandoned_and_its_late_result_dropped(self):
+        menu = object.__new__(m.Menu)
+        menu.device, menu.conn = m.Device(print), Conn()
+        menu.busy, menu.read_id, menu.read_started = True, 1, time.monotonic() - 10
+        started = []
+        menu.background = lambda work, done: started.append(done)
+        menu.refresh(quiet=True)
+        self.assertEqual(started, [])  # まだ待つ
+        menu.read_started = time.monotonic() - m.READ_LIMIT_S - 1
+        menu.refresh(quiet=True)
+        self.assertEqual(len(started), 1)  # 見捨てて読み直した
+        self.assertEqual(menu.read_id, 2)
+        self.assertIn('返事が', menu.conn.text)
+        menu.show_status([], None, read_id=1)  # 古い読み取りが遅れて返っても無視（窓を触らない）
+        self.assertTrue(menu.busy)
+        self.assertIn('見捨てて読み直す', m.LOG_FILE.read_text(encoding='utf-8'))
 
 
 if __name__ == '__main__':

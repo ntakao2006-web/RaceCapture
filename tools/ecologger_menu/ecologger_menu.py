@@ -20,6 +20,7 @@ import sys
 import threading
 import time
 import tkinter as tk
+import traceback
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
@@ -35,6 +36,34 @@ import video_collect  # noqa: E402  本体の探し方（find_link：adb → ssh
 API = 'http://127.0.0.1:8080'
 DASH_SWITCH = '/opt/logger-v2-racecapture/dash_switch.sh'
 REFRESH_S = 30
+READ_LIMIT_S = 120  # 1回の読み取りがこれより長引いたら見捨てて読み直す（窓が止まったままにならないように）
+LOCK_WAIT_S = 90    # 前の操作が終わるのを待つ上限
+# pythonw で開くと画面の外のエラーがどこにも出ないので、つなぎ方・失敗・例外はここに残す
+LOG_FILE = Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'EcoLogger' / 'ecologger_menu.log'
+LOG_KEEP = 3000  # 行
+
+_log_lock = threading.Lock()
+
+
+def diag(text):
+    """記録のファイルへ1行（失敗しても何もしない）"""
+    line = f'{datetime.now():%Y-%m-%d %H:%M:%S} [{threading.current_thread().name}] {text}\n'
+    with _log_lock:
+        try:
+            LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(LOG_FILE, 'a', encoding='utf-8') as f:
+                f.write(line)
+        except OSError:
+            pass
+
+
+def trim_log():
+    try:
+        lines = LOG_FILE.read_text(encoding='utf-8', errors='replace').splitlines(keepends=True)
+        if len(lines) > LOG_KEEP:
+            LOG_FILE.write_text(''.join(lines[-LOG_KEEP:]), encoding='utf-8')
+    except OSError:
+        pass
 
 STATUS_SCRIPT = f'''
 echo '@@S'; curl -s -m 6 {API}/api/status
@@ -159,23 +188,46 @@ class Device:
     def __init__(self, log):
         self.link, self.log = None, log
         self.lock = threading.Lock()
+        self.last_try = None  # 最後に本体を探した・読んだ時刻
 
     def find(self):
         quiet = lambda *a, **k: None  # noqa: E731
+        # unoq_ssh は「1回のプログラムで1回だけ探す」ので、見つからなかった結果を覚えたままだと
+        # 開きっぱなしのメニューではテザリングを後からつないでも二度とIPで探さない。見つからなかったときは忘れる
+        ssh = sys.modules.get('unoq_ssh')
+        if ssh is not None and ssh._found.get('unoq', []) is None:
+            ssh._found.pop('unoq', None)
+        started = time.monotonic()
         self.link = video_collect.find_link('unoq', log=quiet)
+        diag(f'本体を探した: {self.link.label() if self.link else "見つからない（USB・テザリングとも）"}'
+             f'（{time.monotonic() - started:.1f}秒）')
         return self.link
 
     def run(self, script, timeout=40):
-        with self.lock:
+        lock = self.lock  # 見捨てた操作のあとは別の鍵に替わるので、自分が取った鍵を返す
+        if not lock.acquire(timeout=LOCK_WAIT_S):
+            diag('前の操作が終わらないので今回は読まない')
+            raise OSError(f'前の操作が{LOCK_WAIT_S}秒たっても終わっていません（次の読み直しでもう一度試します）')
+        try:
             for attempt in (0, 1):
+                self.last_try = datetime.now()
                 if self.link is None and not self.find():
                     raise OSError('本体が見つかりません（USBのケーブル、またはPCと本体が同じテザリングにいるか）')
+                started = time.monotonic()
                 try:
                     return self.link.run(script, timeout=timeout)
-                except (OSError, subprocess.SubprocessError):
+                except (OSError, subprocess.SubprocessError) as exc:
+                    diag(f'{self.link.label()} で失敗（{time.monotonic() - started:.1f}秒）: {type(exc).__name__}: {exc}')
                     self.link = None
                     if attempt:
                         raise
+        finally:
+            lock.release()
+
+    def abandon(self):
+        """返ってこない操作を見捨てる。その操作が持っている鍵は待たずに、新しい鍵とつなぎ直しで続ける"""
+        self.link = None
+        self.lock = threading.Lock()
 
     @property
     def usb(self):
@@ -191,6 +243,7 @@ class Menu:
         self.root = root
         self.device = Device(self.add_log)
         self.busy = False
+        self.read_id, self.read_started = 0, 0.0
         root.title('EcoLogger Ver.2 操作メニュー')
         root.geometry("1000x900")
         root.minsize(900, 700)
@@ -285,27 +338,52 @@ class Menu:
                 result, error = work(), None
             except Exception as exc:  # noqa: BLE001  画面に出して続ける
                 result, error = None, exc
-            self.root.after(0, lambda: done(result, error))
+                diag(f'失敗: {type(exc).__name__}: {exc}')
+            for _ in range(20):  # 窓が一時的に応えないときも結果を捨てない
+                try:
+                    self.root.after(0, lambda: done(result, error))
+                    return
+                except RuntimeError as exc:
+                    diag(f'窓へ結果を渡せない（{exc}）、やり直す')
+                    time.sleep(0.5)
         threading.Thread(target=run, daemon=True).start()
 
     def show_conn(self):
-        self.conn.configure(text=('● ' if self.device.link else '○ ') + self.device.label(),
+        when = f'（{self.device.last_try:%H:%M:%S}に探しました。{REFRESH_S}秒ごとに探し直します）' if self.device.last_try else ''
+        self.conn.configure(text=('● ' + self.device.label()) if self.device.link else ('○ ' + self.device.label() + when),
                             foreground='#1b6e2e' if self.device.link else '#b3261e')
 
     # -- 状態
     def tick(self):
-        self.refresh(quiet=True)
-        self.root.after(REFRESH_S * 1000, self.tick)
+        try:
+            self.refresh(quiet=True)
+        except Exception as exc:  # noqa: BLE001  ここで止まると二度と読み直さなくなる
+            diag(f'読み直しの準備で例外: {type(exc).__name__}: {exc}')
+        finally:
+            self.root.after(REFRESH_S * 1000, self.tick)
 
     def refresh(self, quiet=False):
         if self.busy:
-            return
+            waited = time.monotonic() - self.read_started
+            if waited < READ_LIMIT_S:
+                return
+            # 前の読み取りが返ってこない。見捨てて（遅れて返ってきても捨てる）読み直す
+            diag(f'読み取りが{waited:.0f}秒たっても返らないので見捨てて読み直す')
+            self.device.abandon()
+            self.conn.configure(text=f'○ 本体の返事が{waited:.0f}秒ありません。探し直しています…', foreground='#b3261e')
         self.busy = True
+        self.read_id += 1
+        self.read_started = time.monotonic()
         if not quiet:
             self.conn.configure(text='本体を読んでいます…', foreground='#444')
-        self.background(lambda: summarize(self.device.run(STATUS_SCRIPT)), self.show_status)
+        read_id = self.read_id
+        self.background(lambda: summarize(self.device.run(STATUS_SCRIPT)),
+                        lambda rows, error: self.show_status(rows, error, read_id))
 
-    def show_status(self, rows, error):
+    def show_status(self, rows, error, read_id=None):
+        if read_id is not None and read_id != self.read_id:
+            diag('見捨てた読み取りの結果が遅れて届いたので捨てた')
+            return
         self.busy = False
         self.show_conn()
         for child in self.grid.winfo_children():
@@ -394,10 +472,44 @@ def main(argv=None):
         for name, value, warn in rows:
             print(f"{'★' if warn else ' '} {name}: {value}")
         return 0
+    prepare_window_process()
     root = tk.Tk()
+    root.report_callback_exception = lambda kind, exc, tb: diag(
+        '窓の処理で例外:\n' + ''.join(traceback.format_exception(kind, exc, tb)))
     Menu(root)
+    diag('メニューを開いた')
     root.mainloop()
+    diag('メニューを閉じた')
     return 0
+
+
+def prepare_window_process():
+    """デスクトップのショートカット（pythonw）で開いたときの下ごしらえ。
+    - 画面の外のエラー（標準エラー・スレッドの例外）を記録のファイルへ
+    - adb・ssh を呼ぶたびに黒いコンソールの窓が出ないように（窓の無い pythonw から呼ぶと毎回出る）"""
+    trim_log()
+    if sys.stderr is None or sys.stdout is None:
+        try:
+            LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+            stream = open(LOG_FILE, 'a', encoding='utf-8', buffering=1)
+            sys.stdout = sys.stdout or stream
+            sys.stderr = sys.stderr or stream
+        except OSError:
+            pass
+    threading.excepthook = lambda args: diag(
+        f'スレッド {args.thread.name if args.thread else "?"} で例外:\n'
+        + ''.join(traceback.format_exception(args.exc_type, args.exc_value, args.exc_traceback)))
+    if os.name == 'nt' and not getattr(subprocess.Popen, 'no_window', False):
+        base = subprocess.Popen
+
+        class NoWindowPopen(base):
+            no_window = True
+
+            def __init__(self, *args, **kwargs):
+                if not kwargs.get('creationflags'):  # 道具を開くとき（CREATE_NEW_CONSOLE）はそのまま
+                    kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+                super().__init__(*args, **kwargs)
+        subprocess.Popen = NoWindowPopen
 
 
 if __name__ == '__main__':
