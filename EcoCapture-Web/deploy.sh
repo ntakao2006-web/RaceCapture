@@ -16,7 +16,8 @@ docker run --rm --network=none --entrypoint python3 \
   -v "$PWD/test_bridge.py:/app/test_bridge.py:ro" ecocapture-web:0.2.0 /app/test_bridge.py
 docker run --rm --network=none --entrypoint python3 \
   -v "$PWD/test_podium.py:/app/test_podium.py:ro" ecocapture-web:0.2.0 /app/test_podium.py
-docker run --rm --network=none --entrypoint python3 \n  -v "$PWD/test_remote_command.py:/app/test_remote_command.py:ro" ecocapture-web:0.2.0 /app/test_remote_command.py
+docker run --rm --network=none --entrypoint python3 \
+  -v "$PWD/test_remote_command.py:/app/test_remote_command.py:ro" ecocapture-web:0.2.0 /app/test_remote_command.py
 docker run --rm --network=none --entrypoint python3 \
   -v "$PWD/test_lap.py:/app/test_lap.py:ro" ecocapture-web:0.2.0 /app/test_lap.py
 docker run --rm --network=none --entrypoint python3 -v "$PWD/test_lap.py:/app/test_lap.py:ro" \
