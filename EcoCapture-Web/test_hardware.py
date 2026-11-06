@@ -103,6 +103,13 @@ class HardwareTests(unittest.TestCase):
  def test_absent_gps_vehicle_channels_and_finite_imu(self):
   samples,sensors=HardwareDecoder().decode(self.state(),self.batch(),Configuration())
   s=validate_sample(samples[0]);self.assertIsNone(s['values']['RPM']);self.assertIsNone(s['values']['Lat']);self.assertAlmostEqual(s['values']['AccelZ'],9.81);self.assertEqual(s['quaternion'],[1,0,0,0])
+ def test_full_sd_card_says_it_keeps_recording(self):
+  # 2026-11-07: the MCU removes the oldest EL files when the card is full and reports how many
+  state=self.state();state.update(sd_mounted=1,sd_logging=1,sd_file=4801)
+  _,sensors=HardwareDecoder().decode(state,self.batch(),Configuration());self.assertEqual(sensors['sd'],'記録中 EL004801.BIN')
+  state['sd_deleted']=3
+  _,sensors=HardwareDecoder().decode(state,self.batch(),Configuration())
+  self.assertEqual(sensors['sd'],'記録中 EL004801.BIN（いっぱいのため古い順に3本消して記録中）')
  def test_missing_imu_keeps_real_time_and_gnss(self):
   state=self.state();state['imu_address']=0
   samples,_=HardwareDecoder().decode(state,{'rows':[[1,2000,'']],'can':[]},Configuration())

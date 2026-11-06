@@ -1,4 +1,5 @@
-// MCU-owned FAT32 append-only logger. Files are never formatted or overwritten.
+// MCU-owned FAT32 append-only logger. Files are never formatted or overwritten; when the card is
+// full the oldest EL file is removed (newSDLog).
 // 512-byte ELB2 blocks: 16-byte header, TLV records, CRC32 at offset 508.
 static uint32_t freeCursor=2,sdAllocMs=0;
 static uint32_t partStart,partSize,fatBase,fatSize,dataBase,clusters,rootCluster;
@@ -13,6 +14,7 @@ static volatile bool sdLogging=false,sdWorking=false;
 static uint16_t u16(const uint8_t*p){return p[0]|(p[1]<<8);}
 static uint32_t u32(const uint8_t*p){return p[0]|(p[1]<<8)|(p[2]<<16)|((uint32_t)p[3]<<24);}
 static void p32(uint8_t*p,uint32_t v){for(int i=0;i<4;i++)p[i]=v>>(i*8);}
+#ifndef SD_LOGGER_TEST_CARD
 static bool cardRead(uint32_t lba,uint8_t*b){int r=sdCmd(17,sdHighCapacity?lba:lba*512,1);bool ok=r==0&&sdReadData(b,512);sdDone();k_msleep(1);return ok;}
 static bool cardWrite(uint32_t lba,const uint8_t*b){
  int r=sdCmd(24,sdHighCapacity?lba:lba*512,1);if(r){sdDone();return false;}
@@ -22,30 +24,77 @@ static bool cardWrite(uint32_t lba,const uint8_t*b){
  do{k_msleep(1);k_mutex_lock(&spiLock,K_FOREVER);digitalWrite(D10,HIGH);digitalWrite(A4,LOW);sp(255);v=sp(255);sdDone();if(v==255)break;}while(millis()<end);
  return (token&31)==5&&v==255;
 }
+#endif
 static bool partitionWrite(uint32_t lba,const uint8_t*b){return lba>=partStart&&lba-partStart<partSize&&cardWrite(lba,b);}
 static uint32_t fatGet(uint32_t c){uint32_t sec=c/128;if(sec>=fatSize)return 0xffffffff;if(fatCached!=sec){if(!cardRead(fatBase+sec,fatBuf))return 0xffffffff;fatCached=sec;}return u32(fatBuf+(c%128)*4)&0x0fffffff;}
 static bool mountCard(){if(!sdReady||!cardRead(0,sectorBuf)||sectorBuf[510]!=0x55||sectorBuf[511]!=0xaa)return false;const uint8_t*p=sectorBuf+446;if(p[4]!=11&&p[4]!=12)return false;partStart=u32(p+8);partSize=u32(p+12);if(!partStart||!partSize||partStart+partSize<partStart)return false;if(!cardRead(partStart,sectorBuf)||u16(sectorBuf+11)!=512||u16(sectorBuf+17)!=0)return false;uint16_t info=u16(sectorBuf+48),backup=u16(sectorBuf+50),reserved=u16(sectorBuf+14);clusterSectors=sectorBuf[13];fatCopies=sectorBuf[16];fatSize=u32(sectorBuf+36);rootCluster=u32(sectorBuf+44);fatBase=partStart+u16(sectorBuf+14);dataBase=fatBase+fatCopies*fatSize;if(!clusterSectors||(clusterSectors&(clusterSectors-1))||fatCopies<1||fatCopies>2||!fatSize||dataBase>=partStart+partSize)return false;clusters=(partStart+partSize-dataBase)/clusterSectors;if(rootCluster<2||rootCluster>=clusters+2)return false;fatCached=0xffffffff;uint32_t rootNext=fatGet(rootCluster);if(rootNext<2||rootNext==0xffffffff||rootNext==0x0ffffff7)return false;if(info&&info<reserved){for(unsigned i=0;i<2;i++){uint32_t rel=info+(i?backup:0);if(rel>=reserved)continue;if(cardRead(partStart+rel,sectorBuf)&&u32(sectorBuf)==0x41615252&&u32(sectorBuf+484)==0x61417272){p32(sectorBuf+488,0xffffffff);p32(sectorBuf+492,0xffffffff);if(!partitionWrite(partStart+rel,sectorBuf))return false;}}}return true;}
 static bool logMetadata(){if(!sdLogging)return true;if(!cardRead(dirSector,sectorBuf))return false;p32(sectorBuf+dirOffset+28,logBytes);return partitionWrite(dirSector,sectorBuf);}
 static bool fatSet(uint32_t c,uint32_t value){uint32_t sec=c/128;if(!cardRead(fatBase+sec,fatBuf))return false;p32(fatBuf+(c%128)*4,value);for(unsigned f=0;f<fatCopies;f++)if(!partitionWrite(fatBase+f*fatSize+sec,fatBuf))return false;fatCached=0xffffffff;return true;}
+// Dashcam style (2026-11-07): when no free 1 MiB run is left, the oldest ELxxxxxx.BIN is
+// removed and its space reused. Only this logger's own EL files are removed, never the newest.
+static uint32_t sdDeleted=0;  // files removed to make room since power-on
+static bool sdFull=false;     // the card has been full: reuse the oldest file's space without a FAT scan
+// Free a FAT chain. Reports where it started, its length and whether it was one contiguous run.
+static bool freeChain(uint32_t c,uint32_t&first,uint32_t&len,bool&contiguous){
+ first=c;len=0;contiguous=true;uint32_t sec=0xffffffff,prev=0;fatCached=0xffffffff;
+ while(c>=2&&c<clusters+2&&len<clusters){
+  uint32_t s=c/128;
+  if(s!=sec){
+   if(sec!=0xffffffff)for(unsigned f=0;f<fatCopies;f++)if(!partitionWrite(fatBase+f*fatSize+sec,fatBuf))return false;
+   if(!cardRead(fatBase+s,fatBuf))return false;sec=s;
+  }
+  uint8_t*e=fatBuf+(c%128)*4;uint32_t next=u32(e)&0x0fffffff;p32(e,u32(e)&0xf0000000);
+  if(len&&c!=prev+1)contiguous=false;
+  prev=c;len++;
+  if(next<2||next>=0x0ffffff8)break;
+  c=next;
+ }
+ if(sec!=0xffffffff)for(unsigned f=0;f<fatCopies;f++)if(!partitionWrite(fatBase+f*fatSize+sec,fatBuf))return false;
+ fatCached=0xffffffff;return true;
+}
+// The directory entry goes first: a power cut in between leaves lost clusters, never a cross-link.
+static bool deleteEntry(uint32_t lba,uint16_t off,uint32_t&first,uint32_t&len,bool&contiguous){
+ first=len=0;contiguous=false;
+ if(!cardRead(lba,sectorBuf))return false;uint8_t*p=sectorBuf+off;
+ if(p[0]!='E'||p[1]!='L'||memcmp(p+8,"BIN",3))return false;
+ uint32_t c=((uint32_t)u16(p+20)<<16)|u16(p+26);p[0]=0xe5;
+ if(!partitionWrite(lba,sectorBuf))return false;sdDeleted++;
+ return c<2||c>=clusters+2||freeChain(c,first,len,contiguous);
+}
 static bool newSDLog(){
  if(!sdMounted)return false;uint32_t allocationAt=millis();
- uint32_t maxIndex=0,freeSec=0;uint16_t freeOff=0;uint32_t c=rootCluster,lastRoot=c;
- for(unsigned hop=0;hop<128&&c>=2&&c<clusters+2;hop++){
-  for(unsigned s=0;s<clusterSectors;s++){uint32_t lba=dataBase+(c-2)*clusterSectors+s;if(!cardRead(lba,sectorBuf))return false;
-   for(unsigned off=0;off<512;off+=32){uint8_t*p=sectorBuf+off;if((p[0]==0||p[0]==0xe5)&&!freeSec){freeSec=lba;freeOff=off;}if(p[0]=='E'&&p[1]=='L'&&!memcmp(p+8,"BIN",3)){uint32_t n=0;for(int j=2;j<8;j++){if(p[j]<'0'||p[j]>'9'){n=0;break;}n=n*10+p[j]-'0';}if(n>maxIndex)maxIndex=n;}}
-  }lastRoot=c;c=fatGet(c);if(c>=0x0ffffff8)break;
- }
- if(maxIndex>=999999)return false;
- if(!freeSec){uint32_t extra=0;for(uint32_t i=freeCursor;i<clusters+2;i++){if(fatGet(i)==0){extra=i;break;}}if(!extra)return false;memset(sectorBuf,0,512);for(unsigned j=0;j<clusterSectors;j++)if(!partitionWrite(dataBase+(extra-2)*clusterSectors+j,sectorBuf))return false;if(!fatSet(extra,0x0fffffff)||!fatSet(lastRoot,extra))return false;freeSec=dataBase+(extra-2)*clusterSectors;freeOff=0;freeCursor=extra+1;}
-
- // Reserve a contiguous 1 MiB file. Only free clusters are changed.
  uint32_t count=(1UL*1024*1024)/(clusterSectors*512UL),run=0,first=0;
- if(freeCursor<2||freeCursor>=clusters+2)freeCursor=2;
- for(int pass=0;pass<2&&run<count;pass++){
-  run=0;uint32_t begin=pass?2:freeCursor,end=pass?freeCursor:clusters+2;
-  for(uint32_t i=begin;i<end;i++){uint32_t v=fatGet(i);if(v==0){if(!run)first=i;if(++run==count)break;}else{if(v==0xffffffff)return false;run=0;}}
+ uint32_t maxIndex=0,freeSec=0,lastRoot=rootCluster;uint16_t freeOff=0;
+ bool reuseOldest=sdFull;
+ for(unsigned deleted=0;;){
+  uint32_t minIndex=0xffffffff,oldSec=0;uint16_t oldOff=0;
+  maxIndex=0;freeSec=0;freeOff=0;uint32_t c=rootCluster;lastRoot=c;
+  for(unsigned hop=0;hop<128&&c>=2&&c<clusters+2;hop++){
+   for(unsigned s=0;s<clusterSectors;s++){uint32_t lba=dataBase+(c-2)*clusterSectors+s;if(!cardRead(lba,sectorBuf))return false;
+    for(unsigned off=0;off<512;off+=32){uint8_t*p=sectorBuf+off;if((p[0]==0||p[0]==0xe5)&&!freeSec){freeSec=lba;freeOff=off;}
+     if(p[0]=='E'&&p[1]=='L'&&!memcmp(p+8,"BIN",3)){uint32_t n=0;for(int j=2;j<8;j++){if(p[j]<'0'||p[j]>'9'){n=0;break;}n=n*10+p[j]-'0';}
+      if(n>maxIndex)maxIndex=n;if(n&&n<minIndex){minIndex=n;oldSec=lba;oldOff=off;}}}
+   }lastRoot=c;c=fatGet(c);if(c>=0x0ffffff8)break;
+  }
+  if(maxIndex>=999999)return false;
+  if(!reuseOldest){
+   // Reserve a contiguous 1 MiB file. Only free clusters are changed.
+   if(freeCursor<2||freeCursor>=clusters+2)freeCursor=2;
+   for(int pass=0;pass<2&&run<count;pass++){
+    run=0;uint32_t begin=pass?2:freeCursor,end=pass?freeCursor:clusters+2;
+    for(uint32_t i=begin;i<end;i++){uint32_t v=fatGet(i);if(v==0){if(!run)first=i;if(++run==count)break;}else{if(v==0xffffffff)return false;run=0;}}
+   }
+   if(run>=count)break;
+  }
+  // No room: remove the oldest file, never the newest (so at least one older file must exist).
+  if(!oldSec||minIndex>=maxIndex||deleted>=16)return false;
+  uint32_t f,len;bool contiguous;
+  if(!deleteEntry(oldSec,oldOff,f,len,contiguous))return false;
+  deleted++;sdFull=true;
+  if(contiguous&&len>=count){first=f;if(!freeSec){freeSec=oldSec;freeOff=oldOff;}break;}
+  reuseOldest=false;run=0;  // not one 1 MiB run (not our layout): scan the FAT next round
  }
- if(run<count)return false;
+ if(!freeSec){uint32_t extra=0;for(uint32_t i=freeCursor;i<clusters+2;i++){if(fatGet(i)==0){extra=i;break;}}if(!extra)return false;memset(sectorBuf,0,512);for(unsigned j=0;j<clusterSectors;j++)if(!partitionWrite(dataBase+(extra-2)*clusterSectors+j,sectorBuf))return false;if(!fatSet(extra,0x0fffffff)||!fatSet(lastRoot,extra))return false;freeSec=dataBase+(extra-2)*clusterSectors;freeOff=0;freeCursor=extra+1;}
  for(uint32_t sec=first/128;sec<=(first+count-1)/128;sec++){
   fatCached=0xffffffff;if(!cardRead(fatBase+sec,fatBuf))return false;
   for(unsigned j=0;j<128;j++){uint32_t k=sec*128+j;if(k>=first&&k<first+count)p32(fatBuf+j*4,k==first+count-1?0x0fffffff:k+1);}
@@ -63,6 +112,7 @@ static void sdTick(uint32_t now){if(sdLogging&&now-sdFlushAt>=100){sdFlushAt=now
 static void sdStop(){flushSDLog();if(!logMetadata())sdFailure();sdLogging=false;}
 static void sdFiles(unsigned skip=0){result="[";uint32_t c=rootCluster;unsigned found=0;for(unsigned hop=0;hop<128&&c>=2&&c<clusters+2;hop++){for(unsigned s=0;s<clusterSectors;s++){if(!cardRead(dataBase+(c-2)*clusterSectors+s,sectorBuf)){result="SD_READ_ERROR";return;}for(unsigned off=0;off<512;off+=32){uint8_t*p=sectorBuf+off;if(p[0]!='E'||p[1]!='L'||memcmp(p+8,"BIN",3)||p[11]!=0x20)continue;char n[7];memcpy(n,p+2,6);n[6]=0;uint32_t index=strtoul(n,nullptr,10);char line[100];snprintf(line,sizeof(line),"%s{\"index\":%lu,\"cluster\":%lu,\"size\":%lu,\"active\":%s}",result.length()>1?",":"",(unsigned long)index,(unsigned long)((u16(p+20)<<16)|u16(p+26)),(unsigned long)u32(p+28),sdLogging&&index==logIndex?"true":"false");unsigned order=found++;if(order>=skip&&order<skip+16)result+=line;}}c=fatGet(c);if(c>=0x0ffffff8)break;}result+="]";}
 
+#ifndef SD_LOGGER_TEST_CARD
 // Single acquisition producer and SD consumer. No sensor work waits for filesystem writes.
 static uint8_t sdQueue[65536];
 static volatile uint32_t sdHead=0,sdTail=0,sdQueueDropped=0;
@@ -95,3 +145,4 @@ static void sdWorker(void*,void*,void*){
  }
 }
 static void startSDWorker(){k_thread_create(&sdThread,sdStack,K_THREAD_STACK_SIZEOF(sdStack),sdWorker,nullptr,nullptr,nullptr,6,0,K_NO_WAIT);}
+#endif
