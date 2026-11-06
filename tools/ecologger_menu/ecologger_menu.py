@@ -22,7 +22,7 @@ import time
 import tkinter as tk
 from datetime import datetime
 from pathlib import Path
-from tkinter import messagebox, ttk
+from tkinter import messagebox, simpledialog, ttk
 
 HERE = Path(__file__).resolve().parent
 TOOLS = HERE.parent
@@ -190,7 +190,7 @@ class Menu:
         self.device = Device(self.add_log)
         self.busy = False
         root.title('EcoLogger Ver.2 操作メニュー')
-        root.geometry('1000x880')
+        root.geometry("1000x900")
         root.minsize(900, 700)
         style = ttk.Style()
         try:
@@ -246,15 +246,23 @@ class Menu:
                            command=lambda c=cmd, a=args, o=adb_ok: self.launch(c, a, o)).grid(row=i, column=0, sticky='w', pady=1)
                 ttk.Label(frame, text=note, foreground='#666', wraplength=190).grid(row=i, column=1, sticky='w', padx=8)
 
-        misc = ttk.LabelFrame(right, text='開く', padding=8)
+        lte = ttk.LabelFrame(right, text='LTEで（本体から離れているとき・5Bの中継経由）', padding=8)
+        lte.pack(fill='x', pady=(0, 8))
+        for i, (label, op) in enumerate([('状態を聞く', 'status'), ('ラップを0周に戻す…', 'lap_reset'),
+                                         ('周回数を直す…', 'lap_count'), ('いまから計測を始める…', 'lap_start'),
+                                         ('記録を始める…', 'log_start')]):
+            ttk.Button(lte, text=label, width=22, command=lambda o=op: self.remote(o)).grid(row=i // 2, column=i % 2, sticky='w', padx=(0, 6), pady=1)
+        ttk.Label(lte, text='返事まで数秒〜30秒。結果は下のメモに出ます', foreground='#666').grid(row=3, column=0, columnspan=2, sticky='w', pady=(4, 0))
+
+        misc = ttk.LabelFrame(left, text='開く', padding=8)
         misc.pack(fill='x', pady=(0, 8))
         ttk.Button(misc, text='drive_logs（回収したもの）', width=26, command=lambda: self.open_path(REPO / 'drive_logs')).pack(anchor='w', pady=1)
         ttk.Button(misc, text='hud.ini（計器の配置）', width=26, command=lambda: self.open_path(TOOLS / 'video_hud' / 'hud.ini')).pack(anchor='w', pady=1)
         ttk.Button(misc, text='SUGOの当日の手順書', width=26, command=lambda: self.open_path(REPO / 'sugo_day_manual_20261108.html')).pack(anchor='w', pady=1)
 
-        logbox = ttk.LabelFrame(outer, text='メモ', padding=4)
-        logbox.pack(fill='both', expand=True)
-        self.log = tk.Text(logbox, height=6, wrap='word', state='disabled', background='#fafafa', relief='flat')
+        logbox = ttk.LabelFrame(right, text='メモ（操作の結果）', padding=4)
+        logbox.pack(fill='both', expand=True, pady=(0, 8))
+        self.log = tk.Text(logbox, height=8, width=40, wrap='word', state='disabled', background='#fafafa', relief='flat')
         self.log.pack(fill='both', expand=True)
 
         self.refresh()
@@ -330,6 +338,33 @@ class Menu:
                                    'ラインの設定はそのままです。記録は止まりません。\n\n戻しますか？', icon='warning'):
             return
         self.launch('sugo_setup/Reset-Laps.cmd', [], True)
+
+    # -- LTEで命令（tools/remote_command）
+    def remote(self, op):
+        sys.path.insert(0, str(TOOLS / 'remote_command'))
+        import remote_command_pc as rc
+        arg = None
+        if op == 'lap_count':
+            arg = simpledialog.askinteger('周回数を直す', '完了した周回数（0〜999）を入れてください。\n'
+                                          'ラップタイムの記録はそのまま、周回数だけが変わります。',
+                                          minvalue=0, maxvalue=999, parent=self.root)
+            if arg is None:
+                return
+        elif op != 'status':
+            text = {'lap_reset': 'ラップの記録を消して0周に戻します（ラインはそのまま）。',
+                    'lap_start': 'いまの時刻からラップの計測を始めます（スタートを取り逃したとき）。\n計測中なら何もしません。',
+                    'log_start': '本体の記録を始めます（記録が止まっているとき）。'}[op]
+            if not messagebox.askyesno(rc.OP_LABEL[op], text + '\n\nLTEで送りますか？', icon='warning'):
+                return
+        self.add_log(f'LTEで「{rc.OP_LABEL[op]}{"" if arg is None else f"（{arg}周）"}」を送ります…')
+
+        def done(result, error):
+            if error:
+                self.add_log(f'送れませんでした: {error}')
+                return
+            for line in rc.describe(result):
+                self.add_log(line)
+        self.background(lambda: rc.send(op, arg, log=lambda *a: None), done)
 
     # -- 道具を開く
     def launch(self, cmd, args, adb_ok):

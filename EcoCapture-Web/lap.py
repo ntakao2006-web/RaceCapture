@@ -268,6 +268,32 @@ class LapTimer:
         self.forget_motion()
         self.save()
 
+    def set_count(self, count):
+        """Correct the completed laps by hand (from the pit, remote_command.py). The lap times
+        already recorded stay; laps left and the current lap follow the new count."""
+        s = self.state
+        if s['finished'] and count != s['count']:
+            s['finished'] = False; s['race_end_ms'] = None  # finished too early: carry on counting
+        s['count'] = count
+        self.save()
+
+    def start_now(self):
+        """Start the running lap (and the race clock, if it has not started) at the current GNSS
+        time, for when the start was not seen (remote_command.py). A lap already running is kept."""
+        if not self.line.enabled:
+            raise ValueError('no lap line')
+        if self.latest_utc is None:
+            raise ValueError('no GNSS time yet')
+        s = self.state
+        if s['lap_start_ms'] is not None:
+            raise ValueError('a lap is already running')
+        now_ms = int(self.latest_utc[0] + (time.monotonic() - self.latest_utc[1]) * 1000)
+        s['finished'] = False; s['race_end_ms'] = None
+        s['lap_start_ms'] = now_ms; s['lap_start_pit'] = False
+        if s['race_start_ms'] is None:
+            s['race_start_ms'] = now_ms
+        self.save()
+
     def here_position(self, sample):
         """(lat, lon, fixes averaged, spread in m) for the line being registered here."""
         values = (sample or {}).get('values', {})

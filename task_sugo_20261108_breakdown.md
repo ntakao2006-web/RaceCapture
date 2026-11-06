@@ -438,6 +438,12 @@
         上に本体の状態（記録・受信・測位・SD・録画・空き・LTE・ラップ・HDMIの画面・温度）を30秒ごとに読んで出し、下のボタンで回収・HUD・レンズ・電波の`.cmd`を開く。
         つなぎ方は回収アプリと同じ（USBのadb→テザリングのssh）で、`--adb`を受ける道具にはUSBのときだけ付ける。メニュー自身が書き込むのはHDMIの画面の切り替え（`dash_switch.sh`）だけで、
         ラップのリセットは確かめてから`Reset-Laps.cmd`を開く。USBで状態の読み取り（約0.4秒）・DASHへの切り替え（すでにDASHのまま）を確かめた。テザリングだけのときはまだ試していない
+      - **2026-11-06 LTE経由の命令を作った**（ユーザー依頼：周回数の誤作動・スタートできていないときにLTEでいじりたい）。命令は`status`・`lap_reset`・`lap_count N`・`lap_start`（いまのGNSS時刻から計測、計測中なら何もしない）・`log_start`だけ。
+        本体が5Bの中継へつないだままの`logger.config`に載せ（中継サーバーは変えない）、本体は`EcoCapture-Web/remote_command.py`で確かめて実行し、結果と状態を返す。
+        中継の`/ws/audio/<部屋>`は鍵なしで誰でもつなげロガーのふりもできるので、合言葉（本体の`private/remote_command.json`とPCの`%LOCALAPPDATA%\EcoLogger\remote_command.json`だけ）でHMAC-SHA256の署名、IDは1回限り（再起動しても覚える）、GNSS時刻が分かるときは10分より古い命令を断る。
+        PCは`tools/remote_command/remote_command_pc.py`（`setup`を本体をUSBでつないで1回）と操作メニューの「LTEで」のボタン。`lap.py`に`set_count`・`start_now`を足した。
+        PCで試験（本体側13件・PC側3件は偽の中継で送る→署名→返事まで、既存の`test_lap` 27件・`test_server` 27件）。`setup`は済み（本体に合言葉のファイルを置いただけ）。本物の5Bの中継へつないで読めることを確かめた（命令は送っていない）。
+        - [ ] 本体へ入れる（`deploy.sh`、記録が一度止まる）と、LTEで`status`・`lap_count`（同じ周回数）を通す
     - [ ] 画面に出しているときのCPU・温度、運転席から読めること（取付のとき）
     - [x] 回転数の帯・速度（11/6にPCで作った）を本体へ入れる。**2026-11-06 14:18 入れた（ユーザー依頼「つながったら入れておいて」）**。
       入れる前の本体の2つのファイルはリポジトリの前の版と同じだった。控えは本体の`/opt/logger-v2-racecapture/*.pre-rpm-20261106`（戻すときはこれを戻して`systemctl restart ecocapture-dash`）。

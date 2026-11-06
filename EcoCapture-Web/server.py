@@ -22,7 +22,8 @@ from pydantic import BaseModel
 from sd_storage import SDStorage
 from sd_timestamp import stamp_logs
 from models import CHANNELS, LAP_CHANNELS, Configuration, log_value, signal_columns, validate_sample
-from podium import PodiumSender
+from podium import PodiumSender, utc_milliseconds
+from remote_command import RemoteCommands
 import field
 from lap import LapLine, LapTimer, line_qr
 from imu_mount import ImuMount
@@ -244,6 +245,8 @@ class Runtime:
         self._frame_text = ''
         self.podium = PodiumSender(ROOT,self)
         self.laps = LapTimer(ROOT)
+        # Signed commands from the pit over LTE (remote_command.py); log_start is added below start_log.
+        self.remote = RemoteCommands(ROOT, self, lambda: utc_milliseconds(self.sample) if self.sample and time.monotonic() - self.received_at < 2 else None)
         self.mount = ImuMount(ROOT / "imu_mount.json")
         self.mount_saved_at = time.monotonic()
         self.podium_task = None
@@ -735,6 +738,9 @@ async def start_log():
         if runtime.bridge and not runtime.hardware.get('sd_logging'):
             runtime.sd_note=await start_sd()
         return runtime.status()["logging"]
+
+
+runtime.remote.actions['log_start'] = start_log
 
 
 @app.post("/api/log/stop")

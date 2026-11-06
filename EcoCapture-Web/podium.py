@@ -474,6 +474,7 @@ class PodiumSender:
         # Received voice packets (Opus) for whatever plays them; oldest dropped first.
         self.voice=collections.deque(maxlen=VOICE_QUEUE)
         self.voice_link=VoiceLink()
+        self.remote_pending=[]  # signed pit commands waiting for relay_session (remote_command.py)
         self.sent_at=0;self.blocked_revision=None
         self.active_link=None;self.watch_wifi=False;self.wifi_checked=0;self.wifi_skip_until=0;self.wifi_unknown=0
         self.session_frames=0
@@ -642,6 +643,7 @@ class PodiumSender:
             if time.monotonic()-polled>=(VOICE_POLL_S if fast else RELAY_POLL_S)[config.link]:
                 polled=time.monotonic()
                 for text in await ws.poll():self.relay_message(text,sample,fresh)
+                await self.run_remote(ws)
                 if ws.binary:
                     voice_heard=time.monotonic();self.voice_received(ws.binary,guard.on);ws.binary=[]
                 if time.monotonic()-ws.heard_at>RELAY_SILENT_S[config.link]:raise ConnectionError('Relay not responding')
@@ -695,10 +697,23 @@ class PodiumSender:
         play=getattr(self.runtime,'play_voice',None) or self.voice_link.play
         for packet in packets:play(packet)
 
+    async def run_remote(self,ws):
+        """Pit commands that came in this poll; each answer goes back through the relay to the pit."""
+        pending,self.remote_pending=self.remote_pending[:5],[]  # more than a few at once is not a person
+        remote=getattr(self.runtime,'remote',None)
+        for command in pending:
+            if remote is None:result={'id':command.get('id') if isinstance(command,dict) else None,'ok':False,'message':'no remote commands'}
+            else:result=await remote.run(command)
+            self.event('remote_command',op=result.get('op'),ok=result.get('ok'),message=result.get('message'))
+            await ws.send_json({'type':'logger.config','data':{'command_result':result}})
+
     def relay_message(self,text,sample,fresh):
         try:event=json.loads(text)
         except ValueError:return
         if not isinstance(event,dict):return
+        if event.get('type')=='logger.config' and isinstance(event.get('data'),dict) and 'command' in event['data']:
+            # A signed command from the pit (remote_command.py); run by relay_session, not here.
+            self.remote_pending.append(event['data']['command']);return
         if event.get('type')=='logger.config':
             # From the pit through the relay (2026-10-22): voice settings for voice_agent.py,
             # or {} to ask what is in use. The agent answers with b'A' (voice_uplink sends it on).
