@@ -421,6 +421,11 @@
         本体のEcoCapture-Webで違っていたのはこの2つとその試験だけ（`public/`は`build_public.py`が`web/`から作り直す）。控えはイメージ`ecocapture-web:pre-lapfield-20261106`、ファイルは本体の`~/EcoCapture-Web/.bak-lapfield-20261106/`。
         13:16に`sugo_setup.py --apply`（ラインはSUGO、ピットの値`pit_offset_m` 11・`pit_max_kmh` 80、ラップは0周。前のラインは本体の`lap.json.bak-20261106-ecorun`）。
         このとき`uno-q.local`が引けなかったので、つなぎ先をIPにする包みで流した（道具の中身はそのまま）。手順4は運転中の画面が切り替わるので、まだやっていない
+      - **2026-11-06 名前が引けないときはIPで探すようにした**（ユーザー依頼。SUGOで`Reset-Laps.cmd`が同じ理由で失敗しないように）：`tools/collect_logs/unoq_ssh.py`。
+        `ssh unoq`→前回のIP（`%LOCALAPPDATA%\EcoLogger\unoq_ip.txt`）→PCと同じ/24で22番が開いている機械のうち`hostname`が`uno-q`のもの、の順。
+        IPでつなぐときも鍵は`uno-q.local`の名前で照合する（`HostKeyAlias`）ので、別の機械には入らない。
+        `sugo_setup.py`（`Reset-Laps.cmd`・`podium_channels_setup.py`・`defi_*_setup.py`も同じ`runner`）・`dash_check.py`・`Show-Dash.cmd`・`Show-RaceCapture.cmd`・`hud_apply.py`（`Apply-HUD.cmd`・`lens_apply.py`）・`lens_preview_remote.py`・回収アプリのテザリングのsshをこれ経由にした。
+        名前を引けなくした場合で、探して見つかるまで約2.5秒、前回のIPなら約0.6秒、前回のIPが古いと約5秒（Git BashのsshとWindowsのOpenSSHの両方で確かめた）
     - [ ] 画面に出しているときのCPU・温度、運転席から読めること（取付のとき）
     - [ ] 11/7の走行会：ベスト比・前周比が実走で合うか、ピットを通った周に「PIT」と出るか（出なければ記録の位置・速度から値を直す）
     - [ ] 当日の手順書（SG-5-1）に、DASHが出なかったときの戻し方を足す

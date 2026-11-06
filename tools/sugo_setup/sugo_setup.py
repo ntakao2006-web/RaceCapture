@@ -56,7 +56,8 @@ def runner(use_adb, host):
             sys.exit('adbが見つかりません')
         head = [*adb, 'shell']
     else:
-        head = ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host]
+        import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
+        head = unoq_ssh.ssh_cmd(host, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8')
 
     def run(command):
         # 待つ長さは各コマンド（curl -m）が決める。記録の停止はSDの時刻付けが終わるまで返らないので長めに打ち切る

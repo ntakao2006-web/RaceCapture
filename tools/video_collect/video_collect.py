@@ -132,10 +132,12 @@ class SshLink(Link):
         self.host = host
 
     def argv(self, command):
-        return ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', self.host, command]
+        import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
+        return [*unoq_ssh.ssh_cmd(self.host, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8'), command]
 
     def pull_argv(self, remote, local):
-        return ['scp', '-q', '-o', 'BatchMode=yes', f'{self.host}:{remote}', str(local)]
+        import unoq_ssh
+        return ['scp', '-q', '-o', 'BatchMode=yes', *unoq_ssh.target_opts(self.host), f'{self.host}:{remote}', str(local)]
 
     def label(self):
         return f'テザリング（ssh {self.host}、遅いので短い区間だけ）'

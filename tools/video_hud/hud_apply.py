@@ -48,7 +48,8 @@ def runner(use_adb, host):
             sys.exit('USBでつないだUNO Qが見つかりません（ドックを外してPCへ直接つなぎ、本体を再起動してから）')
         head = [*adb, '-s', serial, 'shell']
     else:
-        head = ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host]
+        import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
+        head = unoq_ssh.ssh_cmd(host, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8')
 
     def run(command, data=None):
         done = subprocess.run([*head, command], input=data, capture_output=True, timeout=60)

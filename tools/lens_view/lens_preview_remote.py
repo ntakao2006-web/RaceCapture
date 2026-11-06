@@ -30,7 +30,8 @@ def head_command(use_adb, host):
         adb = adb_command()
         serial, _, _ = list_uno_q_videos(adb)
         return [*adb, '-s', serial, 'shell']
-    return ['ssh', '-t', '-o', 'ConnectTimeout=8', host]
+    import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
+    return unoq_ssh.ssh_cmd(host, '-t', '-o', 'ConnectTimeout=8')
 
 
 def main(argv=None):

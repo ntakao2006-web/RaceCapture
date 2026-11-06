@@ -52,14 +52,15 @@ class Device:
                 sys.exit('adbが見つかりません')
 
     def run(self, command, timeout=200):
-        head = [*self.adb, 'shell'] if self.adb else ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', self.host]
+        import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
+        head = [*self.adb, 'shell'] if self.adb else unoq_ssh.ssh_cmd(self.host, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8')
         done = subprocess.run([*head, command], capture_output=True, text=True, encoding='utf-8', errors='replace',
                               stdin=subprocess.DEVNULL, timeout=timeout)
         return done.returncode, (done.stdout + done.stderr).strip()
 
     def put(self, local, remote):
         command = [*self.adb, 'push', str(local), remote] if self.adb else \
-            ['scp', '-q', '-o', 'BatchMode=yes', str(local), f'{self.host}:{remote}']
+            ['scp', '-q', '-o', 'BatchMode=yes', *__import__('unoq_ssh').target_opts(self.host), str(local), f'{self.host}:{remote}']
         subprocess.run(command, check=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=120)
 
     def get(self, remote, local):
