@@ -59,15 +59,16 @@ class RpmSpeedTests(unittest.TestCase):
     def test_bar_fills_to_the_shift_point_then_shift_and_limit(self):
         c = config()
         self.assertEqual(rpm_bar(c, None), (0, None))
-        self.assertEqual(rpm_bar(c, 4999), (0, None))
-        self.assertEqual(rpm_bar(c, 5000), (1, None))      # the first segment at rpm_bar_start
-        self.assertEqual(rpm_bar(c, 6350), (6, None))      # 270 rpm a segment
-        self.assertEqual(rpm_bar(c, 7429), (9, None))
-        self.assertEqual(rpm_bar(c, 7430), (10, None))     # the full bar just before the shift
-        self.assertEqual(rpm_bar(c, 7700), (10, 'shift'))
+        self.assertEqual(rpm_bar(c, 3999), (0, None))
+        self.assertEqual(rpm_bar(c, 4000), (1, None))      # the first segment at rpm_bar_start
+        self.assertEqual(rpm_bar(c, 5750), (6, None))      # 350 rpm a segment
+        self.assertEqual(rpm_bar(c, 7149), (9, None))
+        self.assertEqual(rpm_bar(c, 7150), (10, None))     # the full bar just before the shift
+        self.assertEqual(rpm_bar(c, 7499), (10, None))
+        self.assertEqual(rpm_bar(c, 7500), (10, 'shift'))  # the red flashing, 500 short of the limiter
         self.assertEqual(rpm_bar(c, 7949), (10, 'shift'))
         self.assertEqual(rpm_bar(c, 8000), (10, 'limit'))
-        self.assertEqual(rpm_bar(config(shift_rpm=7500, limit_rpm=7800), 7600), (10, 'shift'))
+        self.assertEqual(rpm_bar(config(shift_rpm=7200, limit_rpm=7800), 7300), (10, 'shift'))
 
     def test_state_has_rpm_and_speed(self):
         m = DashModel(config())

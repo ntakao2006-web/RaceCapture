@@ -69,12 +69,12 @@ DEFAULTS = {
     'hold_off_s': 5.0,
     'flash_s': 60.0,  # the band flashes this long after a warning comes on (0: never); a minute: one straight
     'delta_full_scale_s': 2.0,
-    # The engine speed bar (rpm). The NCEC's limiter is 8000 rpm (NOPRO MZ-TUNE+); the power falls off past
-    # about 7000 (stock NC 2.0: 170 ps at 7000), yet in every gear shifting near the limit is still about as
-    # quick, so the shift is 7700: about 0.25 s ahead of the cut in second gear. To be set per gear from the
-    # logs of 2026-11-07 (and the RPM above 3439 is still to be checked against the stock tachometer).
-    'rpm_bar_start': 5000,
-    'shift_rpm': 7700,
+    # The engine speed bar (rpm). The NCEC's limiter is 8000 rpm (NOPRO MZ-TUNE+). The user's call on
+    # 2026-11-06: the bar from 4000 (easier to read, 350 rpm a segment) and the red flashing from 7500, 500
+    # short of the limiter (it was 5000 and 7700). To be set per gear from the logs of 2026-11-07 (and the
+    # RPM above 3439 is still to be checked against the stock tachometer).
+    'rpm_bar_start': 4000,
+    'shift_rpm': 7500,
     'limit_rpm': 7950,
     # The speed in the pit lane (km/h): SUGO's pit lane limit is 60
     'pit_speed_limit_kmh': 60,
