@@ -79,7 +79,6 @@ class SugoSetupTests(unittest.TestCase):
         self.assertIsNone(self.device.line['start'])
         self.assertEqual(self.device.laps, 0)
         backup = next(n for n in self.device.files if n.startswith('lap.json.bak-'))
-        self.assertTrue(backup.endswith('-ecorun'))
         self.assertEqual(json.loads(self.device.files[backup])['line'], ECORUN)
         # 2回目は何もしない（退避を上書きしない）
         self.assertEqual(sugo_setup.main(['--apply']), 0)
@@ -107,7 +106,16 @@ class SugoSetupTests(unittest.TestCase):
         sugo_setup.main(['--apply'])
         backup = next(n for n in self.device.files if n.startswith('lap.json.bak-'))
         self.assertEqual(sugo_setup.main(['--restore', backup]), 0)
-        self.assertEqual(self.device.line, {**ECORUN, 'pit_offset_m': None, 'pit_max_kmh': None})  # no SUGO pit lane left
+        self.assertEqual(self.device.line, {**ECORUN, 'pit_offset_m': None, 'pit_max_kmh': None, 'sectors': []})  # no SUGO pit lane left
+
+    def test_apply_only_adds_the_sectors_to_a_sugo_line_without_them(self):
+        self.device.line = {k: v for k, v in sugo_setup.SUGO_LINE.items() if k != 'sectors'}
+        self.device.laps = 4
+        self.assertEqual(sugo_setup.main(['--apply']), 0)
+        self.assertEqual(self.device.posts, ['/api/lap'])  # no backup, no reset
+        self.assertEqual(self.device.laps, 4)
+        self.assertEqual(self.device.line['sectors'], sugo_setup.SUGO_LINE['sectors'])
+        self.assertEqual(sugo_setup.line_changes(self.device.line), [])
 
 
 if __name__ == '__main__':

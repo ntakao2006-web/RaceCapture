@@ -160,6 +160,43 @@ class TimingSheetTest(unittest.TestCase):
         self.assertNotIn('oil', passes[2])   # the rows of the span belong to laps 2 and 3
         self.assertEqual(passes[2]['s'], 101.0)
 
+    def sector_drive(self, p, laps, lose=()):
+        """Laps of 100 s with sector lines at 30, 60 and 80 s, the values as lap.py sends them;
+        rows at times in `lose` (s) do not arrive."""
+        ends = (30.0, 60.0, 80.0)
+        for n in range(int(laps * 100 / 0.8)):
+            t = n * 0.8
+            k, into = int(t // 100), t % 100
+            ts, f = circuit_row(t, t, into, k, lap_time=100.0 if k else None)
+            done = sum(into >= e for e in ends)
+            f['Sector'] = done + 1
+            if done:
+                f.update(LastSector=done, SectorTime=(ends[done - 1] - (ends[done - 2] if done > 1 else 0)) / 60)
+            elif k:
+                f.update(LastSector=4, SectorTime=20.0 / 60)
+            if not any(a <= t < b for a, b in lose):
+                p.add(ts, f)
+
+    def test_sector_times_go_with_their_lap(self):
+        p = live_bridge.Pace()
+        self.sector_drive(p, 3.5)
+        passes = [q for q in p.clock()['passes'] if q['k'] == 'control']
+        self.assertEqual([q['n'] for q in passes], [1, 2, 3])
+        self.assertEqual([q['x'] for q in passes], [[30.0, 30.0, 20.0, 20.0]] * 3)
+
+    def test_a_sector_lost_over_lte_is_left_out(self):
+        """No rows from 25 s to 65 s of lap 2: S1 is caught later (its value stays), S2 is not."""
+        p = live_bridge.Pace()
+        self.sector_drive(p, 2.5, lose=[(125.0, 165.0)])
+        passes = [q for q in p.clock()['passes'] if q['k'] == 'control']
+        self.assertEqual(passes[1]['x'], [None, 30.0, 20.0, 20.0])   # S2's own value had been replaced by S3's
+        self.assertEqual(passes[0]['x'], [30.0, 30.0, 20.0, 20.0])
+
+    def test_no_sector_lines_send_no_sectors(self):
+        p = live_bridge.Pace()
+        self.drive(p, 3)
+        self.assertFalse(any('x' in q for q in p.clock()['passes']))
+
     def test_live_temperatures_go_stale(self):
         p = live_bridge.Pace()
         p.add(*circuit_row(0, 0, 0, 0))

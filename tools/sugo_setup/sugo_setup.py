@@ -6,14 +6,16 @@
   - ラップのライン：エコラン会場の3本（スタート・コントロール・ゴール）と7周・規定時間 → SUGOのコントロールライン1本へ
 
 既定は確かめるだけで、本体は何も変えない。--apply を付けたときだけ次を行う:
-  1. 今の lap.json を本体の中で lap.json.bak-<日付>-ecorun へ写す（同じ名前があれば上書きしない）
-  2. ラインをSUGOのコントロールラインにする（POST /api/lap。記録は止めなくてよい）
+  1. 今の lap.json を本体の中で lap.json.bak-<日付-時刻> へ写す（同じ名前があれば上書きしない）
+  2. ラインをSUGOのコントロールラインとセクターの線にする（POST /api/lap。記録は止めなくてよい）
   3. ラップの記録を消す（POST /api/lap/reset）。決勝の前（予選のあと）にもう一度リセットする
 --restore <本体のファイル名> で、退避した lap.json のラインへ戻す（エコラン用へ戻すとき）。
 --reset でラップの記録だけを消す（予選のあと決勝の前。Reset-Laps.cmd がこれを呼ぶ）。
   レース経過（SessionTime）はリセットのあと最初にコントロールラインを通った時から数える。
-ラインがすでにSUGOで、違うのがピットレーンの値（2026-11-04に足した）だけなら、--apply はその値だけを足し、
-ラップの記録は消さない。
+ラインがすでにSUGOで、違うのがピットレーンの値（2026-11-04に足した）やセクターの線（2026-11-07）だけなら、
+--apply はそれだけを書き、ラップの記録は消さない（セクターの線を変えるとセクターのタイムとベストは消える）。
+セクターの線は2026-11-07のlap.pyから。それより前の本体は sectors を受け付けない（HTTP 422）ので、先に
+install_sectors.py で本体を新しくする。
 
 つなぎ方: 既定は ssh unoq（Pixelのテザリング）。--adb でUSBのadb（ドックを外してPCへ直接つないだとき）。
   python sugo_setup.py            # 確かめるだけ
@@ -34,17 +36,28 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'collect_logs'))
 DATA = '/home/arduino/ecocapture-v2-data'
 API = 'http://127.0.0.1:8080'
 
-# task_sugo_20261108_breakdown.md SG-1-3（2026-10-25、OpenStreetMapのコースと航空写真から）。
+# task_sugo_20261108_breakdown.md SG-1-3。中心は2026-11-07の走行会でトラポのビーコンが置かれていた位置
+# （ユーザーがGoogleマップで指定）。10/25にOpenStreetMapと航空写真から決めた38.1423587, 140.7770000は約83m手前で、
+# 中心もコースからピット側へ約8mずれていた。向き97.5°は11/7の走行（96〜97°）と合っている。
 # 幅50mはピットレーンを通った周も数えるため。給油で長くなる周があるので最長ラップは既定の1時間のまま。
 SUGO_LINE = {
-    'enabled': True, 'lat': 38.1423587, 'lon': 140.7770000, 'bearing': 97.5, 'width_m': 50.0,
+    'enabled': True, 'lat': 38.1423181, 'lon': 140.7779443, 'bearing': 97.5, 'width_m': 50.0,
     'min_lap_s': 60.0, 'max_lap_s': 3600.0,
     'start': None, 'goal': None, 'total_laps': None, 'time_limit_s': None, 'margin_s': None,
-    # ピットレーン（OpenStreetMap way 573824372）はこの線の上でコースの中心線から右（南）へ約11m。
-    # 線を80km/h以下でそちら側（5.5mより外）を通ったらピットの通過（EcoCapture-Web/lap.py）。11/7の走行会で確かめる
+    # 線を80km/h以下で右（南、ピット側）の5.5mより外を通ったらピットの通過（EcoCapture-Web/lap.py）。
+    # 11/7の走行をビーコンの線に当てはめると、コースは中心から左へ1.6〜4.0m、ピットレーンは右へ13.6〜14.6mで越えていたので
+    # 11mのままでどちらにも7〜8mの余裕がある
     'pit_offset_m': 11.0, 'pit_max_kmh': 80.0,
+    # セクター1〜3の終わりの線（2026-11-07にユーザーがGoogleマップで指定。4つめはコントロールラインで終わる）。
+    # 向きはその場所を通った11/7の走行の向き（Yaw）。幅30mはコースだけを横切る長さで、近くを通るほかの区間には届かない
+    'sectors': [
+        {'lat': 38.1392767, 'lon': 140.7787425, 'bearing': 71.0, 'width_m': 30.0},
+        {'lat': 38.1384700, 'lon': 140.7774769, 'bearing': 253.5, 'width_m': 30.0},
+        {'lat': 38.1408947, 'lon': 140.7730358, 'bearing': 252.5, 'width_m': 30.0},
+    ],
 }
 PIT_KEYS = ('pit_offset_m', 'pit_max_kmh')
+KEEP_KEYS = (*PIT_KEYS, 'sectors')  # これだけが違うときはラップの記録を消さない
 
 
 def runner(use_adb, host):
@@ -129,7 +142,7 @@ def main(argv=None):
     if args.restore:
         name = Path(args.restore).name
         saved = json.loads(run(f'cat {DATA}/{shlex.quote(name)}'))['line']
-        saved = {**dict.fromkeys(PIT_KEYS), **saved}  # a line saved before the pit lane existed has none
+        saved = {**dict.fromkeys(PIT_KEYS), 'sectors': [], **saved}  # a line saved before the pit lane / sectors has none
         print(f'{name} のラインへ戻します')
         api(run, '/api/lap', saved)
         api(run, '/api/lap/reset', {})
@@ -141,17 +154,17 @@ def main(argv=None):
     if not changes:
         print('ラインは切り替え済みなので、何もしません（ラップのリセットは /api/lap/reset か画面から）')
         return 0
-    if all(key in PIT_KEYS for key, _, _ in changes):
+    if all(key in KEEP_KEYS for key, _, _ in changes):
         api(run, '/api/lap', {key: after for key, _, after in changes})
-        print('ピットレーンの値だけを足しました（ラップの記録はそのまま）')
+        print('ピットレーンの値・セクターの線だけを書きました（ラップの記録はそのまま）')
         _, left = check(run)
         return 1 if left else 0
-    backup = f"lap.json.bak-{datetime.now():%Y%m%d}-ecorun"
+    backup = f"lap.json.bak-{datetime.now():%Y%m%d-%H%M%S}"
     run(f'cd {DATA} || exit 1; [ -e {backup} ] || cp -p lap.json {backup}; ls -l {backup}')
     print(f'今のラインを本体の {backup} へ退避しました')
     api(run, '/api/lap', SUGO_LINE)
     api(run, '/api/lap/reset', {})
-    print('SUGOのコントロールラインにして、ラップの記録を消しました')
+    print('SUGOのコントロールラインとセクターの線にして、ラップの記録を消しました')
     _, left = check(run)
     return 1 if left else 0
 

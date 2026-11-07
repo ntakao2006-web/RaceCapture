@@ -163,6 +163,8 @@ class Pace:
         self.latest = {}   # last value of the channels the pit clock shows (TimeLimit/Margin come sparse)
         self.seen = {}     # channel -> time of its last value, for the live temperatures
         self.peaks = {}    # PEAKS key -> highest value so far in the lap being driven
+        self.sectors = {}  # sector number -> its time (s) in the lap being driven (see sector_row)
+        self.sector_key = None
 
     def clock(self):
         """The pit clock (clock.html, 2026-10-24): the start time, not the elapsed time, so the
@@ -265,9 +267,26 @@ class Pace:
         restarted, or a test replay) would divide part of the distance by the whole time."""
         return acc is not None and acc[1] < 0.1
 
-    def event(self, lap, kind, at_ms, lap_s=None, avg=None, peaks=None, est=False):
+    def sector_row(self, fields):
+        """The sector the logger has just timed (lap.py, 2026-11-07): (number, seconds or None, last of
+        its lap) once per new LastSector/SectorTime, else None. The logger keeps sending the last one
+        until the next ends, so a sector is caught as long as any row of the next sector gets here.
+        One that ends at or after the sector being driven (Sector) is the last of the lap just
+        completed: it ended on the control line and comes in the pass's own row."""
+        n, minutes = fields.get('LastSector'), fields.get('SectorTime')
+        if n is None:
+            return None
+        key = (round(n), None if minutes is None else round(minutes * 60, 2))
+        if key == self.sector_key:
+            return None
+        self.sector_key = key
+        running = fields.get('Sector')
+        return key[0], key[1], running is None or key[0] >= running
+
+    def event(self, lap, kind, at_ms, lap_s=None, avg=None, peaks=None, est=False, sectors=None):
         """One line pass: lap 0 is the start; kind start/control/goal. `peaks` are the lap's
-        highest PEAKS; `est` marks a pass put in for a lap whose line pass never arrived."""
+        highest PEAKS; `est` marks a pass put in for a lap whose line pass never arrived;
+        `sectors` {number: s or None} the lap's sector times that got here (`x`, from S1)."""
         self.events.append({'lap': lap, 'kind': kind, 'at_ms': int(at_ms), 'lap_s': lap_s, 'avg': avg,
                             'race': time.strftime('%H:%M', time.localtime(self.start_ms / 1000))})
         if kind == 'start':
@@ -281,6 +300,8 @@ class Pace:
             p[key] = round(value, 1)
         if est:
             p['e'] = 1
+        if sectors:
+            p['x'] = [sectors.get(k) for k in range(1, max(sectors) + 1)]
         self.passes.append(p)
 
     def add(self, ts_ms, fields):
@@ -293,6 +314,9 @@ class Pace:
                 self.seen[name] = ts_ms
         dt = (ts_ms - self.last_ts) / 1000 if self.last_ts is not None else None
         self.last_ts = ts_ms
+        sector = self.sector_row(fields)
+        if sector and sector[2]:   # the last sector of the lap whose pass may come in this row
+            self.sectors[sector[0]] = sector[1]
         step = 0.0
         if speed is not None and dt is not None and 0 < dt <= self.MAX_GAP_S:
             step = speed * dt / 3600
@@ -332,8 +356,8 @@ class Pace:
                 n = int(self.count) + 1 + i
                 self.event(n, 'control', at - (k - 1 - i) * lap_s * 1000 if lap_s else at, lap_s, avg, est=True)
             self.event(int(count), 'goal' if finished else 'control', at, lap_s, avg,
-                       peaks=self.peaks if k == 1 else None)
-            self.peaks = {}
+                       peaks=self.peaks if k == 1 else None, sectors=self.sectors if k == 1 else None)
+            self.peaks, self.sectors = {}, {}
             if avg is not None:
                 self.last_lap_avg = avg   # the goal lap too, which has no next lap to start
         if count is not None:
@@ -346,7 +370,7 @@ class Pace:
             if self.start_ms is None or abs(new_start - self.start_ms) > 2000:   # not just the bridge restarting
                 self.start_ms = new_start
                 self.event(0, 'start', new_start)
-                self.peaks = {}
+                self.peaks, self.sectors = {}, {}
         elif race_min > self.race_min:   # frozen after the goal: driving to the paddock does not count
             self.race[0] += step
         if lap_min is None:
@@ -360,8 +384,10 @@ class Pace:
         self.race_min, self.lap_min = race_min, lap_min
         # This row is in the lap being driven (after a pass, already the new one). Before the
         # first pass (the out lap) nothing is kept.
+        if sector and not sector[2]:   # a sector of the lap being driven
+            self.sectors[sector[0]] = sector[1]
         if lap_min is None:
-            self.peaks = {}
+            self.peaks, self.sectors = {}, {}
         else:
             for key, name in self.PEAKS.items():
                 value = speed if name == 'Speed' else fields.get(name)

@@ -121,6 +121,9 @@ class DemoFeed:
             lon = self.LON0 + self.RADIUS * math.cos(angle) / (111320.0 * math.cos(math.radians(self.LAT0)))
             pit = lambda n: n % 7 in (0, 1) and n > 1
             lap.update(CurrentLap=k, LapCount=k - 1, ElapsedTime=into / 60, RaceTime=t / 60, LapStartPit=pit(k) and pit(k - 1))
+            quarter = int(4 * into / self.lap_s(k))  # four sectors of a quarter lap each
+            if quarter or times:
+                lap.update(Sector=quarter + 1, LastSector=quarter or 4, SectorDiffS=round(0.4 * math.sin(1.7 * k + quarter), 2))
             if times:
                 lap.update(LapTime=times[-1] / 60, BestLap=min(times) / 60, LastLapPit=pit(k - 1))
                 if len(times) >= 2 and not pit(k - 1) and not pit(k - 2):
@@ -141,7 +144,8 @@ def fixed_state(config, name, rpm=None):
     """One screen for checking the layout (the gap is filled in by hand: it needs a best lap's track).
     rpm: the engine speed instead of the state's own (to see the bar at a given point)."""
     lap = {'CurrentLap': 23, 'LapCount': 22, 'ElapsedTime': 72.3 / 60, 'LapTime': 112.34 / 60, 'BestLap': 111.12 / 60,
-           'RaceTime': 2175 / 60, 'LapDiffS': 0.41, 'LastLapPit': False}
+           'RaceTime': 2175 / 60, 'LapDiffS': 0.41, 'LastLapPit': False,
+           'Sector': 3, 'LastSector': 2, 'SectorTime': 31.42 / 60, 'SectorDiffS': -0.31}
     # oil C, water C, oil pressure kPa (at 5200 rpm; idling in the box): warn is the oil alone,
     # warnpress the pressure alone, warn2 pressure and oil, warn3 all three
     temps = {'normal': (98, 88, 420), 'start': (92, 84, 430), 'pit': (101, 91, 410), 'pitbox': (101, 91, 150),
@@ -201,6 +205,9 @@ def css_for(w, h):
     .notice {{ font-family: {FONT_TEXT}; font-size: {int(mid * 0.55)}px; font-weight: bold; border-radius: {rad}px; }}
     .notice-none {{ background-color: transparent; color: transparent; }}
     .notice-pit {{ background-color: #1f64c8; color: #ffffff; }}
+    .notice-faster {{ background-color: #2fc64c; color: #000000; }}
+    .notice-slower {{ background-color: #e83a3a; color: #ffffff; }}
+    .notice-even {{ background-color: #f4f4f4; color: #000000; }}
     .banner {{ background-color: #e01414; border-radius: {rad}px; }}
     .banner.banner-dim {{ background-color: #520808; }}
     .banner label {{ color: #ffffff; font-weight: bold; }}
@@ -480,7 +487,7 @@ def run_gui(args, config):
             kind = s.get('speed_kind')
             classes(self.spd, 'spd', *(('spd-' + kind,) if kind else ()))
             self.notice.set_text(s['notice'])
-            classes(self.notice, 'notice', 'notice-pit' if s['notice'] else 'notice-none')
+            classes(self.notice, 'notice', f"notice-{s['notice_kind']}" if s['notice'] and s.get('notice_kind') else 'notice-none')
 
             self.lap_now.set_text(s['lap_now'])
             if s['delta_kind']:  # a number: say it is seconds, smaller, so the number stays the thing to read

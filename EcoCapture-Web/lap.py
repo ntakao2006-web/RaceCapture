@@ -33,6 +33,15 @@ A control pass on that side of the halfway point, no faster than pit_max_kmh,
 is a pit pass, and a lap that starts or ends with one is a pit lap. Every
 control pass keeps its offset and speed so the numbers can be checked against
 a real pit stop.
+
+Sectors (2026-11-07, SUGO): `sectors` are the lines ending sector 1, 2, ... in
+the order the car meets them; the last sector ends at the control line. Each
+needs its bearing (they are not learned). A sector line counts only while a lap
+runs and only once per lap, in order: one passed by while the GNSS was out is
+left without a time, and the next sector then has none either. The time of the
+sector just completed, its number and the difference from that sector's best go
+out with the lap values; a sector that begins or ends in the pit lane (the out
+lap's first, the in lap's last) has no difference and is never the best.
 """
 import hashlib
 import json
@@ -54,6 +63,7 @@ KEEP_LAPS = 500
 KEEP_PASSES = 200
 KEEP_INSIDE = 1200  # fixes kept while inside a direction-less line (2 min at 10 Hz)
 TARGETS = ('control', 'start', 'goal')
+MAX_SECTOR_LINES = 9
 # Registering a line while standing on it: average the last few seconds of fixes
 # (a person on foot at the course walk), unless they spread like a moving car.
 HERE_WINDOW_MS = 3000
@@ -90,6 +100,8 @@ class LapLine(BaseModel):
     # centre (m, + to the right of travel) and the top speed of a pass that is in it.
     pit_offset_m: float | None = Field(default=None, ge=-100, le=100)
     pit_max_kmh: float | None = Field(default=None, gt=0, le=300)
+    # The lines ending sector 1, 2, ... (2026-11-07, SUGO); the last sector ends at the control line.
+    sectors: list[Gate] = Field(default_factory=list, max_length=MAX_SECTOR_LINES)
     set_at: str | None = None  # when the lines last changed (GNSS time, JST), shown with the QR code
 
     @model_validator(mode='after')
@@ -98,6 +110,8 @@ class LapLine(BaseModel):
             raise ValueError('Line position required')
         if self.max_lap_s <= self.min_lap_s:
             raise ValueError('max_lap_s must exceed min_lap_s')
+        if any(g.bearing is None for g in self.sectors):
+            raise ValueError('a sector line needs its bearing')
         return self
 
     def gate(self, target):
@@ -221,13 +235,16 @@ class LapTimer:
         self.recent = deque(maxlen=60)  # (utc_ms, lat, lon) of usable fixes, for set_here
         self.last_here = None
         self.watches = {'start': Watch(rearm=False), 'control': Watch(), 'goal': Watch()}
+        self.sector_watches = [Watch() for _ in range(MAX_SECTOR_LINES)]
 
     @staticmethod
     def empty_state():
         return {'count': 0, 'last_s': None, 'best_s': None, 'lap_start_ms': None, 'laps': [],
                 'race_start_ms': None, 'race_end_ms': None, 'finished': False,
                 'lap_start_pit': False, 'passes': [],  # control passes: offset, speed, pit (for checking the pit lane)
-                'learned': []}  # lines whose heading was learned on a pass (not typed in): the reset forgets them
+                'learned': [],  # lines whose heading was learned on a pass (not typed in): the reset forgets them
+                'splits': [],   # when each sector line was passed on the running lap (None: not seen)
+                'sector_best': [], 'sector_last': None}  # best per sector (s); the sector just completed
 
     def save(self):
         temp = self.path.with_suffix('.tmp')
@@ -244,16 +261,18 @@ class LapTimer:
 
     def forget_motion(self):
         self.previous = None
-        for watch in self.watches.values():
+        for watch in (*self.watches.values(), *self.sector_watches):
             watch.reset()
 
     def configure(self, line):
         gates = lambda l: [l.gate(t) for t in TARGETS]
-        if gates(line) != gates(self.line) and self.latest_utc is not None:
+        if (gates(line) != gates(self.line) or line.sectors != self.line.sectors) and self.latest_utc is not None:
             stamp = datetime.fromtimestamp(self.latest_utc[0] / 1000, JST).strftime('%Y-%m-%dT%H:%M+09:00')
             line = line.model_copy(update={'set_at': stamp})
         # A heading stays "learned" only while that line is left as it was.
         self.state['learned'] = [t for t in self.state.get('learned', []) if line.gate(t) is not None and line.gate(t) == self.line.gate(t)]
+        if line.sectors != self.line.sectors:  # other lines: the old sector times mean nothing
+            self.state.update(splits=[], sector_best=[], sector_last=None)
         self.line = line; self.error = None
         self.forget_motion()
         self.save()
@@ -289,7 +308,7 @@ class LapTimer:
             raise ValueError('a lap is already running')
         now_ms = int(self.latest_utc[0] + (time.monotonic() - self.latest_utc[1]) * 1000)
         s['finished'] = False; s['race_end_ms'] = None
-        s['lap_start_ms'] = now_ms; s['lap_start_pit'] = False
+        s['lap_start_ms'] = now_ms; s['lap_start_pit'] = False; s['splits'] = []
         if s['race_start_ms'] is None:
             s['race_start_ms'] = now_ms
         self.save()
@@ -354,18 +373,74 @@ class LapTimer:
         last, before = laps[-1] if laps else None, laps[-2] if len(laps) >= 2 else None
         pit = lambda lap: bool(lap.get('pit'))
         diff = None if last is None or before is None or pit(last) or pit(before) else round(last['s'] - before['s'], 3)
-        return {'LapCount': s['count'], 'CurrentLap': current,
+        sectors = self.sectors_values(elapsed is not None)
+        return {**sectors, 'LapCount': s['count'], 'CurrentLap': current,
                 'LapTime': minutes(s['last_s']), 'BestLap': minutes(s['best_s']), 'ElapsedTime': minutes(elapsed),
                 'RaceTime': minutes(race), 'LapsLeft': None if total is None else max(0, total - s['count']),
                 **race_options, 'LastLapPit': None if last is None else pit(last), 'LapDiffS': diff,
                 'LapStartPit': None if elapsed is None else bool(s.get('lap_start_pit'))}
 
-    def record_lap(self, at_ms, pit=False):
+    def sectors_values(self, running):
+        """Sector (the one being driven), LastSector/SectorTime (the one just completed, minutes) and,
+        for the dash only, SectorDiffS (s, against that sector's best). None without sector lines."""
+        if not self.line.sectors:
+            return {'Sector': None, 'LastSector': None, 'SectorTime': None, 'SectorDiffS': None}
+        s = self.state
+        last = s.get('sector_last') or {}
+        sec = last.get('s')
+        return {'Sector': len(s.get('splits') or []) + 1 if running else None,
+                'LastSector': last.get('n'), 'SectorTime': None if sec is None else sec / 60,
+                'SectorDiffS': last.get('diff')}
+
+    def sector_done(self, index, at_ms, start_ms, pit=False):
+        """Sector `index` (0 = first) ended at at_ms; start_ms is when it began (None: not seen)."""
+        s = self.state
+        sec = None if start_ms is None or at_ms is None else (at_ms - start_ms) / 1000
+        best = list(s.get('sector_best') or [])
+        best += [None] * (index + 1 - len(best))
+        diff = None
+        if sec is not None and not pit:
+            if best[index] is not None:
+                diff = round(sec - best[index], 3)
+            best[index] = sec if best[index] is None else min(best[index], sec)
+        s['sector_best'] = best
+        s['sector_last'] = {'n': index + 1, 's': None if sec is None else round(sec, 3), 'diff': diff}
+
+    def sector_crossed(self, index, at_ms):
+        s = self.state
+        if s['finished'] or s['lap_start_ms'] is None or at_ms <= s['lap_start_ms']:
+            return
+        splits = list(s.get('splits') or [])
+        if index < len(splits):
+            return  # already passed on this lap
+        splits += [None] * (index - len(splits))
+        start = s['lap_start_ms'] if index == 0 else splits[index - 1]
+        self.sector_done(index, at_ms, start, pit=index == 0 and bool(s.get('lap_start_pit')))
+        s['splits'] = splits + [at_ms]
+        self.try_save()
+
+    def lap_sectors(self, at_ms, pit):
+        """Ends the running lap's last sector at the control pass at_ms. The lap's sector times
+        (s, None where a line was not seen), or None without sector lines."""
+        s = self.state
+        n = len(self.line.sectors)
+        if not n:
+            return None
+        splits = list(s.get('splits') or [])
+        splits += [None] * (n - len(splits))
+        starts = [s['lap_start_ms']] + splits[:n]
+        ends = splits[:n] + [at_ms]
+        self.sector_done(n, at_ms, starts[n], pit=pit)
+        return [None if a is None or b is None else round((b - a) / 1000, 3) for a, b in zip(starts, ends)]
+
+    def record_lap(self, at_ms, pit=False, sectors=None):
         s = self.state
         lap = (at_ms - s['lap_start_ms']) / 1000
         s['count'] += 1; s['last_s'] = lap
         s['best_s'] = lap if s['best_s'] is None else min(s['best_s'], lap)
         entry = {'n': s['count'], 's': round(lap, 3), 'end_utc_ms': at_ms, 'pit': bool(s.get('lap_start_pit')) or pit}
+        if sectors is not None:
+            entry['sectors'] = sectors
         s['laps'] = (s['laps'] + [entry])[-KEEP_LAPS:]
 
     def is_pit(self, offset_m, kmh):
@@ -390,7 +465,7 @@ class LapTimer:
         s['passes'] = (s.get('passes', []) + [{'utc_ms': at_ms, 'offset_m': None if offset_m is None else round(offset_m, 1),
                                                'kmh': None if kmh is None else round(kmh, 1), 'pit': pit}])[-KEEP_PASSES:]
         if s['lap_start_ms'] is None:
-            s['lap_start_ms'] = at_ms; s['lap_start_pit'] = pit
+            s['lap_start_ms'] = at_ms; s['lap_start_pit'] = pit; s['splits'] = []
             if s['race_start_ms'] is None:
                 s['race_start_ms'] = at_ms
         else:
@@ -399,10 +474,10 @@ class LapTimer:
                 self.try_save()
                 return
             if lap <= self.line.max_lap_s:
-                self.record_lap(at_ms, pit)
+                self.record_lap(at_ms, pit, self.lap_sectors(at_ms, pit))
             # A gap longer than any real lap (pit stop, next day) restarts the
             # running lap without counting it; totals stay until an explicit reset.
-            s['lap_start_ms'] = at_ms; s['lap_start_pit'] = pit
+            s['lap_start_ms'] = at_ms; s['lap_start_pit'] = pit; s['splits'] = []
         self.try_save()
 
     def finished(self, at_ms):
@@ -415,7 +490,7 @@ class LapTimer:
             return
         if (at_ms - s['lap_start_ms']) / 1000 >= self.line.min_lap_s:
             self.record_lap(at_ms)
-        s['finished'] = True; s['race_end_ms'] = at_ms; s['lap_start_ms'] = None
+        s['finished'] = True; s['race_end_ms'] = at_ms; s['lap_start_ms'] = None; s['splits'] = []
         self.try_save()
 
     def update(self, sample):
@@ -440,6 +515,8 @@ class LapTimer:
         for target in TARGETS:
             if (gate := self.line.gate(target)) is not None:
                 self.watches[target].observe(gate, self.previous)
+        for gate, watch in zip(self.line.sectors, self.sector_watches):
+            watch.observe(gate, self.previous)
         if previous is None or not 0 < utc - previous[0] <= MAX_FIX_GAP_MS:
             for watch in self.watches.values():
                 watch.inside = []
@@ -467,6 +544,10 @@ class LapTimer:
                 event(at, None if hit is None else hit[1], values.get('GPSSpeed'))
             elif at is not None:
                 event(at)
+        for index, (gate, watch) in enumerate(zip(self.line.sectors, self.sector_watches)):
+            at, _ = watch.step(gate, previous, self.previous, None, None)
+            if at is not None:
+                self.sector_crossed(index, at)
         if learned_any:
             self.try_save()
         return self.values()

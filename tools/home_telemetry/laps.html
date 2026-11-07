@@ -29,6 +29,10 @@
   the logger times them, but its lap list does not come over LTE. The best lap is the logger's.
   Laps more than SLOW_RATIO over the best (pit stops, refuelling outside the circuit, yellow
   flags) are greyed and left out of the recent average.
+
+  With the logger's sector lines (EcoCapture-Web/lap.py, 2026-11-07) each lap also lists its
+  sector times S1, S2, ... (`x`, live_bridge.py Pace.sector_row), the best of each in purple
+  among the laps that count; "—" is a sector whose time did not get here or was not timed.
 -->
 <style>
   :root { color-scheme: dark; --ink: #d8d9da; --dim: #9fa1a8; --line: #2c3235; --head: #181b1f;
@@ -63,6 +67,7 @@
   th:first-child, td:first-child { text-align: left; }
   td.time { font-weight: 600; }
   tr.best td { color: var(--purple); font-weight: 700; }
+  td.sbest { color: var(--purple); font-weight: 700; }
   tr.slow td { color: var(--dim); }
   tr.est td { color: var(--dim); font-style: italic; }
   td.lv1, td.lv2, td.lv3 { font-weight: 700; }
@@ -94,7 +99,7 @@
     <span class="label push">直近5周の平均</span><span id="avg5" class="mid">—</span>
   </div>
   <div id="sheet"><table>
-    <thead><tr><th>周</th><th>ラップ</th><th>ベスト差</th><th>油温</th><th>水温</th><th>最高速</th><th>通過</th></tr></thead>
+    <thead><tr id="head"><th>周</th><th>ラップ</th><th>ベスト差</th><th>油温</th><th>水温</th><th>最高速</th><th>通過</th></tr></thead>
     <tbody id="rows"></tbody>
   </table></div>
   <div class="row nowrap"><span id="fresh"></span><button id="beep" type="button">警告音：切</button>
@@ -165,9 +170,25 @@ function drawSheet(best) {
   if (key === shown) return;
   shown = key;
   const body = document.getElementById('rows');
+  // Sector times (S1, S2, ... from the logger's sector lines, 2026-11-07): a column each once a lap
+  // has them, the best of each in purple among the laps that count (not the pit or yellow-flag ones)
+  const counts = p => !p.e && p.s != null && p.s > 0 && (best == null || p.s <= best * SLOW_RATIO);
+  const nsec = Math.max(0, ...laps().map(p => (p.x || []).length));
+  const sbest = [...Array(nsec).keys()].map(i => {
+    const t = laps().filter(counts).map(p => (p.x || [])[i]).filter(v => v != null && v > 0);
+    return t.length ? Math.min(...t) : null;
+  });
+  const names = ['周', 'ラップ', 'ベスト差', ...sbest.map((_, i) => 'S' + (i + 1)), '油温', '水温', '最高速', '通過'];
+  document.getElementById('head').replaceChildren(...names.map(n => {
+    const th = document.createElement('th'); th.textContent = n; return th;
+  }));
   body.replaceChildren(...laps().slice().reverse().map(p => {
     const tr = document.createElement('tr');
     const real = !p.e && p.s != null && p.s > 0;
+    const sectors = sbest.map((b, i) => {
+      const v = (p.x || [])[i];
+      return v == null ? ['—', ''] : [v.toFixed(2), counts(p) && b != null && Math.abs(v - b) < 0.006 ? 'sbest' : ''];
+    });
     if (p.e) tr.className = 'est';
     else if (real && best != null && Math.abs(p.s - best) < 0.006) tr.className = 'best';
     else if (real && best != null && p.s > best * SLOW_RATIO) tr.className = 'slow';
@@ -175,6 +196,7 @@ function drawSheet(best) {
       [p.n, ''],
       [p.e ? '（通信切れ）' : real ? lapText(p.s, true) : '—', 'time'],
       [!real || best == null ? '' : Math.abs(p.s - best) < 0.006 ? 'ベスト' : gapText(p.s - best), ''],
+      ...sectors,
       [p.oil == null ? '—' : Math.round(p.oil), p.oil == null ? '' : 'lv' + levelOf(p.oil, OIL)],
       [p.water == null ? '—' : Math.round(p.water), p.water == null ? '' : 'lv' + levelOf(p.water, WATER)],
       [p.vmax == null ? '—' : Math.round(p.vmax), ''],

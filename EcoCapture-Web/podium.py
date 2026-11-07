@@ -30,7 +30,7 @@ RANGES = {'Lat':(-90,90),'Lon':(-180,180),'Altitude':(-500,9000),
           'BatteryVolt':(0,20),'OilTemp':(-40,200),'LapCount':(0,10000),'CurrentLap':(0,10000),
           'LapTime':(0,60),'BestLap':(0,60),'ElapsedTime':(0,60),
           'RaceTime':(0,600),'LapsLeft':(0,1000),'GPSAcc':(0,1000),'OilTempState':(0,4),
-          'TimeLimit':(0,86400),'Margin':(0,3600)}
+          'TimeLimit':(0,86400),'Margin':(0,3600),'Sector':(0,10),'LastSector':(0,10),'SectorTime':(0,60)}
 
 # wss://host[:port]/ws/audio/<room>. The character set also keeps the host safe
 # inside AT command quotes.
@@ -179,7 +179,8 @@ def utc_milliseconds(sample):
 
 PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0,
              'LapCount':0,'CurrentLap':0,'LapTime':4,'BestLap':4,'ElapsedTime':4,
-             'RaceTime':4,'LapsLeft':0,'GPSAcc':1,'OilTempState':0,'TimeLimit':2,'Margin':1}
+             'RaceTime':4,'LapsLeft':0,'GPSAcc':1,'OilTempState':0,'TimeLimit':2,'Margin':1,
+             'Sector':0,'LastSector':0,'SectorTime':4}
 # Settings that do not change during a race (2026-10-24) go out once every SPARSE_EVERY
 # samples (10 s at 10 Hz) or when they change, masked out in between: the LTE link
 # carries telemetry first. The pit's Grafana holds the last value.

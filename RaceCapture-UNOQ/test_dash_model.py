@@ -275,6 +275,21 @@ class ModelTests(unittest.TestCase):
         s, _ = m.update(stopped, 0.3)  # stopped on the in lap (a box before the line): nothing known yet
         self.assertEqual((s['delta'], s['notice']), ('--', ''))
 
+    def test_the_strip_shows_the_sector_just_completed_against_its_best(self):
+        m = DashModel(config())
+        lap = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapStartPit': False, 'Sector': 3, 'LastSector': 2,
+               'SectorTime': 31.42 / 60, 'SectorDiffS': -0.31}
+        s, _ = m.update(frame(lap), 0.0)
+        self.assertEqual((s['notice'], s['notice_kind']), ('S2 −0.31', 'faster'))
+        s, _ = m.update(frame({**lap, 'SectorDiffS': 0.42}), 0.1)
+        self.assertEqual((s['notice'], s['notice_kind']), ('S2 +0.42', 'slower'))
+        s, _ = m.update(frame({**lap, 'SectorDiffS': None}), 0.2)  # the first time round, or a pit sector
+        self.assertEqual((s['notice'], s['notice_kind']), ('', None))
+        s, _ = m.update(frame({**lap, 'LapStartPit': True}), 0.3)  # the pit stop comes first
+        self.assertEqual((s['notice'], s['notice_kind']), ('PIT OUT', 'pit'))
+        s, _ = m.update(frame({k: v for k, v in lap.items() if 'Sector' not in k}), 0.4)  # no sector lines
+        self.assertEqual((s['notice'], s['notice_kind']), ('', None))
+
     def test_the_temperature_warning_is_apart_from_the_pit_strip(self):
         m = DashModel(config())
         out_lap = {'CurrentLap': 9, 'ElapsedTime': 0.5, 'LapStartPit': True, 'LastLapPit': True}

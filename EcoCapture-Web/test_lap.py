@@ -306,6 +306,103 @@ class LapTests(unittest.TestCase):
         self.assertAlmostEqual(t.values()['LapDiffS'], 2.0, places=2)
 
 
+class SectorTests(unittest.TestCase):
+    """Sector lines (2026-11-07, SUGO): the course is modelled as a run north through the control
+    line (0 m) and the two sector lines (300 m, 600 m), then back south of the control line."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory(); self.root = Path(self.dir.name)
+
+    def tearDown(self):
+        self.dir.cleanup()
+
+    def timer(self, **line):
+        t = LapTimer(self.root)
+        t.configure(LapLine(enabled=True, lat=LAT0, lon=LON0, bearing=0.0, min_lap_s=30,
+                            sectors=[gate(300), gate(600)], **line))
+        return t
+
+    @staticmethod
+    def lap(t, start_ms, s1, s2, s3, skip=()):
+        """Control pass at start_ms, then the sector lines after s1 and s1+s2 seconds; the next
+        control pass is at start_ms + s1+s2+s3 (made by the next call or by `close`)."""
+        pass_north(t, start_ms, 0)
+        if 1 not in skip:
+            pass_north(t, start_ms + int(s1 * 1000), 300)
+        if 2 not in skip:
+            pass_north(t, start_ms + int((s1 + s2) * 1000), 600)
+        return start_ms + int((s1 + s2 + s3) * 1000)
+
+    def test_sector_times_and_difference_from_the_best(self):
+        t = self.timer()
+        self.assertIsNone(t.values()['Sector'])  # before the first control pass (the out lap)
+        nxt = self.lap(t, 10_000, 30, 40, 30)
+        v = t.values()
+        self.assertEqual(v['Sector'], 3); self.assertEqual(v['LastSector'], 2)
+        self.assertAlmostEqual(v['SectorTime'] * 60, 40, places=2); self.assertIsNone(v['SectorDiffS'])
+        nxt = self.lap(t, nxt, 28, 41, 30)  # the control pass at the start of this call ends lap 1
+        lap1 = t.state['laps'][0]
+        self.assertEqual(lap1['sectors'], [30.0, 40.0, 30.0]); self.assertAlmostEqual(lap1['s'], 100.0, places=2)
+        v = t.values()
+        self.assertEqual(v['Sector'], 3); self.assertEqual(v['LastSector'], 2)
+        self.assertAlmostEqual(v['SectorDiffS'], 1.0, places=2)  # 41 s against the best 40 s
+        pass_north(t, nxt, 0)
+        v = t.values()
+        self.assertEqual(v['Sector'], 1); self.assertEqual(v['LastSector'], 3)
+        self.assertAlmostEqual(v['SectorTime'] * 60, 30, places=2); self.assertAlmostEqual(v['SectorDiffS'], 0.0, places=2)
+        self.assertEqual(t.state['laps'][1]['sectors'], [28.0, 41.0, 30.0])
+        self.assertEqual([round(b, 3) for b in t.state['sector_best']], [28.0, 40.0, 30.0])
+        # kept across a restart of the container
+        again = LapTimer(self.root)
+        self.assertEqual(again.state['laps'][1]['sectors'], [28.0, 41.0, 30.0])
+
+    def test_a_missed_sector_line_leaves_that_and_the_next_sector_without_time(self):
+        t = self.timer()
+        nxt = self.lap(t, 10_000, 30, 40, 30, skip=(1,))
+        pass_north(t, nxt, 0)
+        self.assertEqual(t.state['laps'][0]['sectors'], [None, None, 30.0])
+        self.assertEqual(t.values()['LastSector'], 3)
+
+    def test_sector_line_passed_again_on_the_same_lap_counts_once(self):
+        t = self.timer()
+        self.lap(t, 10_000, 30, 40, 30, skip=(2,))
+        pass_north(t, 10_000 + 35_000, 300)  # the 300 m line again (e.g. a spin and back across)
+        self.assertEqual(t.values()['Sector'], 2)
+        self.assertAlmostEqual(t.values()['SectorTime'] * 60, 30, places=2)
+
+    def test_pit_sectors_have_no_difference_and_are_never_best(self):
+        t = self.timer(pit_offset_m=11.0, pit_max_kmh=80.0)
+        nxt = self.lap(t, 10_000, 30, 40, 30)
+        nxt = self.lap(t, nxt, 30, 40, 30)
+        # an in lap: the control pass that ends it is in the pit lane (11 m right of travel = east)
+        t.update(fix(nxt - 1000, -200, 11.0, speed=50))
+        for tt in range(nxt - 300, nxt + 400, 100):
+            t.update(fix(tt, (tt - nxt) / 100.0, 11.0, speed=50))
+        self.assertIs(t.state['laps'][-1]['pit'], True)
+        self.assertEqual(t.values()['LastSector'], 3); self.assertIsNone(t.values()['SectorDiffS'])
+        pass_north(t, nxt + 50_000, 300)  # the out lap's first sector, 50 s from the pit lane
+        self.assertIsNone(t.values()['SectorDiffS'])
+        self.assertAlmostEqual(t.state['sector_best'][0], 30.0, places=2)
+
+    def test_a_sector_line_needs_its_bearing_and_changing_them_forgets_the_sector_times(self):
+        with self.assertRaises(ValueError):
+            LapLine(enabled=True, lat=LAT0, lon=LON0, sectors=[{'lat': LAT0, 'lon': LON0}])
+        t = self.timer()
+        nxt = self.lap(t, 10_000, 30, 40, 30)
+        pass_north(t, nxt, 0)
+        t.configure(t.line.model_copy(update={'sectors': [LapLine.model_validate({'sectors': [gate(400)]}).sectors[0]]}))
+        self.assertEqual(t.state['sector_best'], []); self.assertIsNone(t.values()['LastSector'])
+        self.assertEqual(t.state['count'], 1)  # the laps themselves stay
+
+    def test_no_sector_lines_no_sector_values(self):
+        t = LapTimer(self.root)
+        t.configure(LapLine(enabled=True, lat=LAT0, lon=LON0, bearing=0.0, min_lap_s=30))
+        drive_north(t, 10_050, laps=2, lap_s=95)
+        v = t.values()
+        self.assertIsNone(v['Sector']); self.assertIsNone(v['SectorTime'])
+        self.assertNotIn('sectors', t.state['laps'][0])
+
+
 class LineCodeTest(unittest.TestCase):
     """The QR text the Android loggers read (android-logger LineCodeTest uses the same strings)."""
 

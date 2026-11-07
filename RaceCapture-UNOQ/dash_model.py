@@ -394,8 +394,16 @@ class DashModel:
         stopped = speed is not None and speed < STOPPED_KMH
         if out_lap or stopped:
             delta = None  # still tracked above, so the reference keeps its place
-        # The strip under the running lap is for the pit stop only (the temperature has its own band)
-        notice = ('PIT IN' if stopped else 'PIT OUT') if out_lap else ''
+        # The strip under the running lap: the pit stop first (the temperature has its own band), else the
+        # sector just completed against that sector's best (lap.py, 2026-11-07), until the next one ends
+        sector_no, sector_diff = number(lap.get('LastSector')), number(lap.get('SectorDiffS'))
+        if out_lap:
+            notice, notice_kind = ('PIT IN' if stopped else 'PIT OUT'), 'pit'
+        elif sector_no and sector_diff is not None and elapsed is not None:
+            notice = f'S{int(sector_no)} {fmt_signed(sector_diff)}'
+            notice_kind = 'slower' if sector_diff > 0.005 else 'faster' if sector_diff < -0.005 else 'even'
+        else:
+            notice, notice_kind = '', None
 
         diff, pit = number(lap.get('LapDiffS')), lap.get('LastLapPit') is True
         if pit:
@@ -427,7 +435,7 @@ class DashModel:
             'speed_kind': speed_kind,
             'stale_s': None if self.last_good is None else now - self.last_good,
             'lap_now': fmt_lap(elapsed, 1),
-            'notice': notice,
+            'notice': notice, 'notice_kind': notice_kind,
             'delta': fmt_signed(delta),
             'delta_kind': None if delta is None else 'slower' if delta > 0.005 else 'faster' if delta < -0.005 else 'even',
             'delta_frac': None if delta is None else max(-1.0, min(1.0, delta / scale)),

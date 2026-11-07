@@ -130,7 +130,9 @@ LAP_CHANNELS = {
     "LapTime": ("前回ラップ", "Min"), "BestLap": ("ベストラップ", "Min"),
     "ElapsedTime": ("現在ラップ経過", "Min"),
     "RaceTime": ("スタートからの経過", "Min"), "LapsLeft": ("残り周回数", ""),
-    "TimeLimit": ("規定時間", "Sec"), "Margin": ("余裕", "Sec")
+    "TimeLimit": ("規定時間", "Sec"), "Margin": ("余裕", "Sec"),
+    # Sectors (lap.py, 2026-11-07): the one being driven, and the one just completed with its time
+    "Sector": ("走行中のセクター", ""), "LastSector": ("前のセクター", ""), "SectorTime": ("前のセクターのタイム", "Min")
 }
 
 def validate_sample(value):
