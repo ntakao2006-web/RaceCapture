@@ -1,6 +1,8 @@
 // PC test of sd_logger.h when the SD card fills up (2026-11-07).
-// The card is a small FAT32 image in memory (6 files of 1 MiB fit). Built with g++ in WSL:
-//   g++ -std=c++17 -O1 -Wall -o /tmp/test_sd_full tests/test_sd_full.cpp && /tmp/test_sd_full [image.bin]
+// The card is a small FAT32 image in memory with 512-byte clusters, so a 1 MiB file is 2048
+// clusters, 6 files fit and the FAT is 99 sectors (big enough to see a whole-FAT scan).
+// Built with g++ in WSL:
+//   g++ -std=c++17 -O1 -o /tmp/test_sd_full tests/test_sd_full.cpp && /tmp/test_sd_full [image.bin]
 // The optional image is written for a second check with a standard FAT reader (test_sd_full_fat.py).
 #include <cassert>
 #include <cstdint>
@@ -18,25 +20,33 @@ static uint32_t fakeMs = 0;
 static uint32_t millis() { return fakeMs; }
 
 static std::vector<uint8_t> card;
-static unsigned reads = 0, writes = 0;
+static std::set<uint32_t> fatSectorsRead;
+static uint32_t fatFirst = 0, fatLast = 0;
 static bool cardRead(uint32_t lba, uint8_t* b) {
   if ((lba + 1) * 512ULL > card.size()) return false;
-  memcpy(b, &card[lba * 512ULL], 512); reads++; return true;
+  if (lba >= fatFirst && lba < fatLast) fatSectorsRead.insert(lba);
+  memcpy(b, &card[lba * 512ULL], 512); return true;
 }
 static bool cardWrite(uint32_t lba, const uint8_t* b) {
   if ((lba + 1) * 512ULL > card.size()) return false;
-  memcpy(&card[lba * 512ULL], b, 512); writes++; return true;
+  memcpy(&card[lba * 512ULL], b, 512); return true;
 }
 #include "../sd_logger.h"
 
-static const uint32_t PART = 2048, RES = 32, SPC = 64, FATSZ = 2, CL = 200;
+static const uint32_t PART = 2048, RES = 32, SPC = 1, PER_FILE = 2048, CL = 6 * PER_FILE + 300;
+static const uint32_t FATSZ = ((CL + 2) * 4 + 511) / 512;
 static uint8_t* sec(uint32_t lba) { return &card[lba * 512ULL]; }
 static uint32_t fatAt(uint32_t c) { return u32(sec(PART + RES) + c * 4) & 0x0fffffff; }
 static uint32_t dataLba(uint32_t c) { return PART + RES + 2 * FATSZ + (c - 2) * SPC; }
+static void setChain(uint32_t from, uint32_t n) {
+  for (uint32_t f = 0; f < 2; f++) { uint8_t* fat = sec(PART + RES + f * FATSZ); for (uint32_t c = from; c < from + n; c++) p32(fat + c * 4, c == from + n - 1 ? 0x0fffffff : c + 1); }
+  fatCached = 0xffffffff;
+}
 
 static void makeCard() {
   uint32_t partSize = RES + 2 * FATSZ + CL * SPC;
   card.assign((PART + partSize) * 512ULL, 0);
+  fatFirst = PART + RES; fatLast = PART + RES + 2 * FATSZ;
   uint8_t* m = sec(0); m[446 + 4] = 0x0c; p32(m + 446 + 8, PART); p32(m + 446 + 12, partSize); m[510] = 0x55; m[511] = 0xaa;
   uint8_t* b = sec(PART);
   b[0] = 0xeb; b[1] = 0x58; b[2] = 0x90; memcpy(b + 3, "MSWIN4.1", 8);
@@ -51,7 +61,7 @@ static void makeCard() {
     p32(fat, 0x0ffffff8); p32(fat + 4, 0x0fffffff); p32(fat + 8, 0x0fffffff);
   }
   memcpy(sec(dataLba(2)), "ECOLOGGER  \x08", 12);  // volume label entry like a formatted card
-  freeCursor = 2; fatCached = 0xffffffff; sdDeleted = 0; sdFull = false; sdLogging = false;
+  freeCursor = 2; fatCached = 0xffffffff; sdFull = false; sdLogging = false;
   assert(mountCard()); sdMounted = true;
 }
 
@@ -65,10 +75,14 @@ static bool logOneFile() {
 }
 
 struct Entry { std::string name; uint32_t index, first, size; };
+static std::vector<uint32_t> rootClusters() {
+  std::vector<uint32_t> out; for (uint32_t c = 2; c >= 2 && c < CL + 2; c = fatAt(c)) { out.push_back(c); if (fatAt(c) >= 0x0ffffff8) break; }
+  return out;
+}
 static std::vector<Entry> entries() {
   std::vector<Entry> out;
-  for (uint32_t s = 0; s < SPC; s++) for (uint32_t off = 0; off < 512; off += 32) {
-    uint8_t* p = sec(dataLba(2) + s) + off;
+  for (uint32_t rc : rootClusters()) for (uint32_t s = 0; s < SPC; s++) for (uint32_t off = 0; off < 512; off += 32) {
+    uint8_t* p = sec(dataLba(rc) + s) + off;
     if (p[0] == 0 || p[0] == 0xe5 || p[11] == 0x08) continue;
     out.push_back({std::string((char*)p, 11), (uint32_t)strtoul(std::string((char*)p + 2, 6).c_str(), nullptr, 10),
                    ((uint32_t)u16(p + 20) << 16) | u16(p + 26), u32(p + 28)});
@@ -76,18 +90,17 @@ static std::vector<Entry> entries() {
   return out;
 }
 
-// Every file's chain is 32 contiguous clusters, no cluster is shared, everything else is free,
+// Every file's chain is one contiguous run, no cluster is shared, everything else is free,
 // both FAT copies agree, and each file still holds its own first sector.
 static void checkConsistent(unsigned expectFiles, uint32_t otherClusters = 0) {
   assert(!memcmp(sec(PART + RES), sec(PART + RES + FATSZ), FATSZ * 512));
-  std::set<uint32_t> used;
-  auto list = entries();
+  std::set<uint32_t> used; for (uint32_t rc : rootClusters()) used.insert(rc);
   unsigned el = 0;
-  for (auto& e : list) {
+  for (auto& e : entries()) {
     uint32_t c = e.first, n = 0;
     while (true) { assert(c >= 3 && c < CL + 2); assert(used.insert(c).second); n++; uint32_t next = fatAt(c); if (next >= 0x0ffffff8) break; assert(next == c + 1); c = next; }
     if (e.name.compare(0, 2, "EL") == 0) {
-      el++; assert(n == 32); assert(e.size == 1024 * 1024);
+      el++; assert(n == PER_FILE); assert(e.size == 1024 * 1024);
       char want[32]; snprintf(want, sizeof(want), "file %lu", (unsigned long)e.index);
       assert(!strcmp((char*)sec(dataLba(e.first)), want));
     } else assert(n == otherClusters);
@@ -99,26 +112,28 @@ static void checkConsistent(unsigned expectFiles, uint32_t otherClusters = 0) {
 static void testFillsAndKeepsTheNewest() {
   makeCard();
   for (int i = 1; i <= 6; i++) assert(logOneFile());
-  assert(sdDeleted == 0 && !sdFull);
+  assert(!sdFull);
   checkConsistent(6);
   for (int i = 7; i <= 40; i++) assert(logOneFile());  // used to stop here: newSDLog() returned false
-  assert(sdDeleted == 34 && sdFull);
+  assert(sdFull);
   checkConsistent(6);
   std::set<uint32_t> kept; for (auto& e : entries()) kept.insert(e.index);
   assert(kept == (std::set<uint32_t>{35, 36, 37, 38, 39, 40}));
-  // While full, a new file reuses the oldest file's run: no scan of the whole FAT.
-  reads = 0; assert(logOneFile()); assert(reads < SPC + 12);
+  // Once full, a new file reuses the oldest file's run: it reads only the FAT sectors of the
+  // removed and the new file (16 each here), not the whole FAT (99 sectors).
+  fatSectorsRead.clear(); assert(logOneFile());
+  printf("  FAT sectors read for a new file on a full card: %zu of %u\n", fatSectorsRead.size(), FATSZ);
+  assert(fatSectorsRead.size() <= 2 * (PER_FILE / 128) + 2);
   puts("PASS: a full card drops the oldest EL files (34 of 40) and keeps the newest 6, FAT consistent");
 }
 
 static void testOtherFilesAreNeverRemoved() {
   makeCard();
-  // A foreign file (e.g. copied by a PC) taking 100 clusters right after the root directory.
-  uint8_t* p = sec(dataLba(2)) + 32; memcpy(p, "VIDEO   TS ", 11); p[11] = 0x20; p[26] = 3; p32(p + 28, 100 * SPC * 512);
-  for (uint32_t f = 0; f < 2; f++) { uint8_t* fat = sec(PART + RES + f * FATSZ); for (uint32_t c = 3; c < 103; c++) p32(fat + c * 4, c == 102 ? 0x0fffffff : c + 1); }
-  fatCached = 0xffffffff;
+  // A foreign file (e.g. copied by a PC) taking 3000 clusters right after the root directory.
+  uint8_t* p = sec(dataLba(2)) + 32; memcpy(p, "VIDEO   TS ", 11); p[11] = 0x20; p[26] = 3; p32(p + 28, 3000 * SPC * 512);
+  setChain(3, 3000);
   for (int i = 1; i <= 20; i++) assert(logOneFile());
-  checkConsistent(3, 100);
+  checkConsistent(4, 3000);
   bool video = false; for (auto& e : entries()) video |= e.name == "VIDEO   TS ";
   assert(video);
   puts("PASS: a non-EL file stays; only EL files are removed");
@@ -126,13 +141,12 @@ static void testOtherFilesAreNeverRemoved() {
 
 static void testNeverRemovesTheOnlyFile() {
   makeCard();
-  // Foreign file filling all but 40 clusters: one EL file fits, a second one never does.
+  // Foreign file filling all but one EL file's room: a second EL file never fits.
   uint8_t* p = sec(dataLba(2)) + 32; memcpy(p, "BIG     DAT", 11); p[11] = 0x20; p[26] = 3;
-  for (uint32_t f = 0; f < 2; f++) { uint8_t* fat = sec(PART + RES + f * FATSZ); for (uint32_t c = 3; c < 162; c++) p32(fat + c * 4, c == 161 ? 0x0fffffff : c + 1); }
-  fatCached = 0xffffffff;
+  setChain(3, CL - 1 - PER_FILE - 100);
   assert(logOneFile());
   assert(!newSDLog());  // the newest (only) file is not removed to make room
-  assert(sdDeleted == 0);
+  assert(!sdFull && entries().size() == 2);  // BIG.DAT and the one EL file
   puts("PASS: the newest file is never removed (it gives up as before)");
 }
 

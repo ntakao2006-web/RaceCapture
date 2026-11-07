@@ -30,55 +30,23 @@ static uint32_t fatGet(uint32_t c){uint32_t sec=c/128;if(sec>=fatSize)return 0xf
 static bool mountCard(){if(!sdReady||!cardRead(0,sectorBuf)||sectorBuf[510]!=0x55||sectorBuf[511]!=0xaa)return false;const uint8_t*p=sectorBuf+446;if(p[4]!=11&&p[4]!=12)return false;partStart=u32(p+8);partSize=u32(p+12);if(!partStart||!partSize||partStart+partSize<partStart)return false;if(!cardRead(partStart,sectorBuf)||u16(sectorBuf+11)!=512||u16(sectorBuf+17)!=0)return false;uint16_t info=u16(sectorBuf+48),backup=u16(sectorBuf+50),reserved=u16(sectorBuf+14);clusterSectors=sectorBuf[13];fatCopies=sectorBuf[16];fatSize=u32(sectorBuf+36);rootCluster=u32(sectorBuf+44);fatBase=partStart+u16(sectorBuf+14);dataBase=fatBase+fatCopies*fatSize;if(!clusterSectors||(clusterSectors&(clusterSectors-1))||fatCopies<1||fatCopies>2||!fatSize||dataBase>=partStart+partSize)return false;clusters=(partStart+partSize-dataBase)/clusterSectors;if(rootCluster<2||rootCluster>=clusters+2)return false;fatCached=0xffffffff;uint32_t rootNext=fatGet(rootCluster);if(rootNext<2||rootNext==0xffffffff||rootNext==0x0ffffff7)return false;if(info&&info<reserved){for(unsigned i=0;i<2;i++){uint32_t rel=info+(i?backup:0);if(rel>=reserved)continue;if(cardRead(partStart+rel,sectorBuf)&&u32(sectorBuf)==0x41615252&&u32(sectorBuf+484)==0x61417272){p32(sectorBuf+488,0xffffffff);p32(sectorBuf+492,0xffffffff);if(!partitionWrite(partStart+rel,sectorBuf))return false;}}}return true;}
 static bool logMetadata(){if(!sdLogging)return true;if(!cardRead(dirSector,sectorBuf))return false;p32(sectorBuf+dirOffset+28,logBytes);return partitionWrite(dirSector,sectorBuf);}
 static bool fatSet(uint32_t c,uint32_t value){uint32_t sec=c/128;if(!cardRead(fatBase+sec,fatBuf))return false;p32(fatBuf+(c%128)*4,value);for(unsigned f=0;f<fatCopies;f++)if(!partitionWrite(fatBase+f*fatSize+sec,fatBuf))return false;fatCached=0xffffffff;return true;}
-// Dashcam style (2026-11-07): when no free 1 MiB run is left, the oldest ELxxxxxx.BIN is
-// removed and its space reused. Only this logger's own EL files are removed, never the newest.
-static uint32_t sdDeleted=0;  // files removed to make room since power-on
-static bool sdFull=false;     // the card has been full: reuse the oldest file's space without a FAT scan
-// Free a FAT chain. Reports where it started, its length and whether it was one contiguous run.
-static bool freeChain(uint32_t c,uint32_t&first,uint32_t&len,bool&contiguous){
- first=c;len=0;contiguous=true;uint32_t sec=0xffffffff,prev=0;fatCached=0xffffffff;
- while(c>=2&&c<clusters+2&&len<clusters){
-  uint32_t s=c/128;
-  if(s!=sec){
-   if(sec!=0xffffffff)for(unsigned f=0;f<fatCopies;f++)if(!partitionWrite(fatBase+f*fatSize+sec,fatBuf))return false;
-   if(!cardRead(fatBase+s,fatBuf))return false;sec=s;
-  }
-  uint8_t*e=fatBuf+(c%128)*4;uint32_t next=u32(e)&0x0fffffff;p32(e,u32(e)&0xf0000000);
-  if(len&&c!=prev+1)contiguous=false;
-  prev=c;len++;
-  if(next<2||next>=0x0ffffff8)break;
-  c=next;
- }
- if(sec!=0xffffffff)for(unsigned f=0;f<fatCopies;f++)if(!partitionWrite(fatBase+f*fatSize+sec,fatBuf))return false;
- fatCached=0xffffffff;return true;
-}
-// The directory entry goes first: a power cut in between leaves lost clusters, never a cross-link.
-static bool deleteEntry(uint32_t lba,uint16_t off,uint32_t&first,uint32_t&len,bool&contiguous){
- first=len=0;contiguous=false;
- if(!cardRead(lba,sectorBuf))return false;uint8_t*p=sectorBuf+off;
- if(p[0]!='E'||p[1]!='L'||memcmp(p+8,"BIN",3))return false;
- uint32_t c=((uint32_t)u16(p+20)<<16)|u16(p+26);p[0]=0xe5;
- if(!partitionWrite(lba,sectorBuf))return false;sdDeleted++;
- return c<2||c>=clusters+2||freeChain(c,first,len,contiguous);
-}
+// Dashcam style (2026-11-07): when no free 1 MiB run is left, the oldest ELxxxxxx.BIN (never the
+// newest) is removed and its space reused. The entry goes first, then its FAT chain, so a power cut
+// leaves lost clusters, never a cross-link. Kept small: the LLEXT heap has only a few hundred bytes left.
+static bool sdFull=false;
 static bool newSDLog(){
  if(!sdMounted)return false;uint32_t allocationAt=millis();
+ uint32_t maxIndex=0,minIndex=0xffffffff,freeSec=0,oldSec=0;uint16_t freeOff=0,oldOff=0;uint32_t c=rootCluster,lastRoot=c;
+ for(unsigned hop=0;hop<128&&c>=2&&c<clusters+2;hop++){
+  for(unsigned s=0;s<clusterSectors;s++){uint32_t lba=dataBase+(c-2)*clusterSectors+s;if(!cardRead(lba,sectorBuf))return false;
+   for(unsigned off=0;off<512;off+=32){uint8_t*p=sectorBuf+off;if((p[0]==0||p[0]==0xe5)&&!freeSec){freeSec=lba;freeOff=off;}if(p[0]=='E'&&p[1]=='L'&&!memcmp(p+8,"BIN",3)){uint32_t n=0;for(int j=2;j<8;j++){if(p[j]<'0'||p[j]>'9'){n=0;break;}n=n*10+p[j]-'0';}if(n>maxIndex)maxIndex=n;if(n&&n<minIndex){minIndex=n;oldSec=lba;oldOff=off;}}}
+  }lastRoot=c;c=fatGet(c);if(c>=0x0ffffff8)break;
+ }
+ if(maxIndex>=999999)return false;
  uint32_t count=(1UL*1024*1024)/(clusterSectors*512UL),run=0,first=0;
- uint32_t maxIndex=0,freeSec=0,lastRoot=rootCluster;uint16_t freeOff=0;
- bool reuseOldest=sdFull;
- for(unsigned deleted=0;;){
-  uint32_t minIndex=0xffffffff,oldSec=0;uint16_t oldOff=0;
-  maxIndex=0;freeSec=0;freeOff=0;uint32_t c=rootCluster;lastRoot=c;
-  for(unsigned hop=0;hop<128&&c>=2&&c<clusters+2;hop++){
-   for(unsigned s=0;s<clusterSectors;s++){uint32_t lba=dataBase+(c-2)*clusterSectors+s;if(!cardRead(lba,sectorBuf))return false;
-    for(unsigned off=0;off<512;off+=32){uint8_t*p=sectorBuf+off;if((p[0]==0||p[0]==0xe5)&&!freeSec){freeSec=lba;freeOff=off;}
-     if(p[0]=='E'&&p[1]=='L'&&!memcmp(p+8,"BIN",3)){uint32_t n=0;for(int j=2;j<8;j++){if(p[j]<'0'||p[j]>'9'){n=0;break;}n=n*10+p[j]-'0';}
-      if(n>maxIndex)maxIndex=n;if(n&&n<minIndex){minIndex=n;oldSec=lba;oldOff=off;}}}
-   }lastRoot=c;c=fatGet(c);if(c>=0x0ffffff8)break;
-  }
-  if(maxIndex>=999999)return false;
-  if(!reuseOldest){
-   // Reserve a contiguous 1 MiB file. Only free clusters are changed.
+ for(int tries=0;;tries++){
+  // Reserve a contiguous 1 MiB file. Only free clusters are changed. Once full, drop the oldest first.
+  if(!sdFull||tries){
    if(freeCursor<2||freeCursor>=clusters+2)freeCursor=2;
    for(int pass=0;pass<2&&run<count;pass++){
     run=0;uint32_t begin=pass?2:freeCursor,end=pass?freeCursor:clusters+2;
@@ -86,13 +54,11 @@ static bool newSDLog(){
    }
    if(run>=count)break;
   }
-  // No room: remove the oldest file, never the newest (so at least one older file must exist).
-  if(!oldSec||minIndex>=maxIndex||deleted>=16)return false;
-  uint32_t f,len;bool contiguous;
-  if(!deleteEntry(oldSec,oldOff,f,len,contiguous))return false;
-  deleted++;sdFull=true;
-  if(contiguous&&len>=count){first=f;if(!freeSec){freeSec=oldSec;freeOff=oldOff;}break;}
-  reuseOldest=false;run=0;  // not one 1 MiB run (not our layout): scan the FAT next round
+  if(tries||!oldSec||minIndex>=maxIndex||!cardRead(oldSec,sectorBuf))return false;
+  uint8_t*p=sectorBuf+oldOff;c=(u16(p+20)<<16)|u16(p+26);p[0]=0xe5;if(!partitionWrite(oldSec,sectorBuf))return false;
+  if(!freeSec){freeSec=oldSec;freeOff=oldOff;}
+  freeCursor=c;sdFull=true;
+  for(uint32_t k=0;k<clusters&&c>=2&&c<clusters+2;k++){uint32_t next=fatGet(c);if(!fatSet(c,0))return false;if(next>=0x0ffffff8)break;c=next;}
  }
  if(!freeSec){uint32_t extra=0;for(uint32_t i=freeCursor;i<clusters+2;i++){if(fatGet(i)==0){extra=i;break;}}if(!extra)return false;memset(sectorBuf,0,512);for(unsigned j=0;j<clusterSectors;j++)if(!partitionWrite(dataBase+(extra-2)*clusterSectors+j,sectorBuf))return false;if(!fatSet(extra,0x0fffffff)||!fatSet(lastRoot,extra))return false;freeSec=dataBase+(extra-2)*clusterSectors;freeOff=0;freeCursor=extra+1;}
  for(uint32_t sec=first/128;sec<=(first+count-1)/128;sec++){
