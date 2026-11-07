@@ -1245,7 +1245,12 @@ TSの書き出し（`put`・`ts_tables`・`ts_frame`）は`overlay_rec.c`から`
 - 10Hzで読むままでも`smooth_ms`を200にすれば、ほぼ止まらない（EcoCaptureの負荷が気になるときの逃げ道）
 - `hud_draw`に補間した値を渡す口を足した。渡さないとき（`hud_dump`）の頂点は、前の版と36通り（9つの状態×4つの設定）で1点も変わらない。`tools/video_hud`の試験26件も通る。`overlay_rec.c`はWSLで組み上がる
 
-**本体へ入れる手順**（まだ入れていない）：5-13と同じく、`overlay_rec.c`・`tele_smooth.h`・`run-video.sh`ほか一式を自分の置き場へ送り、rootで`install-video.sh <置き場>`。入れたら：
+**本体へ入れた（2026-11-08 6:38、ユーザー了承「つないだら入れて」、テザリングのssh）**：
+- 自分の置き場`~/video_test/install_smooth_20261108/`へ14ファイルを送り（PCとSHA-256が同じ、`ea322f5`の版）、rootで`install-video.sh ~/video_test/install_smooth_20261108`。組み上がってサービスが起動し直した
+- 控え：`/opt/ecologger-video/overlay_rec.pre-smooth-20261108`（sha256 `0cf73aa5…`）・`run-video.sh.pre-smooth-20261108`（`e0a56c95…`）・`/etc/systemd/system/ecologger-video.service.pre-smooth-20261108`
+- 入れたときはカメラ（ドック）がつながっておらず（`/dev/v4l/by-id/`が無い）、録画はカメラ待ちのまま。下の1〜5はまだ確かめていない
+
+**本体へ入れる手順**：5-13と同じく、`overlay_rec.c`・`tele_smooth.h`・`run-video.sh`ほか一式を自分の置き場へ送り、rootで`install-video.sh <置き場>`。入れたら：
 1. journalに起動の表示が出て、録画が30コマ/秒のまま
 2. EcoCaptureのCPUが増えすぎていないか（読む回数が2.5倍になる）。重ければ`telemetry_hz`に`10`、`smooth_ms`に`200`
 3. 1分後のjournalの`smooth:`の行（camera_age・wait・needle_behind_camera）を記録する
