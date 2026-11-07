@@ -38,7 +38,7 @@ import sugo_setup  # noqa: E402
 
 WEB = '/home/arduino/EcoCapture-Web'
 DASH_DIR = '/opt/logger-v2-racecapture'
-WEB_FILES = ['lap.py', 'models.py', 'podium.py', 'test_lap.py']
+WEB_FILES = ['lap.py', 'models.py', 'podium.py', 'test_lap.py', 'test_podium.py']
 DASH_FILES = ['dash_model.py', 'ecocapture_dash.py']
 DASH_TEST = ['dash_model.py', 'ecocapture_dash.py', 'test_dash_model.py', 'display_load_control.py']
 SERVER = 'ecorun-home'
