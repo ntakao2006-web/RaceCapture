@@ -103,6 +103,28 @@ class SugoSetupTests(unittest.TestCase):
         self.assertEqual(sugo_setup.line_changes(self.device.line), [])
         self.assertFalse(any(n.startswith('lap.json.bak-') for n in self.device.files))
 
+    def test_apply_only_adds_the_sectors_to_the_sugo_line(self):
+        self.device.line = {**{k: v for k, v in sugo_setup.SUGO_LINE.items()}, 'sectors': []}
+        self.device.laps = 4
+        self.assertEqual(sugo_setup.main(['--apply']), 0)
+        self.assertEqual(self.device.posts, ['/api/lap'])  # no backup, no reset
+        self.assertEqual(self.device.laps, 4)
+        self.assertEqual(self.device.line['sectors'], sugo_setup.SUGO_LINE['sectors'])
+
+    def test_older_lap_py_gets_no_sectors(self):
+        """lap.pyがセクター対応前の本体（lineにsectorsが無い）へは送らない（送ると400で全部失敗する）"""
+        self.assertNotIn('sectors', self.device.line)
+        self.assertEqual(sugo_setup.main(['--apply']), 0)
+        self.assertNotIn('sectors', self.device.line)
+        self.assertEqual(sugo_setup.line_changes(self.device.line), [])
+
+    def test_sector_gates_lie_on_the_lap(self):
+        gates = sugo_setup.SUGO_LINE['sectors']
+        self.assertEqual(len(gates), 2)
+        for gate in gates:  # SUGOの中、向きが決まっている
+            self.assertTrue(38.137 < gate['lat'] < 38.144 and 140.770 < gate['lon'] < 140.783)
+            self.assertIsNotNone(gate['bearing'])
+
     def test_restore_puts_the_saved_lines_back(self):
         sugo_setup.main(['--apply'])
         backup = next(n for n in self.device.files if n.startswith('lap.json.bak-'))

@@ -12,8 +12,10 @@
 --restore <本体のファイル名> で、退避した lap.json のラインへ戻す（エコラン用へ戻すとき）。
 --reset でラップの記録だけを消す（予選のあと決勝の前。Reset-Laps.cmd がこれを呼ぶ）。
   レース経過（SessionTime）はリセットのあと最初にコントロールラインを通った時から数える。
-ラインがすでにSUGOで、違うのがピットレーンの値（2026-11-04に足した）だけなら、--apply はその値だけを足し、
-ラップの記録は消さない。
+ラインがすでにSUGOで、違うのがピットレーンの値（2026-11-04に足した）やセクター（2026-11-07に足した）だけなら、
+--apply はその値だけを足し、ラップの記録は消さない。
+セクターは本体のEcoCapture-Web/lap.pyがセクター対応（2026-11-07）でないと入れられない。古いときは★を出して
+コントロールラインとピットレーンだけを入れる。
 
 つなぎ方: 既定は ssh unoq（Pixelのテザリング）。--adb でUSBのadb（ドックを外してPCへ直接つないだとき）。
   python sugo_setup.py            # 確かめるだけ
@@ -43,8 +45,16 @@ SUGO_LINE = {
     # ピットレーン（OpenStreetMap way 573824372）はこの線の上でコースの中心線から右（南）へ約11m。
     # 線を80km/h以下でそちら側（5.5mより外）を通ったらピットの通過（EcoCapture-Web/lap.py）。11/7の走行会で確かめる
     'pit_offset_m': 11.0, 'pit_max_kmh': 80.0,
+    # セクターの区切り（2026-11-07、OpenStreetMapの同じコースから。task_sugo_20261108_breakdown.md SG-1-3）。
+    # コントロールラインから1,100m・2,300m（1周3,585m → 1,100・1,200・1,285m）の直線の途中に、走る向きに直角。
+    # 幅40m：ほかの区間のコースから64m・141m、ピットレーンから73m・338m離れている。
+    'sectors': [
+        {'lat': 38.1403519, 'lon': 140.7804287, 'bearing': 58.3, 'width_m': 40.0},
+        {'lat': 38.1393697, 'lon': 140.7751020, 'bearing': 27.3, 'width_m': 40.0},
+    ],
 }
 PIT_KEYS = ('pit_offset_m', 'pit_max_kmh')
+ADDON_KEYS = (*PIT_KEYS, 'sectors')  # これだけが違うなら足すだけで、ラップの記録は消さない
 
 
 def runner(use_adb, host):
@@ -81,8 +91,14 @@ def api(run, path, body=None, wait=15):
 
 
 def line_changes(now, target=SUGO_LINE):
-    """(項目, 今, 切り替え後) のうち違うもの"""
-    return [(key, now.get(key), value) for key, value in target.items() if now.get(key) != value]
+    """(項目, 今, 切り替え後) のうち違うもの。本体がセクターを知らなければセクターは比べない"""
+    return [(key, now.get(key), value) for key, value in target.items()
+            if now.get(key) != value and (key != 'sectors' or 'sectors' in now)]
+
+
+def target_for(now):
+    """本体へ送るSUGOのライン（本体のlap.pyがセクターを知らなければセクター抜き）"""
+    return SUGO_LINE if 'sectors' in now else {k: v for k, v in SUGO_LINE.items() if k != 'sectors'}
 
 
 def check(run):
@@ -101,6 +117,8 @@ def check(run):
     lap = api(run, '/api/lap')
     changes = line_changes(lap['line'])
     print(f"ラップ: 完了{lap['values'].get('LapCount')}周、ラインの設定日時 {lap['line'].get('set_at')}")
+    if 'sectors' not in lap['line']:
+        print('★本体のlap.pyがセクターに対応していません（EcoCapture-Web/lap.pyを先に入れる）。セクターは入れません')
     if not changes:
         print('ラップのライン: SUGOのコントロールラインになっている')
     for key, now, after in changes:
@@ -130,6 +148,8 @@ def main(argv=None):
         name = Path(args.restore).name
         saved = json.loads(run(f'cat {DATA}/{shlex.quote(name)}'))['line']
         saved = {**dict.fromkeys(PIT_KEYS), **saved}  # a line saved before the pit lane existed has none
+        if 'sectors' in line:
+            saved.setdefault('sectors', [])  # nor sectors
         print(f'{name} のラインへ戻します')
         api(run, '/api/lap', saved)
         api(run, '/api/lap/reset', {})
@@ -141,15 +161,17 @@ def main(argv=None):
     if not changes:
         print('ラインは切り替え済みなので、何もしません（ラップのリセットは /api/lap/reset か画面から）')
         return 0
-    if all(key in PIT_KEYS for key, _, _ in changes):
+    if all(key in ADDON_KEYS for key, _, _ in changes):
         api(run, '/api/lap', {key: after for key, _, after in changes})
-        print('ピットレーンの値だけを足しました（ラップの記録はそのまま）')
+        names = [name for name, keys in (('ピットレーン', PIT_KEYS), ('セクター', ('sectors',)))
+                 if any(key in keys for key, _, _ in changes)]
+        print(f"{'・'.join(names)}の値だけを足しました（ラップの記録はそのまま）")
         _, left = check(run)
         return 1 if left else 0
     backup = f"lap.json.bak-{datetime.now():%Y%m%d}-ecorun"
     run(f'cd {DATA} || exit 1; [ -e {backup} ] || cp -p lap.json {backup}; ls -l {backup}')
     print(f'今のラインを本体の {backup} へ退避しました')
-    api(run, '/api/lap', SUGO_LINE)
+    api(run, '/api/lap', target_for(line))
     api(run, '/api/lap/reset', {})
     print('SUGOのコントロールラインにして、ラップの記録を消しました')
     _, left = check(run)
