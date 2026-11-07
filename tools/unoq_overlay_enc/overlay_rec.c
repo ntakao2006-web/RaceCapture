@@ -4,8 +4,9 @@
 //   GPUはY（輝度）面とUV（色差）面へ直接描く。RGBの中間画面は作らず、計器は面ごとに1回の描画にまとめる（手順書5-13）
 //   保存はMPEG-TS（.ts）。1枚ごとにカメラの時刻を付ける。途中で電源が切れても、そこまでは再生できる
 //   数値はEcoCaptureのAPI（http://127.0.0.1:8080/api/telemetry）を別スレッドで約25Hz（OVERLAY_TELEMETRY_HZ）で読む。
-//   針のメーター・弧・棒・Gボールは、届いたサンプルの間をコマの時刻で補間して滑らかに動かす（tele_smooth.h、
-//   OVERLAY_SMOOTH_MS＝遅らせるミリ秒、既定100。0で補間せず届いた値のまま。手順書5-24）
+//   針のメーター・弧・棒・Gボールは、そのコマの絵をカメラが撮った時刻の値を、届いたサンプルの間から補間して描く
+//   （滑らかに動き、景色と時刻が揃う。tele_smooth.h。値がまだ届いていなければ待てる所まで戻す。
+//   OVERLAY_SMOOTH_MS＝待つミリ秒の上限、既定150。0で補間せず届いた値のまま。手順書5-24）
 //   土台は overlay_enc_test.c（mode=1・thr=1、unoq_video_check_procedure.md 5-11）。計器の文字は
 //   make_font_atlas.py で作る文字の一覧表（hud_font_64.pgm、DejaVu Sans Mono Bold）をGPUで貼る
 //   計器の項目・位置・大きさ・色は設定ファイル（hud.ini、組み立ては hud_layout.h）で決める。OVERLAY_HUD のファイルがあればそれを、
@@ -116,7 +117,7 @@ static double tvals[HUD_REFS];  // 値（hud_cur->ref の順。無ければNAN�
 #define TSM_MAXV HUD_REFS
 #include "tele_smooth.h"
 static struct tsm tsmooth;  // 針などを補間するためにためたサンプル（tvals と同じ順）。tmuで守る
-static double smooth_s = 0.1, tele_hz = 25;  // OVERLAY_SMOOTH_MS・OVERLAY_TELEMETRY_HZ
+static double smooth_s = 0.15, tele_hz = 25;  // OVERLAY_SMOOTH_MS・OVERLAY_TELEMETRY_HZ
 static int api_port = 8080;  // OVERLAY_TELEMETRY_PORTで変えられる（時刻合わせの試験で、作り物の値を返す相手へ向ける）
 // ベストとの差・コース図の線（lap_ref.h）。lr は走行データのスレッド（DEMOのときは描画のスレッド）だけが触る。
 // 線は ttrk に写してtmuで守る。計算した値は「calc.名前」で計器から使える（calc_value）
@@ -1268,8 +1269,20 @@ int main(int argc, char **argv) {
 
         if (f && f % 30 == 0) { hud_check(); lens_check(); }  // 設定ファイルが書き換わっていれば読み直す（約1秒ごと）
         struct tele t; double v[HUD_REFS], vs[HUD_REFS];  // vs：針・弧・棒・Gボール用に補間した値
-        pthread_mutex_lock(&tmu); t = tl; memcpy(v, tvals, sizeof v); tsm_get(&tsmooth, now(), smooth_s, vs, HUD_REFS);
+        const double tnow = now();
+        double sm_wait, sm_behind;
+        pthread_mutex_lock(&tmu); t = tl; memcpy(v, tvals, sizeof v); tsm_frame(&tsmooth, cam_ts, tnow, smooth_s, vs, HUD_REFS);
+        sm_wait = tsmooth.wait; sm_behind = tsmooth.behind;
         pthread_mutex_unlock(&tmu);
+        {  // 1分ごとに journal へ：カメラの絵が撮られてから描くまで・値を待つ秒・針が景色より遅れた秒（平均。手順書5-24）
+            static double age_sum, behind_sum, behind_max; static int sm_n;
+            age_sum += tnow - cam_ts; behind_sum += sm_behind; behind_max = fmax(behind_max, sm_behind); sm_n++;
+            if (sm_n >= 1800) {
+                printf("smooth: camera_age %.0f ms, wait %.0f ms, needle_behind_camera avg %.0f ms max %.0f ms\n",
+                       age_sum / sm_n * 1e3, sm_wait * 1e3, behind_sum / sm_n * 1e3, behind_max * 1e3);
+                fflush(stdout); age_sum = behind_sum = behind_max = 0; sm_n = 0;
+            }
+        }
         static struct hud_track trk;
         if (demo) {  // 見た目と警告の色を机の上で確かめるための作り物の値（画面にDEMOと出す）。架空のコースを走り、差・コース図も動かす
             lr_demo_step(&dd, demo_t0 + f / 30.0);
