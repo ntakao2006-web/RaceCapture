@@ -51,6 +51,16 @@ class SummarizeTests(unittest.TestCase):
         self.assertTrue(rows['EcoCapture'][1])
         self.assertTrue(rows['HDMIの画面'][1])
 
+    def test_why_usb_is_not_used(self):
+        host = output(status=STATUS, lap=LAP) + '@@C\n0\n'
+        rows = {n: (v, w) for n, v, w in m.summarize(host, usb=False)}
+        self.assertIn('ドックをつないだまま本体が起動', rows['USB'][0])
+        self.assertTrue(rows['USB'][1])
+        waiting = {n: v for n, v, w in m.summarize(output(status=STATUS, lap=LAP) + '@@C\n1\n', usb=False)}
+        self.assertIn('PCから見えません', waiting['USB'])
+        self.assertNotIn('USB', {n for n, v, w in m.summarize(host, usb=True)})  # USBでつながっていれば出さない
+        self.assertNotIn('USB', {n for n, v, w in m.summarize(output(status=STATUS, lap=LAP), usb=False)})  # 古い本体の出力
+
     def test_racecapture_screen(self):
         rows = self.rows(status=STATUS, lap=LAP,
                          screen='ecocapture-dash: inactive (power-on: disabled)\nracecapture-app: active (power-on: enabled)')
@@ -92,6 +102,24 @@ class StuckReadTests(unittest.TestCase):
                 mock.patch.object(m.video_collect, 'find_link', return_value=None):
             self.assertIsNone(m.Device(print).find())
         self.assertNotIn('unoq', fake_ssh._found)
+
+    def test_usb_that_appears_while_on_tethering_is_used_next_read(self):
+        device = m.Device(print)
+        device.link = FakeLink('slow')  # テザリング
+        usb = mock.Mock(spec=m.video_collect.AdbLink)
+        usb.run.return_value = 'fast'
+        usb.label.return_value = 'USB（x）'
+        with mock.patch.object(device, 'usb_appeared', return_value=True),                 mock.patch.object(m.video_collect, 'find_link', return_value=usb) as find:
+            self.assertEqual(device.run('x'), 'fast')
+        find.assert_called_once()
+        self.assertIs(device.link, usb)
+
+    def test_tethering_stays_when_no_usb(self):
+        device = m.Device(print)
+        device.link = FakeLink('slow')
+        with mock.patch.object(device, 'usb_appeared', return_value=False),                 mock.patch.object(m.video_collect, 'find_link') as find:
+            self.assertEqual(device.run('x'), 'slow')
+        find.assert_not_called()
 
     def test_a_held_lock_does_not_block_after_abandon(self):
         device = m.Device(print)

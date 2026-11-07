@@ -4,7 +4,8 @@
 下の段のボタンで、これまで別々に置いてあった .cmd を開く。
 
 つなぎ方は自動で選ぶ：USB直結のadbで届けばそれ、届かなければPixelのテザリング（ssh unoq、
-名前が引けなければIPで探す＝tools/collect_logs/unoq_ssh.py）。--adb を受け付ける道具には、
+名前が引けなければIPで探す＝tools/collect_logs/unoq_ssh.py）。テザリングの間も読むたびにUSBを確かめ、
+見えたら速いUSBへつなぎ直す。--adb を受け付ける道具には、
 USBでつながっているときだけ --adb を付けて開く。
 
 このメニュー自身が本体へ書き込むのは「HDMIの画面の切り替え」だけ（dash_switch.sh、記録には触らない）。
@@ -72,6 +73,7 @@ echo; echo '@@L'; curl -s -m 6 {API}/api/lap
 echo; echo '@@D'; {DASH_SWITCH} status 2>&1
 echo '@@H'; cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null
 echo '@@U'; cat /proc/uptime
+echo '@@C'; ls /sys/class/udc 2>/dev/null | wc -l
 exit 0
 '''
 
@@ -130,11 +132,29 @@ def fmt_duration(s):
     return f'{s // 3600}時間{s % 3600 // 60:02d}分' if s >= 3600 else f'{s // 60}分{s % 60:02d}秒'
 
 
-def summarize(text):
-    """本体の出力から、画面に出す (項目, 値, 注意か) の一覧を作る"""
+def usb_row(parts, usb):
+    """テザリングでつながっているとき、USBでつながらない理由（本体のUSBがどちらの側で動いているか）"""
+    if usb is not False:
+        return None
+    count = parts.get('C', '').strip()
+    if count == '0':
+        # 本体のUSB-Cは起動したときにドックがあれば「ホスト」（ドックの機器を使う側）になり、
+        # あとでPCへつなぎ替えても「PCからつながれる側」へ切り替わらない（2026-11-07、/sys/class/udc が空）
+        return ('USB', 'PCとUSBでつなげない状態です（ドックをつないだまま本体が起動したため）。'
+                       'USBで使うには、ドックを外しPCとつないだまま本体の電源を入れ直す', True)
+    if count.isdigit():
+        return ('USB', '本体はUSBで待っていますが、PCから見えません（ケーブルが充電専用でないか・挿し直し）', True)
+    return None
+
+
+def summarize(text, usb=None):
+    """本体の出力から、画面に出す (項目, 値, 注意か) の一覧を作る。usb はつなぎ方（True: USB、False: テザリング）"""
     parts = sections(text)
     status, lap = load_json(parts.get('S')), load_json(parts.get('L'))
     rows = []
+    row = usb_row(parts, usb)
+    if row:
+        rows.append(row)
     if not status:
         rows.append(('EcoCapture', '応答がありません（本体のEcoCaptureが止まっているかも）', True))
     else:
@@ -212,6 +232,9 @@ class Device:
         try:
             for attempt in (0, 1):
                 self.last_try = datetime.now()
+                if self.link is not None and not self.usb and self.usb_appeared():
+                    diag('USBが見えたので、速いUSBへつなぎ直す')
+                    self.link = None
                 if self.link is None and not self.find():
                     raise OSError('本体が見つかりません（USBのケーブル、またはPCと本体が同じテザリングにいるか）')
                 started = time.monotonic()
@@ -224,6 +247,17 @@ class Device:
                         raise
         finally:
             lock.release()
+
+    def usb_appeared(self):
+        """テザリングでつないでいる間に、USBのadbに機器が出てきたか（速い方を使うため毎回確かめる。0.1秒ほど）"""
+        adb = video_collect.find_adb()
+        if not adb:
+            return False
+        try:
+            lines = subprocess.run([adb, 'devices'], capture_output=True, text=True, timeout=10).stdout.splitlines()
+        except (OSError, subprocess.SubprocessError):
+            return False
+        return any(len(p) >= 2 and p[1] == 'device' for p in (line.split() for line in lines[1:]))
 
     def abandon(self):
         """返ってこない操作を見捨てる。その操作が持っている鍵は待たずに、新しい鍵とつなぎ直しで続ける"""
@@ -378,7 +412,7 @@ class Menu:
         if not quiet:
             self.conn.configure(text='本体を読んでいます…', foreground='#444')
         read_id = self.read_id
-        self.background(lambda: summarize(self.device.run(STATUS_SCRIPT)),
+        self.background(lambda: summarize(self.device.run(STATUS_SCRIPT), self.device.usb),
                         lambda rows, error: self.show_status(rows, error, read_id))
 
     def show_status(self, rows, error, read_id=None):
@@ -468,7 +502,7 @@ def main(argv=None):
     if '--once' in argv:
         device = Device(print)
         started = time.monotonic()
-        rows = summarize(device.run(STATUS_SCRIPT))
+        rows = summarize(device.run(STATUS_SCRIPT), device.usb)
         print(f'つなぎ方: {device.label()}（{time.monotonic() - started:.1f}秒）')
         for name, value, warn in rows:
             print(f"{'★' if warn else ' '} {name}: {value}")
