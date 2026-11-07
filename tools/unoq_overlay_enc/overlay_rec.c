@@ -3,7 +3,9 @@
 //   → GPUで1920x1080へ拡大し計器を重ね描き → エンコーダ（venus）の入力バッファへdmabufで直接NV12を書く → H.264
 //   GPUはY（輝度）面とUV（色差）面へ直接描く。RGBの中間画面は作らず、計器は面ごとに1回の描画にまとめる（手順書5-13）
 //   保存はMPEG-TS（.ts）。1枚ごとにカメラの時刻を付ける。途中で電源が切れても、そこまでは再生できる
-//   数値はEcoCaptureのAPI（http://127.0.0.1:8080/api/telemetry）を別スレッドで約10Hzで読む
+//   数値はEcoCaptureのAPI（http://127.0.0.1:8080/api/telemetry）を別スレッドで約25Hz（OVERLAY_TELEMETRY_HZ）で読む。
+//   針のメーター・弧・棒・Gボールは、届いたサンプルの間をコマの時刻で補間して滑らかに動かす（tele_smooth.h、
+//   OVERLAY_SMOOTH_MS＝遅らせるミリ秒、既定100。0で補間せず届いた値のまま。手順書5-24）
 //   土台は overlay_enc_test.c（mode=1・thr=1、unoq_video_check_procedure.md 5-11）。計器の文字は
 //   make_font_atlas.py で作る文字の一覧表（hud_font_64.pgm、DejaVu Sans Mono Bold）をGPUで貼る
 //   計器の項目・位置・大きさ・色は設定ファイル（hud.ini、組み立ては hud_layout.h）で決める。OVERLAY_HUD のファイルがあればそれを、
@@ -15,7 +17,7 @@
 //   mode = camera でカメラ任せ）、今の値は <ファイル>.status（手順書5-21）
 //   ベストとの差（calc.Delta 等）とコース図の線は、走行データの位置・ラップから lap_ref.h で作る。ベストの周の軌跡は
 //   OVERLAY_LAPREF のファイルへ書き、録画をやり直しても lap.BestLap と同じ時間なら続きから使う（手順書5-16）
-// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h・lap_ref.h・video_store.h・ts_mux.h・audio_cap.h・auto_exposure.h を同じ場所に置く）
+// ビルド(UNO Q上): gcc -O2 -o overlay_rec overlay_rec.c -lEGL -lGLESv2 -ljpeg -lm -lpthread（hud_layout.h・lap_ref.h・video_store.h・ts_mux.h・audio_cap.h・auto_exposure.h・tele_smooth.h を同じ場所に置く）
 // 実行: ./overlay_rec <入力> <出力> [seconds=60、0は止めるまで] [font=hud_font_64.pgm]
 //   入力：/dev/videoN（カメラ）か file:xxx.jpg（同じJPEGを30fpsで繰り返す。カメラ無しで試す用）
 //   出力：xxx.ts（MPEG-TS）か xxx.h264（素のH.264、時刻なし）。%を含むとき（本番は <置き場>/%Y%m%d_%H%M%S.ts）はGoProと同じく、
@@ -111,6 +113,10 @@ static pthread_mutex_t tmu = PTHREAD_MUTEX_INITIALIZER;
 static struct hud *hud_cur;
 static int hud_gen;  // 差し替えるたびに増やす（前の設定の順で読んだ値を捨てる）
 static double tvals[HUD_REFS];  // 値（hud_cur->ref の順。無ければNAN）
+#define TSM_MAXV HUD_REFS
+#include "tele_smooth.h"
+static struct tsm tsmooth;  // 針などを補間するためにためたサンプル（tvals と同じ順）。tmuで守る
+static double smooth_s = 0.1, tele_hz = 25;  // OVERLAY_SMOOTH_MS・OVERLAY_TELEMETRY_HZ
 static int api_port = 8080;  // OVERLAY_TELEMETRY_PORTで変えられる（時刻合わせの試験で、作り物の値を返す相手へ向ける）
 // ベストとの差・コース図の線（lap_ref.h）。lr は走行データのスレッド（DEMOのときは描画のスレッド）だけが触る。
 // 線は ttrk に写してtmuで守る。計算した値は「calc.名前」で計器から使える（calc_value）
@@ -242,6 +248,7 @@ static void *telemetry(void *arg) {
     (void)arg;
     static char buf[1 << 16], refs[HUD_REFS][HUD_REF_LEN];
     static struct hud_track trk;
+    double lr_at = -1e9, last_mcu = NAN;
     while (!quit) {
         double a = now();
         if (http_get("/api/telemetry", buf, sizeof buf) > 0 && strstr(buf, "\"sample\"")) {
@@ -251,7 +258,13 @@ static void *telemetry(void *arg) {
             gen = hud_gen;
             if (hud_cur) { nref = hud_cur->nref; memcpy(refs, hud_cur->ref, sizeof refs[0] * nref); }
             pthread_mutex_unlock(&tmu);
-            if (!demo) {  // ベストとの差・コース図の線を進めてから、calc.〜 の値を読む
+            const double mcu = jnum(js, NULL, "mcu_ms");
+            const int fresh = isnan(mcu) || mcu != last_mcu;  // 前と同じサンプルを読み直しただけなら0
+            last_mcu = mcu;
+            // ベストとの差・コース図の線を進めてから、calc.〜 の値を読む。lap_ref.h は約10Hzでためる前提（LR_MAX）なので、
+            // 速く読んでも0.1秒に1回だけ進める
+            if (!demo && fresh && a - lr_at >= 0.095) {
+                lr_at = a;
                 const double lat = jnum(js, "values", "Lat"), lon = jnum(js, "values", "Lon");
                 lr_update(&lr, lat, lon, jref(js, "values.Speed|values.GPSSpeed"), jnum(js, "lap", "CurrentLap"),
                           jnum(js, "lap", "ElapsedTime"), jnum(js, "lap", "LapTime"), jnum(js, "lap", "BestLap"));
@@ -269,11 +282,14 @@ static void *telemetry(void *arg) {
             const double host = jtime_frac(js, "host_utc"), gnss = jtime_frac(js, "gnss_utc"), itow = jnum(js, NULL, "gnss_itow_ms");
             pthread_mutex_lock(&tmu);
             tl = t;
-            if (gen == hud_gen) memcpy(tvals, v, sizeof v[0] * nref);  // 読んでいる間に設定が差し替わったら捨てる
-            if (host > 0 && gnss > 0 && !isnan(itow)) clock_sample(gnss + fmod(itow, 1000) / 1000 - (host - (wall() - now())));
+            if (gen == hud_gen) {  // 読んでいる間に設定が差し替わったら捨てる
+                memcpy(tvals, v, sizeof v[0] * nref);
+                if (fresh) tsm_push(&tsmooth, mcu / 1000, t.got, v, nref);
+            }
+            if (fresh && host > 0 && gnss > 0 && !isnan(itow)) clock_sample(gnss + fmod(itow, 1000) / 1000 - (host - (wall() - now())));
             pthread_mutex_unlock(&tmu);
         }
-        double r = 0.1 - (now() - a);
+        double r = 1 / tele_hz - (now() - a);
         if (r > 0) usleep(r * 1e6);
     }
     return NULL;
@@ -423,6 +439,7 @@ static int hud_load(const char *path, const struct stat *st, char *err, size_t e
     pthread_mutex_lock(&tmu);
     struct hud *old = hud_cur; hud_cur = h; hud_gen++;
     for (int i = 0; i < HUD_REFS; i++) tvals[i] = NAN;
+    tsm_reset(&tsmooth);
     pthread_mutex_unlock(&tmu);
     free(old);
     snprintf(hud_loaded, sizeof hud_loaded, "%s", path); hud_st = *st;
@@ -1063,6 +1080,8 @@ int main(int argc, char **argv) {
     if (getenv("OVERLAY_MIN_FREE_MB")) min_free_mb = atof(getenv("OVERLAY_MIN_FREE_MB"));
     if (getenv("OVERLAY_BITRATE_MBPS")) bitrate_mbps = atof(getenv("OVERLAY_BITRATE_MBPS"));
     if (getenv("OVERLAY_TELEMETRY_PORT")) api_port = atoi(getenv("OVERLAY_TELEMETRY_PORT"));
+    if (getenv("OVERLAY_SMOOTH_MS")) smooth_s = fmax(0, atof(getenv("OVERLAY_SMOOTH_MS")) / 1000);
+    if (getenv("OVERLAY_TELEMETRY_HZ")) tele_hz = fmin(fmax(atof(getenv("OVERLAY_TELEMETRY_HZ")), 1), 100);
     hud_path = getenv("OVERLAY_HUD"); hud_status_path = getenv("OVERLAY_HUD_STATUS");
     static char def_path[512];  // 既定の配置：OVERLAY_HUD_DEFAULT、無ければ文字の一覧表と同じ場所の hud_default.ini
     if (getenv("OVERLAY_HUD_DEFAULT")) snprintf(def_path, sizeof def_path, "%s", getenv("OVERLAY_HUD_DEFAULT"));
@@ -1248,8 +1267,9 @@ int main(int argc, char **argv) {
         double b1 = now(); s_up += b1 - a;
 
         if (f && f % 30 == 0) { hud_check(); lens_check(); }  // 設定ファイルが書き換わっていれば読み直す（約1秒ごと）
-        struct tele t; double v[HUD_REFS];
-        pthread_mutex_lock(&tmu); t = tl; memcpy(v, tvals, sizeof v); pthread_mutex_unlock(&tmu);
+        struct tele t; double v[HUD_REFS], vs[HUD_REFS];  // vs：針・弧・棒・Gボール用に補間した値
+        pthread_mutex_lock(&tmu); t = tl; memcpy(v, tvals, sizeof v); tsm_get(&tsmooth, now(), smooth_s, vs, HUD_REFS);
+        pthread_mutex_unlock(&tmu);
         static struct hud_track trk;
         if (demo) {  // 見た目と警告の色を机の上で確かめるための作り物の値（画面にDEMOと出す）。架空のコースを走り、差・コース図も動かす
             lr_demo_step(&dd, demo_t0 + f / 30.0);
@@ -1257,7 +1277,7 @@ int main(int argc, char **argv) {
             if (f % 3 == 0)  // 走行データと同じ約10Hz
                 lr_update(&lr, lat, lon, lr_demo_v0(&dd, dd.s) * lr_demo_factor(dd.lap), dd.lap, (dd.t - dd.lap_start) / 60, dd.last / 60, dd.best / 60);
             lr_track(&lr, lat, lon, &trk);
-            for (int i = 0; hud_cur && i < hud_cur->nref; i++) v[i] = demo_ref(hud_cur->ref[i], &dd, lat, lon, f / 30.0);
+            for (int i = 0; hud_cur && i < hud_cur->nref; i++) vs[i] = v[i] = demo_ref(hud_cur->ref[i], &dd, lat, lon, f / 30.0);
             t.got = now();
         } else {
             pthread_mutex_lock(&tmu); trk.n = ttrk.n;
@@ -1267,7 +1287,7 @@ int main(int argc, char **argv) {
         const double age = now() - t.got;
         hn = 0;  // 計器の形を1枚分ためて、まとめてGPUへ送る（面ごとに同じものを描く）
         if (!getenv("OVERLAY_NOHUD")) {
-            if (hud_cur) hud_draw(hud_cur, v, t.utc_ok, t.utc, age, &trk);
+            if (hud_cur) hud_draw(hud_cur, v, vs, t.utc_ok, t.utc, age, &trk);
             else text(40, 26, .6f, RED, "HUD CONFIG ERROR");  // 設定ファイルが無い・読めない（録画は続ける）
         }
         if (demo) text(40, 470, .6f, YELLOW, "DEMO");  // どちらの配置の計器とも重ならない所

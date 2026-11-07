@@ -538,9 +538,11 @@ static void hud_map(const struct hud_item *it, const struct hud_track *trk, doub
     }
 }
 
-// v：値（h->ref の順、無ければNAN）。utc_ok・utc：時刻。age：最後に数値を受け取ってからの秒。trk：コース図の線（無ければNULL）
-static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t utc, double age, const struct hud_track *trk) {
+// v：値（h->ref の順、無ければNAN）。vs：針のメーター・弧・棒・Gボールに使う値（コマの時刻で補間したもの、tele_smooth.h。NULLなら v）。
+// utc_ok・utc：時刻。age：最後に数値を受け取ってからの秒。trk：コース図の線（無ければNULL）
+static void hud_draw(const struct hud *h, const double *v, const double *vs, int utc_ok, time_t utc, double age, const struct hud_track *trk) {
     char b[3 * HUD_STR + 32];
+    if (!vs) vs = v;
     const int nodata = age > h->nodata_after;
     for (int i = 0; i < h->n; i++) {
         const struct hud_item *it = &h->it[i];
@@ -564,7 +566,7 @@ static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t ut
         case HT_BAR: {
             const float w = r[2] - r[0], hh = r[3] - r[1];
             rect(r[0], r[1], r[2], r[3], it->track_c);
-            double x = hud_val(it, v, it->ref);
+            double x = hud_val(it, vs, it->ref);
             if (!isnan(x) && !isnan(it->origin)) {  // origin から値まで（値が origin より小さければ逆向きに伸びる）
                 double f0 = fmin(fmax((it->origin - it->min) / (it->max - it->min), 0), 1);
                 double f1 = fmin(fmax((x - it->min) / (it->max - it->min), 0), 1), lo = fmin(f0, f1), hi = fmax(f0, f1);
@@ -607,7 +609,7 @@ static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t ut
                 }
             }
             seg(cx - rr, cy, cx + rr, cy, lw, it->cross_c); seg(cx, cy - rr, cx, cy + rr, lw, it->cross_c);
-            double gx = hud_val(it, v, it->ref), gy = hud_val(it, v, it->ref2);
+            double gx = hud_val(it, vs, it->ref), gy = hud_val(it, vs, it->ref2);
             if (!isnan(gx) && !isnan(gy)) {
                 if (it->flip_x) gx = -gx;
                 if (it->flip_y) gy = -gy;
@@ -654,7 +656,7 @@ static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t ut
                 double rl = rr - tl - 4 - .5 * (fabs(sin(a)) * w + fabs(cos(a)) * lh);
                 text(cx + rl * sin(a) - w / 2, cy - rl * cos(a) - lh / 2, it->label_size, it->color, b);
             }
-            double x = hud_val(it, v, it->ref);
+            double x = hud_val(it, vs, it->ref);
             if (!isnan(x)) {
                 float xt, yt; polar(cx, cy, rr - tl * .2, hud_angle(it, x), &xt, &yt);
                 seg(cx, cy, xt, yt, it->needle_width, it->needle_c);
@@ -666,7 +668,7 @@ static void hud_draw(const struct hud *h, const double *v, int utc_ok, time_t ut
             const float cx = it->x, cy = it->y, rr = it->radius;
             const double r0 = fmax(rr - it->width, 0), span = it->max - it->min;
             band(cx, cy, r0, rr, it->start, it->start + it->sweep, it->track_c);
-            double x = hud_val(it, v, it->ref);
+            double x = hud_val(it, vs, it->ref);
             if (!isnan(x)) band(cx, cy, r0, rr, it->start, hud_angle(it, x), hud_pick(it, x));
             for (int k = 1; it->tick_every > 0; k++) {
                 double tv = it->min + k * it->tick_every;

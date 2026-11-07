@@ -17,6 +17,10 @@ export OVERLAY_LENS="$hud/lens.json"
 # 露出：窓の範囲の明るさで録画プログラムが決める（カメラ任せだと明るい日の外が白く飛ぶ）。ファイルが無ければ既定の値。
 # カメラ任せに戻すときは $hud/exposure.ini に「mode = camera」と書く。録画中も約1秒ごとに見る。今の値は exposure.ini.status（手順書5-21）
 export OVERLAY_EXPOSURE="$hud/exposure.ini"
+# 針・弧・棒・Gボールの補間（届いた値の間をコマの時刻で補間して滑らかに動かす。手順書5-24）。
+# $hud/smooth_ms に遅らせるミリ秒（既定100、0で補間しない＝前と同じ描き方）、$hud/telemetry_hz に走行データを読む回数（既定25）を書ける。録画の再起動で効く
+[ -s "$hud/smooth_ms" ] && export OVERLAY_SMOOTH_MS="$(head -n 1 "$hud/smooth_ms" | tr -dc 0-9.)"
+[ -s "$hud/telemetry_hz" ] && export OVERLAY_TELEMETRY_HZ="$(head -n 1 "$hud/telemetry_hz" | tr -dc 0-9.)"
 # 音：カメラと同じUSB機器のマイク（ELPは内蔵）を探して録る（MP2・128kbps、手順書5-20）。録れなくても映像は録る。
 # 止めたいときは $hud/audio_off を置く。別のマイクにしたいときは $hud/audio にALSAの名前（例 plughw:CARD=Pro,DEV=0）を書く
 cam_mic() {  # $1：カメラの /dev/v4l/by-id/… 。同じUSB機器（インターフェースの親）にある音の入力のALSAの名前

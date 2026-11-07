@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
     (void)hud_demo;  // 本体のDEMO用。ここでは使わない
     hn = 0;
-    hud_draw(h, v, utc_ok, utc, age, trk.n ? &trk : NULL);
+    hud_draw(h, v, NULL, utc_ok, utc, age, trk.n ? &trk : NULL);
     printf("quads %d\n", hn / 6);
     for (int i = 0; i < hn; i++) {
         const float *p = hv + 8 * i;

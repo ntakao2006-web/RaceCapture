@@ -9,7 +9,7 @@ overlay_rec を OVERLAY_TELEMETRY_PORT=<port> で動かすと、今のカメラ�
 
 本体の走行記録は大きい（数百MB〜1GB）ので、先にPCで必要な区間だけを抜き出して本体へ送る:
   python replay_telemetry.py --excerpt 走行記録.csv 抜き出し.csv --from 2026-10-24T03:19:40 --seconds 200 [--every 5]
-    --from：GNSSの時刻（UTC、日付から）。--every 5 で5行に1行（100Hz→20Hz。overlay_recは約10Hzで読む）。緯度・経度は空にする
+    --from：GNSSの時刻（UTC、日付から）。--every 5 で5行に1行（100Hz→20Hz。overlay_recは約25Hzで読み、針は間を補間する）。緯度・経度は空にする
 本体で流す:
   python3 replay_telemetry.py 抜き出し.csv [--port 18081] [--speed 1] [--loop]
 """
@@ -88,6 +88,7 @@ class Replay:
         itow = num(row.get('gnss_itow_ms', ''))
         return {
             '_t': int(row['mcu_ms']) / 1000,
+            'mcu_ms': int(row['mcu_ms']),  # overlay_rec は同じサンプルの読み直しを見分け、針の補間の時刻に使う（tele_smooth.h）
             'schema': 1, 'source': 'replay', 'demo': False,
             'gnss_utc': gnss, 'gnss_itow_ms': int(itow) if itow is not None else None,
             'values': {k: (None if k in HIDDEN else num(row.get(k, ''))) for k in CHANNELS},
