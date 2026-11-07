@@ -3,7 +3,7 @@ import math
 import tempfile
 import unittest
 from pathlib import Path
-from lap import LapLine, LapTimer, EARTH_M_PER_DEG, line_code
+from lap import Gate, LapLine, LapTimer, EARTH_M_PER_DEG, line_code
 from models import LAP_CHANNELS
 
 LAT0, LON0 = 36.5, 140.2
@@ -328,6 +328,103 @@ class LineCodeTest(unittest.TestCase):
             same = t.line.model_copy(update={'min_lap_s': 20})
             t.configure(same.model_copy(update={'set_at': None}))
             self.assertIsNone(t.line.set_at)  # only a change of the lines themselves is stamped
+
+
+
+
+class SectorTests(unittest.TestCase):
+    """Sector gates (2026-11-07, SUGO): control at northing 0, gates at 1000 m and 2000 m."""
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory(); self.root = Path(self.dir.name)
+
+    def tearDown(self):
+        self.dir.cleanup()
+
+    def timer(self, sectors=(1000, 2000)):
+        t = LapTimer(self.root)
+        t.configure(LapLine(enabled=True, lat=LAT0, lon=LON0, bearing=0.0, min_lap_s=30,
+                            sectors=[gate(n, width_m=40) for n in sectors]))
+        return t
+
+    def lap(self, t, start_s, splits, skip=()):
+        """Control at start_s, then each sector gate and the control line after the given splits."""
+        at = start_s
+        for k, split in enumerate(splits[:-1]):
+            at += split
+            if k not in skip:
+                pass_north(t, int(at * 1000), 1000.0 * (k + 1))
+        return at + splits[-1]
+
+    def test_sector_times_and_best(self):
+        t = self.timer()
+        pass_north(t, 100_000, 0.0)
+        self.assertEqual(t.values()['Sector'], 1)
+        end = self.lap(t, 100, [40, 30, 35])
+        self.assertEqual(t.values()['Sector'], 3)
+        self.assertEqual(t.values()['SectorTimeS'], 30.0)
+        pass_north(t, int(end * 1000), 0.0)
+        self.assertEqual(t.state['laps'][-1]['sectors'], [40.0, 30.0, 35.0])
+        self.assertEqual(t.state['laps'][-1]['s'], 105.0)
+        end2 = self.lap(t, end, [38, 31, 36])
+        pass_north(t, int(end2 * 1000), 0.0)
+        self.assertEqual(t.state['laps'][-1]['sectors'], [38.0, 31.0, 36.0])
+        self.assertEqual(t.state['best_sectors'], [38.0, 30.0, 35.0])
+        v = t.values()
+        self.assertEqual((v['Sector'], v['SectorTimeS'], v['SectorDiffS']), (1, 36.0, 1.0))
+        self.assertEqual(t.public()['sectors']['best'], [38.0, 30.0, 35.0])
+
+    def test_missed_gate_never_sums_two_sectors(self):
+        t = self.timer()
+        pass_north(t, 100_000, 0.0)
+        end = self.lap(t, 100, [40, 30, 35], skip=(0,))
+        pass_north(t, int(end * 1000), 0.0)
+        self.assertEqual(t.state['laps'][-1]['sectors'], [None, None, 35.0])
+        self.assertEqual(t.state['laps'][-1]['s'], 105.0)  # the lap itself still counts
+        # the last gate missed: the final sector is unknown
+        end2 = self.lap(t, end, [40, 30, 35], skip=(1,))
+        pass_north(t, int(end2 * 1000), 0.0)
+        self.assertEqual(t.state['laps'][-1]['sectors'], [40.0, None, None])
+
+    def test_sectors_do_not_change_lap_counting(self):
+        (self.root / 'plain').mkdir()
+        t, plain = self.timer(), LapTimer(self.root / 'plain')
+        plain.configure(LapLine(enabled=True, lat=LAT0, lon=LON0, bearing=0.0, min_lap_s=30))
+        for timer in (t, plain):
+            pass_north(timer, 100_000, 0.0)
+            end = self.lap(timer, 100, [40, 30, 35])
+            pass_north(timer, int(end * 1000), 0.0)
+        self.assertEqual([l['s'] for l in t.state['laps']], [l['s'] for l in plain.state['laps']])
+        self.assertNotIn('sectors', plain.state['laps'][-1])
+        self.assertIsNone(plain.values()['Sector'])
+
+    def test_saved_and_reloaded(self):
+        t = self.timer()
+        pass_north(t, 100_000, 0.0)
+        self.lap(t, 100, [40, 30, 35])
+        again = LapTimer(self.root)
+        self.assertEqual(len(again.line.sectors), 2)
+        self.assertEqual(again.state['sector_times'], [40.0, 30.0])
+
+    def test_old_lap_json_without_sectors_loads(self):
+        (self.root / 'lap.json').write_text(json.dumps({'line': {'enabled': True, 'lat': LAT0, 'lon': LON0, 'bearing': 0.0},
+                                                        'state': {'count': 3, 'lap_start_ms': 5}}))
+        t = LapTimer(self.root)
+        self.assertIsNone(t.error)
+        self.assertEqual(t.line.sectors, [])
+        self.assertEqual(t.state['sector_next'], 0)
+
+    def test_sector_needs_heading(self):
+        with self.assertRaises(ValueError):
+            LapLine(enabled=True, lat=LAT0, lon=LON0, sectors=[{**gate(1000), 'bearing': None}])
+
+    def test_changing_gates_forgets_best(self):
+        t = self.timer()
+        pass_north(t, 100_000, 0.0)
+        end = self.lap(t, 100, [40, 30, 35])
+        pass_north(t, int(end * 1000), 0.0)
+        t.configure(t.line.model_copy(update={'sectors': [Gate(**gate(1500, width_m=40))]}))
+        self.assertEqual(t.state['best_sectors'], [])
+        self.assertEqual(t.state['laps'][-1]['sectors'], [40.0, 30.0, 35.0])  # recorded laps stay
 
 
 if __name__ == '__main__':
