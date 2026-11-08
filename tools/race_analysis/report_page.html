@@ -1,0 +1,949 @@
+<meta name="dash-one-writer">
+<style>
+.sg { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); color: var(--color-fg); font-variant-numeric: tabular-nums; }
+.sg-head { display: grid; gap: var(--cds-gap-xs); }
+.sg-title { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-wrap: balance; }
+.sg-sub { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.sg-take { margin: 0; max-width: 62em; font-size: var(--cds-font-size-body); line-height: 1.7; }
+.sg b, .sg .v { font-weight: var(--cds-font-weight-medium); }
+.sg-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); }
+.sg-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; padding: var(--cds-pad-sm) var(--cds-pad-md); font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); cursor: pointer; margin-bottom: -1px; }
+.sg-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); }
+.sg-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.sg-page { display: grid; gap: var(--cds-gap-lg); }
+.sg-h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.sg-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+.sg-tile { display: grid; gap: var(--cds-gap-xs); align-content: start; padding: var(--cds-pad-md) var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+.sg-tile-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.sg-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.15; }
+.sg-tile-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.sg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+.sg-card { display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); }
+.sg-card.wide { grid-column: 1 / -1; }
+.sg-card h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); text-wrap: balance; }
+.sg-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.6; }
+.sg-p { margin: 0; line-height: 1.75; max-width: 62em; }
+.sg-chart { position: relative; min-width: 0; }
+.sg-chart svg { display: block; overflow: visible; }
+.h220 { min-height: 220px; } .h260 { min-height: 260px; } .h300 { min-height: 300px; } .h340 { min-height: 340px; } .h420 { min-height: 420px; }
+.sg-axis text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.sg-axis path, .sg-axis line { stroke: var(--cds-chart-axis); }
+.sg-gridl line { stroke: var(--cds-chart-grid); }
+.sg-gridl path { display: none; }
+.sg-lbl { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.sg-lbl-strong { fill: var(--color-fg); font-size: var(--cds-font-size-caption); }
+.sg-tip { position: absolute; pointer-events: none; z-index: 2; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; display: grid; gap: 2px; }
+.sg-tip-h { color: var(--cds-text-secondary); }
+.sg-tip-row { display: flex; align-items: center; gap: var(--cds-gap-xs); }
+.sg-sw { width: 0.6rem; height: 0.6rem; border-radius: 2px; flex: none; }
+.sg-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); }
+.sg-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+.sg-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); min-height: inherit; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.sg-fail::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--color-bad); }
+.sg-finds { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+.sg-find { display: grid; gap: var(--cds-gap-xs); align-content: start; padding: var(--cds-pad-md) var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+.sg-find h3 { margin: 0; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.sg-find p { margin: 0; line-height: 1.7; font-size: var(--cds-font-size-body); }
+.sg-find .sg-go { justify-self: start; appearance: none; background: none; border: 0; padding: 0; font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-decoration: underline; cursor: pointer; }
+.sg-tag { display: inline-block; font-size: var(--cds-font-size-caption); padding: 0 var(--cds-pad-xs); border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); color: var(--color-fg-muted); }
+.sg-tag.ok { color: var(--color-ok); } .sg-tag.warn { color: var(--color-warn); } .sg-tag.bad { color: var(--color-bad); }
+.sg-tbl-wrap { max-height: 32rem; overflow: auto; border-radius: var(--cds-radius); }
+.sg-tbl { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); }
+.sg-tbl th, .sg-tbl td { padding: var(--cds-pad-xs) var(--cds-pad-sm); text-align: right; white-space: nowrap; border-bottom: 1px solid var(--color-border-line); }
+.sg-tbl th { position: sticky; top: 0; background: var(--color-panel); color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); z-index: 1; }
+.sg-tbl th:first-child, .sg-tbl td:first-child, .sg-tbl .l { text-align: left; }
+.sg-tbl tr.best td { font-weight: var(--cds-font-weight-medium); }
+.sg-tbl td.purple { color: var(--color-ok); font-weight: var(--cds-font-weight-medium); }
+.sg-tbl td.inc { color: var(--color-bad); }
+.sg-tbl td.muted { color: var(--color-fg-muted); }
+.sg-dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--cds-gap-xs) var(--cds-gap-md); margin: 0; font-size: var(--cds-font-size-body); }
+.sg-dl dt { color: var(--color-fg-muted); }
+.sg-dl dd { margin: 0; }
+.sg-q { margin: 0; padding-left: 1.2em; display: grid; gap: var(--cds-gap-xs); line-height: 1.7; }
+.sg-details summary { cursor: pointer; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.sg-details dl { margin: var(--cds-gap-md) 0 0; display: grid; gap: var(--cds-gap-sm); }
+.sg-details dt { font-weight: var(--cds-font-weight-medium); }
+.sg-details dd { margin: 0; color: var(--color-fg-muted); line-height: 1.7; }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+@media (max-width: 30rem) { .sg-dl { grid-template-columns: 1fr; } .sg-dl dd { margin-bottom: var(--cds-gap-xs); } }
+</style>
+
+<div class="sg">
+  <header class="sg-head">
+    <h1 class="sg-title" id="top">SUGO 120分耐久 走行解析</h1>
+    <p class="sg-sub">2026年11月8日・スポーツランドSUGO・ロードスター（NCEC）。Ver.2ロガーの本体の記録（予選と決勝）と、自宅サーバーに届いたLTEの記録から作成</p>
+    <p class="sg-take">決勝のベストは<b class="v" data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap_no">—</b>周目の<b class="v" data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap">—</b>。油温は最高<b class="v" data-draw="f" data-source="facts" data-field="text" data-where="key=oil_race_max">—</b>℃で、DASHの警告（<b class="v" data-draw="c" data-c="oilwarn">—</b>℃）には一度も届いていません。油圧が普段より大きく落ちたのも<b class="v" data-draw="f" data-source="facts" data-field="text" data-where="key=press_events">—</b>回だけで、車は最後まで健康でした。タイムを縮められそうなのは、最終コーナーの区間（C7）と1コーナー（C1）です。</p>
+  </header>
+
+  <nav class="sg-tabs" role="tablist" aria-label="レポートのページ">
+    <button class="sg-tab" role="tab" data-tab="summary" aria-selected="true">まとめ</button>
+    <button class="sg-tab" role="tab" data-tab="flow" aria-selected="false">レースの流れ</button>
+    <button class="sg-tab" role="tab" data-tab="car" aria-selected="false">車の状態</button>
+    <button class="sg-tab" role="tab" data-tab="drive" aria-selected="false">走り</button>
+    <button class="sg-tab" role="tab" data-tab="logger" aria-selected="false">ロガーの採点</button>
+  </nav>
+
+  <!-- まとめ -->
+  <section class="sg-page" id="summary" data-page role="tabpanel">
+    <div class="sg-tiles">
+      <div class="sg-tile">
+        <span class="sg-tile-label">決勝のベスト</span>
+        <span class="sg-big" data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap">—</span>
+        <span class="sg-tile-note"><span data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap_no">—</span>周目・<span data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap_jst">—</span>から</span>
+      </div>
+      <div class="sg-tile">
+        <span class="sg-tile-label">予選のベスト</span>
+        <span class="sg-big" data-draw="f" data-source="facts" data-field="text" data-where="key=q_best">—</span>
+        <span class="sg-tile-note">予選の<span data-draw="f" data-source="facts" data-field="text" data-where="key=q_best_no">—</span>周目</span>
+      </div>
+      <div class="sg-tile">
+        <span class="sg-tile-label">セクターのベストの和</span>
+        <span class="sg-big" data-draw="f" data-source="facts" data-field="text" data-where="key=theo_best">—</span>
+        <span class="sg-tile-note">ベストより<span data-draw="f" data-source="facts" data-field="text" data-where="key=theo_gap">—</span>秒速い</span>
+      </div>
+      <div class="sg-tile">
+        <span class="sg-tile-label">油温の最高（決勝）</span>
+        <span class="sg-big"><span data-draw="f" data-source="facts" data-field="text" data-where="key=oil_race_max">—</span>℃</span>
+        <span class="sg-tile-note"><span data-draw="f" data-source="facts" data-field="text" data-where="key=oil_over110_s">—</span>秒だけ<span data-draw="c" data-c="oilcare">—</span>℃以上</span>
+      </div>
+      <div class="sg-tile">
+        <span class="sg-tile-label">決勝で走った周</span>
+        <span class="sg-big"><span data-draw="f" data-source="facts" data-field="text" data-where="key=race_laps">—</span>周</span>
+        <span class="sg-tile-note"><span data-draw="f" data-source="facts" data-field="text" data-where="key=race_start">—</span>のスタートから<span data-draw="f" data-source="facts" data-field="text" data-where="key=race_finish">—</span>まで</span>
+      </div>
+    </div>
+
+    <h2 class="sg-h2">わかったこと</h2>
+    <div class="sg-finds">
+      <article class="sg-find">
+        <h3>ペースは後のスティントほど速い</h3>
+        <p>通常の周のタイムの中央値は、スティント1が<b data-draw="f" data-source="facts" data-field="text" data-where="key=st1_median">—</b>、スティント2が<b data-draw="f" data-source="facts" data-field="text" data-where="key=st2_median">—</b>、スティント3が<b data-draw="f" data-source="facts" data-field="text" data-where="key=st3_median">—</b>でした。スティント1は1周ごとに<b data-draw="f" data-source="facts" data-field="text" data-where="key=st1_slope">—</b>秒ずつ変わっていて（マイナスは速くなる向き）、走るほど速くなっています。</p>
+        <button class="sg-go" data-goto="flow">周ごとのタイムを見る</button>
+      </article>
+      <article class="sg-find">
+        <h3>縮めどころは最終コーナーの区間と1コーナー</h3>
+        <p>区間ごとのベストをつなぐと<b data-draw="f" data-source="facts" data-field="text" data-where="key=theo_seg">—</b>になります。通常の周はこれより平均<b data-draw="f" data-source="facts" data-field="text" data-where="key=seg_loss_total">—</b>秒遅く、遅れが大きいのは<b data-draw="f" data-source="facts" data-field="text" data-where="key=loss1_name">—</b>（<b data-draw="f" data-source="facts" data-field="text" data-where="key=loss1_s">—</b>秒）、<b data-draw="f" data-source="facts" data-field="text" data-where="key=loss2_name">—</b>（<b data-draw="f" data-source="facts" data-field="text" data-where="key=loss2_s">—</b>秒）、<b data-draw="f" data-source="facts" data-field="text" data-where="key=loss3_name">—</b>（<b data-draw="f" data-source="facts" data-field="text" data-where="key=loss3_s">—</b>秒）の区間です。C7の区間は、最終コーナーからコントロールラインまでの長い上りを含みます。</p>
+        <button class="sg-go" data-goto="drive">走りの比較を見る</button>
+      </article>
+      <article class="sg-find">
+        <h3>油温は上がりきって横ばい</h3>
+        <p>決勝で走っている間の油温の最高は<b data-draw="f" data-source="facts" data-field="text" data-where="key=oil_race_max">—</b>℃で、<b data-draw="c" data-c="oilwarn">—</b>℃は一度も超えていません。上がるのはスティントの最初の数周で、あとは横ばいです。油温は水温より<b data-draw="f" data-source="facts" data-field="text" data-where="key=oil_minus_water">—</b>℃高く、チームの目安（水温＋<b data-draw="c" data-c="teamoffset">—</b>℃）より高めに出ています。</p>
+        <button class="sg-go" data-goto="car">温度の変化を見る</button>
+      </article>
+      <article class="sg-find">
+        <h3>油圧はGでほとんど落ちていない</h3>
+        <p>Gが小さいときの油圧は3000rpmで<b data-draw="f" data-source="facts" data-field="text" data-where="key=press_3000">—</b>kPa、6000rpmで<b data-draw="f" data-source="facts" data-field="text" data-where="key=press_6000">—</b>kPaです。横Gでも前後Gでも普段の値からほとんど下がらず、普段の<b data-draw="c" data-c="pressratio">—</b>割を0.25秒以上下回ったのは<b data-draw="f" data-source="facts" data-field="text" data-where="key=press_events">—</b>回だけでした（<b data-draw="f" data-source="facts" data-field="text" data-where="key=pev_lap">—</b>周目の<b data-draw="f" data-source="facts" data-field="text" data-where="key=press_ev_corner">—</b>、左へ<b data-draw="f" data-source="facts" data-field="text" data-where="key=pev_lat">—</b>G、<b data-draw="f" data-source="facts" data-field="text" data-where="key=pev_kpa">—</b>kPa）。</p>
+        <button class="sg-go" data-goto="car">油圧とGを見る</button>
+      </article>
+      <article class="sg-find">
+        <h3>Defiの水温は車の水温と合っている</h3>
+        <p>85℃以上では、Defiの電圧から換算した水温と車のCANの水温の差の中央値は<b data-draw="f" data-source="facts" data-field="text" data-where="key=water_offset">—</b>℃でした。PIC v8の電圧からの換算は、このまま使えます。</p>
+        <button class="sg-go" data-goto="car">2つの水温を比べる</button>
+      </article>
+      <article class="sg-find">
+        <h3>タイムを失ったのは出来事とピットの前後</h3>
+        <p>22周目は<b data-draw="f" data-source="facts" data-field="text" data-where="key=inc22_c">—</b>付近で<b data-draw="f" data-source="facts" data-field="text" data-where="key=inc22_v">—</b>km/hまで落ち、35周目は<b data-draw="f" data-source="facts" data-field="text" data-where="key=inc35_c">—</b>の先で<b data-draw="f" data-source="facts" data-field="text" data-where="key=inc35_stop">—</b>秒止まり、41周目は<b data-draw="f" data-source="facts" data-field="text" data-where="key=inc41_c">—</b>付近で<b data-draw="f" data-source="facts" data-field="text" data-where="key=inc41_v">—</b>km/hまで落ちました。23・24周目と36・37周目は全区間が通常より<b data-draw="f" data-source="facts" data-field="text" data-where="key=slowall23_ratio">—</b>%・<b data-draw="f" data-source="facts" data-field="text" data-where="key=slowall36_ratio">—</b>%遅く、そのままピットへ入って<b data-draw="f" data-source="facts" data-field="text" data-where="key=pit1_stopmin">—</b>分と<b data-draw="f" data-source="facts" data-field="text" data-where="key=pit2_stopmin">—</b>分止まっています。</p>
+        <button class="sg-go" data-goto="flow">出来事の一覧を見る</button>
+      </article>
+      <article class="sg-find">
+        <h3>燃料計の値は当てにできない</h3>
+        <p>燃料の値は<b data-draw="f" data-source="facts" data-field="text" data-where="key=fuel_floor_lap">—</b>周目から下限の<b data-draw="f" data-source="facts" data-field="text" data-where="key=fuel_floor">—</b>%のままでした。減り方もスティント1は1周<b data-draw="f" data-source="facts" data-field="text" data-where="key=fuel_rate1">—</b>%、スティント2は<b data-draw="f" data-source="facts" data-field="text" data-where="key=fuel_rate2">—</b>%と大きく違います。残りの量の見積もりには使えず、給油した量の記録と照らし合わせる必要があります。</p>
+        <button class="sg-go" data-goto="car">燃料の値を見る</button>
+      </article>
+      <article class="sg-find">
+        <h3>ロガーは記録を取りこぼさなかった</h3>
+        <p>本体の記録は1秒に<b data-draw="f" data-source="facts" data-field="text" data-where="key=emmc_rate">—</b>行で、抜けは<b data-draw="f" data-source="facts" data-field="text" data-where="key=emmc_gap_n">—</b>回でした。GNSSは走っている間の<b data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_full">—</b>%で10Hzが出ています。LTEは1秒に平均<b data-draw="f" data-source="facts" data-field="text" data-where="key=lte_rate">—</b>点届き、遅れは<b data-draw="f" data-source="facts" data-field="text" data-where="key=lte_delay_med">—</b>秒でした。30秒を超える途切れが<b data-draw="f" data-source="facts" data-field="text" data-where="key=lte_gap30_n">—</b>回（合計<b data-draw="f" data-source="facts" data-field="text" data-where="key=lte_gap30_total">—</b>分）ありました。</p>
+        <button class="sg-go" data-goto="logger">ロガーの採点を見る</button>
+      </article>
+    </div>
+
+    <div class="sg-card">
+      <h3>ログからは分からないこと（チームに確かめたい）</h3>
+      <ol class="sg-q">
+        <li>2回の約23分の停止は、赤旗によるものか、ピット作業（ドライバー交代・給油）か。1回目はエンジンを止めていた時間が<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit1_offmin">—</span>分、2回目は<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit2_offmin">—</span>分です</li>
+        <li>23・24周目と36・37周目の一様に遅い走りは、セーフティカーかFCYか、それともクーリングか</li>
+        <li>22・35・41周目に何があったか（スピン・接触・黄旗など）</li>
+        <li>各スティントを走ったドライバー（分かれば、走りの比較をドライバーの名前で出し直せます）</li>
+        <li>給油した量と時刻</li>
+        <li>45周目の最後にピットレーンへ入ったのは、チェッカーのあとか</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- レースの流れ -->
+  <section class="sg-page" id="flow" data-page role="tabpanel" hidden>
+    <div class="sg-card wide">
+      <h3>周ごとのタイム（決勝）</h3>
+      <p class="sg-note">点が1周。上に突き抜けた周はピットで止まっていた周で、タイムを文字で出しています。帯はスティント。</p>
+      <div class="sg-chart h300 dash-skeleton" data-draw="lapchart" data-source="laps"></div>
+    </div>
+    <div class="sg-grid">
+      <div class="sg-card">
+        <h3>出来事とピット</h3>
+        <dl class="sg-dl">
+          <dt>22周目</dt><dd><span data-draw="f" data-source="facts" data-field="text" data-where="key=inc22_jst">—</span>、<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc22_c">—</span>付近（ラインから<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc22_s">—</span>m）で<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc22_v">—</span>km/hまで減速。通常より<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc22_lost">—</span>秒遅い周</dd>
+          <dt>23・24周目</dt><dd>全区間が一様に遅い。24周目の終わりにピットレーンへ</dd>
+          <dt>ピット1</dt><dd><span data-draw="f" data-source="facts" data-field="text" data-where="key=pit1_from">—</span>〜<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit1_to">—</span>に<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit1_stopmin">—</span>分止まり、うちエンジン停止は<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit1_offmin">—</span>分</dd>
+          <dt>35周目</dt><dd><span data-draw="f" data-source="facts" data-field="text" data-where="key=inc35_jst">—</span>、<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc35_c">—</span>の先（ラインから<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc35_s">—</span>m）でコース上に<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc35_stop">—</span>秒停止。通常より<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc35_lost">—</span>秒遅い周</dd>
+          <dt>36・37周目</dt><dd>全区間が一様に遅い。37周目の終わりにピットレーンへ</dd>
+          <dt>ピット2</dt><dd><span data-draw="f" data-source="facts" data-field="text" data-where="key=pit2_from">—</span>〜<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit2_to">—</span>に<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit2_stopmin">—</span>分止まり、うちエンジン停止は<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit2_offmin">—</span>分</dd>
+          <dt>41周目</dt><dd><span data-draw="f" data-source="facts" data-field="text" data-where="key=inc41_jst">—</span>、<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc41_c">—</span>付近（ラインから<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc41_s">—</span>m）で<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc41_v">—</span>km/hまで減速。通常より<span data-draw="f" data-source="facts" data-field="text" data-where="key=inc41_lost">—</span>秒遅い周</dd>
+        </dl>
+        <p class="sg-note">ピットの周は、止まっていた時間を除いても通常の周より<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit1_moving">—</span>秒・<span data-draw="f" data-source="facts" data-field="text" data-where="key=pit2_moving">—</span>秒遅く、これがピットレーンを通る分の損です。ピットの前の遅い3周で失ったのは<span data-draw="f" data-source="facts" data-field="text" data-where="key=slow1_lost">—</span>秒と<span data-draw="f" data-source="facts" data-field="text" data-where="key=slow2_lost">—</span>秒です。</p>
+      </div>
+      <div class="sg-card">
+        <h3>スティント</h3>
+        <dl class="sg-dl">
+          <dt>スティント1</dt><dd><span data-draw="f" data-source="facts" data-field="text" data-where="key=st1_range">—</span>周目。ベスト<span data-draw="f" data-source="facts" data-field="text" data-where="key=st1_best">—</span>（<span data-draw="f" data-source="facts" data-field="text" data-where="key=st1_bestlap">—</span>周目）、中央値<span data-draw="f" data-source="facts" data-field="text" data-where="key=st1_median">—</span>、油温の最高<span data-draw="f" data-source="facts" data-field="text" data-where="key=st1_oilmax">—</span>℃</dd>
+          <dt>スティント2</dt><dd><span data-draw="f" data-source="facts" data-field="text" data-where="key=st2_range">—</span>周目。ベスト<span data-draw="f" data-source="facts" data-field="text" data-where="key=st2_best">—</span>（<span data-draw="f" data-source="facts" data-field="text" data-where="key=st2_bestlap">—</span>周目）、中央値<span data-draw="f" data-source="facts" data-field="text" data-where="key=st2_median">—</span>、油温の最高<span data-draw="f" data-source="facts" data-field="text" data-where="key=st2_oilmax">—</span>℃</dd>
+          <dt>スティント3</dt><dd><span data-draw="f" data-source="facts" data-field="text" data-where="key=st3_range">—</span>周目。ベスト<span data-draw="f" data-source="facts" data-field="text" data-where="key=st3_best">—</span>（<span data-draw="f" data-source="facts" data-field="text" data-where="key=st3_bestlap">—</span>周目）、中央値<span data-draw="f" data-source="facts" data-field="text" data-where="key=st3_median">—</span>、油温の最高<span data-draw="f" data-source="facts" data-field="text" data-where="key=st3_oilmax">—</span>℃</dd>
+        </dl>
+        <p class="sg-note">中央値は「通常」の周だけで出しています（スタート・ピット明け・出来事のあった周・一様に遅い周・最後の周を除く）。ピットの周はスティントの最後に数えています。</p>
+      </div>
+    </div>
+    <div class="sg-card wide">
+      <h3>周の一覧（予選と決勝）</h3>
+      <p class="sg-note">緑の数字はそのセクターのベスト（予選と決勝の通常の周の中で）。周の番号は予選から通しで、DASHや映像のファイル名と同じです。</p>
+      <div class="sg-tbl-wrap">
+        <table class="sg-tbl" data-source="laps" data-row-key="key">
+          <thead><tr>
+            <th data-field="name">周</th><th data-field="kind" class="l">種類</th><th data-field="start_jst">始まり</th><th data-field="lap_txt">タイム</th><th data-field="to_best_txt">ベスト差</th>
+            <th data-field="s1">S1</th><th data-field="s2">S2</th><th data-field="s3">S3</th><th data-field="s4">S4</th>
+            <th data-field="oil_max">油温の最高 ℃</th><th data-field="press_min">油圧の最低 kPa</th><th data-field="vmax">最高速 km/h</th><th data-field="fuel">燃料の値 %</th>
+          </tr></thead>
+          <tbody data-draw="laptable" data-source="laps"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 車の状態 -->
+  <section class="sg-page" id="car" data-page role="tabpanel" hidden>
+    <div class="sg-card wide">
+      <h3>油温と水温（決勝）</h3>
+      <p class="sg-note">10秒ごとの平均。灰色の帯は2回のピットで止まっていた時間。Defiの電源が切れている間（エンジンを切ったとき）の値は除いています。</p>
+      <div class="sg-chart h300 dash-skeleton" data-draw="temps" data-source="temps facts"></div>
+    </div>
+    <div class="sg-grid">
+      <div class="sg-card">
+        <h3>油圧と回転</h3>
+        <p class="sg-note">Gが小さいとき（合成0.3G未満）の油圧。線は中央値、帯は下から1割〜上から1割。</p>
+        <div class="sg-chart h260 dash-skeleton" data-draw="pressrpm" data-source="press"></div>
+      </div>
+      <div class="sg-card">
+        <h3>Gがかかったときの油圧</h3>
+        <p class="sg-note">その回転での普段の油圧を1としたときの比（3500rpm以上）。横Gはプラスが右コーナー、前後Gはマイナスがブレーキ。破線は下から5%。</p>
+        <div class="sg-chart h260 dash-skeleton" data-draw="pressg" data-source="press"></div>
+      </div>
+      <div class="sg-card">
+        <h3>2つの水温（車のCANとDefi）</h3>
+        <p class="sg-note">車のCANの水温（1℃刻み）ごとに、Defiの水温の中央値と、下から1割〜上から1割の幅。斜めの破線が「同じ値」。</p>
+        <div class="sg-chart h260 dash-skeleton" data-draw="water" data-source="water"></div>
+      </div>
+      <div class="sg-card">
+        <h3>燃料の値（決勝）</h3>
+        <p class="sg-note">周ごとの中央値（走っている間）。縦の線はピット。下の破線が値の下限。</p>
+        <div class="sg-chart h260 dash-skeleton" data-draw="fuel" data-source="laps facts"></div>
+      </div>
+    </div>
+    <p class="sg-note">油圧は Defiの電圧から P[kPa] = 250 ×（V − <span data-draw="f" data-source="facts" data-field="text" data-where="key=v0">—</span>）で換算しました。0点の電圧は、ピットでエンジンを止めDefiに電気が来ているときの値の中央値です。Defiの電源が切れると油温は<span data-draw="f" data-source="facts" data-field="text" data-where="key=oil_bogus_max">—</span>℃のような見かけの値になるため、その間は使っていません。</p>
+  </section>
+
+  <!-- 走り -->
+  <section class="sg-page" id="drive" data-page role="tabpanel" hidden>
+    <div class="sg-grid">
+      <div class="sg-card">
+        <h3>コースと速度（ベストの周）</h3>
+        <p class="sg-note">色はベストの周の速度。C1〜C7はベストの周で速度が大きく落ちるコーナー。赤い印は出来事の場所、四角は油圧が落ちた場所。</p>
+        <div class="sg-chart h420 dash-skeleton" data-draw="map" data-source="track corners facts"></div>
+      </div>
+      <div class="sg-card">
+        <h3>G-G（ベストの周）</h3>
+        <p class="sg-note">0.1秒ごとの横Gと前後G。破線の円は1.0Gと1.2G。周ごとの合成Gの上位5%は、スティント1が<span data-draw="f" data-source="facts" data-field="text" data-where="key=st1_g95">—</span>G、スティント2が<span data-draw="f" data-source="facts" data-field="text" data-where="key=st2_g95">—</span>G、スティント3が<span data-draw="f" data-source="facts" data-field="text" data-where="key=st3_g95">—</span>G（中央値）。</p>
+        <div class="sg-chart h340 dash-skeleton" data-draw="gg" data-source="gg"></div>
+      </div>
+    </div>
+    <div class="sg-card wide">
+      <h3>ベストの周との差（道のりごと）</h3>
+      <p class="sg-note">ベストの周（<span data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap_no">—</span>周目）を0として、そこまでに何秒遅れているか。線が上がっている所でタイムを失っています。</p>
+      <div class="sg-chart h300 dash-skeleton" data-draw="delta" data-source="compare corners"></div>
+    </div>
+    <div class="sg-card wide">
+      <h3>速度（道のりごと）</h3>
+      <p class="sg-note">ベストの周と、ふつうの周（<span data-draw="f" data-source="facts" data-field="text" data-where="key=mid_lap">—</span>周目、<span data-draw="f" data-source="facts" data-field="text" data-where="key=mid_lap_s">—</span>）と、予選のベスト。</p>
+      <div class="sg-chart h300 dash-skeleton" data-draw="speed" data-source="compare corners"></div>
+    </div>
+    <div class="sg-grid">
+      <div class="sg-card">
+        <h3>区間ごとの遅れ（スティント別）</h3>
+        <p class="sg-note">区間のベスト（その区間を最も速く走った周）から、通常の周が平均何秒遅いか。区間はコーナーの手前の直線の途中から次の直線の途中まで。</p>
+        <div class="sg-chart h300 dash-skeleton" data-draw="segloss" data-source="corners"></div>
+      </div>
+      <div class="sg-card">
+        <h3>周ごとの合成G（上位5%）</h3>
+        <p class="sg-note">40km/h以上で走っている間の、横Gと前後Gを合わせた大きさの上位5%。タイヤをどこまで使えたかの目安です。</p>
+        <div class="sg-chart h300 dash-skeleton" data-draw="g95" data-source="laps"></div>
+      </div>
+    </div>
+    <div class="sg-card wide">
+      <h3>コーナーごとの走り</h3>
+      <p class="sg-note">最低速度はコーナーの前後60mでの最低（通常の周の中央値）。ブレーキはコーナーの何m手前で−0.3Gより強く踏み始めたか。遅れは上のグラフと同じ。</p>
+      <div class="sg-tbl-wrap">
+        <table class="sg-tbl" data-source="corners" data-row-key="corner">
+          <thead><tr>
+            <th data-field="name">コーナー</th>
+            <th data-field="vmin_ref">最低速度 ベスト</th><th data-field="vmin_st1">St.1</th><th data-field="vmin_st2">St.2</th><th data-field="vmin_st3">St.3</th><th data-field="vmin_q">予選</th>
+            <th data-field="brake_m_ref">ブレーキ ベスト</th><th data-field="brake_m_st1">St.1</th><th data-field="brake_m_st2">St.2</th><th data-field="brake_m_st3">St.3</th>
+            <th data-field="st1">遅れ St.1</th><th data-field="st2">St.2</th><th data-field="st3">St.3</th><th data-field="best_lap">区間のベストの周</th>
+          </tr></thead>
+          <tbody data-draw="cornertable" data-source="corners"></tbody>
+        </table>
+      </div>
+      <p class="sg-note">St.1〜St.3はスティント1〜3の通常の周。速度はkm/h、ブレーキはm、遅れは秒。</p>
+    </div>
+    <div class="sg-grid">
+      <div class="sg-card">
+        <h3>使ったギア（通常の周）</h3>
+        <p class="sg-note">車速と回転の比から決めたギアで走っていた時間の割合。</p>
+        <div class="sg-chart h220 dash-skeleton" data-draw="gears" data-source="facts"></div>
+      </div>
+      <div class="sg-card">
+        <h3>ギアと回転</h3>
+        <p class="sg-p">通常の周は3速と4速だけで走っています。3速から4速へは中央値<b data-draw="f" data-source="facts" data-field="text" data-where="key=up34_rpm">—</b>rpmで上げていました。直線の終わりは4速で<b data-draw="f" data-source="facts" data-field="text" data-where="key=gear4_top">—</b>km/h・<b data-draw="f" data-source="facts" data-field="text" data-where="key=gear4_top_rpm">—</b>rpmです。ここで5速に上げると<b data-draw="f" data-source="facts" data-field="text" data-where="key=gear5_top_rpm">—</b>rpmに落ちます。7800rpm以上だったのは1周あたり<b data-draw="f" data-source="facts" data-field="text" data-where="key=rev_s_per_lap">—</b>秒でした。</p>
+        <p class="sg-note">ギアは205/50R16・ファイナル4.100・6速MTの歯車の比から計算し、データに合わせて<span data-draw="f" data-source="facts" data-field="text" data-where="key=gear_scale">—</span>倍しています。</p>
+      </div>
+    </div>
+    <p class="sg-note">ベストの周（<span data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap_no">—</span>周目）の焼き込み映像は、PCの回収フォルダーに切り出してあります。</p>
+  </section>
+
+  <!-- ロガーの採点 -->
+  <section class="sg-page" id="logger" data-page role="tabpanel" hidden>
+    <div class="sg-grid">
+      <div class="sg-card">
+        <h3>本体の記録</h3>
+        <dl class="sg-dl">
+          <dt>記録の行</dt><dd>1秒に<span data-draw="f" data-source="facts" data-field="text" data-where="key=emmc_rate">—</span>行。行の間が0.1秒より開いたのは<span data-draw="f" data-source="facts" data-field="text" data-where="key=emmc_gap_n">—</span>回（最大<span data-draw="f" data-source="facts" data-field="text" data-where="key=emmc_gap_max">—</span>秒） <span class="sg-tag ok">良</span></dd>
+          <dt>車のCAN</dt><dd>走っている間に値が無かったのは<span data-draw="f" data-source="facts" data-field="text" data-where="key=can1_missing_moving">—</span>% <span class="sg-tag ok">良</span></dd>
+          <dt>センサーハブ</dt><dd>決勝の間の通信途絶は<span data-draw="f" data-source="facts" data-field="text" data-where="key=can2_lost_n">—</span>回 <span class="sg-tag ok">良</span></dd>
+          <dt>GNSS</dt><dd>走っている間の<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_full">—</span>%で10Hz、衛星<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_sats">—</span>個、水平の精度<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_hacc">—</span>m（悪いときで<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_hacc95">—</span>m） <span class="sg-tag ok">良</span></dd>
+          <dt>ラップ・セクター</dt><dd>4つのセクターの和とラップタイムの差は最大<span data-draw="f" data-source="facts" data-field="text" data-where="key=sector_sum_err">—</span>秒。コースの長さは<span data-draw="f" data-source="facts" data-field="text" data-where="key=track_len">—</span>m（ベストの周の軌跡） <span class="sg-tag ok">良</span></dd>
+        </dl>
+      </div>
+      <div class="sg-card">
+        <h3>LTE（ピットの画面へ届いた分）</h3>
+        <dl class="sg-dl">
+          <dt>届いた点</dt><dd>決勝の間に1秒あたり<span data-draw="f" data-source="facts" data-field="text" data-where="key=lte_rate">—</span>点</dd>
+          <dt>遅れ</dt><dd>中央値<span data-draw="f" data-source="facts" data-field="text" data-where="key=lte_delay_med">—</span>秒、遅いときで<span data-draw="f" data-source="facts" data-field="text" data-where="key=lte_delay95">—</span>秒</dd>
+          <dt>途切れ</dt><dd>30秒を超える途切れが<span data-draw="f" data-source="facts" data-field="text" data-where="key=lte_gap30_n">—</span>回、合計<span data-draw="f" data-source="facts" data-field="text" data-where="key=lte_gap30_total">—</span>分、最長<span data-draw="f" data-source="facts" data-field="text" data-where="key=lte_gap_max">—</span>秒 <span class="sg-tag warn">要改善</span></dd>
+          <dt>つなぎ直し</dt><dd>5Bに残った今日の受信のファイルは<span data-draw="f" data-source="facts" data-field="text" data-where="key=lte_files">—</span>個（つなぎ直すたびに1つ増える）</dd>
+          <dt>周の通過</dt><dd>ラインを通ってから15秒以内に点が届いた周は<span data-draw="f" data-source="facts" data-field="text" data-where="key=lte_lap_seen">—</span>%</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="sg-card wide">
+      <h3>LTEで1分ごとに届いた点の数</h3>
+      <p class="sg-note">自宅サーバー（5B）に届いた点を、ロガーが測った時刻で数えたもの。赤い棒はその1分に届いた点が10点未満。灰色の帯は車が止まっていた時間。</p>
+      <div class="sg-chart h260 dash-skeleton" data-draw="lte" data-source="logger"></div>
+    </div>
+  </section>
+
+  <details class="sg-details">
+    <summary>数え方と、入れていないもの</summary>
+    <dl>
+      <dt>周の番号</dt><dd>ロガーの周の番号（予選から通し）です。決勝はスタートでラインを通った周から、最後にラインを通った周までを数えています。</dd>
+      <dt>道のり</dt><dd>ベストの周のGNSSの軌跡を基準の線にし、ほかの周の位置をその線へ寄せて、ラインからの道のりを出しました。どの周も同じ地点どうしで比べています。</dd>
+      <dt>コーナーと区間</dt><dd>ベストの周で速度の谷が深い所をC1〜C7としました。区間は、谷と谷の間の速度がいちばん高い点で区切っています。</dd>
+      <dt>横Gの向き</dt><dd>横Gとヨーの変化の向きを照らし、プラスが右コーナーと判断しました。</dd>
+      <dt>油温・水温（Defi）</dt><dd>センサーハブの電圧からの換算値です。Defiの電源が切れている間と、その前後3秒は使っていません。</dd>
+      <dt>入れていないもの</dt><dd>公式の計時との照合（手元に無い）、映像、ドライバーの名前（分からない）、予選の前の走行。</dd>
+    </dl>
+  </details>
+</div>
+
+<script>
+window.SG = (function () {
+  const root = document.documentElement;
+  function isDark() {
+    const t = root.getAttribute('data-theme');
+    if (t) return t === 'dark';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function col(i) {
+    const c = dash.colors[i % dash.colors.length];
+    if (typeof c === 'string') return c;
+    if (c && typeof c === 'object') return isDark() ? (c.dark || c.light) : (c.light || c.dark);
+    return String(c);
+  }
+  function resolve(c) {
+    if (typeof c === 'string' && c.indexOf('var(') === 0) {
+      const name = c.slice(4, -1).split(',')[0].trim();
+      const v = getComputedStyle(document.body).getPropertyValue(name).trim();
+      return v || '#888888';
+    }
+    return c;
+  }
+  const MUTED = 'var(--cds-chart-muted)', BAD = 'var(--cds-chart-status-critical)', REF = 'var(--cds-chart-reference)';
+  function ready(el, ids) {
+    const st = ids.map(function (i) { return dash.data(i); });
+    const bad = st.find(function (s) { return s.status !== 'ok'; });
+    if (!bad) { el.classList.remove('dash-skeleton'); return true; }
+    el.replaceChildren();
+    if (bad.status === 'loading') { el.classList.add('dash-skeleton'); return false; }
+    el.classList.remove('dash-skeleton');
+    const p = document.createElement('div'); p.className = 'sg-fail'; p.textContent = '読み込めませんでした'; el.append(p);
+    return false;
+  }
+  function rows(id) { const d = dash.data(id); return d.status === 'ok' ? d.data : []; }
+  function fact(key) { const r = rows('facts').find(function (o) { return o.key === key; }); return r || null; }
+  function fnum(key) { const f = fact(key); return f ? Number(f.value) : NaN; }
+  const num = function (v) { return (v === '' || v === null || v === undefined) ? NaN : Number(v); };
+  function frame(el, h, m) {
+    el.replaceChildren();
+    const W = Math.max(280, el.clientWidth || 600);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('height', h).attr('viewBox', '0 0 ' + W + ' ' + h);
+    const g = svg.append('g').attr('transform', 'translate(' + m.l + ',' + m.t + ')');
+    return { svg: svg, g: g, W: W, H: h, iw: W - m.l - m.r, ih: h - m.t - m.b, m: m };
+  }
+  function axis(g, gen, x, y) {
+    const a = g.append('g').attr('class', 'sg-axis').attr('transform', 'translate(' + x + ',' + y + ')').call(gen);
+    a.attr('font-size', null).attr('font-family', null);
+    return a;
+  }
+  function gridY(g, y, w, ticks) {
+    const a = g.append('g').attr('class', 'sg-gridl').call(d3.axisLeft(y).tickValues(ticks).tickSize(-w).tickFormat(''));
+    return a;
+  }
+  function tip(el) {
+    const t = document.createElement('div'); t.className = 'sg-tip'; t.hidden = true; el.append(t);
+    return {
+      show: function (head, lines, px, py) {
+        t.replaceChildren();
+        const h = document.createElement('div'); h.className = 'sg-tip-h'; h.textContent = head; t.append(h);
+        lines.forEach(function (ln) {
+          const r = document.createElement('div'); r.className = 'sg-tip-row';
+          if (ln.c) { const s = document.createElement('span'); s.className = 'sg-sw'; s.style.background = ln.c; r.append(s); }
+          const s2 = document.createElement('span'); s2.textContent = ln.t; r.append(s2); t.append(r);
+        });
+        t.hidden = false;
+        const W = el.clientWidth, tw = t.offsetWidth, th = t.offsetHeight;
+        let x = px + 12; if (x + tw > W) x = px - tw - 12; if (x < 0) x = 0;
+        let y = py - th - 8; if (y < 0) y = py + 12;
+        t.style.left = x + 'px'; t.style.top = y + 'px';
+      },
+      hide: function () { t.hidden = true; }
+    };
+  }
+  function legend(el, items) {
+    const d = document.createElement('div'); d.className = 'sg-legend';
+    items.forEach(function (it) {
+      const s = document.createElement('span');
+      const sw = document.createElement('i'); sw.className = 'sg-sw'; sw.style.background = it.c; if (it.dash) { sw.style.background = 'none'; sw.style.borderTop = '2px dashed ' + it.c; sw.style.height = '0'; }
+      s.append(sw, document.createTextNode(it.t)); d.append(s);
+    });
+    el.append(d);
+  }
+  function mmss(s) { const m = Math.floor(s / 60); const r = s - 60 * m; return m + ':' + r.toFixed(3).padStart(6, '0'); }
+  function mmss0(s) { const m = Math.floor(s / 60); const r = Math.round(s - 60 * m); return m + ':' + String(r).padStart(2, '0'); }
+  function hm(str) { const p = String(str).split(':').map(Number); return p[0] * 60 + p[1] + (p[2] || 0) / 60; }
+  function fmtHM(v) { const h = Math.floor(v / 60); const m = Math.round(v - h * 60); return h + ':' + String(m).padStart(2, '0'); }
+  function pt(ev, el) { const r = el.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; }
+  const KIND = {
+    '通常': { c: function () { return col(0); }, t: '通常' },
+    '一か所で減速': { c: function () { return BAD; }, t: '一か所で減速・停止' },
+    '全体に遅い': { c: function () { return col(1); }, t: '全区間が一様に遅い' },
+    'ピット': { c: function () { return MUTED; }, t: 'ピット' },
+    'ピット明け': { c: function () { return MUTED; }, t: 'ピット明け・スタート・最後の周' },
+    'スタート': { c: function () { return MUTED; }, t: '' },
+    '最後の周': { c: function () { return MUTED; }, t: '' },
+    '遅い周': { c: function () { return MUTED; }, t: '' },
+    '予選': { c: function () { return col(3); }, t: '予選' }
+  };
+  const CONST = { oilwarn: '120', oilcare: '110', teamoffset: '10', pressratio: '7' };
+  return { col: col, resolve: resolve, MUTED: MUTED, BAD: BAD, REF: REF, ready: ready, rows: rows, fact: fact, fnum: fnum, num: num, frame: frame, axis: axis, gridY: gridY, tip: tip, legend: legend, mmss: mmss, mmss0: mmss0, hm: hm, fmtHM: fmtHM, pt: pt, KIND: KIND, CONST: CONST };
+})();
+
+// ページの切り替え
+(function () {
+  function show(name) {
+    let found = false;
+    document.querySelectorAll('[data-page]').forEach(function (s) { if (s.id === name) found = true; });
+    if (!found) name = 'summary';
+    document.querySelectorAll('[data-page]').forEach(function (s) { s.hidden = s.id !== name; });
+    document.querySelectorAll('.sg-tab').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-tab') === name ? 'true' : 'false'); });
+    return name;
+  }
+  document.querySelectorAll('.sg-tab').forEach(function (b) {
+    b.addEventListener('click', function () { dash.setLink(show(b.getAttribute('data-tab'))); });
+  });
+  document.querySelectorAll('[data-goto]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      const n = show(b.getAttribute('data-goto')); dash.setLink(n);
+      document.querySelectorAll('.sg-tabs').forEach(function (t) { t.scrollIntoView({ block: 'start' }); });
+    });
+  });
+  const h = location.hash.slice(1);
+  if (h) show(h);
+})();
+
+// 文章の中の数字
+dash.draw('f', function (el) {
+  const where = el.getAttribute('data-where') || '';
+  const key = decodeURIComponent(where.replace(/^key=/, ''));
+  const f = dash.data('facts');
+  if (f.status !== 'ok') { el.textContent = '—'; return; }
+  const r = f.data.find(function (o) { return o.key === key; });
+  el.textContent = r ? r.text : '—';
+});
+dash.draw('c', function (el) {
+  el.textContent = SG.CONST[el.getAttribute('data-c')] || '—';
+});
+</script>
+
+<script>
+// 周ごとのタイム
+dash.draw('lapchart', function (el) {
+  if (!SG.ready(el, ['laps'])) return;
+  const L = SG.rows('laps').filter(function (r) { return r.session === '決勝'; }).map(function (r) {
+    return { lap: +r.lap, t: +r.lap_s, kind: r.kind, stint: +r.stint, txt: r.lap_txt, oil: r.oil_max, s: [r.s1, r.s2, r.s3, r.s4] };
+  });
+  const F = SG.frame(el, 300, { t: 22, r: 12, b: 30, l: 46 });
+  const YMAX = 168, YMIN = 108;
+  const x = d3.scaleLinear([d3.min(L, function (d) { return d.lap; }) - 0.6, d3.max(L, function (d) { return d.lap; }) + 0.6], [0, F.iw]);
+  const y = d3.scaleLinear([YMIN, YMAX], [F.ih, 0]);
+  const stints = d3.groups(L, function (d) { return d.stint; });
+  stints.forEach(function (sg, i) {
+    const a = d3.min(sg[1], function (d) { return d.lap; }) - 0.5, b = d3.max(sg[1], function (d) { return d.lap; }) + 0.5;
+    if (i % 2 === 1) F.g.append('rect').attr('x', x(a)).attr('y', 0).attr('width', x(b) - x(a)).attr('height', F.ih).style('fill', 'var(--cds-chart-grid)').style('opacity', 0.45);
+    F.g.append('text').attr('class', 'sg-lbl').attr('x', x(a) + 4).attr('y', -8).text('スティント' + sg[0]);
+  });
+  const ticks = d3.range(110, YMAX + 1, 10);
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(SG.mmss0).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x).ticks(Math.min(12, Math.floor(F.iw / 50))).tickFormat(function (v) { return v + '周'; }).tickSizeOuter(0), 0, F.ih);
+  const over = L.filter(function (d) { return d.t > YMAX; });
+  F.g.selectAll('path.over').data(over).join('path').attr('class', 'over')
+    .attr('d', d3.symbol(d3.symbolTriangle, 60)()).attr('transform', function (d) { return 'translate(' + x(d.lap) + ',' + 6 + ')'; })
+    .style('fill', SG.MUTED);
+  F.g.selectAll('text.over').data(over).join('text').attr('class', 'sg-lbl over').attr('text-anchor', 'middle')
+    .attr('x', function (d) { return x(d.lap); }).attr('y', 26).text(function (d) { return d.txt; });
+  const best = d3.least(L, function (d) { return d.t; });
+  const pts = L.filter(function (d) { return d.t <= YMAX; });
+  F.g.selectAll('circle.p').data(pts).join('circle').attr('class', 'p').attr('r', 4)
+    .attr('cx', function (d) { return x(d.lap); }).attr('cy', function (d) { return y(d.t); })
+    .style('fill', function (d) { return (SG.KIND[d.kind] || SG.KIND['遅い周']).c(); });
+  F.g.append('circle').attr('r', 8).attr('cx', x(best.lap)).attr('cy', y(best.t)).style('fill', 'none').style('stroke', SG.col(0)).style('stroke-width', 1.5);
+  F.g.append('text').attr('class', 'sg-lbl-strong').attr('x', x(best.lap) + 10).attr('y', y(best.t) + 4).text('ベスト ' + best.txt);
+  const tp = SG.tip(el);
+  const hover = F.g.append('circle').attr('r', 6).style('fill', 'none').style('stroke', 'var(--color-fg)').style('opacity', 0);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const lx = x.invert(p[0] - F.m.l);
+    const d = d3.least(L, function (q) { return Math.abs(q.lap - lx); });
+    if (!d) return;
+    hover.attr('cx', x(d.lap)).attr('cy', d.t > YMAX ? 6 : y(d.t)).style('opacity', 1);
+    tp.show(d.lap + '周目（スティント' + d.stint + '）', [
+      { t: 'タイム ' + d.txt, c: (SG.KIND[d.kind] || SG.KIND['遅い周']).c() },
+      { t: '種類 ' + d.kind },
+      { t: 'S1〜S4 ' + d.s.join(' / ') },
+      { t: '油温の最高 ' + (d.oil === '' ? '—' : d.oil + '℃') }
+    ], x(d.lap) + F.m.l, (d.t > YMAX ? 6 : y(d.t)) + F.m.t);
+  }).on('pointerleave', function () { tp.hide(); hover.style('opacity', 0); });
+  SG.legend(el, ['通常', '一か所で減速', '全体に遅い', 'ピット明け'].map(function (k) { return { c: SG.KIND[k].c(), t: SG.KIND[k].t }; }));
+});
+
+// 周の一覧
+dash.draw('laptable', function (tb) {
+  tb.replaceChildren();
+  const d = dash.data('laps'); if (d.status !== 'ok') return;
+  const best = d3.min(d.data.filter(function (r) { return r.session === '決勝'; }), function (r) { return +r.lap_s; });
+  d.data.forEach(function (r) {
+    const tr = document.createElement('tr'); tr.setAttribute('data-key', r.key);
+    if (+r.lap_s === best && r.session === '決勝') tr.className = 'best';
+    const cells = [['name', ''], ['kind', 'l'], ['start_jst', ''], ['lap_txt', ''], ['to_best_txt', ''], ['s1', ''], ['s2', ''], ['s3', ''], ['s4', ''], ['oil_max', ''], ['press_min', ''], ['vmax', ''], ['fuel', '']];
+    cells.forEach(function (c) {
+      const td = document.createElement('td'); td.textContent = r[c[0]] == null ? '' : String(r[c[0]]);
+      let cls = c[1];
+      if (/^s[1-4]$/.test(c[0]) && r[c[0] + '_isbest'] === '1') cls += ' purple';
+      if (c[0] === 'kind' && r.kind === '一か所で減速') cls += ' inc';
+      if (c[0] === 'kind' && (r.kind === 'ピット' || r.kind === '全体に遅い')) cls += ' muted';
+      if (cls.trim()) td.className = cls.trim();
+      tr.append(td);
+    });
+    tb.append(tr);
+  });
+});
+</script>
+
+<script>
+// 油温と水温
+dash.draw('temps', function (el) {
+  if (!SG.ready(el, ['temps', 'facts'])) return;
+  const T = SG.rows('temps').map(function (r) { return { m: SG.hm(r.time_jst), oil: SG.num(r.oil), water: SG.num(r.water), wdefi: SG.num(r.wdefi), lap: r.lap, time: r.time_jst }; });
+  const F = SG.frame(el, 300, { t: 14, r: 64, b: 30, l: 40 });
+  const x = d3.scaleLinear(d3.extent(T, function (d) { return d.m; }), [0, F.iw]);
+  const y = d3.scaleLinear([60, 125], [F.ih, 0]);
+  [1, 2].forEach(function (i) {
+    const a = SG.fact('pit' + i + '_from'), b = SG.fact('pit' + i + '_to');
+    if (!a || !b) return;
+    const xa = x(SG.hm(a.text)), xb = x(SG.hm(b.text));
+    F.g.append('rect').attr('x', xa).attr('y', 0).attr('width', Math.max(1, xb - xa)).attr('height', F.ih).style('fill', 'var(--cds-chart-grid)').style('opacity', 0.6);
+    F.g.append('text').attr('class', 'sg-lbl').attr('x', (xa + xb) / 2).attr('y', F.ih - 6).attr('text-anchor', 'middle').text('ピット' + i);
+  });
+  const ticks = [60, 70, 80, 90, 100, 110, 120];
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(function (v) { return v + '℃'; }).tickSizeOuter(0), 0, 0);
+  const xt = d3.range(Math.ceil(x.domain()[0] / 30) * 30, x.domain()[1], 30);
+  SG.axis(F.g, d3.axisBottom(x).tickValues(xt).tickFormat(SG.fmtHM).tickSizeOuter(0), 0, F.ih);
+  const warn = Number(SG.CONST.oilwarn), care = Number(SG.CONST.oilcare);
+  [[warn, SG.BAD, 'DASHの警告'], [care, SG.REF, '']].forEach(function (rl) {
+    F.g.append('line').attr('x1', 0).attr('x2', F.iw).attr('y1', y(rl[0])).attr('y2', y(rl[0])).style('stroke', rl[1]).style('stroke-dasharray', '4 4');
+    if (rl[2]) F.g.append('text').attr('class', 'sg-lbl').attr('x', 4).attr('y', y(rl[0]) - 4).text(rl[2] + ' ' + rl[0] + '℃');
+  });
+  const series = [['oil', '油温（Defi）', SG.col(0)], ['water', '水温（車のCAN）', SG.col(1)], ['wdefi', '水温（Defi）', SG.col(2)]];
+  series.forEach(function (s) {
+    const line = d3.line().defined(function (d) { return isFinite(d[s[0]]); }).x(function (d) { return x(d.m); }).y(function (d) { return y(d[s[0]]); });
+    F.g.append('path').datum(T).attr('d', line).style('fill', 'none').style('stroke', s[2]).style('stroke-width', s[0] === 'oil' ? 2 : 1.5).style('stroke-linejoin', 'round').style('stroke-linecap', 'round').style('opacity', s[0] === 'wdefi' ? 0.8 : 1);
+    const last = T.filter(function (d) { return isFinite(d[s[0]]); }).pop();
+    if (last) F.g.append('text').attr('class', 'sg-lbl').attr('x', x(last.m) + 4).attr('y', y(last[s[0]]) + (s[0] === 'water' ? 10 : s[0] === 'wdefi' ? -2 : 4)).text(s[0] === 'oil' ? '油温' : s[0] === 'water' ? '水温CAN' : '水温Defi');
+  });
+  const tp = SG.tip(el);
+  const rule = F.g.append('line').attr('y1', 0).attr('y2', F.ih).style('stroke', 'var(--cds-chart-axis)').style('opacity', 0);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const mx = x.invert(p[0] - F.m.l);
+    const d = d3.least(T, function (q) { return Math.abs(q.m - mx); }); if (!d) return;
+    rule.attr('x1', x(d.m)).attr('x2', x(d.m)).style('opacity', 1);
+    tp.show(d.time + '（' + d.lap + '周目）', series.map(function (s) { return { c: s[2], t: s[1] + ' ' + (isFinite(d[s[0]]) ? d[s[0]].toFixed(1) + '℃' : '—') }; }), x(d.m) + F.m.l, p[1]);
+  }).on('pointerleave', function () { tp.hide(); rule.style('opacity', 0); });
+  SG.legend(el, series.map(function (s) { return { c: s[2], t: s[1] }; }));
+});
+
+// 油圧と回転
+dash.draw('pressrpm', function (el) {
+  if (!SG.ready(el, ['press'])) return;
+  const P = SG.rows('press').filter(function (r) { return r.kind === 'rpm'; }).map(function (r) { return { x: +r.x + 125, med: +r.med, lo: +r.lo, hi: +r.hi, n: r.n }; });
+  const F = SG.frame(el, 260, { t: 10, r: 12, b: 30, l: 52 });
+  const x = d3.scaleLinear([1500, 8000], [0, F.iw]);
+  const y = d3.scaleLinear([0, 750], [F.ih, 0]);
+  const ticks = [0, 200, 400, 600];
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(function (v) { return v + 'kPa'; }).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x).tickValues([2000, 4000, 6000, 8000]).tickFormat(function (v) { return v + 'rpm'; }).tickSizeOuter(0), 0, F.ih);
+  F.g.append('path').datum(P).attr('d', d3.area().x(function (d) { return x(d.x); }).y0(function (d) { return y(d.lo); }).y1(function (d) { return y(d.hi); })).style('fill', SG.col(0)).style('opacity', 0.15);
+  F.g.append('path').datum(P).attr('d', d3.line().x(function (d) { return x(d.x); }).y(function (d) { return y(d.med); })).style('fill', 'none').style('stroke', SG.col(0)).style('stroke-width', 2).style('stroke-linejoin', 'round');
+  const tp = SG.tip(el);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const mx = x.invert(p[0] - F.m.l);
+    const d = d3.least(P, function (q) { return Math.abs(q.x - mx); }); if (!d) return;
+    tp.show(Math.round(d.x - 125) + '〜' + Math.round(d.x + 125) + 'rpm', [{ c: SG.col(0), t: '中央値 ' + d.med + 'kPa' }, { t: '幅 ' + d.lo + '〜' + d.hi + 'kPa' }, { t: '点の数 ' + d.n }], x(d.x) + F.m.l, y(d.med) + F.m.t);
+  }).on('pointerleave', function () { tp.hide(); });
+});
+
+// Gと油圧
+dash.draw('pressg', function (el) {
+  if (!SG.ready(el, ['press'])) return;
+  const R = SG.rows('press');
+  const sets = [['lat', '横G', SG.col(0)], ['long', '前後G', SG.col(1)]].map(function (s) {
+    return { k: s[0], name: s[1], c: s[2], d: R.filter(function (r) { return r.kind === s[0]; }).map(function (r) { return { x: +r.x, med: +r.med, lo: +r.lo, n: r.n }; }) };
+  });
+  const F = SG.frame(el, 260, { t: 10, r: 12, b: 30, l: 40 });
+  const x = d3.scaleLinear([-1.3, 1.4], [0, F.iw]);
+  const y = d3.scaleLinear([0.6, 1.1], [F.ih, 0]);
+  const ticks = [0.6, 0.7, 0.8, 0.9, 1.0, 1.1];
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(d3.format('.1f')).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x).tickValues([-1, -0.5, 0, 0.5, 1]).tickFormat(function (v) { return v + 'G'; }).tickSizeOuter(0), 0, F.ih);
+  const lim = Number(SG.CONST.pressratio) / 10;
+  F.g.append('line').attr('x1', 0).attr('x2', F.iw).attr('y1', y(lim)).attr('y2', y(lim)).style('stroke', SG.BAD).style('stroke-dasharray', '4 4');
+  F.g.append('text').attr('class', 'sg-lbl').attr('x', 4).attr('y', y(lim) - 4).text('普段の' + SG.CONST.pressratio + '割');
+  sets.forEach(function (s) {
+    F.g.append('path').datum(s.d).attr('d', d3.line().x(function (d) { return x(d.x); }).y(function (d) { return y(d.med); })).style('fill', 'none').style('stroke', s.c).style('stroke-width', 2).style('stroke-linejoin', 'round');
+    F.g.append('path').datum(s.d).attr('d', d3.line().x(function (d) { return x(d.x); }).y(function (d) { return y(d.lo); })).style('fill', 'none').style('stroke', s.c).style('stroke-width', 1.5).style('stroke-dasharray', '4 3');
+  });
+  const tp = SG.tip(el);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const mx = x.invert(p[0] - F.m.l);
+    const lines = [];
+    sets.forEach(function (s) { const d = d3.least(s.d, function (q) { return Math.abs(q.x - mx); }); if (d && Math.abs(d.x - mx) < 0.06) lines.push({ c: s.c, t: s.name + ' ' + d.x + 'G：中央値 ' + d.med + '・下から5% ' + d.lo + '（' + d.n + '点）' }); });
+    if (lines.length) tp.show('普段の油圧との比', lines, p[0], p[1]); else tp.hide();
+  }).on('pointerleave', function () { tp.hide(); });
+  SG.legend(el, [{ c: SG.col(0), t: '横G（中央値）' }, { c: SG.col(0), t: '横G（下から5%）', dash: true }, { c: SG.col(1), t: '前後G（中央値）' }, { c: SG.col(1), t: '前後G（下から5%）', dash: true }]);
+});
+
+// 2つの水温
+dash.draw('water', function (el) {
+  if (!SG.ready(el, ['water'])) return;
+  const W = SG.rows('water').map(function (r) { return { x: +r.WaterTemp, med: +r.defi, lo: +r.defi_lo, hi: +r.defi_hi, n: r.n }; });
+  const F = SG.frame(el, 260, { t: 10, r: 12, b: 30, l: 40 });
+  const ext = [d3.min(W, function (d) { return d.x; }) - 2, d3.max(W, function (d) { return d.x; }) + 2];
+  const x = d3.scaleLinear(ext, [0, F.iw]);
+  const y = d3.scaleLinear(ext, [F.ih, 0]);
+  const ticks = d3.range(Math.ceil(ext[0] / 5) * 5, ext[1], 5);
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(function (v) { return v + '℃'; }).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x).tickValues(ticks).tickFormat(function (v) { return v + '℃'; }).tickSizeOuter(0), 0, F.ih);
+  F.g.append('line').attr('x1', x(ext[0])).attr('y1', y(ext[0])).attr('x2', x(ext[1])).attr('y2', y(ext[1])).style('stroke', SG.REF).style('stroke-dasharray', '4 4');
+  F.g.selectAll('line.r').data(W).join('line').attr('class', 'r').attr('x1', function (d) { return x(d.x); }).attr('x2', function (d) { return x(d.x); }).attr('y1', function (d) { return y(d.lo); }).attr('y2', function (d) { return y(d.hi); }).style('stroke', SG.col(2)).style('stroke-width', 3).style('opacity', 0.35);
+  F.g.selectAll('circle').data(W).join('circle').attr('r', 3.5).attr('cx', function (d) { return x(d.x); }).attr('cy', function (d) { return y(d.med); }).style('fill', SG.col(2));
+  F.g.append('text').attr('class', 'sg-lbl').attr('x', F.iw).attr('y', F.ih - 6).attr('text-anchor', 'end').text('車のCANの水温');
+  F.g.append('text').attr('class', 'sg-lbl').attr('x', 6).attr('y', 12).text('Defiの水温');
+  const tp = SG.tip(el);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const mx = x.invert(p[0] - F.m.l);
+    const d = d3.least(W, function (q) { return Math.abs(q.x - mx); }); if (!d) return;
+    tp.show('車のCAN ' + d.x + '℃', [{ c: SG.col(2), t: 'Defi 中央値 ' + d.med + '℃' }, { t: '幅 ' + d.lo + '〜' + d.hi + '℃' }, { t: '点の数 ' + d.n }], x(d.x) + F.m.l, y(d.med) + F.m.t);
+  }).on('pointerleave', function () { tp.hide(); });
+});
+
+// 燃料
+dash.draw('fuel', function (el) {
+  if (!SG.ready(el, ['laps', 'facts'])) return;
+  const L = SG.rows('laps').filter(function (r) { return r.session === '決勝' && r.fuel !== ''; }).map(function (r) { return { lap: +r.lap, f: +r.fuel, kind: r.kind }; });
+  const F = SG.frame(el, 260, { t: 10, r: 12, b: 30, l: 40 });
+  const x = d3.scaleLinear(d3.extent(L, function (d) { return d.lap; }), [0, F.iw]);
+  const y = d3.scaleLinear([0, 80], [F.ih, 0]);
+  const ticks = [0, 20, 40, 60, 80];
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(function (v) { return v + '%'; }).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x).ticks(Math.min(8, Math.floor(F.iw / 50))).tickFormat(function (v) { return v + '周'; }).tickSizeOuter(0), 0, F.ih);
+  L.filter(function (d) { return d.kind === 'ピット'; }).forEach(function (d) {
+    F.g.append('line').attr('x1', x(d.lap)).attr('x2', x(d.lap)).attr('y1', 0).attr('y2', F.ih).style('stroke', SG.MUTED).style('stroke-dasharray', '2 3');
+  });
+  const floor = SG.fnum('fuel_floor');
+  if (isFinite(floor)) F.g.append('line').attr('x1', 0).attr('x2', F.iw).attr('y1', y(floor)).attr('y2', y(floor)).style('stroke', SG.BAD).style('stroke-dasharray', '4 4');
+  F.g.append('path').datum(L).attr('d', d3.line().x(function (d) { return x(d.lap); }).y(function (d) { return y(d.f); })).style('fill', 'none').style('stroke', SG.col(0)).style('stroke-width', 2).style('stroke-linejoin', 'round');
+  F.g.selectAll('circle').data(L).join('circle').attr('r', 2.5).attr('cx', function (d) { return x(d.lap); }).attr('cy', function (d) { return y(d.f); }).style('fill', SG.col(0));
+  const tp = SG.tip(el);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const mx = x.invert(p[0] - F.m.l);
+    const d = d3.least(L, function (q) { return Math.abs(q.lap - mx); }); if (!d) return;
+    tp.show(d.lap + '周目', [{ c: SG.col(0), t: '燃料の値 ' + d.f + '%' }], x(d.lap) + F.m.l, y(d.f) + F.m.t);
+  }).on('pointerleave', function () { tp.hide(); });
+});
+</script>
+
+<script>
+// コースの地図
+dash.draw('map', function (el) {
+  if (!SG.ready(el, ['track', 'corners', 'facts'])) return;
+  const T = SG.rows('track').map(function (r) { return { s: +r.s, x: +r.x, y: +r.y, v: +r.Speed }; });
+  const C = SG.rows('corners');
+  el.replaceChildren();
+  const W = Math.max(280, el.clientWidth || 500);
+  const xe = d3.extent(T, function (d) { return d.x; }), ye = d3.extent(T, function (d) { return d.y; });
+  const pad = 28, sc = Math.min((W - 2 * pad) / (xe[1] - xe[0]), (400 - 2 * pad) / (ye[1] - ye[0]));
+  const H = Math.round((ye[1] - ye[0]) * sc + 2 * pad);
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('height', H).attr('viewBox', '0 0 ' + W + ' ' + H);
+  const ox = (W - (xe[1] - xe[0]) * sc) / 2;
+  const X = function (v) { return ox + (v - xe[0]) * sc; }, Y = function (v) { return pad + (ye[1] - v) * sc; };
+  const vmin = d3.min(T, function (d) { return d.v; }), vmax = d3.max(T, function (d) { return d.v; });
+  const c0 = SG.resolve(SG.BAD), c1 = SG.resolve(SG.col(0));
+  const ramp = d3.scaleLinear([vmin, vmax], [0, 1]);
+  const interp = d3.interpolateRgb(c0, c1);
+  const seg = []; for (let i = 1; i < T.length; i++) seg.push([T[i - 1], T[i]]);
+  svg.append('g').selectAll('line').data(seg).join('line')
+    .attr('x1', function (d) { return X(d[0].x); }).attr('y1', function (d) { return Y(d[0].y); }).attr('x2', function (d) { return X(d[1].x); }).attr('y2', function (d) { return Y(d[1].y); })
+    .style('stroke', function (d) { return interp(ramp(d[1].v)); }).style('stroke-width', 5).style('stroke-linecap', 'round');
+  const t0 = T[0];
+  svg.append('rect').attr('x', X(t0.x) - 2).attr('y', Y(t0.y) - 10).attr('width', 4).attr('height', 20).style('fill', 'var(--color-fg)');
+  svg.append('text').attr('class', 'sg-lbl-strong').attr('x', X(t0.x) + 8).attr('y', Y(t0.y) - 8).text('ライン');
+  const cx = d3.mean(T, function (d) { return d.x; }), cy = d3.mean(T, function (d) { return d.y; });
+  C.forEach(function (c) {
+    const px = +c.x, py = +c.y; const dx = px - cx, dy = py - cy; const n = Math.hypot(dx, dy) || 1;
+    const lx = X(px) + dx / n * 18, ly = Y(py) - dy / n * 18;
+    svg.append('circle').attr('cx', X(px)).attr('cy', Y(py)).attr('r', 3).style('fill', 'var(--color-fg)');
+    svg.append('text').attr('class', 'sg-lbl-strong').attr('x', lx).attr('y', ly + 4).attr('text-anchor', 'middle').text(c.name);
+  });
+  const near = function (s) { return d3.least(T, function (d) { return Math.abs(d.s - s); }); };
+  [['22', 'inc22_s'], ['35', 'inc35_s'], ['41', 'inc41_s']].forEach(function (k) {
+    const s = SG.fnum(k[1]); if (!isFinite(s)) return; const p = near(s);
+    svg.append('path').attr('d', d3.symbol(d3.symbolCross, 70)()).attr('transform', 'translate(' + X(p.x) + ',' + Y(p.y) + ') rotate(45)').style('fill', SG.BAD);
+    svg.append('text').attr('class', 'sg-lbl').attr('x', X(p.x) + 8).attr('y', Y(p.y) + 14).text(k[0] + '周目');
+  });
+  const ex = SG.fnum('pev_x'), ey = SG.fnum('pev_y');
+  if (isFinite(ex)) {
+    svg.append('rect').attr('x', X(ex) - 5).attr('y', Y(ey) - 5).attr('width', 10).attr('height', 10).style('fill', 'none').style('stroke', SG.BAD).style('stroke-width', 2);
+    svg.append('text').attr('class', 'sg-lbl').attr('x', X(ex) - 8).attr('y', Y(ey) - 8).attr('text-anchor', 'end').text('油圧');
+  }
+  const tp = SG.tip(el);
+  svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el);
+    const d = d3.least(T, function (q) { return Math.hypot(X(q.x) - p[0], Y(q.y) - p[1]); });
+    if (!d || Math.hypot(X(d.x) - p[0], Y(d.y) - p[1]) > 24) { tp.hide(); return; }
+    tp.show('ラインから ' + d.s + 'm', [{ c: interp(ramp(d.v)), t: '速度 ' + d.v.toFixed(0) + 'km/h' }], X(d.x), Y(d.y));
+  }).on('pointerleave', function () { tp.hide(); });
+  const lg = document.createElement('div'); lg.className = 'sg-legend';
+  const bar = document.createElement('span'); bar.style.width = '6rem'; bar.style.height = '0.5rem'; bar.style.borderRadius = '2px'; bar.style.background = 'linear-gradient(90deg,' + c0 + ',' + c1 + ')';
+  lg.append(document.createTextNode(Math.round(vmin) + 'km/h'), bar, document.createTextNode(Math.round(vmax) + 'km/h'));
+  el.append(lg);
+});
+
+// G-G
+dash.draw('gg', function (el) {
+  if (!SG.ready(el, ['gg'])) return;
+  const G = SG.rows('gg').map(function (r) { return { x: +r.LatAccel, y: +r.LongAccel, v: +r.Speed, s: r.s }; });
+  el.replaceChildren();
+  const W = Math.max(260, el.clientWidth || 340); const S = Math.min(W, 340);
+  const m = 34, iw = S - 2 * m;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('height', S).attr('viewBox', ((S - W) / 2) + ' 0 ' + W + ' ' + S);
+  const g = svg.append('g').attr('transform', 'translate(' + m + ',' + m / 2 + ')');
+  const x = d3.scaleLinear([-1.5, 1.5], [0, iw]), y = d3.scaleLinear([-1.5, 1.5], [iw, 0]);
+  [1.0, 1.2].forEach(function (r) { g.append('ellipse').attr('cx', x(0)).attr('cy', y(0)).attr('rx', x(r) - x(0)).attr('ry', y(0) - y(r)).style('fill', 'none').style('stroke', SG.REF).style('stroke-dasharray', '4 4'); });
+  g.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', 0).attr('y2', iw).style('stroke', 'var(--cds-chart-grid)');
+  g.append('line').attr('y1', y(0)).attr('y2', y(0)).attr('x1', 0).attr('x2', iw).style('stroke', 'var(--cds-chart-grid)');
+  g.selectAll('circle.p').data(G).join('circle').attr('class', 'p').attr('r', 1.8).attr('cx', function (d) { return x(d.x); }).attr('cy', function (d) { return y(d.y); }).style('fill', SG.col(0)).style('opacity', 0.45);
+  SG.axis(g, d3.axisBottom(x).tickValues([-1, 0, 1]).tickFormat(function (v) { return v + 'G'; }).tickSizeOuter(0), 0, iw);
+  SG.axis(g, d3.axisLeft(y).tickValues([-1, 0, 1]).tickFormat(function (v) { return v + 'G'; }).tickSizeOuter(0), 0, 0);
+  g.append('text').attr('class', 'sg-lbl').attr('x', iw).attr('y', y(0) - 6).attr('text-anchor', 'end').text('右コーナー');
+  g.append('text').attr('class', 'sg-lbl').attr('x', 0).attr('y', y(0) - 6).text('左コーナー');
+  g.append('text').attr('class', 'sg-lbl').attr('x', x(0) + 6).attr('y', iw - 4).text('ブレーキ');
+  g.append('text').attr('class', 'sg-lbl').attr('x', x(0) + 6).attr('y', 12).text('加速');
+});
+
+// 道のりごとの比較（共通）
+window.SGcmp = function (el, field, h, ylab) {
+  if (!SG.ready(el, ['compare', 'corners'])) return;
+  const R = SG.rows('compare');
+  const C = SG.rows('corners');
+  const groups = d3.groups(R, function (r) { return r.label; });
+  const order = ['ベスト', 'スティント1のベスト', 'スティント3のベスト', '予選のベスト', 'ふつうの周（中央値に近い）'];
+  const colorOf = { 'ベスト': SG.col(0), 'スティント1のベスト': SG.col(1), 'スティント3のベスト': SG.col(2), '予選のベスト': SG.col(3), 'ふつうの周（中央値に近い）': SG.MUTED };
+  let ser = groups.map(function (g) { return { label: g[0], role: g[1][0].role, d: g[1].map(function (r) { return { s: +r.s, v: +r[field] }; }) }; });
+  if (field === 'speed') ser = ser.filter(function (s) { return s.role === 'ベスト' || s.role === '予選のベスト' || s.role.indexOf('ふつう') === 0; });
+  ser.sort(function (a, b) { return order.indexOf(a.role) - order.indexOf(b.role); });
+  const F = SG.frame(el, h, { t: 18, r: 12, b: 30, l: 46 });
+  const sMax = d3.max(R, function (r) { return +r.s; });
+  const x = d3.scaleLinear([0, sMax], [0, F.iw]);
+  const all = R.map(function (r) { return +r[field]; });
+  const yd = field === 'delta' ? [Math.min(-0.5, d3.min(all)), Math.max(1, d3.max(all)) * 1.05] : [Math.floor(d3.min(all) / 20) * 20, Math.ceil(d3.max(all) / 20) * 20];
+  const y = d3.scaleLinear(yd, [F.ih, 0]);
+  const ticks = y.ticks(5);
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(function (v) { return field === 'delta' ? (v > 0 ? '+' : '') + v + '秒' : v + 'km/h'; }).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x).ticks(Math.min(8, Math.floor(F.iw / 60))).tickFormat(function (v) { return v + 'm'; }).tickSizeOuter(0), 0, F.ih);
+  C.forEach(function (c) {
+    F.g.append('line').attr('x1', x(+c.s)).attr('x2', x(+c.s)).attr('y1', 0).attr('y2', F.ih).style('stroke', 'var(--cds-chart-grid)');
+    F.g.append('text').attr('class', 'sg-lbl').attr('x', x(+c.s)).attr('y', -6).attr('text-anchor', 'middle').text(c.name);
+  });
+  ser.slice().reverse().forEach(function (s) {
+    F.g.append('path').datum(s.d).attr('d', d3.line().x(function (d) { return x(d.s); }).y(function (d) { return y(d.v); }))
+      .style('fill', 'none').style('stroke', colorOf[s.role] || SG.MUTED).style('stroke-width', s.role === 'ベスト' ? 2 : 1.5).style('stroke-linejoin', 'round').style('stroke-linecap', 'round');
+  });
+  const tp = SG.tip(el);
+  const rule = F.g.append('line').attr('y1', 0).attr('y2', F.ih).style('stroke', 'var(--cds-chart-axis)').style('opacity', 0);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const ms = x.invert(p[0] - F.m.l);
+    const lines = ser.map(function (s) { const d = d3.least(s.d, function (q) { return Math.abs(q.s - ms); }); return { c: colorOf[s.role] || SG.MUTED, t: s.label + ' ' + (field === 'delta' ? (d.v > 0 ? '+' : '') + d.v.toFixed(2) + '秒' : d.v.toFixed(0) + 'km/h'), s: d.s }; });
+    rule.attr('x1', x(lines[0].s)).attr('x2', x(lines[0].s)).style('opacity', 1);
+    tp.show('ラインから ' + lines[0].s + 'm', lines, x(lines[0].s) + F.m.l, p[1]);
+  }).on('pointerleave', function () { tp.hide(); rule.style('opacity', 0); });
+  SG.legend(el, ser.map(function (s) { return { c: colorOf[s.role] || SG.MUTED, t: s.label }; }));
+};
+dash.draw('delta', function (el) { SGcmp(el, 'delta', 300); });
+dash.draw('speed', function (el) { SGcmp(el, 'speed', 300); });
+</script>
+
+<script>
+// 区間ごとの遅れ
+dash.draw('segloss', function (el) {
+  if (!SG.ready(el, ['corners'])) return;
+  const C = SG.rows('corners');
+  const keys = [['st1', 'スティント1', SG.col(1)], ['st2', 'スティント2', SG.col(0)], ['st3', 'スティント3', SG.col(2)]];
+  const F = SG.frame(el, 300, { t: 10, r: 12, b: 30, l: 46 });
+  const x0 = d3.scaleBand(C.map(function (c) { return c.name; }), [0, F.iw]).paddingInner(0.25).paddingOuter(0.1);
+  const x1 = d3.scaleBand(keys.map(function (k) { return k[0]; }), [0, x0.bandwidth()]).padding(0.12);
+  const ymax = d3.max(C, function (c) { return d3.max(keys, function (k) { return +c[k[0]]; }); });
+  const y = d3.scaleLinear([0, Math.max(0.5, ymax * 1.1)], [F.ih, 0]);
+  const ticks = y.ticks(5);
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(function (v) { return v + '秒'; }).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x0).tickSizeOuter(0), 0, F.ih);
+  const tp = SG.tip(el);
+  C.forEach(function (c) {
+    keys.forEach(function (k) {
+      const v = +c[k[0]];
+      F.g.append('rect').attr('x', x0(c.name) + x1(k[0])).attr('width', Math.min(32, x1.bandwidth())).attr('y', y(v)).attr('height', F.ih - y(v)).attr('rx', 2).style('fill', k[2])
+        .on('pointermove', function (ev) { const p = SG.pt(ev, el); tp.show(c.name + '（' + c.seg_from + '〜' + c.seg_to + 'm）', [{ c: k[2], t: k[1] + ' ' + v.toFixed(2) + '秒遅い' }, { t: '区間のベスト ' + c.best_s + '秒（' + c.best_lap + '）' }], p[0], p[1]); })
+        .on('pointerleave', function () { tp.hide(); });
+    });
+  });
+  SG.legend(el, keys.map(function (k) { return { c: k[2], t: k[1] }; }));
+});
+
+// 周ごとの合成G
+dash.draw('g95', function (el) {
+  if (!SG.ready(el, ['laps'])) return;
+  const L = SG.rows('laps').filter(function (r) { return r.session === '決勝' && r.g95 !== '' && (r.kind === '通常' || r.kind === 'ピット明け'); }).map(function (r) { return { lap: +r.lap, g: +r.g95, st: +r.stint, kind: r.kind }; });
+  const F = SG.frame(el, 300, { t: 10, r: 12, b: 30, l: 46 });
+  const x = d3.scaleLinear(d3.extent(L, function (d) { return d.lap; }), [0, F.iw]);
+  const y = d3.scaleLinear([d3.min(L, function (d) { return d.g; }) - 0.03, d3.max(L, function (d) { return d.g; }) + 0.03], [F.ih, 0]);
+  const ticks = y.ticks(5);
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickFormat(function (v) { return v.toFixed(2) + 'G'; }).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x).ticks(Math.min(8, Math.floor(F.iw / 50))).tickFormat(function (v) { return v + '周'; }).tickSizeOuter(0), 0, F.ih);
+  const sc = { 1: SG.col(1), 2: SG.col(0), 3: SG.col(2) };
+  d3.groups(L, function (d) { return d.st; }).forEach(function (g) {
+    F.g.append('path').datum(g[1]).attr('d', d3.line().x(function (d) { return x(d.lap); }).y(function (d) { return y(d.g); })).style('fill', 'none').style('stroke', sc[g[0]]).style('stroke-width', 2).style('stroke-linejoin', 'round');
+  });
+  F.g.selectAll('circle').data(L).join('circle').attr('r', 3).attr('cx', function (d) { return x(d.lap); }).attr('cy', function (d) { return y(d.g); }).style('fill', function (d) { return d.kind === '通常' ? sc[d.st] : 'var(--color-panel)'; }).style('stroke', function (d) { return sc[d.st]; });
+  const tp = SG.tip(el);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const mx = x.invert(p[0] - F.m.l);
+    const d = d3.least(L, function (q) { return Math.abs(q.lap - mx); }); if (!d) return;
+    tp.show(d.lap + '周目（' + d.kind + '）', [{ c: sc[d.st], t: '合成Gの上位5% ' + d.g.toFixed(3) + 'G' }], x(d.lap) + F.m.l, y(d.g) + F.m.t);
+  }).on('pointerleave', function () { tp.hide(); });
+  SG.legend(el, [{ c: sc[1], t: 'スティント1' }, { c: sc[2], t: 'スティント2' }, { c: sc[3], t: 'スティント3' }]);
+});
+
+// コーナーの表
+dash.draw('cornertable', function (tb) {
+  tb.replaceChildren();
+  const d = dash.data('corners'); if (d.status !== 'ok') return;
+  const cols = ['name', 'vmin_ref', 'vmin_st1', 'vmin_st2', 'vmin_st3', 'vmin_q', 'brake_m_ref', 'brake_m_st1', 'brake_m_st2', 'brake_m_st3', 'st1', 'st2', 'st3', 'best_lap'];
+  d.data.forEach(function (r) {
+    const tr = document.createElement('tr'); tr.setAttribute('data-key', r.corner);
+    cols.forEach(function (c) { const td = document.createElement('td'); td.textContent = r[c] == null ? '' : String(r[c]); tr.append(td); });
+    tb.append(tr);
+  });
+});
+
+// ギア
+dash.draw('gears', function (el) {
+  if (!SG.ready(el, ['facts'])) return;
+  const G = [1, 2, 3, 4, 5, 6].map(function (n) { return { n: n, v: SG.fnum('gear' + n + '_share') * 100 }; }).filter(function (d) { return isFinite(d.v); });
+  const F = SG.frame(el, 220, { t: 10, r: 12, b: 30, l: 40 });
+  const x = d3.scaleBand(G.map(function (d) { return d.n + '速'; }), [0, F.iw]).padding(0.3);
+  const y = d3.scaleLinear([0, 100], [F.ih, 0]);
+  SG.gridY(F.g, y, F.iw, [0, 25, 50, 75, 100]);
+  SG.axis(F.g, d3.axisLeft(y).tickValues([0, 50, 100]).tickFormat(function (v) { return v + '%'; }).tickSizeOuter(0), 0, 0);
+  SG.axis(F.g, d3.axisBottom(x).tickSizeOuter(0), 0, F.ih);
+  G.forEach(function (d) {
+    const w = Math.min(32, x.bandwidth()); const xx = x(d.n + '速') + (x.bandwidth() - w) / 2;
+    F.g.append('rect').attr('x', xx).attr('width', w).attr('y', y(d.v)).attr('height', F.ih - y(d.v)).attr('rx', 2).style('fill', d.v > 0 ? SG.col(0) : SG.MUTED);
+    F.g.append('text').attr('class', 'sg-lbl').attr('x', xx + w / 2).attr('y', y(d.v) - 4).attr('text-anchor', 'middle').text(Math.round(d.v) + '%');
+  });
+});
+
+// LTE
+dash.draw('lte', function (el) {
+  if (!SG.ready(el, ['logger'])) return;
+  const D = SG.rows('logger').map(function (r) { return { m: SG.hm(r.time_jst), t: r.time_jst, n: +r.lte_n, dl: SG.num(r.lte_delay), sp: SG.num(r.speed) }; });
+  const F = SG.frame(el, 260, { t: 10, r: 12, b: 30, l: 40 });
+  const x = d3.scaleLinear([d3.min(D, function (d) { return d.m; }), d3.max(D, function (d) { return d.m; }) + 1], [0, F.iw]);
+  const y = d3.scaleLinear([0, Math.max(80, d3.max(D, function (d) { return d.n; }))], [F.ih, 0]);
+  D.forEach(function (d) { if (d.sp < 5) F.g.append('rect').attr('x', x(d.m)).attr('y', 0).attr('width', Math.max(1, x(d.m + 1) - x(d.m))).attr('height', F.ih).style('fill', 'var(--cds-chart-grid)').style('opacity', 0.5); });
+  const ticks = y.ticks(4);
+  SG.gridY(F.g, y, F.iw, ticks);
+  SG.axis(F.g, d3.axisLeft(y).tickValues(ticks).tickSizeOuter(0), 0, 0);
+  const xt = d3.range(Math.ceil(x.domain()[0] / 30) * 30, x.domain()[1], 30);
+  SG.axis(F.g, d3.axisBottom(x).tickValues(xt).tickFormat(SG.fmtHM).tickSizeOuter(0), 0, F.ih);
+  const bw = Math.max(1, x(1) - x(0) - 1);
+  F.g.selectAll('rect.b').data(D).join('rect').attr('class', 'b').attr('x', function (d) { return x(d.m); }).attr('width', bw).attr('y', function (d) { return y(d.n); }).attr('height', function (d) { return F.ih - y(d.n); })
+    .style('fill', function (d) { return d.n < 10 && d.sp >= 5 ? SG.BAD : SG.col(0); });
+  const tp = SG.tip(el);
+  F.svg.on('pointermove', function (ev) {
+    const p = SG.pt(ev, el); const mx = x.invert(p[0] - F.m.l);
+    const d = d3.least(D, function (q) { return Math.abs(q.m + 0.5 - mx); }); if (!d) return;
+    tp.show(d.t, [{ c: SG.col(0), t: '届いた点 ' + d.n }, { t: '遅れの中央値 ' + (isFinite(d.dl) ? d.dl.toFixed(1) + '秒' : '—') }, { t: '平均の速度 ' + (isFinite(d.sp) ? d.sp.toFixed(0) + 'km/h' : '—') }], x(d.m) + F.m.l, p[1]);
+  }).on('pointerleave', function () { tp.hide(); });
+});
+</script>
