@@ -1,14 +1,15 @@
 """Ver.2ロガーの記録（本体のCSV）とLTEの記録（5BのJSON Lines）から、レース1回分の解析をまとめる。
 
 2026-11-08 SUGO 120分耐久のために作った（SG-5-3）。大会ごとに変わる決めごと（コントロールライン・
-決勝と予選の周・スティント・ピット・出来事のあった周）は設定ファイルに書く（例：sugo_20261108.json）。
+決勝と予選の周・スティント・ピット・出来事のあった周・トレッド）は設定ファイルに書く（例：sugo_20261108.json）。
+タイヤの滑り（車体の横滑り角・後輪の空転・前輪のロックぎみ）は、舵角が無くても出せるオーバーステアの向きだけを見る。
 
   python tools/race_analysis/race_analysis.py tools/race_analysis/sugo_20261108.json
 
 出力（位置を含むので drive_logs/ の下へ出す。リポジトリには入らない）：
   <out_dir>/detail/*.csv  … 中間の表（周・スティント・ピット・ギア・油圧の出来事など）
-  <out_dir>/pub/*.csv     … レポートのページに載せる10個の表（facts・laps・temps・water・track・
-                            corners・compare・gg・press・logger）
+  <out_dir>/pub/*.csv     … レポートのページに載せる11個の表（facts・laps・temps・water・track・
+                            corners・compare・gg・press・logger・slides）
 読むのは写しだけで、本体・5Bには触らない。出来事の周を探すときは lap_survey.py を先に使う。
 """
 import json, glob, os, sys
@@ -49,13 +50,16 @@ def xy(lat, lon):
 KEEP = set(('seq mcu_ms host_utc Speed GPSSpeed RPM Throttle Lat Lon Altitude Yaw GPSFix GPSSats GNSSHz AccelX AccelY AccelZ '
             'LongAccel LatAccel Distance WaterTemp gnss_utc gnss_hacc_m LapCount CurrentLap LapTime BestLap ElapsedTime RaceTime '
             'Sector LastSector SectorTime WheelFrontA WheelFrontB WheelRearA WheelRearB IntakeTemp FuelLevelRaw ClutchDisengaged '
-            'OilTemp PressVolt PressVoltState Temp1Volt Temp2Volt WaterTempDefi').split())
+            'OilTemp PressVolt PressVoltState Temp1Volt Temp2Volt WaterTempDefi GyroZ').split())
 def load(path):
     path = RP(path)
     cache = os.path.join(RP(CFG['out_dir']), 'cache', os.path.basename(path) + '.pkl')
+    want = {c for c in pd.read_csv(path, nrows=0).columns if c in KEEP} - {'host_utc'}
+    d = None
     if os.path.exists(cache) and os.path.getmtime(cache) > os.path.getmtime(path):
         d = pd.read_pickle(cache)
-    else:
+        if not want <= set(d.columns): d = None    # KEEPに列を足したら読み直す
+    if d is None:
         d = pd.read_csv(path, usecols=lambda c: c in KEEP, low_memory=False)
         d['t'] = pd.to_datetime(d.host_utc, format='ISO8601'); d = d.drop(columns=['host_utc'])
         os.makedirs(os.path.dirname(cache), exist_ok=True); d.to_pickle(cache)
@@ -600,6 +604,125 @@ crossings['ms'] = ((crossings.t - pd.Timestamp('1970-01-01', tz='UTC')).dt.total
 got = [((win.utc_ms > m - 0) & (win.utc_ms < m + 15000)).any() for m in crossings.ms]
 fact('lte_lap_seen', round(float(np.mean(got) * 100), 0), 'ラインを通ってから15秒以内にLTEで点が届いた周の割合（%）')
 
+# ---------- タイヤの滑り（車の向きと進む向き・四輪の車輪速） ----------
+# 車の向きは GyroZ（左回りが正、deg/s）を足し合わせて出し、進む向きは GNSS の位置から出す。その差が車体の横滑り角β。
+# ログの Yaw の列は GNSS の進む向き（方位）で、車の向きではないので使えない。
+# 舵角が無いと前のタイヤの滑り角が出せないので、アンダーステアは出せない。出せるのは「後ろが出た」向き（βが大きい）だけ。
+# 四輪の車輪速はタイヤの前後の滑り（立ち上がりの後輪の空転・ブレーキで前輪がロックしかけた所）に使う。
+TREAD_F, TREAD_R = CFG.get('tread_m', [1.490, 1.495])      # 前後のトレッド（m）
+SLIDE_DEG = 8.0          # これを超えたら「後ろが出た」とする横滑り角（ふつうのコーナーの最大は中央値5°前後）
+LOCK_PCT = 10.0          # ブレーキで前輪が車の速さよりこれ以上遅ければ「ロックぎみ」
+def tire_slip():
+    d = race
+    dt = d.ts.diff().fillna(0).clip(0, 0.05)
+    v = (d.GPSSpeed / 3.6).clip(lower=5)
+    psi_raw = np.cumsum(d.GyroZ.fillna(0) * dt)
+    g = gnss_points(d).copy()
+    g['cog'] = np.degrees(np.unwrap(np.arctan2(g.y.shift(-1) - g.y.shift(1), g.x.shift(-1) - g.x.shift(1)).bfill().ffill()))
+    st = g.lap.isin(normal_laps) & (g.GPSSpeed > 60) & (g.LatAccel.abs() < 0.05) & (g.GyroZ.abs() < 2)
+    fact('yaw_vs_cog', round(float(((g.Yaw - (90 - g.cog) + 180) % 360 - 180)[st].median()), 2), 'Yawの列とGNSSの進む向きの差（直線の中央値、°）。0ならYawは車の向きではない')
+    # コーナー：|横G|>0.3 が1.5秒以上。入る1秒前と出た1秒後で、向きの変化を比べる
+    g['in'] = (g.LatAccel.abs() > 0.3) & (g.GPSSpeed > 50)
+    g['grp'] = (g['in'] != g['in'].shift()).cumsum()
+    spans = []
+    gts = g.ts.values
+    for _, s in g[g['in']].groupby('grp'):
+        t0, t1 = s.ts.iloc[0], s.ts.iloc[-1]
+        if t1 - t0 < 1.5: continue
+        i0 = np.searchsorted(gts, t0 - 1.0, side='right') - 1; i1 = np.searchsorted(gts, t1 + 1.0)
+        if i0 < 0 or i1 >= len(g): continue
+        pre, post = g.iloc[i0], g.iloc[i1]                    # 入る1秒前・出た1秒後のGNSSの点
+        if not (pre.lap in normal_laps and post.lap in normal_laps) or post.ts - pre.ts > t1 - t0 + 2.6: continue
+        spans.append((s, pre, post))
+    dpsi = np.array([psi_raw[p2.name] - psi_raw[p1.name] for _, p1, p2 in spans])
+    dcog = np.array([p2.cog - p1.cog for _, p1, p2 in spans])
+    K = float(dpsi @ dcog / (dpsi @ dpsi))          # GyroZの倍率（取り付けの傾き・センサーの誤差）
+    psi = psi_raw * K
+    # GNSSを使わない出し方：β の変化 = 回る速さ − 横G÷速さ（向きを照らす用）
+    bimu = np.degrees(np.cumsum((np.radians(d.GyroZ.fillna(0) * K) - (-d.LatAccel.fillna(0) * 9.81) / v) * dt))
+    ev = []
+    for s, pre, post in spans:
+        turn = 1.0 if s.GyroZ.mean() > 0 else -1.0
+        beta = ((psi[s.index] - psi[pre.name]) - (s.cog - pre.cog)) * turn      # 頭が進む向きより内を向くと正
+        close = ((psi[post.name] - psi[pre.name]) - (post.cog - pre.cog)) * turn # 出たあと戻りきらない分＝誤差の目安
+        im = beta.idxmax(); r0 = s.loc[im]
+        after = d.loc[im: im + 150]                                              # βが最大になってから1.5秒
+        ev.append({'id': r0.t.tz_convert(JST).strftime('%H:%M:%S'), 'time_jst': r0.t.tz_convert(JST).strftime('%H:%M:%S'),
+                   'lap': int(r0.lap), 'stint': STINT_OF(int(r0.lap)), 'turn': '左' if turn > 0 else '右',
+                   'x': round(float(r0.x), 1), 'y': round(float(r0.y), 1),
+                   'speed': round(float(r0.GPSSpeed), 0), 'lat_max': round(float(s.LatAccel.abs().max()), 2),
+                   'throttle': round(float(r0.Throttle), 0), 'beta_med': round(float(beta.median()), 1),
+                   'beta_max': round(float(beta.max()), 1), 'beta_imu': round(float((bimu[im] - bimu[pre.name]) * turn), 1),
+                   'yaw_back': round(float(max(0.0, -(after.GyroZ * K * turn).min())), 0), 'err': round(float(close), 1)})
+    ev = pd.DataFrame(ev)
+    _, ii = cKDTree(np.c_[tr.x, tr.y]).query(np.c_[ev.x, ev.y])
+    ev['s'] = tr.s.values[ii]; ev['corner'] = tr.corner.values[ii]; ev['name'] = 'C' + ev.corner.astype(str)
+    ev['ok'] = (ev.err.abs() < 3).astype(int)                                   # 戻りきらない分が3°未満なら確か
+    ev['slide'] = ((ev.ok == 1) & (ev.beta_max > SLIDE_DEG) & (ev.beta_imu > 0.6 * ev.beta_max)).astype(int)
+    mv = g[g.lap.isin(normal_laps) & (g.GPSSpeed > 60)]
+    fact('gnss_pos_rate', round(float(len(mv) / mv.groupby('lap').ts.agg(lambda t: t.iloc[-1] - t.iloc[0]).sum()), 1), '走っている間（60km/h超）に記録の位置が変わった回数（回/秒）')
+    fact('bal_k', round(K, 3), 'GyroZの倍率（コーナーの前後の向きの変化をGNSSに合わせた）')
+    fact('bal_err', round(float(ev.err.abs().median()), 1), 'コーナーを出たあと向きが戻りきらない角度の中央値（°）＝横滑り角の誤差の目安')
+    fact('bal_n', len(ev), '横滑り角を出したコーナーの数（通常の周、横G0.3超が1.5秒以上）')
+    fact('bal_beta_med', round(float(ev.beta_med.median()), 1), 'コーナー中の横滑り角の中央値（°、頭が内向きが正）')
+    fact('bal_beta_max_med', round(float(ev[ev.ok == 1].beta_max.median()), 1), 'コーナーごとの横滑り角の最大の中央値（°）')
+    fact('slide_th', SLIDE_DEG, '「後ろが出た」とした横滑り角（°）')
+    fact('slide_n', int(ev.slide.sum()), '後ろが出たコーナーの数（2つの出し方がそろったもの）')
+    sl = ev[ev.slide == 1].sort_values('beta_max', ascending=False)
+    for i, r in enumerate(sl.head(2).itertuples(), 1):
+        for k_, v_, lab in (('lap', r.lap, '周'), ('jst', r.time_jst, '時刻'), ('c', r.name, '区間'), ('turn', r.turn, '向き'),
+                            ('beta', r.beta_max, '横滑り角の最大（°、GNSS）'), ('imu', r.beta_imu, '横滑り角（°、GNSSを使わない出し方）'),
+                            ('v', r.speed, '速度（km/h）'), ('back', r.yaw_back, '直後に逆へ回った速さ（deg/s）')):
+            fact(f'slide{i}_{k_}', v_, f'{i}番目に大きく後ろが出た所：{lab}')
+    # ---- 四輪の車輪速 ----
+    W = pd.concat([lapdata[('決勝', n)] for n in sorted(normal_laps) if ('決勝', n) in lapdata])
+    W = W[W.GPSSpeed > 60].copy()
+    W['corner'] = np.searchsorted(np.array(bounds[1:-1]), W.s.values, side='right') + 1
+    fl, fr, rl, rr_ = (W[k_] / 3.6 for k_ in ('WheelFrontA', 'WheelFrontB', 'WheelRearA', 'WheelRearB'))
+    cn = W.LatAccel.abs() > 0.6
+    fact('wheel_yaw_front', round(float((np.degrees((fr - fl) / TREAD_F) / (W.GyroZ * K))[cn].median()), 2), '前輪の左右差から出した回る速さ÷本当の回る速さ（横G0.6超）')
+    fact('wheel_yaw_rear', round(float((np.degrees((rr_ - rl) / TREAD_R) / (W.GyroZ * K))[cn].median()), 2), '後輪の左右差から出した回る速さ÷本当の回る速さ（横G0.6超）')
+    front = (fl + fr) / 2; rear = (rl + rr_) / 2
+    t_off, t_full = W.Throttle.quantile(.05), W.Throttle.quantile(.99)
+    coast = (W.Throttle <= t_off + 1) & (W.LongAccel.abs() < 0.05) & (W.LatAccel.abs() < 0.1)
+    base = float((rear / front - 1)[coast].median())
+    W['slip'] = (rear / front - 1 - base) * 100
+    W['inner'] = ((rr_ - rl) - np.radians(W.GyroZ * K) * TREAD_R) * -np.sign(W.GyroZ) * 3.6
+    ex = (W.Throttle >= t_full - 1) & (W.LatAccel.abs() > 0.4)
+    fact('rear_base', round(base * 100, 2), '惰性の直線での後輪÷前輪−1（%、タイヤの径の差。空転はここから数える）')
+    fact('rear_exit_med', round(float(W.slip[ex].median()), 1), '立ち上がり（全開・横G0.4超）の後輪の空転の中央値（%）')
+    fact('rear_exit_p95', round(float(W.slip[ex].quantile(.95)), 1), '立ち上がりの後輪の空転の上位5%（%）')
+    fact('inner_med', round(float(W.inner[ex].median()), 1), '立ち上がりで内側の後輪が本来より速く回った分の中央値（km/h）')
+    # GNSSの速さは遅れて出るので、前輪の平均に合うようにずらしてからロックを数える
+    m = race.lap.isin(normal_laps).values & (race.GPSSpeed > 60).values
+    fv = ((race.WheelFrontA + race.WheelFrontB) / 2).values; gv = race.GPSSpeed.values
+    lags = list(range(0, 41, 2))
+    errs = [np.nanmedian(np.abs(fv[m][:-40] - np.roll(gv, -L_)[m][:-40])) for L_ in lags]
+    lag = lags[int(np.argmin(errs))]
+    vl = pd.Series(np.roll(gv, -lag), index=race.index).loc[W.index]
+    steady = (W.LongAccel.abs() < 0.05) & (W.LatAccel.abs() < 0.1)
+    fb = float((front * 3.6 / vl)[steady].median())
+    W['lock'] = (np.minimum(W.WheelFrontA, W.WheelFrontB) / vl / fb - 1) * 100
+    br = W.LongAccel < -0.6
+    lk = br & (W.lock < -LOCK_PCT)
+    fact('gnss_speed_lag', lag * 10, 'GNSSの速さの遅れ（ms、前輪の速さに合わせて求めた）')
+    fact('lock_s', round(float(lk.sum() / 100), 1), f'ブレーキ（0.6G超）でどちらかの前輪が{LOCK_PCT:.0f}%以上遅かった秒（通常の周の合計）')
+    fact('lock_laps', int(W.lap[lk].nunique()), 'それがあった周の数')
+    fact('lock_th', LOCK_PCT, 'ロックぎみとした前輪の遅れ（%）')
+    # コーナーごと
+    rows = []
+    for ci in sorted(corners.corner):
+        e = ev[(ev.corner == ci) & (ev.ok == 1)]; w = W[W.corner == ci]
+        rows.append({'corner': ci, 'beta_n': len(e),
+                     'beta_med': round(float(e.beta_med.median()), 1) if len(e) else None,
+                     'beta_p90': round(float(e.beta_max.quantile(.9)), 1) if len(e) else None,
+                     'slides': int(ev[(ev.corner == ci)].slide.sum()),
+                     'slip_med': round(float(w.slip[ex.loc[w.index]].median()), 1) if ex.loc[w.index].sum() > 50 else None,
+                     'slip_p95': round(float(w.slip[ex.loc[w.index]].quantile(.95)), 1) if ex.loc[w.index].sum() > 50 else None,
+                     'lock_s': round(float(lk.loc[w.index].sum() / 100), 1)})
+    return ev, pd.DataFrame(rows)
+slides, bal_corner = tire_slip()
+
 # ---------- 書き出し ----------
 laps_out = laps.drop(columns=['s1_best', 's2_best', 's3_best', 's4_best']).copy()
 for k in ('s1', 's2', 's3', 's4'):
@@ -626,6 +749,8 @@ pl.to_csv(os.path.join(OUT, 'press_lat.csv'), index=False)
 plong.to_csv(os.path.join(OUT, 'press_long.csv'), index=False)
 pev.to_csv(os.path.join(OUT, 'press_events.csv'), index=False)
 lg.to_csv(os.path.join(OUT, 'logger.csv'), index=False)
+slides.to_csv(os.path.join(OUT, 'slides.csv'), index=False)
+bal_corner.to_csv(os.path.join(OUT, 'balance_corner.csv'), index=False)
 LAPKEYS = {'best_lap', 'q_best', 'theo_best', 'theo_seg', 'mid_lap_s', 'st1_best', 'st2_best', 'st3_best', 'st1_median', 'st2_median', 'st3_median'}
 def mmss(v):
     m = int(v // 60); return f'{m}:{v - 60 * m:06.3f}'
@@ -668,6 +793,7 @@ pd.read_csv(os.path.join(OUT, 'track.csv')).to_csv(os.path.join(PUB, 'track.csv'
 c=pd.read_csv(os.path.join(OUT, 'corners.csv')).merge(pd.read_csv(os.path.join(OUT, 'segloss.csv')).drop(columns=['name','s','vmin_ref','seg_from','seg_to']), on='corner').merge(pd.read_csv(os.path.join(OUT, 'cornerdrive.csv')).drop(columns=['name','s']+[x for x in pd.read_csv(os.path.join(OUT, 'cornerdrive.csv')).columns if x.startswith('throttle')]), on='corner')
 c['loss_avg']=c[['st1','st2','st3']].mean(axis=1).round(3)
 c = c.rename(columns={'vmin_ref_x': 'vmin_line', 'vmin_ref_y': 'vmin_ref'})
+c = c.merge(pd.read_csv(os.path.join(OUT, 'balance_corner.csv')), on='corner', how='left')
 c.to_csv(os.path.join(PUB, 'corners.csv'), index=False)
 cm=pd.read_csv(os.path.join(OUT, 'compare.csv')); cm.to_csv(os.path.join(PUB, 'compare.csv'), index=False)
 pd.read_csv(os.path.join(OUT, 'gg.csv')).to_csv(os.path.join(PUB, 'gg.csv'), index=False)
@@ -677,4 +803,5 @@ d=pd.read_csv(os.path.join(OUT, 'press_long.csv')).rename(columns={'long_bin':'x
 pr=pd.concat([a,b,d], ignore_index=True)[['kind','x','med','lo','hi','n']]; pr['key']=pr.kind+':'+pr.x.astype(str)
 pr.to_csv(os.path.join(PUB, 'press.csv'), index=False)
 pd.read_csv(os.path.join(OUT, 'logger.csv')).to_csv(os.path.join(PUB, 'logger.csv'), index=False)
+pd.read_csv(os.path.join(OUT, 'slides.csv')).drop(columns=['x', 'y']).to_csv(os.path.join(PUB, 'slides.csv'), index=False)
 print(pd.read_csv(os.path.join(PUB, 'facts.csv')).to_string())
