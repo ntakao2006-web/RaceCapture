@@ -45,6 +45,9 @@ trap failed EXIT
 PHASE=web-stop
 timeout 30 docker stop -t 15 ecocapture-web
 PHASE=router-stop
+# arduino-router-serial has Requires=arduino-router: stopping the router stops it too,
+# and starting the router again does not bring it back. Remember it and restart it below.
+SERIAL_STATE=$(host_sh -c 'systemctl is-active arduino-router-serial 2>/dev/null || true')
 host_sh -c '
     set -eu
     timeout 25 systemctl stop arduino-router
@@ -69,6 +72,11 @@ host_sh -c '
         sleep 1
     done
 '
+if [ "$SERIAL_STATE" = active ]; then
+    # Not needed for Bridge or SD logging, so a failure here only warns.
+    host_sh -c 'timeout 25 systemctl start arduino-router-serial' ||
+        echo "Warning: arduino-router-serial did not start again; start it by hand." >&2
+fi
 # Allow ExecStartPost/RTS-CTS to settle before Bridge sends its startup reset.
 sleep 3
 PHASE=mcu-reset

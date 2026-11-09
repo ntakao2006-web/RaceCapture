@@ -23,6 +23,10 @@ if name=='docker':
     raise SystemExit(1 if fail=='web-stop' and args[0]=='stop' else 0)
 if name=='systemctl':
     action=args[0]
+    if 'arduino-router-serial' in args:
+        if action=='is-active':
+            state=os.environ.get('SERIAL','inactive'); print(state); raise SystemExit(0 if state=='active' else 3)
+        raise SystemExit(1 if fail=='serial-start' and action=='start' else 0)
     if fail=='router-stop' and action=='stop': raise SystemExit(124)
     if fail=='router-start' and action=='start': raise SystemExit(1)
     if action=='show':
@@ -39,7 +43,7 @@ raise SystemExit(0)
 
 
 class FlashOrderTests(unittest.TestCase):
-    def run_flash(self, fail='', size=1024, recovery=False, busy=False):
+    def run_flash(self, fail='', size=1024, recovery=False, busy=False, serial='inactive'):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder); commands=root/'bin'; commands.mkdir()
             for name in ('timeout','sleep','docker','systemctl','install','arduino-flash.sh','openocd'):
@@ -57,7 +61,7 @@ class FlashOrderTests(unittest.TestCase):
                               .replace('/run/lock/ecocapture-mcu.lock',str(lock)))
             image=root/'image with spaces.bin'; image.write_bytes(b'X'*size)
             env={**os.environ,'PATH':str(commands)+':'+os.environ['PATH'],
-                 'EVENTS':str(root/'events'),'SOCKET':str(root/'router.sock'),'FAIL':fail}
+                 'EVENTS':str(root/'events'),'SOCKET':str(root/'router.sock'),'FAIL':fail,'SERIAL':serial}
             with lock.open() as held:
                 if busy: fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
                 result=subprocess.run(['sh',str(script),'--recover' if recovery else str(image)],
@@ -115,6 +119,36 @@ class FlashOrderTests(unittest.TestCase):
         self.assertTrue(any(e[0]=='openocd' for e in events))
         self.assertEqual([e[1] for e in events if e[0]=='systemctl' and e[1] in ('stop','start','restart')],
                          ['stop','start'])
+
+    def serial_steps(self, events):
+        return [e[1] for e in events if e[0]=='systemctl' and e[1] in ('stop','start') and 'arduino-router-serial' in e]
+
+    def test_running_router_serial_is_started_again_after_the_router(self):
+        # Requires=arduino-router stops it with the router, and starting the router does not bring it back (2026-11-09).
+        for recovery in (False,True):
+            with self.subTest(recovery=recovery):
+                result,events=self.run_flash(recovery=recovery,serial='active')
+                self.assertEqual(result.returncode,0,result.stderr)
+                order=[('serial-' if 'arduino-router-serial' in e else 'router-')+e[1] for e in events
+                       if e[0]=='systemctl' and e[1] in ('stop','start')]
+                self.assertEqual(order,['router-stop','router-start','serial-start'])
+                last_serial=max(i for i,e in enumerate(events) if 'arduino-router-serial' in e and e[1]=='start')
+                reset=next(i for i,e in enumerate(events) if e[0]=='openocd' and 'reset run' in ' '.join(e))
+                self.assertLess(last_serial,reset)
+
+    def test_router_serial_that_was_not_running_is_left_alone(self):
+        for serial in ('inactive','failed'):
+            with self.subTest(serial=serial):
+                result,events=self.run_flash(serial=serial)
+                self.assertEqual(result.returncode,0,result.stderr)
+                self.assertEqual(self.serial_steps(events),[])
+
+    def test_router_serial_start_failure_only_warns(self):
+        result,events=self.run_flash('serial-start',serial='active')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn('arduino-router-serial did not start again',result.stderr)
+        self.assertTrue(any(e[0]=='openocd' for e in events))
+        self.assertTrue(any(e[:2]==['docker','start'] for e in events))
 
     def test_shared_lock_blocks_both_flash_and_recovery_before_device_changes(self):
         for recovery in (False,True):
