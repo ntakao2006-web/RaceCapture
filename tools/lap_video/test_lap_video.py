@@ -159,5 +159,32 @@ class Wind(unittest.TestCase):
         self.assertEqual(info['shift_min_gain_db'], 0.0)   # 回転が急に動く所は無い
 
 
+class Incidents(unittest.TestCase):
+    """incidents.py：横滑り角（IMUだけ）と、まとまりの拾い方"""
+    def test_beta_steady_corner_small_and_oversteer_large(self):
+        import pandas as pd
+        import incidents as inc
+        n = 6000                              # 100Hz・60秒
+        t = np.arange(n) / 100
+        v = np.full(n, 80.0)                  # km/h
+        R = 60.0                              # 半径60mの定常旋回 → 回る速さ v/R
+        r = np.degrees(v / 3.6 / R)
+        ay = (v / 3.6) ** 2 / R
+        gyro = r.copy()
+        gyro[4000:4030] += 30.0               # 40秒目に0.3秒、30deg/s余計に回る（後ろが出る。実際の記録でも全体のごく一部）
+        d = pd.DataFrame({'ts': t, 'v': v, 'GyroZ': gyro, 'LatAccel': -ay / 9.81, 'AccelZ': np.zeros(n)})
+        inc.add_signals(d)
+        self.assertLess(d.beta[500:3900].abs().max(), 1.0)
+        self.assertGreater(d.beta[4000:4100].abs().max(), 7.0)
+
+    def test_spans_groups_close_hits(self):
+        import incidents as inc
+        ts = np.arange(1000) / 100
+        m = np.zeros(1000, bool)
+        m[100:120] = m[200:210] = True        # 1秒しか離れていない → 1つ
+        m[700:740] = True                     # 4.8秒離れている → 別
+        self.assertEqual(inc.spans(m, ts, gap=3.0), [(100, 209), (700, 739)])
+
+
 if __name__ == '__main__':
     unittest.main()
