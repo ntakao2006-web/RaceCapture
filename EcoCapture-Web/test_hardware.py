@@ -96,6 +96,37 @@ class HardwareTests(unittest.TestCase):
    struct.pack_into('<I',nav,0,itow);state.update(nav=nav.hex(),gnss_at=1900)
    samples,_=decoder.decode(state,self.batch(),Configuration())
    self.assertEqual(samples[0]['values']['GNSSHz'],expected)
+ def pvt(self,itow,lat_e7,fix=3):
+  nav=bytearray(92);struct.pack_into('<I',nav,0,itow);nav[20]=fix;nav[21]=1;nav[23]=20
+  struct.pack_into('<i',nav,28,lat_e7);struct.pack_into('<i',nav,60,30000);return nav.hex()
+ def rows(self,start,count):
+  raw=bytearray(46);struct.pack_into('<h',raw,4,981);struct.pack_into('<h',raw,24,16384)
+  return [[start//10+i,start+i*10,raw.hex()] for i in range(count)]
+ def test_every_solution_in_take_reaches_the_rows_at_its_own_time(self):
+  # Firmware from 2026-11-09 hands over every NAV-PVT in logger.take; the status nav is stale here on purpose.
+  decoder=HardwareDecoder();state=self.state();state.update(mcu_ms=2200,gnss_at=1000,nav=self.pvt(900,1))
+  batch={'rows':self.rows(2000,20),'can':[],'nav':[[2005,self.pvt(1000,350000000)],[2105,self.pvt(1100,350000100)]]}
+  s,sensors=decoder.decode(state,batch,Configuration())
+  self.assertEqual([x['gnss_itow_ms'] for x in s[:2]],[None,1000])           # 2000 is before the first solution arrived
+  self.assertEqual(s[10]['gnss_itow_ms'],1000);self.assertEqual(s[11]['gnss_itow_ms'],1100)  # 2100 vs 2110
+  self.assertAlmostEqual(s[19]['values']['Lat'],35.00001);self.assertEqual(s[19]['values']['GNSSHz'],10)
+  self.assertAlmostEqual(s[19]['values']['Distance'],30000*.0036*100/3600000)   # 108 km/h for 100 ms, in km
+  self.assertEqual(sensors['gnss'],'測位中')
+ def test_solution_after_the_last_row_carries_into_the_next_take(self):
+  decoder=HardwareDecoder();state=self.state();state.update(mcu_ms=2100)
+  s,_=decoder.decode(state,{'rows':self.rows(2000,5),'can':[],'nav':[[2095,self.pvt(1000,350000000)]]},Configuration())
+  self.assertTrue(all(x['gnss_itow_ms'] is None for x in s))
+  state['mcu_ms']=2200;s,_=decoder.decode(state,{'rows':self.rows(2100,5),'can':[],'nav':[]},Configuration())
+  self.assertTrue(all(x['gnss_itow_ms']==1000 for x in s))
+ def test_take_solutions_expire_after_one_second(self):
+  decoder=HardwareDecoder();state=self.state();state.update(mcu_ms=3500)
+  s,sensors=decoder.decode(state,{'rows':self.rows(2000,2)+self.rows(3100,2),'can':[],'nav':[[1990,self.pvt(1000,350000000)]]},Configuration())
+  self.assertEqual(s[0]['values']['Lat'],35);self.assertIsNone(s[2]['values']['Lat']);self.assertIsNone(s[2]['gnss_itow_ms'])
+  self.assertEqual(sensors['gnss'],'未受信')
+ def test_take_ignores_malformed_solution(self):
+  decoder=HardwareDecoder();state=self.state()
+  s,_=decoder.decode(state,{'rows':self.rows(2000,1),'can':[],'nav':[[1990,'00'*10]]},Configuration())
+  self.assertIsNone(s[0]['gnss_itow_ms'])
  def state(self):return {'mcu_ms':2000,'gnss_at':0,'nav':'00'*92,'imu_address':40,'sd_ready':1,'can_counts':[0,0]}
  def batch(self):
   raw=bytearray(46);struct.pack_into('<h',raw,4,981);struct.pack_into('<h',raw,24,16384)

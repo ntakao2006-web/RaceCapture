@@ -59,34 +59,25 @@ class HardwareDecoder:
         self.can_states={}
         self.last_ms=None
         self.last_can=[]
+        self.pvt=None        # the receiver solution in effect: {'at','gps','utc','itow','fix','hacc'}
 
-    def decode(self, status, batch, config):
-        if self.last_ms is not None and status['mcu_ms'] < self.last_ms:
-            self.can_values.clear();self.can_states.clear();self.distance=0;self.last_itow=None
-            self.seen_itow=None;self.gnss_hz=None;self.gnss_intervals.clear()
-            self.mount.restart()
-        self.last_ms=status['mcu_ms']
-        self.last_can=batch.get('can',[])
-        self.feed_can(self.last_can,config)
-        nav=bytes.fromhex(status['nav'])
-        valid_nav=len(nav)==92 and status['gnss_at'] and (status['mcu_ms']-status['gnss_at'])%2**32<1000
-        fix=valid_nav and nav[20]>=3 and bool(nav[21]&1)
-        gps={}
-        itow=struct.unpack_from('<I',nav)[0] if valid_nav else None
-        gnss_utc=None
-        if valid_nav:
-            if self.seen_itow is not None:
-                dt=(itow-self.seen_itow)%604800000
-                if dt and dt<=1000:
-                    # Status snapshots may skip a receiver solution. A single
-                    # 200 ms host gap must not relabel a 100 ms receiver as 5 Hz.
-                    self.gnss_intervals.append(dt)
-                    self.gnss_hz=1000/min(self.gnss_intervals)
-            self.seen_itow=itow
-            gps.update(GPSFix=nav[20],GPSSats=nav[23],GNSSHz=self.gnss_hz)
-            if nav[11]&3==3:
-                year=struct.unpack_from('<H',nav,4)[0]
-                gnss_utc=f'{year:04}-{nav[6]:02}-{nav[7]:02}T{nav[8]:02}:{nav[9]:02}:{nav[10]:02}Z'
+    def apply_pvt(self, nav, at):
+        """One UBX NAV-PVT payload (92 bytes) seen at MCU time `at`, in arrival order."""
+        itow=struct.unpack_from('<I',nav)[0]
+        if self.seen_itow is not None:
+            dt=(itow-self.seen_itow)%604800000
+            if dt and dt<=1000:
+                # The status-only path may skip a receiver solution. A single
+                # 200 ms host gap must not relabel a 100 ms receiver as 5 Hz.
+                self.gnss_intervals.append(dt)
+                self.gnss_hz=1000/min(self.gnss_intervals)
+        self.seen_itow=itow
+        gps={'GPSFix':nav[20],'GPSSats':nav[23],'GNSSHz':self.gnss_hz}
+        utc=None
+        if nav[11]&3==3:
+            year=struct.unpack_from('<H',nav,4)[0]
+            utc=f'{year:04}-{nav[6]:02}-{nav[7]:02}T{nav[8]:02}:{nav[9]:02}:{nav[10]:02}Z'
+        fix=nav[20]>=3 and bool(nav[21]&1)
         if fix:
             gps.update(Lon=struct.unpack_from('<i',nav,24)[0]*1e-7,Lat=struct.unpack_from('<i',nav,28)[0]*1e-7,Altitude=struct.unpack_from('<i',nav,36)[0]/1000,GPSSpeed=struct.unpack_from('<i',nav,60)[0]*.0036,Yaw=struct.unpack_from('<i',nav,64)[0]*1e-5)
             if self.last_itow is not None:
@@ -95,9 +86,40 @@ class HardwareDecoder:
             self.last_itow=itow
             gps['Distance']=self.distance
         else:self.last_itow=None
-        self.mount.on_pvt(nav if valid_nav else None)
+        self.mount.on_pvt(nav)
+        self.pvt={'at':at,'gps':gps,'utc':utc,'itow':itow,'fix':fix,'hacc':struct.unpack_from('<I',nav,40)[0]/1000 if fix else None}
+
+    def lose_pvt(self):
+        """No solution within 1 s: GNSS columns go empty and distance/forward learning stop accumulating."""
+        if self.pvt is not None or self.last_itow is not None:self.mount.on_pvt(None)
+        self.pvt=None;self.last_itow=None
+
+    def decode(self, status, batch, config):
+        if self.last_ms is not None and status['mcu_ms'] < self.last_ms:
+            self.can_values.clear();self.can_states.clear();self.distance=0;self.last_itow=None
+            self.seen_itow=None;self.gnss_hz=None;self.gnss_intervals.clear();self.pvt=None
+            self.mount.restart()
+        self.last_ms=status['mcu_ms']
+        self.last_can=batch.get('can',[])
+        self.feed_can(self.last_can,config)
+        navs=batch.get('nav')
+        if navs is None:
+            # Firmware before 2026-11-09 hands over only the latest solution, in the
+            # status snapshot (read at most every 0.1 s, so about 6 of 10 per second).
+            nav=bytes.fromhex(status['nav'])
+            if len(nav)==92 and status['gnss_at'] and (status['mcu_ms']-status['gnss_at'])%2**32<1000:self.apply_pvt(nav,status['gnss_at'])
+            else:self.lose_pvt()
+            queue=[]
+        else:
+            # Every solution since the last take, each with the MCU time it arrived:
+            # a row gets the newest solution that had arrived by its own time.
+            queue=[(at,raw) for at,raw in ((at,bytes.fromhex(h)) for at,h in navs) if len(raw)==92]
         samples=[]
         for seq,stamp,data in batch.get('rows',[]):
+            while queue and (stamp-queue[0][0])%2**32<2**31:self.apply_pvt(queue[0][1],queue[0][0]);queue.pop(0)
+            if navs is not None and self.pvt is not None and (stamp-self.pvt['at'])%2**32>=1000:self.lose_pvt()
+            pvt=self.pvt or {'gps':{},'utc':None,'itow':None,'fix':False,'hacc':None}
+            gps,gnss_utc,itow=pvt['gps'],pvt['utc'],pvt['itow']
             raw=bytes.fromhex(data)
             if len(raw) not in (0,46):raise ValueError('Invalid BNO055 snapshot')
             imu_ok=len(raw)==46
@@ -115,8 +137,12 @@ class HardwareDecoder:
                 if car:v.update(LongAccel=car[0],LatAccel=car[1],VertAccel=car[2])
             for name,value in decoded.items():
                 if name in v:v[name]=value
-            samples.append({'schema':1,'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':stamp,'values':v,'can_signals':decoded,'can_states':can_states,'gnss_utc':gnss_utc,'gnss_itow_ms':itow,'imu_raw':data,'imu_calibration':({'system':raw[45]>>6,'gyro':raw[45]>>4&3,'accel':raw[45]>>2&3,'mag':raw[45]&3} if imu_ok else None),'imu_temperature_C':(raw[44] if raw[44]<128 else raw[44]-256) if imu_ok else None,'quaternion':[q/16384 for q in x[12:16]] if imu_ok else None,'gnss_hacc_m':struct.unpack_from('<I',nav,40)[0]/1000 if fix else None,'imu_mount':self.mount.state()})
-        return samples,{'imu':'正常' if status['imu_address'] else '未検出','gnss':'測位中' if fix else '測位待ち' if valid_nav else '未受信','can':f"CAN1 {status['can_counts'][0]} フレーム（受信専用） / CAN2 センサーハブ {status['can_counts'][1]} フレーム",'sd':'未検出' if not status['sd_ready'] else '記録欠落あり' if status.get('sd_queue_dropped') else 'FAT32を認識できません' if status.get('sd_mounted') is False or status.get('sd_mounted')==0 else f"記録中 EL{status.get('sd_file',0):06}.BIN" if status.get('sd_logging') else '保存エラー' if status.get('sd_errors') else '認識済み' if status['sd_ready'] else '未検出','lte':'電源OFF / SIM・アンテナ未接続','camera':'未接続'}
+            samples.append({'schema':1,'source':'logger-v2-hardware','demo':False,'seq':seq,'mcu_ms':stamp,'values':v,'can_signals':decoded,'can_states':can_states,'gnss_utc':gnss_utc,'gnss_itow_ms':itow,'imu_raw':data,'imu_calibration':({'system':raw[45]>>6,'gyro':raw[45]>>4&3,'accel':raw[45]>>2&3,'mag':raw[45]&3} if imu_ok else None),'imu_temperature_C':(raw[44] if raw[44]<128 else raw[44]-256) if imu_ok else None,'quaternion':[q/16384 for q in x[12:16]] if imu_ok else None,'gnss_hacc_m':pvt['hacc'],'imu_mount':self.mount.state()})
+        # Solutions that arrived after the last row are in effect for the next take's rows.
+        for at,raw in queue:self.apply_pvt(raw,at)
+        if navs is not None and self.pvt is not None and (status['mcu_ms']-self.pvt['at'])%2**32>=1000:self.lose_pvt()
+        fix=self.pvt is not None and self.pvt['fix']
+        return samples,{'imu':'正常' if status['imu_address'] else '未検出','gnss':'測位中' if fix else '測位待ち' if self.pvt is not None else '未受信','can':f"CAN1 {status['can_counts'][0]} フレーム（受信専用） / CAN2 センサーハブ {status['can_counts'][1]} フレーム",'sd':'未検出' if not status['sd_ready'] else '記録欠落あり' if status.get('sd_queue_dropped') else 'FAT32を認識できません' if status.get('sd_mounted') is False or status.get('sd_mounted')==0 else f"記録中 EL{status.get('sd_file',0):06}.BIN" if status.get('sd_logging') else '保存エラー' if status.get('sd_errors') else '認識済み' if status['sd_ready'] else '未検出','lte':'電源OFF / SIM・アンテナ未接続','camera':'未接続'}
 
     def feed_can(self, frames, config):
         """Keep the last 1.5 s of each configured signal from [stamp,channel,id,extended,rtr,hex] frames."""

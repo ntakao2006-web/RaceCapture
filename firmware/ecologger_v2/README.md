@@ -25,6 +25,6 @@ LED: CAN=直近の受信、LTE=モデム電源ON（クラウド到達はWebで�
 
 ソースを置き換える前にUNO Q側のコピーを確保し、`python compare_sources.py <保存したecologger_v2ディレクトリ>` で改行コードを除いた差分を確認します。比較結果だけで正しい版を自動選択しません。
 
-Bridge RPC: `logger.status` / `logger.take` / `logger.command` / `logger.sdread`。コマンドはメイン処理で実行してcompleted番号で確認します。`LOG1/LOG0`、`C500000`等、停止中の`FILES`、`SD`、`R<sector>`、`H<offset>:<hex>`、`W<sector>`。`R<sector>`は読出し位置を設定して`sector ready`を返します。`logger.sdread`は512バイトを16進形式で返し、次のセクタへ進みます。各読出しで停止状態・パーティション境界を検査します。書き込みAPIは記録中に拒否します。外部へRPCを公開しません。
+Bridge RPC: `logger.status` / `logger.take` / `logger.command` / `logger.sdread`。`logger.take`は前回からのIMUの行（`rows`）・CANの受信（`can`）・GNSSのNAV-PVT（`nav`、`[受け取った時刻ms,"92バイトの16進"]`、2026-11-09から）を返して空にします。navは10Hzの解を1つ残らず渡すためのもので（`logger.status`の`nav`は最新の1つだけ）、2000文字（約10個・約1秒分）を超えた分は捨てます。3つとも`queueRow`で同じ形に足します。コマンドはメイン処理で実行してcompleted番号で確認します。`LOG1/LOG0`、`C500000`等、停止中の`FILES`、`SD`、`R<sector>`、`H<offset>:<hex>`、`W<sector>`。`R<sector>`は読出し位置を設定して`sector ready`を返します。`logger.sdread`は512バイトを16進形式で返し、次のセクタへ進みます。各読出しで停止状態・パーティション境界を検査します。書き込みAPIは記録中に拒否します。外部へRPCを公開しません。
 
 SDファイルは `EcoCapture-Web/sd_decode.py` でCRC・ブロック連番を確認しCSVへ変換できます。保存時刻はMCU経過時刻で、GNSSの元メッセージも保持します。
