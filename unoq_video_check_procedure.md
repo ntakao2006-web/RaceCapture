@@ -655,7 +655,7 @@ PCで見た目を確かめてから本体へ送る。**SUGO（11/8）は今の�
 - 色（名前・`#RRGGBB`・`#RRGGBBAA`・0〜1の数）。しきい値で色を変える：`warn_at`・`alarm_at`（以上）、`warn_below`・`alarm_below`（未満）
 - 出す条件：いつも／数値が来ていないときだけ／出さない。後ろに敷く四角（`box`）
 - 値は**EcoCaptureの`/api/telemetry`にある値ならどれでも**（`values.Throttle`・`values.BatteryVolt`・`lap.RaceTime`等）。`|`でつなぐと、無いときに次を使う
-- できないこと：日本語の文字（文字の一覧表が英数字と記号だけ）、計器は64個・値は32種類まで
+- できないこと：日本語の文字（文字の一覧表が英数字と記号だけ。2026-11-09に「°」だけ足した、5-27）、計器は64個・値は32種類まで
 
 **本体での動き**（`overlay_rec.c`）：
 - `/home/arduino/ecologger-video/hud.ini`（自分の配置）があればそれ、無いか読めなければ`/opt/ecologger-video/hud_default.ini`（元の配置）で描く
@@ -1326,6 +1326,35 @@ python tools/lap_video/incidents.py build tools/lap_video/incidents_sugo_2026110
 - 外したもの：振動だけ（縁石）、ピットレーン、11/7練習2の1周目14:07:06（アウトラップで抜かれた）、決勝36周目11:46:03（ストレートでピットウォール寄りを走っただけ）、決勝32周目11:36:33（縁石の上）
 - 11/8予選は、横滑り角12°以上もスピンも無かった
 - 試験は[test_lap_video.py](tools/lap_video/test_lap_video.py)の`Incidents`（定常旋回で横滑り角が1°未満・0.3秒だけ余計に回ると7°超、近い候補を1つにまとめる）
+
+### 5-27. 水温・油温の単位を「°C」にした（2026-11-09、ユーザー指摘）
+
+ユーザー指摘「映像で気づいた点がある。温度が℃になっていない」。SUGO決勝のベストラップの映像で、右下の水温・油温が`87C`・`108C`と出ていた。
+値は正しく℃（水温は`values.WaterTemp`、油温は`can_signals.OilTemp`）で、**単位の字が無かった**だけ。焼き込みの文字の一覧表（`hud_font_64.pgm`）が英数字と記号（ASCII 32〜126）だけで、`hud.ini`に`unit = C`と書くしかなかった。
+
+**変えたこと**：
+- 文字の一覧表の空いていた最後のマス（127番目）に「°」を描いた（[make_font_atlas.py](tools/unoq_overlay_enc/make_font_atlas.py)）。16×6のマスに収まるので、一覧表の大きさ（624×456）とほかの文字は1画素も変わらない（作り直して比べた。変わったのは最後のマスの309画素だけ）。
+  字体はmatplotlibに入っているDejaVu Sans Mono Boldで、本体の`/usr/share/fonts`の字体から作った前の一覧表と1バイトも違わないことを先に確かめた
+- `hud.ini`の`text`・`prefix`・`unit`に「°」と書けるようにした。「℃」と書けば「°C」になる（本体の[hud_layout.h](tools/unoq_overlay_enc/hud_layout.h)の`hud_str`とPCの[hud_layout.py](tools/video_hud/hud_layout.py)の`_str`。どちらも127番目の1文字に直す）。ほかの記号（`µ`など）は今まで通り断る
+- [hud.ini](tools/video_hud/hud.ini)と[hud_default.ini](tools/unoq_overlay_enc/hud_default.ini)の水温・油温を`unit = °C`にした。1文字増えて、3桁（100℃以上の警告のとき）だと「WATER」の字に重なったので、
+  `hud.ini`はラベルを x 1365→1352、数字の右端を 1610→1625、`hud_default.ini`は数字の右端を 1000→1030 にずらした
+- 録画プログラムの版を3にした（`hud_status.txt`へ`version=3`と書く。[overlay_rec.c](tools/unoq_overlay_enc/overlay_rec.c)）。前の版は「°」を読めずに設定ごと断るので、
+  [hud_apply.py](tools/video_hud/hud_apply.py)（`Apply-HUD.cmd`）は本体の録画プログラムに`version=3`の文字が無ければ「°」を使う設定を送らない（「°C を C に戻してください」と出す）
+
+**試験**（PCで30件通過）：
+- 元の配置の頂点（`default_*.golden`）は本体で作ったもの。今回は本体がつながっていなかったので、**WSLのgccで`hud_dump.c`を組み立て、変更前→変更後で変わった行だけを本体の golden へ当てた**（`git merge-file`、食い違い0）。
+  x86とARMでは円弧の座標の最後の桁（0.0001）が違うため、PCの出力をそのまま golden にはしない。変わった行は文字の四角だけ（掛け算と足し算だけなので本体と同じ数字になる）
+- 「°」「℃」の配置の golden（`testdata/degree.ini`・`degree.golden`）はWSLの`hud_dump.c`で作った（文字と四角だけ）。誤りの例に`bad/31_other_symbol.ini`（`unit = µs`は6行目で断る。本体のCでも同じ行）
+- `°C`と`℃`が同じ2文字になること、「°」のマスが上半分だけの小さな丸であること、版3の見分けと送らない場合
+
+**本体へ入れる手順**（未。録画プログラム・文字の一覧表・設定を同時に入れる）：
+1. 戻す用に、今の`/opt/ecologger-video/overlay_rec`・`hud_font_64.pgm`・`hud_default.ini`を`*.pre-deg-20261109`として写し、自分の配置`~/ecologger-video/hud.ini`も同じ名前で写す
+2. 本体の`~/video_test/install/`へ、`tools/unoq_overlay_enc/`の`overlay_rec.c`・`hud_layout.h`・`lap_ref.h`・`tele_smooth.h`・`auto_exposure.h`・`audio_cap.h`・`ts_mux.h`・`video_store.h`・`hud_default.ini`・`hud_font_64.pgm`・`run-video.sh`・`ecologger-video.service`・`install-video.sh`を置く（`install-video.sh`が読むものと合わせる）
+3. rootで`install-video.sh`を動かす（5-13と同じ）
+4. `Apply-HUD.cmd --status`で「針のメーター・コース図・「°」に対応した版」と出ることを確かめ、`Apply-HUD.cmd`で新しい`hud.ini`を送る
+5. 戻すとき：1で写したものを元の名前へ戻して`systemctl restart ecologger-video.service`
+
+**もう録った映像は直らない**：焼き込みは録るときに本体が描いていて、焼き込む前の絵は残していないため、11/7・11/8の映像（1周の切り出し・失敗集も）は`87C`のまま。
 
 ---
 

@@ -224,13 +224,23 @@ static int hud_color(const char *s, const struct hud_color *uc, int nuc, float c
     return 1;
 }
 
-// 文字（"…" で囲んでもよい）。一覧表にある文字（英数字と記号）だけ
+// 文字（"…" で囲んでもよい）。一覧表にある文字（英数字と記号）と「°」「℃」だけ。
+// 「°」は一覧表の127番目（HUD_DEG）に置いてあり、UTF-8の「°」はその1バイトに、「℃」は「°C」の2バイトに直す
+#define HUD_DEG 127
 static int hud_str(const char *s, char out[HUD_STR]) {
-    size_t n = strlen(s);
+    size_t n = strlen(s), m = 0;
     if (n >= 2 && s[0] == '"' && s[n - 1] == '"') { s++; n -= 2; }
-    if (n >= HUD_STR) return 0;
-    for (size_t i = 0; i < n; i++) if ((unsigned char)s[i] < 32 || (unsigned char)s[i] > 126) return 0;
-    memcpy(out, s, n); out[n] = 0;
+    for (size_t i = 0; i < n; i++) {
+        const unsigned char *p = (const unsigned char *)s + i;
+        char c[2]; int k = 1;
+        if (i + 1 < n && p[0] == 0xC2 && p[1] == 0xB0) { c[0] = (char)HUD_DEG; i += 1; }
+        else if (i + 2 < n && p[0] == 0xE2 && p[1] == 0x84 && p[2] == 0x83) { c[0] = (char)HUD_DEG; c[1] = 'C'; k = 2; i += 2; }
+        else if (p[0] < 32 || p[0] > 126) return 0;
+        else c[0] = (char)p[0];
+        if (m + k >= HUD_STR) return 0;
+        memcpy(out + m, c, k); m += k;
+    }
+    out[m] = 0;
     return 1;
 }
 
@@ -363,7 +373,7 @@ static int hud_item(struct hud *h, const struct hud_sec *s, const struct hud_col
             else return hud_err(err, errn, kv->line, "direction は right left up down のどれか（「%s」）", v);
         } else if (!strcmp(k, "text") || !strcmp(k, "prefix") || !strcmp(k, "unit")) {
             char *dst = k[0] == 't' ? it->text : k[0] == 'p' ? it->prefix : it->unit;
-            if (!hud_str(v, dst)) return hud_err(err, errn, kv->line, "%s は英数字と記号だけ・%d文字まで（日本語は出せない）（「%s」）", k, HUD_STR - 1, v);
+            if (!hud_str(v, dst)) return hud_err(err, errn, kv->line, "%s は英数字と記号と°（℃）だけ・%d文字まで（日本語は出せない）（「%s」）", k, HUD_STR - 1, v);
         } else if (!strcmp(k, "value") || !strcmp(k, "x_value") || !strcmp(k, "y_value")) {
             if (!hud_refspec(v)) return hud_err(err, errn, kv->line, "%s の値の名前「%s」の形が違う（例：values.RPM、values.Speed|values.GPSSpeed）", k, v);
             if (k[0] == 'y') ref2 = v; else ref1 = v;

@@ -86,9 +86,10 @@ class ApplyTest(unittest.TestCase):
         self.assertEqual(fake.files, {})
 
     def test_new_gauges_need_new_recorder(self):
-        """針のメーター等を使う設定は、対応していない版の本体へ送らない。使わない設定は送る"""
-        old = (HERE.parent / 'unoq_overlay_enc' / 'hud_default.ini').read_bytes()
-        self.assertEqual(hud_layout.needed_version(hud_layout.parse(GOOD.decode('utf-8'))), 2)
+        """針のメーター等を使う設定は、対応していない版の本体へ送らない。使わない設定は送る（「°」は C に戻して比べる）"""
+        good = GOOD.replace('°C'.encode(), b'C')
+        old = (HERE.parent / 'unoq_overlay_enc' / 'hud_default.ini').read_bytes().replace('°C'.encode(), b'C')
+        self.assertEqual(hud_layout.needed_version(hud_layout.parse(good.decode('utf-8'))), 2)
         self.assertEqual(hud_layout.needed_version(hud_layout.parse(old.decode('utf-8'))), 1)
         fake = FakeUnoQ(version=1)
         fake.recorder_tick()
@@ -96,6 +97,27 @@ class ApplyTest(unittest.TestCase):
         self.assertEqual(fake.files, {})
         self.assertIn('対応していない版', self.log[-1])
         self.assertEqual(hud_apply.apply(fake, old, self.log.append, sleeper(fake), need=1), 0)
+
+    def test_degree_needs_v3_recorder(self):
+        """「°」（℃）を使う設定は、2026-11-09より前の録画プログラムへ送らない（前の版は読めずに断る）"""
+        self.assertEqual(hud_layout.needed_version(hud_layout.parse(GOOD.decode('utf-8'))), 3)
+        fake = FakeUnoQ(version=2)
+        fake.recorder_tick()
+        self.assertEqual(hud_apply.apply(fake, GOOD, self.log.append, sleeper(fake), need=3), 2)
+        self.assertEqual(fake.files, {})
+        self.assertIn('°C を C に戻して', self.log[-1])
+        fake = FakeUnoQ(version=3)
+        fake.recorder_tick()
+        self.assertEqual(hud_apply.apply(fake, GOOD, self.log.append, sleeper(fake), need=3), 0)
+
+    def test_version_from_recorder(self):
+        """録画プログラムの中の文字で版を見分ける：version=3 → 3、lapref 1 だけ → 2、どちらも無し → 1"""
+        for v in (3, 2, 1):
+            out = f'READY=1\nVERSION={v}\nACTIVE=active\n'
+            self.assertEqual(hud_apply.device_state(lambda c, d=None, o=out: o)[3], v)
+        cmd = []
+        hud_apply.device_state(lambda c, d=None: cmd.append(c) or '')
+        self.assertLess(cmd[0].index(hud_apply.V3_MARK), cmd[0].index(hud_apply.V2_MARK))
 
     def test_recorder_stopped(self):
         fake = FakeUnoQ(active=False)

@@ -420,8 +420,9 @@ static void hud_write_status(const char *error) {
     FILE *f = fopen(tmp, "w"); if (!f) return;
     time_t t = time(NULL); struct tm lt; localtime_r(&t, &lt);
     char at[40]; strftime(at, sizeof at, "%Y-%m-%dT%H:%M:%S%z", &lt);
-    // version：2 ＝ 針のメーター・弧・コース図・calc.〜 に対応（2026-11-04）。無ければ1（hud_apply.py が見る）
-    fprintf(f, "version=2\nat=%s\nloaded=%s\nino=%llu\nsize=%lld\nitems=%d\nbad=%s\nbad_ino=%llu\nbad_size=%lld\nerror=%s\n", at, hud_loaded,
+    // version：3 ＝ 文字の「°」（℃）に対応（2026-11-09）、2 ＝ 針のメーター・弧・コース図・calc.〜 に対応（2026-11-04）。
+    // 無ければ1。hud_apply.py は録画プログラムの中の「version=3」の文字で版を見分ける
+    fprintf(f, "version=3\nat=%s\nloaded=%s\nino=%llu\nsize=%lld\nitems=%d\nbad=%s\nbad_ino=%llu\nbad_size=%lld\nerror=%s\n", at, hud_loaded,
             (unsigned long long)hud_st.st_ino, (long long)hud_st.st_size, hud_cur ? hud_cur->n : 0, hud_bad,
             hud_bad[0] ? (unsigned long long)hud_bad_st.st_ino : 0ULL, hud_bad[0] ? (long long)hud_bad_st.st_size : 0LL, error ? error : "");
     fclose(f); rename(tmp, hud_status_path);

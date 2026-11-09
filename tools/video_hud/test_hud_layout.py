@@ -79,6 +79,10 @@ class GoldenTest(unittest.TestCase):
             with self.subTest(s):
                 self.check(DATA / 'features2.ini', f'features2_{s}.state', f'features2_{s}.golden')
 
+    def test_degree_sign(self):
+        """「°」「℃」（2026-11-09）。golden は hud_dump.c で作った（文字と四角だけなので本体とPCで同じ数字になる）"""
+        self.check(DATA / 'degree.ini', 'degree.state', 'degree.golden')
+
 
 class ParseTest(unittest.TestCase):
     def test_bad_configs_report_line(self):
@@ -95,8 +99,10 @@ class ParseTest(unittest.TestCase):
     def test_user_hud_ini_is_racechrono_layout(self):
         """hud.ini は2026-11-04のRaceChronoのような配置（新しい録画プログラムが要る）。元の配置は hud_default.ini のまま"""
         a, b = hud_layout.load(HERE / 'hud.ini'), hud_layout.load(hud_layout.DEFAULT_INI)
-        self.assertEqual(hud_layout.needed_version(a), 2)
-        self.assertEqual(hud_layout.needed_version(b), 1)
+        self.assertEqual(hud_layout.needed_version(a), 3)  # 2026-11-09から水温・油温を °C で描く
+        self.assertEqual(hud_layout.needed_version(b), 3)
+        self.assertEqual(hud_layout.needed_version(hud_layout.parse(
+            hud_layout.DEFAULT_INI.read_text(encoding='utf-8').replace('°C', 'C'))), 1)
         self.assertEqual({it.type for it in a.items} >= {'dial', 'arc', 'map', 'gball', 'bar', 'value'}, True)
         self.assertIn('calc.Delta', a.refs)
         self.assertEqual(hud_layout.estimate(a, FONT)[2], 'ok')
@@ -105,6 +111,20 @@ class ParseTest(unittest.TestCase):
         text = '﻿[a]\r\ntype = text\r\nx = 1\r\ny = 2\r\ntext = "A B"\r\n'
         hud = hud_layout.parse(text)
         self.assertEqual(hud.items[0].text, 'A B')
+
+    def test_degree_sign_is_glyph_127(self):
+        """°C と ℃ は同じ2文字（127番目の「°」と C）。「°」は文字の一覧表の最後のマスに描いてある"""
+        a = hud_layout.parse('[a]\ntype = text\nx = 1\ny = 2\ntext = 88°C\n').items[0].text
+        b = hud_layout.parse('[a]\ntype = text\nx = 1\ny = 2\ntext = 88℃\n').items[0].text
+        self.assertEqual(a, '88\x7fC')
+        self.assertEqual(a, b)
+        self.assertEqual(FONT.first + FONT.count - 1, 127)
+        i = 127 - FONT.first
+        cx, cy = (i % FONT.cols) * FONT.cell_w, (i // FONT.cols) * FONT.cell_h
+        cell = [FONT.pixels[(cy + y) * FONT.width + cx + x] for y in range(FONT.cell_h) for x in range(FONT.cell_w)]
+        lit = [k for k, p in enumerate(cell) if p > 128]
+        self.assertGreater(len(lit), 50)
+        self.assertLess(max(k // FONT.cell_w for k in lit), FONT.cell_h // 2)  # 上半分だけの小さな丸
 
     def test_preview_values_must_be_numbers(self):
         with self.assertRaises(hud_layout.HudError) as cm:

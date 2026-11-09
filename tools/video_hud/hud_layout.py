@@ -183,10 +183,17 @@ def _color(s, user):
     return tuple(f32(v) for v in d)
 
 
+DEG = chr(127)  # 「°」は文字の一覧表の127番目（hud_layout.h の HUD_DEG と同じ）
+
+
 def _str(s):
+    """hud_str と同じ：英数字と記号、「°」は127番目の1文字に、「℃」は「°C」の2文字に直す"""
     if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
         s = s[1:-1]
-    if len(s) >= HUD_STR or any(not (32 <= ord(c) <= 126) for c in s):
+    if any(not (32 <= ord(c) <= 126) and c not in '°℃' for c in s):
+        return None
+    s = s.replace('℃', DEG + 'C').replace('°', DEG)
+    if len(s) >= HUD_STR:
         return None
     return s
 
@@ -380,7 +387,7 @@ def _item(hud, sec, user):
         elif k in ('text', 'prefix', 'unit'):
             s = _str(v)
             if s is None:
-                raise HudError(line, f'{k} は英数字と記号だけ・{HUD_STR - 1}文字まで（日本語は出せない）（「{v}」）')
+                raise HudError(line, f'{k} は英数字と記号と°（℃）だけ・{HUD_STR - 1}文字まで（日本語は出せない）（「{v}」）')
             setattr(it, k, s)
         elif k in ('value', 'x_value', 'y_value'):
             if not _refspec(v):
@@ -492,8 +499,11 @@ def load(path):
 
 
 def needed_version(hud):
-    """この設定を描ける本体の録画プログラムの版。2 ＝ 針のメーター・弧・コース図・origin・signed・rings・center・calc.〜 を
-    使う（2026-11-04以降の版）、1 ＝ それより前の版でも描ける"""
+    """この設定を描ける本体の録画プログラムの版。3 ＝ 文字に「°」（℃）を使う（2026-11-09以降の版）、
+    2 ＝ 針のメーター・弧・コース図・origin・signed・rings・center・calc.〜 を使う（2026-11-04以降の版）、
+    1 ＝ それより前の版でも描ける"""
+    if any(DEG in it.text + it.prefix + it.unit for it in hud.items):
+        return 3
     for it in hud.items:
         if (it.type in ('dial', 'arc', 'map') or not math.isnan(it.origin) or it.fmt == 'signed' or it.rings != 1
                 or it.align == 'center'):

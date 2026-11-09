@@ -33,6 +33,7 @@ STATUS = f'{REMOTE_DIR}/hud_status.txt'
 DEFAULT_ON_DEVICE = '/opt/ecologger-video/hud_default.ini'
 RECORDER = '/opt/ecologger-video/overlay_rec'
 V2_MARK = 'lapref 1'  # 2026-11-04以降の録画プログラム（lap_ref.h のファイルの書式）にある文字
+V3_MARK = 'version=3'  # 2026-11-09以降の録画プログラム（文字の「°」に対応）が hud_status.txt へ書く文字
 WAIT_S = 8  # 録画は約1秒ごとに見る。カメラの枚数が落ちていると少し遅れる
 
 
@@ -60,6 +61,10 @@ def runner(use_adb, host):
     return run
 
 
+VERSION_NAMES = {1: '針のメーター・コース図に未対応の版', 2: '針のメーター・コース図に対応した版（「°」は未対応）',
+                 3: '針のメーター・コース図・「°」に対応した版'}
+
+
 def parse_status(text):
     status = {}
     for line in text.splitlines():
@@ -72,15 +77,17 @@ def parse_status(text):
 def device_state(run):
     """(新しい録画が入っているか, 録画プログラムが録っているか, hud_status.txt の中身, 録画プログラムの版)。
     サービスが動いていても、カメラが無い間は run-video.sh が待っているだけで、録画プログラム（overlay_rec）は動いていない。
-    版：2 ＝ 針のメーター・弧・コース図・calc.〜 に対応（2026-11-04以降）、1 ＝ それより前"""
+    版：3 ＝ 文字の「°」（℃）にも対応（2026-11-09以降）、2 ＝ 針のメーター・弧・コース図・calc.〜 に対応（2026-11-04以降）、
+    1 ＝ それより前"""
     out = run(f'if [ -f {DEFAULT_ON_DEVICE} ]; then echo READY=1; else echo READY=0; fi; '
-              f'if grep -q "{V2_MARK}" {RECORDER} 2>/dev/null; then echo VERSION=2; else echo VERSION=1; fi; '
+              f'if grep -q "{V3_MARK}" {RECORDER} 2>/dev/null; then echo VERSION=3; '
+              f'elif grep -q "{V2_MARK}" {RECORDER} 2>/dev/null; then echo VERSION=2; else echo VERSION=1; fi; '
               f'if pgrep -x overlay_rec >/dev/null; then echo ACTIVE=active; else echo ACTIVE=inactive; fi; '
               f'cat {STATUS} 2>/dev/null; true')
     lines = out.splitlines()
     ready = 'READY=1' in lines
     active = any(ln == 'ACTIVE=active' for ln in lines)
-    version = 2 if 'VERSION=2' in lines else 1
+    version = 3 if 'VERSION=3' in lines else 2 if 'VERSION=2' in lines else 1
     status = parse_status('\n'.join(ln for ln in lines if not ln.startswith(('READY=', 'ACTIVE=', 'VERSION='))))
     return ready, active, status, version
 
@@ -129,8 +136,12 @@ def apply(run, data, log=print, sleep=time.sleep, need=1):
             '新しい版を入れる必要があります（手順書5-14の「本体へ入れる」）')
         return 2
     if version < need:
-        log('★この設定は針のメーター・弧・コース図・ベストとの差（calc.〜）などを使っていますが、本体の録画プログラムが'
-            'まだ対応していない版です（何も送っていません）。新しい版を入れる必要があります（手順書5-16の「本体へ入れる」）')
+        if need >= 3 and version >= 2:
+            log('★この設定は文字に「°」（℃）を使っていますが、本体の録画プログラムがまだ対応していない版です（何も送っていません）。'
+                '新しい版を入れる必要があります（手順書5-14の「本体へ入れる」）。今のままで送るなら °C を C に戻してください')
+        else:
+            log('★この設定は針のメーター・弧・コース図・ベストとの差（calc.〜）などを使っていますが、本体の録画プログラムが'
+                'まだ対応していない版です（何も送っていません）。新しい版を入れる必要があります（手順書5-16の「本体へ入れる」）')
         return 2
     ino, size = push(run, data)
     log(f'本体へ送りました：{REMOTE_INI}（{size}バイト）')
@@ -209,7 +220,7 @@ def main(argv=None):
         if args.status:
             ready, active, status, version = device_state(run)
             print(f'録画：{"録っている" if active else "止まっている（カメラ待ち等）"}'
-                  f'（録画プログラムは{"針のメーター・コース図に対応した版" if version >= 2 else "針のメーター・コース図に未対応の版"}）')
+                  f'（録画プログラムは{VERSION_NAMES[min(version, 3)]}）')
             if not ready:
                 print('本体の録画プログラムは、まだ計器の設定ファイルに対応していない版です（元の配置で描いている）')
             else:  # 止まっているときの hud_status.txt は、最後に録画したときのもの

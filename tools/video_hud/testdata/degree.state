@@ -1,0 +1,3 @@
+values.WaterTemp = 87
+can_signals.OilTemp = 112
+values.Yaw = 270
