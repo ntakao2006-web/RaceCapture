@@ -48,6 +48,9 @@ svg text { font-family: var(--font-body); dominant-baseline: central; }
 .mk-p path { fill: none; stroke: var(--pw); stroke-width: 1.5; }
 .box-ln rect { fill: none; stroke: var(--pcb); stroke-width: 1; }
 .b-off rect { fill: var(--surface); stroke: var(--car); stroke-width: 1; stroke-dasharray: 5 4; }
+.can td:not(:first-child) { width: 25%; }
+.can b { font-weight: 700; font-size: 16px; margin-right: 4px; }
+.ok { color: var(--pcb); } .mid { color: var(--pw); } .ng { color: var(--muted); }
 .ln-d { fill: none; stroke: var(--muted); stroke-width: 1.3; stroke-dasharray: 5 4; }
 ul { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 72ch; }
 .tbl { overflow-x: auto; }
@@ -201,6 +204,80 @@ footer { font-size: 13px; color: var(--muted); }
     <li>LinuxとLTEモジュールは直接はつながっていません。Linuxがまとめた値をSTM32へ渡し、STM32がシールドのUART（2Mbps）でSIM7070Gへ送ります。</li>
     <li>回線はSORACOMのSIM（planX3）で、その場で一番よい携帯会社の基地局につながります。SUGOではドコモのLTEにつながっていました。</li>
     <li>自宅のサーバーの入口は1つで、ロガーの受け口・Grafana・地図をまとめて出しています（アドレスはここには書きません）。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>外から本体へつなぐ3つの道</h2>
+  <p>PCやスマホから本体へは、USBのadb・テザリング・LTEの3つの道でつなぎます。いちばん大きな違いは、<b>USBとテザリングはLinuxの中まで入れるので何でもできる</b>のに対して、<b>LTEは値を受け取るのと、決まった5つの命令を送ることしかできない</b>ところです。そのかわりLTEだけは走っている最中もつながります。</p>
+  <div class="fig">
+<svg viewBox="0 0 960 360" role="img"><title>外から本体へつなぐ3つの道</title><desc>①USBのadbはPCと本体をUSB-Cケーブル1本で直結し、約37MB/sでLinuxのすべてに入れる。ドックは外す。②テザリングはPCやスマホと本体がPixelのWi-Fiに入り、約1.4MB/sのsshでLinuxのすべてに入れる。ドックはつないだまま。③LTEはピットのPCやスマホから自宅のサーバーとLTEを通り、EcoCaptureに値を受ける・決まった命令を送るだけ。走行中もつながる。</desc>
+<defs>
+<marker id="em" class="mk-m" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<g class="b-logger"><rect x="680" y="24" width="260" height="324" rx="12"/></g>
+<text class="th" x="696" y="40">ロガー本体（UNO Q）</text>
+
+<text class="th" x="20" y="40">① USBのadb（直結）</text>
+<g class="b-car"><rect x="20" y="56" width="180" height="48" rx="6"/></g>
+<text class="th" x="110" y="72" text-anchor="middle">PC</text><text class="ts" x="110" y="90" text-anchor="middle">車のそば・家</text>
+<line class="ln" x1="202" y1="80" x2="694" y2="80" marker-start="url(#em)" marker-end="url(#em)"/>
+<text class="ts" x="440" y="66" text-anchor="middle">USB-Cケーブル1本（約37MB/s・ネット不要）</text>
+<text class="ts" x="440" y="96" text-anchor="middle">ドックを外し、本体のUSB-CをPCへ（つないでから電源ON）</text>
+<g class="b-chip"><rect x="696" y="56" width="228" height="48" rx="6"/></g>
+<text class="th" x="810" y="72" text-anchor="middle">Linuxのすべて</text><text class="ts" x="810" y="90" text-anchor="middle">ファイル・設定・更新</text>
+
+<text class="th" x="20" y="150">② テザリング（Wi-Fi）</text>
+<g class="b-car"><rect x="20" y="166" width="180" height="48" rx="6"/></g>
+<text class="th" x="110" y="182" text-anchor="middle">PC・スマホ</text><text class="ts" x="110" y="200" text-anchor="middle">ピット・パドック</text>
+<g class="b-car"><rect x="345" y="166" width="190" height="48" rx="6"/></g>
+<text class="th" x="440" y="182" text-anchor="middle">Pixelのテザリング</text><text class="ts" x="440" y="200" text-anchor="middle">Wi-Fi（約1.4MB/s）</text>
+<line class="ln" x1="202" y1="190" x2="343" y2="190" marker-start="url(#em)" marker-end="url(#em)"/>
+<line class="ln" x1="537" y1="190" x2="694" y2="190" marker-start="url(#em)" marker-end="url(#em)"/>
+<text class="ts" x="440" y="230" text-anchor="middle">電波の届く所だけ・ドックはつないだまま・ネット不要</text>
+<g class="b-chip"><rect x="696" y="166" width="228" height="48" rx="6"/></g>
+<text class="th" x="810" y="182" text-anchor="middle">Linuxのすべて</text><text class="ts" x="810" y="200" text-anchor="middle">ssh：ファイル・設定・更新</text>
+
+<text class="th" x="20" y="260">③ LTE（自宅のサーバー経由）</text>
+<g class="b-car"><rect x="20" y="276" width="180" height="48" rx="6"/></g>
+<text class="th" x="110" y="292" text-anchor="middle">PC・スマホ</text><text class="ts" x="110" y="310" text-anchor="middle">ピット・どこからでも</text>
+<g class="b-disp"><rect x="250" y="276" width="170" height="48" rx="6"/></g>
+<text class="th" x="335" y="292" text-anchor="middle">自宅のサーバー</text><text class="ts" x="335" y="310" text-anchor="middle">5B（中継）</text>
+<g class="b-car"><rect x="460" y="276" width="170" height="48" rx="6"/></g>
+<text class="th" x="545" y="292" text-anchor="middle">LTE</text><text class="ts" x="545" y="310" text-anchor="middle">SORACOM・SIM7070G</text>
+<line class="ln" x1="202" y1="300" x2="248" y2="300" marker-start="url(#em)" marker-end="url(#em)"/>
+<line class="ln" x1="422" y1="300" x2="458" y2="300" marker-start="url(#em)" marker-end="url(#em)"/>
+<line class="ln" x1="632" y1="300" x2="694" y2="300" marker-start="url(#em)" marker-end="url(#em)"/>
+<text class="ts" x="440" y="340" text-anchor="middle">走行中もつながる・テレメトリ用の細い道</text>
+<g class="b-chip"><rect x="696" y="276" width="228" height="48" rx="6"/></g>
+<text class="th" x="810" y="292" text-anchor="middle">EcoCaptureだけ</text><text class="ts" x="810" y="310" text-anchor="middle">値を受ける・決まった命令5つ</text>
+</svg>
+  </div>
+  <div class="tbl">
+  <table class="can">
+    <thead><tr><th>したいこと</th><th>① USBのadb</th><th>② テザリング</th><th>③ LTE</th></tr></thead>
+    <tbody>
+      <tr><td>走っている最中につながる</td><td><b class="ng">×</b> 車を止めてケーブルをつなぐ</td><td><b class="mid">△</b> 電波の届く間だけ</td><td><b class="ok">○</b> どこでも</td></tr>
+      <tr><td>画面・録画を動かしたまま</td><td><b class="ng">×</b> ドックを外すので止まる。戻すには電源を入れ直す</td><td><b class="ok">○</b></td><td><b class="ok">○</b></td></tr>
+      <tr><td>ネットの無い所で使う</td><td><b class="ok">○</b></td><td><b class="ok">○</b> テザリングの電波だけでよい</td><td><b class="ng">×</b> 回線と自宅のサーバーが要る</td></tr>
+      <tr><td>走行中の値を見る</td><td><b class="ok">○</b> 設定・ログの画面</td><td><b class="ok">○</b> 予備の車載画面・コースウォーク画面</td><td><b class="ok">○</b> Grafana・地図・周回表</td></tr>
+      <tr><td>本体の状態を見る（記録・測位・SD・録画）</td><td><b class="ok">○</b> 操作メニュー</td><td><b class="ok">○</b> 操作メニュー</td><td><b class="mid">△</b> 「状態」の命令で要点だけ</td></tr>
+      <tr><td>ラップのリセット・周回数の直し・ラップや記録の開始</td><td><b class="ok">○</b></td><td><b class="ok">○</b></td><td><b class="ok">○</b> 署名付きの命令で</td></tr>
+      <tr><td>コースのラインを登録する</td><td><b class="mid">△</b> 車をラインに置けば</td><td><b class="ok">○</b> スマホのコースウォーク画面</td><td><b class="ng">×</b></td></tr>
+      <tr><td>走行記録（CSV）の回収</td><td><b class="ok">○</b></td><td><b class="ok">○</b> 小さいので間に合う</td><td><b class="ng">×</b></td></tr>
+      <tr><td>走行映像の回収（10分で約770MB）</td><td><b class="ok">○</b> 10分ぶん約20秒</td><td><b class="mid">△</b> 10分ぶん約9分。短い所だけ</td><td><b class="ng">×</b></td></tr>
+      <tr><td>焼き込みの設定（HUD・レンズ・露出）を送る</td><td><b class="ok">○</b></td><td><b class="ok">○</b></td><td><b class="ng">×</b></td></tr>
+      <tr><td>車載画面のDASH⇔RaceCaptureの切り替え</td><td><b class="ok">○</b></td><td><b class="ok">○</b></td><td><b class="ng">×</b></td></tr>
+      <tr><td>設定の変更（CANの信号・LTE・Wi-Fi）</td><td><b class="ok">○</b> 設定・ログの画面</td><td><b class="mid">△</b> 画面はUSB用。sshで手で</td><td><b class="ng">×</b></td></tr>
+      <tr><td>ソフトの更新・STM32の書き込み</td><td><b class="ok">○</b> 更新の道具がある</td><td><b class="mid">△</b> 同じ手順をsshで手で</td><td><b class="ng">×</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li><b>走っている間</b>は③LTEだけ。ピットで値を見て、困ったときは周回数の直しや記録の開始を命令で送ります。LTEの命令は「状態・ラップのリセット・周回数・ラップの開始・記録の開始」の5つだけで、設定を変えたりファイルを取ったりはできません（なりすまし対策で署名も要ります）。</li>
+    <li><b>走行の合間・ピット</b>では②テザリング。画面と録画を止めずに、状態の確認・ラップのリセット・焼き込みの設定・小さい記録の回収ができます。</li>
+    <li><b>大会の後・家</b>では①USBのadb。動画の回収とソフトの更新はこれで行います。ドックを外すので、終わったらドックをつなぎ直してから電源を入れ直します（動いたまま差し替えるとドックを認識しない）。</li>
+    <li>シールドのmicroSD（控えの記録）はどの道でも取らず、本体の電源を切ってカードを抜き、PCのカードリーダーで回収します。</li>
   </ul>
 </section>
 
@@ -436,20 +513,6 @@ footer { font-size: 13px; color: var(--muted); }
   </table>
   </div>
   <p>実際に出ていったお金は、これより約1.6万円多くなっています。UNO Qを一度買い替えていること（もう1枚分）と、Type-C延長を比べるために2本買ったこと（使っていない方が¥2,780）の分です。Defiのセンサーはもとから車に付いていたので入れていません。</p>
-</section>
-
-<section>
-  <h2>そのほかのつなぎ方</h2>
-  <div class="tbl">
-  <table>
-    <thead><tr><th>つなぎ方</th><th>何に使うか</th></tr></thead>
-    <tbody>
-      <tr><td>スマホ（Pixel）のテザリング</td><td>UNO QがWi-Fiの子機としてつながる。PCからのssh、予備の車載画面（Androidアプリの「サーキット」）はここを通る</td></tr>
-      <tr><td>PCとUSBで直結（adb）</td><td>走行映像と記録の回収、操作メニュー。ネットが無くても使える</td></tr>
-      <tr><td>シールドのmicroSD</td><td>抜いてPCのカードリーダーで回収する</td></tr>
-    </tbody>
-  </table>
-  </div>
 </section>
 
 <section>
