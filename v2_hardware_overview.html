@@ -1,0 +1,254 @@
+<title>EcoLogger Ver.2 構成図</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=Zen+Kaku+Gothic+New:wght@500;700&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* layout: one reading column; diagrams may run wider inside their own scrollers, parts as plain tables */
+:root {
+  --bg: #f4f6f4; --surface: #ffffff; --ink: #1b2420; --muted: #56635d; --line: #c6cfca;
+  --pcb: #1d6b55; --pcb-fill: #e2f0ea;
+  --disp: #5148a8; --disp-fill: #ecebfa;
+  --pw: #a45812; --pw-fill: #fbeedc;
+  --car: #7d8781; --car-fill: #eceeec;
+  --font-head: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --font-mono: "JetBrains Mono", "Consolas", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111614; --surface: #19201d; --ink: #e3eae6; --muted: #9ba8a2; --line: #34413b;
+  --pcb: #6fcfae; --pcb-fill: #16332a; --disp: #aaa3f0; --disp-fill: #25234a;
+  --pw: #f0a85a; --pw-fill: #3a2a16; --car: #8c9791; --car-fill: #222926; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111614; --surface: #19201d; --ink: #e3eae6; --muted: #9ba8a2; --line: #34413b;
+  --pcb: #6fcfae; --pcb-fill: #16332a; --disp: #aaa3f0; --disp-fill: #25234a;
+  --pw: #f0a85a; --pw-fill: #3a2a16; --car: #8c9791; --car-fill: #222926; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.75; }
+.wrap { max-width: 1000px; margin: 0 auto; padding-block: 32px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+h1 { font-family: var(--font-head); font-weight: 700; font-size: 30px; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-head); font-weight: 700; font-size: 20px; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 14px; min-width: 0; }
+.fig { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.fig svg { display: block; width: 100%; min-width: 820px; height: auto; }
+svg text { font-family: var(--font-body); dominant-baseline: central; }
+.t { font-size: 14px; fill: var(--ink); } .th { font-size: 14px; font-weight: 500; fill: var(--ink); } .ts { font-size: 12px; fill: var(--muted); }
+.b-logger rect { fill: var(--pcb-fill); stroke: var(--pcb); stroke-width: 1; }
+.b-disp rect { fill: var(--disp-fill); stroke: var(--disp); stroke-width: 1; }
+.b-pw rect { fill: var(--pw-fill); stroke: var(--pw); stroke-width: 1; }
+.b-car rect { fill: var(--car-fill); stroke: var(--car); stroke-width: 1; }
+.b-chip rect { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+.area { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 5 4; }
+.ln { fill: none; stroke: var(--muted); stroke-width: 1.3; }
+.ln-pw { fill: none; stroke: var(--pw); stroke-width: 1.6; }
+.cable { fill: none; stroke: var(--pcb); stroke-width: 1.3; }
+.mk-m path { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.mk-p path { fill: none; stroke: var(--pw); stroke-width: 1.5; }
+ul { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 72ch; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+thead th { font-weight: 500; color: var(--muted); font-size: 12px; letter-spacing: .04em; }
+td code, .mono { font-family: var(--font-mono); font-size: 13px; }
+footer { font-size: 13px; color: var(--muted); }
+</style>
+
+<main class="wrap">
+<header>
+  <div class="eyebrow">ロードスター（NCEC）・SUGO 120分耐久（2026-11-08）を走った形</div>
+  <h1>EcoLogger Ver.2 構成図</h1>
+  <p>Ver.2ロガーが、車のどこから電気と信号をもらい、何を記録して、どうやってピットの画面まで届けているかをまとめた図です。図の上下は実物の積み重ねの順に合わせています。</p>
+</header>
+
+<section>
+  <h2>車の中のつながり</h2>
+  <p>ロガー本体は3枚の基板の積み重ねです。一番下がArduino UNO Q、その上にUPSモジュール、一番上にシールド（logger_v2）が載ります。アンテナ2本はシールドにつながります。</p>
+  <div class="fig">
+<svg viewBox="0 0 960 650" role="img"><title>車の中のつながり</title><desc>ヒューズ電源から手元スイッチ、増設シガーソケット、2口充電器を通り、C1はUSB-Cドック、C2はPDトリガーを通ってモニターへ。ドックはType-C延長でUNO Qにつながり、UNO Qの上にUPSモジュールとシールドが積み重なる。シールドには車両CAN、PICセンサーハブ、GNSSとLTEのアンテナがつながる。</desc>
+<defs>
+<marker id="am" class="mk-m" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="ap" class="mk-p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<g class="b-logger"><rect x="20" y="22" width="12" height="12" rx="3"/></g><text class="ts" x="38" y="28">ロガー本体・自作の基板</text>
+<g class="b-disp"><rect x="200" y="22" width="12" height="12" rx="3"/></g><text class="ts" x="218" y="28">画面・カメラ</text>
+<g class="b-pw"><rect x="320" y="22" width="12" height="12" rx="3"/></g><text class="ts" x="338" y="28">電源</text>
+<g class="b-car"><rect x="390" y="22" width="12" height="12" rx="3"/></g><text class="ts" x="408" y="28">車・もとから付いているもの</text>
+
+<g class="b-logger"><rect x="422" y="96" width="104" height="52" rx="6"/></g>
+<text class="th" x="474" y="114" text-anchor="middle">GNSSアンテナ</text><text class="ts" x="474" y="134" text-anchor="middle">JCA002</text>
+<g class="b-logger"><rect x="538" y="96" width="104" height="52" rx="6"/></g>
+<text class="th" x="590" y="114" text-anchor="middle">LTEアンテナ</text><text class="ts" x="590" y="134" text-anchor="middle">FXUB63</text>
+<line class="cable" x1="474" y1="148" x2="474" y2="226"/><text class="ts" x="482" y="170">SMA</text>
+<line class="cable" x1="590" y1="148" x2="590" y2="226"/><text class="ts" x="598" y="170">SMA</text>
+
+<g class="b-logger"><rect x="290" y="190" width="360" height="150" rx="10"/></g>
+<text class="th" x="306" y="208">シールド logger_v2</text>
+<g class="b-chip"><rect x="306" y="226" width="104" height="48" rx="4"/><rect x="422" y="226" width="104" height="48" rx="4"/><rect x="538" y="226" width="104" height="48" rx="4"/><rect x="306" y="284" width="104" height="48" rx="4"/><rect x="422" y="284" width="104" height="48" rx="4"/><rect x="538" y="284" width="104" height="48" rx="4"/></g>
+<text class="th" x="358" y="242" text-anchor="middle">CAN1</text><text class="ts" x="358" y="260" text-anchor="middle">車のCAN</text>
+<text class="th" x="474" y="242" text-anchor="middle">GNSS</text><text class="ts" x="474" y="260" text-anchor="middle">MAX-M10M</text>
+<text class="th" x="590" y="242" text-anchor="middle">LTE</text><text class="ts" x="590" y="260" text-anchor="middle">SIM7070G＋SIM</text>
+<text class="th" x="358" y="300" text-anchor="middle">CAN2</text><text class="ts" x="358" y="318" text-anchor="middle">外部のハブ</text>
+<text class="th" x="474" y="300" text-anchor="middle">IMU</text><text class="ts" x="474" y="318" text-anchor="middle">BNO055</text>
+<text class="th" x="590" y="300" text-anchor="middle">microSD</text><text class="ts" x="590" y="318" text-anchor="middle">控えの記録</text>
+
+<g class="b-logger"><rect x="290" y="352" width="360" height="52" rx="8"/></g>
+<text class="th" x="470" y="370" text-anchor="middle">UPSモジュール</text><text class="ts" x="470" y="390" text-anchor="middle">一瞬の停電でも動き続ける</text>
+<g class="b-logger"><rect x="290" y="416" width="360" height="76" rx="8"/></g>
+<text class="th" x="470" y="434" text-anchor="middle">Arduino UNO Q</text>
+<text class="ts" x="470" y="456" text-anchor="middle">Linux：EcoCapture・DASH・録画・本体の記録</text>
+<text class="ts" x="470" y="476" text-anchor="middle">STM32：CAN・GNSS・IMU・LTE・SDを動かす</text>
+<text class="ts" x="470" y="516" text-anchor="middle">下から UNO Q → UPS → シールド の順に積み重ね</text>
+
+<g class="b-car"><rect x="20" y="226" width="210" height="48" rx="6"/></g>
+<text class="th" x="125" y="242" text-anchor="middle">車両CAN</text><text class="ts" x="125" y="260" text-anchor="middle">OBD2タップ・受信のみ</text>
+<line class="ln" x1="230" y1="250" x2="304" y2="250" marker-end="url(#am)"/>
+<g class="b-logger"><rect x="20" y="284" width="210" height="48" rx="6"/></g>
+<text class="th" x="125" y="300" text-anchor="middle">PICセンサーハブ（v8）</text><text class="ts" x="125" y="318" text-anchor="middle">電源もCAN2の線から</text>
+<line class="ln" x1="230" y1="308" x2="304" y2="308" marker-end="url(#am)"/>
+<g class="b-car"><rect x="20" y="356" width="210" height="48" rx="6"/></g>
+<text class="th" x="125" y="372" text-anchor="middle">Defiのセンサー</text><text class="ts" x="125" y="390" text-anchor="middle">油圧・油温・水温の電圧</text>
+<line class="ln" x1="125" y1="356" x2="125" y2="336" marker-end="url(#am)"/>
+
+<g class="b-disp"><rect x="720" y="190" width="220" height="56" rx="6"/></g>
+<text class="th" x="830" y="208" text-anchor="middle">カメラ（ELP）</text><text class="ts" x="830" y="228" text-anchor="middle">焼き込み録画・内蔵マイク</text>
+<g class="b-disp"><rect x="720" y="290" width="220" height="56" rx="6"/></g>
+<text class="th" x="830" y="308" text-anchor="middle">USB-Cドック</text><text class="ts" x="830" y="328" text-anchor="middle">Type-C延長 2mでUNO Qへ</text>
+<g class="b-disp"><rect x="720" y="400" width="220" height="56" rx="6"/></g>
+<text class="th" x="830" y="418" text-anchor="middle">モニター（HD7H）</text><text class="ts" x="830" y="438" text-anchor="middle">DASH・警告音（HDMI）</text>
+<g class="b-pw"><rect x="720" y="496" width="220" height="52" rx="6"/></g>
+<text class="th" x="830" y="514" text-anchor="middle">PDトリガー（WITRN）</text><text class="ts" x="830" y="534" text-anchor="middle">9Vでモニターの電源</text>
+<line class="ln" x1="830" y1="290" x2="830" y2="250" marker-end="url(#am)"/><text class="ts" x="840" y="270">USB</text>
+<line class="ln" x1="830" y1="346" x2="830" y2="396" marker-end="url(#am)"/><text class="ts" x="840" y="372">HDMI</text>
+<line class="ln-pw" x1="830" y1="496" x2="830" y2="460" marker-end="url(#ap)"/><text class="ts" x="840" y="478">9V</text>
+<path class="ln" d="M718 318 L680 318 L680 454 L654 454" marker-start="url(#am)" marker-end="url(#am)"/>
+
+<g class="b-pw"><rect x="20" y="580" width="170" height="52" rx="6"/><rect x="215" y="580" width="170" height="52" rx="6"/><rect x="410" y="580" width="170" height="52" rx="6"/><rect x="605" y="580" width="170" height="52" rx="6"/></g>
+<text class="th" x="105" y="598" text-anchor="middle">ヒューズ電源</text><text class="ts" x="105" y="618" text-anchor="middle">室内ヒューズボックス・常時</text>
+<text class="th" x="300" y="598" text-anchor="middle">手元スイッチ</text><text class="ts" x="300" y="618" text-anchor="middle">入れると記録が始まる</text>
+<text class="th" x="495" y="598" text-anchor="middle">増設シガーソケット</text><text class="ts" x="495" y="618" text-anchor="middle">スイッチの先</text>
+<text class="th" x="690" y="598" text-anchor="middle">USB-C 2口の充電器</text><text class="ts" x="690" y="618" text-anchor="middle">C1・C2</text>
+<line class="ln-pw" x1="190" y1="606" x2="211" y2="606" marker-end="url(#ap)"/>
+<line class="ln-pw" x1="385" y1="606" x2="406" y2="606" marker-end="url(#ap)"/>
+<line class="ln-pw" x1="580" y1="606" x2="601" y2="606" marker-end="url(#ap)"/>
+<line class="ln-pw" x1="750" y1="580" x2="750" y2="552" marker-end="url(#ap)"/><text class="ts" x="758" y="566">C2</text>
+<path class="ln-pw" d="M775 606 L950 606 L950 318 L944 318" marker-end="url(#ap)"/><text class="ts" x="862" y="594" text-anchor="middle">C1（ドックへ）</text>
+</svg>
+  </div>
+  <ul>
+    <li>UNO Qの電気は、充電器のC1 → ドックのPD給電口 → Type-C延長 → UNO QのUSB-C、の順に来ます。UPSモジュールはUNO QのUSB-Cから入った電気を受け、ためておきます。</li>
+    <li>ドック1本で、UNO Qへの給電・HDMIの映像と音・カメラのUSBをまとめています。モニターの電源だけは充電器のC2からPDトリガーで9Vにして別にもらいます。</li>
+    <li>車両CANはOBD2のタップから受信だけで読みます（ロガーから車へは送りません）。Defiの油圧・油温・水温は、既設のセンサーの電圧をPICのセンサーハブが分けて読み、CAN2で送ります（ID <span class="mono">0x580</span>）。ハブの電源も同じ4本の線（+5V・CAN-H・CAN-L・GND）でシールドからもらいます。</li>
+    <li>記録は2か所に残ります。UNO Qの本体（eMMC）と、シールドのmicroSD（控え。いっぱいになると古い順に消して続けます）です。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>LTEでピットの画面に出るまで</h2>
+  <p>ピットの画面に出る値は、シールドのLTEモジュールから携帯の回線とインターネットを通って自宅のサーバーに届き、そこでグラフと地図になります。ピットではスマホやPCのブラウザでそのページを開いて見ます。</p>
+  <div class="fig">
+<svg viewBox="0 0 960 540" role="img"><title>LTEでピットの画面に出るまで</title><desc>UNO QのLinuxが送る値をまとめ、STM32がUARTでSIM7070Gへ渡し、LTEアンテナから電波で携帯の基地局へ。SORACOMとインターネットを通って自宅のROCK 5Bの公開の入口、受け口、保存、Grafanaと地図へ進み、ピットのスマホやPCのブラウザで見る。</desc>
+<defs>
+<marker id="bm" class="mk-m" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<g class="b-logger"><rect x="20" y="20" width="920" height="108" rx="12"/></g>
+<text class="ts" x="36" y="38">車の中（ロガー本体）</text>
+<g class="b-chip"><rect x="40" y="56" width="200" height="56" rx="6"/><rect x="270" y="56" width="200" height="56" rx="6"/><rect x="500" y="56" width="200" height="56" rx="6"/><rect x="730" y="56" width="200" height="56" rx="6"/></g>
+<text class="th" x="140" y="74" text-anchor="middle">Linux（EcoCapture）</text><text class="ts" x="140" y="94" text-anchor="middle">送る値をまとめる</text>
+<text class="th" x="370" y="74" text-anchor="middle">STM32</text><text class="ts" x="370" y="94" text-anchor="middle">UART 2Mbpsでモデムへ</text>
+<text class="th" x="600" y="74" text-anchor="middle">SIM7070G</text><text class="ts" x="600" y="94" text-anchor="middle">LTE-M・SORACOMのSIM</text>
+<text class="th" x="830" y="74" text-anchor="middle">LTEアンテナ</text><text class="ts" x="830" y="94" text-anchor="middle">FXUB63（貼り付け）</text>
+<line class="ln" x1="240" y1="84" x2="266" y2="84" marker-end="url(#bm)"/>
+<line class="ln" x1="470" y1="84" x2="496" y2="84" marker-end="url(#bm)"/>
+<line class="ln" x1="700" y1="84" x2="726" y2="84" marker-end="url(#bm)"/>
+<path class="ln" d="M830 112 L830 148 L140 148 L140 200" stroke-dasharray="5 4" marker-end="url(#bm)"/>
+<text class="ts" x="485" y="158" text-anchor="middle">電波（LTE-M）</text>
+
+<g class="b-car"><rect x="20" y="168" width="920" height="108" rx="12"/></g>
+<text class="ts" x="36" y="186">携帯の回線とインターネット</text>
+<g class="b-chip"><rect x="40" y="204" width="200" height="56" rx="6"/><rect x="270" y="204" width="200" height="56" rx="6"/><rect x="500" y="204" width="200" height="56" rx="6"/></g>
+<text class="th" x="140" y="222" text-anchor="middle">携帯の基地局</text><text class="ts" x="140" y="242" text-anchor="middle">ドコモ・ソフトバンクなど</text>
+<text class="th" x="370" y="222" text-anchor="middle">SORACOM</text><text class="ts" x="370" y="242" text-anchor="middle">回線の契約（planX3）</text>
+<text class="th" x="600" y="222" text-anchor="middle">インターネット</text><text class="ts" x="600" y="242" text-anchor="middle">WebSocket（https）</text>
+<line class="ln" x1="240" y1="232" x2="266" y2="232" marker-end="url(#bm)"/>
+<line class="ln" x1="470" y1="232" x2="496" y2="232" marker-end="url(#bm)"/>
+<path class="ln" d="M600 260 L600 296 L140 296 L140 348" marker-end="url(#bm)"/>
+
+<g class="b-disp"><rect x="20" y="316" width="920" height="108" rx="12"/></g>
+<text class="ts" x="36" y="334">自宅のサーバー（ROCK 5B）</text>
+<g class="b-chip"><rect x="40" y="352" width="200" height="56" rx="6"/><rect x="270" y="352" width="200" height="56" rx="6"/><rect x="500" y="352" width="200" height="56" rx="6"/><rect x="730" y="352" width="200" height="56" rx="6"/></g>
+<text class="th" x="140" y="370" text-anchor="middle">公開の入口</text><text class="ts" x="140" y="390" text-anchor="middle">Tailscale Funnel</text>
+<text class="th" x="370" y="370" text-anchor="middle">受け口</text><text class="ts" x="370" y="390" text-anchor="middle">ecorun-logger-server</text>
+<text class="th" x="600" y="370" text-anchor="middle">保存</text><text class="ts" x="600" y="390" text-anchor="middle">VictoriaMetricsなど</text>
+<text class="th" x="830" y="370" text-anchor="middle">Grafana・地図</text><text class="ts" x="830" y="390" text-anchor="middle">ピット用の画面</text>
+<line class="ln" x1="240" y1="380" x2="266" y2="380" marker-end="url(#bm)"/>
+<line class="ln" x1="470" y1="380" x2="496" y2="380" marker-end="url(#bm)"/>
+<line class="ln" x1="700" y1="380" x2="726" y2="380" marker-end="url(#bm)"/>
+<line class="ln" x1="830" y1="408" x2="830" y2="460" marker-end="url(#bm)"/>
+
+<g class="b-chip"><rect x="40" y="464" width="660" height="56" rx="6" stroke-dasharray="5 4"/></g>
+<text class="ts" x="60" y="482">逆向きの道：ピットからの命令（ラップのリセットなど）も、同じ道を戻ってロガーへ届く</text>
+<text class="ts" x="60" y="502">命令には合言葉の署名を付け、ロガーは決まった命令だけを受け付ける</text>
+<g class="b-disp"><rect x="730" y="464" width="200" height="56" rx="6"/></g>
+<text class="th" x="830" y="482" text-anchor="middle">ピットのスマホ・PC</text><text class="ts" x="830" y="502" text-anchor="middle">ブラウザで見る</text>
+</svg>
+  </div>
+  <ul>
+    <li>LinuxとLTEモジュールは直接はつながっていません。Linuxがまとめた値をSTM32へ渡し、STM32がシールドのUART（2Mbps）でSIM7070Gへ送ります。</li>
+    <li>回線はSORACOMのSIM（planX3）で、その場で一番よい携帯会社の基地局につながります。SUGOではドコモのLTEにつながっていました。</li>
+    <li>自宅のサーバーの入口は1つで、ロガーの受け口・Grafana・地図をまとめて出しています（アドレスはここには書きません）。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>部品の一覧</h2>
+  <div class="tbl">
+  <table>
+    <thead><tr><th>部品</th><th>型番など</th><th>役目</th><th>つなぎ先</th></tr></thead>
+    <tbody>
+      <tr><td>Arduino UNO Q</td><td>—</td><td>Linux（EcoCapture・車載画面DASH・焼き込み録画）とSTM32（センサーとLTEを動かす）の2つの頭。本体の記録はeMMC</td><td>積み重ねの一番下。USB-Cでドックへ</td></tr>
+      <tr><td>UPSモジュール</td><td>回路担当の自作</td><td>入力が一瞬切れても、UNO Qとシールドを動かし続ける</td><td>積み重ねの真ん中。UNO QのUSB-Cの電気を受ける</td></tr>
+      <tr><td>シールド</td><td class="mono">logger_v2</td><td>CAN×2・GNSS・IMU・LTE・microSDをまとめた自作の基板</td><td>積み重ねの一番上</td></tr>
+      <tr><td>GNSS</td><td class="mono">MAX-M10M</td><td>位置・速度・時刻</td><td>I²C（IMUと共用）・アンテナ <span class="mono">JCA002</span></td></tr>
+      <tr><td>IMU</td><td class="mono">BNO055</td><td>前後・左右のG、角速度、姿勢</td><td>I²C</td></tr>
+      <tr><td>LTE</td><td class="mono">SIM7070G</td><td>ピットへ値を送る（LTE-M）。SIMはSORACOM planX3</td><td>UART 2Mbps・アンテナ <span class="mono">FXUB63</span></td></tr>
+      <tr><td>CAN1</td><td>STM32内蔵 ＋ <span class="mono">ATA6561</span></td><td>車のCANを受信だけで読む</td><td>OBD2タップ</td></tr>
+      <tr><td>CAN2</td><td class="mono">MCP25625</td><td>外部のセンサーハブとのCAN</td><td>PICセンサーハブ（+5V・H・L・GNDの4本）</td></tr>
+      <tr><td>microSD</td><td>—</td><td>控えの記録（いっぱいになると古い順に消す）</td><td>シールドのスロット</td></tr>
+      <tr><td>PICセンサーハブ</td><td>ファーム v8</td><td>Defiの油圧・油温・水温の電圧を読み、ID <span class="mono">0x580</span>で送る</td><td>CAN2・既設のDefiのセンサー</td></tr>
+      <tr><td>USB-Cドック</td><td>—</td><td>UNO Qへの給電、HDMI（映像と音）、カメラのUSB</td><td>Type-C延長 2mでUNO Qへ。給電は充電器のC1</td></tr>
+      <tr><td>モニター</td><td class="mono">HD7H</td><td>車載画面DASH、油温・油圧の警告音</td><td>ドックのHDMI。電源はPDトリガーの9V</td></tr>
+      <tr><td>カメラ</td><td>ELP（USB）</td><td>値を焼き込んだ走行映像と音</td><td>ドックのUSB</td></tr>
+      <tr><td>PDトリガー</td><td>WITRN</td><td>充電器のUSB-Cから9Vを取り出す</td><td>充電器のC2 → モニターの電源</td></tr>
+      <tr><td>充電器</td><td>USB-C 2口の車用</td><td>12Vから各機器の電気を作る</td><td>増設シガーソケット</td></tr>
+      <tr><td>電源の元</td><td>ヒューズ電源・手元スイッチ</td><td>室内ヒューズボックスの常時電源。スイッチを入れると記録が始まり、切ると終わる</td><td>増設シガーソケット</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>そのほかのつなぎ方</h2>
+  <div class="tbl">
+  <table>
+    <thead><tr><th>つなぎ方</th><th>何に使うか</th></tr></thead>
+    <tbody>
+      <tr><td>スマホ（Pixel）のテザリング</td><td>UNO QがWi-Fiの子機としてつながる。PCからのssh、予備の車載画面（Androidアプリの「サーキット」）はここを通る</td></tr>
+      <tr><td>PCとUSBで直結（adb）</td><td>走行映像と記録の回収、操作メニュー。ネットが無くても使える</td></tr>
+      <tr><td>シールドのmicroSD</td><td>抜いてPCのカードリーダーで回収する</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>分かっている弱点・これから</h2>
+  <ul>
+    <li>電源が一瞬切れると、UPSの外にあるドックだけがリセットされ、モニターとカメラが次にLinuxを起動し直すまで戻りません。記録とLTEの送信は止まりません。ドックをUPSの内側に入れる案を相談中です。</li>
+    <li>ブレーキ圧センサー（AiM、0.5〜4.5V出力）を足す予定です。電源が8〜16Vなので、シールドの5Vではなく12Vを別に引きます。</li>
+  </ul>
+</section>
+
+<footer>2026-11-10時点の形。設計の詳しい資料はリポジトリの <span class="mono">ARCHITECTURE.md</span> と <span class="mono">circuit/logger_v2/実装方針.md</span>。</footer>
+</main>
