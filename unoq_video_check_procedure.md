@@ -1347,12 +1347,20 @@ python tools/lap_video/incidents.py build tools/lap_video/incidents_sugo_2026110
 - 「°」「℃」の配置の golden（`testdata/degree.ini`・`degree.golden`）はWSLの`hud_dump.c`で作った（文字と四角だけ）。誤りの例に`bad/31_other_symbol.ini`（`unit = µs`は6行目で断る。本体のCでも同じ行）
 - `°C`と`℃`が同じ2文字になること、「°」のマスが上半分だけの小さな丸であること、版3の見分けと送らない場合
 
-**本体へ入れる手順**（未。録画プログラム・文字の一覧表・設定を同時に入れる）：
+**本体へ入れる手順**（2026-11-10に入れた。下の「本体へ入れた結果」。録画プログラム・文字の一覧表・設定を同時に入れる）：
 1. 戻す用に、今の`/opt/ecologger-video/overlay_rec`・`hud_font_64.pgm`・`hud_default.ini`を`*.pre-deg-20261109`として写し、自分の配置`~/ecologger-video/hud.ini`も同じ名前で写す
 2. 本体の`~/video_test/install/`へ、`tools/unoq_overlay_enc/`の`overlay_rec.c`・`hud_layout.h`・`lap_ref.h`・`tele_smooth.h`・`auto_exposure.h`・`audio_cap.h`・`ts_mux.h`・`video_store.h`・`hud_default.ini`・`hud_font_64.pgm`・`run-video.sh`・`ecologger-video.service`・`install-video.sh`を置く（`install-video.sh`が読むものと合わせる）
 3. rootで`install-video.sh`を動かす（5-13と同じ）
 4. `Apply-HUD.cmd --status`で「針のメーター・コース図・「°」に対応した版」と出ることを確かめ、`Apply-HUD.cmd`で新しい`hud.ini`を送る
 5. 戻すとき：1で写したものを元の名前へ戻して`systemctl restart ecologger-video.service`
+
+**本体へ入れた結果**（2026-11-10 10:44〜10:50、ユーザー承認「つないだら入れて」、テザリングのsshで）：
+- 入れる前：本体の`~/video_test/install_smooth_20261108/`（11/8に入れた版）は、改行がCRLFなだけでリポジトリの前の版と同じ。`~/ecologger-video/hud.ini`は前の版（b84b25f3…）。録画はカメラ待ちで止まっていた
+- 14ファイルを`~/video_test/install_deg_20261109/`へ置き、SHA-256がリポジトリと一致することを確かめた
+- 控え：`/opt/ecologger-video/`の`overlay_rec`・`hud_font_64.pgm`・`hud_default.ini`・`run-video.sh`・`mic-volume.sh`・`ecologger-video.service`を`*.pre-deg-20261109`として写した（.serviceも同じ場所。元は`/etc/systemd/system/`）。自分の配置は`~/ecologger-video/hud.ini.pre-deg-20261109`。中身は入れる前のものと一致
+- `install-video.sh`は通り（`libtwolame0`あり）、新しい`overlay_rec`（5ec87b86…）には`version=3`の印がある。`Apply-HUD.cmd`で新しい`hud.ini`（e650a3fa…、16,833バイト）を送った
+- **本体のCでの照合**：本体で`hud_dump.c`を組み立て、`default_*`・`features*`・`degree`の golden 10個と1文字も違わないことを確かめた（WSLから当てた分も本体の出力と同じだった）。新しい`hud.ini`は本体の読み方でも通り（四角523個）、`testdata/bad/`の誤りの例はすべて断る
+- **残り**：USBのカメラがつながっていなかったので、録画プログラムが実際に新しい配置を読んだこと（`Apply-HUD.cmd --status`で`version=3`・誤りなし）と、映像に`°C`が出ることは未確認。次にカメラをつないで録画が始まったときに見る
 
 **もう録った映像は直らない**：焼き込みは録るときに本体が描いていて、焼き込む前の絵は残していないため、11/7・11/8の映像（1周の切り出し・失敗集も）は`87C`のまま。
 
