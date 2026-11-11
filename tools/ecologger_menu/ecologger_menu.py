@@ -80,10 +80,8 @@ exit 0
 # (見出し, [(ボタン, .cmd, 追加の引数, USBなら --adb を付けるか, 説明)])
 TOOL_GROUPS = [
     ('回収', [
-        ('動画を回収', 'video_collect/Collect-Video.cmd', [], False,
-         '走行ごとの一覧・吸い出し・本体から消す・SDカード（ブラウザで開く）'),
-        ('走行ログを回収', 'collect_logs/Collect-Logs.cmd', [], False,
-         'SDカードと本体から新しい走行ログをまとめて取る（元は消さない）'),
+        ('走行ログ・動画を回収', 'video_collect/Collect-Video.cmd', [], False,
+         '「回収する」1つで本体の走行記録・動画・SDカードを取る（どれも消さない。ブラウザで開く）'),
     ]),
     ('焼き込み映像', [
         ('計器の配置をPCで見る', 'video_hud/Preview-HUD.cmd', [], False, 'hud.ini を保存するたびに描き直す'),

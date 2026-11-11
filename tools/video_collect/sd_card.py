@@ -96,11 +96,13 @@ def check(drive, out_root, job):
             'uncollected_first': new[0] if new else '', 'uncollected_last': new[-1] if new else ''}
 
 
-def collect(drive, out_root, job, config=None):
-    """回収していないファイルを run フォルダの v2_sd/ へ（Collect-Logs.cmd と同じ）。取った数を返す"""
+def collect(drive, out_root, job, config=None, run=None):
+    """回収していないファイルを run フォルダの v2_sd/ へ（Collect-Logs.cmd と同じ）。取った数を返す。
+    run を渡すと、本体の走行記録と同じ run フォルダへ入れる（「回収する」でまとめて取るとき）"""
     out_root = Path(out_root)
     files = el_files(drive)
-    run = collect_logs.Run(out_root)
+    run = run or collect_logs.Run(out_root)
+    before = run.count
     manifest_path = out_root / 'collected.json'
     manifest, index = collect_logs.load_manifest(manifest_path), collect_logs.SdIndex(out_root)
     todo = [f for f in files if not index.copy_of(f, manifest)]
@@ -118,8 +120,9 @@ def collect(drive, out_root, job, config=None):
     finally:
         collect_logs.save_manifest(manifest_path, {**collect_logs.load_manifest(manifest_path), **manifest})
         index.save()
-    job.log(f'SDから {run.count} 本回収した' + (f'：{run.path}' if run.count else ''))
-    return run.count
+    got = run.count - before
+    job.log(f'SDから {got} 本回収した' + (f'：{run.path}' if got else ''))
+    return got
 
 
 def empty(drive, out_root, job):

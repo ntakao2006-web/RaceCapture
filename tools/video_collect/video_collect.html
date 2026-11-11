@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>走行映像の回収</title>
+<title>走行ログ・動画の回収</title>
 <style>
 :root {
   --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6676; --line: #dde1e8;
@@ -57,32 +57,56 @@ th { color: var(--muted); font-weight: 500; }
 .problems { color: var(--bad); margin-top: 6px; }
 input[type=text] { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); min-width: 0; flex: 1 1 260px; }
 .hidden { display: none; }
+.where { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 10px; }
+.mark { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--chip); color: var(--muted); }
+.mark.ok { background: var(--ok-bg); color: var(--ok); }
+button.big { display: block; width: 100%; font-size: 20px; padding: 14px; margin: 6px 0 8px; font-weight: 600; }
+.steps { margin: 10px 0 0; padding-left: 1.4em; font-size: 14px; }
+.steps li { margin: 4px 0; }
+.result { background: var(--ok-bg); color: var(--ok); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
+.result .notes { color: var(--muted); font-size: 13px; margin-top: 4px; }
+details.more > summary { font-size: 14px; margin: 16px 0 4px; }
 @media (max-width: 600px) { .tile .v { font-size: 19px; } }
 </style>
 </head>
 <body>
 <main>
-  <h1>走行映像の回収</h1>
-  <div class="sub" id="link">本体を探しています…</div>
-  <div class="row" style="margin-top:8px">
-    <button id="refresh">本体を探し直す</button>
-    <span class="sub" id="listed"></span>
+  <h1>走行ログ・動画の回収</h1>
+  <div class="panel">
+    <div class="where"><span class="mark" id="dev-mark">…</span><div><b>ロガー本体</b><div class="sub" id="dev-text">探しています…</div></div></div>
+    <div class="where"><span class="mark" id="sd-mark">…</span><div><b>SDカード</b><div class="sub" id="sd-text">探しています…</div></div></div>
+    <button class="primary big" id="everything">回収する</button>
+    <div class="sub">つながっているものから、まだPCに無いものを全部取ります。<b>どれも消しません</b>
+      （本体の動画は、回収したものから本体が空きの要るときに自動で消します）。</div>
+    <ol class="steps">
+      <li>ドックを外し、本体のUSB-CをPCへつなぐ → <b>回収する</b></li>
+      <li>USBを抜いてロガーの電源を切り、SDカードを抜いてPCのカードリーダーへ → もう一度 <b>回収する</b></li>
+    </ol>
   </div>
-  <div id="banner"></div>
-  <div class="tiles" id="tiles"></div>
 
   <div class="panel hidden" id="job">
     <div class="row"><h2 id="job-name" style="margin:0"></h2><span class="sub" id="job-file"></span>
       <button id="cancel" class="danger" style="margin-left:auto">止める</button></div>
     <div class="bar"><div id="job-bar"></div></div>
     <div class="sub" id="job-rate"></div>
+    <div id="job-result"></div>
     <div class="problems" id="job-problems"></div>
-    <div class="log" id="job-log"></div>
+    <details><summary>記録</summary><div class="log" id="job-log"></div></details>
   </div>
 
+  <details class="more"><summary>詳しい操作（ふだんは使わない）</summary>
+  <div class="row" style="margin-top:8px">
+    <button id="refresh">本体を探し直す</button>
+    <span class="sub" id="link"></span>
+    <span class="sub" id="listed"></span>
+  </div>
+  <div id="banner"></div>
+  <div class="tiles" id="tiles"></div>
+
   <div class="panel">
+    <h2>動画だけ</h2>
     <div class="row">
-      <button class="primary" id="collect-all">未回収をすべて吸い出す</button>
+      <button id="collect-all">未回収の動画をすべて吸い出す</button>
       <button class="danger" id="delete-all">回収済みを本体からすべて消す</button>
     </div>
     <div class="sub" style="margin-top:6px">吸い出すと1本ごとに本体とPCで中身が同じか（SHA-256）を確かめ、本体に「回収済み」の印を付けます。
@@ -97,6 +121,7 @@ input[type=text] { font: inherit; padding: 6px 8px; border: 1px solid var(--line
   <div class="panel">
     <h2>SDカード（シールドのSD・PCのカードリーダーで）</h2>
     <div class="sub">STM32が走行の生データ（EL000001.BIN …、1本1MB）を書くカードです。抜くときはロガーの電源を切ってから（記録中に抜くと最後の1秒ほどが欠けます）。
+      いっぱいになるとロガーが一番古いファイルから消して書き続けるので、ふだんは空にしなくてかまいません。
       回収済みかは中身で見るので、カードを空にして番号が EL000001 から付け直されても取り違えません。</div>
     <div class="row" style="margin-top:8px"><button id="sd-find">カードを探す</button></div>
     <div id="sd-cards" class="sub" style="margin-top:8px">—</div>
@@ -113,11 +138,18 @@ input[type=text] { font: inherit; padding: 6px 8px; border: 1px solid var(--line
   </div>
 
   <div class="panel">
+    <h2>スマホ（Androidロガー）</h2>
+    <div class="sub">スマホをUSBの「ファイル転送」にしてつなぎ、Download/EcoLogger の記録を取ります。</div>
+    <div class="row" style="margin-top:8px"><button id="phone">スマホから回収</button></div>
+  </div>
+
+  <div class="panel">
     <h2>本体が消した記録</h2>
     <div class="sub" style="margin-bottom:6px">未回収のまま消えたもの（赤）は、空きが足りずに録画かEcoCaptureが消したものです。</div>
     <div class="scroll" id="deleted">—</div>
   </div>
   <div class="sub" id="pc-root"></div>
+  </details>
 </main>
 <script>
 const STATE = {
@@ -150,7 +182,7 @@ function tiles(s) {
     t.push(['本体の空き', gb(d.free), '1GBを切ると古いものから消す']);
     t.push(['直近を残せる時間', hm(m * 60), '古い動画・走行記録を消して録り続ける']);
     t.push(['録画', d.recording ? '録画中' : '止まっている', d.recording ? d.recording_file : (d.current_session ? `今の走行 ${d.current_session}` : 'カメラ未接続など')]);
-    t.push(['走行記録（本体）', gb(d.logs_bytes), `${d.logs_files} 本・回収済み ${d.logs_collected} 本。Collect-Logs.cmd で回収`]);
+    t.push(['走行記録（本体）', gb(d.logs_bytes), `${d.logs_files} 本・回収済み ${d.logs_collected} 本。「回収する」で取る`]);
   }
   t.push(['PCの空き', gb(s.pc.free), s.pc.root]);
   $('tiles').innerHTML = t.map(([k, v, n]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="n">${esc(n)}</div></div>`).join('');
@@ -205,9 +237,39 @@ function sdHtml(c, checked, busy) {
   </div>`;
 }
 
+function where(s, busy) {
+  const d = s.device, cards = (s.sd && s.sd.cards) || [];
+  $('dev-mark').className = 'mark' + (d ? ' ok' : ''); $('dev-mark').textContent = d ? '○' : '—';
+  if (d) {
+    const logs = d.logs_files - d.logs_collected - (d.logs_recording ? 1 : 0);  // 記録中の1本は取らない
+    $('dev-text').textContent = `${d.kind === 'USB' ? 'USBでつながっている' : 'テザリングでつながっている（動画はUSBのときだけ取る）'}・` +
+      `まだPCに無いもの：走行記録 ${logs} 本・動画 ${d.videos_uncollected} 本`;
+  } else $('dev-text').textContent = 'つながっていない（ドックを外し、本体のUSB-CをPCへ直接つなぐ）';
+  const sdCards = cards.filter(c => c.files);
+  $('sd-mark').className = 'mark' + (sdCards.length ? ' ok' : ''); $('sd-mark').textContent = sdCards.length ? '○' : '—';
+  $('sd-text').textContent = sdCards.length ? sdCards.map(c => {
+    const ck = (s.sd.checked || {})[c.drive];
+    return `${c.drive} に ${c.files} 本` + (ck ? `（まだPCに無いもの ${ck.uncollected} 本）` : '');
+  }).join('・') : '挿さっていない（ロガーの電源を切って抜き、PCのカードリーダーへ）';
+  $('everything').disabled = busy;
+  $('everything').textContent = busy && s.job.name === '回収' ? '回収しています…' : '回収する';
+}
+
+function resultHtml(r) {
+  if (!r) return '';
+  const parts = [`走行記録 ${r.logs} 本`, `動画 ${r.videos} 本`, `SDカード ${r.sd} 本`];
+  if (r.phone != null) parts.splice(0, 3, `スマホ ${r.phone} 本`);
+  const open = [r.folder && `<button data-open="${esc(r.folder)}">走行記録・SDの保存先を開く</button>`,
+    r.videos ? `<button data-open="${esc(r.video_folder)}">動画の保存先を開く</button>` : ''].filter(Boolean).join(' ');
+  return `<div class="result"><b>回収しました：${esc(parts.join('・'))}</b>
+    ${r.notes.length ? `<div class="notes">${r.notes.map(esc).join('<br>')}</div>` : ''}
+    ${open ? `<div class="row" style="margin-top:8px">${open}</div>` : ''}</div>`;
+}
+
 function render(s) {
   last = s;
   const d = s.device, job = s.job, busy = !!(job && job.running);
+  where(s, busy);
   $('link').textContent = d ? `本体：${d.link}` : (s.error || '本体がつながっていません');
   $('listed').textContent = s.listed_at ? `本体を読んだ時刻 ${new Date(s.listed_at * 1000).toLocaleTimeString('ja-JP')}` : '';
   tiles(s);
@@ -226,11 +288,12 @@ function render(s) {
   const cards = (s.sd && s.sd.cards) || [];
   $('sd-cards').innerHTML = cards.length ? cards.map(c => sdHtml(c, s.sd.checked || {}, busy)).join('')
     : 'SDカードが見つかりません。カードリーダーに挿して「カードを探す」を押してください。';
-  $('sd-find').disabled = busy;
+  $('sd-find').disabled = busy; $('phone').disabled = busy;
   $('job').classList.toggle('hidden', !job);
   if (job) {
     $('job-name').textContent = job.name + (job.running ? '中' : '');
-    $('job-file').textContent = job.running ? job.file : '';
+    $('job-file').textContent = job.running ? [job.step, job.file].filter(Boolean).join('：') : '';
+    $('job-result').innerHTML = job.running ? '' : resultHtml(job.result);
     $('job-bar').style.width = job.total ? `${Math.min(100, job.done / job.total * 100)}%` : (job.running ? '0' : '100%');
     $('job-rate').textContent = job.total ? `${gb(job.done)} / ${gb(job.total)}` + (job.rate ? `・${(job.rate / 1e6).toFixed(0)}MB/s` : '') +
       (job.running && job.eta ? `・残り約${Math.ceil(job.eta / 60)}分` : '') : '';
@@ -281,6 +344,11 @@ document.addEventListener('click', e => {
     return post('/api/sd/empty', {drive});
   if (act === 'format' && confirm(`${drive}（${c ? (c.label || '名前なし') + '・' + gb(c.total) : ''}）をロガー用にフォーマットします。\nカードの中身はすべて消えます。違うドライブでないか確かめてください。\nこのあと管理者の確認（UAC）が出ます。よいですか？`))
     return post('/api/sd/format', {drive});
+});
+$('everything').onclick = () => post('/api/everything');
+$('phone').onclick = () => post('/api/phone');
+document.addEventListener('click', e => {
+  const b = e.target.closest('button[data-open]'); if (b) post('/api/open', {path: b.dataset.open});
 });
 $('backup-save').onclick = () => post('/api/settings', {backup: $('backup').value});
 $('backup-run').onclick = () => post('/api/backup');

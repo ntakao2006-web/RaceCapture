@@ -230,6 +230,48 @@ class CollectTests(unittest.TestCase):
             with self.assertRaisesRegex(OSError, 'PCの空きが足りない'):
                 vc.collect(self.link, self.state(), self.pc, None, vc.Job('test'))
 
+    def test_one_button_takes_logs_videos_and_the_card_without_deleting(self):
+        """「回収する」1回で、本体の走行記録・動画・挿したSDカードを同じ run フォルダへ取る。元はどれも消さない"""
+        sys.path.insert(0, str(Path(__file__).parents[1] / 'collect_logs'))
+        import test_collect_logs as tcl
+        server = vc.ThreadingHTTPServer(('127.0.0.1', 0), tcl.FakeUnoQ)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        port = server.server_port
+        self.link.open_forward = lambda: (port, lambda: None)
+        card = Path(self.tmp.name) / 'card'
+        card.mkdir()
+        (card / 'EL000001.BIN').write_bytes(b'ELB2' * 20000)
+        tcl.MARKED.clear()
+        try:
+            with patch.object(vc.sd_card, 'volume', side_effect=lambda d: {
+                    'drive': d, 'label': 'ECOLOGGER', 'fs': 'FAT32', 'total': 16 << 30, 'free': 8 << 30,
+                    'cluster': 32768, 'sector': 512, 'removable': True}):
+                job = vc.Job('回収')
+                r = vc.collect_everything(self.link, self.pc, job, [str(card)])
+                self.assertEqual(job.problems, [])
+                self.assertEqual((r['logs'], r['videos'], r['sd']), (1, 5, 1))  # 記録中の走行記録・録画中の章は取らない
+                run = Path(r['folder'])
+                self.assertTrue((run / 'v2_emmc' / tcl.LOGS[0]['name']).is_file())
+                self.assertTrue((run / 'v2_sd' / 'EL000001.BIN').is_file())
+                self.assertEqual(tcl.MARKED, [tcl.LOGS[0]['name']])  # 本体に回収済みの印
+                self.assertTrue((card / 'EL000001.BIN').is_file())  # カードからは消さない
+                self.assertTrue((self.video / '20261107_090000_01.ts').is_file())  # 本体の動画も消さない
+                again = vc.collect_everything(self.link, self.pc, vc.Job('回収'), [str(card)])
+                self.assertEqual((again['logs'], again['sd']), (0, 0))  # 2回目は何も取らない
+        finally:
+            server.shutdown()
+
+    def test_without_the_logger_only_the_card_is_taken(self):
+        card = Path(self.tmp.name) / 'card'
+        card.mkdir()
+        (card / 'EL000001.BIN').write_bytes(b'ELB2' * 20000)
+        with patch.object(vc.sd_card, 'volume', side_effect=lambda d: {
+                'drive': d, 'label': 'ECOLOGGER', 'fs': 'FAT32', 'total': 16 << 30, 'free': 8 << 30,
+                'cluster': 32768, 'sector': 512, 'removable': True}):
+            r = vc.collect_everything(None, self.pc, vc.Job('回収'), [str(card)])
+        self.assertEqual((r['logs'], r['videos'], r['sd']), (0, 0, 1))
+        self.assertTrue(any('本体がつながっていない' in n for n in r['notes']))
+
     def test_http_needs_the_page_header(self):
         app = vc.App(self.pc, None, link=self.link)
         app.refresh()

@@ -19,17 +19,21 @@
 """
 import argparse
 import base64
+import contextlib
 import hashlib
 import json
 import os
 import re
 import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
 import threading
 import time
+import urllib.error
+import urllib.request
 import webbrowser
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -39,10 +43,12 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / 'EcoCapture-Web'))
 sys.path.insert(0, str(REPO / 'tools' / 'collect_logs'))
 import video_store as vs  # noqa: E402
+import collect_logs  # noqa: E402
 from collect_logs import find_adb, load_manifest, save_manifest  # noqa: E402
 import sd_card  # noqa: E402
 
 DATA_DIR = '/home/arduino/ecocapture-v2-data'
+API_PORT = 8080            # 本体のEcoCapture
 JST = timezone(timedelta(hours=9))
 MARGIN = 1 << 30           # PCの空きはこれだけ残す
 LOG_BYTES_PER_MIN = 5e6    # 走行記録（EcoCaptureのログ）は記録中に約0.3GB/hずつ増える（2026-11-03の実測）
@@ -104,6 +110,34 @@ class Link:
     def label(self):
         return self.kind
 
+    @contextlib.contextmanager
+    def api_url(self):
+        """本体のEcoCapture（8080番）へPCから届くURL。走行記録の回収（collect_logs.collect_emmc）が使う"""
+        port, close = self.open_forward()
+        try:
+            url = f'http://127.0.0.1:{port}/'
+            end = time.time() + 20
+            while True:
+                try:
+                    with urllib.request.urlopen(url + 'api/status', timeout=3):
+                        break
+                except (OSError, urllib.error.URLError):
+                    if time.time() > end:
+                        raise OSError('本体のEcoCaptureに届かない（本体が起動しきっていないかもしれない。少し待ってもう一度）')
+                    time.sleep(1)
+            yield url
+        finally:
+            close()
+
+    def open_forward(self):
+        raise NotImplementedError
+
+
+def free_port():
+    with socket.socket() as s:
+        s.bind(('127.0.0.1', 0))
+        return s.getsockname()[1]
+
 
 class AdbLink(Link):
     kind = 'USB'
@@ -121,6 +155,12 @@ class AdbLink(Link):
 
     def label(self):
         return f'USB（{self.serial}）'
+
+    def open_forward(self):
+        port = free_port()
+        head = [*self.adb, '-s', self.serial, 'forward']
+        subprocess.run([*head, f'tcp:{port}', f'tcp:{API_PORT}'], capture_output=True, timeout=15, check=True)
+        return port, lambda: subprocess.run([*head, '--remove', f'tcp:{port}'], capture_output=True, timeout=15)
 
 
 class SshLink(Link):
@@ -141,6 +181,18 @@ class SshLink(Link):
 
     def label(self):
         return f'テザリング（ssh {self.host}、遅いので短い区間だけ）'
+
+    def open_forward(self):
+        import unoq_ssh
+        port = free_port()
+        proc = subprocess.Popen(unoq_ssh.ssh_cmd(self.host, '-o', 'BatchMode=yes', '-o', 'ExitOnForwardFailure=yes', '-N',
+                                                 '-L', f'127.0.0.1:{port}:127.0.0.1:{API_PORT}'),
+                                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        def close():
+            proc.kill()
+            proc.wait()
+        return port, close
 
 
 def find_link(ssh_host='unoq', log=print):
@@ -399,6 +451,7 @@ class Job:
         self.name, self.total, self.done = name, total, 0
         self.file, self.started, self.running, self.cancel = '', time.time(), True, False
         self.messages, self.problems = [], []
+        self.step, self.result = '', None  # 「回収する」の今の段と、終わったときのまとめ
 
     def log(self, text):
         self.messages.append(f'{datetime.now():%H:%M:%S} {text}')
@@ -409,7 +462,7 @@ class Job:
         rate = self.done / el if el > 1 and self.done else 0
         return {'name': self.name, 'running': self.running, 'done': self.done, 'total': self.total, 'file': self.file,
                 'rate': rate, 'eta': (self.total - self.done) / rate if rate else None, 'messages': self.messages[-40:],
-                'problems': self.problems}
+                'problems': self.problems, 'step': self.step, 'result': self.result}
 
 
 def pull(link, remote, dest, size, job, base_done):
@@ -702,6 +755,98 @@ def backup(pc, job):
     return len(todo)
 
 
+def collect_everything(link, pc, job, sd_drives=None):
+    """「回収する」ボタン：つながっているものから、まだPCに無いものをすべて取る。どれも消さない。
+      - 本体の走行記録（eMMC）：Collect-Logs.cmd と同じ（EcoCaptureのAPIから。取ったら本体に回収済みの印）
+      - 本体の動画：USBのときだけ（テザリングでは1本約9分かかる）。回収済みの印を付け、本体が空きの要るときに消す
+      - PCに挿したSDカード（Ver.2のEL*.BIN、Ver.1のlogs）：写してSHA-256で確かめる。カードからは消さない
+    本体の走行記録とSDは同じ run フォルダ（drive_logs/<日付>/runNN_<時刻>/）へ。1つ失敗しても残りは続ける"""
+    root = pc.root.parent  # drive_logs
+    run = collect_logs.Run(root)
+    result = {'logs': 0, 'videos': 0, 'sd': 0, 'folder': '', 'video_folder': str(pc.root), 'notes': []}
+
+    def step(name, fn):
+        job.step, job.total, job.done, job.file = name, 0, 0, ''
+        job.log(f'── {name}')
+        try:
+            fn()
+        except InterruptedError:
+            raise
+        except Exception as exc:  # 次の段へ進む（画面の【要確認】に出す）
+            job.problems.append(f'{name}：{exc}')
+            job.log(f'{name}：失敗 {exc}')
+
+    def logs():
+        manifest_path = root / 'collected.json'
+        manifest, before = load_manifest(manifest_path), run.count
+        try:
+            with link.api_url() as url:
+                collect_logs.collect_emmc(run, manifest, url, job.log)
+        finally:
+            save_manifest(manifest_path, {**load_manifest(manifest_path), **manifest})
+            result['logs'] = run.count - before
+
+    def videos():
+        result['videos'] = collect(link, list_device(link), pc, None, job)
+
+    def card(drive):
+        result['sd'] += sd_card.collect(drive, root, job, run=run)
+
+    def old_cards(sources):
+        manifest_path = root / 'collected.json'
+        manifest, before = load_manifest(manifest_path), run.count
+        try:
+            for _, drive, files in sources:
+                collect_logs.collect_sd(run, manifest, 'v1_sd', files, job.log)
+        finally:
+            save_manifest(manifest_path, {**load_manifest(manifest_path), **manifest})
+            result['sd'] += run.count - before
+
+    if link:
+        step('本体の走行記録', logs)
+        if link.kind == 'USB':
+            step('本体の動画', videos)
+        else:
+            result['notes'].append('動画はUSBのときだけ取る（テザリングでは遅すぎる）。今回は取っていない')
+    else:
+        result['notes'].append('本体がつながっていないので、本体の走行記録と動画は取っていない')
+    cards = [c for c in sd_card.find_cards(sd_drives) if c['files']]
+    for c in cards:
+        step(f'SDカード {c["drive"]}', lambda d=c['drive']: card(d))
+    drives = sd_drives if sd_drives is not None else collect_logs.candidate_drives()
+    v1 = [s for s in collect_logs.find_sources(drives) if s[0] == 'v1_sd']
+    if v1:
+        step('Ver.1のSDカード', lambda: old_cards(v1))
+    if not cards and not v1:
+        result['notes'].append('SDカードは挿さっていなかった')
+    job.step = ''
+    result['folder'] = str(run.path) if run.path.is_dir() else ''
+    job.result = result
+    job.log(f'回収した：走行記録 {result["logs"]} 本・動画 {result["videos"]} 本・SDカード {result["sd"]} 本')
+    return result
+
+
+def collect_phones(pc, job):
+    """スマホ（Androidロガー、USBの「ファイル転送」）の EL_*.csv を取る（Collect-Logs.cmd と同じ）"""
+    root = pc.root.parent
+    run = collect_logs.Run(root)
+    manifest_path = root / 'collected.json'
+    manifest = load_manifest(manifest_path)
+    try:
+        with tempfile.TemporaryDirectory() as staging:
+            phones = collect_logs.stage_phones(Path(staging), job.log)
+            if not phones:
+                job.log('スマホのログは見つからなかった（USBを「ファイル転送」にしてつなぐ）')
+            for device, files in phones:
+                collect_logs.collect_sd(run, manifest, 'phone', files, job.log)
+    finally:
+        save_manifest(manifest_path, {**load_manifest(manifest_path), **manifest})
+    job.result = {'logs': 0, 'videos': 0, 'sd': 0, 'phone': run.count, 'folder': str(run.path) if run.count else '',
+                  'video_folder': str(pc.root), 'notes': []}
+    job.log(f'スマホから {run.count} 本回収した')
+    return run.count
+
+
 # ---------------------------------------------------------------- 画面（127.0.0.1だけ）
 class App:
     def __init__(self, pc, ssh_host='unoq', link=None, sd_drives=None):
@@ -727,6 +872,8 @@ class App:
             device = None
             if st:
                 device = {'link': self.link.label(), 'kind': self.link.kind, 'free': st.free, 'minutes_left': round(st.minutes_left()),
+                          'videos_uncollected': sum(1 for c in st.store.chapters if not c.active and not
+                                                    ((e := pc.find(c.name, c.size, st.marker_sha(c))) and pc.present(e) and c.collected)),
                           'recording': st.store.alive, 'recording_file': st.store.active_file, 'current_session': st.store.current_session,
                           'logs_bytes': sum(g.size for g in st.store.logs), 'logs_files': len(st.store.logs),
                           'logs_collected': sum(1 for g in st.store.logs if g.collected), 'logs_recording': st.store.active_log,
@@ -784,7 +931,19 @@ class App:
 
     def action(self, path, body):
         groups = body.get('sessions')
-        if path == '/api/refresh':
+        if path == '/api/everything':
+            def everything(job):
+                job.step = '本体とSDカードを探す'
+                with self.lock:  # 押す直前につないだ本体・挿したカードも拾う
+                    self.link = None
+                    self.refresh()
+                    self.find_sd()
+                    link = self.link if self.state else None
+                collect_everything(link, self.pc, job, self.sd_drives)
+            self.start('回収', everything)
+        elif path == '/api/phone':
+            self.start('スマホから回収', lambda job: collect_phones(self.pc, job))
+        elif path == '/api/refresh':
             with self.lock:
                 self.link = None
                 self.refresh()
@@ -824,6 +983,10 @@ class App:
         elif path == '/api/open':
             folder = self.pc.root / body.get('session', '')
             folder = folder if folder.is_dir() else self.pc.root
+            if body.get('path'):  # 「回収する」の保存先（drive_logs の中だけ）
+                p = Path(body['path']).resolve()
+                if p.is_dir() and p.is_relative_to(self.pc.root.parent.resolve()):
+                    folder = p
             if hasattr(os, 'startfile'):
                 os.startfile(folder)
         else:
