@@ -2,8 +2,9 @@
 // The card is a small FAT32 image in memory with 512-byte clusters, so a 1 MiB file is 2048
 // clusters, 6 files fit and the FAT is 99 sectors (big enough to see a whole-FAT scan).
 // Built with g++ in WSL:
-//   g++ -std=c++17 -O1 -o /tmp/test_sd_full tests/test_sd_full.cpp && /tmp/test_sd_full [image.bin]
-// The optional image is written for a second check with a standard FAT reader (test_sd_full_fat.py).
+//   g++ -std=c++17 -O1 -o /tmp/test_sd_full tests/test_sd_full.cpp && /tmp/test_sd_full [image.bin [grown.bin]]
+// The optional images are written for a second check with a standard FAT reader (test_sd_full_fat.py):
+// a full card, and a card whose root directory grew into a second cluster.
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -150,13 +151,52 @@ static void testNeverRemovesTheOnlyFile() {
   puts("PASS: the newest file is never removed (it gives up as before)");
 }
 
+// The root directory grows into a second cluster (2026-11-11). On the SUGO card (32 KiB clusters)
+// this happened at file 1022: the cluster added to the directory was the first cluster of the
+// run just reserved for the new file (not yet marked in the FAT), so the file's FAT chain also
+// became the directory's, the file's data overwrote its own entry, and later entries were written
+// inside that file. Here the 512-byte root cluster is filled with 15 other entries first, so the
+// first EL file already needs a second directory cluster.
+static void testRootDirectoryGrowsIntoItsOwnCluster() {
+  makeCard();
+  for (int i = 1; i < 16; i++) {  // slot 0 is the volume label
+    uint8_t* p = sec(dataLba(2)) + i * 32; char n[12]; snprintf(n, sizeof(n), "OTHER%03dTXT", i);
+    memcpy(p, n, 11); p[11] = 0x20;  // empty files: no clusters
+  }
+  for (int i = 1; i <= 4; i++) assert(logOneFile());
+  std::vector<uint32_t> root = rootClusters();
+  assert(root.size() == 2);  // the label + 15 files, then one more cluster for the EL entries
+  std::set<uint32_t> dir(root.begin(), root.end());
+  unsigned el = 0;
+  for (auto& e : entries()) {
+    if (e.name.compare(0, 2, "EL") != 0) continue;
+    el++;
+    for (uint32_t c = e.first, n = 0; n < PER_FILE; n++, c++) assert(!dir.count(c));  // no shared cluster
+    assert(fatAt(e.first + PER_FILE - 1) >= 0x0ffffff8);
+    char want[32]; snprintf(want, sizeof(want), "file %lu", (unsigned long)e.index);
+    assert(!strcmp((char*)sec(dataLba(e.first)), want));  // the file still holds its own data
+  }
+  assert(el == 4);
+  // Full card from here: the oldest are removed and the second directory cluster stays a directory.
+  for (int i = 5; i <= 20; i++) assert(logOneFile());
+  assert(rootClusters() == root);
+  std::set<uint32_t> kept; for (auto& e : entries()) if (e.name.compare(0, 2, "EL") == 0) kept.insert(e.index);
+  assert(kept == (std::set<uint32_t>{15, 16, 17, 18, 19, 20}));
+  for (auto& e : entries()) if (e.name.compare(0, 2, "EL") == 0)
+    for (uint32_t c = e.first, n = 0; n < PER_FILE; n++, c++) assert(!dir.count(c));
+  puts("PASS: the root directory grows into its own cluster, never into a new file's run");
+}
+
 int main(int argc, char** argv) {
   testFillsAndKeepsTheNewest();
   testOtherFilesAreNeverRemoved();
   testNeverRemovesTheOnlyFile();
+  testRootDirectoryGrowsIntoItsOwnCluster();
+  std::vector<uint8_t> grown = card;  // two directory clusters, EL000015-EL000020 and 15 other files
   if (argc > 1) {  // the card after filling, for the standard FAT reader
     makeCard(); for (int i = 1; i <= 15; i++) assert(logOneFile());
     FILE* f = fopen(argv[1], "wb"); fwrite(card.data(), 1, card.size(), f); fclose(f);
   }
+  if (argc > 2) { FILE* f = fopen(argv[2], "wb"); fwrite(grown.data(), 1, grown.size(), f); fclose(f); }
   return 0;
 }

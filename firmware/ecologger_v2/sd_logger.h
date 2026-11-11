@@ -60,7 +60,9 @@ static bool newSDLog(){
   freeCursor=c;sdFull=true;
   for(uint32_t k=0;k<clusters&&c>=2&&c<clusters+2;k++){uint32_t next=fatGet(c);if(!fatSet(c,0))return false;if(next>=0x0ffffff8)break;c=next;}
  }
- if(!freeSec){uint32_t extra=0;for(uint32_t i=freeCursor;i<clusters+2;i++){if(fatGet(i)==0){extra=i;break;}}if(!extra)return false;memset(sectorBuf,0,512);for(unsigned j=0;j<clusterSectors;j++)if(!partitionWrite(dataBase+(extra-2)*clusterSectors+j,sectorBuf))return false;if(!fatSet(extra,0x0fffffff)||!fatSet(lastRoot,extra))return false;freeSec=dataBase+(extra-2)*clusterSectors;freeOff=0;freeCursor=extra+1;}
+ // Grow the directory by one free cluster outside the run just reserved (not yet in the FAT).
+ // 2026-11-11: taking the run's first cluster cross-linked the directory with file 1022 on the SUGO card.
+ if(!freeSec){uint32_t extra=0;for(uint32_t n=0,i=freeCursor;n<clusters;n++,i++){if(i>=clusters+2)i=2;if((i<first||i>=first+count)&&fatGet(i)==0){extra=i;break;}}if(!extra)return false;memset(sectorBuf,0,512);for(unsigned j=0;j<clusterSectors;j++)if(!partitionWrite(dataBase+(extra-2)*clusterSectors+j,sectorBuf))return false;if(!fatSet(extra,0x0fffffff)||!fatSet(lastRoot,extra))return false;freeSec=dataBase+(extra-2)*clusterSectors;freeOff=0;freeCursor=extra+1;}
  for(uint32_t sec=first/128;sec<=(first+count-1)/128;sec++){
   fatCached=0xffffffff;if(!cardRead(fatBase+sec,fatBuf))return false;
   for(unsigned j=0;j<128;j++){uint32_t k=sec*128+j;if(k>=first&&k<first+count)p32(fatBuf+j*4,k==first+count-1?0x0fffffff:k+1);}
