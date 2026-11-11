@@ -101,6 +101,22 @@ class SdCardTests(unittest.TestCase):
         with self.assertRaisesRegex(OSError, 'できない'):
             sd_card.format_card(Path.home().drive or 'C:', self.out, self.job(), run=lambda *a, **k: None)
 
+    def test_result_being_written_is_read_once_free(self):
+        # 管理者の窓が書いている間は Windows では使用中（PermissionError）。前はここで止まった（2026-11-11）
+        result = self.out / 'result.txt'
+        result.write_text('NG Format-Volume が失敗', encoding='utf-8-sig')
+        real, tries = Path.read_text, []
+
+        def busy_twice(path, *a, **k):
+            tries.append(path)
+            if len(tries) <= 2:
+                raise PermissionError(13, 'Permission denied', str(path))
+            return real(path, *a, **k)
+        with patch.object(Path, 'read_text', busy_twice), patch.object(sd_card.time, 'sleep'):
+            self.assertEqual(sd_card.read_result(result), 'NG Format-Volume が失敗')
+        self.assertEqual(len(tries), 3)
+        self.assertEqual(sd_card.read_result(self.out / 'none.txt', wait_s=3), 'NG 管理者の確認がされなかった')
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

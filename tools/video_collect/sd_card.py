@@ -9,6 +9,7 @@ PCのカードリーダーに挿して確かめ・回収・空にする・フォ
     64GB以下・MBRのものに限り、管理者の確認（UAC）を出して FAT32（32KBの区切り、名前 ECOLOGGER）にする
 STM32が読めるのは、MBRの区画が FAT32（種類 0x0B/0x0C）で1区切り512バイトのもの（firmware/ecologger_v2/sd_logger.h の mountCard）。
 """
+import contextlib
 import ctypes
 import os
 import re
@@ -17,6 +18,7 @@ import string
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -155,7 +157,10 @@ $result = '{result}'
 try {{
   $p = Get-Partition -DriveLetter $letter
   $d = Get-Disk -Number $p.DiskNumber
-  if (@('SD', 'USB', 'MMC') -notcontains [string]$d.BusType) {{ throw "取り外せるカードではない（$($d.BusType)）" }}
+  if ($d.IsBoot -or $d.IsSystem) {{ throw "起動ディスク" }}
+  # PCに内蔵のカードリーダー（Realtek PCIE Card Reader 等）は SCSI に見える。ボリュームが取り外せる形なら通す
+  $removable = [string](Get-Volume -DriveLetter $letter).DriveType -eq 'Removable'
+  if (@('SD', 'USB', 'MMC') -notcontains [string]$d.BusType -and -not $removable) {{ throw "取り外せるカードではない（$($d.BusType)）" }}
   if ($d.Size -gt {max_bytes}) {{ throw "64GBより大きい" }}
   if ([string]$d.PartitionStyle -ne 'MBR') {{ throw "区画の形が $($d.PartitionStyle)（ロガーはMBRだけ読む。SD Card Formatterで初期化してから）" }}
   if ($p.MbrType -ne 12) {{ Set-Partition -DriveLetter $letter -MbrType 12 }}
@@ -165,6 +170,39 @@ try {{
   ('NG ' + $_.Exception.Message) | Set-Content -Encoding UTF8 $result
 }}
 '''
+
+
+def read_result(result, wait_s=30):
+    """管理者の窓が書いた結果を読む。書いている途中は Windows では使用中（PermissionError）で読めないので、
+    読めるまで待つ（2026-11-11、フォーマットが「Permission denied」で止まった。本当の原因は置き場所の権限で、
+    format_card の work_dir を見よ）"""
+    end = time.monotonic() + wait_s
+    while True:
+        try:
+            text = result.read_text(encoding='utf-8-sig').strip()
+            if text:
+                return text
+        except FileNotFoundError:  # 管理者の窓が終わっても無ければ、確認されなかった（少しだけ待つ）
+            if time.monotonic() >= end - wait_s + 3:
+                return 'NG 管理者の確認がされなかった'
+        except PermissionError:
+            pass
+        if time.monotonic() >= end:
+            return 'NG 結果のファイルを読めなかった'
+        time.sleep(0.5)
+
+
+@contextlib.contextmanager
+def work_dir():
+    """管理者の窓とやり取りするフォルダ。tempfile.TemporaryDirectory は Python 3.13 から Windows で
+    「作った人（OWNER RIGHTS）・SYSTEM・Administrators だけ」の権限で作られ、管理者の窓が書いた結果
+    （持ち主が Administrators）をふつうの権限のこちらが読めない（2026-11-11）。ふつうに mkdir して親の権限を受け継ぐ"""
+    path = Path(tempfile.gettempdir()) / f'ecologger_sd_{os.getpid()}_{time.time_ns()}'
+    path.mkdir(parents=True)
+    try:
+        yield path
+    finally:
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def format_card(drive, out_root, job, run=subprocess.run):
@@ -179,14 +217,14 @@ def format_card(drive, out_root, job, run=subprocess.run):
     left = [f for f in el_files(f'{letter}:') if not index.copy_of(f, manifest)]
     if left:
         raise OSError(f'回収していないファイルが {len(left)} 本ある（先に回収する）')
-    with tempfile.TemporaryDirectory() as tmp:
-        script, result = Path(tmp) / 'format.ps1', Path(tmp) / 'result.txt'
+    with work_dir() as tmp:
+        script, result = tmp / 'format.ps1', tmp / 'result.txt'
         script.write_text(FORMAT_PS.format(letter=letter, result=result, max_bytes=MAX_FORMAT), encoding='utf-8-sig')
         job.log('管理者の確認（UAC）が出たら「はい」を押してください')
         run(['powershell', '-NoProfile', '-Command',
              f"Start-Process powershell -Verb RunAs -Wait -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File \"{script}\"'"],
             capture_output=True, timeout=600)
-        text = result.read_text(encoding='utf-8-sig').strip() if result.exists() else 'NG 管理者の確認がされなかった'
+        text = read_result(result)
     if not text.startswith('OK'):
         raise OSError(f'フォーマットできなかった：{text[3:]}')
     after = volume(f'{letter}:')
