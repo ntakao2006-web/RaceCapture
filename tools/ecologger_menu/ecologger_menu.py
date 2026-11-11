@@ -1,7 +1,8 @@
 """Ver.2（UNO Q）をPCから操作する道具をまとめたメニュー（デスクトップのショートカットから開く）。
 
 上の段に本体の状態（記録・受信・測位・SD・録画・LTE・画面・ラップ・温度）を出し、
-下の段のボタンで、これまで別々に置いてあった .cmd を開く。
+下の段にはふだん使うもの（回収・画面・ラップ・LTEで状態を聞く）だけを出し、
+設定・調べもの（焼き込みの計器・レンズ・露出・電波など）は「設定・調べもの」に畳んでおく。
 
 つなぎ方は自動で選ぶ：USB直結のadbで届けばそれ、届かなければPixelのテザリング（ssh unoq、
 名前が引けなければIPで探す＝tools/collect_logs/unoq_ssh.py）。テザリングの間も読むたびにUSBを確かめ、
@@ -37,6 +38,7 @@ import video_collect  # noqa: E402  本体の探し方（find_link：adb → ssh
 API = 'http://127.0.0.1:8080'
 DASH_SWITCH = '/opt/logger-v2-racecapture/dash_switch.sh'
 REFRESH_S = 30
+MORE_LABEL = '設定・調べもの（ふだんは触らない）…'
 READ_LIMIT_S = 120  # 1回の読み取りがこれより長引いたら見捨てて読み直す（窓が止まったままにならないように）
 LOCK_WAIT_S = 90    # 前の操作が終わるのを待つ上限
 # pythonw で開くと画面の外のエラーがどこにも出ないので、つなぎ方・失敗・例外はここに残す
@@ -77,26 +79,31 @@ echo '@@C'; ls /sys/class/udc 2>/dev/null | wc -l
 exit 0
 '''
 
+# ふだん使う回収（上の段に大きく出す）: (ボタン, .cmd, 追加の引数, USBなら --adb を付けるか, 説明)
+COLLECT = ('走行ログ・動画を回収する', 'video_collect/Collect-Video.cmd', [], False,
+           '本体の走行記録・動画・SDカードを、まだPCに無いものだけ取る（どれも消さない。ブラウザで開く）')
+
+# 設定・調べもの（ふだんは触らない。「設定・調べもの」を開いたときだけ出す）。新しい .cmd はここへ足す
 # (見出し, [(ボタン, .cmd, 追加の引数, USBなら --adb を付けるか, 説明)])
 TOOL_GROUPS = [
-    ('回収', [
-        ('走行ログ・動画を回収', 'video_collect/Collect-Video.cmd', [], False,
-         '「回収する」1つで本体の走行記録・動画・SDカードを取る（どれも消さない。ブラウザで開く）'),
-    ]),
-    ('焼き込み映像', [
+    ('焼き込み映像の設定', [
         ('計器の配置をPCで見る', 'video_hud/Preview-HUD.cmd', [], False, 'hud.ini を保存するたびに描き直す'),
         ('計器の配置を本体へ送る', 'video_hud/Apply-HUD.cmd', [], True, 'hud.ini を本体の録画へ'),
         ('レンズをPCで見る', 'lens_view/Lens-View.cmd', [], False, 'カメラをPCにつないで補正・ズームを決める'),
         ('レンズを本体のモニターで決める', 'lens_view/Lens-Preview.cmd', [], True, '録画に写る絵を本体のモニターに出す'),
         ('レンズの値を本体へ送る', 'lens_view/Apply-Lens.cmd', [], True, 'lens.json を本体の録画へ'),
-        ('露出（明るさ）を見る・切り替える', 'video_exposure/Exposure.cmd', [], True,
+        ('露出（明るさ）を変える', 'video_exposure/Exposure.cmd', [], True,
          '白飛び対策／カメラ任せに戻す／明るく・暗く'),
     ]),
-    ('LTEの電波（コースウォーク）', [
+    ('LTEの電波を調べる（コースウォーク）', [
         ('電波の記録を始める', 'lte_antenna/Start-RadioWalk.cmd', [], False, '30分'),
         ('電波の記録を止めて回収', 'lte_antenna/Fetch-RadioWalk.cmd', [], False, 'drive_logs へ'),
     ]),
 ]
+
+# LTEで送る命令（remote_command_pc.py）。上の2つはふだん、残りは「設定・調べもの」の中
+LTE_DAILY = [('状態を聞く', 'status'), ('ラップを0周に戻す…', 'lap_reset')]
+LTE_MORE = [('周回数を直す…', 'lap_count'), ('いまから計測を始める…', 'lap_start'), ('記録を始める…', 'log_start')]
 
 
 # ---------------------------------------------------------------- 状態を読む
@@ -278,8 +285,7 @@ class Menu:
         self.busy = False
         self.read_id, self.read_started = 0, 0.0
         root.title('EcoLogger Ver.2 操作メニュー')
-        root.geometry("1000x900")
-        root.minsize(900, 700)
+        root.minsize(900, 500)
         style = ttk.Style()
         try:
             style.theme_use('vista')
@@ -290,6 +296,7 @@ class Menu:
         style.configure('Head.TLabel', font=('Yu Gothic UI', 11, 'bold'))
         style.configure('Warn.TLabel', foreground='#b3261e')
         style.configure('TButton', padding=(8, 4))
+        style.configure('Big.TButton', font=('Yu Gothic UI', 12, 'bold'), padding=(18, 10))
 
         outer = ttk.Frame(root, padding=12)
         outer.pack(fill='both', expand=True)
@@ -308,6 +315,14 @@ class Menu:
         self.updated = ttk.Label(box, text='', foreground='#666')
         self.updated.pack(anchor='e')
 
+        # ふだん使うのはここまで：回収・画面・ラップ・LTEで状態を聞く
+        label, cmd, args, adb_ok, note = COLLECT
+        collect = ttk.LabelFrame(outer, text='回収（大会・走行のあと）', padding=8)
+        collect.pack(fill='x', pady=(0, 8))
+        ttk.Button(collect, text=label, style='Big.TButton',
+                   command=lambda: self.launch(cmd, args, adb_ok)).pack(side='left')
+        ttk.Label(collect, text=note, foreground='#666', wraplength=560).pack(side='left', padx=12)
+
         cols = ttk.Frame(outer)
         cols.pack(fill='x')
         cols.columnconfigure(0, weight=1, uniform='c')
@@ -316,7 +331,7 @@ class Menu:
         left.grid(row=0, column=0, sticky='nsew', padx=(0, 4))
         right.grid(row=0, column=1, sticky='nsew', padx=(4, 0))
 
-        ops = ttk.LabelFrame(left, text='画面・ラップ（SUGO）', padding=8)
+        ops = ttk.LabelFrame(left, text='画面・ラップ', padding=8)
         ops.pack(fill='x', pady=(0, 8))
         ttk.Button(ops, text='HDMIをDASHにする', width=26, command=lambda: self.switch_screen('dash')).grid(row=0, column=0, sticky='w', pady=1)
         ttk.Button(ops, text='HDMIをRaceCaptureにする', width=26, command=lambda: self.switch_screen('racecapture')).grid(row=1, column=0, sticky='w', pady=1)
@@ -324,39 +339,73 @@ class Menu:
         ttk.Checkbutton(ops, text='電源を入れたときも\nこの画面にする', variable=self.boot).grid(row=0, column=1, rowspan=2, sticky='w', padx=8)
         ttk.Button(ops, text='ラップを0周に戻す…', width=26, command=self.reset_laps).grid(row=2, column=0, sticky='w', pady=(6, 1))
         ttk.Label(ops, text='予選のあと決勝の前に。\nラインはそのまま', foreground='#666').grid(row=2, column=1, sticky='w', padx=8)
+        ttk.Button(ops, text='回収したものを開く', width=26, command=lambda: self.open_path(REPO / 'drive_logs')).grid(row=3, column=0, sticky='w', pady=(6, 1))
+        ttk.Label(ops, text='drive_logs', foreground='#666').grid(row=3, column=1, sticky='w', padx=8)
 
+        lte = ttk.LabelFrame(right, text='LTEで（本体から離れているとき）', padding=8)
+        lte.pack(fill='x', pady=(0, 8))
+        for i, (label, op) in enumerate(LTE_DAILY):
+            ttk.Button(lte, text=label, width=22, command=lambda o=op: self.remote(o)).grid(row=0, column=i, sticky='w', padx=(0, 6), pady=1)
+        ttk.Label(lte, text='返事まで数秒〜30秒。結果は下のメモに出ます', foreground='#666').grid(row=1, column=0, columnspan=2, sticky='w', pady=(4, 0))
+
+        logbox = ttk.LabelFrame(right, text='メモ（操作の結果）', padding=4)
+        logbox.pack(fill='both', expand=True, pady=(0, 8))
+        self.log = tk.Text(logbox, height=6, width=40, wrap='word', state='disabled', background='#fafafa', relief='flat')
+        self.log.pack(fill='both', expand=True)
+
+        # 設定・調べものは別の窓に分けておく（ふだんは開かない）
+        self.more = None
+        ttk.Button(outer, text=MORE_LABEL, command=self.open_more).pack(anchor='w', pady=(4, 4))
+
+        self.fit()
+        self.refresh()
+        self.root.after(REFRESH_S * 1000, self.tick)
+
+    # -- 共通
+    def open_more(self):
+        """「設定・調べもの」の窓を開く（開いていれば前へ出す）"""
+        if self.more is not None and self.more.winfo_exists():
+            self.more.deiconify()
+            self.more.lift()
+            return
+        win = self.more = tk.Toplevel(self.root)
+        win.title('EcoLogger Ver.2 設定・調べもの')
+        more_cols = ttk.Frame(win, padding=12)
+        more_cols.pack(fill='x')
+        more_cols.columnconfigure(0, weight=1, uniform='m')
+        more_cols.columnconfigure(1, weight=1, uniform='m')
+        mleft, mright = ttk.Frame(more_cols), ttk.Frame(more_cols)
+        mleft.grid(row=0, column=0, sticky='nsew', padx=(0, 4))
+        mright.grid(row=0, column=1, sticky='nsew', padx=(4, 0))
         for n, (title, tools) in enumerate(TOOL_GROUPS):
-            frame = ttk.LabelFrame(right if n == 1 else left, text=title, padding=8)
+            frame = ttk.LabelFrame(mleft if n == 0 else mright, text=title, padding=8)
             frame.pack(fill='x', pady=(0, 8))
             frame.columnconfigure(1, weight=1)
             for i, (label, cmd, args, adb_ok, note) in enumerate(tools):
                 ttk.Button(frame, text=label, width=26,
                            command=lambda c=cmd, a=args, o=adb_ok: self.launch(c, a, o)).grid(row=i, column=0, sticky='w', pady=1)
-                ttk.Label(frame, text=note, foreground='#666', wraplength=190).grid(row=i, column=1, sticky='w', padx=8)
-
-        lte = ttk.LabelFrame(right, text='LTEで（本体から離れているとき・5Bの中継経由）', padding=8)
-        lte.pack(fill='x', pady=(0, 8))
-        for i, (label, op) in enumerate([('状態を聞く', 'status'), ('ラップを0周に戻す…', 'lap_reset'),
-                                         ('周回数を直す…', 'lap_count'), ('いまから計測を始める…', 'lap_start'),
-                                         ('記録を始める…', 'log_start')]):
-            ttk.Button(lte, text=label, width=22, command=lambda o=op: self.remote(o)).grid(row=i // 2, column=i % 2, sticky='w', padx=(0, 6), pady=1)
-        ttk.Label(lte, text='返事まで数秒〜30秒。結果は下のメモに出ます', foreground='#666').grid(row=3, column=0, columnspan=2, sticky='w', pady=(4, 0))
-
-        misc = ttk.LabelFrame(left, text='開く', padding=8)
+                ttk.Label(frame, text=note, foreground='#666', wraplength=250).grid(row=i, column=1, sticky='w', padx=8)
+        lte_more = ttk.LabelFrame(mright, text='LTEで送るほかの命令', padding=8)
+        lte_more.pack(fill='x', pady=(0, 8))
+        for i, (label, op) in enumerate(LTE_MORE):
+            ttk.Button(lte_more, text=label, width=22, command=lambda o=op: self.remote(o)).grid(row=i // 2, column=i % 2, sticky='w', padx=(0, 6), pady=1)
+        ttk.Label(lte_more, text='結果はメニューの窓のメモに出ます', foreground='#666').grid(row=2, column=0, columnspan=2, sticky='w', pady=(4, 0))
+        misc = ttk.LabelFrame(mright, text='開く', padding=8)
         misc.pack(fill='x', pady=(0, 8))
-        ttk.Button(misc, text='drive_logs（回収したもの）', width=26, command=lambda: self.open_path(REPO / 'drive_logs')).pack(anchor='w', pady=1)
         ttk.Button(misc, text='hud.ini（計器の配置）', width=26, command=lambda: self.open_path(TOOLS / 'video_hud' / 'hud.ini')).pack(anchor='w', pady=1)
         ttk.Button(misc, text='SUGOの当日の手順書', width=26, command=lambda: self.open_path(REPO / 'sugo_day_manual_20261108.html')).pack(anchor='w', pady=1)
+        win.update_idletasks()
+        win.geometry(f'1000x{win.winfo_reqheight() + 8}')
 
-        logbox = ttk.LabelFrame(right, text='メモ（操作の結果）', padding=4)
-        logbox.pack(fill='both', expand=True, pady=(0, 8))
-        self.log = tk.Text(logbox, height=8, width=40, wrap='word', state='disabled', background='#fafafa', relief='flat')
-        self.log.pack(fill='both', expand=True)
+    def fit(self, grow_only=False):
+        """窓の高さを中身に合わせる（画面からはみ出さない）。grow_only なら、足りないときだけ伸ばす
+        （状態の行が増えたとき。30秒ごとに読むたび、ユーザーが広げた窓を縮めないように）"""
+        self.root.update_idletasks()
+        height = min(self.root.winfo_reqheight() + 8, self.root.winfo_screenheight() - 80)
+        if grow_only and height <= self.root.winfo_height():
+            return
+        self.root.geometry(f'{max(self.root.winfo_width(), 1000) if grow_only else 1000}x{height}')
 
-        self.refresh()
-        self.root.after(REFRESH_S * 1000, self.tick)
-
-    # -- 共通
     def add_log(self, text):
         def put():
             self.log.configure(state='normal')
@@ -430,6 +479,7 @@ class Menu:
             ttk.Label(self.grid, text=('★ ' if warn else '') + str(value), wraplength=820,
                       style='Warn.TLabel' if warn else 'TLabel').grid(row=i, column=1, sticky='w', pady=1)
         self.updated.configure(text=f'{datetime.now():%H:%M:%S} に読みました（{REFRESH_S}秒ごと）')
+        self.fit(grow_only=True)
 
     # -- 本体を操作
     def switch_screen(self, which):
