@@ -292,6 +292,28 @@ class CollectTests(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_a_second_launch_opens_the_running_page_instead_of_sharing_the_port(self):
+        app = vc.App(self.pc, None, link=self.link)
+        app.refresh()
+        first = vc.make_server(app, 0)
+        port = first.server_port
+        threading.Thread(target=first.serve_forever, daemon=True).start()
+        try:
+            self.assertEqual(vc.running_app(port), f'http://127.0.0.1:{port}/')
+            second = vc.make_server(app, port)  # 同じ番号では待てず、別の番号になる
+            try:
+                self.assertNotEqual(second.server_port, port)
+            finally:
+                second.server_close()
+            with patch.object(vc, 'App', side_effect=AssertionError('本体を探しに行かない')), \
+                    patch.object(vc.webbrowser, 'open') as opened:
+                self.assertEqual(vc.main(['--port', str(port), '--out', str(self.pc.root)]), 0)
+            opened.assert_called_once_with(f'http://127.0.0.1:{port}/')
+        finally:
+            first.shutdown()
+            first.server_close()
+        self.assertIsNone(vc.running_app(port))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

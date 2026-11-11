@@ -1034,9 +1034,32 @@ def make_server(app, port):
             pass
 
     try:
-        return ThreadingHTTPServer(('127.0.0.1', port), Handler)
+        return OnlyServer(('127.0.0.1', port), Handler)
     except OSError:
-        return ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        return OnlyServer(('127.0.0.1', 0), Handler)
+
+
+class OnlyServer(ThreadingHTTPServer):
+    """同じ番号で2つ目が待てないようにする。Windowsは「使い回し可」にすると、
+    もう開いている回収アプリと同じ番号で2つ目も待ててしまい、画面の読み込みやボタンが
+    回収中でない方へ届く（2026-11-11、SDの回収中に2つ目を開いて起きた）"""
+    allow_reuse_address = False
+
+    def server_bind(self):
+        if hasattr(socket, 'SO_EXCLUSIVEADDRUSE'):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
+def running_app(port):
+    """この番号で回収アプリがもう開いていれば、そのURL"""
+    url = f'http://127.0.0.1:{port}/'
+    try:
+        with urllib.request.urlopen(url + 'api/state', timeout=3) as r:
+            state = json.loads(r.read())
+    except (OSError, ValueError):
+        return None
+    return url if isinstance(state, dict) and 'job' in state and 'sd' in state else None
 
 
 def serve(app, port, open_browser=True):
@@ -1081,6 +1104,13 @@ def main(argv=None):
         except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
             print(f'【要確認】{exc}')
             return 1
+    url = running_app(args.port)
+    if url:
+        print(f'回収アプリはもう開いています。その画面を開きます: {url}')
+        print('（回収中ならそのまま続いています。この窓は閉じてかまいません）')
+        if not args.no_browser:
+            webbrowser.open(url)
+        return 0
     app = App(PcStore(args.out), args.ssh or None)
     print('本体を探しています…')
     app.refresh()
