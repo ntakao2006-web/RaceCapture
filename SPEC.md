@@ -213,8 +213,8 @@
 | `tools/home_telemetry/` | ピットのページ。そのまま |
 | `tools/unoq_overlay_enc/` | 本体の録画のソフト。置き場所を本体のソフトの側（`EcoCapture-Web/`・`RaceCapture-UNOQ/`と同じ並び）へ移すか要検討 |
 | `tools/dev/race_replay/`・`tools/dev/podium_replay/`・`tools/dev/unoq_spi_sd_test/`・`tools/dev/can1_loss/` | 開発・調べもの用。`tools/dev/` のような1か所へ |
-| `tools/voice_gate/`・`tools/discord_bridge/` | 通話（範囲外）。しまう |
-| `tools/record_sheet/` | エコランの記録表。ロガーとは別の用事なので置き場所を分ける |
+| `archive/voice/voice_gate/`・`archive/voice/discord_bridge/` | 通話（範囲外）。しまう |
+| `ecorun/record_sheet/` | エコランの記録表。ロガーとは別の用事なので置き場所を分ける |
 
 本体の中も同じ見方で見直す：`RaceCapture-UNOQ/` には公式アプリ用の表示・試験・古い候補のファイルが混ざっているので、いま動いているもの（DASH・見守り役）を残し、公式アプリとその切り替えの仕組みは外す（9-1の7）。
 

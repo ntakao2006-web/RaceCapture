@@ -313,7 +313,7 @@ USB-Cは1口なので、カメラ使用中はUNO Qがホスト側になり**USB�
 接続：UNO QのUSB-C → ドック（USB2.0ハブ `214b:7250`）→ USBカメラ（BSWHD06M、480Mbps）＋USBオーディオ（USB Lavalier Mic Pro `31b2:0011`、12Mbps、マイク1ch＋再生2ch）。作業は研究室Wi-Fi（masa_lab）のssh。
 
 - 両方とも挿すだけで認識（`uvcvideo`／`snd-usb-audio`）。デバイス番号は5-7と同じくカメラが`/dev/video0,1`、エンコーダが`/dev/video2`、デコーダが`/dev/video3`へずれる。音声はカード番号でなく**名前（`plughw:CARD=Pro`）で指定**する
-- 焼き込み（カメラ720p MJPEG → GPU → HWエンコーダ、600フレーム）と、USBオーディオからの録音＋声の無音判定（RNNoise旧版、`tools/voice_gate/voice_gate_live.c`）を**同時に40秒**回した：
+- 焼き込み（カメラ720p MJPEG → GPU → HWエンコーダ、600フレーム）と、USBオーディオからの録音＋声の無音判定（RNNoise旧版、`archive/voice/voice_gate/voice_gate_live.c`）を**同時に40秒**回した：
   - 焼き込み：600/600フレーム、11.7fps（5-7と同じくカメラ律速）、JPEG展開19.8ms・アップロード8.7ms・重ね描き9.5ms・NV12変換6.5ms、プロセスは1コアの29%。目視で映像・重ね描きとも正常
   - 音声判定：1フレーム（10ms）あたり平均1.76ms・最大4.59ms、取りこぼし無し
   - CPU全体（常駐サービス込み・4コア）33%、温度43.4→44.3℃

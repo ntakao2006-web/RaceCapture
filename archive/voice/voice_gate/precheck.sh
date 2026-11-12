@@ -1,7 +1,7 @@
 #!/bin/sh
-# Read-only check of the UNO Q before a manned voice test (handoff_20261020_voice_field_test.md, ch. 2).
+# Read-only check of the UNO Q before a manned voice test (archive/voice/handoff_20261020_voice_field_test.md, ch. 2).
 # Changes nothing. From the PC:
-#   ssh unoq 'sh -s' < tools/voice_gate/precheck.sh
+#   ssh unoq 'sh -s' < archive/voice/voice_gate/precheck.sh
 # Each line starts with OK / NG / -- (information only).
 ok() { echo "OK  $*"; }
 ng() { echo "NG  $*"; }

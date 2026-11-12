@@ -7,7 +7,7 @@
 ## 貼り付ける文
 
 ```
-handoff_20261020_voice_field_test.md を読んで、そこに書いた有人の通話試験を一緒に進めてほしい。
+archive/voice/handoff_20261020_voice_field_test.md を読んで、そこに書いた有人の通話試験を一緒に進めてほしい。
 試験は2人（僕＝ドライバー役、作業アシスタント＝ピット役）で行う。
 まず2章「試験の前に確かめること」を順に確認して、準備ができたら3章のT1から始めよう。
 音を出す前には、何を何秒鳴らすかを先に言うこと。
@@ -33,19 +33,19 @@ handoff_20261020_voice_field_test.md を読んで、そこに書いた有人の�
 - USB-Cイヤホンのマイクは29Hzのうなりが強く声が小さい → 音声エージェントに低音カット（250Hz）と自動の増幅（目標−16dBFS・上限+30dB）。Discordで「少しガビガビだが言葉は取れる」
 - Discord Botが会話を重ねると落ちる不具合（opusscriptのメモリ）を修正
 - ピットからDiscordの **`/ecologger audio`** で、声の大きさ・増幅の上限・低音カット・ビットレート・イヤホンの音量を見る・変えられる（中継サーバーの`logger.config`、自宅版のみ）
-- 録音で各段を聞き比べる道具：`ssh unoq sh ~/audio_check/mic_check.sh 10`（`tools/voice_gate/mic_check.sh`）
+- 録音で各段を聞き比べる道具：`ssh unoq sh ~/audio_check/mic_check.sh 10`（`archive/voice/voice_gate/mic_check.sh`）
 - 次に試すこと：電波の良い場所で抜き挿し・風切り音・`/ecologger audio`の実操作
 
 ### T1の段取り（Wi-Fi・室内、ピット→ドライバー）
 1. ピット役：Discordの個人テストサーバーのボイスチャンネルに入り、`/ecologger join`。`/ecologger status`で部屋`voice-test`につながったことを見る
 2. ドライバー役：イヤホンはまだ耳に入れず手に持つ（音量は80%で鳴る。初回は大きさを確かめてから耳へ）
 3. ピット役が「1、2、3…」と数える → ドライバー役がイヤホンで聞く。「せーの」で同時に数えて遅れを測る
-4. 確かめ：`ssh unoq 'sh -s' < tools/voice_gate/precheck.sh` の`played`が増えていること
+4. 確かめ：`ssh unoq 'sh -s' < archive/voice/voice_gate/precheck.sh` の`played`が増えていること
 | 送信まわりの未コミット変更（LTEの電波品質`radio`を`/api/podium`に出す） | 自宅サーバー上で`test_podium`が通ることを確認。UNO Qへは未配置 |
 
 UNO Qに入れたら、まずこれ（読むだけで何も変えない）：
 ```
-ssh unoq 'sh -s' < tools/voice_gate/precheck.sh
+ssh unoq 'sh -s' < archive/voice/voice_gate/precheck.sh
 ```
 `NG`が出たときの対処：
 - RNNoise未配置・`ecocapture-voice`が動いていない → UNO Qの`~/EcoCapture-Web`で`sh install-voice-agent.sh`（新個体はgccが無いので、Dockerでビルドする版に直してある）
@@ -91,7 +91,7 @@ ssh unoq 'sh -s' < tools/voice_gate/precheck.sh
 | T3 | 交互に会話（無線のように） | 使い物になる遅れか。イヤホンの音をマイクが拾ってピットに返っていないか（エコー） |
 | T4 | わざと同時に話す | `VoiceGuard`がいつ止めるか、止まった後どう戻るか |
 | T5 | 騒音の中（車のエンジン音・走行音の録音を鳴らす、または実車） | 騒音だけでゲートが開かないか。騒音の中の声が通るか |
-| T6 | LTEに切り替えて屋外でT1〜T3 | 遅れ、テレメトリの件数/秒（`tools/voice_gate/telemetry_rate.py`）、切断 |
+| T6 | LTEに切り替えて屋外でT1〜T3 | 遅れ、テレメトリの件数/秒（`archive/voice/voice_gate/telemetry_rate.py`）、切断 |
 
 記録：各試験で「聞こえ方（言葉が取れたか）・遅れの秒数・切れたか・エコー」と、UNO Qの`/api/podium`の`voice_*`カウンタ・`voice_pauses`。
 

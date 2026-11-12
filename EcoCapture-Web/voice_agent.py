@@ -10,7 +10,7 @@ interface and talks to podium.py over Unix datagrams in /run/ecocapture-voice:
                    b'A'+json   status, answered to every b'S1' and b'C'
   podium -> agent  b'C'+json   new settings from the pit (SETTINGS keys, any subset)
 
-The driver has no push-to-talk button: RNNoise (v0.1.1, see tools/voice_gate)
+The driver has no push-to-talk button: RNNoise (v0.1.1, see archive/voice/voice_gate)
 says per 10 ms whether it is speech, and only speech is encoded and sent. The
 microphone is read only while uplink is wanted, so it costs nothing otherwise.
 Devices are chosen like a phone does (Agent.router, re-checked every
@@ -376,7 +376,7 @@ class RNNoise:
 
 
 class Gate:
-    """VoiceGate of tools/voice_gate/voice_gate.py over a speech probability."""
+    """VoiceGate of archive/voice/voice_gate/voice_gate.py over a speech probability."""
     def __init__(self):
         self.pre = collections.deque(maxlen=PREROLL)
         self.talking = False

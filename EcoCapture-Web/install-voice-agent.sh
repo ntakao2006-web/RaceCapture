@@ -1,6 +1,6 @@
 #!/bin/sh
 # Run on UNO Q. Builds RNNoise v0.1.1 (the newer v0.2 is too slow here, see
-# tools/voice_gate/README.md) and installs the driver-voice helper as a service.
+# archive/voice/voice_gate/README.md) and installs the driver-voice helper as a service.
 # Needs the internet once for the RNNoise sources (or an existing ~/rnnoise_v011).
 set -eu
 cd /home/arduino/EcoCapture-Web

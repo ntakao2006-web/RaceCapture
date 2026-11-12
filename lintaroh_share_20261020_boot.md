@@ -53,5 +53,5 @@
 
 ## 5. 確認に使ったもの
 
-- 測定：`tools/voice_gate/boot_to_lte.sh`（送信設定をLTEにしたまま電源を入れ、2秒ごとに状態を記録。UNO Qの`~/audio_check/boot_runs/`に結果）
+- 測定：`archive/voice/voice_gate/boot_to_lte.sh`（送信設定をLTEにしたまま電源を入れ、2秒ごとに状態を記録。UNO Qの`~/audio_check/boot_runs/`に結果）
 - 記録：`task_ecorun_20261024_breakdown.md`のER-1-4（2026-10-20）
