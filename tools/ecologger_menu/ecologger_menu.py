@@ -393,7 +393,7 @@ class Menu:
         misc = ttk.LabelFrame(mright, text='開く', padding=8)
         misc.pack(fill='x', pady=(0, 8))
         ttk.Button(misc, text='hud.ini（計器の配置）', width=26, command=lambda: self.open_path(TOOLS / 'video_hud' / 'hud.ini')).pack(anchor='w', pady=1)
-        ttk.Button(misc, text='SUGOの当日の手順書', width=26, command=lambda: self.open_path(REPO / 'sugo_day_manual_20261108.html')).pack(anchor='w', pady=1)
+        ttk.Button(misc, text='SUGOの当日の手順書', width=26, command=lambda: self.open_path(REPO / 'docs/manual/sugo_day_manual_20261108.html')).pack(anchor='w', pady=1)
         win.update_idletasks()
         win.geometry(f'1000x{win.winfo_reqheight() + 8}')
 

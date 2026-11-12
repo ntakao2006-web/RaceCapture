@@ -3,7 +3,7 @@
 調べた結果と直し方の案: docs/share/lintaroh_share_20261104_can1.md
 
 数え方は2つ。
-  1. NCECの0x211のbyte7は1フレームごとに+1するカウンタ（ncec_can_spec.md）。飛んだ数＝取りこぼし（正確）
+  1. NCECの0x211のbyte7は1フレームごとに+1するカウンタ（docs/design/ncec_can_spec.md）。飛んだ数＝取りこぼし（正確）
   2. 周期が一定のIDごとに、間隔が周期の1.5倍を超えたところを数える（全IDの見積もり）
 本体ではさらに、STM32の can_counts・can_overflow の増え方と、eMMCのCAN生ログの行数を比べる。
 

@@ -11,7 +11,7 @@
 
 > **この資料の位置づけ**
 >
-> これまで`LOGGER_V2_UNOQ_REPORT.md`・`LOGGER_V2_LTE_MODEM_QUESTIONS.md`・
+> これまで`docs/research/LOGGER_V2_UNOQ_REPORT.md`・`docs/research/LOGGER_V2_LTE_MODEM_QUESTIONS.md`・
 > `docs/share/hardware_share_20260915.md`と資料を分けて作ってきたが、**どれもまだ渡せていなかった。**
 > そこで**「いま回路担当に聞きたいこと・伝えたいこと」を1枚に集約**したのがこの文書。
 >
@@ -42,7 +42,7 @@
 
 ### 1-1. ✅ GNSSはVer.1と同じ`MAX-M10M-00B`を継続使用する（NEO-M9Nへの変更は取り下げ）
 
-`LOGGER_V2_UNOQ_REPORT.md`で「GNSSを`NEO-M9N-00B`へ変更したい」と書いていたが、
+`docs/research/LOGGER_V2_UNOQ_REPORT.md`で「GNSSを`NEO-M9N-00B`へ変更したい」と書いていたが、
 **入手が困難なため取り下げる。Ver.2もVer.1と同じMAX-M10M-00Bでいく。**
 
 **この結果、同レポート5.2章の依頼（B-1〜B-5）と5.3章C-1は、まるごと不要になった。**
@@ -81,7 +81,7 @@
 
 **この2本はソフトでは後から取り返せず、基板を作り直さないと追加できない。**
 姿勢の算出アルゴリズムは後から選び直せるが、配線だけは今しか入れられないので、
-**確定の要求としてお願いしたい**（詳細：`LOGGER_V2_UNOQ_REPORT.md` 2.5章・5.1章・7.1章）。
+**確定の要求としてお願いしたい**（詳細：`docs/research/LOGGER_V2_UNOQ_REPORT.md` 2.5章・5.1章・7.1章）。
 
 ---
 
@@ -278,7 +278,7 @@ glxinfo -B 2>/dev/null | grep -Ei "renderer|opengl es"
 | 1 | **R35（車載CAN終端）はDNPか実装済みか。** 仕様書の「ハンダジャンパー方式」を実回路に合わせて訂正してよいか | 同4-4 |
 | 2 | **追加センサーのCANハブをどちらのバスへ載せるか**（車載CANへ直接 or 外部CANでロガー中継）。車載側なら占有率の上限をどこに置くか | 同1-3・2-5 |
 | 3 | **外部CANのID採番・フレームフォーマット・チャンネル別送信レート**。とくにシフトインジケーター用の回転数に必要な応答速度 | 同2-5 |
-| 4 | **油温・油圧センサーの型番選定とアンプ要否**（センサー側がmV級なら計装アンプが要る）。**車両CANから取れないことは実測で確定済み**なので、ここがボトルネック | 同2-2、`hardware_interface_spec.md`6章 |
+| 4 | **油温・油圧センサーの型番選定とアンプ要否**（センサー側がmV級なら計装アンプが要る）。**車両CANから取れないことは実測で確定済み**なので、ここがボトルネック | 同2-2、`docs/design/hardware_interface_spec.md`6章 |
 | 5 | **車体系（ウィンカー・ブレーキランプ等）はOBD2ポートからは取れない**と実測で確定した。これらをログしたい場合、**別バスへのタップか、専用のデジタル入力を回路側に持つか**の方針判断 | 同2-2 |
 | 6 | **USBコネクタの機械的固定（ストレインリリーフ）**を筐体・基板側の要件に入れたい | 同3-3 |
 | 7 | **本番機のマイコン**：実車実証はESP32-C3（解析基板）とESP32-S3（`ecologger_v1`）で実施済みだが、**S3での長時間走行キャプチャはまだ**。次回実車で並行記録して確認する予定 | — |
@@ -288,7 +288,7 @@ glxinfo -B 2>/dev/null | grep -Ei "renderer|opengl es"
 - **1 → ✅ R35は未実装が正。** 以前共有した実装状態では**車載CAN側の終端抵抗は未実装**。
   仕様書の「**ハンダジャンパー切替**」という表現は**実回路に合わせて訂正する方向でよい**。
   ただし**基板ごとの実装状態は区別すること**。
-  → `hardware_interface_spec.md`3章-1・3章-15を訂正済み
+  → `docs/design/hardware_interface_spec.md`3章-1・3章-15を訂正済み
 - **2 → ✅ 外部CAN側へ接続し、ロガーが中継する既存案を基本にする。**
   **車両CANへ独自センサーフレームを直接流す構成は、現段階では採らない。**
 - **3 → ⏳ 未確定。** シフトインジケーター用回転数は**50〜100Hzを初期案**とし、
@@ -303,7 +303,7 @@ glxinfo -B 2>/dev/null | grep -Ei "renderer|opengl es"
   **対象NCECではブレーキペダル状態を車両CANから取得済み**なので、
   「ブレーキ情報がすべて取れない」という意味ではない。
   **追加で必要な信号を絞ってから**、外部CANハブ側の入力等を検討する。
-  → **絞り込みはこちらの宿題**（同6章の8。`ncec_can_spec.md`と突き合わせる）
+  → **絞り込みはこちらの宿題**（同6章の8。`docs/design/ncec_can_spec.md`と突き合わせる）
 - **6 → ✅ 賛成。** ストレインリリーフを筐体要件に入れる考え方に同意。
   **固定方法・抜き差し方向・ケーブルの曲げ空間**を、基板配置と合わせて決めたい
 - **7 → ✅ Ver.1のESP32-S3とVer.2のSTM32U585は分けて評価する。**
@@ -415,11 +415,11 @@ glxinfo -B 2>/dev/null | grep -Ei "renderer|opengl es"
 | 資料 | 内容 |
 |---|---|
 | **`docs/share/hardware_ans_20260921.md`** | 🔴 **この資料に対する回路担当からの回答（原文＋その後のやり取り）。6章にこちら側の宿題10件** |
-| `LOGGER_V2_UNOQ_REPORT.md` | **Ver.2のGNSS選定とセンサーフュージョン構想。**2.5章＝姿勢の問題と3つの解法、5章＝配線の依頼、6章＝UNO Q実機確認、7章＝決定事項 |
-| `LOGGER_V2_LTE_MODEM_QUESTIONS.md` | **LTEモデムまわりの相談。**P-3〜P-9・M-1〜M-5の元資料 |
-| `LOGGER_V2_LTE_MODEM_REPORT.md` | LTEモデム（SIM7070G）の下調べ。5.2章＝GNSS干渉 |
+| `docs/research/LOGGER_V2_UNOQ_REPORT.md` | **Ver.2のGNSS選定とセンサーフュージョン構想。**2.5章＝姿勢の問題と3つの解法、5章＝配線の依頼、6章＝UNO Q実機確認、7章＝決定事項 |
+| `docs/research/LOGGER_V2_LTE_MODEM_QUESTIONS.md` | **LTEモデムまわりの相談。**P-3〜P-9・M-1〜M-5の元資料 |
+| `docs/research/LOGGER_V2_LTE_MODEM_REPORT.md` | LTEモデム（SIM7070G）の下調べ。5.2章＝GNSS干渉 |
 | `docs/share/hardware_share_20260915.md` | **CANバス負荷の実測・どのCANに何が何Hzで載るか・4輪速の特定。**5-2の7項目の判断材料 |
-| `hardware_interface_spec.md` | 入出力インターフェース仕様書（6章＝追加センサー） |
-| `ncec_can_spec.md` | NCECのCAN通信仕様（ID・バイトマップ・デコード式・OBD2） |
+| `docs/design/hardware_interface_spec.md` | 入出力インターフェース仕様書（6章＝追加センサー） |
+| `docs/design/ncec_can_spec.md` | NCECのCAN通信仕様（ID・バイトマップ・デコード式・OBD2） |
 | `circuit/logger_v1/logger_v1.net` | **Ver.1基板の部品・配線の正**（BOM csvは古いので見ないでほしい） |
 | `firmware/logger_v1/` | Ver.1の本番ファームウェア。`VERIFICATION.md`＝卓上試験の結果 |

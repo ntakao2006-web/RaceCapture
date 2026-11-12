@@ -5,12 +5,12 @@ RaceCaptureのロギングシステムのうち、ロガー端末部分だけを
 ## まずはここを見てください
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — プロジェクト全体の唯一の一次情報源（目的・全体構成・現状ステータス・開発ロードマップ）
-- **[hardware_interface_spec.md](hardware_interface_spec.md)** — 電気・回路系担当の方向け：入出力インターフェース仕様・相談事項まとめ
+- **[docs/design/hardware_interface_spec.md](docs/design/hardware_interface_spec.md)** — 電気・回路系担当の方向け：入出力インターフェース仕様・相談事項まとめ
   - 友人とのミーティング前は **[docs/share/hardware_meeting_agenda.md](docs/share/hardware_meeting_agenda.md)**（進め方の道しるべ）も参照
 
 ## その他の主なドキュメント
 
 - [HANDOFF.md](HANDOFF.md) — RaceCapture JSON通信プロトコルの実測仕様
-- [OBD2_SURVEY.md](OBD2_SURVEY.md) — 実車OBD2/CAN調査の記録
+- [docs/research/OBD2_SURVEY.md](docs/research/OBD2_SURVEY.md) — 実車OBD2/CAN調査の記録
 - `task_phaseX_breakdown.md` — 各開発フェーズのサブタスク分解
 - `firmware/` — ESP32向けファームウェア（PlatformIO / ESP-IDF）

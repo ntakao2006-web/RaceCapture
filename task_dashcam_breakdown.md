@@ -2,11 +2,11 @@
 
 > **2026-10-28 整理（ユーザー了承）**：もう進めない項目を閉じた。`[x]`でも完了ではなく、**【廃止】＝今後やらない**、**【凍結】＝止めておき、書いた条件がそろえば再開**。理由は各項目の印の中に書いた。
 
-> `DASHCAM_STREAMING_RESEARCH.md`（調査記録）7章「次のステップ」を受けての実作業ログ。
+> `archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`（調査記録）7章「次のステップ」を受けての実作業ログ。
 > ARCHITECTURE.mdの本編ロードマップ（Phase0〜5）とは独立した派生検討のため、
 > タスクIDは`X-Y-Z`ではなく`DC-N`で採番する（8章のタスク分解ルールに準拠した運用）。
 > 完了したタスクはこのファイル内でチェックし、区切りがついたら結論だけ
-> `DASHCAM_STREAMING_RESEARCH.md`へ転記する。
+> `archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`へ転記する。
 
 ---
 
@@ -355,7 +355,7 @@ Core i5 第7世代、メモリ24GB、SSDは今回のAMD機で使っていたも�
       通用するか検証 ※未着手、新規ハードウェアの入手が前提
   - EliteDesk自体は約1.2kgと車載搭載には重量面で不利なため、軽量機材での再現性確認が必要
   - 候補機材がUbuntu 24.04専用（22.04非対応）でないかの事前確認も必要
-  - DASHCAM_STREAMING_RESEARCH.md 5章の候補一覧（N100ミニPC/UP 7000/ODROID-H4/
+  - archive/dashcam/DASHCAM_STREAMING_RESEARCH.md 5章の候補一覧（N100ミニPC/UP 7000/ODROID-H4/
     Mini-ITX裸基板等）を参照
 - [x] 【廃止 2026-10-28：2026-10-15にROCK 5Bをダッシュカム用途から外して自宅サーバーにした（OSも入れ替え済み）。車載の表示・録画はVer.2（UNO Q）へ移った】DC-7-4: 車載電源の保護回路との統合 ※未着手、ハードウェア領域につき友人と要相談
   - ARCHITECTURE.md Phase 4で計画済みの車載電源保護回路（本体RaceCapture/ESP32側）とは別に、
@@ -383,7 +383,7 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
 （LattePanda等）とARM系SBC（Rockchip RK3588搭載機）を比較検討した結果、
 **コスト面で明確に有利なRadxa ROCK 5Bへの移行**を検討・決定した。判断の詳細な経緯・
 比較・トレードオフ、および電源回路設計に関わる仕様は、友人（電源回路設計担当）への
-共有レポートとして`DASHCAM_ROCK5B_REPORT.md`にまとめてある（本タスクの補足資料と
+共有レポートとして`archive/dashcam/DASHCAM_ROCK5B_REPORT.md`にまとめてある（本タスクの補足資料と
 兼用）。
 
 > ⚠️ **2026-08-15追記・最優先事項**：「配信用ダッシュ」と「走行中表示用ダッシュ」を
@@ -391,7 +391,7 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
 > 別出力＋別レイアウト検証、シリアル共有用fan-outブリッジデーモンの試作、CPU/GPU負荷実測）
 > にかかっていることが判明した。ROCK 5B・Raspberry Pi・EliteDesk問わず、何か具体的な
 > 作業（GPU描画確認・エンコーダ自作等）に着手する前に、まずDC-9-1-b〜dを最優先で
-> 確認すること。背景・調査結果は`DASHCAM_STREAMING_RESEARCH.md`8章参照。
+> 確認すること。背景・調査結果は`archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`8章参照。
 > ✅ **2026-08-21追記：DC-9-1-b〜d全て完了。「配信用ダッシュ」「走行中表示用ダッシュ」
 > 分離構想は実現可能と確定した**（Zaphodモードでの表示分離・fan-outブリッジでの
 > シリアル共有・2インスタンス+エンコード時の負荷とも問題なし）。各項目の詳細は
@@ -404,7 +404,7 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
       実現可能と確定した
       ⚠️ **ROCK 5B・Raspberry Pi問わず、何か具体的な作業に着手する前に必ずこのタスクの
       (b)〜(d)を最優先で確認すること**（2026-08-15、ユーザーからの強い指示）。詳細な調査結果・
-      背景は`DASHCAM_STREAMING_RESEARCH.md`8章参照。
+      背景は`archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`8章参照。
       🔵 **(b)〜(d)はEliteDesk（x86、DC-6-6-7で動作実績あり、次回学校からの帰宅後に検証予定）
       でも先行して着手できる**。Kivy/pyserialの挙動に依存する部分（マルチプロセス化・
       ブリッジデーモンの設計）はアーキテクチャ非依存。ただし(d)のCPU/GPU負荷の絶対値は
@@ -491,7 +491,7 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
           高く、長期化しうる。ROCK 5B上にはその調査環境がまだ無い（ゼロから構築が必要）
 
         「配信用ダッシュ」と「走行中表示用ダッシュ」を分離できるかどうかの構想全体を
-        左右する生命線。確認すべき点（`DASHCAM_STREAMING_RESEARCH.md`8.3節に詳細）：
+        左右する生命線。確認すべき点（`archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`8.3節に詳細）：
         1. Kivyアプリの複数プロセス起動自体は可能（Kivyの既知の制約、1プロセス1ウィンドウ）。
            `DISPLAY`環境変数や`Config`のウィンドウ位置設定で別出力に配置できるか
         2. race_captureのゲージレイアウト設定ファイルの保存先を2インスタンスで分離できるか
@@ -501,7 +501,7 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
            フォーク、公式`autosportlabs/RaceCapture_App`は非公開化済みだがこちらは現役）。
            詰まった場合はソースを読んで確認・改造できる。`main.py`の`-p`/`--port`引数で
            シリアルポートを明示指定可能、`user_data_dir`は`KIVY_HOME`環境変数で分離できる
-           見込みも実装から確認済み。詳細は`DASHCAM_STREAMING_RESEARCH.md`8.3節参照
+           見込みも実装から確認済み。詳細は`archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`8.3節参照
         - ⚠️ **EliteDeskでの実施時の注意点**：背面に**DisplayPort×2ポート標準搭載**
           （DC-6-1で判明済み）なので2系統独立出力の検証環境として使えるが、DC-2で
           「DP→D-Sub変換アダプター・VGA直結いずれもUbuntu起動直後に信号が消える」問題が
@@ -529,7 +529,7 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
           起因）自体が発生しなくなる**（各Xサーバーは自分の担当する1出力に
           1インスタンスしか扱わないため、ウィンドウ配置ロジックが本質的に不要）。
           EDID偽装によるXサーバー起動自体はDC-6-6-6/DC-6-6-7で実績あり。
-          詳細は`DASHCAM_STREAMING_RESEARCH.md`8.3.5節参照
+          詳細は`archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`8.3.5節参照
           - 🔵 **【2026-08-17追記・要検証】「race_captureプロセス自体を1つにまとめて表示だけ
             分割する」案はユーザーから提案されたが、Kivyの「1プロセス=1ウィンドウ」制約
             （フレームワークレベル、8.3節既出）により実現不可と判断し不採用。またPythonの
@@ -586,11 +586,11 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
           2インスタンス目だけでなく本番側（1インスタンス目）にも`SampleMetaException`
           多発・`sqlite3.IntegrityError`によるセッション記録DB破損が波及することを確認し、
           fan-outブリッジが必須であることも実証された。詳細は
-          `DASHCAM_STREAMING_RESEARCH.md`8.3.5節参照
+          `archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`8.3.5節参照
   - [x] 🔴 DC-9-1-d: **2インスタンス＋エンコード＋配信を同時実行した際のCPU/GPU負荷を実測
-        する**。`DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`4章のスペック検討は1インスタンス前提
+        する**。`archive/dashcam/DASHCAM_ROCK5B_SOFTWARE_HURDLES.md`4章のスペック検討は1インスタンス前提
         だったため、2インスタンス化での追加負荷が未検討のまま残っている。確認すべき点
-        （`DASHCAM_STREAMING_RESEARCH.md`8.3(g)に詳細）：
+        （`archive/dashcam/DASHCAM_STREAMING_RESEARCH.md`8.3(g)に詳細）：
         1. メモリ使用量（1インスタンス2GB未満の実績から、2インスタンスでも4GB未満の
            見込みだが実測で確認）
         2. CPUシングルコア負荷：`taskset`/cgroupsで2インスタンスをそれぞれ別のA76コアに
@@ -662,9 +662,9 @@ DC-7-3（軽量な車載向け機材での再検証）の代替候補として�
 - [x] DC-9-2: ROCK 5Bを購入する（USB PD対応電源、冷却ファン付きヒートシンク、
       eMMCモジュール16GB（OS起動用）、microSD（動画保存用・振動対策の物理固定を検討）を
       同時手配すること。M.2 NVMe SSDは消費電力・発熱の懸念から今回は見送り。
-      詳細仕様は`DASHCAM_ROCK5B_REPORT.md`4章参照） ※完了。2026-08-13、本体8GBモデル・
+      詳細仕様は`archive/dashcam/DASHCAM_ROCK5B_REPORT.md`4章参照） ※完了。2026-08-13、本体8GBモデル・
       eMMCモジュールを注文（USB PD対応電源・冷却ファン付きヒートシンク・microSDも
-      同時注文済み）。到着後の作業手順は`DASHCAM_ROCK5B_SETUP_GUIDE.md`にまとめた
+      同時注文済み）。到着後の作業手順は`archive/dashcam/DASHCAM_ROCK5B_SETUP_GUIDE.md`にまとめた
 - [x] DC-9-3: ROCK 5B上で`race_capture`アプリがMali GPU（Mali G610）上で正常に描画・
       起動できるか確認する（DC-5/DC-6で発生した`No matching FB config found`級の
       問題が再発しないか、が最大の技術的未知数） → 完了（2026-08-20、`task_phase4_breakdown.md`
@@ -1291,7 +1291,7 @@ DC-9-1（a〜e）でZaphodモード（`:0.0`/`:0.1`）＋fan-outブリッジ＋2
 ---
 
 *次のチャットでは「DC-9から進めて」のように指定すれば、このファイルと
-`DASHCAM_ROCK5B_REPORT.md`（ROCK 5B移行の背景・仕様まとめ）を参照して作業を再開できる。
+`archive/dashcam/DASHCAM_ROCK5B_REPORT.md`（ROCK 5B移行の背景・仕様まとめ）を参照して作業を再開できる。
 DC-7-3/DC-7-4（x86ルートでの軽量化・電源保護回路統合）はROCK 5B移行の検討によって
 優先度を下げた状態。DC-8（ライブテレメトリー）はユーザー確認済みのため追加作業不要。
 実際のYouTube Live等への本番RTMP配信（配信キーを使った疎通確認）はDC-7-2で

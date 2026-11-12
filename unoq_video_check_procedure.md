@@ -39,7 +39,7 @@ A53×4コアのCPUエンコードでは1080p30は回らない。そうなるとV
 
 Ver.1でROCK 5Bを使った際、公式`video-streamer`がIntel/AMDのVAAPI専用だったため
 Rockchip独自のRKMPPで同等機能を自作する羽目になった経緯がある
-（`DASHCAM_ROCK5B_REPORT.md`3章）。UNO Q（Qualcomm）は`venus`というV4L2 M2Mドライバを使い、
+（`archive/dashcam/DASHCAM_ROCK5B_REPORT.md`3章）。UNO Q（Qualcomm）は`venus`というV4L2 M2Mドライバを使い、
 APIがRaspberry Piと同じv4l2m2m系なので移植性は高いはずだが、
 **Arduino配布のDebianイメージでvenusが有効化されて出荷されているかは不明**のままである。
 
@@ -1433,6 +1433,6 @@ V-1〜V-4が通ったあとに、以下を同時に走らせて成立するか�
 |---|---|
 | `docs/share/hardware_ans_20260921.md` | **この手順書が生まれた経緯。**1章＝回答原文、6章の4・5＝こちらの宿題 |
 | `docs/share/hardware_share_20260921.md` | 3章に旧手順（D-1〜D-4）。**判定基準が誤っているので使わない** |
-| `LOGGER_V2_UNOQ_REPORT.md` | 4章＝UNO QとROCK 5Bの比較、7.2章＝E-3（保存のみ・1080p30・1カメラ）の決定 |
-| `DASHCAM_ROCK5B_REPORT.md` | Ver.1でVAAPI専用問題に当たった経緯（3章） |
+| `docs/research/LOGGER_V2_UNOQ_REPORT.md` | 4章＝UNO QとROCK 5Bの比較、7.2章＝E-3（保存のみ・1080p30・1カメラ）の決定 |
+| `archive/dashcam/DASHCAM_ROCK5B_REPORT.md` | Ver.1でVAAPI専用問題に当たった経緯（3章） |
 | `task_dashcam_breakdown.md` | ダッシュカム側のサブタスク（DC-9-8-4＝連続稼働試験） |

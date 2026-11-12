@@ -124,7 +124,7 @@ python podium_test_sender.py --seconds 60
 - LTE経由（UNO Q → STM32 → SIM7070G）の実効は約3フレーム/秒で、10Hzに届いていません。EcoCapture-Webの `LTE_PODIUM.md` 参照
 - 認証の `device`・`ver`・`sn` をロガーV2固有の値に変えても通るか
 
-分かり次第、このメモと `podium_connect_notes.md` を更新します。
+分かり次第、このメモと `docs/research/podium_connect_notes.md` を更新します。
 
 ## 7. 注意
 

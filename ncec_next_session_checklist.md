@@ -4,8 +4,8 @@
 > ここに載っている項目は、いずれも**実車が無いと絶対に解けない**もの。
 > 1回逃すと次にNCECへ繋げるまで丸ごと持ち越しになる（前回は5週間空いた）。
 >
-> 走行手順そのものは `ncec_field_procedure.md`、これまでの実測結果は
-> `OBD2_SURVEY.md`「NCEC 追補」を参照。
+> 走行手順そのものは `docs/manual/ncec_field_procedure.md`、これまでの実測結果は
+> `docs/research/OBD2_SURVEY.md`「NCEC 追補」を参照。
 
 **最終更新**：2026-09-12（A・B・C・Dを実施し解析まで完了。**残りはD(ファン)・B-2・E・Fのみ**）
 
@@ -45,7 +45,7 @@
 **油温・油圧センサーの選定が、Ver.2のセンサーハブ設計のボトルネックになっている**
 （`docs/share/hardware_ans_20260921.md`6章の7）。**既にDefiメーター用のセンサーが付いているので、
 新規に買うのではなくバッファ経由で分岐して読む案（A案）を本命にしたい**が、
-**型番と出力特性が分からないと判断できない**（`logger_v2_channel_and_sensor_spec.md`2-2章）。
+**型番と出力特性が分からないと判断できない**（`docs/design/logger_v2_channel_and_sensor_spec.md`2-2章）。
 
 **工具も計測も要らず、見るだけで済む。** 実車に触る機会に必ず消化する。
 
@@ -56,7 +56,7 @@
 3. **取付位置と、ねじ径・アダプタの有無**を撮る
 4. **メーター側のハーネス**がどこを通っているか、分岐点を作れそうな場所があるかを見る
 5. Defiのコントロールユニット（あれば）の型番も控える
-6. **テスターがあれば追加で測る**（2026-09-24追加、分岐回路の前提確認。詳細は`sensorhub_defi_tap_design.md`8章）：
+6. **テスターがあれば追加で測る**（2026-09-24追加、分岐回路の前提確認。詳細は`docs/design/sensorhub_defi_tap_design.md`8章）：
    IG ON・エンジン停止で、油圧センサーの**黒基準で赤（≒5 V）と白（≒0.58 V）**、**油温センサー信号線の電圧**（そのときの油温表示も控える）、
    **油温センサーのGND側と油圧の黒が導通しているか**、エンジン始動後に**黒とボディアース間の電圧**
    - 2026-10-04追記：方式をv2（サーミスタを切り離して直接測る＋デジタルポテンショメータで再現）に変えた。
@@ -297,7 +297,7 @@ python can_diff.py --base ncec_ops_p2_ops_base_nx.csv --test ncec_ops_p15_ops_ba
 `0x201` byte0-1 の回転数は `raw/4` で理論上16,383rpmまで表現できるが、
 **高回転域でも本当に線形のままか、リミッター付近で挙動が変わらないかは未検証**。
 安全な場所で上まで回す区間が一度あれば確認できる。**専用の手順は不要**で、
-`ncec_field_procedure.md` の通常の走行キャプチャに混ぜればよい。
+`docs/manual/ncec_field_procedure.md` の通常の走行キャプチャに混ぜればよい。
 
 ---
 
@@ -347,7 +347,7 @@ cd firmware/logger_v1/tools && python provision_ncec.py --port COM8 --output ../
 2. モバイルバッテリーをUSB-C（J2/J5のうちネイティブUSB側）へ挿す。**電源投入＝記録開始**。
 3. **車載CANはJ5**（Molex Micro-Fit 3.0 43045-0400、4回路）。**pin1=+5V／pin2=CANH／pin3=CANL／pin4=GND**。
    ⚠️ **繋ぐ前に必ずR35（終端120Ω）の実装有無を確認する。** ネットリスト上、R35はJ5のCANH-CANL間へ
-   **ジャンパ無しで直付け**されている（`hardware_interface_spec.md`の「ハンダジャンパーで切替」は実回路と
+   **ジャンパ無しで直付け**されている（`docs/design/hardware_interface_spec.md`の「ハンダジャンパーで切替」は実回路と
    一致しない。実際は未実装＝DNPで切り替える方式とみられる）。車両バスは両端終端済みで合成60Ωのため、
    R35が生きていると**40Ω**まで落ち、CANの規格（最低45Ω程度）を外れる。
    **確認方法**：基板の電源を切り、テスタでJ5の2番-3番間を測る。**開放なら未実装＝そのまま接続可**、
@@ -379,7 +379,7 @@ cd firmware/logger_v1/tools && python provision_ncec.py --port COM8 --output ../
 - [ ] COMポート番号（前回は **COM5**、`VID_303A`/`PID_1001`）
 - [ ] PCのスリープ無効化、USBケーブルを養生テープで固定
 - [ ] 空き容量2GB以上（NCECは**791 frame/s** 流れる。55分で181MB）
-- [ ] このファイルと `ncec_field_procedure.md` をスマホで開けるようにしておく
+- [ ] このファイルと `docs/manual/ncec_field_procedure.md` をスマホで開けるようにしておく
 
 **ecologger_v1を持ち込む場合（F参照）**
 
@@ -405,5 +405,5 @@ cd firmware/logger_v1/tools && python provision_ncec.py --port COM8 --output ../
 
 ## 済んだら
 
-各項目が終わったら、このファイルの一覧に取り消し線を引き、結果を `OBD2_SURVEY.md`
+各項目が終わったら、このファイルの一覧に取り消し線を引き、結果を `docs/research/OBD2_SURVEY.md`
 「NCEC 追補」へ追記して、`task_phase2_breakdown.md` の 2-4-8 のチェックボックスを更新する。

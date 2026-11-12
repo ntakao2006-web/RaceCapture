@@ -1,8 +1,8 @@
 # NCロードスター（NCEC）CAN通信仕様
 
 > **この文書の位置づけ**：NCECのCANバス上に実際に流れているものを、**仕様としてだけ**まとめたもの。
-> 測定手順・回路の話・プロジェクトの経緯は含まない（それらは`ncec_field_procedure.md`・
-> `vehicle_can_survey_summary.md`・`ARCHITECTURE.md`）。実装者がこの1枚だけ見れば
+> 測定手順・回路の話・プロジェクトの経緯は含まない（それらは`docs/manual/ncec_field_procedure.md`・
+> `docs/research/vehicle_can_survey_summary.md`・`ARCHITECTURE.md`）。実装者がこの1枚だけ見れば
 > デコーダを書ける状態を目指している。
 >
 > **確度は3段階で明示する**。推測を確定として書かない。
@@ -356,5 +356,5 @@ byte1が取った値は `0x00`（69.5%）・`0x02`（27.4%）・`0x06`（3.1%）
 
 - コミュニティ資料：[timurrrr/RaceChronoDiyBleDevice `can_db/mazda_mx5_nc.md`](https://github.com/timurrrr/RaceChronoDiyBleDevice/blob/master/can_db/mazda_mx5_nc.md)（`081`/`085`/`090`/`200`/`201`/`215`/`231`/`240`/`4B0` の9IDを収録）
 - [Mazda CAN Bus – Madox.NET](http://www.madox.net/blog/projects/mazda-can-bus/)
-- 本プロジェクト内：測定手順は`ncec_field_procedure.md`、解析の詳細と経緯は`OBD2_SURVEY.md`「NCEC 追補」、
-  車両横断の対照は`vehicle_can_survey_summary.md`
+- 本プロジェクト内：測定手順は`docs/manual/ncec_field_procedure.md`、解析の詳細と経緯は`docs/research/OBD2_SURVEY.md`「NCEC 追補」、
+  車両横断の対照は`docs/research/vehicle_can_survey_summary.md`

@@ -1,8 +1,8 @@
 # logger_v1 統合ファームウェアの要件・検証表
 
 基準: ユーザーがpullした `cf1c711` (2026-08-31確認)、ARCHITECTURE.md、
-hardware_interface_spec.md、HANDOFF.md、task_phase1/2/5/6_breakdown.md、
-OBD2_SURVEY.md、実回路 circuit/logger_v1/logger_v1.net、および当日のv1_test合格版。
+docs/design/hardware_interface_spec.md、HANDOFF.md、task_phase1/2/5/6_breakdown.md、
+docs/research/OBD2_SURVEY.md、実回路 circuit/logger_v1/logger_v1.net、および当日のv1_test合格版。
 この実装の完了を示すものではなく、以下の各項目に実装と証拠が必要です。
 回路とv1_testは変更しません。古いLSM6DSV16X/UART-IMU/DevKitピンは採用しません。
 

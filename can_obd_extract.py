@@ -40,7 +40,7 @@ OBD_RESP_HI = 0x7EF
 # PIDデコード表
 #   nbytes: 応答データ部の必要バイト数
 #   fn    : データ部(bytes)を物理値(float)へ変換する関数
-#   SAE J1979 の標準式。NCロードスターの対応PIDは OBD2_SURVEY.md「対応PID一覧」参照。
+#   SAE J1979 の標準式。NCロードスターの対応PIDは docs/research/OBD2_SURVEY.md「対応PID一覧」参照。
 # ---------------------------------------------------------------------------
 def _a(d):        return d[0]
 def _a_40(d):     return d[0] - 40
@@ -74,7 +74,7 @@ PID_DECODERS = {
     0x49: ("accel_d",   "%",     1, _pct),
     0x4A: ("accel_e",   "%",     1, _pct),
     0x4C: ("thr_cmd",   "%",     1, _pct),
-    # 2-0-6 のレクサスUX(2022年式)実測で応答が確認できたPID（OBD2_SURVEY.md）
+    # 2-0-6 のレクサスUX(2022年式)実測で応答が確認できたPID（docs/research/OBD2_SURVEY.md）
     0x34: ("o2_wr_lam",  "-",    2, lambda d: _u16(d) / 32768.0),   # 広域O2の当量比(先頭2バイト)
     0x44: ("equiv_ratio", "-",   2, lambda d: _u16(d) / 32768.0),   # 燃料/空気当量比の指令値
     0x5C: ("oil_temp",  "degC",  1, _a_40),                         # エンジン油温

@@ -5,7 +5,7 @@
 > 「（案）」と書いた数値や方式は叩き台なので、変えたほうがよければ遠慮なく変えてほしい。
 >
 > - 作成：2026-10-10（ユーザーへのヒアリング結果をまとめたもの）
-> - 既存の`sensorhub_defi_tap_design.md`（Defi傍受基板）とは**別物で、両方を同時に使う**
+> - 既存の`docs/design/sensorhub_defi_tap_design.md`（Defi傍受基板）とは**別物で、両方を同時に使う**
 > - 最初に使うのは**エコランマシン**、最初に読みたいのは**純正油温センサー（サーミスタ）**
 
 ---
@@ -48,7 +48,7 @@
 |---|---|
 | コネクタ | **Molex Micro-Fit 3.0 4極 ×2**（IN/OUT。中は同じ線どうしを直結＝パススルー） |
 | ピン配置 | ロガーと同じ：**1=+5V／2=CANH／3=CANL／4=GND** |
-| ビットレート | **500 kbps**（ロガーの外部CANに合わせる。`logger_v2_channel_and_sensor_spec.md`3-5） |
+| ビットレート | **500 kbps**（ロガーの外部CANに合わせる。`docs/design/logger_v2_channel_and_sensor_spec.md`3-5） |
 | 終端抵抗 | **120 Ωを各ハブでON/OFFできること。**数珠繋ぎの末端になったハブだけONにする。切替方法（ジャンパ／はんだジャンパ／ソフト）はおまかせ |
 | フレーム | 標準ID（11 bit）。ID割り当ては5章 |
 
@@ -178,7 +178,7 @@
 ### 4-4. バス負荷
 
 8chをすべて100 Hzにすると約800フレーム/秒・約80 kbps（500 kbpsの約16%）。
-ロガー側の放送（約300フレーム/秒、`logger_v2_channel_and_sensor_spec.md`3-5）と合わせても余裕はある。
+ロガー側の放送（約300フレーム/秒、`docs/design/logger_v2_channel_and_sensor_spec.md`3-5）と合わせても余裕はある。
 **ハブ数台の全chを100 Hzにすると危ないので、負荷の監視と警告はロガー・アプリ側で行う**（6-4）。
 
 ---
@@ -190,7 +190,7 @@
 | 範囲 | 用途 | 備考 |
 |---|---|---|
 | 0x500〜0x57F | **汎用センサーハブ（本書）** ハブ番号0〜7 | 1台あたり16 ID |
-| 0x580〜0x58F | **Defi傍受基板**（`sensorhub_defi_tap_design.md`） | 現状はID未定義なのでここに割り当てる |
+| 0x580〜0x58F | **Defi傍受基板**（`docs/design/sensorhub_defi_tap_design.md`） | 現状はID未定義なのでここに割り当てる |
 | 0x590〜0x5EF | 予備（将来のアクセサリー） | |
 | 0x5F0〜0x5FF | **新規ハブの名乗り・番号割り当て用**（6-2） | |
 | 0x600〜0x6EF | **ロガーからの放送**（ベース0x600＋チャンネル番号） | `firmware/logger_v1/README.md`の`hubBroadcast` |
@@ -275,8 +275,8 @@ Lintarohさんの作業ではなく、こちら側（ロガーのファーム・
 | 資料 | 関係 |
 |---|---|
 | `ARCHITECTURE.md`4章「追加センサーのCANハブ構成」「CANゲートウェイ構成」 | ハブ集約・外部CAN経由の中継という既存方針 |
-| `sensorhub_defi_tap_design.md` | 併用するDefi傍受基板（別物） |
-| `logger_v2_channel_and_sensor_spec.md`3章 | 外部CANの用途別レートとバス負荷 |
+| `docs/design/sensorhub_defi_tap_design.md` | 併用するDefi傍受基板（別物） |
+| `docs/design/logger_v2_channel_and_sensor_spec.md`3章 | 外部CANの用途別レートとバス負荷 |
 | `firmware/logger_v1/README.md`「CANマッピング」 | ロガーの放送ID（0x600番台）、受信マッピングの仕組み |
 | `circuit/logger_v2/実装方針.md` | V2の外部CAN（J6）と5Vの出どころ |
 | `emc-engine-crankcase/reference_ecu_sensor_inventory.md` | エコランのセンサー構成（油温・CHT・EGT・AFR） |

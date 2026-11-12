@@ -47,7 +47,7 @@ PCB第1版がそのまま動作確認まで到達し、版の切り直しは発�
 以降のファームウェア作業は実機で試験できます。**センサーハブ基板は未完成**のため、
 下記残作業3のうちアナログ系（油温・油圧・AFR・熱電対）は着手できませんが、
 **車載CAN側は本番車両NCECのデコード式が実測で確定しているため先行して進められます**
-（`ncec_can_spec.md`／`OBD2_SURVEY.md`「NCEC 追補」参照）。
+（`docs/design/ncec_can_spec.md`／`docs/research/OBD2_SURVEY.md`「NCEC 追補」参照）。
 NCEC実車へは数日以内に接続できる見込みで、残作業1（IMUの車体方向）・5（ラップ／実走）は
 その機会に合わせます。`ncec_next_session_checklist.md`も併せて開いてください。
 

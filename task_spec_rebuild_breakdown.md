@@ -88,7 +88,7 @@
 
 - [ ] SP-8 **資料**
   - [ ] SP-8-1 当日手順書のひな形を1つ作る（大会ごとに変えるのは時刻・しきい値・コースだけ）。SUGO版・エコラン版から共通の所を抜く（P-5）
-  - [ ] SP-8-2 困ったときの表を、新しい入口の名前に合わせる（`ecologger_troubleshooting.html`）
+  - [ ] SP-8-2 困ったときの表を、新しい入口の名前に合わせる（`docs/manual/ecologger_troubleshooting.html`）
   - [ ] SP-8-3 構成図`v2_hardware_overview.html`の「つなぐ3つの道」「ソフトの一覧」を新しい入口に合わせる
 
 ## 順番の目安

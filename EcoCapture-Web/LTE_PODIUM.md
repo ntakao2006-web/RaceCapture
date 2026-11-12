@@ -47,7 +47,7 @@ r1だけ別の基地局（PCI 167）に3分間つながっていて、-110dBmと
 
 2026-10-03追記: SORACOM planX3 X3-5MB、Pluto付属アンテナでドコモLTE-M Band 19に接続。実回線のDNS/TCP/短いHTTPヘッダー受信と、修正後5回の電源再投入接続を確認。CFUN=1直後のCPIN?一時ERRORを期限付きで待ち、PSM/eDRX設定を回線登録後に行うよう修正。CAN/SD同時試験を含めた結果は `outputs/hardware_check_20261003/RESULT.txt`。Podium認証・送信はキー未設定のため未検証。LTE自動送信はOFF。以下は10月2日時点の準備記録で、SD満杯などの記載は現在の状態ではありません。
 
-2026-10-02。`podium_connect_notes.md`（a636114）と公式RaceCapture Appの実装を根拠に実装。
+2026-10-02。`docs/research/podium_connect_notes.md`（a636114）と公式RaceCapture Appの実装を根拠に実装。
 リモート更新の取得はSSHのホスト鍵確認、HTTPSの認証で失敗したため、最新のntakao資料との比較はできていない。
 
 ## 経路と実装

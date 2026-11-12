@@ -2,7 +2,7 @@
 
 ロガーを介さずにPCから telemetry.podium.live へ認証・meta・ダミー値を送り、
 「Podium側（キー・アカウント）の問題」と「ロガー側（実装・モデム）の問題」を切り分ける。
-プロトコルは podium_connect_notes.md 3章・9章。
+プロトコルは docs/research/podium_connect_notes.md 3章・9章。
 
 使い方:
     python podium_test_sender.py            # キーは画面に表示されない入力で聞かれる
@@ -24,7 +24,7 @@ import time
 HOST = "telemetry.podium.live"
 PORT = 8080
 
-# 地図表示用に純正RaceCaptureと同じ名前にしておく（podium_connect_notes.md 9.2）
+# 地図表示用に純正RaceCaptureと同じ名前にしておく（docs/research/podium_connect_notes.md 9.2）
 # 先頭のInterval/Utcは公式RaceCaptureアプリ経由の送信（2026-10-04実測）でも先頭に入っていたシステムチャンネル。
 # 純正ファームは常にこの2つを持つ（loggerConfig.h DEFAULT_UPTIME_CONFIG / DEFAULT_UTC_MILLIS_CONFIG）
 META = [
