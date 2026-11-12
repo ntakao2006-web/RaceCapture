@@ -53,3 +53,6 @@ tools/voice_gate/mic_check_*/
 
 # 走行映像の計器の見た目の確認で使う背景（自分で置くカメラの写真。tools/video_hud/hud_preview.py）
 tools/video_hud/preview_bg.*
+
+# 録画の音の聴き比べ（車内で録った音。人の声が入りうるので入れない。2026-11-13）
+outputs/audio_check_*/
