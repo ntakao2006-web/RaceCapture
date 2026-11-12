@@ -12,7 +12,7 @@ import sys
 import time
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[3]
 SCRIPT = '/home/arduino/antenna_compare/radio_walk_log.py'
 # Claude のアプリの中から入れた SDK はアプリ専用の場所にあり、ショートカットから開くと %LOCALAPPDATA% の下に見えない
 _LOCAL = Path(os.environ.get('LOCALAPPDATA', ''))

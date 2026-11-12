@@ -209,10 +209,10 @@
 | `tools/race_analysis/`・`tools/lap_video/` | PCのアプリ「走行を見る」から動かせるようにする。中身はそのまま |
 | `tools/sugo_setup/` | PCのアプリ「いまの様子」の「車・コースを選ぶ」へ作り直す。ラップのリセットも同じ段へ |
 | `tools/video_hud/`・`tools/lens_view/`・`tools/video_exposure/` | PCのアプリ「設定」の焼き込みの画面へまとめる |
-| `tools/lte_antenna/` | 開発者用に畳む（コースの下見のときだけ） |
+| `tools/dev/lte_antenna/` | 開発者用に畳む（コースの下見のときだけ） |
 | `tools/home_telemetry/` | ピットのページ。そのまま |
 | `tools/unoq_overlay_enc/` | 本体の録画のソフト。置き場所を本体のソフトの側（`EcoCapture-Web/`・`RaceCapture-UNOQ/`と同じ並び）へ移すか要検討 |
-| `tools/race_replay/`・`tools/podium_replay/`・`tools/unoq_spi_sd_test/`・`tools/can1_loss/` | 開発・調べもの用。`tools/dev/` のような1か所へ |
+| `tools/dev/race_replay/`・`tools/dev/podium_replay/`・`tools/dev/unoq_spi_sd_test/`・`tools/dev/can1_loss/` | 開発・調べもの用。`tools/dev/` のような1か所へ |
 | `tools/voice_gate/`・`tools/discord_bridge/` | 通話（範囲外）。しまう |
 | `tools/record_sheet/` | エコランの記録表。ロガーとは別の用事なので置き場所を分ける |
 

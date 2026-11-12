@@ -15,7 +15,7 @@ UNO Q（LoggerV2）で映像まわりの確認と、シールドSDへの映像�
 - 推定原因：STM32を止めた（書き込み・`halt`）瞬間にLinux側の送りかけのデータが残り、フロー制御で送れないままドライバが固まる。`build.sh`のコメントにあるGENI UARTの不具合と同系統かもしれません
 - **回避できた順番**：Web停止 → **ルーター停止** → 書き込み → ルーター起動 → **STM32をリセット** → Web起動
   - 最後のリセットが要る理由：Bridgeは起動時の`$/reset`に返事が来ないと**時間切れ無しで永久に待つ**（`bridge.h`の`RpcResult::result()`）。ルーターが待ち受けてから送り直させる必要がある
-  - この順番で7回書き込んで（試験ファーム5回・元に戻す2回）、7回とも問題なし。スクリプトは`tools/unoq_spi_sd_test/flash.sh`
+  - この順番で7回書き込んで（試験ファーム5回・元に戻す2回）、7回とも問題なし。スクリプトは`tools/dev/unoq_spi_sd_test/flash.sh`
 
 **`EcoCapture-Web/build-mcu.sh`は「ルーター再起動 → 書き込み」の順で、最後のリセットがありません。** 本番のファーム更新でも同じことが起き得るので、手順の見直しを検討してほしいです。
 
@@ -77,6 +77,6 @@ UNO Q（LoggerV2）で映像まわりの確認と、シールドSDへの映像�
 |---|---|
 | E-6の調査と実測の全体 | `unoq_video_to_shield_sd_study.md`（5-3章が試験結果） |
 | 映像確認V-1〜V-3・焼き込み試験 | `unoq_video_check_procedure.md`（5-4〜5-6章） |
-| 試験ファームと手順一式 | `tools/unoq_spi_sd_test/`（`flash.sh`・`build_test.sh`・`spi_fc.py`・`spitest.py`ほか） |
+| 試験ファームと手順一式 | `tools/dev/unoq_spi_sd_test/`（`flash.sh`・`build_test.sh`・`spi_fc.py`・`spitest.py`ほか） |
 | 焼き込み・SPI送信の試験プログラム | `tools/unoq_overlay_enc/` |
 | 経緯の要約 | `ARCHITECTURE.md` 4章 2026-10-09追記 |

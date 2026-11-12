@@ -96,8 +96,8 @@ TOOL_GROUPS = [
          '白飛び対策／カメラ任せに戻す／明るく・暗く'),
     ]),
     ('LTEの電波を調べる（コースウォーク）', [
-        ('電波の記録を始める', 'lte_antenna/Start-RadioWalk.cmd', [], False, '30分'),
-        ('電波の記録を止めて回収', 'lte_antenna/Fetch-RadioWalk.cmd', [], False, 'drive_logs へ'),
+        ('電波の記録を始める', 'dev/lte_antenna/Start-RadioWalk.cmd', [], False, '30分'),
+        ('電波の記録を止めて回収', 'dev/lte_antenna/Fetch-RadioWalk.cmd', [], False, 'drive_logs へ'),
     ]),
 ]
 

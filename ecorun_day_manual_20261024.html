@@ -85,7 +85,7 @@
   <h2>3. コースウォーク（10/24朝・PCと管理画面）</h2>
   <ol>
     <li><span class="who">（ロガー担当）</span>UNO Qを<b>電源を入れる前に</b>PCへUSBでつなぐ（電源もPCから）→ 約2分 → PowerShellで下のコマンド → ブラウザで <b>http://127.0.0.1:8080/</b> → 設定 →「ラップ計測」。<br><span class="who" style="font-family:monospace;font-size:6.6pt">&amp; "$env:LOCALAPPDATA\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Local\Android\Sdk\platform-tools\adb.exe" -s 2954148814 forward tcp:8080 tcp:8080</span></li>
-    <li>USBのまま <b>Start-RadioWalk.cmd</b>（<span class="who">tools\lte_antenna\</span>）→「電波の記録を始めました」（30分で自動停止。だめなら省いてよい）。</li>
+    <li>USBのまま <b>Start-RadioWalk.cmd</b>（<span class="who">tools\dev\lte_antenna\</span>）→「電波の記録を始めました」（30分で自動停止。だめなら省いてよい）。</li>
     <li>UNO QとPCを持って歩き、各ラインの真上で止まって「<b>現在地をこのラインにする</b>」：<b>コントロール（必須）</b>・スタート・ゴール。直前3秒の平均で登録。<b>向き・規定周回数は入れない</b>（向きはレースの最初の通過で覚え、規定周回数は表示用スマホから入る）。</li>
     <li><b>スマホ組</b>は管理画面の「ラインをスマホへ」のQRをEcoLoggerで読む。</li>
     <li>歩き終えたら <b>Fetch-RadioWalk.cmd</b> → USBを外す（ラインは保存されている）。</li>

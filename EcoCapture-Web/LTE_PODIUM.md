@@ -13,7 +13,7 @@
 | r8 | 今日買った | 167→150 | -102（150のとき） | 13 | -9 | 16秒 |
 
 r1だけ別の基地局（PCI 167）に3分間つながっていて、-110dBmと低く出た。r8は最初の1点だけ167（-112dBm）で、150へ移ると-102dBmになった。**r1の低さはアンテナではなく、つながった基地局の違い。** 同じアンテナで続けて測ると差は1dB以内（r4・r5）、付け直すと3dB変わることがある（r3・r6）。再接続は全回0、件数/秒は全回6.2〜6.4（律速はUNO Q内部で、電波ではない）。
-電波の値は`sim7070.py`が接続時と約25件ごとに`AT+CPSI?`・`AT+CSQ`で読み、`/api/podium`の`radio`に出す。比較は`../tools/lte_antenna/antenna_compare.py`（UNO Q上で`python3 antenna_compare.py <名前> 180`）。測定結果の生データ（基地局IDを含む）はUNO Qの`~/antenna_compare/results.jsonl`にだけ置き、リポジトリには入れない。
+電波の値は`sim7070.py`が接続時と約25件ごとに`AT+CPSI?`・`AT+CSQ`で読み、`/api/podium`の`radio`に出す。比較は`../tools/dev/lte_antenna/antenna_compare.py`（UNO Q上で`python3 antenna_compare.py <名前> 180`）。測定結果の生データ（基地局IDを含む）はUNO Qの`~/antenna_compare/results.jsonl`にだけ置き、リポジトリには入れない。
 
 2026-10-20追記: **電源ONから最初のテレメトリまで155秒（屋内）。うち約80秒は、起動のたびにMCUとの最初のハンドシェイクが失敗して立て直す時間で、LTEの接続自体は39秒（登録27秒）。** 前回の「電源投入直後に5分以上つながらない」は試験の仕掛けの不具合（設定がWi-Fiのまま）だった。モデムはLTE-Mだけを探す設定（`CNMP=38`・`CMNB=1`、ユーザー判断）にし、接続の段階ごとの秒数を`first_frame`・`session_end`の記録に残すようにした。詳細はER-1-4（同日）。
 

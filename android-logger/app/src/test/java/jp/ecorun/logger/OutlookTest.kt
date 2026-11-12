@@ -111,7 +111,7 @@ class OutlookTest {
 
     /**
      * The race replayed once a second from its speed record (supercub_20261025_speed.csv, made by
-     * tools/race_replay/race_csv.py), with the lap distance integrated and scaled the way
+     * tools/dev/race_replay/race_csv.py), with the lap distance integrated and scaled the way
      * [LapTimer] does, and the lap times it counted.
      */
     private fun replay(): List<Pair<Int, Pace.Outlook?>> {
