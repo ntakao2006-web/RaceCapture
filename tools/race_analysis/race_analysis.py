@@ -11,8 +11,11 @@
   <out_dir>/pub/*.csv     … レポートのページに載せる11個の表（facts・laps・temps・water・track・
                             corners・compare・gg・press・logger・slides）
 読むのは写しだけで、本体・5Bには触らない。出来事の周を探すときは lap_survey.py を先に使う。
+設定に "sd_dir"（回収したシールドのSDカードのフォルダ）を書くと、GNSSの列をSDの解（10Hz全部）で置き換える（sd_gnss.py、
+例 sugo_20261108_sd.json）。2026-11-09より前の本体の記録は位置が1秒に約6回しか変わらないため。
 """
 import json, glob, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np, pandas as pd
 from scipy.spatial import cKDTree
 from scipy.signal import find_peaks
@@ -39,6 +42,7 @@ JST = 'Asia/Tokyo'
 DAY = CFG['date']
 W0, W1 = (pd.Timestamp(f"{DAY} {t}", tz=JST) for t in CFG['window'])
 facts = []
+sd_checks = []
 def mmss(v):
     m = int(v // 60); return f'{m}:{v - 60 * m:06.3f}'
 def fact(key, value, label):
@@ -50,7 +54,11 @@ def xy(lat, lon):
 KEEP = set(('seq mcu_ms host_utc Speed GPSSpeed RPM Throttle Lat Lon Altitude Yaw GPSFix GPSSats GNSSHz AccelX AccelY AccelZ '
             'LongAccel LatAccel Distance WaterTemp gnss_utc gnss_hacc_m LapCount CurrentLap LapTime BestLap ElapsedTime RaceTime '
             'Sector LastSector SectorTime WheelFrontA WheelFrontB WheelRearA WheelRearB IntakeTemp FuelLevelRaw ClutchDisengaged '
-            'OilTemp PressVolt PressVoltState Temp1Volt Temp2Volt WaterTempDefi GyroZ').split())
+            'OilTemp PressVolt PressVoltState Temp1Volt Temp2Volt WaterTempDefi GyroZ gnss_itow_ms').split())
+SD_NAV = None
+if CFG.get('sd_dir'):                          # シールドのSDに残ったGNSSの解（10Hz全部）でGNSSの列を置き換える（sd_gnss.py）
+    import sd_gnss
+    SD_NAV = sd_gnss.scan(RP(CFG['sd_dir']), os.path.join(RP(CFG['out_dir']), 'cache', 'sd_nav.pkl'))
 def load(path):
     path = RP(path)
     cache = os.path.join(RP(CFG['out_dir']), 'cache', os.path.basename(path) + '.pkl')
@@ -63,6 +71,10 @@ def load(path):
         d = pd.read_csv(path, usecols=lambda c: c in KEEP, low_memory=False)
         d['t'] = pd.to_datetime(d.host_utc, format='ISO8601'); d = d.drop(columns=['host_utc'])
         os.makedirs(os.path.dirname(cache), exist_ok=True); d.to_pickle(cache)
+    if SD_NAV is not None:
+        d, chk = sd_gnss.replace(d, SD_NAV)
+        print(f'SDの解で置き換えた：{os.path.basename(path)} {chk}')
+        sd_checks.append({'csv': os.path.basename(path), **chk})
     d['lap'] = d.LapCount + 1                  # 今走っている周（CurrentLap）
     d['ts'] = d.mcu_ms / 1000.0
     d['x'], d['y'] = xy(d.Lat.values, d.Lon.values)
@@ -764,6 +776,7 @@ def txt(k, v):
 F = pd.DataFrame(facts); F['text'] = [txt(k, v) for k, v in zip(F.key, F.value)]
 F['value'] = F.value.astype(str)
 F[['key', 'text', 'value', 'label']].to_csv(os.path.join(OUT, 'facts.csv'), index=False)
+if sd_checks: pd.DataFrame(sd_checks).to_csv(os.path.join(OUT, 'sd_gnss.csv'), index=False)   # SDの解で置き換えたときの確かめ
 print(pd.DataFrame(facts).to_string())
 
 # ---------- レポートのページに載せる表へまとめる ----------
