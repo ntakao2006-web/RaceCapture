@@ -2,7 +2,7 @@
 
 主サーバー（先輩のラックサーバー）でも、自宅のROCK 5Bと**完全に同じ**ピット用の画面を出してもらうための連絡。
 DiscordのDMにそのまま貼る想定。本体は`server_deploy_grafana_x86.md`（RaceCaptureリポジトリ。先輩はcollaboratorなので見られる）。
-`maruo_share_20261024_grafana.md`（未送）の差し替え。10/24夜〜10/25の画面の作り直しを全部含む。
+`docs/share/maruo_share_20261024_grafana.md`（未送）の差し替え。10/24夜〜10/25の画面の作り直しを全部含む。
 
 ---
 

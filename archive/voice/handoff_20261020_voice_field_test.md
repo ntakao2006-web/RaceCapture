@@ -99,7 +99,7 @@ ssh unoq 'sh -s' < archive/voice/voice_gate/precheck.sh
 
 - 10/20夜：大会でロガーの通話を使うか、スマホ＋Discordにするかの判定
 - Discord Botのチャンネル呼び出しコマンドと、車3台の同時通話（Botを3体にする案）
-- Lintarohさんへのメモ`lintaroh_share_20261020_boot.md`（未送）
+- Lintarohさんへのメモ`docs/share/lintaroh_share_20261020_boot.md`（未送）
 - 中継サーバーの修正（`ecorun-logger-server`の`fix/logger-voice-burst`）を先輩のサーバーへPRで出すか
 - 大会前にUNO Qの送信設定をLTE＋中継サーバーへ切り替える
 - 当日の手順書に「電源ONからピットに出るまで約1分40秒」と書く

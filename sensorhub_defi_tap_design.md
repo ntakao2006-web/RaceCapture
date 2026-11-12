@@ -25,7 +25,7 @@
 
 ハブのMCUの中で油温は既に数値になっているので、**外部CANでそのまま送れば誤差が増えない**。
 PWM→電圧に変換してロガーのADCで読み直すと、リップルとADC誤差がもう1回乗る。
-外部CANでロガーへ送る構成は`hardware_interface_spec.md`1章#3・`hardware_ans_20260921.md`5-2の2で既に確定している。
+外部CANでロガーへ送る構成は`hardware_interface_spec.md`1章#3・`docs/share/hardware_ans_20260921.md`5-2の2で既に確定している。
 
 ### 1-2. 動作モード
 

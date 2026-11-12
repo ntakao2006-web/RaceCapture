@@ -1,6 +1,6 @@
 # 日独両対応のLTE-M SIM：調査結果（宿題9）
 
-> **この文書が扱う宿題**：`hardware_ans_20260921.md`6章の
+> **この文書が扱う宿題**：`docs/share/hardware_ans_20260921.md`6章の
 > **9（日本とドイツの両方でLTE-Mが使えるSIM／料金プランを調べる）**。
 > 回路担当は回線選定を判断材料待ちにしており、**「1NCE前提の説明は根拠として弱い」と指摘された。**
 >
@@ -170,7 +170,7 @@ Onomondo、emnify、Twilio Super SIM、Hologram なども同種のグローバ�
 
 | 資料 | 内容 |
 |---|---|
-| `hardware_ans_20260921.md` | **この宿題の出どころ。**6章の9 |
+| `docs/share/hardware_ans_20260921.md` | **この宿題の出どころ。**6章の9 |
 | `LOGGER_V2_LTE_MODEM_QUESTIONS.md` | **3.1.3章＝SIM7070Gに通常LTEのフォールバックが無い件。**P-7の元資料、2.1〜2.3章＝要求仕様 |
 | `LOGGER_V2_LTE_MODEM_REPORT.md` | SIM7070Gの下調べ。1.2章＝上り22kbpsの試算 |
 

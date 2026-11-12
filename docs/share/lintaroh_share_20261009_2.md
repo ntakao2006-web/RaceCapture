@@ -1,6 +1,6 @@
 # Lintarohさんへの共有メモ その2（2026-10-09）
 
-前回のメモ（`lintaroh_share_20261009.md`）と、その回答（`lintaroh_answer_20261009.md`）を受けて、UNO Qを実機につないで作業しました。
+前回のメモ（`docs/share/lintaroh_share_20261009.md`）と、その回答（`docs/share/lintaroh_answer_20261009.md`）を受けて、UNO Qを実機につないで作業しました。
 **STM32のファームとRouterBridgeのビルド時修正を変更し、Linux側に常駐サービスを1つ追加しました。**
 何をしたか・何が分かったか・**相談したいこと（4章）**をまとめます。
 

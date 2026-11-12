@@ -1,6 +1,6 @@
 """車載CAN（CAN1）の取りこぼしを、読むだけで数える（本体の設定・ファームは何も変えない）。
 
-調べた結果と直し方の案: lintaroh_share_20261104_can1.md
+調べた結果と直し方の案: docs/share/lintaroh_share_20261104_can1.md
 
 数え方は2つ。
   1. NCECの0x211のbyte7は1フレームごとに+1するカウンタ（ncec_can_spec.md）。飛んだ数＝取りこぼし（正確）

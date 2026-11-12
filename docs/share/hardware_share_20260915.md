@@ -357,23 +357,23 @@ CANの規格（最低45Ω程度）を外れる。
 
 | ファイル | 内容 | 最終更新 |
 |---|---|---|
-| **本書** `hardware_share_20260915.md` | 前回共有以降の差分＋今回の3論点 | 2026-09-15 |
-| [hardware_interface_spec.md](hardware_interface_spec.md) | **回路の入出力仕様の本体**（コネクタ・電源・基板一覧・相談事項）。**認識合わせはここが正** | 2026-08-30 ※4-4の訂正が未反映 |
-| [vehicle_can_survey_summary.md](vehicle_can_survey_summary.md) | 3車両（NCEC / MAZDA2 / レクサスUX）の実車CAN調査サマリ。**前回共有した版** | 2026-09-06 ※4-5の訂正が未反映 |
-| [ncec_can_spec.md](ncec_can_spec.md) | **NCECのCAN通信仕様だけを抜いた1枚**。ID一覧・周期・バイトマップ・デコード式・OBD2/mode22。**実装者はこれ1枚でデコーダが書ける** | 2026-09-12 |
-| [hardware_meeting_agenda.md](hardware_meeting_agenda.md) | ミーティングの進行順（`hardware_interface_spec.md`各章への案内役） | — |
+| **本書** `docs/share/hardware_share_20260915.md` | 前回共有以降の差分＋今回の3論点 | 2026-09-15 |
+| [hardware_interface_spec.md](../../hardware_interface_spec.md) | **回路の入出力仕様の本体**（コネクタ・電源・基板一覧・相談事項）。**認識合わせはここが正** | 2026-08-30 ※4-4の訂正が未反映 |
+| [vehicle_can_survey_summary.md](../../vehicle_can_survey_summary.md) | 3車両（NCEC / MAZDA2 / レクサスUX）の実車CAN調査サマリ。**前回共有した版** | 2026-09-06 ※4-5の訂正が未反映 |
+| [ncec_can_spec.md](../../ncec_can_spec.md) | **NCECのCAN通信仕様だけを抜いた1枚**。ID一覧・周期・バイトマップ・デコード式・OBD2/mode22。**実装者はこれ1枚でデコーダが書ける** | 2026-09-12 |
+| [docs/share/hardware_meeting_agenda.md](hardware_meeting_agenda.md) | ミーティングの進行順（`hardware_interface_spec.md`各章への案内役） | — |
 
 ### 6-2. 根拠・一次資料
 
 | ファイル | 内容 |
 |---|---|
-| [OBD2_SURVEY.md](OBD2_SURVEY.md) | ELM327調査〜実車解析の一次資料。「NCEC 追補」＝55分走行、「NCEC 追補2」＝停車・スイープ・mode22 |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | プロジェクト全体のマスター。4章「現状ステータス」に日付つきで確定事項が積んである |
-| [ncec_field_procedure.md](ncec_field_procedure.md) | NCEC実車の現地手順 |
-| [ncec_next_session_checklist.md](ncec_next_session_checklist.md) | **実車に繋ぐ前に必ず開く**チェックリスト（終端確認・スタブ・並列接続の注意を含む） |
-| [lexus_ux_field_procedure.md](lexus_ux_field_procedure.md) / [mazda2_field_procedure.md](mazda2_field_procedure.md) | 他2車両の現地手順・切り分け記録 |
-| [task_phase2_breakdown.md](task_phase2_breakdown.md) | Phase 2（CAN）のサブタスクと結果。2-4-8-x が今回の実車回 |
-| [task_phase6_breakdown.md](task_phase6_breakdown.md) | 外部CANブロードキャスト（6-3）の設計タスク。**未着手** |
+| [OBD2_SURVEY.md](../../OBD2_SURVEY.md) | ELM327調査〜実車解析の一次資料。「NCEC 追補」＝55分走行、「NCEC 追補2」＝停車・スイープ・mode22 |
+| [ARCHITECTURE.md](../../ARCHITECTURE.md) | プロジェクト全体のマスター。4章「現状ステータス」に日付つきで確定事項が積んである |
+| [ncec_field_procedure.md](../../ncec_field_procedure.md) | NCEC実車の現地手順 |
+| [ncec_next_session_checklist.md](../../ncec_next_session_checklist.md) | **実車に繋ぐ前に必ず開く**チェックリスト（終端確認・スタブ・並列接続の注意を含む） |
+| [lexus_ux_field_procedure.md](../../lexus_ux_field_procedure.md) / [mazda2_field_procedure.md](../../mazda2_field_procedure.md) | 他2車両の現地手順・切り分け記録 |
+| [task_phase2_breakdown.md](../../task_phase2_breakdown.md) | Phase 2（CAN）のサブタスクと結果。2-4-8-x が今回の実車回 |
+| [task_phase6_breakdown.md](../../task_phase6_breakdown.md) | 外部CANブロードキャスト（6-3）の設計タスク。**未着手** |
 
 ### 6-3. 回路・ファームウェアの実体
 

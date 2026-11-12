@@ -11,7 +11,7 @@
 
 ## 通常CANから取得する値
 
-11bit CAN、500 kbps。バイト番号は0始まり、bit0は最下位。換算実装は [ncec.h](firmware/logger_v1/src/ncec.h)。
+11bit CAN、500 kbps。バイト番号は0始まり、bit0は最下位。換算実装は [ncec.h](../../firmware/logger_v1/src/ncec.h)。
 
 | ID | 取得項目 | 主な位置・換算 |
 |---|---|---|
@@ -72,7 +72,7 @@ OBD版の49秒観測は約700 CAN frame/s、SD約100 Hz、CANエラー・SD欠�
 
 ## 関連記録
 
-- [現行仕様と導入履歴](EcoCapture/NCEC_V1.md)
+- [現行仕様と導入履歴](../../EcoCapture/NCEC_V1.md)
 - [初回NCEC実機反映](HANDOFF_NCEC_20260915.md)
 - [Statusと警告](HANDOFF_STATUS_20260915.md)
 - [OBD限定送信・実機確認](HANDOFF_OBD_FAN_20260915.md)

@@ -95,7 +95,7 @@ G-Gのページ（`/live/gg?room=<room>`）は10/24夜にダッシュボード�
   サーバーが相手の履歴を今開いている部屋のファイルへ書くことがあり、10/25 10:29に5Bで、前夜の試験走行の行を今の走行として数え、
   偽の通過（7周・3周）が出ました。これで古い行は周回にもVictoriaMetricsにも入りません
 - WebSocketの読み口（`/live/ws?room=<room>&kind=clock`）は、ピット画面以外からも使えます（走行戦略ツールの緒方さんへ説明済み、
-  `ogata_share_20261024_issues_reply.md`）。`{"clock": {start, end, limit, margin, lap, count, total, lap_start, last_lap, passes, lap_avg, race_avg, data_t}, "now": サーバー時刻ms}`が毎秒届きます
+  `docs/share/ogata_share_20261024_issues_reply.md`）。`{"clock": {start, end, limit, margin, lap, count, total, lap_start, last_lap, passes, lap_avg, race_avg, data_t}, "now": サーバー時刻ms}`が毎秒届きます
 
 ### 1-4. 10/18以降に変わった点（UIの変更履歴）
 
@@ -428,7 +428,7 @@ python3 replay_sender.py <走行ログ>.csv wss://<公開ホスト名>/ws/audio/
   冗長構成で別のノードから複製されてきたデータも、受けたノードのJSON Linesに書かれます（2026-10-24 10:29、
   もてぎでmajestaの送り先を主＝先輩のサーバーへ移したとき、5Bが複製分をファイルに書き、5BのGrafanaがそのまま動き続けたことで確認）。
   ただし、**複製が流れているときだけ**です。10/24夜〜10/25は先輩のサーバー→5Bの複製が止まっていて
-  （`maruo_share_20261025_cluster.md`）、**大会2日目はVer.2の主の送り先を5Bにしています**。両方の画面を同じにするには複製が流れていることが前提です
+  （`docs/share/maruo_share_20261025_cluster.md`）、**大会2日目はVer.2の主の送り先を5Bにしています**。両方の画面を同じにするには複製が流れていることが前提です
 - 平均速度・通過時刻はブリッジが保存ファイルから計算しています。再起動しても直近6時間分は作り直しますが、
   **ロガーがレースの途中で別のサーバーへ移り、そのサーバーに複製が来ていない**と、そのレースの平均速度・通過の表は途中からになります
 - 10/25 10:29に5Bで出た偽の通過（前夜の行を数えたもの）は、5BのVictoriaMetricsの`ecorun_lap_at`（たたんだ行の通過時刻の表）に、
@@ -440,7 +440,7 @@ python3 replay_sender.py <走行ログ>.csv wss://<公開ホスト名>/ws/audio/
   本文に「5Bへ反映済み」と書く）。先輩のサーバーでは`git pull`→上の手順で同じになります。4章のsha256で照合できます
 - パネルの説明文（ⓘ）に古い記述が残っています（地図パネルの「tailscale serve の :8443」）。5Bも同じで、動きには影響しません
 - サーバーのログに出る`skipping Podium sample without usable metadata…`の警告は、サーバー内のPodium用の変換が
-  ロガーの詰めた形式の行を扱えないためのもので（`maruo_share_20261025_podium_rows.md`）、この画面には影響しません
+  ロガーの詰めた形式の行を扱えないためのもので（`docs/share/maruo_share_20261025_podium_rows.md`）、この画面には影響しません
 - **公開範囲は5Bと同じ**：Grafana・ページはURLを知っていれば誰でも見られます（Grafanaは閲覧のみ）。
   地図に図形を描く・位置を共有するのに認証はありません。URLはチーム外に出さないでください
 - 地図のライブラリ（unpkg.com）と航空写真（Esri）はブラウザがネットから直接読みます

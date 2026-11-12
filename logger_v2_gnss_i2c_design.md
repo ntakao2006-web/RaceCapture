@@ -1,6 +1,6 @@
 # Ver.2：GNSSのI²C（DDC）化と、IMUとのバス共用の設計メモ
 
-> **この文書が扱う宿題**：`hardware_ans_20260921.md`6章の
+> **この文書が扱う宿題**：`docs/share/hardware_ans_20260921.md`6章の
 > **1（GNSSドライバをUART前提からI²C前提へ設計し直す）**と
 > **2（GNSS＋IMUのI²C共用で必要なレートが出るかを見積もる）**。
 > この2件は同じバスの話なので1つにまとめた。
@@ -133,7 +133,7 @@ A-2で引いてもらうINT信号の立ち上がり時刻をMCUのハードウ�
 
 ただし**値そのものが古くなること（レイテンシ）はESKFに効く**ので、
 1-5の対策は必要。**「INTを引けば同期が完成する」わけではない**という
-回路担当の指摘（`hardware_ans_20260921.md`1章）はここにも当てはまる。
+回路担当の指摘（`docs/share/hardware_ans_20260921.md`1章）はここにも当てはまる。
 
 ---
 
@@ -263,7 +263,7 @@ IMU単体で確認できる。
 
 | 資料 | 内容 |
 |---|---|
-| `hardware_ans_20260921.md` | **この宿題の出どころ。**1章＝P-3の回答（GNSSがI²Cへ移った経緯）、6章の1・2 |
+| `docs/share/hardware_ans_20260921.md` | **この宿題の出どころ。**1章＝P-3の回答（GNSSがI²Cへ移った経緯）、6章の1・2 |
 | `LOGGER_V2_UNOQ_REPORT.md` | 2.5章＝なぜESKF（＝AMGモード）なのか、5.1章＝A-1/A-2の配線、7.1章＝E-2の決定 |
 | `firmware/logger_v1/src/sensors.cpp` | **Ver.1の実装。**I²C設定は`initSensors`付近、GNSSのUART処理は`sendUbx`/`waitUbx`以降 |
 | `firmware/logger_v1/GNSS_BALANCE.md` | 衛星系統×更新レートの比較（未決着。GNSS側の負荷を決める前提） |
