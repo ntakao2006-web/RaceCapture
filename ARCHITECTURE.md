@@ -7,9 +7,19 @@
 >
 > **2026-11-13追記**：下の1〜3章はVer.1（ESP32-S3＋純正RaceCaptureアプリ）を考えたときの構想。いまの本番機（Ver.2）が「誰に・どの場面で・何をできるようにするか」は [`SPEC.md`](SPEC.md)（下書き）が正。このファイルは現在地（4章）とロードマップ（5章）を持つ。
 
+> **この文書の読み方（2026-11-13）**
+>
+> | 章 | 中身 | いまの扱い |
+> |---|---|---|
+> | 1〜3 | 目的・全体の構成・部品の選び方 | **Ver.1の構想**。いまの本番機（Ver.2）の姿は4章の頭「いまの姿」と`SPEC.md`・`v2_hardware_overview.html` |
+> | 4 | 現状ステータス | 頭に「いまの姿」の要約。その下は確定した事実の追記で、**追記だけ・書き換えない**（古いファイルの場所の書き方もそのまま。読み替えは「いまの姿」の表） |
+> | 5 | ロードマップ | 冒頭「タスクの置き場所」が、系統と分解ファイルの一覧 |
+> | 6・7 | 回路の相談ポイント・未解決事項 | Ver.1の頃の一覧。いまの依頼と回答は`docs/share/` |
+> | 8 | Claude運用ガイド | 更新の決まり。ファイルの置き場所の決まりもここ |
+
 ---
 
-## 1. プロジェクトの目的とコンセプト
+## 1. プロジェクトの目的とコンセプト（Ver.1の構想）
 
 市販のモータースポーツ用データロガー「RaceCapture」の表示・解析系エコシステム（純正アプリのUI・ライブテレメトリ機能）を活用しつつ、「高信頼性・低ノイズ・拡張性」を兼ね備えた自作ハードウェアロガーを構築する。
 
@@ -82,7 +92,7 @@
 
 ---
 
-## 2. システム全体アーキテクチャ
+## 2. システム全体アーキテクチャ（Ver.1の構想）
 
 車載ノイズに弱いアナログ入力を排し、車内通信をCANバスに一本化。さらにロガー（マイコン）と表示部（Linux PC）を物理分離する。
 
@@ -136,7 +146,7 @@
 
 ---
 
-## 3. 構成要素と技術選定
+## 3. 構成要素と技術選定（Ver.1の構想）
 
 | 構成要素 | 採用・選定技術 | 選定理由・技術的メリット |
 |---|---|---|
@@ -152,6 +162,62 @@
 ---
 
 ## 4. 現状ステータス（進捗サマリ）
+
+### いまの姿（2026-11-13時点の要約）
+
+> 4章は確定した事実を足していく場所で、長い。**いま何が正しいかを先に知りたいときはここだけ読む。**
+> ここは要約で、細かい数字と経緯は下の追記と各資料が正。姿が変わったら、この節の下に日付つきで足す。
+
+**機体**
+
+| | 中身 | 状態 |
+|---|---|---|
+| **Ver.2（本番機）** | Arduino UNO Q（Linux＋STM32）＋自作シールド＋UPS基板。USB-Cドックの先にモニターとカメラ | 2026-11-08のSUGO 120分耐久を走った形。11/10にその形を丸ごと控えた（`v2_firmware_backup_20261110.md`。展示会でファームを書き換える話があるので、**本体に触る前にこの資料で今どちらの形かを確かめる**） |
+| Ver.1 | ESP32-S3の自作基板（`firmware/logger_v1`） | 保険機として据え置き。機能の追加は10/28に凍結 |
+| カート用 試作0号 | 画面つきの一体型 | 11/29の富士に向けて準備中（`task_kart_20261129_breakdown.md`） |
+
+**Ver.2で動いているソフト**（細かい役割と置き場所は`v2_hardware_overview.html`の後半、ファイルごとの仕分けは`docs/design/unoq_software_inventory.md`）
+
+| どこ | ソフト | リポジトリの場所 |
+|---|---|---|
+| 本体のSTM32 | ロガーのファーム（センサー・CAN・GNSS・SDへの記録） | `firmware/ecologger_v2/` |
+| 本体のLinux | EcoCapture（値の受け取り・記録・ラップ・LTE送信・設定の画面） | `EcoCapture-Web/` |
+| 本体のLinux | 車載画面 EcoCapture DASH、見守り役 | `RaceCapture-UNOQ/` |
+| 本体のLinux | 走行映像への計器の焼き込み録画 | `tools/unoq_overlay_enc/` |
+| 自宅のサーバー | LTEで届いた値の受け取りと、ピットのページ | `tools/home_telemetry/` |
+| PC | 操作メニュー、回収、解析、1周の動画 | `tools/ecologger_menu/`・`tools/video_collect/`・`tools/race_analysis/`・`tools/lap_video/` |
+| スマホ | エコランの車載画面のアプリ | `android-logger/` |
+
+**何を見ればよいか**
+
+| 知りたいこと | 資料 |
+|---|---|
+| 誰に・どの場面で・何をできるようにするか | `SPEC.md` |
+| ハードウェアとソフトウェアの構成、本体へのつなぎ方 | `v2_hardware_overview.html` |
+| いま進めている作業 | 5章冒頭「タスクの置き場所」と各`task_*_breakdown.md` |
+| 録画・焼き込み・回収の手順 | `unoq_video_check_procedure.md` |
+| 車のCAN | `docs/design/ncec_can_spec.md` |
+| 当日の手順 | `docs/manual/` |
+| 回路担当・チームとのやりとり | `docs/share/` |
+
+**ファイルの場所の読み替え（2026-11-13に置き場所を整理した）**
+
+下の追記は書いた当時の場所のままにしてある。直下のファイル名や`tools/`のフォルダーが見つからないときは、次で読み替える。
+
+| 下の追記での書き方 | いまの場所 |
+|---|---|
+| `hardware_share_*`・`hardware_ans_*`・`hardware_meeting_agenda.md`・`lintaroh_share_*`・`lintaroh_answer_*`・`maruo_share_*`・`maruo_answer_*`・`ogata_share_*`・`HANDOFF_2026*`・`HANDOFF_*_20260915`・`ROADSTER_INVESTIGATION_*` | `docs/share/`（`hardware_share_20261004_podium.md`と`lintaroh_answer_20261101_defi_volt.md`の2本は直下のまま） |
+| `hardware_interface_spec.md`・`ncec_can_spec.md`・`sensorhub_defi_tap_design.md`・`brake_pressure_sensor_ncec.md`・`case_shock_design.md`・`enclosure_ecorun_*`・`er12_mpp_soc_harness_bom.md`・`kart_gnss_carrier_*`・`kart_parts_list_*`・`logger_v2_channel_and_sensor_spec.md`・`logger_v2_gnss_i2c_design.md`・`ecorun_team_systems.md` | `docs/design/` |
+| `sugo_day_manual_*`・`ecorun_day_manual_*`・`ecologger_troubleshooting.html`・`ecologger_system_overview.html`・`ecorun_flow_*`・`ncec_field_procedure.md`・`mazda2_field_procedure.md`・`lexus_ux_field_procedure.md`・`podium_auto_link_test_plan.md`・`android_circuit_handoff_*` | `docs/manual/` |
+| `OBD2_SURVEY.md`・`vehicle_can_survey_summary.md`・`LOGGER_V2_*`・`logger_v2_lte_sim_survey.md`・`lap_detection_survey_*`・`podium_connect_notes.md`・`defi_sensor_curves_research.md`・`kart_logger_study_*`・`ecorun_final_plan_*`・`ecorun_race_20261025_*`・`test_drive_20261024_night.md` | `docs/research/` |
+| `DASHCAM_*` | `archive/dashcam/` |
+| `tools/race_replay`・`tools/podium_replay`・`tools/unoq_spi_sd_test`・`tools/lte_antenna` | `tools/dev/` |
+| `tools/voice_gate`・`tools/discord_bridge`・`handoff_20261020_voice_field_test.md` | `archive/voice/` |
+| `tools/record_sheet`・`ecorun_record_sheet_20261024.xlsx` | `ecorun/record_sheet/` |
+
+### 日付順の追記（新しいものが上）
+
+- 2026-11-13：**リポジトリの置き場所を整理した（SP-2、ユーザー依頼。動きは変えていない）。** 直下に約100本あった資料を種類ごとに`docs/share/`（人に渡したメモと回答38本）・`docs/design/`（仕様・設計13本）・`docs/manual/`（手順書10本）・`docs/research/`（調査13本）・`archive/dashcam/`（4本）へ、開発・調べもの用の道具5つを`tools/dev/`へ、通話の道具を`archive/voice/`へ、エコランの記録表を`ecorun/record_sheet/`へ`git mv`で移し、参照しているパスを直した（この4章の過去の記述だけは書いた当時のまま。読み替えは上の表）。直下に残したのは、表紙・`CLAUDE.md`・この文書・`SPEC.md`・分解ファイル全部・`ncec_next_session_checklist.md`・`v2_hardware_overview.html`・`v2_firmware_backup_20261110.md`・`HANDOFF.md`と、本体やサーバーへ入れるソフトのコメントから名指しされている6本（`unoq_video_check_procedure.md`・`unoq_video_to_shield_sd_study.md`・`hardware_share_20261004_podium.md`・`lintaroh_answer_20261101_defi_volt.md`・`sensorhub_generic_spec.md`・`server_deploy_grafana_x86.md`）。入口の道具（`tools/ecologger_menu/`・`tools/video_collect/`・`tools/collect_logs/`）と本体の録画のソフト`tools/unoq_overlay_enc/`、直下のスクリプト・`.json`・`.log`（Ver.1のCAN調査など）は動かしていない。表紙`README.md`をいまの姿と読む人ごとの案内に書き直し、本体のソフトの仕分け一覧`docs/design/unoq_software_inventory.md`を作り（ファイルは動かさない）、コミットされていなかった確かめの記録（`outputs/`の画像）と`docs/share/lintaroh_share_20261104_can1.md`・`tools/dev/can1_loss/`を取り込んだ。車内で録った音（`outputs/audio_check_*/`）は`.gitignore`へ。この文書は、冒頭に章の読み方、1〜3章・6章・7章にVer.1の頃のものという印、この節（いまの姿）を足した。本体と自宅のサーバーには触っていない。
 
 - 2026-11-13：`SPEC.md`の未決をユーザーと決め（解析まで誰でも、車・コースは現地で係がPCから切り替える、入口は手元の機器に置きロガーが無くても開く＝スマホは自宅のサーバーのページ・PCはEcoLoggerアプリ、本体が出すページは入口にしない、LTEの命令は5つのまま、動画は走行ごとに1か所、車載画面に動作の印、公式のRaceCaptureアプリは外す、エコランはVer.2＋スマホ）、作業を`task_spec_rebuild_breakdown.md`（SP-x）に分けた。道具・本体・サーバーは何も変えていない。
 
@@ -1947,6 +2013,8 @@
 
 ## 6. 電気・回路系 相談ポイント（友人への相談事項）
 
+> 2026-11-13追記：Ver.1の基板を考えていた頃の相談事項。Ver.2になってからの依頼・質問とその回答は`docs/share/`（`hardware_share_*`・`hardware_ans_*`・`lintaroh_share_*`・`lintaroh_answer_*`）が正。
+
 1. **車載12V電源の保護・降圧回路**
    オルタネータノイズやロードダンプ（高電圧スパイク）からESP32およびRaspberry Piを守る電源回路（TVSダイオード、ヒューズ、適切なDC-DCコンバータの構成）
 2. **CANバス周りの回路構成**
@@ -1975,6 +2043,8 @@
 ---
 
 ## 7. 未解決事項・要確認リスト
+
+> 2026-11-13追記：Ver.1の頃からの一覧。Ver.2で決まっていないことは`SPEC.md` 9-2と各分解ファイル、NCECの実車でしか解けない宿題は`ncec_next_session_checklist.md`。
 
 | 項目 | 内容 | 優先度 |
 |---|---|---|
@@ -2039,6 +2109,7 @@
   - `rcp_mock_device.py`：モックデバイス実装
   - `task_*.md`：進行中タスクごとの作業ログ（完了したら結論をこのARCHITECTURE.mdへ1〜3行で転記し、`archive/`へ移動。削除はしない）
   - 2026-11-04追記：イベント用（ER・SG・KT）・派生系統（DC）を含めた**分解ファイルの一覧と、イベント後の閉じ方は5章冒頭「タスクの置き場所」が正**。新しい系統を起こしたらそこへ1行足す。ほかのファイルから参照が多いもの（例：`task_dashcam_breakdown.md`）は、全項目を閉じても`archive/`へは移さずその場に残す
+  - 2026-11-13追記：**ファイルの置き場所**。直下に置くのは、表紙・`CLAUDE.md`・この文書・`SPEC.md`・分解ファイル（`task_*_breakdown.md`）と、いま何度も開く資料だけ。新しい資料は種類で分ける：人に渡すメモとその回答は`docs/share/`、仕様・設計は`docs/design/`、手順書は`docs/manual/`、調査は`docs/research/`、閉じた系統の資料は`archive/`、開発・調べもの用の道具は`tools/dev/`、確かめの記録は`outputs/<名前>_<日付>/`。資料の中でほかのファイルを指すときは、リポジトリの頭からのパス（例：`docs/design/ncec_can_spec.md`）で書く。ファイルを移すときは`git mv`で移し、参照を直し、4章の過去の記述は直さずに「いまの姿」の読み替えの表へ1行足す
 
 ### 更新ルール（事故防止）
 ```
