@@ -72,7 +72,7 @@
 <div class="sg">
   <header class="sg-head">
     <h1 class="sg-title" id="top">SUGO 120分耐久 走行解析</h1>
-    <p class="sg-sub">2026年11月8日・スポーツランドSUGO・ロードスター（NCEC）。Ver.2ロガーの本体の記録（予選と決勝）と、自宅サーバーに届いたLTEの記録から作成</p>
+    <p class="sg-sub">2026年11月8日・スポーツランドSUGO・ロードスター（NCEC）。Ver.2ロガーの本体の記録（予選と決勝）と、自宅サーバーに届いたLTEの記録から作成。GNSSの位置・速さは、シールドのSDカードに残った受信機の記録（1秒に10回）に置き換えています</p>
     <p class="sg-take">決勝のベストは<b class="v" data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap_no">—</b>周目の<b class="v" data-draw="f" data-source="facts" data-field="text" data-where="key=best_lap">—</b>。油温は最高<b class="v" data-draw="f" data-source="facts" data-field="text" data-where="key=oil_race_max">—</b>℃で、DASHの警告（<b class="v" data-draw="c" data-c="oilwarn">—</b>℃）には一度も届いていません。油圧が普段より大きく落ちたのも<b class="v" data-draw="f" data-source="facts" data-field="text" data-where="key=press_events">—</b>回だけで、車は最後まで健康でした。タイムを縮められそうなのは、最終コーナーの区間（C7）と1コーナー（C1）です。</p>
   </header>
 
@@ -127,8 +127,8 @@
         <button class="sg-go" data-goto="drive">走りの比較を見る</button>
       </article>
       <article class="sg-find">
-        <h3>後ろが大きく出たのは2回</h3>
-        <p>車の向きと進む向きの差（横滑り角）が<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide_th">—</b>°を超えたコーナーは<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide_n">—</b>か所ありました。大きいのは<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_lap">—</b>周目の<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_c">—</b>（<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_jst">—</b>、<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_beta">—</b>°）と<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide2_lap">—</b>周目の<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide2_c">—</b>（<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide2_jst">—</b>、<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide2_beta">—</b>°）で、どちらも直後に逆向きへ振り返しています。アンダーステアは舵角が無いので出せません。</p>
+        <h3>後ろが大きく出た所</h3>
+        <p>車の向きと進む向きの差（横滑り角）が<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide_th">—</b>°を超えたコーナーは<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide_n">—</b>か所ありました。大きいのは<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_lap">—</b>周目の<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_c">—</b>（<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_jst">—</b>、<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_beta">—</b>°）と<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide2_lap">—</b>周目の<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide2_c">—</b>（<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide2_jst">—</b>、<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide2_beta">—</b>°）です。いちばん大きい所は直後に<b data-draw="f" data-source="facts" data-field="text" data-where="key=slide1_back">—</b>°/sで逆向きへ振り返しています。映像で後ろが出たのを確かめた所でも、コーナーを出たあと向きが戻りきらなかったもの（スピンに近いもの）は、確かでないとしてこの数に入れていません。アンダーステアは舵角が無いので出せません。</p>
         <button class="sg-go" data-goto="drive">タイヤの滑りを見る</button>
       </article>
       <article class="sg-find">
@@ -370,7 +370,7 @@
           <dt>車のCAN</dt><dd>走っている間に値が無かったのは<span data-draw="f" data-source="facts" data-field="text" data-where="key=can1_missing_moving">—</span>% <span class="sg-tag ok">良</span></dd>
           <dt>センサーハブ</dt><dd>決勝の間の通信途絶は<span data-draw="f" data-source="facts" data-field="text" data-where="key=can2_lost_n">—</span>回 <span class="sg-tag ok">良</span></dd>
           <dt>GNSS</dt><dd>走っている間の<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_full">—</span>%で10Hz、衛星<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_sats">—</span>個、水平の精度<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_hacc">—</span>m（悪いときで<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_hacc95">—</span>m） <span class="sg-tag ok">良</span></dd>
-          <dt>記録の位置</dt><dd>受信機は10Hzでも、記録の中で位置が変わったのは走っている間の1秒に<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_pos_rate">—</span>回（0.13〜0.18秒ごと） <span class="sg-tag warn">要確認</span></dd>
+          <dt>記録の位置</dt><dd>本体の記録の中で位置が変わったのは、走っている間の1秒に<span data-draw="f" data-source="facts" data-field="text" data-where="key=emmc_pos_rate">—</span>回だけでした（受信機は10Hz。11/9にロガーを直しました）。この解析では、シールドのSDカードに残った解で置き換えています（記録の行の<span data-draw="f" data-source="facts" data-field="text" data-where="key=sd_rows_pct">—</span>%、1秒に<span data-draw="f" data-source="facts" data-field="text" data-where="key=gnss_pos_rate">—</span>回） <span class="sg-tag ok">良</span></dd>
           <dt>ラップ・セクター</dt><dd>4つのセクターの和とラップタイムの差は最大<span data-draw="f" data-source="facts" data-field="text" data-where="key=sector_sum_err">—</span>秒。コースの長さは<span data-draw="f" data-source="facts" data-field="text" data-where="key=track_len">—</span>m（ベストの周の軌跡） <span class="sg-tag ok">良</span></dd>
         </dl>
       </div>
@@ -396,6 +396,7 @@
     <summary>数え方と、入れていないもの</summary>
     <dl>
       <dt>周の番号</dt><dd>ロガーの周の番号（予選から通し）です。決勝はスタートでラインを通った周から、最後にラインを通った周までを数えています。</dd>
+      <dt>GNSSの位置</dt><dd>シールドのSDカードに残った受信機の解（1秒に10回）を、本体の記録の同じ時刻（STM32の時計）の行へ入れ直しました。本体の記録だけだと、11/9に直す前のロガーでは位置が1秒に約6回しか変わりません。ラップ・セクターのタイムは、本体が走りながら出した値のままです。</dd>
       <dt>道のり</dt><dd>ベストの周のGNSSの軌跡を基準の線にし、ほかの周の位置をその線へ寄せて、ラインからの道のりを出しました。どの周も同じ地点どうしで比べています。</dd>
       <dt>コーナーと区間</dt><dd>ベストの周で速度の谷が深い所をC1〜C7としました。区間は、谷と谷の間の速度がいちばん高い点で区切っています。</dd>
       <dt>横Gの向き</dt><dd>横Gとヨーの変化の向きを照らし、プラスが右コーナーと判断しました。</dd>

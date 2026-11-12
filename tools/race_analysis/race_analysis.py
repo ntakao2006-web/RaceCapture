@@ -81,6 +81,9 @@ def load(path):
     return d
 
 race, quali = load(CFG['race_csv']), load(CFG['quali_csv'])
+if sd_checks:                                  # SDの解で置き換えたとき：本体の記録の中での位置の更新（置き換える前）
+    fact('emmc_pos_rate', sd_checks[0]['emmc_pos_rate'], '本体の記録の中で位置が変わった回数（決勝、60km/h超、回/秒）。SDの解で置き換える前')
+    fact('sd_rows_pct', sd_checks[0]['rows_with_sd_fix'], '決勝の記録の行のうちSDの解が入った割合（%）')
 
 # ---------- 油温・油圧の有効な行 ----------
 off = race[(race.RPM.fillna(-1) == 0) & (race.PressVolt.between(0.4, 1.0))]
