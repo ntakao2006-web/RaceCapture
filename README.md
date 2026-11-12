@@ -32,6 +32,7 @@
 
 - **[`ARCHITECTURE.md`](ARCHITECTURE.md)** — 現在地とロードマップ（このリポジトリの一次情報源）
 - 作業の分解：直下の`task_*_breakdown.md`（一覧は`ARCHITECTURE.md` 5章の冒頭「タスクの置き場所」）
+- 資料1本ごとの案内：[`docs/README.md`](docs/README.md)、道具ごとの案内：[`tools/README.md`](tools/README.md)
 - 各フォルダーの`README.md`
 
 ## フォルダー
