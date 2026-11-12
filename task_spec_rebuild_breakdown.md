@@ -43,8 +43,9 @@
   - [x] SP-2-1 リポジトリの表紙`README.md`を、いまの姿（Ver.2）と、使う人・チーム・開発者それぞれの資料への案内に直す（2026-11-13済み）
   - [x] SP-2-2 開発・調べもの用の道具（`race_replay`・`podium_replay`・`unoq_spi_sd_test`・`can1_loss`・`lte_antenna`）を`tools/dev/`へ移す。参照している資料・操作メニュー・`CLAUDE.md`のパスも直す（2026-11-13済み。5つを`tools/dev/`へ`git mv`、操作メニューの電波の2つのボタンと`radio_walk_pc.py`のリポジトリの位置を合わせ、操作メニューの試験10件は通った）
   - [x] SP-2-3 通話の道具（`voice_gate`・`discord_bridge`）と、エコランの記録表（`record_sheet`）の置き場所を分ける（`archive/`か別フォルダーかはこの項目で決める）（2026-11-13済み。通話は`archive/voice/`（`voice_gate`・`discord_bridge`・`handoff_20261020_voice_field_test.md`）、記録表は`ecorun/record_sheet/`（`build_sheet.py`と`ecorun_record_sheet_20261024.xlsx`）。録音を外す`.gitignore`の行も新しい場所に合わせた）
-  - [ ] SP-2-4 `RaceCapture-UNOQ/`の中身を「いま動いているもの／公式アプリ用／試験／古い候補」に仕分けた一覧を作る（動かすのはSP-7-3のあと）
-  - [ ] SP-2-5 録画のソフト`tools/unoq_overlay_enc/`を本体のソフトの並びへ移すかを決める（本体への入れ方のスクリプトがパスを見ているので、移すなら本体に触れるときに合わせる）
+  - [x] SP-2-4 `RaceCapture-UNOQ/`の中身を「いま動いているもの／公式アプリ用／試験／古い候補」に仕分けた一覧を作る（動かすのはSP-7-3のあと）（2026-11-13済み。`docs/design/unoq_software_inventory.md`。`EcoCapture-Web/`の分も入れた。リポジトリの中だけを根拠にしたので、本体で有効かどうかの「要確認」はSP-1-4で見る）
+  - [ ] SP-2-5 録画のソフト`tools/unoq_overlay_enc/`を本体のソフトの並びへ移すかを決める（本体への入れ方のスクリプトがパスを見ているので、移すなら本体に触れるときに合わせる）　→ 2026-11-13：今回の片付けでは動かさない（ユーザー指定）。移すかどうかは本体に触れるSP-7で決める
+  - [x] SP-2-6 直下の資料を種類ごとのフォルダーへ移す（2026-11-13済み、ユーザー依頼）。人に渡したメモと回答は`docs/share/`、仕様・設計は`docs/design/`、手順書は`docs/manual/`、調査は`docs/research/`、閉じたダッシュカムの資料は`archive/dashcam/`。分解ファイルと、ソフトのコメントから名指しされている資料は直下のまま。直下のスクリプト・`.json`・`.log`（Ver.1のCAN調査など）は範囲の外で触っていない
 
 - [ ] SP-3 **PCのアプリを1つにする**（母体は回収アプリ`tools/video_collect/`）
   - [ ] SP-3-1 画面の案を作ってユーザーに見せる：段は「いまの様子・回収・走行を見る・設定」、上の段に「ロガーを待っています → つながりました」。動かない見本でよい
