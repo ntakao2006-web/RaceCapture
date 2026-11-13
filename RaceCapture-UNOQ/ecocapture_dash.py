@@ -10,8 +10,9 @@ shown is worked out in dash_model.py. Settings: ~/.config/ecocapture-dash.json (
   ecocapture_dash.py --demo             a made-up drive (laps, the gap, a pit stop, oil heating up to 130 C,
                                         two oil pressure drops: one alone, one with the temperatures)
   ecocapture_dash.py --state warn       one fixed screen: normal start pit pitbox pitlane shift limit warn
-                                        warnpress warn2 warn3 lost stale (warn2: oil pressure + oil, warn3: all
-                                        three warnings; pitlane: 63 km/h after the line in the pit lane)
+                                        warnpress warn2 warn3 lost stale sendwait sendoff (warn2: oil pressure
+                                        + oil, warn3: all three warnings; pitlane: 63 km/h after the line in
+                                        the pit lane; sendwait: sending on but nothing going out, sendoff: off)
   ecocapture_dash.py --sound warn       play the warning sound once and exit (--volume 0.3)
   --size 1920x1080 --snapshot out.png   window size, and save the first frame as PNG then exit
   --no-pause                            leave the other display apps alone (checking on a running UNO Q)
@@ -41,6 +42,7 @@ LAPREF_PATH = Path.home() / '.cache' / 'ecocapture-dash' / 'lapref.json'
 FONT_NUM = "'DejaVu Sans', 'Noto Sans CJK JP', sans-serif"
 FONT_TEXT = "'Noto Sans CJK JP', 'DejaVu Sans', sans-serif"
 WARN_SCALE = {1: 1.0, 2: 0.75, 3: 0.55}  # the warnings in the band, by how many are on (they share its width)
+SEND_CLASS = {'ok': 'chip-ok', 'warn': 'chip-warn', 'off': 'chip-off'}  # the sending light; not known: as off
 FLASH_PERIOD_S = 0.5  # bright and dark red twice a second while flashing (under 3 a second: photosensitivity)
 
 
@@ -134,7 +136,8 @@ class DemoFeed:
         rpm = 5200 + 2850 * ((now - self.t0) % 6.0) / 6.0
         press = 70.0 if 200 <= cycle < 206 or 440 <= cycle < 446 else min(480.0, 60 + 0.07 * rpm)
         return {'status': {'connected': True, 'logging': {'active': True},
-                           'video': {'recording': True, 'minutes_left': max(0, 150 - (now - self.t0) / 60)}},
+                           'video': {'recording': True, 'minutes_left': max(0, 150 - (now - self.t0) / 60)},
+                           'podium': {'enabled': True, 'state': 'streaming', 'last_sent_age_ms': 120}},
                 'sample': {'values': {'Lat': lat, 'Lon': lon, 'GPSSpeed': 80.0 + 0.012 * (rpm - 5200), 'RPM': rpm},
                            'can_signals': {'OilTemp': oil, 'WaterTemp': oil - 10, 'OilPress': press},
                            'gnss_utc': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'lap': lap}}
@@ -151,14 +154,19 @@ def fixed_state(config, name, rpm=None):
     temps = {'normal': (98, 88, 420), 'start': (92, 84, 430), 'pit': (101, 91, 410), 'pitbox': (101, 91, 150),
              'warn': (122, 104, 400), 'warnpress': (104, 94, 85), 'warn2': (124, 105, 150), 'warn3': (128, 113, 140),
              'lost': (None, 93, 420), 'stale': (98, 88, 420), 'pitlane': (101, 91, 300),
-             'shift': (98, 88, 450), 'limit': (98, 88, 460)}[name]
+             'shift': (98, 88, 450), 'limit': (98, 88, 460), 'sendwait': (98, 88, 420), 'sendoff': (98, 88, 420)}[name]
     if name == 'start':
         lap.update(CurrentLap=0, LapCount=0, ElapsedTime=None, LapTime=None, BestLap=None, RaceTime=None, LapDiffS=None, LastLapPit=None)
     if name in ('pit', 'pitbox', 'pitlane'):  # the in lap was a pit lap, the running lap started in the pit lane
         lap.update(ElapsedTime=21.4 / 60, LapTime=221.07 / 60, LapDiffS=None, LastLapPit=True, LapStartPit=True)
     # before the start the video light is yellow: 108 minutes left is short of the race
+    # sending: rows going out, but for sendwait (the link lost, trying again) and sendoff (switched off)
+    podium = {'sendwait': {'enabled': True, 'state': 'retry', 'last_sent_age_ms': 14200},
+              'sendoff': {'enabled': False, 'state': 'off', 'last_sent_age_ms': None}}.get(
+                  name, {'enabled': True, 'state': 'streaming', 'last_sent_age_ms': 120})
     frame = {'status': {'connected': True, 'logging': {'active': True},
-                        'video': {'recording': True, 'minutes_left': 108 if name == 'start' else 150}},
+                        'video': {'recording': True, 'minutes_left': 108 if name == 'start' else 150},
+                        'podium': podium},
              'sample': {'values': {'Lat': 38.1423, 'Lon': 140.777,
                                    'GPSSpeed': {'pitbox': 0.0, 'pitlane': 63.0, 'shift': 131.0, 'limit': 133.0}.get(name, 120.0),
                                    'RPM': rpm if rpm is not None else
@@ -202,6 +210,7 @@ def css_for(w, h):
     .chip-ok {{ color: #38e05a; background-color: #0f2a14; }}
     .chip-warn {{ color: #1c1000; background-color: #ffb020; }}
     .chip-bad {{ color: #ffffff; background-color: #d81e1e; }}
+    .chip-off {{ color: #a8a8a8; background-color: #262626; }}
     .notice {{ font-family: {FONT_TEXT}; font-size: {int(mid * 0.55)}px; font-weight: bold; border-radius: {rad}px; }}
     .notice-none {{ background-color: transparent; color: transparent; }}
     .notice-pit {{ background-color: #1f64c8; color: #ffffff; }}
@@ -364,6 +373,7 @@ def run_gui(args, config):
             self.clock = label('--', 'num', 'small')
             self.chip_rec = label('記録', 'chip', xalign=0.5)
             self.chip_gnss = label('GNSS', 'chip', xalign=0.5)
+            self.chip_send = label('送信', 'chip', xalign=0.5)
             self.chip_oil = label('油温センサー', 'chip', xalign=0.5)
             for widget in (self.elapsed, self.clock):
                 widget.set_ellipsize(Pango.EllipsizeMode.NONE)  # the lights give way, never the numbers
@@ -373,7 +383,8 @@ def run_gui(args, config):
             for widget in (self.cap_elapsed, self.elapsed, self.cap_clock, self.clock):
                 widget.set_valign(Gtk.Align.CENTER)
                 self.row3.pack_start(widget, False, False, 0)
-            for chip in (self.chip_oil, self.chip_gnss, self.chip_rec):
+            # from the left: recording, GNSS, sending (SPEC.md M-2), then the oil sensors
+            for chip in (self.chip_oil, self.chip_send, self.chip_gnss, self.chip_rec):
                 chip.set_valign(Gtk.Align.CENTER)
                 self.row3.pack_end(chip, False, False, 0)
 
@@ -416,7 +427,7 @@ def run_gui(args, config):
                 cell.set_size_request(int(avail * share), r2)
             self.row3.set_spacing(int(0.012 * w))
             self.cap_clock.set_margin_start(int(0.03 * w))
-            for chip in (self.chip_rec, self.chip_gnss):
+            for chip in (self.chip_rec, self.chip_gnss, self.chip_send):
                 chip.set_margin_start(int(0.006 * w))
             cell_pad = int(0.012 * h) * 1.6
             self.bar_w = int((inner_w - gap) / 2 - 2 * cell_pad)
@@ -527,6 +538,10 @@ def run_gui(args, config):
                 classes(self.chip_rec, 'chip', 'chip-ok')
             self.chip_gnss.set_text('GNSS' if s['gnss'] else 'GNSS未測位')
             classes(self.chip_gnss, 'chip', 'chip-ok' if s['gnss'] else 'chip-warn')
+            # Sending (dash_model.send_light): green while rows go out, yellow when sending is on but nothing
+            # goes out, grey when it is switched off or not known (not a fault: nothing to do while driving)
+            self.chip_send.set_text(s.get('send', '送信 --'))
+            classes(self.chip_send, 'chip', SEND_CLASS.get(s.get('send_kind'), 'chip-off'))
             # the oil sensors (the oil pressure only once it has come): yellow when one is lost
             # (the water temperature still warns for a lost oil temperature)
             text, ok = s['sensor']
@@ -598,7 +613,7 @@ def main(argv=None):
     parser.add_argument('--config', default=str(CONFIG_PATH))
     parser.add_argument('--demo', action='store_true')
     parser.add_argument('--state', choices=['normal', 'start', 'pit', 'pitbox', 'pitlane', 'shift', 'limit', 'warn',
-                                            'warnpress', 'warn2', 'warn3', 'lost', 'stale'])
+                                            'warnpress', 'warn2', 'warn3', 'lost', 'stale', 'sendwait', 'sendoff'])
     parser.add_argument('--sound', choices=['warn'])
     parser.add_argument('--rpm', type=float, help='with --state: this engine speed instead of the state\'s own')
     parser.add_argument('--size')

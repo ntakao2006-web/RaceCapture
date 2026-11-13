@@ -15,6 +15,9 @@
   car's CAN on, LTE carries ~1.25 rows/s, so a 3-second trail is a few dots; a lap's ~100 dots
   show how hard the car is driven. No smoothing in this mode (it would lag ~2 s at that rate),
   and short peaks between rows are missed, so the highest g reads low.
+  2026-11-13 (SP-6-2): when the rows stop, the numbers (and with ?lap=1 the dots) stayed and looked
+  like the present. The bridge says once a second when the newest rows got to it (`feed`); past
+  STALE_S the page says so, greys the numbers and the dots and leaves the last point as a grey dot.
 -->
 <style>
   :root { color-scheme: dark; --bg: transparent; --ink: #d8d9da; --dim: #9fa1a8; --ring: #4a4d55; --dot: #f2cc0c; --trail: 242, 204, 12;
@@ -28,6 +31,11 @@
   #read b { font-size: 18px; }
   #status { position: absolute; right: 8px; bottom: 6px; color: var(--dim); font-size: 11px; }
   #peaks { display: none; }
+  #feed { position: absolute; left: 8px; top: 4px; max-width: 60%; display: none; font-size: 12px; color: #fff;
+    border-radius: 4px; padding: 1px 6px; }
+  #feed.stale { display: block; background: #c4162a; }
+  #feed.wait { display: block; background: #8a6d00; }
+  body.old #read, body.old #peaks { opacity: 0.45; }
   /* ?lap=1: the circle on the left, the numbers in a column beside it (a wide, low panel) */
   body.lap #read { left: auto; right: 8px; bottom: auto; top: 4px; font-size: 12px; white-space: nowrap; color: var(--dim); }
   body.lap #read b { font-size: 14px; color: var(--ink); }
@@ -45,6 +53,7 @@
   <span>前の周</span><span id="pvLat">—</span><span id="pvBrk">—</span><span id="pvAcc">—</span></div>
 <div id="read">前後 <b id="lon">—</b>　左右 <b id="lat">—</b><span class="total">　合成 <b id="tot">—</b></span></div>
 <div id="status">接続中…</div>
+<div id="feed"></div>
 <script>
 const params = new URLSearchParams(location.search);
 const room = params.get('room') || 'home-test';
@@ -54,7 +63,9 @@ const LAP = params.get('lap') === '1';
 const TRAIL_MS = LAP ? 5000 : 3000;
 const HISTORY_S = LAP ? 600 : TRAIL_MS / 1000;   // enough for this lap and the one before
 const SMOOTH = LAP ? 1 : 0.35;   // exponential smoothing per sample (~0.3 s at 10/s): IMU jitter hid the shape
+const STALE_S = 10;   // as laps.html, clock.html and home.html
 let smooth = null;
+let feed = null, connected = false, offsets = [], old = false, lastPoint = null;   // feed: {data_t} on the bridge's clock
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 let points = [];   // {at, x: lateral g, y: longitudinal g}
@@ -77,7 +88,7 @@ function add(s, at) {
   if (typeof s.LongAccel !== 'number' || typeof s.LatAccel !== 'number') return;
   const raw = { x: s.LatAccel * FLIP, y: -s.LongAccel };   // y up = braking
   smooth = smooth ? { x: smooth.x + (raw.x - smooth.x) * SMOOTH, y: smooth.y + (raw.y - smooth.y) * SMOOTH } : raw;
-  points.push({ at, x: smooth.x, y: smooth.y });
+  points.push(lastPoint = { at, x: smooth.x, y: smooth.y });
   if (LAP) {
     // A lap ends when LapCount goes up; a lap reset (it goes back) starts over too.
     if (typeof s.LapCount === 'number' && s.LapCount !== lapNo) {
@@ -131,7 +142,7 @@ function draw() {
   const clamp = (v) => Math.max(-MAX * 1.1, Math.min(MAX * 1.1, v));
   // ?lap=1: the lap before in grey, then this lap's points
   for (const [list, rgb, alpha, size] of [[before, '--before', 0.35, 2], [cloud, '--cloud', 0.6, 2.5]]) {
-    ctx.fillStyle = `rgba(${css.getPropertyValue(rgb)}, ${alpha})`;
+    ctx.fillStyle = `rgba(${css.getPropertyValue(rgb)}, ${old ? alpha * 0.4 : alpha})`;
     for (const p of list) {
       ctx.beginPath(); ctx.arc(cx + r * clamp(p.x) / MAX, cy - r * clamp(p.y) / MAX, size, 0, 2 * Math.PI); ctx.fill();
     }
@@ -149,12 +160,28 @@ function draw() {
     ctx.lineTo(cx + r * clamp(b.x) / MAX, cy - r * clamp(b.y) / MAX);
     ctx.stroke();
   }
-  const last = points[points.length - 1];
+  const last = points[points.length - 1] || (old ? lastPoint : null);   // old: where it was last, greyed
   if (last) {
-    ctx.fillStyle = css.getPropertyValue('--dot');
+    ctx.fillStyle = old ? `rgba(${css.getPropertyValue('--before')}, 0.6)` : css.getPropertyValue('--dot');
     ctx.beginPath(); ctx.arc(cx + r * clamp(last.x) / MAX, cy - r * clamp(last.y) / MAX, 6, 0, 2 * Math.PI); ctx.fill();
   }
 }
+
+// How old the newest rows are (the wording is home.html's)
+const serverNow = () => Date.now() + (offsets.length ? Math.max(...offsets.map(o => o.d)) : 0);
+function drawFeed() {
+  const el = document.getElementById('feed');
+  const a = feed && feed.data_t != null ? (serverNow() - feed.data_t) / 1000 : null;
+  let cls = '', text = '';
+  if (!connected) { if (feed) { cls = 'wait'; text = 'サーバーにつなぎ直しています'; } }
+  else if (!feed) {}   // a bridge from before 2026-11-13 does not say: as before
+  else if (a == null) { cls = 'wait'; text = 'ロガーを待っています（まだ値が届いていません）'; }
+  else if (a > STALE_S) { cls = 'stale'; text = `値が届いていません（${a < 120 ? Math.round(a) + '秒' : Math.round(a / 60) + '分'}前のまま）`; }
+  el.className = cls; el.textContent = text;
+  old = cls !== '' && a !== null;   // only what is drawn can be old
+  document.body.classList.toggle('old', old);
+}
+setInterval(drawFeed, 500);
 
 function connect() {
   // Works direct (http://host:3002/gg) and behind the public path (/live/gg), like map.html.
@@ -163,14 +190,21 @@ function connect() {
   const ws = new WebSocket(`${scheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}` +
                            `&kind=gg&fields=LongAccel,LatAccel${LAP ? ',LapCount' : ''}&history=${HISTORY_S}`);
   const status = document.getElementById('status');
-  ws.onopen = () => { status.textContent = room; };
-  ws.onclose = () => { status.textContent = `${room}: 再接続中…`; setTimeout(connect, 2000); };
+  ws.onopen = () => { status.textContent = room; connected = true; };
+  ws.onclose = () => { status.textContent = `${room}: 再接続中…`; connected = false; setTimeout(connect, 2000); };
   ws.onmessage = (ev) => {
     const msg = JSON.parse(ev.data);
     const now = performance.now();
+    if (msg.feed) {
+      const at = Date.now();
+      offsets.push({ at, d: msg.now - at });
+      offsets = offsets.filter(o => at - o.at < 600000);
+      feed = msg.feed;
+      return;
+    }
     if (msg.history) {
       const h = msg.history, last = h.length ? h[h.length - 1].t : 0;
-      points = []; smooth = null; cloud = []; before = []; lapNo = null;
+      points = []; smooth = null; cloud = []; before = []; lapNo = null; lastPoint = null;
       for (const s of h) {
         add(s, now - (last - s.t));   // the whole history, for ?lap=1's laps; the trail drops what is old
       }

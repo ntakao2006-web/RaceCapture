@@ -58,6 +58,7 @@
   .lv3 { color: #fff; background: var(--red); }
   #alarm { display: none; font-weight: 700; border-radius: 4px; padding: 1px 8px; font-size: clamp(13px, min(3vw, 4.8vh), 20px); }
   #alarm.lv1, #alarm.lv2, #alarm.lv3 { display: inline; }
+  .temp.old, #alarm.old { opacity: 0.45; }
   #wrap.pit { background: rgba(242, 73, 92, 0.18); box-shadow: inset 0 0 0 4px var(--red); }
   #sheet { flex: 1; min-height: 0; overflow: auto; border-top: 1px solid var(--line); }
   table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: clamp(12px, min(2.9vw, 4.4vh), 18px); }
@@ -224,25 +225,35 @@ function beep(times) {
 
 // A level is entered at once and left HOLD_OFF_MS after the value drops below it
 // (the driver's dash: 1 s / 5 s), so a reading on the line does not flicker.
-function temperature(id, value, lim) {
+// `old`: no rows for STALE_S. The bridge drops a temperature 10 s after its last value only as
+// counted in rows (Pace.live), so with no rows at all the last one stayed as if it were the
+// present (2026-11-13, SP-6-2). It is then left as it was, greyed: the level is not worked out
+// again, and the warning sound waits for the next value.
+function temperature(id, value, lim, old) {
   const s = level[id], now = Date.now(), lv = levelOf(value, lim);
-  if (lv >= s.lv) { s.lv = lv; s.below = 0; }
+  if (old) s.below = 0;
+  else if (lv >= s.lv) { s.lv = lv; s.below = 0; }
   else if (!s.below) s.below = now;
   else if (now - s.below >= HOLD_OFF_MS) { s.lv = lv; s.below = 0; }
   const el = show(id, value == null ? '—' : Math.round(value) + '℃');
-  el.className = 'mid temp' + (s.lv ? ' lv' + s.lv : '');
+  el.className = 'mid temp' + (s.lv ? ' lv' + s.lv : '') + (old && value != null ? ' old' : '');
   return s.lv;
 }
 
+function dataAge() {   // seconds since the newest row, or null without one
+  return clock && clock.data_t != null ? (serverNow() - clock.data_t) / 1000 : null;
+}
+
 function drawTemps() {
+  const age = dataAge(), old = age != null && age > STALE_S;
   const before = Math.max(level.oil.lv, level.water.lv);
-  const oil = temperature('oil', clock ? clock.oil : null, OIL);
-  const water = temperature('water', clock ? clock.water : null, WATER);
+  const oil = temperature('oil', clock ? clock.oil : null, OIL, old);
+  const water = temperature('water', clock ? clock.water : null, WATER, old);
   const lv = Math.max(oil, water);
-  const alarm = show('alarm', lv ? `${oil >= water ? '油温' : '水温'}：${ALARM[lv]}` : '');
-  alarm.className = lv ? 'lv' + lv : '';
-  document.getElementById('wrap').classList.toggle('pit', lv === 3);
-  if (beepOn && lv >= 2 && (lv > before || (lv === 3 && Date.now() - lastBeep >= BEEP_EVERY_MS))) {
+  const alarm = show('alarm', lv ? `${oil >= water ? '油温' : '水温'}：${ALARM[lv]}${old ? `（${Math.round(age)}秒前の値）` : ''}` : '');
+  alarm.className = lv ? 'lv' + lv + (old ? ' old' : '') : '';
+  document.getElementById('wrap').classList.toggle('pit', lv === 3 && !old);
+  if (beepOn && !old && lv >= 2 && (lv > before || (lv === 3 && Date.now() - lastBeep >= BEEP_EVERY_MS))) {
     lastBeep = Date.now(); beep(lv);
   }
 }

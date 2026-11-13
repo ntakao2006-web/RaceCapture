@@ -3,7 +3,7 @@
 The driver screen for the SUGO 120-minute endurance (2026-11-08, task_sugo_20261108_breakdown.md
 SG-2-6): the running lap, the gap to the best lap, the last lap with its difference from the lap
 before (or PIT), the best lap and lap number, the time since the first control-line pass after the
-lap reset, the clock, and small lights for recording, GNSS and the oil sensors. Oil pressure, oil and
+lap reset, the clock, and small lights for recording, GNSS, sending (SPEC.md M-2) and the oil sensors. Oil pressure, oil and
 water temperatures are not shown as gauges (the Defi meters are there): only their warnings are.
 
 A normal pit stop is not a warning: the lap begun in the pit lane gets a blue strip (PIT IN while
@@ -92,6 +92,12 @@ DEFAULTS = {
     # The burnt-in video (EcoCapture /api/status 'video', unoq_video_check_procedure.md 5-17): fewer minutes
     # left than this (a 120-minute race with the grid and the cool-down lap) is shown in yellow
     'video_warn_min': 130,
+    # The sending light (EcoCapture /api/status 'podium'): 'streaming' but nothing sent for longer than this
+    # is shown as not sending. Rows go out 10 times a second; over LTE they are sent five at a time, or
+    # after 1 s when fewer have come (podium.py RELAY_BATCH), and a slow link may take about 2 s over one
+    # send (the limit podium.py's VoiceGuard allows on LTE). 5 s is over twice that, so a healthy link
+    # never trips it, and still short enough to be seen within one straight.
+    'send_stale_s': 5.0,
     # The UNO Q's one sound card: its 4th front end (MultiMedia4) is routed to SEC_MI2S_RX, the I2S
     # link to the ANX7625 (the USB-C video bridge) and so to the monitor's speaker over HDMI
     # (device tree: sound/hdmi-i2s-dai-link, port 18; checked 2026-11-04). PipeWire does not use the card.
@@ -427,6 +433,7 @@ class DashModel:
         else:
             video_text = '録画' if left is None else f'録画 {int(left) // 60}:{int(left) % 60:02d}'
             video_kind = 'ok' if left is None or left >= self.config['video_warn_min'] else 'warn'
+        send_text, send_kind = send_light(status.get('podium'), self.config['send_stale_s'])
         state = {
             'stale': stale,
             'rpm': '--' if rpm is None else f'{int(round(rpm))}',
@@ -446,6 +453,7 @@ class DashModel:
             'clock': clock,
             'rec': bool((status.get('logging') or {}).get('active')),
             'video': video_text, 'video_kind': video_kind,
+            'send': send_text, 'send_kind': send_kind,
             'gnss': lat is not None and lon is not None and not (lat == 0 and lon == 0),
             'oil_sensor': oil is not None,
             'press_sensor': press is not None if self.press_seen else None,
@@ -465,6 +473,23 @@ def sensor_light(oil, press):
     if oil and press:
         return '油温・油圧', True
     return ('油圧センサー途絶' if oil else '油温センサー途絶' if press else '油温・油圧途絶'), False
+
+
+def send_light(podium, stale_s):
+    """(text, kind) of the sending light, from EcoCapture's /api/status 'podium' (podium.py status()).
+    'ok': streaming, and the last row went out within stale_s. 'warn': sending is on but nothing is going
+    out (connecting, retrying, waiting for the GNSS time, or streaming with the last row older than
+    stale_s). 'off': sending is switched off. None: not known (the API could not be read, or an older
+    EcoCapture without the item). The words stay short: this is read while driving, the colour says it."""
+    if not isinstance(podium, dict):
+        return '送信 --', None
+    enabled = podium.get('enabled')
+    if enabled is False or (enabled is None and podium.get('state') == 'off'):
+        return '送信OFF', 'off'
+    age = number(podium.get('last_sent_age_ms'))
+    if podium.get('state') == 'streaming' and age is not None and age <= stale_s * 1000:
+        return '送信中', 'ok'
+    return '未送信', 'warn'
 
 
 def tone_wav(kind, volume=0.8, rate=44100, repeat=6):

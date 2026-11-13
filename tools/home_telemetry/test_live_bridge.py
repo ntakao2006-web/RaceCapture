@@ -288,5 +288,174 @@ class HomeTest(unittest.TestCase):
             self.assertIn(f"{op}:", page)   # every operation the logger takes has a label on the page
 
 
+class LapResetTest(unittest.TestCase):
+    """Laps set back to 0 on the logger (2026-11-13, SP-6-1): the run before is forgotten, as the
+    logger forgets it (lap.py LapTimer.reset: count 0, no last or best lap, no race clock). What a
+    real run also does -- rows lost, the same values for a while, a logger restarting, a count
+    corrected by hand -- must not."""
+
+    def run_before(self):
+        """Into lap 4 (t = 0..320 s), laps of 100 s, the best 99.5 s."""
+        p = live_bridge.Pace()
+        for t in range(0, 321):
+            p.add(*circuit_row(t, t, t % 100, t // 100, lap_time=100.0 if t >= 100 else None,
+                               best=99.5 if t >= 100 else None))
+        c = p.clock()
+        self.assertEqual((c['count'], c['last_lap'], c['best'], len(c['passes'])), (3, 100.0, 99.5, 4))
+        return p
+
+    @staticmethod
+    def reset_row(t_s):
+        """As the logger sends it after the reset: only the count, no times."""
+        return 1_800_000_000_000 + int(t_s * 1000), {'Speed': 0.0, 'OilTemp': 95.0, 'WaterTemp': 88.0,
+                                                    'LapCount': 0, 'CurrentLap': 0}
+
+    def test_reset_forgets_the_run_before(self):
+        p = self.run_before()
+        p.add(*self.reset_row(321))
+        c = p.clock()
+        self.assertEqual(c['count'], 0)
+        self.assertIsNone(c['last_lap'])
+        self.assertIsNone(c['best'])        # the logger forgets its best lap too
+        self.assertEqual(c['passes'], [])
+        self.assertIsNone(c['start'])
+        self.assertEqual(c['oil'], 95.0)    # what is being measured now stays
+        self.assertNotIn('LastLapAvgSpeed', p.add(*self.reset_row(322)))
+        # The next run starts a new sheet and takes its own times
+        for t in range(400, 520):
+            p.add(*circuit_row(t, t - 400, (t - 400) % 100, (t - 400) // 100,
+                               lap_time=101.0 if t >= 500 else None, best=101.0 if t >= 500 else None))
+        c = p.clock()
+        self.assertEqual([q['k'] for q in c['passes']], ['start', 'control'])
+        self.assertEqual((c['count'], c['last_lap'], c['best']), (1, 101.0, 101.0))
+
+    def test_the_cover_and_the_sheet_are_told(self):
+        import tempfile
+        import types
+        folder = tempfile.mkdtemp()
+        b = live_bridge.Bridge(types.SimpleNamespace(db=os.path.join(folder, 'map.db'), lap_split=None,
+                                                     grafana_token_file=os.path.join(folder, 'none')))
+        pace = b.paces['r'] = self.run_before()
+        ws = object()
+        self.assertEqual(len(json.loads(b.laps_msg(ws, 'r'))['laps']['passes']), 4)
+        pace.add(*self.reset_row(321))
+        home = json.loads(b.home_msg('r'))['home']
+        self.assertEqual((home['count'], home['last_lap'], home['best']), (0, None, None))
+        self.assertEqual(json.loads(b.laps_msg(ws, 'r'))['laps']['passes'], [])   # sent again, empty
+
+    def kept(self, p):
+        c = p.clock()
+        self.assertEqual((c['last_lap'], c['best']), (100.0, 99.5))
+        return c
+
+    def test_lost_rows_and_the_same_values_keep_it(self):
+        p = self.run_before()
+        for t in range(350, 380):      # 30 s without a row, then the same lap going on
+            p.add(*circuit_row(t, t, t - 300, 3, lap_time=100.0, best=99.5))
+        self.assertEqual(len(self.kept(p)['passes']), 4)
+
+    def test_a_restarting_logger_keeps_it(self):
+        """No lap values for a while (the lap line not read yet), then the same count again."""
+        p = self.run_before()
+        for t in range(321, 400):
+            p.add(1_800_000_000_000 + t * 1000, {'Speed': 0.0, 'OilTemp': 95.0})
+        self.kept(p)
+        for t in range(400, 420):
+            p.add(*circuit_row(t, t, t - 300, 3, lap_time=100.0, best=99.5))
+        self.assertEqual(self.kept(p)['count'], 3)
+
+    def test_a_count_corrected_by_hand_keeps_it(self):
+        """set_count from the pit, also to 0: the logger keeps its lap times and sends them on."""
+        for count in (2, 0):
+            p = self.run_before()
+            for t in range(321, 330):
+                p.add(*circuit_row(t, t, t - 300, count, lap_time=100.0, best=99.5))
+            self.assertEqual(self.kept(p)['count'], count)
+
+    def test_before_the_first_lap_nothing_is_dropped(self):
+        """Count 0 without times is every row before the first pass: not a reset."""
+        p = live_bridge.Pace()
+        for t in range(0, 50):
+            p.add(*circuit_row(t, t, t, 0))
+        c = p.clock()
+        self.assertIsNotNone(c['start'])
+        self.assertEqual([q['k'] for q in c['passes']], ['start'])
+
+
+class FeedTest(unittest.TestCase):
+    """How old the newest rows are, for the map and G-G pages (2026-11-13, SP-6-2)."""
+
+    def bridge(self, folder):
+        import types
+        return live_bridge.Bridge(types.SimpleNamespace(
+            dir=folder, db=os.path.join(folder, 'map.db'), lap_split=None, vm_url='http://127.0.0.1:9/',
+            grafana_token_file=os.path.join(folder, 'none')))
+
+    @staticmethod
+    def write(folder, room, rows, mode='w'):
+        """A session file as the server writes it: Utc, Speed; `rows` = [(utc_ms, speed)]."""
+        os.makedirs(os.path.join(folder, room), exist_ok=True)
+        path = os.path.join(folder, room, '20261113-000000Z.jsonl')
+        with open(path, mode, encoding='utf-8') as f:
+            if mode == 'w':
+                f.write(json.dumps({'recv_ms': 1, 'meta': [{'nm': 'Utc'}, {'nm': 'Speed'}]}) + '\n')
+            if rows:
+                f.write(json.dumps({'recv_ms': 1, 'samples': [[t, v, 3] for t, v in rows]}) + '\n')
+        return path
+
+    def test_a_room_without_data_says_so(self):
+        import tempfile
+        msg = json.loads(self.bridge(tempfile.mkdtemp()).feed_msg('nobody'))
+        self.assertEqual(msg['feed'], {'data_t': None})
+        self.assertIsInstance(msg['now'], int)
+        self.assertNotIn('t', msg)   # a page from before reads rows by `t` and lets this pass
+
+    def test_rows_set_the_time_on_the_servers_clock(self):
+        """Not the rows' own time (here a day old): when they got here. Rows already taken do not count."""
+        import asyncio
+        import tempfile
+        import time
+        import unittest.mock
+        folder = tempfile.mkdtemp()
+        b = self.bridge(folder)
+        utc = round(time.time() * 1000) - 86_400_000
+
+        async def run():
+            task = asyncio.ensure_future(b.follow())
+            await asyncio.sleep(0.2)
+            self.assertIsNone(json.loads(b.feed_msg('r'))['feed']['data_t'])
+            before = round(time.time() * 1000)
+            self.write(folder, 'r', [(utc, 50.0), (utc + 100, 51.0)])
+            await asyncio.sleep(0.4)
+            first = json.loads(b.feed_msg('r'))
+            self.assertTrue(before <= first['feed']['data_t'] <= first['now'], first)
+            self.write(folder, 'r', [(utc + 100, 51.0)], mode='a')   # the same row again (the server replaying)
+            await asyncio.sleep(0.4)
+            self.assertEqual(json.loads(b.feed_msg('r'))['feed']['data_t'], first['feed']['data_t'])
+            self.write(folder, 'r', [(utc + 200, 52.0)], mode='a')
+            await asyncio.sleep(0.4)
+            self.assertGreater(json.loads(b.feed_msg('r'))['feed']['data_t'], first['feed']['data_t'])
+            task.cancel()
+
+        with unittest.mock.patch.object(live_bridge, 'http_post', lambda *a, **k: None):
+            asyncio.run(run())
+
+    def test_a_restarted_bridge_takes_it_from_the_file(self):
+        """Bridge.rebuild: the rows were here before this bridge; the file's last write tells when."""
+        import tempfile
+        import time
+        folder = tempfile.mkdtemp()
+        utc = round(time.time() * 1000) - 600_000
+        path = self.write(folder, 'r', [(utc, 50.0)])
+        os.utime(path, (time.time() - 300, time.time() - 300))
+        b = self.bridge(folder)
+        b.rebuild()
+        self.assertAlmostEqual(json.loads(b.feed_msg('r'))['feed']['data_t'], (time.time() - 300) * 1000, delta=2000)
+
+    def test_only_the_pages_drawing_rows_get_it(self):
+        self.assertEqual(live_bridge.FEED_KINDS, (None, 'gg'))
+        self.assertFalse(set(live_bridge.FEED_KINDS) & set(live_bridge.CLOCK_KINDS))
+
+
 if __name__ == '__main__':
     unittest.main()

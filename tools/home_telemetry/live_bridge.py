@@ -19,7 +19,8 @@ This process follows those files and
   3. sends the race clock (start time, limits, laps and line passes) once a second to the
      clock page, which runs the clock on the browser's own time so it keeps going when the
      pit's link stalls, and the same to the circuit timing sheet (laps page, 2026-11-04),
-     which gets the line passes only when they change.
+     which gets the line passes only when they change. The map and G-G pages are told once a
+     second when the newest rows got here, so they can say that what they show is old.
 It also serves the map page at http://<host>:3002/map?room=<room> (G-G at /gg, the
 clock at /clock, the timing sheet at /laps, the cover at /home and /), and over the
 same WebSocket
@@ -69,6 +70,7 @@ APP_STALE_S = 15 * 60           # ...but an OwnTracks phone standing still may r
 MAX_HTTP_BODY = 16_000          # one OwnTracks message
 MAX_SHAPE_BYTES = 200_000       # one drawn shape as GeoJSON
 CLOCK_KINDS = ('clock', 'laps', 'home')  # pages sent the race state once a second instead of the rows
+FEED_KINDS = (None, 'gg')       # pages drawing the rows (map, G-G), told once a second how old the newest is
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -304,6 +306,29 @@ class Pace:
             p['x'] = [sectors.get(k) for k in range(1, max(sectors) + 1)]
         self.passes.append(p)
 
+    def lap_reset(self, fields):
+        """The laps were set back to 0 on the logger (2026-11-13, SP-6-1: the cover and the timing sheet
+        kept showing the last and best laps of the run before, held in `latest`). The logger's reset
+        (EcoCapture-Web/lap.py LapTimer.reset) empties its whole state, so its rows then carry
+        LapCount 0 and no LapTime, BestLap or RaceTime. Only that row counts: a count corrected by
+        hand (set_count, also to 0) still carries the lap times, which the logger keeps; rows lost on
+        the way, or a logger restarting with no lap values for a while, carry no LapCount at all."""
+        count = fields.get('LapCount')
+        return (count == 0 and self.count is not None and self.count > 0
+                and all(fields.get(name) is None for name in ('LapTime', 'BestLap', 'RaceTime')))
+
+    def forget_run(self):
+        """Drop what belongs to the run before the reset: the last and best laps (the logger forgets
+        its best too), the line passes, the start, and the lap being put together."""
+        for name in ('LapTime', 'BestLap'):
+            self.latest.pop(name, None)
+            self.seen.pop(name, None)
+        self.passes = []
+        self.start_ms = None
+        self.last_lap_avg = None
+        self.lap_scale = 1.0
+        self.peaks, self.sectors, self.sector_key = {}, {}, None
+
     def add(self, ts_ms, fields):
         speed = fields.get('Speed', fields.get('GPSSpeed'))
         race_min, lap_min = fields.get('RaceTime'), fields.get('ElapsedTime')
@@ -312,6 +337,8 @@ class Pace:
             if name in fields:
                 self.latest[name] = fields[name]
                 self.seen[name] = ts_ms
+        if self.lap_reset(fields):
+            self.forget_run()
         dt = (ts_ms - self.last_ts) / 1000 if self.last_ts is not None else None
         self.last_ts = ts_ms
         sector = self.sector_row(fields)
@@ -569,6 +596,7 @@ class Bridge:
         self.playouts = {}
         self.paces = {}   # room -> Pace
         self.newest = {}  # room -> newest row time taken (only_new)
+        self.arrived = {}  # room -> when its newest rows got here (server time, ms; see feed_msg)
         self.clients = {}  # websocket -> room
         self.client_opts = {}  # websocket -> {kind, fields} (see client)
         self.started = time.time()
@@ -611,6 +639,8 @@ class Bridge:
             for ts, fields in points:
                 pace.add(ts, fields)
             pace.events.clear()
+            if points:   # the file's last write is when its newest rows got here
+                self.arrived[f.room] = max(self.arrived.get(f.room, 0), round(os.path.getmtime(path) * 1000))
             self.followers[path] = f
             rows += len(points)
         for room, pace in sorted(self.paces.items()):
@@ -632,6 +662,7 @@ class Bridge:
                 except OSError:
                     continue
                 if points:
+                    self.arrived[f.room] = round(time.time() * 1000)
                     pace = self.paces.setdefault(f.room, Pace(self.args.lap_split))
                     points = [(ts, pace.add(ts, fl)) for ts, fl in points]
                     # Line passes as ecorun_lap_at{room,lap,kind,race,seconds,avg} = pass time (ms), one
@@ -732,6 +763,14 @@ class Bridge:
         pace = self.paces.get(room)
         return json.dumps({'clock': pace.clock() if pace else None, 'now': round(time.time() * 1000)})
 
+    def feed_msg(self, room):
+        """For the pages that draw the rows (map.html, gg.html; 2026-11-13, SP-6-2): when the room's
+        newest rows got here, on the server's clock like `now`, or None while the logger has sent
+        nothing yet. The rows stop coming when the logger's link is away, and the last car position
+        or G-G point then looked like the present. Sent once a second with the clock pages' messages;
+        a page that does not know `feed` ignores it (no `t`)."""
+        return json.dumps({'feed': {'data_t': self.arrived.get(room)}, 'now': round(time.time() * 1000)})
+
     def home_msg(self, room):
         """The cover page's state (home.html, 2026-11-13, SP-6-1): the clock's without the line
         passes (the cover shows only "now"), plus the speed and the satellites. `data_t` is the
@@ -765,11 +804,13 @@ class Bridge:
         while True:
             await asyncio.sleep(1)
             for ws, opts in list(self.client_opts.items()):
-                if opts.get('kind') in CLOCK_KINDS and ws in self.clients:
+                kind = opts.get('kind')
+                if (kind in CLOCK_KINDS or kind in FEED_KINDS) and ws in self.clients:
                     room = self.clients[ws]
                     try:
-                        await ws.send(self.clock_msg(room) if opts['kind'] == 'clock' else
-                                      self.home_msg(room) if opts['kind'] == 'home' else self.laps_msg(ws, room))
+                        await ws.send(self.clock_msg(room) if kind == 'clock' else
+                                      self.home_msg(room) if kind == 'home' else
+                                      self.laps_msg(ws, room) if kind == 'laps' else self.feed_msg(room))
                     except Exception:
                         self.clients.pop(ws, None)
 
@@ -893,6 +934,8 @@ class Bridge:
                 if keep_ms is not None and history:
                     history = [p for p in history if p[0] >= history[-1][0] - keep_ms]
                 await ws.send(json.dumps({'history': [pick(ts, fl, fields) for ts, fl in history]}))
+            if kind in FEED_KINDS:
+                await ws.send(self.feed_msg(room))
             if kind is None:
                 await ws.send(json.dumps({'shapes': self.shapes.all(room), 'viewers': self.viewer_list(room)}))
             async for raw in ws:

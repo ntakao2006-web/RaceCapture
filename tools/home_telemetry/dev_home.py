@@ -60,7 +60,7 @@ class Car:
         stopped = self.flag('stop')
         if self.lap_start is not None and not stopped and now - self.lap_start >= LAP_S:
             self.last_lap = round(LAP_S + math.sin(now) * 1.2, 2)
-            self.best = min(self.best, self.last_lap)
+            self.best = self.last_lap if self.best is None else min(self.best, self.last_lap)
             self.count += 1
             self.lap_start = now
         phase = ((now - self.lap_start) / LAP_S if self.lap_start else 0) * 2 * math.pi
@@ -68,12 +68,13 @@ class Car:
             'Interval': 100, 'Utc': round(now * 1000),
             'Latitude': CENTER[0] + 0.003 * math.sin(phase), 'Longitude': CENTER[1] + 0.004 * math.cos(phase),
             'Speed': 0.0 if stopped else 120 + 35 * math.sin(phase * 3), 'GPSSats': 19,
-            'LapCount': self.count, 'CurrentLap': self.count + 1,
-            'BestLap': self.best / 60,
+            'LapCount': self.count, 'CurrentLap': self.count + 1 if self.lap_start is not None else 0,
             'OilTemp': 123.0 if self.flag('hot') else 104 + 3 * math.sin(now / 60), 'WaterTemp': 91 + 2 * math.sin(now / 45),
         }
         if self.last_lap is not None:   # 値が無い項目は、その行のビットを落として詰める（本体と同じ）
             values['LapTime'] = self.last_lap / 60
+        if self.best is not None:
+            values['BestLap'] = self.best / 60
         if self.race_start is not None:
             values['RaceTime'] = (now - self.race_start) / 60
         if self.lap_start is not None:
@@ -104,8 +105,8 @@ class Car:
         return {'logging': {'active': self.logging, 'elapsed_s': 754}, 'receive_hz': 99.8,
                 'hardware': {'sd_logging': True}, 'video': {'recording': True}}
 
-    def reset(self):
-        self.count, self.race_start, self.lap_start, self.last_lap = 0, None, None, None
+    def reset(self):   # 本体（lap.py の reset）と同じく、ベストも忘れる
+        self.count, self.race_start, self.lap_start, self.last_lap, self.best = 0, None, None, None, None
 
     def set_count(self, n):
         self.count = n

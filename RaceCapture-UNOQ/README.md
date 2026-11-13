@@ -46,13 +46,13 @@ SUGO 120分耐久向けに、HDMIにはRaceCaptureアプリの代わりに見る
 
 | ファイル | 役割 |
 |---|---|
-| `ecocapture_dash.py` | 画面（Python＋GTK、Xorg `:2`）。`--demo`で作り物の走行、`--state warn`等で決まった画面、`--sound warn`で音だけ |
+| `ecocapture_dash.py` | 画面（Python＋GTK、Xorg `:2`）。`--demo`で作り物の走行、`--state warn`等で決まった画面（送信の印は`--state sendwait`・`sendoff`）、`--sound warn`で音だけ |
 | `dash_model.py` | 表示する中身の計算（GTKなし）。試験は`python -m unittest test_dash_model` |
 | `ecocapture-dash.service` | 自動起動。`racecapture-app`・`racecapture-touch`とは同時に動かない |
 | `install-dash.sh` | rootで実行。DASHを入れて、今と次の電源ONからDASHにする |
 | `dash_switch.sh` | `dash`／`racecapture`（`--boot`で電源ON時も）。`ecocapture-dash.sudoers`で`arduino`から使える |
 
-警告の温度・音の出し方は`~/.config/ecocapture-dash.json`で変えられます（`dash_model.py`の`DEFAULTS`。例：`{"oil_warn": 120, "water_warn": 110, "sound": {"device": "default", "volume": 0.8}}`）。
+警告の温度・音の出し方は`~/.config/ecocapture-dash.json`で変えられます（`dash_model.py`の`DEFAULTS`。送信の印が「未送信」になるまでの秒数は`send_stale_s`、既定5。例：`{"oil_warn": 120, "water_warn": 110, "sound": {"device": "default", "volume": 0.8}}`）。
 ベスト比は、ベストの周の軌跡を`~/.cache/ecocapture-dash/lapref.json`に残し、DASHを起動し直しても続きから使います。
 
 PCでは、WSLなどGTKのあるLinuxで`GDK_BACKEND=x11 python3 ecocapture_dash.py --state warn --size 1920x1080`のように見た目を確かめられます。

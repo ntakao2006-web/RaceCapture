@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>当日手順書（ひな形）</title>
+<!-- SP-8-1 当日用A4手順書のひな形（2026-11-13）。SUGO版（sugo_day_manual_20261108.html）とエコラン版
+     （ecorun_day_manual_20261024.html）から、どの大会でも同じ所を抜いたもの。
+     使い方：このファイルを docs/manual/<大会>_day_manual_<日付>.html へ写し、【 】の所を書き換える。
+       大会ごとに変えるのは 【大会名】【日付】【車】・時刻・警告のしきい値・コース（線が設定済みか）だけ。
+       警告のしきい値は車の設定（tools/setups/vehicles/<車>.json の dash）、線はコースの設定（tools/setups/courses/<コース>.json）から写す。
+       下線の空欄は当日までに手で書き込む（ピットの表紙のアドレス・電話番号はこのファイルに入れず、紙にだけ書く）。
+     ブラウザで開いて A4・縦・余白「なし」または「最小」で印刷する。
+     エコランのように、スタートとゴールの線が別・周回数と規定時間がある大会は、3章に「コースウォークで線を登録する」手順を足す
+     （エコラン版の3・3b・3c章が手本）。 -->
+<style>
+  :root { --ink: #1a1a1a; --sub: #555; --line: #999; --accent: #b5453f; --warn: #b5453f; --bg: #fff; --box: #f8f1f0; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #f08a84; --warn: #f08a84; --bg: #161616; --box: #2b2221; } }
+  :root[data-theme="dark"] { --ink: #e8e8e8; --sub: #aaa; --line: #666; --accent: #f08a84; --warn: #f08a84; --bg: #161616; --box: #2b2221; }
+  @page { size: A4 portrait; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 7.9pt/1.4 "Yu Gothic UI", "Meiryo", sans-serif; }
+  .page { max-width: 192mm; margin: 0 auto; padding: 16px; }
+  @media print { .page { padding: 0; } body { background: #fff; color: #000; } }
+  header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 2px; margin-bottom: 5px; }
+  h1 { font-size: 13pt; margin: 0; }
+  header span { color: var(--sub); font-size: 7.6pt; }
+  .cols { columns: 2; column-gap: 6mm; }
+  @media (max-width: 640px) { .cols { columns: 1; } header { display: block; } }
+  section { break-inside: avoid; margin-bottom: 5px; }
+  h2 { font-size: 9.4pt; margin: 0 0 2px; padding: 1px 5px; background: var(--accent); color: #fff; border-radius: 2px; }
+  ol, ul { margin: 0; padding-left: 15px; }
+  li { margin: 0 0 1px; }
+  b { color: var(--accent); }
+  .warn { color: var(--warn); font-weight: bold; }
+  .who { color: var(--sub); font-size: 7.6pt; }
+  .fill { display: inline-block; min-width: 34mm; border-bottom: 1px solid var(--line); }
+  .wide { min-width: 62mm; }
+  table { width: 100%; border-collapse: collapse; font-size: 7.9pt; }
+  th, td { border: 1px solid var(--line); padding: 1px 3px; vertical-align: top; text-align: left; }
+  th { background: var(--box); white-space: nowrap; }
+  .box { background: var(--box); padding: 3px 5px; border-radius: 2px; margin: 0 0 2px; }
+  .draft { color: var(--warn); font-size: 7.6pt; }
+  .var { background: var(--box); border: 1px dashed var(--accent); border-radius: 2px; padding: 0 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1><span class="var">【大会名】</span> 当日手順書（ロガー・車載画面・回収）</h1>
+  <span><span class="var">【日付】【車】</span> ／ <b>タイムは公式の計測が正</b>。ロガーは止まっても走ってよい</span>
+</header>
+<p class="draft">ひな形。<span class="var">【 】</span>と点線の枠の所を、大会に合わせて書き換える（このファイルの先頭のコメントに書き方）。</p>
+<div class="cols">
+
+<section>
+  <h2>0. 構成と連絡先</h2>
+  <table>
+    <tr><th>もの</th><th>役目</th></tr>
+    <tr><td>ロガー Ver.2（UNO Q）</td><td>走行記録（本体＋シールドのSD）、ピットへLTE送信、前方の映像に計器を焼き込んで本体へ録画</td></tr>
+    <tr><td>車載画面（モニター）</td><td>今の周・前の周・ベストとの差・警告。隅に「記録・測位・送信」の印</td></tr>
+    <tr><td>スマホ（ピット）</td><td>ピットの表紙：値・地図・周回表。合言葉を入れた係は、ラップのリセットなどを送れる</td></tr>
+    <tr><td>PC（ピット）</td><td>EcoLoggerアプリ：いまの様子（○×と直し方）・操作・回収</td></tr>
+  </table>
+  <div>ピットの表紙：<span class="fill wide"></span></div>
+  <div>ロガー担当：<span class="fill"></span> ☎ <span class="fill"></span></div>
+  <div><span class="var">【その日の予定：予選・決勝などの時刻】</span></div>
+</section>
+
+<section>
+  <h2>1. 取り付けの確認（出走前・スイッチOFFのまま）</h2>
+  <ol>
+    <li>手元スイッチが<b>OFF</b>なのを確かめてから触る。</li>
+    <li>電源：<b>高出力の口＝ロガー（ドック）</b>。モニターは別の口。<b>全部挿してから</b>スイッチを入れる。</li>
+    <li>ドックに<b>カメラ・HDMI・電源</b>。<span class="warn">ドックは電源を入れる前につなぐ</span>（動いている途中で差し替えると認識しない）。</li>
+    <li>GNSS・LTEアンテナのコネクタを指で押し込む。シールドのSDが奥まで入っている。</li>
+    <li>カメラの向き、ケーブルが走行の振動で引っ張られないか（手で揺する）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>2. 電源ON → 確認（毎回・エンジンを掛ける前）</h2>
+  <ol>
+    <li>スイッチを入れる。<b>電源を入れるだけで記録・録画が始まる</b>（止めるボタンは無い）。</li>
+    <li>約1〜2分で車載画面が出る。隅の<b>「記録・測位・送信」の印</b>がそろえばよい（測位は空の見える所で。送信は最初の1回まで約2分）。</li>
+    <li>エンジンを掛けると、回転数などの車の値が出る。</li>
+    <li>ピットでは、スマホの表紙が<b>「届いています」</b>、またはPCのアプリの「いまの様子」が<b>「すべて良好です」</b>になれば、記録とLTEはOK。×が付いたら、横に出る直し方に従う。</li>
+  </ol>
+  <p class="box">録画は本体の空きが少なくなると、<b>回収済みのものから</b>古い順に自分で入れ替える。回収していないものは最後まで残すが、
+    残りが少ないとアプリが「あと約○分で消え始めます」と知らせる。<b>その知らせが出たら、走る前に回収する</b>。</p>
+</section>
+
+<section>
+  <h2>3. 線（コントロールライン）の確認</h2>
+  <ul>
+    <li><span class="var">【このコースの線は設定済みか／現地で登録するか】</span>。設定済みのコースでは、現地で登録し直すことは無い。</li>
+    <li>公式の計測の線（路面の線・ビーコン）の位置を<b>写真に撮る</b>。少しずれていても<b>ラップタイムは変わらない</b>（ずれるのは1周目とピットに入った周の区切りだけ）。</li>
+    <li>最初の数周で、車載画面の<b>周が増え、前の周のタイムが出る</b>こと。出なければ7章。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>4. 本番の前（ラップのリセット）</h2>
+  <ol>
+    <li>練習・予選のあと、本番の前に<b>ラップを0周に戻す</b>：スマホの表紙の「操作」か、PCのアプリの「いまの様子」→「操作」→<b>「ラップを0周に戻す」</b>。</li>
+    <li>結果に<b>「0周」</b>と出るのを見る（ロガーから読み直した値）。線はそのまま、記録は止まらない。</li>
+    <li>レース経過は、リセットのあと<b>最初に線を通った時から</b>数える。スタートの前に線を通るか：<span class="fill"></span></li>
+    <li><span class="warn">リセットできなくても走ってよい</span>（周とレース経過が前からの続きになるだけ。前の周・ベストのタイムは正しい）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>5. 走っている間に見るところ</h2>
+  <ul>
+    <li>ドライバー：車載画面の印がそろっている、周が増えている。</li>
+    <li>ピット：表紙の値が動いている。「○秒前のまま」は電波の切れ目のことが多く、しばらくすると戻る。記録は本体で続いている。</li>
+  </ul>
+  <table>
+    <tr><th>車載画面</th><th>油温</th><th>水温</th><th>すること</th></tr>
+    <tr><td>赤い帯と警告音</td><td><span class="var">【 】℃以上</span></td><td><span class="var">【 】℃以上</span></td><td><span class="var">【チームで決めたこと】</span></td></tr>
+  </table>
+  <p class="who">値は車の設定（<code>tools/setups/vehicles/&lt;車&gt;.json</code> の dash の oil_warn・water_warn）から写す。すること（ペースを落とす・ピットへ、など）はチームで決めて書く。</p>
+</section>
+
+<section>
+  <h2>6. 走り終えたら（止める）・回収</h2>
+  <ol>
+    <li>スイッチを切る。記録・録画は電源OFFで閉じる（最後の約1秒が欠けるだけ）。</li>
+    <li><span class="who">（ピットのPC）</span>ロガーの<b>電源を完全に切ってから</b>ドックを外し、本体をPCと<b>USBで直結</b>（PCから給電されて起動する）。</li>
+    <li>PCで<b>EcoLoggerアプリ</b>を開き、上の帯が「つながりました：USB」になったら、「回収」の段の<b>「回収する」</b>。</li>
+    <li>結果を読む：<b>取れたもの／取れなかったもの／次にすること</b>。「次にすること」が出たら、そのとおりにしてもう一度「回収する」（取れたものは取り直さない）。</li>
+    <li>シールドのSD：USBを抜いて電源を切り、SDを抜いてPCのカードリーダーへ → もう一度「回収する」。</li>
+    <li>回収しても、本体からは消えない（本体が空きの要るときに、回収済みから自分で入れ替える）。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>7. 困ったとき</h2>
+  <table>
+    <tr><th>症状</th><th>まずやること</th></tr>
+    <tr><td>どこが悪いか分からない</td><td>PCのアプリの「いまの様子」。×の横に直し方が出る。つながらないときは、USB・テザリングそれぞれの理由が出る</td></tr>
+    <tr><td>車載画面が「信号なし」</td><td>2分待つ（ロガーが自動で出し直す）。だめならHDMIを抜き差し</td></tr>
+    <tr><td>画面が止まった・消えた</td><td><b>走ってよい</b>。電源が落ちていることがある。戻れば記録・録画は自動で再開（ファイルが分かれるだけ）。戻らなければピットで電源・ドックの差し込みを確かめ、スイッチを入れ直す。起きた時刻をロガー担当へ</td></tr>
+    <tr><td>車の値が出ない</td><td>エンジンが掛かっているか。車のCANの線（OBD2のタップ）が外れていないか</td></tr>
+    <tr><td>周が増えない・前の周が出ない</td><td>タイムは公式が正。ピットでロガー担当へ（線の位置・向き）</td></tr>
+    <tr><td>ピットの表紙に値が出ない</td><td>記録には影響しない。測位待ち・電波。起動から最初の送信まで約2分</td></tr>
+    <tr><td>表紙から操作を送れない</td><td>合言葉（PCのアプリのQRを読み直す）。「返事がありません」は、届いたか分からないので「状態を聞く」で確かめる</td></tr>
+    <tr><td>回収で本体の分が取れない</td><td>結果の「次にすること」。<b>電源が入ったままドック⇔PCを差し替えない</b>（電源を完全に切ってから）</td></tr>
+  </table>
+  <p class="who">それでも分からないとき：<code>docs/manual/ecologger_troubleshooting.html</code>（ロガー担当向け）。</p>
+</section>
+
+</div>
+</div>
+</body>
+</html>

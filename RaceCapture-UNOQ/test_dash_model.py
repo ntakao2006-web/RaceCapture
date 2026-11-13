@@ -8,7 +8,7 @@ import wave
 from pathlib import Path
 
 from dash_model import (DEFAULTS, DashModel, LapRef, Warning, fmt_hms, fmt_lap, fmt_signed, load_config, press_limit,
-                        rpm_bar, segment_colours, sensor_light, tone_wav)
+                        rpm_bar, segment_colours, send_light, sensor_light, tone_wav)
 
 LAT0, LON0, RADIUS = 38.14, 140.77, 400.0
 
@@ -245,6 +245,65 @@ class ModelTests(unittest.TestCase):
         f['status']['video'] = {'recording': False, 'minutes_left': 150}
         s, _ = m.update(f, 0.2)
         self.assertEqual((s['video'], s['video_kind']), ('録画なし', 'warn'))
+
+    def test_sending_light(self):
+        ok = {'enabled': True, 'state': 'streaming', 'message': 'センサ値を送信中', 'last_sent_age_ms': 120}
+        self.assertEqual(send_light(ok, 5.0), ('送信中', 'ok'))
+        self.assertEqual(send_light({**ok, 'last_sent_age_ms': 5000}, 5.0), ('送信中', 'ok'))
+        self.assertEqual(send_light({**ok, 'last_sent_age_ms': 5001}, 5.0), ('未送信', 'warn'))  # streaming, but stopped
+        self.assertEqual(send_light({**ok, 'last_sent_age_ms': None}, 5.0), ('未送信', 'warn'))  # nothing sent yet
+        self.assertEqual(send_light({**ok, 'last_sent_age_ms': 2500}, 2.0), ('未送信', 'warn'))  # the limit is a setting
+        for state in ('connecting', 'authenticating', 'waiting', 'waiting_gps', 'retry', 'auth_failed', 'relay_connecting'):
+            self.assertEqual(send_light({**ok, 'state': state}, 5.0), ('未送信', 'warn'), state)
+
+    def test_sending_light_off_and_not_known(self):
+        off = {'enabled': False, 'state': 'off', 'message': 'Podium送信OFF', 'last_sent_age_ms': None}
+        self.assertEqual(send_light(off, 5.0), ('送信OFF', 'off'))
+        self.assertEqual(send_light({**off, 'last_sent_age_ms': 90000}, 5.0), ('送信OFF', 'off'))  # switched off after sending
+        self.assertEqual(send_light({'state': 'off'}, 5.0), ('送信OFF', 'off'))  # no 'enabled' item
+        self.assertEqual(send_light({'state': 'streaming', 'last_sent_age_ms': 80}, 5.0), ('送信中', 'ok'))
+        for unknown in (None, 'streaming', [], 3):  # not known, never an error
+            self.assertEqual(send_light(unknown, 5.0), ('送信 --', None))
+        self.assertEqual(send_light({}, 5.0), ('未送信', 'warn'))  # an empty item: nothing known to go out
+        self.assertEqual(send_light({'enabled': True, 'state': 'streaming', 'last_sent_age_ms': 'x'}, 5.0), ('未送信', 'warn'))
+
+    def test_state_has_the_sending_light(self):
+        m = DashModel(config())
+        s, _ = m.update(frame(), 0.0)  # an EcoCapture without the podium item
+        self.assertEqual((s['send'], s['send_kind']), ('送信 --', None))
+        f = frame()
+        f['status']['podium'] = {'enabled': True, 'state': 'streaming', 'last_sent_age_ms': 300}
+        s, _ = m.update(f, 0.1)
+        self.assertEqual((s['send'], s['send_kind']), ('送信中', 'ok'))
+        f['status']['podium'] = {'enabled': True, 'state': 'waiting_gps', 'last_sent_age_ms': 300}
+        s, _ = m.update(f, 0.2)
+        self.assertEqual((s['send'], s['send_kind']), ('未送信', 'warn'))
+        f['status']['podium'] = {'enabled': True, 'state': 'streaming', 'last_sent_age_ms': 9000}
+        s, _ = m.update(f, 0.3)
+        self.assertEqual((s['send'], s['send_kind']), ('未送信', 'warn'))
+        s, _ = DashModel(config(send_stale_s=10.0)).update(f, 0.3)
+        self.assertEqual(s['send_kind'], 'ok')
+        f['status']['podium'] = {'enabled': False, 'state': 'off', 'last_sent_age_ms': None}
+        s, _ = m.update(f, 0.4)
+        self.assertEqual((s['send'], s['send_kind']), ('送信OFF', 'off'))
+        self.assertTrue(s['rec'] and s['gnss'] and not s['stale'])  # the lights already there are as before
+        s, _ = m.update(None, 0.5)  # the API could not be read
+        self.assertEqual((s['send'], s['send_kind']), ('送信 --', None))
+
+    def test_the_screen_draws_the_sending_light(self):
+        import ecocapture_dash as dash  # no GTK needed up to here
+        css = dash.css_for(1920, 1080).decode()
+        for kind in ('ok', 'warn', 'off'):
+            self.assertIn('.' + dash.SEND_CLASS[kind] + ' ', css)
+        kinds = {name: dash.fixed_state(config(), name)['send_kind']
+                 for name in ('normal', 'start', 'pit', 'warn3', 'lost', 'stale', 'sendwait', 'sendoff')}
+        self.assertEqual(kinds, {'normal': 'ok', 'start': 'ok', 'pit': 'ok', 'warn3': 'ok', 'lost': 'ok',
+                                 'stale': None, 'sendwait': 'warn', 'sendoff': 'off'})
+        s, _ = DashModel(config()).update(dash.DemoFeed(0.0).frame(30.0), 30.0)
+        self.assertEqual((s['send'], s['send_kind']), ('送信中', 'ok'))
+        source = Path(dash.__file__).read_text(encoding='utf-8')  # show_state puts the model's text and kind on the chip
+        self.assertIn("self.chip_send.set_text(s.get('send'", source)
+        self.assertIn("SEND_CLASS.get(s.get('send_kind')", source)
 
     def test_waiting_pit_lost_and_stale(self):
         m = DashModel(config())
