@@ -842,6 +842,24 @@ class App:
             pass
         return {'id': run_id, 'warn': warn, **run_laps.cached(self.pc.root.parent, run, warn)}
 
+    def lap_clip(self, run_id, index):
+        """周の表の index 番目の周の動画を、ブラウザで見られる形にして返す（lap_clip.py。初めては数秒〜十数秒）"""
+        import lap_clip
+        run = next((r for r in self.runs()['runs'] if r['id'] == run_id), None)
+        laps = self.run_laps(run_id)['laps'] if run else []
+        if not run or not 0 <= index < len(laps):
+            raise KeyError(run_id)
+        return lap_clip.make(self.pc.root.parent, run, index, laps[index])
+
+    def clip_path(self, name):
+        """/media/<名前> で流す動画の場所（周の動画の置き場の中の .mp4 だけ）"""
+        import lap_clip
+        folder = (self.pc.root.parent / lap_clip.CLIP_DIR).resolve()
+        path = (folder / name).resolve()
+        if path.parent != folder or path.suffix != '.mp4' or not path.is_file():
+            raise KeyError(name)
+        return path
+
     def find_sd(self):
         self.sd['cards'] = sd_card.find_cards(self.sd_drives)
         drives = {c['drive'] for c in self.sd['cards']}
@@ -976,9 +994,56 @@ def make_server(app, port):
         def host_ok(self):
             return self.headers.get('Host', '') in (f'127.0.0.1:{self.server.server_port}', f'localhost:{self.server.server_port}')
 
+        def send_file(self, path, ctype):
+            """ファイルを流す。動画の早送り・巻き戻しのために、途中から（Range）にも応える"""
+            size = path.stat().st_size
+            start, end = 0, size - 1
+            m = re.fullmatch(r'bytes=(\d*)-(\d*)', self.headers.get('Range', '') or '')
+            if m and (m.group(1) or m.group(2)):
+                if m.group(1):
+                    start, end = int(m.group(1)), min(int(m.group(2)) if m.group(2) else size - 1, size - 1)
+                else:
+                    start = max(0, size - int(m.group(2)))
+                if start > end:
+                    self.send_response(416)
+                    self.send_header('Content-Range', f'bytes */{size}')
+                    self.end_headers()
+                    return
+                self.send_response(206)
+                self.send_header('Content-Range', f'bytes {start}-{end}/{size}')
+            else:
+                self.send_response(200)
+            self.send_header('Content-Type', ctype)
+            self.send_header('Accept-Ranges', 'bytes')
+            self.send_header('Content-Length', str(end - start + 1))
+            self.end_headers()
+            try:
+                with open(path, 'rb') as f:
+                    f.seek(start)
+                    left = end - start + 1
+                    while left > 0 and (chunk := f.read(min(1 << 20, left))):
+                        self.wfile.write(chunk)
+                        left -= len(chunk)
+            except (ConnectionError, OSError):
+                pass   # 見るのをやめた・先へ飛んだ
+
         def do_GET(self):
             if not self.host_ok():
                 return self.send(403, {'error': 'host'})
+            if self.path.startswith('/media/'):
+                try:
+                    return self.send_file(app.clip_path(urllib.parse.unquote(self.path[len('/media/'):])), 'video/mp4')
+                except KeyError:
+                    return self.send(404, {'error': 'not found'})
+            if self.path.startswith('/api/clip?'):
+                import lap_clip
+                q = urllib.parse.parse_qs(self.path.split('?', 1)[1])
+                try:
+                    return self.send(200, app.lap_clip(q['id'][0], int(q['n'][0])))
+                except (KeyError, ValueError, IndexError):
+                    return self.send(404, {'error': 'その周が見つからない'})
+                except (lap_clip.NoVideo, lap_clip.NoFfmpeg, OSError, subprocess.SubprocessError) as exc:
+                    return self.send(409, {'error': str(exc)})
             if self.path == '/':
                 return self.send(200, PAGE.read_bytes(), 'text/html; charset=utf-8')
             if self.path == '/api/state':

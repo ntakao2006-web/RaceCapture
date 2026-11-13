@@ -415,13 +415,29 @@ function lapsTable(d) {
   const best = d.laps.find(l => l.lap === d.best), n = Math.max(...d.laps.map(l => l.sectors.length));
   const heads = Array.from({length: n}, (_, i) => `<th>S${i + 1}</th>`).join('');
   return `<div class="sub" style="margin:4px 0">ロガーが数えたタイムです（公式の計測ではありません）。警告は、油温 ${d.warn.OilTemp ?? '—'}℃・水温 ${d.warn.WaterTemp ?? '—'}℃ 以上が5秒続いた周に印が付きます。</div>
-  <div class="scroll"><table><tr><th>周</th><th>タイム</th><th>ベストとの差</th>${heads}<th>最高速</th><th>警告</th><th>動画</th></tr>${d.laps.map(l => `<tr style="${l.lap === d.best ? 'font-weight:600' : ''}">
+  <div class="scroll"><table><tr><th>周</th><th>タイム</th><th>ベストとの差</th>${heads}<th>最高速</th><th>警告</th><th>動画</th></tr>${d.laps.map((l, i) => `<tr style="${l.lap === d.best ? 'font-weight:600' : ''}">
     <td>${l.lap}</td><td>${lapTime(l.time_s)}${l.lap === d.best ? ' ' + chip('ベスト', 'ok') : ''}</td>
     <td>${l.time_s == null || !best || l.lap === d.best ? '' : '+' + (l.time_s - best.time_s).toFixed(3)}</td>
     ${Array.from({length: n}, (_, i) => `<td>${l.sectors[i] == null ? '—' : l.sectors[i].toFixed(3)}</td>`).join('')}
     <td>${l.vmax == null ? '—' : l.vmax + ' km/h'}</td><td>${l.warn.map(w => chip(w, 'bad')).join(' ')}</td>
-    <td>${chip(VIDEO[l.video][0].replace('動画', ''), VIDEO[l.video][1])}</td></tr>`).join('')}</table></div>`;
+    <td>${chip(VIDEO[l.video][0].replace('動画', ''), VIDEO[l.video][1])} <button data-clip="${i}" data-run="${esc(d.id)}" data-video="${l.video}">見る</button></td></tr>`).join('')}</table></div>
+  <div id="clip-box" style="margin-top:8px"></div>`;
 }
+// 周の動画を見る：その周のぶんだけを録画から抜き出して、ブラウザで再生できる形にしてから流す
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button[data-clip]'); if (!b) return;
+  const box = $('clip-box'); if (!box) return;
+  if (b.dataset.video === 'none') { box.innerHTML = '<div class="banner warn">この周の動画はPCにありません（録画していなかった・まだ回収していない・本体で入れ替わって消えた、のどれかです）。</div>'; return; }
+  box.innerHTML = '<div class="sub">その周の動画を用意しています…（初めて見る周は十秒ほど。2回目からはすぐ出ます）</div><div class="bar"><div class="busy"></div></div>';
+  try {
+    const r = await fetch(`/api/clip?id=${encodeURIComponent(b.dataset.run)}&n=${b.dataset.clip}`), d = await r.json();
+    if (!r.ok) { box.innerHTML = `<div class="banner bad">${esc(d.error || '用意できませんでした')}</div>`; return; }
+    box.innerHTML = `${d.partial ? '<div class="banner warn">この周は、動画が途中までしかありません（ある所だけを出しています）。</div>' : ''}
+      <video controls autoplay style="width:100%;max-height:70vh;background:#000;border-radius:8px" src="/media/${encodeURIComponent(d.file)}#t=${Math.max(0, d.lead_in_s - 1).toFixed(1)}"></video>
+      <div class="sub">周の始まりの少し前から再生します（頭から${d.lead_in_s.toFixed(1)}秒の所が周の始まり）。映像は録画のまま、音だけ再生用に直しています。風切りを下げた公開用の動画は、今までどおり <code>lap_video.py clip</code> で作ります。</div>`;
+    box.scrollIntoView({block: 'nearest'});
+  } catch (x) { box.innerHTML = '<div class="banner bad">用意できませんでした（アプリが止まっていませんか）</div>'; }
+});
 document.addEventListener('click', async e => {
   const b = e.target.closest('button[data-laps]'); if (!b) return;
   const id = b.dataset.laps;
@@ -446,7 +462,7 @@ async function loadRuns() {
     <tr><th>時刻</th><th>長さ</th><th>コース</th><th>周回</th><th>動画</th><th>開く</th></tr>${shown.filter(r => r.day === day).map(r => runRow(r, d.root, d.courses)).join('')}</table></div>`).join('');
   const box = $('runs-short'); if (box) box.onchange = () => { runsShort = box.checked; loadRuns(); };
 }
-setInterval(() => { if (!$('tab-runs').hidden) loadRuns(); }, 30000);
+setInterval(() => { if (!$('tab-runs').hidden && !openLaps) loadRuns(); }, 30000);   // 周の表・動画を開いている間は描き直さない
 
 // ---------------------------------------------------------------- いまの様子
 const MARK = {ok: ['○', 'ok'], bad: ['×', 'bad'], unknown: ['？', '']};
