@@ -168,6 +168,13 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
           <span class="k">コース</span><select id="pick-course"><option>スポーツランドSUGO</option><option>モビリティリゾートもてぎ（エコラン）</option><option>富士スピードウェイ カートコース</option><option>新しいコース（まだ線なし）</option></select><span></span></div>
         <div class="row" style="margin-top:8px"><button class="b primary" id="pick-apply">この設定を本体へ入れる</button><button class="b" id="pick-cancel">やめる</button></div>
         <div class="sub" id="pick-note"></div>
+        <div class="confirm" id="pick-confirm" hidden style="margin-top:10px">
+          <b id="pick-title"></b>
+          <div id="pick-diff" style="margin:6px 0"></div>
+          <div>よければ、この数字を入れて送ります：<b id="pick-code-show" style="font-size:20px; letter-spacing:.15em"></b></div>
+          <div class="row" style="margin-top:6px"><input class="in" id="pick-code" inputmode="numeric" maxlength="4" style="width:6em" aria-label="確認の4桁"><button class="b primary" id="pick-send">送る</button><button class="b" id="pick-back">戻る</button></div>
+          <div class="sub" id="pick-err"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -248,9 +255,9 @@ const SCENES = {
   wait:   { cls: 'wait', title: 'ロガーを待っています', sub: 'USB・テザリング・LTEの順に、5秒ごとに探しています。ロガーの電源を入れると、ここが「つながりました」に変わります。', verdict: ['idle', 'まだ分かりません', 'ロガーが見つかると、下の6つに結果が出ます。この画面は開いたままで大丈夫です。'], lap: '—' },
   usb:    { cls: 'ok', title: 'つながりました（USB）', sub: '動画の回収・設定・更新ができます。車載画面と録画は止まっています（ドックを外しているため）。', lap: '完了 0周・ライン 有効' },
   tether: { cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。動画の回収はUSBのときだけです。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
-  tether_pit: { cls: 'ok', title: 'つながりました（テザリング）・動いています（38 km/h）', sub: '車載画面と録画は動いたままです。線は引き直せます。車とコースの切り替えは、止まっているときだけです。', lap: '完了 14周・ライン 有効・レース経過 0:28:05' },
+  tether_pit: { cls: 'ok', title: 'つながりました（テザリング）・動いています（38 km/h）', sub: '車載画面と録画は動いたままです。線の引き直しも、車とコースの切り替えもできます（動いているので、切り替えは確認が1つ増えます）。', lap: '完了 14周・ライン 有効・レース経過 0:28:05' },
   lte_stop: { cls: 'ok', title: 'つながりました（LTEだけ）・車は止まっています', sub: '最後に届いてから 1秒。できるのは、状態を聞く・ラップを0周に戻す・車とコースを選ぶ・線を引き直す（確認つき）です。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
-  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）・走行中（132 km/h）', sub: '最後に届いてから 1秒。線の変更は、確認を1つ増やして受け付けます。車とコースの切り替えは、止まっているときだけです。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
+  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）・走行中（132 km/h）', sub: '最後に届いてから 1秒。線の変更も、車とコースの切り替えも、確認を1つ増やして受け付けます。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
   trouble:{ cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。', lap: '完了 0周・ライン 有効' },
 };
 const CHECKS = {
@@ -284,7 +291,9 @@ $('lap-reset').onclick = () => { $('lap-confirm').hidden = false; };
 $('lap-no').onclick = () => { $('lap-confirm').hidden = true; };
 $('lap-yes').onclick = () => { $('lap-confirm').hidden = true; $('lap-text').textContent = '完了 0周・ライン 有効'; $('lap-done').textContent = 'ラップを0周に戻しました。次にラインを通った時から数えます。'; };
 $('status-ask').onclick = () => { $('lap-done').textContent = 'LTEで聞きました：記録中・測位中・14周（返事まで 2.1秒）'; };
-$('pick-open').onclick = () => { $('pick').hidden = false; $('setup-msg').innerHTML = ''; $('pick-car').value = dev.car; $('pick-course').value = dev.course; $('pick-note').textContent = !LOCAL($('scene').value) ? 'LTEでは、前もって本体に入れてある設定の中から選べます。走っている間は本体が断ります。新しい車・コースを足すのはUSBかテザリングのときです。' : '入れる前の設定は本体に1つ残り、「前の設定へ戻す」で戻せます。車が止まっているときだけ切り替えられます。'; };
+$('pick-open').onclick = () => { $('pick').hidden = false; $('pick-confirm').hidden = true; $('setup-msg').innerHTML = ''; $('pick-car').value = dev.car; $('pick-course').value = dev.course;
+  const key = $('scene').value, v = SPEED(key);
+  $('pick-note').textContent = (!LOCAL(key) ? 'LTEでは、前もって本体に入れてある設定の中から選べます。新しい車・コースを足すのはUSBかテザリングのときです。' : '入れる前の設定は本体に1つ残り、「前の設定へ戻す」で戻せます。') + (v >= 5 || !LOCAL(key) ? ' 送る前に、切り替える所を見せて4桁の数字を入れてもらいます。' : ''); };
 $('line-map').onclick = () => { $('line-msg').textContent = 'ピットの地図（自宅のサーバーのページ）を開き、ラインとセクターの線を表示します。'; };
 let ed = null, edCenter = null;   // ed：編集中の線の写し。edCenter：写真の真ん中（つまんでいる間は動かさない）
 const copyLines = ls => ls.map(l => ({ ...l }));
@@ -399,13 +408,28 @@ $('wipe-no').onclick = () => { $('wipe-confirm').hidden = true; };
 $('wipe-yes').onclick = () => { $('wipe-confirm').hidden = true; $('wipe').disabled = true;
   runBar('wipe-run', 'wipe-bar', 'wipe-rate', 'PCの写しを確かめながら、1本ずつ消しています…', () => { $('wipe').disabled = false; $('wipe-done').textContent = '回収済みの24本を本体から消しました（14.1 GiB空きました）。まだ回収していない12本は残っています。'; }); };
 $('pick-cancel').onclick = () => { $('pick').hidden = true; };
-$('pick-apply').onclick = () => {
-  const key = $('scene').value, v = SPEED(key), car = $('pick-car').value, course = $('pick-course').value; $('pick').hidden = true;
-  if (v >= 5) return refuse(`車が動いている（${v} km/h）ので、本体が断りました。車とコースの切り替えは、記録を一度止めて入れ直すので、止まっているときだけできます。`);
+function pickCommit(car, course) {
+  const key = $('scene').value; $('pick').hidden = true; $('pick-confirm').hidden = true;
   runBar('setup-run', 'setup-bar', 'setup-rate', `本体へ入れています…（${LOCAL(key) ? '設定を送り、読み直します' : 'LTEで名前を送り、返事を待ちます'}）`, () => {
+    const carChanged = car !== dev.car;
     dev.car = car; dev.course = course; dev.lines = COURSES[course].lines.map(l => ({ ...l })); view = 'all'; renderSetup();
-    applied(`車＝${dev.car}、コース＝${dev.course}、線＝${dev.lines.length ? dev.lines.map(l => l.name).join('・') : 'まだ無し'}。車載画面とピットの地図も、同じに変わりました。`); });
+    applied(`車＝${dev.car}、コース＝${dev.course}、線＝${dev.lines.length ? dev.lines.map(l => l.name).join('・') : 'まだ無し'}。車載画面とピットの地図も、同じに変わりました。${SPEED(key) >= 5 ? '次に新しい線を通った所から、ラップを数え直します。' : ''}${carChanged && SPEED(key) >= 5 ? '走行記録は、読む信号を入れ替えた所でファイルが分かれました。' : ''}`); });
+}
+let pickCode = '';
+$('pick-apply').onclick = () => {
+  const key = $('scene').value, v = SPEED(key), car = $('pick-car').value, course = $('pick-course').value, moving = v >= 5;
+  if (LOCAL(key) && !moving) return pickCommit(car, course);
+  const parts = [];
+  if (course !== dev.course) parts.push(`コース：${dev.course} → <b>${course}</b>（線 ${dev.lines.length}本 → ${COURSES[course].lines.length}本。記録は止まりません）`);
+  if (car !== dev.car) parts.push(`車：${dev.car} → <b>${car}</b>（読む信号を入れ替えます。${moving ? '走行記録のファイルがここで分かれ、数秒のあいだ車の値が欠けます。SDカードの控えは続きます' : ''}）`);
+  if (!parts.length) parts.push('変わる所はありません');
+  $('pick-title').textContent = moving ? `車が動いています（${v} km/h）。切り替える所を確かめてください。` : 'LTEで切り替えます。切り替える所を確かめてください。';
+  pickCode = String(Math.floor(1000 + Math.random() * 9000)); $('pick-code-show').textContent = pickCode; $('pick-code').value = ''; $('pick-err').textContent = '';
+  $('pick-diff').innerHTML = parts.join('<br>') + (moving ? '<br>いま走っている周は、新しい線を次に通った所から数え直します。' : ''); $('pick-confirm').hidden = false;
 };
+$('pick-send').onclick = () => { if ($('pick-code').value.trim() !== pickCode) { $('pick-err').textContent = '数字が違います。上の4桁をそのまま入れてください。'; return; } pickCommit($('pick-car').value, $('pick-course').value); };
+$('pick-back').onclick = () => { $('pick-confirm').hidden = true; };
+
 
 const SPEED = k => ({ lte: 132, tether_pit: 38 })[k] || 0;
 const LOCAL = k => k === 'usb' || k === 'tether' || k === 'tether_pit' || k === 'trouble';
