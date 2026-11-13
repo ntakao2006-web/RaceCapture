@@ -277,6 +277,7 @@ footer { font-size: 13px; color: var(--muted); }
     <li><b>走っている間</b>は③LTEだけ。ピットで値を見て、困ったときは周回数の直しや記録の開始を命令で送ります。LTEの命令は「状態・ラップのリセット・周回数・ラップの開始・記録の開始」の5つだけで、設定を変えたりファイルを取ったりはできません（なりすまし対策で署名も要ります）。</li>
     <li><b>走行の合間・ピット</b>では②テザリング。画面と録画を止めずに、状態の確認・ラップのリセット・焼き込みの設定・小さい記録の回収ができます。</li>
     <li><b>大会の後・家</b>では①USBのadb。動画の回収とソフトの更新はこれで行います。ドックを外すので、終わったらドックをつなぎ直してから電源を入れ直します（動いたまま差し替えるとドックを認識しない）。</li>
+    <li><b>どの道でつなぐかは、PCの側が自分で探します</b>（2026-11-13から。USB → テザリングの順。つながらないときは、道ごとの理由と直し方を出す）。スマホからの操作は、ピットの表紙から③LTEで送ります（合言葉は、PCのアプリが出すQRで渡す）。</li>
     <li>シールドのmicroSD（控えの記録）はどの道でも取らず、本体の電源を切ってカードを抜き、PCのカードリーダーで回収します。</li>
   </ul>
 </section>
@@ -447,10 +448,11 @@ footer { font-size: 13px; color: var(--muted); }
       <tr><td>UNO QのLinux</td><td>EcoCapture DASH</td><td>車載画面（今の周・ベスト比・警告）と警告音をHDMIへ</td><td><code>RaceCapture-UNOQ/ecocapture_dash.py</code></td></tr>
       <tr><td>UNO QのLinux</td><td>焼き込み録画</td><td>カメラの映像にメーター・コース図・Gを描いて、音と一緒に保存。10分ごとに区切り、空きが減ると古い順に消す</td><td><code>tools/unoq_overlay_enc/</code></td></tr>
       <tr><td>UNO QのLinux</td><td>見守り役3つ</td><td>STM32との通信を戻す・突然の電源断の記録・Wi-Fiなどの設定をする小さな係</td><td><code>EcoCapture-Web/</code>・<code>RaceCapture-UNOQ/</code></td></tr>
-      <tr><td>UNO QのLinux</td><td>RaceCapture公式アプリ（控え）</td><td>もとのRaceCaptureの画面。値は<code>rcp_bridge.py</code>が渡す</td><td><code>RaceCapture-UNOQ/</code></td></tr>
+      <tr><td>UNO QのLinux</td><td>RaceCapture公式アプリ（控え。外す予定）</td><td>もとのRaceCaptureの画面。値は<code>rcp_bridge.py</code>が渡す。2026-11-13に外すと決めた（本体から取り除くのは、展示のあと）</td><td><code>RaceCapture-UNOQ/</code></td></tr>
       <tr><td>自宅のサーバー</td><td>ecorun-logger-server</td><td>ロガーからの値を受けて保存する（チームのサーバー）</td><td>チームのリポジトリ</td></tr>
-      <tr><td>自宅のサーバー</td><td>ブリッジ・VictoriaMetrics・Grafana</td><td>値の保存と、ピット用のグラフ・地図・周回表・時計</td><td><code>tools/home_telemetry/</code></td></tr>
-      <tr><td>PC</td><td>操作メニューと道具</td><td>本体の状態を見る・回収・焼き込みの設定・大会の準備・LTEで命令</td><td><code>tools/</code>の下</td></tr>
+      <tr><td>自宅のサーバー</td><td>ブリッジ・VictoriaMetrics・Grafana</td><td>値の保存と、ピット用の表紙（スマホで開く入口。いまの要点・行き先・LTEの命令）・グラフ・地図・周回表・時計</td><td><code>tools/home_telemetry/</code></td></tr>
+      <tr><td>PC</td><td>EcoLoggerアプリ（新しい入口。2026-11-13から、作りかけ）</td><td>「いまの様子」（記録・測位・SD・録画・LTEを○×と直し方で出す。ロガーが無くても開き、つなぐと自分で切り替わる）・操作（ラップのリセット、LTEの命令、合言葉の準備とスマホへ渡すQR）・回収</td><td><code>tools/video_collect/EcoLogger-App.cmd</code></td></tr>
+      <tr><td>PC</td><td>操作メニューと道具（今までの入口。新しいアプリへ順に移す）</td><td>本体の状態を見る・回収・焼き込みの設定・大会の準備・LTEで命令。車とコースの設定のファイルは<code>tools/setups/</code></td><td><code>tools/</code>の下</td></tr>
       <tr><td>PC</td><td>解析・1周の動画</td><td>周・セクター・油温油圧・タイヤの滑りなどのレポート、風切りを下げた1周の動画</td><td><code>tools/race_analysis/</code>・<code>tools/lap_video/</code></td></tr>
       <tr><td>スマホ</td><td>EcoLoggerアプリ</td><td>予備の車載画面（DASHが映らないとき用）</td><td><code>android-logger/</code></td></tr>
     </tbody>
