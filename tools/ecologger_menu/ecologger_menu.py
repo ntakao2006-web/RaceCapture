@@ -99,6 +99,10 @@ TOOL_GROUPS = [
         ('電波の記録を始める', 'dev/lte_antenna/Start-RadioWalk.cmd', [], False, '30分'),
         ('電波の記録を止めて回収', 'dev/lte_antenna/Fetch-RadioWalk.cmd', [], False, 'drive_logs へ'),
     ]),
+    ('スマホ（ピットの表紙）', [
+        ('スマホへ合言葉を渡す（QR）', 'remote_command/Phone-Key.cmd', [], False,
+         'スマホのカメラで読むと表紙が開き、LTEの操作を送れるようになる'),
+    ]),
 ]
 
 # LTEで送る命令（remote_command_pc.py）。上の2つはふだん、残りは「設定・調べもの」の中

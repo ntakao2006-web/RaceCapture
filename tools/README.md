@@ -12,7 +12,7 @@
 | `race_analysis/` | 大会後の走行解析。下に説明 |
 | `lap_video/` | 1周だけの動画・切り抜き。下に説明 |
 | `sugo_setup/` | Ver.2をSUGO用の設定へ切り替える道具、DASHの確かめ（`dash_check.py`）。説明は`docs/README.md`の`sugo_day_manual_20261108.html`の項目 |
-| `remote_command/` | ピットからLTEで決まった命令を送る（PC側）。本体側は`EcoCapture-Web/remote_command.py` |
+| `remote_command/` | ピットからLTEで決まった命令を送る（PC側）。本体側は`EcoCapture-Web/remote_command.py`。スマホへ合言葉を渡すQRは`Phone-Key.cmd`（`phone_key.py`、QRの絵は`qr.py`）。合言葉の作り直しは`setup --new` |
 | `video_hud/`・`lens_view/`・`video_exposure/` | 焼き込みの計器・レンズの補正・露出の設定をPCから見る・送る。説明は`unoq_video_check_procedure.md` 5-14・5-19・5-21 |
 | `unoq_overlay_enc/` | **本体の録画のソフト**（走行映像への計器の焼き込み）。本体へ入れるスクリプトがこの場所を見ているので動かさない |
 | `home_telemetry/` | 自宅のサーバーに入れるもの（LTEの値の受け取り・ピットのページ）。`deploy/`の説明は`server_deploy_grafana_x86.md` |

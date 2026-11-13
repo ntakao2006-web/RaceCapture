@@ -134,6 +134,7 @@ async def feed(car, room):
 
 
 async def main():
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')   # ファイルへ流すとWindowsの文字コードで止まるため（2026-11-13）
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--dir', required=True, help='作りもののデータを書くフォルダー（live_bridge.py の --dir と同じ）')
     ap.add_argument('--room', default='dev')

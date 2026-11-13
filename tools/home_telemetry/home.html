@@ -292,7 +292,15 @@ $('unlocked').addEventListener('click', async e => {
 // URLの # のあとで渡された合言葉（#k=…）。読んだらすぐURLから消し、確かめてから覚える
 (() => { const m = /(?:^|[#&])k=([0-9a-fA-F]+)/.exec(location.hash); if (!m) return;
   history.replaceState(null, '', location.pathname + location.search);
-  if (!secret) { $('secret').value = m[1]; $('ops').scrollIntoView(); tryUnlock(m[1]); } })();
+  const given = m[1].toLowerCase(), old = secret; $('ops').scrollIntoView();
+  if (given === old) { $('out').innerHTML = '<div class="result">この機器は、もう同じ合言葉を覚えています。</div>'; return; }
+  if (!old) { $('secret').value = given; tryUnlock(given); return; }
+  // 前に覚えたものと違う（PCで作り直した）ときも、新しいほうを確かめる。合わなければ前のものを使い続ける。
+  // 合言葉の欄は隠れているので、結果は操作の欄に出す
+  $('out').innerHTML = '<div class="sub">渡された合言葉を、ロガーに「状態を聞く」を送って確かめています…（最大' + REPLY_S + '秒）</div>';
+  tryUnlock(given).then(() => { if (secret !== old) return;
+    const waiting = !!$('unlock-anyway'), why = waiting ? '<b>いまは確かめられません。</b>ロガーから返事がありません。ロガーが動いているときに、もう一度QRを読んでください。' : $('unlock-msg').innerHTML;
+    $('unlock-msg').innerHTML = ''; $('out').innerHTML = `<div class="refuse">${why}</div><div class="sub">前に覚えた合言葉は消していません。そのまま使えます。</div>`; }); })();
 lockView(); connect(); draw(); setInterval(draw, 200);
 </script>
 </body>

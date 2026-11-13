@@ -13,6 +13,9 @@
 
 はじめに1回だけ、本体をUSB（またはテザリング）でつないで合言葉を作って入れる:
     python remote_command_pc.py setup
+    python remote_command_pc.py setup --new     # 合言葉を作り直す（前に渡したスマホからは送れなくなる）
+
+スマホへ合言葉を渡すQRは phone_key.py（Phone-Key.cmd）。
 
 合言葉と中継のURLはPCの %USERPROFILE%\\.ecologger\\remote_command.json と本体の
 private/remote_command.json にだけ置く（リポジトリには入れない）。合言葉そのものは送らず、
@@ -78,14 +81,16 @@ def save_local(data):
     LOCAL.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding='utf-8')
 
 
-def setup(log=print):
-    """合言葉を作り（あればそのまま）、本体へ入れ、本体が使っている中継のURLを覚える"""
+def setup(log=print, new=False):
+    """合言葉を作り（あればそのまま。new なら作り直す）、本体へ入れ、本体が使っている中継のURLを覚える"""
     import video_collect
     link = video_collect.find_link('unoq', log=lambda *a, **k: None)
     if not link:
         raise SystemExit('本体が見つかりません（USBのケーブル、またはPCと本体が同じテザリングにいるか）')
     log(f'本体: {link.label()}')
     local = load_local()
+    if new and local.pop('secret', None):
+        log('合言葉を作り直します。前の合言葉を渡したスマホからは送れなくなります（QRを渡し直す）')
     local.setdefault('secret', secrets.token_hex(32))
     podium = json.loads(link.run('curl -s -m 8 http://127.0.0.1:8080/api/podium'))['config']
     url = podium.get('server_url')
@@ -240,9 +245,10 @@ def main(argv=None):
     ap.add_argument('count', nargs='?', type=int, help='lap-count のときの周回数')
     ap.add_argument('--timeout', type=float, default=30)
     ap.add_argument('--url', help='中継のURL（既定はsetupで覚えたもの）')
+    ap.add_argument('--new', action='store_true', help='setup のとき、合言葉を作り直す（渡しすぎた・スマホを無くしたとき）')
     args = ap.parse_args(argv)
     if args.op == 'setup':
-        setup()
+        setup(new=args.new)
         return 0
     if args.op == 'lap-count' and args.count is None:
         ap.error('lap-count には周回数が要ります（例: lap-count 12）')
