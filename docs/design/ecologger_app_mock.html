@@ -17,6 +17,7 @@
   --accent: #4f8cff; --accent-text: #0b1020; --ok: #4ade80; --ok-bg: #14301f; --warn: #facc15; --warn-bg: #33290c;
   --bad: #f87171; --bad-bg: #3a1717; --info: #93b4ff; --info-bg: #19254a; --chip: #262b35; --mock: #c4b5fd; --mock-bg: #2a2147; color-scheme: dark }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 var(--font); }
 main { max-width: 1000px; margin: 0 auto; padding-block: 14px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 12px; }
 h1 { font-size: 20px; margin: 0; }
@@ -66,6 +67,7 @@ th { color: var(--muted); font-weight: 500; }
 tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.sel td { background: var(--info-bg); }
 .kv { display: grid; grid-template-columns: minmax(110px, auto) 1fr auto; gap: 6px 12px; align-items: center; font-size: 14px; }
 .kv .k { color: var(--muted); }
+.in { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); min-width: 0; max-width: 100%; }
 .note { border-left: 3px solid var(--mock); padding: 2px 10px; color: var(--muted); font-size: 13px; }
 </style>
 
@@ -76,6 +78,7 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
       <option value="wait">ロガーがまだ無い（準備中）</option>
       <option value="usb">USBでつながった（家・大会の後）</option>
       <option value="tether" selected>テザリングでつながった（走行の合間）</option>
+      <option value="lte_stop">LTEだけ（ピットで止まっている）</option>
       <option value="lte">LTEだけ（走行中）</option>
       <option value="trouble">つながったが、直す所がある</option>
     </select>
@@ -107,22 +110,45 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
     </div>
     <div class="panel">
       <h2>車とコース</h2>
-      <div class="row"><span class="grow">いまの本体の設定：<b>NCEC ロードスター</b> ／ <b>スポーツランドSUGO</b>
-        <div class="sub">読む信号 42個・セクター3つ・警告（油温120℃、水温110℃、油圧）</div></span>
+      <div class="row"><span class="grow">いまの本体の設定：<b id="set-car"></b> ／ <b id="set-course"></b>
+        <div class="sub" id="set-detail"></div></span>
         <button class="b" id="pick-open">選び直す</button></div>
       <div class="row" style="margin-top:10px; align-items:flex-start">
         <svg viewBox="0 0 220 120" width="220" height="120" role="img" aria-label="コースの形とコントロールラインの位置（例）" style="flex:0 0 auto; max-width:100%; background:var(--chip); border-radius:8px">
           <path d="M30 80 C20 40 60 20 100 28 C140 36 150 18 185 30 C205 38 200 70 175 78 C150 86 140 100 100 96 C70 93 40 104 30 80 Z" fill="none" stroke="var(--muted)" stroke-width="5" stroke-linejoin="round"/>
-          <line x1="96" y1="86" x2="100" y2="106" stroke="var(--bad)" stroke-width="4"/>
-          <line x1="150" y1="14" x2="152" y2="34" stroke="var(--info)" stroke-width="3"/>
-          <line x1="196" y1="60" x2="212" y2="64" stroke="var(--info)" stroke-width="3"/>
-          <text x="104" y="116" font-size="10" fill="var(--bad)">ライン</text><text x="156" y="14" font-size="10" fill="var(--info)">S1</text><text x="196" y="80" font-size="10" fill="var(--info)">S2</text>
+          <line id="now-arrow" stroke="var(--ok)" stroke-width="2" marker-end="url(#ah)"/>
+          <line id="now-line" stroke="var(--bad)" stroke-width="4" stroke-linecap="round"/>
+          <defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="var(--ok)"/></marker></defs>
+          <text x="6" y="12" font-size="10" fill="var(--muted)">上が北・図は例</text>
         </svg>
-        <div class="grow"><b>コントロールライン</b>：グランドスタンド前・幅50 m <span class="chip ok">本体と同じ</span>
-          <div class="sub">本体がいま使っているラインです（図は例）。ここを変えると、車載画面・ピットの地図・周回表も同じラインに変わります。ラインを持つのは本体の1か所だけです。</div>
+        <div class="grow"><b>コントロールライン</b>：<span id="line-text"></span> <span class="chip ok">本体から読んだ値</span>
+          <div class="sub">赤い線がライン（長さ＝幅）、緑の矢印が数える向きです。逆向きに横切っても数えません。ここを変えると、車載画面・ピットの地図・周回表も同じラインに変わります。</div>
           <div class="row" style="margin-top:6px"><button class="b" id="line-map">地図で見る</button><button class="b" id="line-edit">ラインを引き直す…</button></div>
           <div class="sub" id="line-msg"></div></div>
       </div>
+      <div id="line-editor" hidden style="margin-top:12px; border-top:1px solid var(--line); padding-top:12px">
+        <h2>ラインを引き直す</h2>
+        <div class="row" style="align-items:flex-start">
+          <svg viewBox="0 0 220 120" width="220" height="120" role="img" aria-label="引き直すラインの向きと幅" style="flex:0 0 auto; max-width:100%; background:var(--chip); border-radius:8px">
+            <line id="ed-arrow" stroke="var(--ok)" stroke-width="2" marker-end="url(#ah)"/>
+            <line id="ed-line" stroke="var(--bad)" stroke-width="4" stroke-linecap="round"/>
+            <text x="6" y="12" font-size="10" fill="var(--muted)">上が北</text>
+          </svg>
+          <div class="grow">
+            <div class="kv" style="grid-template-columns: minmax(90px,auto) 1fr">
+              <label class="k" for="ed-lat">場所（緯度）</label><input class="in" id="ed-lat" inputmode="decimal">
+              <label class="k" for="ed-lon">場所（経度）</label><input class="in" id="ed-lon" inputmode="decimal">
+              <label class="k" for="ed-bearing">進む向き</label><span class="row"><input id="ed-bearing" type="range" min="0" max="359" step="1" style="flex:1 1 120px"><input class="in" id="ed-bearing-n" type="number" min="0" max="359" style="width:5.5em"> °</span>
+              <label class="k" for="ed-width">幅</label><span class="row"><input id="ed-width" type="range" min="5" max="200" step="1" style="flex:1 1 120px"><input class="in" id="ed-width-n" type="number" min="5" max="200" style="width:5.5em"> m</span>
+            </div>
+            <div class="row" style="margin-top:8px"><button class="b" id="ed-here">車のいまの位置と向きを使う</button><button class="b" id="ed-map">地図の上で置く…</button></div>
+            <div class="sub">場所はラインの真ん中、向きは車が通る向き（北が0°、東が90°）、幅はコースを横切る長さです。幅はコースの幅より少し広く、隣の道（ピットレーンなど）に届かない長さにします。</div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px"><button class="b primary" id="ed-apply">このラインを本体へ入れる</button><button class="b" id="ed-cancel">やめる</button></div>
+      </div>
+      <div id="setup-run" hidden style="margin-top:10px"><div class="bar"><div id="setup-bar"></div></div><div class="sub" id="setup-rate"></div></div>
+      <div id="setup-msg" style="margin-top:10px"></div>
       <div id="pick" hidden style="margin-top:10px">
         <div class="kv"><span class="k">車</span><select id="pick-car"><option>NCEC ロードスター</option><option>エコラン（EV二輪）</option></select><span></span>
           <span class="k">コース</span><select id="pick-course"><option>スポーツランドSUGO</option><option>モビリティリゾートもてぎ（エコラン）</option><option>富士スピードウェイ カートコース</option></select><span></span></div>
@@ -152,6 +178,7 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
         <button class="b danger" id="wipe">回収済みを本体から消す</button></div>
       <div class="confirm" id="wipe-confirm" hidden>回収済みの24本を本体から消します。PCの写しをもう一度確かめてから消します。まだ回収していない12本は消しません。
         <div class="row" style="margin-top:6px"><button class="b danger" id="wipe-yes">消す</button><button class="b" id="wipe-no">やめる</button></div></div>
+      <div id="wipe-run" hidden style="margin-top:8px"><div class="bar"><div id="wipe-bar"></div></div><div class="sub" id="wipe-rate"></div></div>
       <div class="sub" id="wipe-done"></div>
     </div>
     <div class="note">今の回収アプリとの違い：終わったあとの文が結果に合わせて変わる。取れなかったものと理由を同じ場所に出す。次にすることを1つだけ大きく出す。</div>
@@ -168,7 +195,8 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
       <div class="row"><h2 id="run-title" class="grow" style="margin:0"></h2>
         <button class="b primary" id="run-report">レポートを出す</button><button class="b" id="run-export">解析ソフトへ書き出す…</button><button class="b" id="run-folder">フォルダーを開く</button></div>
       <div class="sub" id="run-msg" style="margin:6px 0"></div>
-      <div class="scroll"><table id="laps"><thead><tr><th>周</th><th>タイム</th><th>ベストとの差</th><th>S1</th><th>S2</th><th>S3</th><th>油温</th><th>水温</th><th>動画</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="scroll"><table id="laps"><thead><tr><th>周</th><th>タイム</th><th>ベストとの差</th><th>S1</th><th>S2</th><th>S3</th><th>最高速</th><th>警告</th><th>動画</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="sub" style="margin-top:6px">油温・水温は周ごとの数字では出しません。警告が出た周にだけ印が付き、値の動きはレポートのグラフで見ます。</div>
       <div id="player" hidden style="margin-top:10px">
         <div style="aspect-ratio:16/9; max-width:100%; width:560px; background:#10131a; color:#cfd6e4; border-radius:8px; display:grid; place-items:center; text-align:center; padding:12px" id="player-screen"></div>
         <div class="sub" id="player-note" style="margin-top:4px"></div>
@@ -206,7 +234,8 @@ const SCENES = {
   wait:   { cls: 'wait', title: 'ロガーを待っています', sub: 'USB・テザリング・LTEの順に、5秒ごとに探しています。ロガーの電源を入れると、ここが「つながりました」に変わります。', verdict: ['idle', 'まだ分かりません', 'ロガーが見つかると、下の6つに結果が出ます。この画面は開いたままで大丈夫です。'], lap: '—' },
   usb:    { cls: 'ok', title: 'つながりました（USB）', sub: '動画の回収・設定・更新ができます。車載画面と録画は止まっています（ドックを外しているため）。', lap: '完了 0周・ライン 有効' },
   tether: { cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。動画の回収はUSBのときだけです。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
-  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）', sub: '走行中の道です。最後に届いてから 1秒。できるのは、状態を聞く・ラップを0周に戻す、の2つです。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
+  lte_stop: { cls: 'ok', title: 'つながりました（LTEだけ）・車は止まっています', sub: '最後に届いてから 1秒。できるのは、状態を聞く・ラップを0周に戻す・車とコースを選ぶ、の3つです。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
+  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）・走行中（132 km/h）', sub: '最後に届いてから 1秒。走っている間は、車・コース・ラインの変更を本体が断ります。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
   trouble:{ cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。', lap: '完了 0周・ライン 有効' },
 };
 const CHECKS = {
@@ -215,6 +244,7 @@ const CHECKS = {
   lte: [['記録', 'ok', '記録中（1時間04分）'], ['測位', 'ok', '測位中'], ['SDカード', 'idle', 'LTEでは分かりません'], ['録画', 'ok', '録画中'], ['LTE', 'ok', '最後に届いてから 1秒'], ['車載画面', 'idle', 'LTEでは分かりません']],
   trouble: [['記録', 'ok', '記録中（3分10秒）'], ['測位', 'ok', '衛星 17個・誤差 1.1 m'], ['SDカード', 'bad', 'カードが見つかりません', 'ロガーの電源を切り、シールドのSDを奥まで差し直す'], ['録画', 'bad', 'カメラが見つかりません', 'ドックをつないでから電源を入れ直す（動いている途中でつないでも認識しません）'], ['LTE', 'ok', '送信中'], ['車載画面', 'ok', 'DASHを表示中']],
 };
+CHECKS.lte_stop = CHECKS.lte;
 const MARK = { ok: '✓', warn: '!', bad: '×', idle: '–' };
 function scene() {
   const key = $('scene').value, s = SCENES[key];
@@ -226,7 +256,8 @@ function scene() {
   $('verdict').className = 'verdict ' + v[0]; $('verdict').innerHTML = `${v[1]}<small>${v[2]}</small>`;
   $('lap-text').textContent = s.lap; $('lap-done').textContent = ''; $('lap-confirm').hidden = true;
   const local = key === 'usb' || key === 'tether' || key === 'trouble';
-  $('lap-reset').disabled = $('status-ask').disabled = $('pick-open').disabled = key === 'wait'; $('pick').hidden = true; $('line-edit').disabled = !local; $('wipe').disabled = !local;
+  $('lap-reset').disabled = $('status-ask').disabled = $('pick-open').disabled = $('line-edit').disabled = $('wipe').disabled = key === 'wait';
+  $('pick').hidden = true; $('line-editor').hidden = true; $('setup-msg').innerHTML = ''; $('wipe-confirm').hidden = true; $('wipe-done').textContent = ''; renderSetup();
   $('collect').disabled = false;
 }
 $('scene').addEventListener('change', scene);
@@ -238,19 +269,77 @@ $('lap-reset').onclick = () => { $('lap-confirm').hidden = false; };
 $('lap-no').onclick = () => { $('lap-confirm').hidden = true; };
 $('lap-yes').onclick = () => { $('lap-confirm').hidden = true; $('lap-text').textContent = '完了 0周・ライン 有効'; $('lap-done').textContent = 'ラップを0周に戻しました。次にラインを通った時から数えます。'; };
 $('status-ask').onclick = () => { $('lap-done').textContent = 'LTEで聞きました：記録中・測位中・14周（返事まで 2.1秒）'; };
-$('pick-open').onclick = () => { $('pick').hidden = false; $('pick-note').textContent = $('scene').value === 'lte' ? 'LTEでは、前もって本体に入れてある設定の中から選べます。走っている間は本体が断ります。新しい車・コースを足すのはUSBかテザリングのときです。' : '入れる前の設定は本体に1つ残り、「前の設定へ戻す」で戻せます。'; };
+$('pick-open').onclick = () => { $('pick').hidden = false; $('setup-msg').innerHTML = ''; $('pick-car').value = dev.car; $('pick-course').value = dev.course; $('pick-note').textContent = !LOCAL($('scene').value) ? 'LTEでは、前もって本体に入れてある設定の中から選べます。走っている間は本体が断ります。新しい車・コースを足すのはUSBかテザリングのときです。' : '入れる前の設定は本体に1つ残り、「前の設定へ戻す」で戻せます。'; };
 $('line-map').onclick = () => { $('line-msg').textContent = 'ピットの地図（自宅のサーバーのページ）を開き、ラインとセクターの線を表示します。'; };
-$('line-edit').onclick = () => { $('line-msg').textContent = '地図の上で線を引き直すか、車をラインに置いて「ここをラインにする」。入れると、車載画面・ピットの地図・周回表が同じラインに変わります。'; };
-$('wipe').onclick = () => { $('wipe-confirm').hidden = false; };
+function edDraw() { drawLine('ed-line', 'ed-arrow', +$('ed-bearing').value, +$('ed-width').value); }
+[['ed-bearing', 'ed-bearing-n'], ['ed-width', 'ed-width-n']].forEach(([a, b]) => {
+  $(a).addEventListener('input', () => { $(b).value = $(a).value; edDraw(); });
+  $(b).addEventListener('input', () => { $(a).value = $(b).value; edDraw(); }); });
+$('line-edit').onclick = () => {
+  const key = $('scene').value; $('setup-msg').innerHTML = '';
+  if (RUNNING(key)) return refuse('走行中（132 km/h）なので、ラインは変えられません。本体も断ります。車が止まってから引き直します。');
+  if (!LOCAL(key)) return refuse('LTEでは、ラインの引き直しはできません（LTEで送れるのは、本体に入れてある車・コースの名前を選ぶことだけです）。USBかテザリングでつないで引き直します。');
+  const l = dev.line; $('ed-lat').value = l.lat; $('ed-lon').value = l.lon; $('ed-bearing').value = $('ed-bearing-n').value = l.bearing; $('ed-width').value = $('ed-width-n').value = l.width;
+  $('line-editor').hidden = false; edDraw();
+};
+$('ed-cancel').onclick = () => { $('line-editor').hidden = true; };
+$('ed-here').onclick = () => { $('ed-lat').value = '38.00012'; $('ed-lon').value = '140.00031'; $('ed-bearing').value = $('ed-bearing-n').value = 101; edDraw(); $('line-msg').textContent = '車のいまの位置（誤差 0.9 m）と、最後に走っていたときの向きを入れました。'; };
+$('ed-map').onclick = () => { $('line-msg').textContent = '航空写真の上で、線の真ん中をつまんで動かし、端をつまんで向きと幅を変えます（RaceChronoのラインの編集と同じ考え方）。'; };
+$('ed-apply').onclick = () => {
+  const lat = $('ed-lat').value, lon = $('ed-lon').value, bearing = +$('ed-bearing').value, width = +$('ed-width').value; $('line-editor').hidden = true;
+  runBar('setup-run', 'setup-bar', 'setup-rate', '本体へ入れています…（前のラインを控えに残し、送って、読み直します）', () => {
+    dev.line = { ...dev.line, where: '引き直したライン', lat, lon, bearing, width }; renderSetup();
+    applied(`ライン＝幅 ${width} m・向き ${bearing}°・場所 ${lat}, ${lon}。車載画面とピットの地図も、このラインに変わりました。前のラインは「前の設定へ戻す」で戻せます。`); });
+};
+$('wipe').onclick = () => { $('wipe-done').textContent = ''; if (!LOCAL($('scene').value)) { $('wipe-done').textContent = 'LTEでは本体の動画を消せません。USBかテザリングでつないだときに使えます。'; return; } $('wipe-confirm').hidden = false; };
 $('wipe-no').onclick = () => { $('wipe-confirm').hidden = true; };
-$('wipe-yes').onclick = () => { $('wipe-confirm').hidden = true; $('wipe-done').textContent = '回収済みの24本を本体から消しました（14.1 GiB空きました）。'; };
+$('wipe-yes').onclick = () => { $('wipe-confirm').hidden = true; $('wipe').disabled = true;
+  runBar('wipe-run', 'wipe-bar', 'wipe-rate', 'PCの写しを確かめながら、1本ずつ消しています…', () => { $('wipe').disabled = false; $('wipe-done').textContent = '回収済みの24本を本体から消しました（14.1 GiB空きました）。まだ回収していない12本は残っています。'; }); };
 $('pick-cancel').onclick = () => { $('pick').hidden = true; };
-$('pick-apply').onclick = () => { $('car').textContent = $('pick-car').value; $('course').textContent = $('pick-course').value; $('pick').hidden = true; };
+$('pick-apply').onclick = () => {
+  const key = $('scene').value, car = $('pick-car').value, course = $('pick-course').value; $('pick').hidden = true;
+  if (RUNNING(key)) return refuse('走行中（132 km/h）なので、本体が断りました。車とコースは、車が止まってから切り替えます。');
+  runBar('setup-run', 'setup-bar', 'setup-rate', `本体へ入れています…（${LOCAL(key) ? '設定を送り、読み直します' : 'LTEで名前を送り、返事を待ちます'}）`, () => {
+    dev.car = car; dev.course = course; dev.line = { ...COURSES[course] }; renderSetup();
+    applied(`車＝${dev.car}、コース＝${dev.course}、ライン＝${dev.line.where}・幅 ${dev.line.width} m・向き ${dev.line.bearing}°。車載画面とピットの地図も、このラインに変わりました。`); });
+};
 
+const RUNNING = k => k === 'lte';
+const LOCAL = k => k === 'usb' || k === 'tether' || k === 'trouble';
+// 見本の中の「本体の設定」。座標は例の値
+const COURSES = {
+  'スポーツランドSUGO': { where: 'グランドスタンド前', lat: '38.00000', lon: '140.00000', bearing: 98, width: 50, sectors: 3 },
+  'モビリティリゾートもてぎ（エコラン）': { where: 'コントロールタワー前', lat: '36.50000', lon: '140.20000', bearing: 270, width: 30, sectors: 0 },
+  '富士スピードウェイ カートコース': { where: 'ホームストレート', lat: '35.30000', lon: '138.90000', bearing: 15, width: 12, sectors: 2 },
+};
+const dev = { car: 'NCEC ロードスター', course: 'スポーツランドSUGO', line: { ...COURSES['スポーツランドSUGO'] } };
+function drawLine(svgLineId, arrowId, bearing, width) {
+  // 図は上が北。向き＝車が進む向き。線は進む向きに直角で、長さが幅
+  const rad = bearing * Math.PI / 180, cx = 110, cy = 60, half = Math.max(8, Math.min(48, width * 0.9));
+  const nx = Math.cos(rad), ny = Math.sin(rad);          // 線の向き（進む向きに直角）
+  const dx = Math.sin(rad), dy = -Math.cos(rad);         // 進む向き
+  const L = $(svgLineId), A = $(arrowId);
+  L.setAttribute('x1', cx - nx * half); L.setAttribute('y1', cy - ny * half); L.setAttribute('x2', cx + nx * half); L.setAttribute('y2', cy + ny * half);
+  A.setAttribute('x1', cx - dx * 6); A.setAttribute('y1', cy - dy * 6); A.setAttribute('x2', cx + dx * 34); A.setAttribute('y2', cy + dy * 34);
+}
+function renderSetup() {
+  $('car').textContent = $('set-car').textContent = dev.car; $('course').textContent = $('set-course').textContent = dev.course;
+  const l = dev.line;
+  $('line-text').textContent = `${l.where}・幅 ${l.width} m・進む向き ${l.bearing}°（例の座標 ${l.lat}, ${l.lon}）`;
+  $('set-detail').textContent = `読む信号 42個・セクター ${l.sectors}つ・警告（油温120℃、水温110℃、油圧）`;
+  drawLine('now-line', 'now-arrow', l.bearing, l.width);
+}
+function runBar(wrap, bar, rate, text, done) {
+  let p = 0; $(wrap).hidden = false; $(rate).textContent = text;
+  const t = setInterval(() => { p += 20; $(bar).style.width = p + '%'; if (p >= 100) { clearInterval(t); $(wrap).hidden = true; $(bar).style.width = '0'; done(); } }, 200);
+}
+function refuse(text) { $('setup-msg').innerHTML = `<div class="confirm" style="background:var(--bad-bg);color:var(--bad)"><b>変えていません。</b>${text}</div>`; }
+function applied(text) { $('setup-msg').innerHTML = `<div class="result" style="background:var(--ok-bg);color:var(--ok)"><b>入れました。</b>本体から読み直して確かめました：${text}</div>`; }
 const COLLECT = {
   usb: { got: ['走行記録 3本', '動画 12本（7.4 GiB）'], miss: ['SDカード：PCに挿さっていません'], next: '次：USBを抜いてロガーの電源を切り、シールドのSDカードをカードリーダーへ挿して、もう一度「回収する」' },
   tether: { got: ['走行記録 3本'], miss: ['動画 12本：テザリングでは遅いので取っていません', 'SDカード：PCに挿さっていません'], next: '次：ロガーの電源を切り、ドックを外してUSB-CをPCへつなぎ、電源を入れてから、もう一度「回収する」' },
   trouble: { got: ['走行記録 1本'], miss: ['動画：本体に録画がありません（カメラが見つからなかったため）'], next: '回収できるものは全部取りました。' },
+  lte_stop: { got: [], miss: ['LTEでは回収できません'], next: '次：ロガーをUSBでPCへつないで「回収する」' },
   lte: { got: [], miss: ['LTEでは回収できません'], next: '次：走り終えたら、ロガーをUSBでPCへつないで「回収する」' },
   wait: { got: [], miss: ['ロガーもSDカードも見つかりません'], next: '次：ロガーをUSBでPCへつなぐか、SDカードをカードリーダーへ挿す' },
 };
@@ -271,13 +360,13 @@ const RUNS = [
   ['2026-10-25', 'もてぎ', 'エコラン 決勝', '0:38:12', 7, '—', 'なし', '—'],
 ];
 $('runs').querySelector('tbody').innerHTML = RUNS.map((r, i) => `<tr class="pick" data-i="${i}">${r.map((c, j) => `<td>${j === 7 && c === '済み' ? '<span class="chip ok">済み</span>' : c}</td>`).join('')}</tr>`).join('');
-const LAPS = [[1, '2:05.31', '+16.70', '41.20', '44.87', '39.24', 96, 88, 'あり'], [2, '1:50.12', '+1.51', '36.02', '39.61', '34.49', 104, 91, 'あり'], [3, '1:48.61', 'ベスト', '35.48', '39.10', '34.03', 108, 92, 'あり'], [4, '1:49.05', '+0.44', '35.61', '39.32', '34.12', 111, 93, '一部'], [5, '1:51.77', '+3.16', '36.40', '40.25', '35.12', 113, 93, 'なし']];
+const LAPS = [[1, '2:05.31', '+16.70', '41.20', '44.87', '39.24', 158, '', 'あり'], [2, '1:50.12', '+1.51', '36.02', '39.61', '34.49', 171, '', 'あり'], [3, '1:48.61', 'ベスト', '35.48', '39.10', '34.03', 174, '', 'あり'], [4, '1:49.05', '+0.44', '35.61', '39.32', '34.12', 173, '', '一部'], [5, '1:51.77', '+3.16', '36.40', '40.25', '35.12', 172, '油温 121℃', 'なし']];
 const VIDEO = { 'あり': ['ok', '▶ ここで再生します', 'この周の頭の3秒前から、ゴールの2秒後まで。10分ごとの区切りをまたぐ周も続けて流れます。'], '一部': ['warn', '▶ 0:00〜1:12 を再生します', '1:12から先の37秒は動画がありません（理由：電源が一度切れたため録画していない）。値のグラフは最後まで見られます。'], 'なし': ['', '動画がありません', '理由：まだ回収していません（本体に残っています）。USBでつないで「回収する」と見られるようになります。'] };
 $('runs').addEventListener('click', e => {
   const tr = e.target.closest('tr.pick'); if (!tr) return; const r = RUNS[tr.dataset.i];
   document.querySelectorAll('#runs tr').forEach(x => x.classList.toggle('sel', x === tr));
   $('run-detail').hidden = false; $('run-title').textContent = `${r[0]}　${r[1]}　${r[2]}`; $('run-msg').textContent = `${r[4]}周のうち、はじめの5周を出しています（例の数字）。`;
-  $('laps').querySelector('tbody').innerHTML = LAPS.map(l => `<tr>${l.map((c, j) => `<td>${j === 2 && c === 'ベスト' ? '<span class="chip info">ベスト</span>' : j === 8 ? `<span class="chip ${VIDEO[c][0]}">${c}</span>` : c}${j === 6 || j === 7 ? ' ℃' : ''}</td>`).join('')}<td><span class="row"><button class="b primary" data-watch="${l[0]}" ${l[8] === 'なし' ? 'disabled' : ''}>見る</button><button class="b" data-lap="${l[0]}" ${l[8] === 'なし' ? 'disabled' : ''}>切り出す</button></span></td></tr>`).join('');
+  $('laps').querySelector('tbody').innerHTML = LAPS.map(l => `<tr>${l.map((c, j) => `<td>${j === 2 && c === 'ベスト' ? '<span class="chip info">ベスト</span>' : j === 8 ? `<span class="chip ${VIDEO[c][0]}">${c}</span>` : j === 7 ? (c ? `<span class="chip warn">${c}</span>` : '') : c}${j === 6 ? ' km/h' : ''}</td>`).join('')}<td><span class="row"><button class="b primary" data-watch="${l[0]}" ${l[8] === 'なし' ? 'disabled' : ''}>見る</button><button class="b" data-lap="${l[0]}" ${l[8] === 'なし' ? 'disabled' : ''}>切り出す</button></span></td></tr>`).join('');
 });
 $('laps').addEventListener('click', e => { const w = e.target.closest('button[data-watch]'); if (w) { const v = VIDEO[LAPS[w.dataset.watch - 1][8]]; $('player').hidden = false; $('player-screen').textContent = `${w.dataset.watch}周目　${v[1]}`; $('player-note').textContent = v[2]; return; }
   const b = e.target.closest('button[data-lap]'); if (b) $('run-msg').textContent = `${b.dataset.lap}周目の動画を切り出します（風切りを下げた公開用も一緒に作ります）。できたら、ここに「再生する」「フォルダーを開く」が出ます。`; });
