@@ -100,3 +100,41 @@
 - 画面のサービスの名前が`racecapture-display`で、DASHもこの上に出ている。名前を変えると本体の設定・`tools/sugo_setup/dash_check.py`も変わるので、本体に触れるときに合わせる。
 - `dash_switch.sh`と`ecocapture-dash.service`は「公式アプリと同時に動かない」決まりを持っている。公式アプリを外したら、この切り替えは要らなくなる。
 - 本体の録画のソフトは`tools/unoq_overlay_enc/`にある。置き場所を本体のソフトの並びへ移すかは、本体に触れるとき（SP-7）に決める（SP-2-5）。
+
+## 4. 本体でいま有効なもの（控えの目録から、SP-1-4、2026-11-13）
+
+根拠は、2026-11-10にSUGOを走った形のまま取った控えの`inventory.txt`（systemdの一覧・`docker ps`・Wi-Fiの設定の種類）と`etc.tar.gz`の中のファイル名。**本体そのものにはつないでいない。** 展示用に書き換えたあとの今の本体とは違うことがある。
+
+| サービス | 控えの時点 | 仕分け |
+|---|---|---|
+| `ecocapture-web-start`・`ecocapture-mcu-start`・`ecocapture-mcu-supervisor`・`ecocapture-admin` | 有効 | 残す（EcoCaptureと見守り役） |
+| `ecocapture-dash`・`racecapture-display` | 有効 | 残す（車載画面DASHと、その土台のHDMIの画面） |
+| `ecologger-video` | 有効 | 残す（焼き込み録画） |
+| `logger-v2-incident-monitor` | 有効 | 残す（急な電源断の記録） |
+| `arduino-router`・`arduino-router-serial`（追加設定`ecologger.conf`・`stop-timeout.conf`・`10-wait-for-ttygs0.conf`） | 有効 | 残す |
+| `ecocapture-boot-check` | **有効** | 要判断：`ecocapture-mcu-supervisor`と役目が重なる。どちらかに寄せるかはSP-7-3で決める |
+| `logger-v2-rcp` | **有効** | 公式アプリ用（値をRCPに変える）。SP-7-3で外す候補 |
+| `racecapture-vnc`・`racecapture-web` | **有効** | 公式アプリ用（画面をUSBでPCへ出す）。SP-7-3で外す候補 |
+| `racecapture-app`・`racecapture-touch` | 無効（自動では起動しない） | 公式アプリ用。`dash_switch.sh`で切り替えたときだけ動く。SP-7-3で外す候補 |
+| `ecocapture-native` | **有効** | 古い候補（DASHの前のタッチ画面の試作）なのに有効のまま。SP-7-3で止める |
+| `ecocapture-voice` | 無効 | 通話（範囲外）。止まっている |
+
+Docker（`ecocapture-web:0.2.0`の像から2つ）：
+
+| コンテナ | 出している口 | 中身 |
+|---|---|---|
+| `ecocapture-web` | 8080（本体の中だけ）、8082（Wi-Fiへ） | EcoCapture本体と設定・ログの画面、コースウォーク画面 |
+| `ecocapture-viewer` | 8081（Wi-Fiへ） | 見るだけのページ（`public_server.py`） |
+
+Wi-Fiの設定は、自動でつなぐものが1つ（テザリング）と、自動ではつながないものが1つ（本体を親機にする設定＝`install-dash-ap.sh`の分）。cronは無し。
+
+上の章の「要確認」の答え：
+
+- `ecocapture-boot-check.service`：有効。
+- `ecocapture-native.service`：有効（`install.sh`が置いたまま）。
+- `router-stop-timeout.conf`：本体に入っている（`arduino-router.service.d/stop-timeout.conf`）。`arduino-router-vehicle.conf`にあたるものは控えに見当たらない。
+- `ecocapture-voice.service`：無効。
+- `install-dash-ap.sh`の親機の設定：本体に残っているが、自動ではつながない。
+
+**外すとき（SP-7-3）に止める・取り除くものは6つ**：`logger-v2-rcp`・`racecapture-vnc`・`racecapture-web`・`ecocapture-native`と、無効のまま置いてある`racecapture-app`・`racecapture-touch`のユニット。`racecapture-display`は名前に反してDASHの土台なので残す。
+
