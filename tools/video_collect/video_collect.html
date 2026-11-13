@@ -106,6 +106,7 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
   <div class="tabs" role="tablist">
     <button role="tab" data-tab="now" aria-selected="true">いまの様子</button>
     <button role="tab" data-tab="collect" aria-selected="false">回収</button>
+    <button role="tab" data-tab="runs" aria-selected="false">走行を見る</button>
   </div>
 
   <section id="tab-now">
@@ -162,6 +163,15 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
       </details>
     </div>
     <div class="sub" id="now-foot" style="margin-top:10px"></div>
+  </section>
+
+  <section id="tab-runs" hidden>
+    <div class="panel">
+      <h2>回収した走行</h2>
+      <div class="sub">ロガーの電源を入れてから切るまでが1本です。走った日ごとに並べ、同じ時刻の動画を結んであります（ファイルは動かしていません）。</div>
+      <div id="runs-note" class="sub" style="margin-top:6px"></div>
+      <div id="runs-list" style="margin-top:8px"></div>
+    </div>
   </section>
 
   <section id="tab-collect" hidden>
@@ -373,13 +383,42 @@ function resultHtml(r) {
 
 // ---------------------------------------------------------------- 段の切り替え
 function showTab(name) {
-  if (!['now', 'collect'].includes(name)) name = 'now';
+  if (!['now', 'collect', 'runs'].includes(name)) name = 'now';
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
-  $('tab-now').hidden = name !== 'now'; $('tab-collect').hidden = name !== 'collect';
+  $('tab-now').hidden = name !== 'now'; $('tab-collect').hidden = name !== 'collect'; $('tab-runs').hidden = name !== 'runs';
+  if (name === 'runs') loadRuns();
   if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
 }
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
 window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+
+// ---------------------------------------------------------------- 走行を見る
+const VIDEO = {all: ['動画あり', 'ok'], part: ['動画が一部', 'warn'], none: ['動画なし', '']};
+const hhmm = t => new Date(t * 1000).toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
+const mins = m => m >= 60 ? `${Math.floor(m / 60)}時間${String(Math.round(m % 60)).padStart(2, '0')}分` : `${Math.round(m)}分`;
+function runRow(r, root, courses) {
+  const folder = root + '\\' + r.log.split('/').slice(0, -1).join('\\');
+  const vfolder = r.videos.length ? root + '\\' + r.videos[0].path.split('/').slice(0, -1).join('\\') : '';
+  const gaps = r.video === 'part' ? r.gaps.map(([a, b]) => `${hhmm(a)}〜${hhmm(b)}`).join('・') : '';
+  return `<tr><td>${hhmm(r.start)}〜${hhmm(r.end)}</td><td>${mins(r.minutes)}</td><td>${esc((courses && courses[r.course]) || r.course || '—')}</td>
+    <td>${r.laps == null ? '—' : r.laps + ' 周'}</td>
+    <td>${chip(VIDEO[r.video][0], VIDEO[r.video][1])}${r.video === 'part' ? ` <span class="sub">${mins(r.video_minutes)}ぶん。無い所：${esc(gaps || '短い切れ目だけ')}</span>` : ''}</td>
+    <td><button data-open="${esc(folder)}">走行記録</button>${vfolder ? ` <button data-open="${esc(vfolder)}">動画</button>` : ''}</td></tr>`;
+}
+let runsShort = true;
+async function loadRuns() {
+  let d;
+  try { d = await (await fetch('/api/runs')).json(); } catch (e) { $('runs-note').textContent = '一覧を読めませんでした（アプリが止まっていませんか）'; return; }
+  if (d.error) { $('runs-note').innerHTML = `<span style="color:var(--bad)">${esc(d.error)}</span>`; return; }
+  const all = d.runs, shown = runsShort ? all.filter(r => r.minutes >= 3) : all, days = [...new Set(shown.map(r => r.day))];
+  $('runs-note').innerHTML = all.length ? `${all.length} 本・${new Set(all.map(r => r.day)).size} 日ぶん。` +
+    (all.length !== shown.length || !runsShort ? `<label style="margin-left:8px"><input type="checkbox" id="runs-short" ${runsShort ? 'checked' : ''}> 3分より短いものを隠す（${all.filter(r => r.minutes < 3).length} 本）</label>` : '') +
+    ' 動画が「一部」「なし」なのは、録画していなかった・まだ回収していない・本体で入れ替わって消えた、のどれかです（どれかの見分けは、まだ出していません）。' : 'まだ回収した走行がありません。「回収」の段で回収すると、ここに並びます。';
+  $('runs-list').innerHTML = days.map(day => `<h3 style="font-size:15px;margin:14px 0 4px">${day.replace(/-/g, '/')}</h3><div class="scroll"><table>
+    <tr><th>時刻</th><th>長さ</th><th>コース</th><th>周回</th><th>動画</th><th>開く</th></tr>${shown.filter(r => r.day === day).map(r => runRow(r, d.root, d.courses)).join('')}</table></div>`).join('');
+  const box = $('runs-short'); if (box) box.onchange = () => { runsShort = box.checked; loadRuns(); };
+}
+setInterval(() => { if (!$('tab-runs').hidden) loadRuns(); }, 30000);
 
 // ---------------------------------------------------------------- いまの様子
 const MARK = {ok: ['○', 'ok'], bad: ['×', 'bad'], unknown: ['？', '']};

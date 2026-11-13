@@ -770,6 +770,8 @@ class App:
         self.now, self.watcher = None, None  # 「いまの様子」（now_status.Watcher が置く。見張りを動かしていなければ None）
         self.ops = None                      # 「いまの様子」の操作（app_ops.Ops）
         self.usb_blocked = False             # テザリングでつないだ本体が、USBでつなげない状態か
+        self.runs_cache = (0, [])            # 「走行を見る」の一覧（作った時刻, 一覧）
+        self.runs_lock = threading.Lock()
         self.lock = threading.Lock()
 
     def refresh(self):
@@ -808,6 +810,20 @@ class App:
                                                 pc.settings['backup'] not in e.get('backup', {}))},
                     'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at, 'sd': self.sd,
                     'now': self.now, 'time': time.time()}
+
+    def runs(self):
+        """回収した走行の一覧（run_index.py。ファイルは動かさず、走行記録と同じ時刻の動画を結ぶ）。
+        索引を覚えているので2回目からは速いが、画面が続けて聞いても5秒は同じ結果を返す"""
+        import run_index
+        with self.runs_lock:
+            made, runs = self.runs_cache
+            if time.time() - made > 5:
+                try:
+                    runs = run_index.build(self.pc.root.parent)
+                except (OSError, ValueError) as exc:
+                    return {'runs': [], 'root': str(self.pc.root.parent), 'error': f'一覧を作れない: {exc}'}
+                self.runs_cache = (time.time(), runs)
+            return {'runs': runs, 'root': str(self.pc.root.parent), 'error': '', 'courses': run_index.course_names()}
 
     def find_sd(self):
         self.sd['cards'] = sd_card.find_cards(self.sd_drives)
@@ -950,6 +966,8 @@ def make_server(app, port):
                 return self.send(200, PAGE.read_bytes(), 'text/html; charset=utf-8')
             if self.path == '/api/state':
                 return self.send(200, app.snapshot())
+            if self.path == '/api/runs':
+                return self.send(200, app.runs())
             self.send(404, {'error': 'not found'})
 
         def do_POST(self):
@@ -1032,7 +1050,7 @@ def main(argv=None):
     parser.add_argument('--port', type=int, default=8791)
     parser.add_argument('--no-browser', action='store_true')
     parser.add_argument('--collect-all', action='store_true', help='画面なしで未回収をすべて吸い出す')
-    parser.add_argument('--tab', choices=['now', 'collect'], default='now', help='開いたときに出す段（既定は「いまの様子」）')
+    parser.add_argument('--tab', choices=['now', 'collect', 'runs'], default='now', help='開いたときに出す段（既定は「いまの様子」）')
     args = parser.parse_args(argv)
     if args.collect_all:
         try:
