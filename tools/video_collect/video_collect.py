@@ -55,6 +55,7 @@ MARGIN = 1 << 30           # PCの空きはこれだけ残す
 LOG_BYTES_PER_MIN = 5e6    # 走行記録（EcoCaptureのログ）は記録中に約0.3GB/hずつ増える（2026-11-03の実測）
 PAGE = Path(__file__).with_name('video_collect.html')
 LINES_JS = Path(__file__).with_name('course_lines.js')
+SETTINGS_JS = Path(__file__).with_name('settings.js')
 
 # 本体で動かす一覧のスクリプト。D・LOGS・BOOTF は Link が先頭に付ける
 LIST_SCRIPT = r'''
@@ -1085,6 +1086,8 @@ def make_server(app, port):
                 return self.send(200, PAGE.read_bytes(), 'text/html; charset=utf-8')
             if self.path == '/course_lines.js':   # 「コースと線」の段のJS（画面が大きいので分けてある）
                 return self.send(200, LINES_JS.read_bytes(), 'text/javascript; charset=utf-8')
+            if self.path == '/settings.js':       # 「設定」の段のJS（同じく分けてある）
+                return self.send(200, SETTINGS_JS.read_bytes(), 'text/javascript; charset=utf-8')
             if self.path == '/api/state':
                 return self.send(200, app.snapshot())
             if self.path == '/api/runs':

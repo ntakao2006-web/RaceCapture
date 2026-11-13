@@ -106,6 +106,38 @@ def choose():
     return {'1': 'own', '2': 'camera', '3': 'brighter', '4': 'darker'}.get(input('番号：').strip())
 
 
+def change(run, action, active, ini, st, log=print, sleep=time.sleep):
+    """露出の設定を書き換えて送り、録画が従ったかを確かめる。action：own・camera・brighter・darker。
+    ini・st は送る前に device_state で読んだもの。0：反映された（か、次の録画から）、3：書けなかった、4：確かめられなかった"""
+    if action in ('own', 'camera'):
+        text = set_value(ini, 'mode', action)
+    else:
+        # 目標が効くのは own のときだけなので、一緒に own にする
+        text = set_value(set_value(ini, 'mode', 'own'), 'target', new_target(ini, STEP if action == 'brighter' else -STEP))
+    if not write_ini(run, text):
+        log('★本体へ書けませんでした')
+        return 3
+    log(f'本体へ送りました：{REMOTE}\n' + text.strip().replace('\n', '\n  ').join(['  ', '']))
+    if not active:
+        log('録画は今は止まっています。次に録画が始まったときから、この設定で録ります')
+        return 0
+    before = st.get('at')
+    for _ in range(WAIT_S * 2):
+        sleep(.5)
+        _, _, _, st = device_state(run)
+        if st.get('at') != before and st.get('msg', '').startswith('設定ファイル'):
+            break
+    log(describe(st))
+    if 'の誤り' in st.get('msg', ''):
+        return 4
+    want = action if action in ('own', 'camera') else 'own'
+    if st.get('mode') != want:
+        log(f'★まだ {want} になっていません。数秒あとに「見るだけ」でもう一度確かめてください')
+        return 4
+    log('反映されました')
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     g = ap.add_mutually_exclusive_group()
@@ -131,33 +163,7 @@ def main(argv=None):
             action = choose()
             if action is None:
                 return 0
-        if action in ('own', 'camera'):
-            text = set_value(ini, 'mode', action)
-        else:
-            # 目標が効くのは own のときだけなので、一緒に own にする
-            text = set_value(set_value(ini, 'mode', 'own'), 'target', new_target(ini, STEP if action == 'brighter' else -STEP))
-        if not write_ini(run, text):
-            print('★本体へ書けませんでした')
-            return 3
-        print(f'本体へ送りました：{REMOTE}\n' + text.strip().replace('\n', '\n  ').join(['  ', '']))
-        if not active:
-            print('録画は今は止まっています。次に録画が始まったときから、この設定で録ります')
-            return 0
-        before = st.get('at')
-        for _ in range(WAIT_S * 2):
-            time.sleep(.5)
-            _, _, _, st = device_state(run)
-            if st.get('at') != before and st.get('msg', '').startswith('設定ファイル'):
-                break
-        print(describe(st))
-        if 'の誤り' in st.get('msg', ''):
-            return 4
-        want = action if action in ('own', 'camera') else 'own'
-        if st.get('mode') != want:
-            print(f'★まだ {want} になっていません。数秒あとに「見るだけ」でもう一度確かめてください')
-            return 4
-        print('反映されました')
-        return 0
+        return change(run, action, active, ini, st)
     except (RuntimeError, subprocess.SubprocessError) as e:
         print(e if type(e).__name__ == 'NoLink' else f'本体でのコマンドが失敗しました：{e}')
         return 1

@@ -9,6 +9,8 @@
                           つながっていないときはLTEで（線まるごと line_set か、本体に入れてある設定の名前だけ course_select）。
                           断らない。LTEのときと、車がそのコースのレーシングスピード以上のときは、画面で4桁の確認を
                           済ませてから（confirmed）でないと送らない。形のおかしい線は、どこがおかしいかを返して送らない
+  焼き込みの設定（「設定」の段。2026-11-13、SP-3-8）
+                          /api/op/set_… は settings_ops.py へ渡す（同じバー・1つずつ動かす決まりは、ここの begin・background を使う）
 
 操作の決まり（7-5）：
   - 1つずつ動かし、進み具合（何を・どの道で・最大何秒）と結果を app.now['op'] に置く。画面は同じバーで出す
@@ -65,6 +67,7 @@ class Ops:
     def __init__(self, app):
         self.app = app
         self.lock = threading.Lock()
+        self.settings = None   # 「設定」の段の操作（settings_ops.Settings。はじめて使うときに作る）
 
     # ---- 共通
     def begin(self, name, via, seconds):
@@ -346,6 +349,11 @@ class Ops:
     # ---- 画面から
     def action(self, path, body):
         """/api/op/… を受ける。知らない道は KeyError。返すものがあれば、画面への返事に入る"""
+        if path.startswith('/api/op/set_'):   # 「設定」の段（settings_ops.py）
+            if self.settings is None:
+                import settings_ops
+                self.settings = settings_ops.Settings(self)
+            return self.settings.action(path, body)
         if path == '/api/op/line_plan':
             return self.line_plan(body)
         if path == '/api/op/line_set':

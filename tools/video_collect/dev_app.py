@@ -24,6 +24,15 @@
   othercar     … 本体が読んでいる信号が、車の設定と違う
   nocourse     … LTEで名前だけ送ったとき、本体にその設定が入っていない（断られる）
   noline／otherline … 起動の前に置く。本体に線が無い／PCのどの設定とも違う線（コントロールラインを東へ約30 m）
+
+「設定」の段（2026-11-13、SP-3-8）：本体の設定のファイルも作りもの（settings_fake.FakeUnoQ。usb か tether があるときだけ読み書きできる）。
+PCの hud.ini・lens.json は <dir>/pc/ へ写したものを使う（書きかえて「重すぎる」「誤りがある」の場面を作れる。リポジトリのものは触らない）。
+はじめの本体：計器は元の配置、レンズはPCと違う値、露出の設定は無し、音は mic_volume = -15dB、針の補間のファイルは無し
+  norec        … 録画が止まっている（カメラ待ち。送ったものは「次に録画が始まったときから」になる）
+  oldrec       … 本体の録画が古い版（計器・レンズ・露出の設定に対応していない。何も送らない）
+  hudbad       … 送った計器の配置を、本体の録画が読めない
+  nopillow     … このPCに Pillow・opencv が無い（PCで絵を見る道具を開けない理由が出る）
+別の窓で開く道具は、開かずに <dir>/opened.txt へ名前を書くだけ。
 """
 import argparse
 import json
@@ -169,6 +178,38 @@ def main():
             device['line'] = {**device['line'], **body, 'set_at': time.strftime('%Y-%m-%dT%H:%M+09:00')}
         return lap_public()
     rc.send, rc.setup, app_ops.device_api, app_ops.LTE_WAIT_S = fake_send, fake_setup, fake_api, 8
+
+    # 「設定」の段：作りものの本体のファイル。PCの設定のファイルは <dir>/pc/ の写し
+    import settings_fake
+    import settings_ops
+    pc_dir = args.dir / 'pc'
+    pc_dir.mkdir(exist_ok=True)
+    for src in (settings_ops.PC_HUD, settings_ops.PC_LENS):
+        if src.exists() and not (pc_dir / src.name).exists():
+            (pc_dir / src.name).write_bytes(src.read_bytes())
+    settings_ops.PC_HUD, settings_ops.PC_LENS = pc_dir / 'hud.ini', pc_dir / 'lens.json'
+    box = settings_fake.FakeUnoQ()
+    box.put('lens.json', json.dumps({'model': 'opencv_radial_k1k2', 'f_ratio': 0.8, 'size': [1280, 720], 'k1': -0.35, 'k2': 0.07,
+                                     'zoom': 1.3, 'shift_x': 0.0, 'shift_y': 0.02}, indent=2))
+    box.put('audio.ini', '# 11/7 走行中に割れたので下げた\nmic_volume = -15dB\n')
+    box.tick()
+
+    def settings_run(link):
+        def run(command, data=None):
+            time.sleep(0.4)   # 本体の返事にかかる時間のつもり
+            if not (flag('usb') or flag('tether')) or flag('hang'):
+                raise RuntimeError('本体でのコマンドが失敗しました: つながっていない（作りもの）')
+            box.ready, box.active, box.accepts = not flag('oldrec'), not flag('norec'), not flag('hudbad')
+            return box.run(command, data)
+        return run
+
+    def fake_launch(path, cmd_args):
+        with open(args.dir / 'opened.txt', 'a', encoding='utf-8') as f:
+            f.write(f"{path.name} {' '.join(cmd_args)}\n")
+    real_missing = settings_ops.missing_parts
+    settings_ops.make_run, settings_ops.launch = settings_run, fake_launch
+    settings_ops.missing_parts = lambda parts: [p for p in parts if p in ('PIL', 'cv2')] if flag('nopillow') else real_missing(parts)
+    settings_ops.os = type('FakeOs', (), {'name': 'nt'})   # Windowsでなくても「開く」を試せるように
     LAP['values'] = laps_view = {'LapCount': 12}
     app.ops = app_ops.Ops(app)
     _reader = now_status.read

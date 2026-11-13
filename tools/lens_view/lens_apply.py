@@ -75,6 +75,38 @@ def wait_for(run, done, timeout=WAIT_S):
         t += .5
 
 
+def turn_off(run, active, log=print):
+    """本体の lens.json を消して、補正しない元の映像に戻す。0：戻った（か、次の録画から戻る）、4：確かめられなかった"""
+    run(f'rm -f {REMOTE}')
+    log('本体の lens.json を消しました')
+    if not active:
+        log('録画は今は止まっています。次に録画が始まったときから、補正せずに描きます')
+        return 0
+    status, ok = wait_for(run, lambda s: s.get('on') == '0' and s.get('size') == '-1')
+    log('元の映像（補正なし）に戻りました' if ok else '★戻ったことを確かめられませんでした。\n  ' + describe(status))
+    return 0 if ok else 4
+
+
+def send(run, data, active, log=print):
+    """lens.json を本体へ置き、録画が読んだかを確かめる。0：反映された（か、次の録画から）、3：本体が使わなかった、4：確かめられなかった"""
+    out = run(f'mkdir -p {REMOTE_DIR} && cat > {REMOTE}.tmp && chmod 644 {REMOTE}.tmp && mv -f {REMOTE}.tmp {REMOTE} && '
+              f'if [ "$(id -u)" = 0 ]; then chown -R arduino:arduino {REMOTE_DIR}; fi; stat -c "%i %s" {REMOTE}', data)
+    ino, size = out.split()[-2:]
+    log(f'本体へ送りました：{REMOTE}（{size}バイト）')
+    if not active:
+        log('録画は今は止まっています。次に録画が始まったときから、この値で補正して描きます')
+        return 0
+    status, ok = wait_for(run, lambda s: s.get('ino') == ino and s.get('size') == size)
+    if ok and status.get('on') == '1':
+        log('反映されました。録画は次のコマから補正して描いています')
+        return 0
+    if ok:
+        log(f'★本体がこの値を使いませんでした（補正せずに描いています）：{status.get("msg")}')
+        return 3
+    log('★本体が読んだことを確かめられませんでした。\n  ' + describe(status))
+    return 4
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('json', nargs='?', default=str(HERE / 'lens.json'))
@@ -109,30 +141,8 @@ def main(argv=None):
             print('★本体の録画が、まだ補正に対応していない版です（何も送っていません）。新しい版を入れる必要があります')
             return 2
         if args.off:
-            run(f'rm -f {REMOTE}')
-            print('本体の lens.json を消しました')
-            if not active:
-                print('録画は今は止まっています。次に録画が始まったときから、補正せずに描きます')
-                return 0
-            status, ok = wait_for(run, lambda s: s.get('on') == '0' and s.get('size') == '-1')
-            print('元の映像（補正なし）に戻りました' if ok else '★戻ったことを確かめられませんでした。\n  ' + describe(status))
-            return 0 if ok else 4
-        out = run(f'mkdir -p {REMOTE_DIR} && cat > {REMOTE}.tmp && chmod 644 {REMOTE}.tmp && mv -f {REMOTE}.tmp {REMOTE} && '
-                  f'if [ "$(id -u)" = 0 ]; then chown -R arduino:arduino {REMOTE_DIR}; fi; stat -c "%i %s" {REMOTE}', data)
-        ino, size = out.split()[-2:]
-        print(f'本体へ送りました：{REMOTE}（{size}バイト）')
-        if not active:
-            print('録画は今は止まっています。次に録画が始まったときから、この値で補正して描きます')
-            return 0
-        status, ok = wait_for(run, lambda s: s.get('ino') == ino and s.get('size') == size)
-        if ok and status.get('on') == '1':
-            print('反映されました。録画は次のコマから補正して描いています')
-            return 0
-        if ok:
-            print(f'★本体がこの値を使いませんでした（補正せずに描いています）：{status.get("msg")}')
-            return 3
-        print('★本体が読んだことを確かめられませんでした。\n  ' + describe(status))
-        return 4
+            return turn_off(run, active)
+        return send(run, data, active)
     except (RuntimeError, subprocess.SubprocessError) as e:
         print(e if type(e).__name__ == 'NoLink' else f'本体でのコマンドが失敗しました：{e}')
         return 1

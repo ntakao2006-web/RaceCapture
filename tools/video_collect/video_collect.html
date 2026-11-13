@@ -120,6 +120,7 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
     <button role="tab" data-tab="lines" aria-selected="false">コースと線</button>
     <button role="tab" data-tab="collect" aria-selected="false">回収</button>
     <button role="tab" data-tab="runs" aria-selected="false">走行を見る</button>
+    <button role="tab" data-tab="settings" aria-selected="false">設定</button>
   </div>
 
   <section id="tab-now">
@@ -228,6 +229,23 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
       <div id="ln-run" hidden style="margin-top:10px"><div class="sub" id="ln-run-text"></div><div class="bar"><div id="ln-run-bar"></div></div></div>
       <div id="ln-out"></div>
     </div>
+  </section>
+
+  <section id="tab-settings" hidden>
+    <div class="panel">
+      <h2>焼き込みの見た目</h2>
+      <div class="sub">動画に焼き込む計器・レンズ・明るさ・音の設定を、ここで見て、変えて、前の値へ戻せます。本体のいまの中身は、この段を開いたときと「読み直す」を押したときに読みます。</div>
+      <div class="row" style="margin-top:8px"><button id="st-read">読み直す</button><span class="sub" id="st-when"></span></div>
+      <div class="banner warn" id="st-unread" hidden></div>
+      <div class="opbox" id="st-confirm" hidden>
+        <b id="stc-title"></b>
+        <div id="stc-body" style="margin:4px 0 8px"></div>
+        <div class="row"><button class="primary" id="stc-send">本体へ送る</button><button id="stc-cancel">やめる</button></div>
+      </div>
+      <div id="st-run" hidden style="margin-top:10px"><div class="sub" id="st-run-text"></div><div class="bar"><div id="st-run-bar"></div></div></div>
+      <div id="st-out"></div>
+    </div>
+    <div id="st-cards"></div>
   </section>
 
   <section id="tab-runs" hidden>
@@ -448,11 +466,12 @@ function resultHtml(r) {
 
 // ---------------------------------------------------------------- 段の切り替え
 function showTab(name) {
-  if (!['now', 'lines', 'collect', 'runs'].includes(name)) name = 'now';
+  if (!['now', 'lines', 'collect', 'runs', 'settings'].includes(name)) name = 'now';
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
-  $('tab-now').hidden = name !== 'now'; $('tab-collect').hidden = name !== 'collect'; $('tab-runs').hidden = name !== 'runs'; $('tab-lines').hidden = name !== 'lines';
+  $('tab-now').hidden = name !== 'now'; $('tab-collect').hidden = name !== 'collect'; $('tab-runs').hidden = name !== 'runs'; $('tab-lines').hidden = name !== 'lines'; $('tab-settings').hidden = name !== 'settings';
   if (name === 'runs') loadRuns();
   if (name === 'lines' && window.linesShown) linesShown();   // 図は、段が見えてから大きさを測って描く（course_lines.js）
+  if (name === 'settings' && window.settingsShown) settingsShown();   // 本体のいまの設定は、段を開いたときに読む（settings.js）
   if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
 }
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
@@ -660,6 +679,7 @@ function render(s) {
   renderNow(s);
   renderKeep(s);
   if (window.renderLines) renderLines(s);   // 「コースと線」の段（course_lines.js）
+  if (window.renderSettings) renderSettings(s);   // 「設定」の段（settings.js）
   const d = s.device, job = s.job, busy = !!(job && job.running);
   where(s, busy);
   $('link').textContent = d ? `本体：${d.link}` : (s.error || '本体がつながっていません');
@@ -749,5 +769,6 @@ load();
 setInterval(load, 1500);
 </script>
 <script src="/course_lines.js"></script>
+<script src="/settings.js"></script>
 </body>
 </html>
