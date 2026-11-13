@@ -1,8 +1,9 @@
-"""Sensor-only Podium NDJSON. No CAN frames, files, camera or replay queue.
+"""Sensor-only Podium rows. No CAN frames, files, camera or replay queue.
 
-Two destinations: straight to Podium (plain TCP, key on the logger), or via the
-team's ecorun-logger-server, which owns the Podium session and key; the logger
-then sends batched Podium rows over that server's /ws/audio/{room} WebSocket.
+One destination: the team's ecorun-logger-server, which owns the Podium session
+and key; the logger sends batched Podium rows over that server's
+/ws/audio/{room} WebSocket. The logger's own connection straight to Podium
+(plain TCP, key on the logger) was removed (SP-9-4).
 """
 import asyncio
 import base64
@@ -49,14 +50,14 @@ class PodiumConfig(BaseModel):
     # track the car is out of Wi-Fi range, so a forgotten Wi-Fi setting can no
     # longer leave the stream silent.
     link: Literal['lte','wifi','auto'] = 'lte'
-    # 'podium': direct TCP to Podium. 'server': ecorun-logger-server relays to Podium.
-    destination: Literal['podium','server'] = 'podium'
+    # Always 'server' (ecorun-logger-server relays). Kept in the saved file so that
+    # a build from before SP-9-4 reading it does not fall back to its own default,
+    # which was 'podium' (direct).
+    destination: Literal['server'] = 'server'
     server_url: str = Field(default='', max_length=300)
     # Relay failover: tried in order after server_url when a relay cannot be
-    # reached, drops, or stops answering pings. The last resort can be Podium
-    # itself (needs the key on the logger).
+    # reached, drops, or stops answering pings.
     backup_server_urls: list[str] = Field(default_factory=list, max_length=3)
-    fallback_direct: bool = False
     # Take the pit's voice from the relay (one low-bitrate mix). It pauses on its
     # own whenever telemetry starts to lag; telemetry always wins the link.
     voice_receive: bool = False
@@ -64,51 +65,63 @@ class PodiumConfig(BaseModel):
     # detected). Same rule: it stops whenever telemetry lags.
     voice_send: bool = False
     hardware_ready: bool = False
-    host: str = Field(default='telemetry.podium.live', pattern=r'^[A-Za-z0-9][A-Za-z0-9.-]{0,252}$')
-    port: int = Field(default=8080, ge=1, le=65535)
     apn: str = Field(default='', pattern=r'^[A-Za-z0-9._-]{0,100}$')
     username: str = Field(default='', max_length=64)
     password: str = Field(default='', max_length=64, repr=False)
-    device_id: str = Field(default='', max_length=128, repr=False)
     channels: list[str] = Field(default_factory=lambda:list(DEFAULT_CHANNELS), min_length=1, max_length=90)
 
     @model_validator(mode='after')
     def valid(self):
-        if self.host != 'telemetry.podium.live' or self.port != 8080:
-            raise ValueError('LTE is restricted to the Podium telemetry endpoint')
         if len(set(self.channels))!=len(self.channels):raise ValueError('Duplicate channels')
         if any(not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,31}',n) for n in self.channels):raise ValueError('ASCII names required')
         for s in (self.username,self.password):
             if any(ord(c)<32 or ord(c)>126 or c in '"\\' for c in s):raise ValueError('Invalid AT credentials')
-        if any(ord(c)<33 or ord(c)>126 for c in self.device_id):raise ValueError('Invalid key')
         if self.server_url and not SERVER_URL.fullmatch(self.server_url):raise ValueError('Invalid relay server URL')
         if any(not SERVER_URL.fullmatch(u) for u in self.backup_server_urls):raise ValueError('Invalid backup relay server URL')
-        if self.fallback_direct and not self.device_id:raise ValueError('Key required for direct fallback')
-        if self.enabled and self.destination=='podium' and not self.device_id:raise ValueError('Key required')
-        if self.enabled and self.destination=='server' and not self.server_url:raise ValueError('Relay server URL required')
+        if self.enabled and not self.server_url:raise ValueError('Relay server URL required')
         if self.enabled and self.link!='wifi' and not (self.hardware_ready and self.apn):raise ValueError('SIM, antenna and APN required')
         return self
+
+# Settings of the removed direct path to Podium (SP-9-4). Files saved by earlier
+# builds, and clients written for them, still carry these; they are dropped, never
+# an error, so the relay settings beside them stay in force.
+DIRECT_KEYS=('host','port','device_id','fallback_direct','clear_key')
+DIRECT_REMOVED='Podiumへ直接送る設定でしたが、その道は外しました。中継サーバーのURLを入れて保存するまで送信しません。'
 
 class ConfigStore:
     def __init__(self,root):
         self.path=Path(root)/'private'/'podium.json'
         self.error=None
-        try:self.config=PodiumConfig.model_validate_json(self.path.read_text()) if self.path.exists() else PodiumConfig()
+        try:self.config=self.load() if self.path.exists() else PodiumConfig()
         except (ValueError,OSError):self.config=PodiumConfig();self.error='保存設定を読めません。送信はOFFです。'
         self.revision=0
 
+    def load(self):
+        data=json.loads(self.path.read_text())
+        if not isinstance(data,dict):raise ValueError('Not a settings object')
+        # Before the relay existed the file had no 'destination' and meant direct.
+        old=any(k in data for k in DIRECT_KEYS)
+        direct=data.get('destination','podium' if old else 'server')=='podium'
+        data={k:v for k,v in data.items() if k not in DIRECT_KEYS}
+        if direct:
+            # It sent straight to Podium: with that path gone it has nowhere to send.
+            # Off, with the reason shown, rather than silently to whatever relay URL is left.
+            data.update(destination='server',enabled=False)
+        config=PodiumConfig.model_validate(data)
+        if direct:self.error=DIRECT_REMOVED
+        return config
+
     def public(self):
-        data=self.config.model_dump(exclude={'password','device_id'})
-        data.update(key_configured=bool(self.config.device_id),password_configured=bool(self.config.password),error=self.error)
+        data=self.config.model_dump(exclude={'password'})
+        data.update(password_configured=bool(self.config.password),error=self.error)
         return data
 
     def update(self,body,allowed):
         data=dict(body)
-        clear_key=data.pop('clear_key',False);clear_password=data.pop('clear_password',False)
-        data={**self.config.model_dump(),**data}
-        if not data.get('device_id'):data['device_id']=self.config.device_id
+        clear_password=data.pop('clear_password',False)
+        if data.get('destination')=='podium' or data.get('fallback_direct'):raise ValueError('Direct sending to Podium was removed')
+        data={**self.config.model_dump(),**{k:v for k,v in data.items() if k not in DIRECT_KEYS}}
         if not data.get('password'):data['password']=self.config.password
-        if clear_key:data['device_id']=''
         if clear_password:data['password']=''
         config=PodiumConfig.model_validate(data)
         if not set(config.channels)<=set(allowed):raise ValueError('Unknown sensor')
@@ -122,9 +135,6 @@ class ConfigStore:
         temp.replace(self.path)
         self.config=config;self.revision+=1;self.error=None
         return self.public()
-
-def line(data):
-    return (json.dumps(data,separators=(',',':'),ensure_ascii=True,allow_nan=False)+'\n').encode('ascii')
 
 @dataclass(frozen=True)
 class Sensor:
@@ -187,27 +197,14 @@ PRECISION = {'Lat':6,'Lon':6,'Interval':0,'Utc':0,'RPM':0,'GPSFix':0,'GPSSats':0
 SPARSE={'TimeLimit','Margin'}
 SPARSE_EVERY=100
 
-# Auth values confirmed against next-generation Podium on 2026-10-04: these are
-# what the official RaceCapture app 2.19.0 sends. The older
-# {'schemaVer':2,'auth':{...}} form is answered without 'lt'.
-AUTH = {'apiVer':1.1,'device':'RC_APP (RCPMK3)','ver':'2.19.0 (2.16.1)','sn':'C3PROTO01'}
-
 class Encoder:
-    def __init__(self,channels,tick=0):self.channels=channels;self.tick=tick;self.rows=0;self.sent={}
-    def auth(self,key):return line({'cmd':{'auth':{'deviceId':key,**AUTH}}})
+    def __init__(self,channels):self.channels=channels;self.rows=0;self.sent={}
     def meta_list(self):
         # Podium recognizes position by its canonical channel names, not our
         # local UI abbreviations. Values/mask ordering stays unchanged.
         names={'Lat':'Latitude','Lon':'Longitude'}
         return [{'nm':names.get(s.name,s.name),'ut':s.unit,'sr':10,'min':s.low,'max':s.high,
                  'prec':PRECISION.get(s.name,2)} for s in self.channels]
-    def meta(self):return line({'s':{'meta':self.meta_list()}})
-    def sample(self,sample):
-        row=self.row(sample)
-        if row is None:return None
-        # 't' is echoed back by the server as 'lt' in auth/heartbeat replies.
-        data=line({'s':{'d':row,'t':self.tick}});self.tick+=1
-        return data
     def row(self,sample):
         """Podium 'd' array (values in meta order, then bitmasks), or None."""
         if not sample or sample.get('source')!='logger-v2-hardware' or sample.get('demo') is not False:return None
@@ -230,29 +227,15 @@ class Encoder:
         self.rows+=1
         return values+masks
 
-class AuthenticationError(Exception):pass
-
-async def authenticate(transport,timeout=20):
-    deadline=time.monotonic()+timeout
-    while True:
-        remaining=deadline-time.monotonic()
-        if remaining<=0:raise TimeoutError('Podium auth response timeout')
-        raw=await asyncio.wait_for(transport.readline(),remaining)
-        try:response=json.loads(raw)
-        except (ValueError,UnicodeError):continue
-        if not isinstance(response,dict) or 'status' not in response:continue
-        if response['status']!='ok':raise AuthenticationError()
-        return response
-
 class SocketTransport:
-    """Plain TCP over the Linux network (Wi-Fi). Same NDJSON stream as the LTE path."""
+    """TCP (TLS for wss) over the Linux network (Wi-Fi). Same byte stream as the LTE path."""
     def __init__(self,connect_timeout=20,user_timeout_ms=None):
         self.reader=None;self.writer=None;self.phase='idle';self.operation='idle'
         self.connect_timeout=connect_timeout;self.user_timeout_ms=user_timeout_ms
-    async def connect(self,config,endpoint=None):
-        # endpoint=(host,port,tls) for the relay server; default is Podium itself.
-        host,port,tls=endpoint or (config.host,config.port,False)
-        self.phase='relay_connect' if endpoint else 'podium_tcp_connect';self.operation='connect'
+    async def connect(self,config,endpoint):
+        # endpoint=(host,port,tls) of the relay server.
+        host,port,tls=endpoint
+        self.phase='relay_connect';self.operation='connect'
         context=ssl.create_default_context() if tls else None
         try:self.reader,self.writer=await asyncio.wait_for(asyncio.open_connection(host,port,limit=4096,ssl=context,server_hostname=host if tls else None),self.connect_timeout)
         except (OSError,asyncio.TimeoutError):raise OSError('Socket open failed')
@@ -263,7 +246,7 @@ class SocketTransport:
         sock=self.writer.get_extra_info('socket')
         if self.user_timeout_ms and sock is not None and hasattr(socket,'TCP_USER_TIMEOUT'):
             sock.setsockopt(socket.IPPROTO_TCP,socket.TCP_USER_TIMEOUT,self.user_timeout_ms)
-        self.phase='relay_handshake' if endpoint else 'podium_authentication'
+        self.phase='relay_handshake'
     async def read_some(self,wait=.01):
         """Whatever has arrived (b'' if nothing within `wait`)."""
         self.operation='read'
@@ -276,13 +259,6 @@ class SocketTransport:
         self.writer.write(data)
         try:await asyncio.wait_for(self.writer.drain(),10)
         except (OSError,asyncio.TimeoutError):raise ConnectionError('Socket no longer connected')
-    async def readline(self):
-        self.operation='readline'
-        try:raw=await asyncio.wait_for(self.reader.readline(),20)
-        except asyncio.TimeoutError:raise TimeoutError('Podium auth response timeout')
-        except ValueError:raise ValueError('Podium response too large')
-        if not raw:raise ConnectionError('Socket no longer connected')
-        return raw
     async def close(self):
         if self.writer:
             self.writer.close()
@@ -469,14 +445,14 @@ TRANSPORT_LABEL={'lte':'SIM7070G TCP / STM32 UART','wifi':'Linux TCP (Wi-Fi)','a
 class PodiumSender:
     def __init__(self,root,runtime):
         self.store=ConfigStore(root);self.runtime=runtime
-        self.state={'state':'off','message':'Podium送信OFF','frames':0,'bytes':0,'reconnects':0,'skipped':0,'last_sent_age_ms':None,
+        self.state={'state':'off','message':self.store.error or 'Podium送信OFF','frames':0,'bytes':0,'reconnects':0,'skipped':0,'last_sent_age_ms':None,
                     'voice':'off','voice_packets':0,'voice_bytes':0,'voice_dropped':0,'voice_pauses':0,'voice_reason':None,
                     'voice_sent':0,'voice_talking':False,'voice_agent':None}
         # Received voice packets (Opus) for whatever plays them; oldest dropped first.
         self.voice=collections.deque(maxlen=VOICE_QUEUE)
         self.voice_link=VoiceLink()
         self.remote_pending=[]  # signed pit commands waiting for relay_session (remote_command.py)
-        self.sent_at=0;self.blocked_revision=None
+        self.sent_at=0
         self.active_link=None;self.watch_wifi=False;self.wifi_checked=0;self.wifi_skip_until=0;self.wifi_unknown=0
         self.session_frames=0
         # Relay failover: position in targets() and failures in a row without a frame sent.
@@ -488,16 +464,13 @@ class PodiumSender:
     def status(self):
         return {**self.state,'target_hz':10,'last_sent_age_ms':round((time.monotonic()-self.sent_at)*1000) if self.sent_at else None,
                 'link':self.store.config.link,'active_link':self.active_link,'destination':self.store.config.destination,
-                'transport':TRANSPORT_LABEL[self.active_link or self.store.config.link]+(' → 中継サーバー' if self.store.config.destination=='server' else ''),
-                'configured':bool(self.store.config.server_url if self.store.config.destination=='server' else self.store.config.device_id),'enabled':self.store.config.enabled,
+                'transport':TRANSPORT_LABEL[self.active_link or self.store.config.link]+' → 中継サーバー',
+                'configured':bool(self.store.config.server_url),'enabled':self.store.config.enabled,
                 'target':self.active_target,**self.transport_timings()}
 
     def targets(self,config):
-        '''[(kind, url)] in failover order: ('server', url)..., then ('podium', None).'''
-        if config.destination!='server':return [('podium',None)]
-        result=[('server',u) for u in [config.server_url,*config.backup_server_urls] if u]
-        if config.fallback_direct and config.device_id:result.append(('podium',None))
-        return result
+        '''Relay URLs in failover order.'''
+        return [u for u in [config.server_url,*config.backup_server_urls] if u]
 
     def set_state(self,name,message):self.state.update(state=name,message=message)
 
@@ -560,41 +533,6 @@ class PodiumSender:
         self.wifi_unknown=0 if up else self.wifi_unknown+1
         if self.wifi_unknown>=WIFI_UNKNOWN_LIMIT:raise ConnectionError('Wi-Fi state unknown')
 
-    async def session(self,transport,config,revision):
-        encoder=Encoder(sensors(config,self.runtime.config))
-        self.set_state('connecting',f'{LINK_LABEL[config.link]}でPodiumへ接続中')
-        await transport.connect(config)
-        self.set_state('authenticating','Podium認証中')
-        await transport.send(encoder.auth(config.device_id))
-        await authenticate(transport)
-        await transport.send(encoder.meta())
-        self.set_state('streaming','センサ値を送信中')
-        fingerprint=[(c.name,c.unit,c.low,c.high) for c in encoder.channels]
-        deadline=time.monotonic();last_seq=None
-        while self.store.revision==revision:
-            if self.sd_busy(config):
-                raise ConnectionError('SD operation')
-            await self.check_wifi()
-            updated=sensors(config,self.runtime.config)
-            current=[(c.name,c.unit,c.low,c.high) for c in updated]
-            if current!=fingerprint:
-                encoder=Encoder(updated,encoder.tick);await transport.send(encoder.meta());fingerprint=current
-            now=time.monotonic();sample=self.runtime.sample
-            fresh=sample is not None and now-self.runtime.received_at<.5
-            payload=encoder.sample(sample) if fresh and sample['seq']!=last_seq else None
-            # Next-generation Podium (2026-09) ignores a stream until it carries a
-            # GPS-derived timestamp (Utc); show this instead of a silent blank screen.
-            if fresh:
-                if utc_milliseconds(sample) is None:self.set_state('waiting_gps','GPS測位待ち（測位するまでPodium画面には表示されません）')
-                else:self.set_state('streaming','センサ値を送信中')
-            if payload:
-                await transport.send(payload)
-                self.sent(1,len(payload));last_seq=sample['seq']
-            else:self.state['skipped']+=1
-            # Never build a backlog or burst historical samples after a slow send.
-            deadline=max(deadline+.1,time.monotonic())
-            await asyncio.sleep(max(0,deadline-time.monotonic()))
-
     async def relay_session(self,transport,config,revision):
         """Batched Podium rows to ecorun-logger-server, which talks to Podium."""
         tls,host,port,path=parse_server_url(config.server_url)
@@ -623,6 +561,8 @@ class PodiumSender:
             now=time.monotonic();sample=self.runtime.sample
             fresh=sample is not None and now-self.runtime.received_at<.5
             row=encoder.row(sample) if fresh and sample['seq']!=last_seq else None
+            # Next-generation Podium (2026-09) ignores a stream until it carries a
+            # GPS-derived timestamp (Utc); show this instead of a silent blank screen.
             if fresh and utc_milliseconds(sample) is None:
                 self.set_state('waiting_gps','GPS測位待ち（測位するまでPodium画面には表示されません）')
             if row is not None:
@@ -740,48 +680,44 @@ class PodiumSender:
         while True:
             config=self.store.config;revision=self.store.revision
             if revision!=seen_revision:retry=0;seen_revision=revision;self.target_index=0;self.target_failures=0
-            if not config.enabled:
-                self.set_state('off','Podium送信OFF');await asyncio.sleep(.5);continue
-            if self.blocked_revision==revision:
-                self.set_state('auth_failed','認証失敗。送信キーを修正して保存してください。');await asyncio.sleep(.5);continue
+            targets=self.targets(config)
+            if not config.enabled or not targets:
+                # store.error says why a saved setting is off (unreadable, or it was the removed direct path).
+                self.set_state('off',self.store.error or 'Podium送信OFF');await asyncio.sleep(.5);continue
             if not self.runtime.bridge or not self.runtime.status()['connected'] or self.sd_busy(config):
                 self.set_state('waiting','MCU通信またはSD操作完了を待っています');await asyncio.sleep(.5);continue
             auto=config.link=='auto'
             link=await self.choose_link(config)
             self.active_link=link;self.watch_wifi=auto and link=='wifi';self.wifi_checked=time.monotonic();self.wifi_unknown=0
             self.session_frames=0;self.event('session_start',link=link,mode=config.link,destination=config.destination)
-            targets=self.targets(config);kind,url=targets[self.target_index%len(targets)]
-            self.active_target={'kind':kind,'host':parse_server_url(url)[1] if url else config.host,
+            url=targets[self.target_index%len(targets)]
+            self.active_target={'kind':'server','host':parse_server_url(url)[1],
                                 'index':self.target_index%len(targets),'count':len(targets)}
-            session_config=config.model_copy(update={'link':link,**({'server_url':url} if url else {})})
+            session_config=config.model_copy(update={'link':link,'server_url':url})
             transport=(SIM7070(self.runtime.bridge) if link=='lte' else
                        SocketTransport(AUTO_WIFI_CONNECT_S,AUTO_WIFI_USER_TIMEOUT_MS) if auto else SocketTransport())
             self.transport=transport
             try:
-                await (self.relay_session if kind=='server' else self.session)(transport,session_config,revision)
+                await self.relay_session(transport,session_config,revision)
                 retry=0
-            except AuthenticationError:
-                if config.destination=='podium':self.blocked_revision=revision
-                else:self.target_index+=1;self.set_state('retry','Podiumへの直接送信の認証に失敗。中継サーバーへ戻ります。')
             except asyncio.CancelledError:raise
             except Exception as exc:
-                # Modem responses / exceptions may contain key or carrier credentials.
+                # Modem responses / exceptions may contain carrier credentials.
                 self.state['reconnects']+=1
                 self.state['last_failure_stage']=transport.phase
                 self.state['last_failure_type']=type(exc).__name__
                 self.state['last_failure_operation']=getattr(transport,'operation','unknown')
-                safe_reasons={'Modem rejected operation','Podium response too large','Modem response timeout',
+                safe_reasons={'Modem rejected operation','Modem response timeout',
                     'Cellular connection closed','LTE receive overflow',
                     'LTE UART transmit rejected','Socket open failed',
                     'Socket no longer connected','Network registration timeout',
-                    'Podium auth response timeout','SD operation',
+                    'SD operation',
                     'Relay handshake timeout','Relay refused WebSocket','Relay closed WebSocket',
                     'Relay has no Podium key','Relay frame too large','Wi-Fi lost','Wi-Fi state unknown',
                     'Relay not responding'}
                 self.state['last_failure_reason']=str(exc) if str(exc) in safe_reasons else 'Transport error'
                 self.event('session_end',link=link,target=self.active_target['host'],reason=self.state['last_failure_reason'],frames=self.session_frames,
                            last_sent_age_s=round(time.monotonic()-self.sent_at,3) if self.sent_at else None,**self.transport_timings())
-                target='中継サーバー' if kind=='server' else 'Podium'
                 if auto and link=='wifi':
                     # Straight over to LTE, no back-off: the stream must not pause on track.
                     self.wifi_skip_until=time.monotonic()+WIFI_SKIP_S
@@ -791,11 +727,10 @@ class PodiumSender:
                     self.target_failures=0 if self.session_frames else self.target_failures+1
                     self.target_index+=1
                     if len(targets)>1 and self.target_failures<len(targets):
-                        nxt=targets[self.target_index%len(targets)][0]
-                        self.set_state('retry',f'{target}への送信が途切れたため、'+('Podiumへ直接' if nxt=='podium' else '次の中継サーバー')+'へ切り替えます')
+                        self.set_state('retry','中継サーバーへの送信が途切れたため、次の中継サーバーへ切り替えます')
                     else:
                         self.target_failures=0
-                        self.set_state('retry',f'{LINK_LABEL[link]}または{target}への接続に失敗。再接続を待っています。')
+                        self.set_state('retry',f'{LINK_LABEL[link]}または中継サーバーへの接続に失敗。再接続を待っています。')
                         retry=min(5,retry+1)
             finally:
                 self.state.update(voice='off',voice_talking=False)

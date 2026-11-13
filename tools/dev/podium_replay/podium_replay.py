@@ -1,5 +1,9 @@
 """Replays a recorded run to Podium as if the EcoLogger app were sending it.
 
+【いまは使わない】公式のPodiumへ直接送る道は外した（SP-9-4）。この道具は過去の確かめ用として
+残してあるだけで、スマホのアプリの直接送信（PodiumDirect.kt）も、アプリに保存したキーも
+もう無い（下の --serial でキーを読む手順は動かない）。
+
 For checking what Podium shows (map, speed) without driving. Sends the same
 lines as the Android app's direct mode (PodiumDirect.kt / PodiumEncoder.kt):
 auth, the app's channel table, then one row every 100 ms, with the recorded

@@ -41,11 +41,7 @@ class LoggerService : Service() {
     private lateinit var hub: SensorHub
     private var log: LogWriter? = null
     private var relay: RelayClient? = null
-    private var direct: PodiumDirect? = null
-    private var podiumKey = ""
     private var link: LoggerLink? = null
-    /** When the relay was last seen not connected (null while it is), for the fallback to Podium. */
-    private var serverDownSince: Long? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var startedAt = 0L
     private var nextTick = 0L
@@ -78,7 +74,6 @@ class LoggerService : Service() {
             try { log = LogWriter(this, settings.carName) } catch (e: Exception) { logError = e.toString() }
             relay = if (settings.urls.isEmpty() || circuit) null
                     else RelayClient(settings.urls, settings.carName.ifEmpty { "android" }, handler).also { it.start() }
-            podiumKey = if (circuit) "" else settings.podiumKey
             link = if (!settings.loggerConfigured) null
                    else LoggerLink(this, settings.loggerSsid, settings.loggerPass, settings.loggerHostOrDefault,
                                    settings.loggerKey, handler, settings.loggerLan, circuit).also { it.start() }
@@ -94,34 +89,14 @@ class LoggerService : Service() {
     private fun tick() {
         val row = hub.snapshot(SystemClock.elapsedRealtime() - startedAt)
         try { log?.write(row) } catch (e: Exception) { logError = e.toString(); log = null }
-        send(PodiumEncoder.row(row))
+        // Only to the relay servers; while none is connected the row is dropped there (the CSV keeps it).
+        relay?.offer(PodiumEncoder.row(row))
         rows++
         publish(row)
         Circuit.tick()
         // Fixed 100 ms grid; after a stall skip ahead instead of bursting.
         nextTick = maxOf(nextTick + 100, SystemClock.uptimeMillis())
         handler.postAtTime({ tick() }, nextTick)
-    }
-
-    /**
-     * To the relay while it is connected; when no server has answered for
-     * [FALLBACK_MS] (or none is set) and a Podium key is saved, straight to
-     * Podium instead. Never both: the relay forwards to Podium with the same
-     * key, and two senders on one key collide there.
-     */
-    private fun send(encoded: String) {
-        val r = relay
-        if (r != null && r.connected) {
-            serverDownSince = null
-            direct?.let { it.stop(); direct = null }
-            r.offer(encoded)
-            return
-        }
-        r?.offer(encoded) // counts the drop
-        val now = SystemClock.elapsedRealtime()
-        val since = serverDownSince ?: now.also { serverDownSince = it }
-        if (direct == null && podiumKey.isNotEmpty() && (r == null || now - since >= FALLBACK_MS)) direct = PodiumDirect(podiumKey)
-        direct?.offer(encoded)
     }
 
     private fun publish(row: Map<String, Double?>) {
@@ -139,14 +114,10 @@ class LoggerService : Service() {
             Status.accuracyM = row["Accuracy"]
             Status.speedKmh = row["GPSSpeed"]
         }
-        val r = relay; val d = direct
-        Status.relay = when {
-            r?.connected == true -> r.state
-            d != null -> if (d.authenticated) "Podium直接" else "直接・接続中"
-            else -> r?.state
-        }
-        Status.relayConnected = r?.connected == true || d?.authenticated == true
-        Status.relayError = d?.lastError?.takeIf { it.isNotEmpty() } ?: r?.lastError ?: ""
+        val r = relay
+        Status.relay = r?.state
+        Status.relayConnected = r?.connected == true
+        Status.relayError = r?.lastError ?: ""
     }
 
     override fun onDestroy() {
@@ -157,7 +128,6 @@ class LoggerService : Service() {
             link?.stop()
             Circuit.stop()
             relay?.stop()
-            direct?.stop()
             try { log?.close() } catch (_: Exception) {}
             thread.quitSafely()
         }
@@ -178,8 +148,6 @@ class LoggerService : Service() {
 
     companion object {
         private const val CHANNEL = "run"
-        /** No relay server for this long: send straight to Podium (if a key is saved). */
-        private const val FALLBACK_MS = 30_000L
         fun start(context: Context) = context.startForegroundService(Intent(context, LoggerService::class.java))
         fun stop(context: Context) = context.stopService(Intent(context, LoggerService::class.java))
     }

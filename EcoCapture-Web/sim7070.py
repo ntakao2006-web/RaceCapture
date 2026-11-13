@@ -74,8 +74,10 @@ class SIM7070:
         await self.uart.write(text.encode('ascii')+b'\r')
         return await self.wait(b'\r\nOK\r\n',timeout)
     async def connect(self,config,endpoint=None):
-        # endpoint=(host,port,tls) for the relay server; default is Podium itself.
-        host,port,tls=endpoint or (config.host,config.port,False)
+        # endpoint=(host,port,tls) of the relay server. Sending straight to Podium is gone (SP-9-4, 2026-11-13),
+        # so there is no default any more.
+        if not endpoint:raise ValueError('No relay endpoint')
+        host,port,tls=endpoint
         self.phase='modem_initialization'
         await self.uart.power(True)
         await asyncio.sleep(3)

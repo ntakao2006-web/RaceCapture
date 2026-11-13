@@ -370,12 +370,17 @@ class ServerTests(unittest.TestCase):
 
     def test_podium_secret_redaction_and_recording_independence(self):
         self.connected();self.s.runtime.recorder.start(Configuration())
+        # device_id (the removed direct path's key, SP-9-4) may still come from an old client: dropped, not kept.
         response=self.client.post('/api/podium',headers=self.headers,json={'device_id':'private-key','password':'private-apn'})
         self.assertEqual(response.status_code,200)
-        self.assertTrue(response.json()['config']['key_configured'])
+        self.assertTrue(response.json()['config']['password_configured'])
+        self.assertNotIn('key_configured',response.json()['config'])
+        self.assertNotIn('private-key',(self.s.ROOT/'private'/'podium.json').read_text())
         for path in ('/api/podium','/api/status','/api/config'):
             self.assertNotIn('private-',self.client.get(path).text)
-        response=self.client.post('/api/podium',headers=self.headers,json={'enabled':True,'device_id':'private-bad-key'})
+        response=self.client.post('/api/podium',headers=self.headers,json={'enabled':True,'password':'private-bad'})
+        self.assertEqual(response.status_code,400);self.assertNotIn('private-',response.text)
+        response=self.client.post('/api/podium',headers=self.headers,json={'destination':'podium','device_id':'private-key'})
         self.assertEqual(response.status_code,400);self.assertNotIn('private-',response.text)
         self.assertTrue(self.s.runtime.recorder.file)
         self.assertNotIn('private-',json.dumps(self.s.public_snapshot()))

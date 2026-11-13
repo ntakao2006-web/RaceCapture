@@ -519,8 +519,8 @@ async def save_podium(request:Request):
         if not isinstance(body,dict):raise ValueError()
         runtime.podium.store.update(body,[*CHANNELS,*(s.name for s in runtime.config.signals)])
     except (ValueError,TypeError):
-        # Pydantic's default error payload echoes input (including the streaming key).
-        raise HTTPException(400,'設定を確認してください。送信ONには送信キーが必要です。LTEではさらにSIM・アンテナ確認とAPNが必要です。')
+        # Pydantic's default error payload echoes input (including the APN password).
+        raise HTTPException(400,'設定を確認してください。送信ONには中継サーバーのURLが必要です。LTEではさらにSIM・アンテナ確認とAPNが必要です。Podiumへ直接送る設定はできません。')
     except OSError:raise HTTPException(507,'LTE設定を保存できませんでした。')
     if runtime.podium_task:
         runtime.podium_task.cancel()

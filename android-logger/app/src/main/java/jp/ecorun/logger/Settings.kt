@@ -6,6 +6,12 @@ import android.content.Context
 class Settings(context: Context) {
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
+    init {
+        // The Podium streaming key was kept here for sending straight to Podium. That path is
+        // gone (SP-9-4) and nothing reads the key any more, so a saved one is not left behind.
+        if (prefs.contains("podiumKey")) prefs.edit().remove("podiumKey").apply()
+    }
+
     var primaryUrl: String
         get() = prefs.getString("primary", "") ?: ""
         set(v) = prefs.edit().putString("primary", v.trim()).apply()
@@ -15,15 +21,6 @@ class Settings(context: Context) {
     var carName: String
         get() = prefs.getString("car", "") ?: ""
         set(v) = prefs.edit().putString("car", v.trim()).apply()
-
-    /**
-     * Podium streaming key, only for sending straight to Podium when no relay
-     * server answers ([PodiumDirect]). Kept in this app's private storage and
-     * shown in the settings so a mistyped key can be spotted.
-     */
-    var podiumKey: String
-        get() = prefs.getString("podiumKey", "") ?: ""
-        set(v) = prefs.edit().putString("podiumKey", v.trim()).apply()
 
     /**
      * The Ver.2 logger as the car's position source ([LoggerLink]): its Wi-Fi
