@@ -1,0 +1,200 @@
+<title>EcoLoggerピットの見本</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 配置：スマホの縦1列。上から「つながり」→ いまの周とタイム → 車の様子 → 見る画面への行き先 → 操作（合言葉を入れた人だけ）。色と部品はPCのアプリの見本と同じ */
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6676; --line: #dde1e8;
+  --accent: #2563eb; --accent-text: #ffffff; --ok: #15803d; --ok-bg: #e7f6ec; --warn: #a16207; --warn-bg: #fdf3d8;
+  --bad: #b91c1c; --bad-bg: #fde8e8; --info: #1d4ed8; --info-bg: #e5edff; --chip: #eef0f4; --mock: #6d28d9; --mock-bg: #f1eafe;
+  --font: "Yu Gothic UI", "Hiragino Sans", "Meiryo", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151b; --panel: #1b1f27; --text: #e6e9ef; --muted: #9aa3b2; --line: #2c323d;
+  --accent: #4f8cff; --accent-text: #0b1020; --ok: #4ade80; --ok-bg: #14301f; --warn: #facc15; --warn-bg: #33290c;
+  --bad: #f87171; --bad-bg: #3a1717; --info: #93b4ff; --info-bg: #19254a; --chip: #262b35; --mock: #c4b5fd; --mock-bg: #2a2147; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151b; --panel: #1b1f27; --text: #e6e9ef; --muted: #9aa3b2; --line: #2c323d;
+  --accent: #4f8cff; --accent-text: #0b1020; --ok: #4ade80; --ok-bg: #14301f; --warn: #facc15; --warn-bg: #33290c;
+  --bad: #f87171; --bad-bg: #3a1717; --info: #93b4ff; --info-bg: #19254a; --chip: #262b35; --mock: #c4b5fd; --mock-bg: #2a2147; color-scheme: dark }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 var(--font); }
+main { max-width: 440px; margin: 0 auto; padding-block: 12px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: 19px; margin: 0; } h2 { font-size: 15px; margin: 0 0 8px; }
+.sub { color: var(--muted); font-size: 13px; }
+.mockbar { background: var(--mock-bg); color: var(--mock); border-radius: 10px; padding: 8px 12px; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+select, .in { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); min-width: 0; max-width: 100%; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.link { display: flex; gap: 10px; align-items: center; border-radius: 12px; padding: 12px; background: var(--chip); }
+.link.ok { background: var(--ok-bg); color: var(--ok); } .link.stale { background: var(--bad-bg); color: var(--bad); } .link.wait { background: var(--warn-bg); color: var(--warn); }
+.dot { flex: 0 0 auto; width: 14px; height: 14px; border-radius: 50%; background: currentColor; }
+.link.wait .dot { animation: pulse 1.4s infinite; } @keyframes pulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .link.wait .dot { animation: none; } }
+.link b { font-size: 17px; display: block; } .link small { font-size: 13px; display: block; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; min-width: 0; }
+.tile .k { color: var(--muted); font-size: 12px; } .tile .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; } .tile .n { color: var(--muted); font-size: 12px; }
+.tile.wide { grid-column: 1 / -1; } .tile.wide .v { font-size: 40px; }
+.tile.warn { background: var(--warn-bg); border-color: var(--warn); } .tile.bad { background: var(--bad-bg); border-color: var(--bad); }
+.old .v, .old .chips { opacity: .35; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-block; border-radius: 999px; padding: 3px 10px; font-size: 13px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); } .chip.bad { background: var(--bad-bg); color: var(--bad); }
+.go { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.go a, button.b { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; text-decoration: none; min-height: 48px; }
+button.b.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+button.b.danger { color: var(--bad); } button.b:disabled { opacity: .45; }
+button.b:focus-visible, .go a:focus-visible, select:focus-visible, .in:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.confirm { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 12px; }
+.result { border-radius: 10px; padding: 10px 12px; background: var(--ok-bg); color: var(--ok); }
+.refuse { border-radius: 10px; padding: 10px 12px; background: var(--bad-bg); color: var(--bad); }
+.bar { height: 10px; background: var(--chip); border-radius: 999px; overflow: hidden; } .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+.code { font-size: 24px; letter-spacing: .2em; font-weight: 700; }
+.note { border-left: 3px solid var(--mock); padding: 2px 10px; color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <div class="mockbar"><span><b>これは動かない見本です。</b>数字はどれも例で、ロガーにはつながっていません。スマホで開く、自宅のサーバーのページの案です。</span>
+    <label for="scene">場面を切り替える：</label>
+    <select id="scene">
+      <option value="wait">ロガーがまだ動いていない（準備中）</option>
+      <option value="pit">ピットで止まっている</option>
+      <option value="run" selected>走っている</option>
+      <option value="hot">走っている・油温の警告</option>
+      <option value="stale">値が届かなくなった（45秒）</option>
+    </select>
+    <label for="who">見ている人：</label>
+    <select id="who"><option value="view">見るだけの人（合言葉なし）</option><option value="op" selected>係（合言葉を入れてある）</option></select>
+  </div>
+
+  <div class="row"><h1>EcoLogger ピット</h1><span class="sub"><b id="car">NCEC ロードスター</b>・<b id="course">スポーツランドSUGO</b></span></div>
+
+  <div class="link" id="link"><span class="dot"></span><div><b id="link-title"></b><small id="link-sub"></small></div></div>
+
+  <div class="grid2" id="vals">
+    <div class="tile wide"><div class="k">この周</div><div class="v" id="v-cur"></div><div class="n" id="v-cur-n"></div></div>
+    <div class="tile"><div class="k">周回</div><div class="v" id="v-lap"></div><div class="n" id="v-race"></div></div>
+    <div class="tile"><div class="k">前の周</div><div class="v" id="v-last"></div><div class="n" id="v-last-n"></div></div>
+    <div class="tile"><div class="k">ベスト</div><div class="v" id="v-best"></div><div class="n" id="v-best-n"></div></div>
+    <div class="tile"><div class="k">速度</div><div class="v" id="v-spd"></div><div class="n">km/h</div></div>
+    <div class="tile" id="t-oil"><div class="k">油温（いま）</div><div class="v" id="v-oil"></div><div class="n" id="v-oil-n"></div></div>
+    <div class="tile" id="t-water"><div class="k">水温（いま）</div><div class="v" id="v-water"></div><div class="n" id="v-water-n"></div></div>
+  </div>
+
+  <div class="panel" id="state"><h2>ロガーの様子</h2><div class="chips" id="chips"></div><div class="sub" id="state-note" style="margin-top:6px"></div></div>
+
+  <div class="panel"><h2>くわしく見る</h2>
+    <div class="go"><a href="#" data-go="地図（車の位置・コントロールラインとセクターの線）">地図</a><a href="#" data-go="周回表（周ごとのタイム・セクター・最高速）">周回表</a><a href="#" data-go="G-G（前後・左右のG）">G-G</a><a href="#" data-go="グラフ（油温・水温・速度・回転数の30分）">グラフ</a></div>
+    <div class="sub" id="go-msg" style="margin-top:6px"></div></div>
+
+  <div class="panel" id="ops">
+    <h2>操作（LTEでロガーへ送る）</h2>
+    <div id="locked" class="col">
+      <div class="sub">操作するには合言葉が要ります。合言葉はこのスマホの中にだけ覚え、サーバーには置きません。</div>
+      <div class="row"><input class="in" id="secret" type="password" placeholder="合言葉" style="flex:1 1 160px" aria-label="合言葉"><button class="b" id="unlock">覚える</button></div>
+      <div class="sub" id="unlock-msg"></div>
+    </div>
+    <div id="unlocked" class="col">
+      <button class="b primary" id="op-reset">ラップを0周に戻す</button>
+      <button class="b" id="op-status">状態を聞く</button>
+      <button class="b" id="op-more-open">ほかの操作…</button>
+      <div id="op-more" class="col" hidden>
+        <button class="b" data-op="count">周回数を直す…</button>
+        <button class="b" data-op="start">いまから計測を始める…</button>
+        <button class="b" data-op="log">記録を始める…</button>
+        <button class="b" data-op="course">車とコースを選ぶ…</button>
+        <div class="sub">線の引き直しは、写真の上で動かすので、PCのアプリから行います。</div>
+      </div>
+      <div class="confirm" id="op-confirm" hidden>
+        <b id="op-title"></b><div id="op-body" style="margin:6px 0"></div>
+        <div id="op-code-wrap">この数字を入れて送ります：<span class="code" id="op-code-show"></span>
+          <div class="row" style="margin-top:6px"><input class="in" id="op-code" inputmode="numeric" maxlength="4" style="width:6em" aria-label="確認の4桁"></div></div>
+        <div class="row" style="margin-top:8px"><button class="b primary" id="op-send" style="flex:1 1 120px">送る</button><button class="b" id="op-back" style="flex:1 1 120px">やめる</button></div>
+        <div class="sub" id="op-err"></div>
+      </div>
+      <div id="op-run" hidden><div class="bar"><div id="op-bar"></div></div><div class="sub" id="op-rate"></div></div>
+      <div id="op-out"></div>
+      <button class="b" id="forget" style="align-self:flex-start; min-height:0; padding:6px 10px; font-size:13px">合言葉をこのスマホから消す</button>
+    </div>
+  </div>
+
+  <div class="note">いまのページとの違い：入口が1枚になる。値が届かなくなると数字が薄くなり、何秒前の値かが出る。ロガーが動く前から開いておける。合言葉を入れた人は、PCが無くてもラップのリセットなどを送れる。</div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const dev = { car: 'NCEC ロードスター', course: 'スポーツランドSUGO', lap: 31 };
+const SCENES = {
+  wait: { cls: 'wait', title: 'ロガーを待っています', sub: 'まだ値が届いていません。ロガーの電源を入れて約1分40秒で、ここが変わります。この画面は開いたままで大丈夫です。' },
+  pit:  { cls: 'ok', title: '届いています（1秒前）', sub: '車は止まっています。', cur: '—', curn: 'ピットに止まっています（3分12秒）', race: 'レース経過 0:27:41', lap: 14, last: '2:31.80', lastn: 'ピットに入った周', spd: 0, oil: 96, water: 84 },
+  run:  { cls: 'ok', title: '届いています（1秒前）', sub: '車は走っています。', cur: '1:12.4', curn: 'セクター2を走行中・ベストより −0.21', race: 'レース経過 1:02:15', lap: 31, last: '1:49.05', lastn: 'ベストより +0.44', spd: 132, oil: 108, water: 92 },
+  hot:  { cls: 'ok', title: '届いています（1秒前）', sub: '車は走っています。', cur: '0:48.9', curn: 'セクター1を走行中', race: 'レース経過 1:21:40', lap: 41, last: '1:50.31', lastn: 'ベストより +1.70', spd: 118, oil: 122, water: 97 },
+  stale:{ cls: 'stale', title: '値が届いていません（45秒前のまま）', sub: '下の数字は45秒前のものです。電波の届かない所を走っているか、ロガーが止まっています。車の記録は続いています。', cur: '1:12.4', curn: '45秒前の値', race: 'レース経過 1:02:15（45秒前）', lap: 31, last: '1:49.05', lastn: 'ベストより +0.44', spd: 132, oil: 108, water: 92 },
+};
+const LIMIT = { oil: [110, 120], water: [100, 110] };   // 注意・警告（車の設定から読む。見本ではNCECの例）
+function temp(id, v) {
+  const [w, b] = LIMIT[id], t = $('t-' + id); t.className = 'tile' + (v >= b ? ' bad' : v >= w ? ' warn' : '');
+  $('v-' + id).textContent = v == null ? '—' : v + '℃'; $('v-' + id + '-n').textContent = v == null ? '' : v >= b ? `警告（${b}℃以上）` : v >= w ? `注意（${w}℃以上）` : `注意は${w}℃から`;
+}
+function scene() {
+  const key = $('scene').value, s = SCENES[key], none = key === 'wait';
+  $('link').className = 'link ' + s.cls; $('link-title').textContent = s.title; $('link-sub').textContent = s.sub;
+  $('car').textContent = dev.car; $('course').textContent = dev.course;
+  $('vals').className = 'grid2' + (key === 'stale' ? ' old' : ''); $('state').className = 'panel' + (key === 'stale' ? ' old' : '');
+  const lap = none ? null : (key === 'run' || key === 'stale') ? dev.lap : s.lap;
+  $('v-cur').textContent = none ? '—' : s.cur; $('v-cur-n').textContent = none ? 'ロガーが動くと出ます' : s.curn;
+  $('v-lap').textContent = none ? '—' : lap + ' 周'; $('v-race').textContent = none ? '' : s.race;
+  $('v-last').textContent = none ? '—' : s.last; $('v-last-n').textContent = none ? '' : s.lastn;
+  $('v-best').textContent = none ? '—' : '1:48.61'; $('v-best-n').textContent = none ? '' : '3周目';
+  $('v-spd').textContent = none ? '—' : s.spd; temp('oil', none ? null : s.oil); temp('water', none ? null : s.water);
+  const chips = none ? [['記録', ''], ['測位', ''], ['LTE', ''], ['録画', '']] : key === 'stale'
+    ? [['記録中', 'ok'], ['測位', 'ok'], ['LTE 45秒前から届かず', 'bad'], ['録画中', 'ok']] : [['記録中', 'ok'], ['測位', 'ok'], ['LTE 送信中', 'ok'], ['録画中', 'ok']];
+  $('chips').innerHTML = chips.map(([t, c]) => `<span class="chip ${c}">${t}</span>`).join('');
+  $('state-note').textContent = none ? 'ロガーが動くと、4つの印に結果が出ます。' : key === 'stale' ? '45秒前に届いた時点の様子です。' : '';
+  $('op-confirm').hidden = true; $('op-out').innerHTML = ''; $('op-more').hidden = true; who();
+}
+function who() {
+  const op = $('who').value === 'op'; $('locked').hidden = op; $('unlocked').hidden = !op;
+  const off = $('scene').value === 'wait'; ['op-reset', 'op-status', 'op-more-open'].forEach(id => $(id).disabled = false);
+  $('op-off').hidden = !(op && off);
+}
+$('ops').insertAdjacentHTML('beforeend', '<div class="sub" id="op-off" hidden style="margin-top:8px">ロガーがまだ動いていないので、送っても届きません。押すと、そのことをお知らせします。</div>');
+$('scene').addEventListener('change', scene); $('who').addEventListener('change', () => { who(); });
+$('unlock').onclick = () => { if (!$('secret').value) { $('unlock-msg').textContent = '合言葉を入れてください。'; return; } $('who').value = 'op'; who(); $('op-out').innerHTML = '<div class="result">合言葉をこのスマホに覚えました。</div>'; };
+$('forget').onclick = () => { $('who').value = 'view'; $('secret').value = ''; who(); $('unlock-msg').textContent = '合言葉をこのスマホから消しました。'; };
+document.querySelector('.go').addEventListener('click', e => { const a = e.target.closest('a'); if (!a) return; e.preventDefault(); $('go-msg').textContent = `${a.dataset.go} を開きます。どの画面も、値が届かなくなると何秒前の値かを出します。`; });
+
+let pending = null, code = '';
+function ask(title, body, needCode, done) {
+  const key = $('scene').value; $('op-out').innerHTML = '';
+  if (key === 'wait') { $('op-out').innerHTML = '<div class="refuse"><b>送っていません。</b>ロガーがまだ動いていないので届きません。ロガーの電源を入れてから、もう一度押してください。</div>'; return; }
+  pending = done; $('op-title').textContent = title;
+  $('op-body').innerHTML = body + (key === 'stale' ? '<br><b>いま値が届いていないので、送っても届かないことがあります。</b>届いたかどうかは、返事で分かります。' : '');
+  $('op-code-wrap').hidden = !needCode; code = String(Math.floor(1000 + Math.random() * 9000)); $('op-code-show').textContent = code; $('op-code').value = ''; $('op-err').textContent = '';
+  $('op-confirm').dataset.code = needCode ? '1' : ''; $('op-confirm').hidden = false;
+}
+$('op-back').onclick = () => { $('op-confirm').hidden = true; };
+$('op-send').onclick = () => {
+  if ($('op-confirm').dataset.code && $('op-code').value.trim() !== code) { $('op-err').textContent = '数字が違います。上の4桁をそのまま入れてください。'; return; }
+  $('op-confirm').hidden = true; let p = 0; $('op-run').hidden = false; $('op-rate').textContent = 'LTEで送っています…（ロガーの返事を待ちます。数秒かかります）';
+  const stale = $('scene').value === 'stale';
+  const t = setInterval(() => { p += 20; $('op-bar').style.width = p + '%'; if (p >= 100) { clearInterval(t); $('op-run').hidden = true; $('op-bar').style.width = '0';
+    if (stale) $('op-out').innerHTML = '<div class="refuse"><b>返事がありません（20秒待ちました）。</b>ロガーに届いたか分かりません。値がまた届き始めたら、もう一度送ってください。</div>';
+    else $('op-out').innerHTML = `<div class="result"><b>届きました。</b>${pending()}</div>`; } }, 220);
+};
+const moving = () => ['run', 'hot', 'stale'].includes($('scene').value);
+$('op-reset').onclick = () => ask('ラップを0周に戻します', '周回数とレース経過が0に戻ります。走行記録と動画は消えません。' + (moving() ? '<br>車は走っています。次にラインを通った所から数え始めます。' : ''), moving(),
+  () => { dev.lap = 0; SCENES.pit.lap = 0; SCENES.hot.lap = 0; scene(); return 'ロガーの返事：ラップを0周に戻しました。'; });
+$('op-status').onclick = () => ask('ロガーに状態を聞きます', '何も変えません。記録・測位・周回数を聞くだけです。', false, () => `ロガーの返事：記録中・測位中・${$('v-lap').textContent}・本体の空き 9.8 GiB（返事まで 2.1秒）`);
+$('op-more-open').onclick = () => { $('op-more').hidden = !$('op-more').hidden; };
+$('op-more').addEventListener('click', e => { const b = e.target.closest('button[data-op]'); if (!b) return; const op = b.dataset.op;
+  if (op === 'count') ask('周回数を直します', '直したあとの周回数：<input class="in" id="op-n" type="number" min="0" max="999" value="30" style="width:6em" aria-label="直したあとの周回数"> 周', moving(), () => { dev.lap = +(document.getElementById('op-n') || {}).value || dev.lap; SCENES.pit.lap = SCENES.hot.lap = dev.lap; scene(); return `ロガーの返事：周回数を ${dev.lap} 周にしました。`; });
+  if (op === 'start') ask('いまから計測を始めます', 'ラインを通らなくても、いまをスタートとして数え始めます。', moving(), () => 'ロガーの返事：計測を始めました。');
+  if (op === 'log') ask('記録を始めます', 'ロガーが記録していないときに使います。記録中なら何も変わりません。', false, () => 'ロガーの返事：記録中です（変えていません）。');
+  if (op === 'course') ask('車とコースを選びます', '本体に入れてある設定の中から選びます。<div class="col" style="margin-top:6px"><select class="in" id="op-car" aria-label="車"><option>NCEC ロードスター</option><option>エコラン（EV二輪）</option></select><select class="in" id="op-course" aria-label="コース"><option>スポーツランドSUGO</option><option>モビリティリゾートもてぎ（エコラン）</option><option>富士スピードウェイ カートコース</option></select></div>' + (moving() ? '車は走っています。新しい線を次に通った所から数え直します。車を替えると、走行記録のファイルがそこで分かれます。' : ''), true,
+    () => { dev.car = $('op-car').value; dev.course = $('op-course').value; scene(); return `ロガーの返事：車＝${dev.car}、コース＝${dev.course} に切り替えました。地図の線も同じに変わりました。`; });
+});
+scene();
+</script>
