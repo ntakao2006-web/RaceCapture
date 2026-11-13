@@ -240,7 +240,10 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
     <div class="panel">
       <h2>LTEで送る命令</h2>
       <div class="row"><span class="chip ok">合言葉：このPCに入っている</span><button class="b">周回数を直す…</button><button class="b">いまから計測を始める…</button><button class="b">記録を始める…</button></div>
-      <div class="sub" style="margin-top:6px">合言葉が無いPCでは、ここに「本体をUSBでつないで準備する」のボタンが出ます（今はコマンドで行っている所）。</div>
+      <div class="row" style="margin-top:8px"><button class="b" id="qr-open">スマホへ合言葉を渡す…</button><button class="b">合言葉を作り直す…</button></div>
+      <div id="qr" hidden style="margin-top:8px" class="row"><div style="width:132px;height:132px;flex:0 0 auto;border-radius:8px;border:1px solid var(--line);background:repeating-conic-gradient(var(--text) 0 25%, var(--panel) 0 50%) 0 0/22px 22px" role="img" aria-label="QRコード（見本の絵）"></div>
+        <div class="grow sub">スマホでピットのページを開き、「PCのアプリのQRを読み取る」で読み取ります（絵は見本で、本物のQRではありません）。QRは1分で消えます。合言葉を渡した人は、スマホからロガーへ操作を送れるようになります。<div class="row" style="margin-top:6px"><button class="b" id="qr-close">閉じる</button></div></div></div>
+      <div class="sub" style="margin-top:6px">合言葉が無いPCでは、ここに「本体をUSBでつないで準備する」のボタンが出ます（今はコマンドで行っている所）。合言葉を作り直すと、前に渡したスマホからは送れなくなります。</div>
     </div>
     <div class="panel">
       <h2>本体の手入れ</h2>
@@ -403,6 +406,7 @@ $('ed-apply').onclick = () => {
 };
 $('lte-send').onclick = () => { if ($('lte-code').value.trim() !== lteCode) { $('lte-err').textContent = '数字が違います。上の4桁をそのまま入れてください。'; return; } edCommit(); };
 $('lte-back').onclick = () => { $('lte-confirm').hidden = true; };
+$('qr-open').onclick = () => { $('qr').hidden = false; }; $('qr-close').onclick = () => { $('qr').hidden = true; };
 $('wipe').onclick = () => { $('wipe-done').textContent = ''; if (!LOCAL($('scene').value)) { $('wipe-done').textContent = 'LTEでは本体の動画を消せません。USBかテザリングでつないだときに使えます。'; return; } $('wipe-confirm').hidden = false; };
 $('wipe-no').onclick = () => { $('wipe-confirm').hidden = true; };
 $('wipe-yes').onclick = () => { $('wipe-confirm').hidden = true; $('wipe').disabled = true;

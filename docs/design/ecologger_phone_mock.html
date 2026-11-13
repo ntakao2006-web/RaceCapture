@@ -52,6 +52,12 @@ button.b:focus-visible, .go a:focus-visible, select:focus-visible, .in:focus-vis
 .refuse { border-radius: 10px; padding: 10px 12px; background: var(--bad-bg); color: var(--bad); }
 .bar { height: 10px; background: var(--chip); border-radius: 999px; overflow: hidden; } .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
 .code { font-size: 24px; letter-spacing: .2em; font-weight: 700; }
+.linemap { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 10px; border: 1px solid var(--line); touch-action: none;
+  background-color: var(--chip); background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 40px 40px; }
+.linemap img { position: absolute; max-width: none; } .linemap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.linemap .credit { position: absolute; right: 4px; bottom: 2px; font-size: 10px; color: #fff; text-shadow: 0 0 3px #000; }
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; } .pad button { min-height: 44px; padding: 8px; }
+.step { display: grid; grid-template-columns: auto 1fr 1fr auto 1fr 1fr; gap: 6px; align-items: center; } .step button { min-height: 44px; padding: 8px 4px; } .step b { min-width: 4.5em; text-align: center; font-variant-numeric: tabular-nums; }
 .note { border-left: 3px solid var(--mock); padding: 2px 10px; color: var(--muted); font-size: 13px; }
 </style>
 
@@ -92,9 +98,14 @@ button.b:focus-visible, .go a:focus-visible, select:focus-visible, .in:focus-vis
   <div class="panel" id="ops">
     <h2>操作（LTEでロガーへ送る）</h2>
     <div id="locked" class="col">
-      <div class="sub">操作するには合言葉が要ります。合言葉はこのスマホの中にだけ覚え、サーバーには置きません。</div>
-      <div class="row"><input class="in" id="secret" type="password" placeholder="合言葉" style="flex:1 1 160px" aria-label="合言葉"><button class="b" id="unlock">覚える</button></div>
-      <div class="sub" id="unlock-msg"></div>
+      <div><b>見るだけなら、合言葉は要りません。</b>ロガーへ操作を送る係の人だけ、合言葉を入れます。</div>
+      <button class="b primary" id="secret-qr">PCのアプリのQRを読み取る</button>
+      <div class="sub">PCのEcoLoggerアプリの「設定」→「スマホへ合言葉を渡す」でQRが出ます。読み取ると、下の欄に入ります。</div>
+      <div class="row"><input class="in" id="secret" type="password" placeholder="合言葉（手で入れるとき）" autocomplete="off" style="flex:1 1 160px" aria-label="合言葉"><button class="b" id="secret-eye" style="min-height:0; padding:8px 10px" aria-pressed="false">見せる</button></div>
+      <button class="b" id="unlock">この合言葉を確かめて覚える</button>
+      <div id="unlock-run" hidden><div class="bar"><div id="unlock-bar"></div></div><div class="sub">ロガーに「状態を聞く」を送って、返事が来るかで確かめています…</div></div>
+      <div id="unlock-msg"></div>
+      <div class="sub">合言葉はこのスマホの中にだけ覚え、サーバーには置きません。スマホを替えたら入れ直します。合言葉が違うと、ロガーは命令を受け付けず、返事もしません。</div>
     </div>
     <div id="unlocked" class="col">
       <button class="b primary" id="op-reset">ラップを0周に戻す</button>
@@ -105,7 +116,23 @@ button.b:focus-visible, .go a:focus-visible, select:focus-visible, .in:focus-vis
         <button class="b" data-op="start">いまから計測を始める…</button>
         <button class="b" data-op="log">記録を始める…</button>
         <button class="b" data-op="course">車とコースを選ぶ…</button>
-        <div class="sub">線の引き直しは、写真の上で動かすので、PCのアプリから行います。</div>
+        <button class="b" data-op="lines">線を引き直す・足す…</button>
+      </div>
+      <div id="ln" class="col" hidden style="border-top:1px solid var(--line); padding-top:10px">
+        <h2 style="margin:0">線を引く・引き直す</h2>
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12 Z" fill="#22c55e" stroke="#fff" stroke-width="1"/></marker></defs></svg>
+        <div class="linemap" id="ln-map" role="img" aria-label="引き直す線を航空写真の上に重ねた図"></div>
+        <div class="sub" id="ln-note"></div>
+        <div class="sub"><b>指でつまんで動かせます。</b>黄色の丸＝場所、白い丸＝向きと幅。細かい調整は下のボタンで。</div>
+        <div class="row"><select class="in" id="ln-which" style="flex:1 1 140px" aria-label="どの線"></select><button class="b" id="ln-add" style="min-height:0; padding:8px 12px">足す</button><button class="b danger" id="ln-del" style="min-height:0; padding:8px 12px">消す</button></div>
+        <div class="grid2"><select class="in" id="ln-kind" aria-label="役目"><option value="c">コントロールライン</option><option value="st">スタート</option><option value="go">ゴール</option><option value="s">セクターの終わり</option></select>
+          <select class="in" id="ln-dir" aria-label="数える向き"><option value="one">矢印の向きだけ</option><option value="both">両方向</option></select></div>
+        <div class="row"><span class="sub">動かす</span><select class="in" id="ln-step" aria-label="1回で動かす長さ"><option value="0.01">1 cm</option><option value="0.1" selected>10 cm</option><option value="1">1 m</option></select></div>
+        <div class="pad" id="ln-nudge"><span></span><button class="b" data-n="1" data-e="0">北</button><span></span><button class="b" data-n="0" data-e="-1">西</button><span class="sub" id="ln-pos" style="text-align:center"></span><button class="b" data-n="0" data-e="1">東</button><span></span><button class="b" data-n="-1" data-e="0">南</button><span></span></div>
+        <div class="step"><span class="sub">向き</span><button class="b" data-b="-5">−5°</button><button class="b" data-b="-0.5">−0.5°</button><b id="ln-bearing"></b><button class="b" data-b="0.5">+0.5°</button><button class="b" data-b="5">+5°</button></div>
+        <div class="step"><span class="sub">幅</span><button class="b" data-w="-5">−5</button><button class="b" data-w="-1">−1</button><b id="ln-width"></b><button class="b" data-w="1">+1</button><button class="b" data-w="5">+5</button></div>
+        <div class="sub" id="ln-rule"></div>
+        <div class="row"><button class="b primary" id="ln-apply" style="flex:1 1 150px">変わる所を確かめて送る</button><button class="b" id="ln-cancel" style="flex:1 1 100px">やめる</button></div>
       </div>
       <div class="confirm" id="op-confirm" hidden>
         <b id="op-title"></b><div id="op-body" style="margin:6px 0"></div>
@@ -153,7 +180,7 @@ function scene() {
     ? [['記録中', 'ok'], ['測位', 'ok'], ['LTE 45秒前から届かず', 'bad'], ['録画中', 'ok']] : [['記録中', 'ok'], ['測位', 'ok'], ['LTE 送信中', 'ok'], ['録画中', 'ok']];
   $('chips').innerHTML = chips.map(([t, c]) => `<span class="chip ${c}">${t}</span>`).join('');
   $('state-note').textContent = none ? 'ロガーが動くと、4つの印に結果が出ます。' : key === 'stale' ? '45秒前に届いた時点の様子です。' : '';
-  $('op-confirm').hidden = true; $('op-out').innerHTML = ''; $('op-more').hidden = true; who();
+  $('op-confirm').hidden = true; $('op-out').innerHTML = ''; $('op-more').hidden = true; $('ln').hidden = true; who();
 }
 function who() {
   const op = $('who').value === 'op'; $('locked').hidden = op; $('unlocked').hidden = !op;
@@ -162,8 +189,21 @@ function who() {
 }
 $('ops').insertAdjacentHTML('beforeend', '<div class="sub" id="op-off" hidden style="margin-top:8px">ロガーがまだ動いていないので、送っても届きません。押すと、そのことをお知らせします。</div>');
 $('scene').addEventListener('change', scene); $('who').addEventListener('change', () => { who(); });
-$('unlock').onclick = () => { if (!$('secret').value) { $('unlock-msg').textContent = '合言葉を入れてください。'; return; } $('who').value = 'op'; who(); $('op-out').innerHTML = '<div class="result">合言葉をこのスマホに覚えました。</div>'; };
-$('forget').onclick = () => { $('who').value = 'view'; $('secret').value = ''; who(); $('unlock-msg').textContent = '合言葉をこのスマホから消しました。'; };
+const GOOD = 'ecologger-mihon-no-aikotoba-0123456789';   // 見本の中の正しい合言葉
+$('secret-qr').onclick = () => { $('secret').value = GOOD; $('unlock-msg').innerHTML = '<div class="sub">QRを読み取りました（見本なので、正しい合言葉を入れただけです）。下のボタンで確かめます。</div>'; };
+$('secret-eye').onclick = () => { const show = $('secret').type === 'password'; $('secret').type = show ? 'text' : 'password'; $('secret-eye').textContent = show ? '隠す' : '見せる'; $('secret-eye').setAttribute('aria-pressed', show); };
+$('unlock').onclick = () => {
+  const v = $('secret').value.trim(), key = $('scene').value; $('unlock-msg').innerHTML = '';
+  if (!v) { $('unlock-msg').innerHTML = '<div class="refuse">合言葉を入れてください（QRを読み取るか、手で入れます）。</div>'; return; }
+  if (v.length < 32) { $('unlock-msg').innerHTML = `<div class="refuse">短すぎます（${v.length}文字）。合言葉は32文字以上です。写し間違いが無いか確かめてください。</div>`; return; }
+  if (key === 'wait' || key === 'stale') { $('unlock-msg').innerHTML = '<div class="confirm"><b>いまは確かめられません。</b>ロガーから値が届いていないので、返事をもらえません。覚えるだけ覚えて、ロガーが動いたら最初の操作で確かめます。<div class="row" style="margin-top:6px"><button class="b" id="unlock-anyway">確かめずに覚える</button></div></div>';
+    $('unlock-anyway').onclick = () => { $('who').value = 'op'; who(); $('op-out').innerHTML = '<div class="confirm">合言葉を覚えました（まだ確かめていません）。</div>'; }; return; }
+  let n = 0; $('unlock-run').hidden = false; $('unlock').disabled = true;
+  const t = setInterval(() => { n += 20; $('unlock-bar').style.width = n + '%'; if (n < 100) return; clearInterval(t); $('unlock-run').hidden = true; $('unlock-bar').style.width = '0'; $('unlock').disabled = false;
+    if (v !== GOOD) { $('unlock-msg').innerHTML = '<div class="refuse"><b>返事がありません。合言葉が違うようです。</b>覚えていません。PCのアプリのQRをもう一度読み取るか、入れ直してください。（見本では、QRで入れた合言葉だけが正しい合言葉です）</div>'; return; }
+    $('who').value = 'op'; who(); $('op-out').innerHTML = '<div class="result"><b>合言葉が合っていました。</b>このスマホに覚えました。ロガーの返事：記録中・測位中。</div>'; }, 220);
+};
+$('forget').onclick = () => { $('who').value = 'view'; $('secret').value = ''; who(); $('unlock-msg').innerHTML = '<div class="sub">合言葉をこのスマホから消しました。</div>'; };
 document.querySelector('.go').addEventListener('click', e => { const a = e.target.closest('a'); if (!a) return; e.preventDefault(); $('go-msg').textContent = `${a.dataset.go} を開きます。どの画面も、値が届かなくなると何秒前の値かを出します。`; });
 
 let pending = null, code = '';
@@ -184,6 +224,93 @@ $('op-send').onclick = () => {
     if (stale) $('op-out').innerHTML = '<div class="refuse"><b>返事がありません（20秒待ちました）。</b>ロガーに届いたか分かりません。値がまた届き始めたら、もう一度送ってください。</div>';
     else $('op-out').innerHTML = `<div class="result"><b>届きました。</b>${pending()}</div>`; } }, 220);
 };
+// ---- 線（PCのアプリの見本と同じ持ち方：場所・幅・進む向き・役目・数える向き）
+const KIND = { c: ['コントロールライン', '#ef4444'], st: ['スタート', '#f59e0b'], go: ['ゴール', '#a855f7'], s: ['セクターの終わり', '#38bdf8'] };
+function nameLines(ls) { let n = 0; ls.forEach(l => { l.name = l.kind === 's' ? `セクター${++n}の終わり` : KIND[l.kind][0]; }); return ls; }
+const COURSES = {
+  'スポーツランドSUGO': { center: { lat: 38.1405, lon: 140.7765 }, lines: [
+    { kind: 'c', lat: 38.1423181, lon: 140.7779443, bearing: 97.5, width: 50 }, { kind: 's', lat: 38.1392767, lon: 140.7787425, bearing: 71, width: 30 },
+    { kind: 's', lat: 38.1384700, lon: 140.7774769, bearing: 253.5, width: 30 }, { kind: 's', lat: 38.1408947, lon: 140.7730358, bearing: 252.5, width: 30 }] },
+  'モビリティリゾートもてぎ（エコラン）': { center: { lat: 36.5330, lon: 140.2270 }, lines: [
+    { kind: 'c', lat: 36.5332, lon: 140.2270, bearing: 90, width: 30 }, { kind: 'st', lat: 36.5332, lon: 140.2262, bearing: 90, width: 30 }, { kind: 'go', lat: 36.5332, lon: 140.2255, bearing: 90, width: 30 }] },
+  '富士スピードウェイ カートコース': { center: { lat: 35.3720, lon: 138.9280 }, lines: [{ kind: 'c', lat: 35.3720, lon: 138.9280, bearing: 15, width: 12 }] },
+};
+const copyLines = ls => nameLines(ls.map(l => ({ ...l })));
+dev.lines = copyLines(COURSES[dev.course].lines);
+const TILE = (z, x, y) => `https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/${z}/${x}/${y}.jpg`;
+function tileXY(lat, lon, z) { const n = 2 ** z, r = lat * Math.PI / 180; return [(lon + 180) / 360 * n, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n]; }
+function fromTile(x, y, z) { const n = 2 ** z; return { lon: x / n * 360 - 180, lat: Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n))) * 180 / Math.PI }; }
+function drawMap(lines, center, z, handle) {
+  const el = $('ln-map'), W = el.clientWidth || 400, H = el.clientHeight || 300, tz = Math.min(z, 18), S = 256 * 2 ** (z - tz);
+  const [cx, cy] = tileXY(center.lat, center.lon, tz), mpp = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / 2 ** z, key = [center.lat, center.lon, z, W, H].join(',');
+  if (el.dataset.key !== key) {
+    let html = '';
+    for (let tx = Math.floor(cx - W / 2 / S); tx <= Math.floor(cx + W / 2 / S); tx++) for (let ty = Math.floor(cy - H / 2 / S); ty <= Math.floor(cy + H / 2 / S); ty++)
+      html += `<img alt="" draggable="false" src="${TILE(tz, tx, ty)}" style="width:${S}px; height:${S}px; left:${Math.round((tx - cx) * S + W / 2)}px; top:${Math.round((ty - cy) * S + H / 2)}px" onerror="this.remove(); document.getElementById('ln-note').hidden = false">`;
+    el.innerHTML = html + `<svg viewBox="0 0 ${W} ${H}"></svg><span class="credit">航空写真：国土地理院</span>`; el.dataset.key = key;
+    $('ln-note').hidden = true; $('ln-note').textContent = 'ここでは航空写真を読み込めないため、方眼の上に同じ縮尺で描いています（線の位置・向き・幅は実寸）。';
+  }
+  el._view = { cx, cy, z: tz, S, W, H, mpp };
+  let svg = '';
+  lines.forEach((l, k) => {
+    const [lx, ly] = tileXY(l.lat, l.lon, tz), x = (lx - cx) * S + W / 2, y = (ly - cy) * S + H / 2, rad = l.bearing * Math.PI / 180, half = Math.max(3, l.width / 2 / mpp);
+    const nx = Math.cos(rad), ny = Math.sin(rad), dx = Math.sin(rad), dy = -Math.cos(rad), arrow = Math.max(18, Math.min(50, 25 / mpp));
+    svg += `<g opacity="${k === handle ? 1 : 0.45}"><line x1="${x - nx * half}" y1="${y - ny * half}" x2="${x + nx * half}" y2="${y + ny * half}" stroke="#fff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="${x - nx * half}" y1="${y - ny * half}" x2="${x + nx * half}" y2="${y + ny * half}" stroke="${KIND[l.kind][1]}" stroke-width="4" stroke-linecap="round"/>`
+      + `<line x1="${x}" y1="${y}" x2="${x + dx * arrow}" y2="${y + dy * arrow}" stroke="#22c55e" stroke-width="3" marker-end="url(#ah)"/>`
+      + (l.both ? `<line x1="${x}" y1="${y}" x2="${x - dx * arrow}" y2="${y - dy * arrow}" stroke="#22c55e" stroke-width="3" marker-end="url(#ah)"/>` : '') + `</g>`;
+    if (handle === k) svg += [['a', x - nx * half, y - ny * half], ['b', x + nx * half, y + ny * half], ['c', x, y]].map(([h, hx, hy]) =>
+      `<circle data-h="${h}" cx="${hx}" cy="${hy}" r="${h === 'c' ? 13 : 11}" fill="${h === 'c' ? '#fde047' : '#fff'}" stroke="#000" stroke-width="2" style="touch-action:none"/>`).join('');
+  });
+  const bar = [1, 2, 5, 10, 20, 50, 100].find(m => m / mpp >= 50) || 100;
+  svg += `<g><rect x="10" y="${H - 24}" width="${bar / mpp}" height="5" fill="#fff" stroke="#000"/><text x="10" y="${H - 28}" font-size="11" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${bar} m</text></g>`;
+  el.querySelector('svg').innerHTML = svg;
+}
+let ed = null, edCenter = null;
+const cur = () => ed.lines[ed.i];
+function lnRule() { const n = k => ed.lines.filter(l => l.kind === k).length;
+  if (!ed.lines.length) return 'まだ線がありません。「足す」で1本目を引きます。';
+  if (n('c') !== 1) return 'コントロールライン（周を数える線）が1本要ります。';
+  if (n('st') > 1 || n('go') > 1) return 'スタートの線とゴールの線は、それぞれ1本までです。'; return ''; }
+function lnDraw() {
+  nameLines(ed.lines); const has = ed.lines.length > 0, r = lnRule(); $('ln-rule').textContent = r; $('ln-rule').style.color = r ? 'var(--bad)' : '';
+  $('ln-which').innerHTML = ed.lines.map((l, k) => `<option value="${k}">${l.name}</option>`).join(''); ['ln-which', 'ln-del', 'ln-kind', 'ln-dir', 'ln-step'].forEach(id => $(id).disabled = !has);
+  document.querySelectorAll('#ln-nudge button, #ln .step button').forEach(b => b.disabled = !has);
+  if (!has) { $('ln-bearing').textContent = $('ln-width').textContent = '—'; $('ln-pos').textContent = ''; return drawMap([], edCenter || COURSES[dev.course].center, 18); }
+  const l = cur(); $('ln-which').value = ed.i; $('ln-kind').value = l.kind; $('ln-dir').value = l.both ? 'both' : 'one';
+  $('ln-bearing').textContent = l.bearing + '°'; $('ln-width').textContent = l.width + ' m'; $('ln-pos').textContent = `${l.lat.toFixed(6)}\n${l.lon.toFixed(6)}`.replace('\n', ' ');
+  if (!edCenter) edCenter = { lat: l.lat, lon: l.lon };
+  const H = $('ln-map').clientHeight || 300, z = [20, 19, 18, 17].find(z => l.width / (156543.03392 * Math.cos(l.lat * Math.PI / 180) / 2 ** z) <= H * 0.7) || 17;
+  drawMap(ed.lines, edCenter, z, ed.i);
+}
+$('ln-which').addEventListener('change', () => { ed.i = +$('ln-which').value; edCenter = null; lnDraw(); });
+$('ln-kind').addEventListener('change', () => { cur().kind = $('ln-kind').value; lnDraw(); });
+$('ln-dir').addEventListener('change', () => { cur().both = $('ln-dir').value === 'both'; lnDraw(); });
+$('ln-add').onclick = () => { const has = k => ed.lines.some(l => l.kind === k), at = edCenter || COURSES[dev.course].center, n = ed.lines.length;
+  ed.lines.push({ kind: !has('c') ? 'c' : has('st') && !has('go') ? 'go' : 's', lat: at.lat + (n ? 0.00008 : 0), lon: at.lon + (n ? 0.0001 : 0), bearing: n ? cur().bearing : 0, width: 30 }); ed.i = n; edCenter = null; lnDraw(); };
+$('ln-del').onclick = () => { ed.lines.splice(ed.i, 1); ed.i = Math.max(0, ed.i - 1); edCenter = null; lnDraw(); };
+$('ln-nudge').addEventListener('click', e => { const b = e.target.closest('button[data-n]'); if (!b) return; const m = +$('ln-step').value, l = cur();
+  l.lat += +b.dataset.n * m / 111320; l.lon += +b.dataset.e * m / (111320 * Math.cos(l.lat * Math.PI / 180)); lnDraw(); });
+$('ln').addEventListener('click', e => { const b = e.target.closest('button[data-b], button[data-w]'); if (!b) return; const l = cur();
+  if (b.dataset.b) l.bearing = Math.round((((l.bearing + +b.dataset.b) % 360) + 360) % 360 * 2) / 2; else l.width = Math.max(5, Math.min(200, l.width + +b.dataset.w)); lnDraw(); });
+(() => { const el = $('ln-map'); let grip = null;
+  const at = e => { const r = el.getBoundingClientRect(), v = el._view; return [(e.clientX - r.left) * v.W / r.width, (e.clientY - r.top) * v.H / r.height]; };
+  el.addEventListener('pointerdown', e => { const h = e.target.dataset && e.target.dataset.h; if (!h) return; grip = h; try { el.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+  el.addEventListener('pointermove', e => { if (!grip) return; const v = el._view, [px, py] = at(e), l = cur();
+    if (grip === 'c') { const g = fromTile(v.cx + (px - v.W / 2) / v.S, v.cy + (py - v.H / 2) / v.S, v.z); l.lat = g.lat; l.lon = g.lon; }
+    else { const [lx, ly] = tileXY(l.lat, l.lon, v.z); let vx = px - ((lx - v.cx) * v.S + v.W / 2), vy = py - ((ly - v.cy) * v.S + v.H / 2); if (grip === 'a') { vx = -vx; vy = -vy; }
+      const len = Math.hypot(vx, vy); if (len < 2) return; l.bearing = Math.round(((Math.atan2(vy, vx) * 180 / Math.PI + 360) % 360) * 2) / 2 % 360; l.width = Math.max(5, Math.min(200, Math.round(len * 2 * v.mpp))); }
+    lnDraw(); });
+  const end = () => { grip = null; }; el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); })();
+function lnDiff() { const a = dev.lines, b = ed.lines, parts = [`線 ${a.length}本 → ${b.length}本`], sig = l => JSON.stringify([l.lat.toFixed(7), l.lon.toFixed(7), l.bearing, l.width, l.kind, !!l.both]);
+  b.forEach((l, k) => { const o = a[k]; if (!o) parts.push(`足す：${l.name}（幅 ${l.width} m・向き ${l.bearing}°）`);
+    else if (sig(o) !== sig(l)) { const d = Math.hypot((l.lat - o.lat) * 111320, (l.lon - o.lon) * 111320 * Math.cos(o.lat * Math.PI / 180));
+      parts.push(`${o.name}${o.kind !== l.kind ? ' → ' + l.name : ''}：${d < 0.005 ? '場所は同じ' : d.toFixed(2) + ' m 動かす'}・幅 ${o.width}→${l.width} m・向き ${o.bearing}→${l.bearing}°${!!o.both !== !!l.both ? (l.both ? '・両方向にする' : '・矢印の向きだけにする') : ''}`); } });
+  if (parts.length === 1 && a.length === b.length) parts.push('変わる所はありません'); return parts.join('<br>'); }
+$('ln-cancel').onclick = () => { $('ln').hidden = true; $('op-out').innerHTML = '<div class="sub">やめました。ロガーの線は変わっていません。</div>'; };
+$('ln-apply').onclick = () => { const r = lnRule(); if (r) { $('ln-rule').textContent = '送っていません。' + r; return; }
+  ask('線を変えます。変わる所を確かめてください', lnDiff() + (moving() ? '<br>車は走っています。新しい線を次に通った所から数え直します。' : ''), true,
+    () => { dev.lines = copyLines(ed.lines); $('ln').hidden = true; return `ロガーの返事：線 ${dev.lines.length}本（${dev.lines.map(l => l.name).join('・')}）を入れました。地図・周回表・車載画面も同じ線に変わりました。前の線はロガーに1つ控えてあります。`; }); };
 const moving = () => ['run', 'hot', 'stale'].includes($('scene').value);
 $('op-reset').onclick = () => ask('ラップを0周に戻します', '周回数とレース経過が0に戻ります。走行記録と動画は消えません。' + (moving() ? '<br>車は走っています。次にラインを通った所から数え始めます。' : ''), moving(),
   () => { dev.lap = 0; SCENES.pit.lap = 0; SCENES.hot.lap = 0; scene(); return 'ロガーの返事：ラップを0周に戻しました。'; });
@@ -193,8 +320,9 @@ $('op-more').addEventListener('click', e => { const b = e.target.closest('button
   if (op === 'count') ask('周回数を直します', '直したあとの周回数：<input class="in" id="op-n" type="number" min="0" max="999" value="30" style="width:6em" aria-label="直したあとの周回数"> 周', moving(), () => { dev.lap = +(document.getElementById('op-n') || {}).value || dev.lap; SCENES.pit.lap = SCENES.hot.lap = dev.lap; scene(); return `ロガーの返事：周回数を ${dev.lap} 周にしました。`; });
   if (op === 'start') ask('いまから計測を始めます', 'ラインを通らなくても、いまをスタートとして数え始めます。', moving(), () => 'ロガーの返事：計測を始めました。');
   if (op === 'log') ask('記録を始めます', 'ロガーが記録していないときに使います。記録中なら何も変わりません。', false, () => 'ロガーの返事：記録中です（変えていません）。');
+  if (op === 'lines') { if ($('scene').value === 'wait') return ask('', '', false, () => ''); ed = { lines: copyLines(dev.lines), i: 0 }; edCenter = null; $('op-confirm').hidden = true; $('op-out').innerHTML = ''; $('ln').hidden = false; lnDraw(); $('ln').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
   if (op === 'course') ask('車とコースを選びます', '本体に入れてある設定の中から選びます。<div class="col" style="margin-top:6px"><select class="in" id="op-car" aria-label="車"><option>NCEC ロードスター</option><option>エコラン（EV二輪）</option></select><select class="in" id="op-course" aria-label="コース"><option>スポーツランドSUGO</option><option>モビリティリゾートもてぎ（エコラン）</option><option>富士スピードウェイ カートコース</option></select></div>' + (moving() ? '車は走っています。新しい線を次に通った所から数え直します。車を替えると、走行記録のファイルがそこで分かれます。' : ''), true,
-    () => { dev.car = $('op-car').value; dev.course = $('op-course').value; scene(); return `ロガーの返事：車＝${dev.car}、コース＝${dev.course} に切り替えました。地図の線も同じに変わりました。`; });
+    () => { dev.car = $('op-car').value; dev.course = $('op-course').value; dev.lines = copyLines(COURSES[dev.course].lines); scene(); return `ロガーの返事：車＝${dev.car}、コース＝${dev.course} に切り替えました。地図の線も同じに変わりました。`; });
 });
 scene();
 </script>
