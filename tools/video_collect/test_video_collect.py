@@ -308,7 +308,7 @@ class CollectTests(unittest.TestCase):
             with patch.object(vc, 'App', side_effect=AssertionError('本体を探しに行かない')), \
                     patch.object(vc.webbrowser, 'open') as opened:
                 self.assertEqual(vc.main(['--port', str(port), '--out', str(self.pc.root)]), 0)
-            opened.assert_called_once_with(f'http://127.0.0.1:{port}/')
+            opened.assert_called_once_with(f'http://127.0.0.1:{port}/#now')  # 開く段を付ける（既定は「いまの様子」。2026-11-13）
         finally:
             first.shutdown()
             first.server_close()

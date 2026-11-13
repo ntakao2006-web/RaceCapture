@@ -241,6 +241,10 @@ def survey_ssh(host):
     """(SshLink か None, Note)"""
     if not shutil.which('ssh'):
         return None, Note('テザリング', False, 'ssh がPCに入っていません', 'Windowsの「OpenSSH クライアント」を入れる')
+    import unoq_ssh
+    if unoq_ssh._found.get(host, []) is None:
+        # unoq_ssh は「1回のプログラムで1回だけ探す」。開きっぱなしの画面では、見つからなかった結果を忘れて探し直す
+        unoq_ssh._found.pop(host, None)
     link = SshLink(host)
     try:
         if 'EcoLoggerV2' in link.run(PROBE, timeout=20):

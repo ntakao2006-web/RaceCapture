@@ -708,6 +708,7 @@ class App:
         self.pc, self.ssh_host, self.sd_drives = pc, ssh_host, sd_drives
         self.sd = {'cards': [], 'checked': {}}  # PCに挿したSDカード、確かめた結果
         self.link, self.state, self.error, self.job, self.listed_at = link, None, '', None, 0
+        self.now, self.watcher = None, None  # 「いまの様子」（now_status.Watcher が置く。見張りを動かしていなければ None）
         self.lock = threading.Lock()
 
     def refresh(self):
@@ -737,7 +738,8 @@ class App:
                     'pc': {'root': str(pc.root), 'free': free_pc, 'backup': pc.settings.get('backup', ''),
                            'not_backed_up': sum(1 for e in pc.index.values() if pc.settings.get('backup') and
                                                 pc.settings['backup'] not in e.get('backup', {}))},
-                    'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at, 'sd': self.sd}
+                    'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at, 'sd': self.sd,
+                    'now': self.now, 'time': time.time()}
 
     def find_sd(self):
         self.sd['cards'] = sd_card.find_cards(self.sd_drives)
@@ -835,6 +837,13 @@ class App:
             self.sd_job('SDを空にする', body['drive'], lambda job: sd_card.empty(body['drive'], self.pc.root.parent, job))
         elif path == '/api/sd/format':
             self.sd_job('SDをフォーマット', body['drive'], lambda job: sd_card.format_card(body['drive'], self.pc.root.parent, job))
+        elif path == '/api/now/lte':
+            if not self.watcher:
+                raise RuntimeError('見張りが動いていない')
+            if (self.now.get('lte') or {}).get('running'):
+                raise RuntimeError('いま聞いている途中')
+            self.now['lte'] = {'running': True}
+            threading.Thread(target=self.watcher.ask_lte, daemon=True).start()
         elif path == '/api/open':
             folder = self.pc.root / body.get('session', '')
             folder = folder if folder.is_dir() else self.pc.root
@@ -917,9 +926,9 @@ def running_app(port):
     return url if isinstance(state, dict) and 'job' in state and 'sd' in state else None
 
 
-def serve(app, port, open_browser=True):
+def serve(app, port, open_browser=True, tab=''):
     server = make_server(app, port)
-    url = f'http://127.0.0.1:{server.server_port}/'
+    url = f'http://127.0.0.1:{server.server_port}/' + (f'#{tab}' if tab else '')
     print(f'回収アプリ: {url} （止めるときはこの窓を閉じる）')
     if open_browser:
         webbrowser.open(url)
@@ -951,6 +960,7 @@ def main(argv=None):
     parser.add_argument('--port', type=int, default=8791)
     parser.add_argument('--no-browser', action='store_true')
     parser.add_argument('--collect-all', action='store_true', help='画面なしで未回収をすべて吸い出す')
+    parser.add_argument('--tab', choices=['now', 'collect'], default='now', help='開いたときに出す段（既定は「いまの様子」）')
     args = parser.parse_args(argv)
     if args.collect_all:
         try:
@@ -964,14 +974,15 @@ def main(argv=None):
         print(f'回収アプリはもう開いています。その画面を開きます: {url}')
         print('（回収中ならそのまま続いています。この窓は閉じてかまいません）')
         if not args.no_browser:
-            webbrowser.open(url)
+            webbrowser.open(url + f'#{args.tab}')
         return 0
     app = App(PcStore(args.out), args.ssh or None)
-    print('本体を探しています…')
-    app.refresh()
     app.find_sd()
-    print(app.error or f'見つかった: {app.link.label()}')
-    serve(app, args.port, not args.no_browser)
+    # 本体は裏で探し続ける（ロガーが無くても画面はすぐ開く。つながったら自分で読み始める。2026-11-13、SP-3-3）
+    import now_status
+    app.watcher = now_status.Watcher(app)
+    app.watcher.start()
+    serve(app, args.port, not args.no_browser, args.tab)
     return 0
 
 

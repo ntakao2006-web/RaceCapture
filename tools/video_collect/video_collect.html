@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>走行ログ・動画の回収</title>
+<title>EcoLogger</title>
 <style>
 :root {
   --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6676; --line: #dde1e8;
@@ -66,12 +66,62 @@ button.big { display: block; width: 100%; font-size: 20px; padding: 14px; margin
 .result { background: var(--ok-bg); color: var(--ok); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
 .result .notes { color: var(--muted); font-size: 13px; margin-top: 4px; }
 details.more > summary { font-size: 14px; margin: 16px 0 4px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 10px 0 0; }
+.tabs button { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: none; padding: 8px 14px; font-size: 16px; color: var(--muted); }
+.tabs button[aria-selected=true] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.conn { display: flex; gap: 10px; align-items: center; border-radius: 10px; padding: 10px 12px; margin: 8px 0 0; background: var(--chip); color: var(--muted); }
+.conn.ok { background: var(--ok-bg); color: var(--ok); }
+.conn.wait { background: var(--warn-bg); color: var(--warn); }
+.conn .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+.conn.wait .dot { animation: blink 1.4s infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+.checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+.check { display: flex; gap: 10px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.check .mark.bad { background: var(--bad-bg); color: var(--bad); }
+.check .fix { color: var(--bad); font-size: 13px; margin-top: 2px; }
+.check.bad { border-color: var(--bad); }
+.stale .check, .stale .tile { opacity: .5; }
+.ways { margin: 6px 0 0; padding: 0; list-style: none; }
+.ways li { padding: 8px 0; border-top: 1px solid var(--line); }
+.ways li:first-child { border-top: 0; }
+[hidden] { display: none !important; }
 @media (max-width: 600px) { .tile .v { font-size: 19px; } }
 </style>
 </head>
 <body>
 <main>
-  <h1>走行ログ・動画の回収</h1>
+  <h1>EcoLogger</h1>
+  <div class="conn" id="conn"><span class="dot"></span><div><b id="conn-title">ロガーを探しています…</b><div class="sub" id="conn-sub" style="color:inherit"></div></div></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="now" aria-selected="true">いまの様子</button>
+    <button role="tab" data-tab="collect" aria-selected="false">回収</button>
+  </div>
+
+  <section id="tab-now">
+    <div id="now-waiting" hidden>
+      <div class="panel">
+        <h2>ロガーを待っています</h2>
+        <div class="sub">つなぐと、この画面が自分で切り替わります（探し続けています）。つながらない理由と直し方：</div>
+        <ul class="ways" id="now-ways"></ul>
+      </div>
+      <div class="panel">
+        <h2>LTEで聞く</h2>
+        <div class="sub">ロガーが遠くにあっても、電源が入ってLTEがつながっていれば、様子を聞けます（返事まで数秒かかります）。</div>
+        <div class="row" style="margin-top:8px"><button id="now-lte">LTEで状態を聞く</button><span class="sub" id="now-lte-note"></span></div>
+        <div class="bar" id="now-lte-bar" hidden><div></div></div>
+        <div id="now-lte-out" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div id="now-connected" hidden>
+      <div class="row" style="margin:12px 0 8px"><b id="now-summary"></b><span class="sub" id="now-age"></span></div>
+      <div id="now-hint"></div>
+      <div class="checks" id="now-checks"></div>
+      <div class="tiles" id="now-extra"></div>
+    </div>
+    <div class="sub" id="now-foot" style="margin-top:10px"></div>
+  </section>
+
+  <section id="tab-collect" hidden>
   <div class="panel">
     <div class="where"><span class="mark" id="dev-mark">…</span><div><b>ロガー本体</b><div class="sub" id="dev-text">探しています…</div></div></div>
     <div class="where"><span class="mark" id="sd-mark">…</span><div><b>SDカード</b><div class="sub" id="sd-text">探しています…</div></div></div>
@@ -150,6 +200,7 @@ details.more > summary { font-size: 14px; margin: 16px 0 4px; }
   </div>
   <div class="sub" id="pc-root"></div>
   </details>
+  </section>
 </main>
 <script>
 const STATE = {
@@ -266,8 +317,65 @@ function resultHtml(r) {
     ${open ? `<div class="row" style="margin-top:8px">${open}</div>` : ''}</div>`;
 }
 
+// ---------------------------------------------------------------- 段の切り替え
+function showTab(name) {
+  if (!['now', 'collect'].includes(name)) name = 'now';
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+  $('tab-now').hidden = name !== 'now'; $('tab-collect').hidden = name !== 'collect';
+  if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+}
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+
+// ---------------------------------------------------------------- いまの様子
+const MARK = {ok: ['○', 'ok'], bad: ['×', 'bad'], unknown: ['？', '']};
+const STALE_S = 30;   // これより古い値は薄くして「○秒前のまま」と出す
+function checksHtml(list) {
+  return list.map(c => `<div class="check ${c.state === 'bad' ? 'bad' : ''}"><span class="mark ${MARK[c.state][1]}">${MARK[c.state][0]}</span>
+    <div><b>${esc(c.name)}</b><div>${esc(c.text)}</div>${c.fix ? `<div class="fix">→ ${esc(c.fix)}</div>` : ''}</div></div>`).join('');
+}
+const extraHtml = list => list.map(([k, v]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v" style="font-size:17px">${esc(v)}</div></div>`).join('');
+function summary(list) {
+  const bad = list.filter(c => c.state === 'bad'), unknown = list.filter(c => c.state === 'unknown');
+  if (bad.length) return `直す所が${bad.length}つあります（${bad.map(c => c.name).join('・')}）`;
+  return unknown.length ? '分からない所があります' : 'すべて良好です';
+}
+function renderNow(s) {
+  const n = s.now, conn = $('conn');
+  if (!n) {   // 見張りなしで開いたとき（古い開き方）
+    conn.className = 'conn'; $('conn-title').textContent = s.device ? `つながっています：${s.device.link}` : 'ロガーがつながっていません';
+    $('conn-sub').textContent = ''; $('now-waiting').hidden = $('now-connected').hidden = true;
+    $('now-foot').textContent = 'この開き方では「いまの様子」を読みません。'; return;
+  }
+  const connected = n.phase === 'connected', age = Math.max(0, Math.round(s.time - n.read_at)), stale = connected && age > STALE_S;
+  conn.className = 'conn ' + (connected ? 'ok' : 'wait');
+  $('conn-title').textContent = connected ? `つながりました：${n.label}` : n.phase === 'waiting' ? 'ロガーを待っています（探し続けています）' : 'ロガーを探しています…';
+  $('conn-sub').textContent = connected ? (n.paused ? '回収などの作業の間は、様子を読みません' : '') : 'ロガーが無くても、SDカードからの回収・回収したものの控えはできます（「回収」の段）';
+  $('now-waiting').hidden = connected; $('now-connected').hidden = !connected;
+  if (connected) {
+    $('now-summary').textContent = summary(n.checks);
+    $('now-age').textContent = n.paused ? `${age}秒前の値（作業の間は読みません）` : stale ? `★ ${age}秒前のまま（読めていません）` : `${age}秒前に読みました（${n.via}）`;
+    $('now-connected').classList.toggle('stale', stale || !!n.paused);
+    $('now-hint').innerHTML = n.usb_hint ? `<div class="banner warn">${esc(n.usb_hint)}</div>` : '';
+    $('now-checks').innerHTML = checksHtml(n.checks); $('now-extra').innerHTML = extraHtml(n.extra);
+  } else {
+    $('now-ways').innerHTML = n.notes.length ? n.notes.filter(w => !w.ok).map(w => `<li><b>${esc(w.way)}</b>：${esc(w.text)}<div class="sub">→ ${esc(w.fix)}</div></li>`).join('') : '<li class="sub">探しています…（最初は十数秒かかります）</li>';
+    const l = n.lte || {};
+    $('now-lte').disabled = !!l.running; $('now-lte-bar').hidden = !l.running;
+    if (l.running && !$('now-lte-bar').dataset.on) { const b = $('now-lte-bar').firstElementChild; $('now-lte-bar').dataset.on = 1; b.style.transition = 'none'; b.style.width = '0';
+      requestAnimationFrame(() => { b.style.transition = 'width 30s linear'; b.style.width = '100%'; }); }
+    if (!l.running) delete $('now-lte-bar').dataset.on;
+    $('now-lte-note').textContent = l.running ? 'LTEで送りました。ロガーの返事を待っています…（最大30秒）' : '';
+    $('now-lte-out').innerHTML = l.error ? `<div class="banner bad">${esc(l.error)}</div>` : l.checks ? `<div class="sub" style="margin-bottom:6px">${summary(l.checks)}（LTEで ${Math.max(0, Math.round(s.time - l.read_at))}秒前に聞いた値。自動では更新しません）</div>
+      <div class="checks">${checksHtml(l.checks)}</div><div class="tiles">${extraHtml(l.extra)}</div>` : '';
+  }
+  $('now-foot').textContent = '';
+}
+$('now-lte').onclick = () => post('/api/now/lte');
+
 function render(s) {
   last = s;
+  renderNow(s);
   const d = s.device, job = s.job, busy = !!(job && job.running);
   where(s, busy);
   $('link').textContent = d ? `本体：${d.link}` : (s.error || '本体がつながっていません');
@@ -352,6 +460,7 @@ document.addEventListener('click', e => {
 });
 $('backup-save').onclick = () => post('/api/settings', {backup: $('backup').value});
 $('backup-run').onclick = () => post('/api/backup');
+showTab(location.hash.slice(1));
 load();
 setInterval(load, 1500);
 </script>
