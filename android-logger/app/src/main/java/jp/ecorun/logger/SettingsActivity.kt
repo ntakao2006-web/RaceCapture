@@ -89,6 +89,7 @@ class SettingsActivity : Activity() {
             }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = px(6) })
         }
         checks()
+        transfer(running)
         if (settings.circuit) { buildCircuit(running); return }
 
         section("取付けの向き（前後・左右・上下のG）")
@@ -247,6 +248,134 @@ class SettingsActivity : Activity() {
         toggle("記録中は画面を最大の明るさにする（日なたで読めるように。電池は減りやすい）", settings.fullBrightness) { settings.fullBrightness = it }
         note("記録中は設定に関係なく画面を消さない。ほかのアプリ（Discordなど）を前に出していると、そのアプリの設定で暗くなるので、走行中はこのアプリを前に出しておく")
     }
+
+    /**
+     * The same settings into another phone without typing them again ([ConfigCode]): out through
+     * the share sheet or the clipboard, in by paste or QR. Both profiles. The app cannot draw a
+     * QR code (it only reads them), so the text is what moves.
+     */
+    private fun transfer(running: Boolean) {
+        section("設定を別のスマホへ写す")
+        note("このスマホの設定（使い方・車の名前・サーバー・ロガーへのつなぎ方・クラスと余裕・警告・画面）を1つの文字列にして、" +
+            "予備のスマホやほかの人のスマホへ、打ち直さずに入れる。ライン・ロック・周回・1G校正は入らない（ラインはエコランの設定の「ライン」で写す）。" +
+            "書き出すのは保存してある値なので、入力の途中なら先にそれぞれの「保存」を押す")
+        val buttons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        buttons.addView(button("設定を書き出す") { exportConfig() })
+        buttons.addView(button("設定を読み込む（貼り付け）") { if (Status.running) toast("記録を止めてから読み込んでください") else pasteConfig() })
+        buttons.addView(button("QRで読み込む") { if (Status.running) toast("記録を止めてから読み込んでください") else scanQr { previewConfig(it) } })
+        column.addView(buttons)
+        if (running) note("読み込みは記録中はできません（止めてから）。書き出しはできます")
+    }
+
+    /** What [ConfigCode] carries, as this phone has it saved. */
+    private fun currentConfig(): Map<String, String> {
+        val c = Race.config()
+        fun flag(b: Boolean) = if (b) "1" else "0"
+        return buildMap {
+            put("pf", if (settings.circuit) "circuit" else "ecorun")
+            put("car", settings.carName); put("p", settings.primaryUrl); put("b", settings.backupUrl)
+            put("ll", flag(settings.loggerLan)); put("ls", settings.loggerSsid); put("lp", settings.loggerPass)
+            put("lk", settings.loggerKey); put("lh", settings.loggerHost)
+            put(ConfigCode.CLASS, RaceClass.ensure(this@SettingsActivity).name)
+            for (k in RaceClass.entries) put(ConfigCode.marginKey(k), ConfigCode.num(settings.marginS(k)))
+            put("tl", c.totalLaps?.toString() ?: ""); put("tm", c.timeLimitS?.let { ConfigCode.num(it) } ?: "")
+            put("ds", c.raceDistanceM?.let { ConfigCode.num(it) } ?: ""); put("ml", ConfigCode.num(c.minLapS))
+            put("ow", ConfigCode.num(settings.oilWarn)); put("ww", ConfigCode.num(settings.waterWarn))
+            put("av", Math.round(settings.alarmVolume * 100).toString())
+            put("ks", flag(settings.keepScreenOn)); put("fb", flag(settings.fullBrightness))
+        }
+    }
+
+    /** Writes what was read; only the keys in [m] change. The values have passed [ConfigCode.parse]. */
+    private fun applyConfig(m: Map<String, String>) {
+        m["pf"]?.let { settings.circuit = it == "circuit" }
+        m["car"]?.let { settings.carName = it }; m["p"]?.let { settings.primaryUrl = it }; m["b"]?.let { settings.backupUrl = it }
+        m["ll"]?.let { settings.loggerLan = it == "1" }; m["ls"]?.let { settings.loggerSsid = it }; m["lp"]?.let { settings.loggerPass = it }
+        m["lk"]?.let { settings.loggerKey = it }; m["lh"]?.let { settings.loggerHost = it }
+        m["ow"]?.toDoubleOrNull()?.let { settings.oilWarn = it }; m["ww"]?.toDoubleOrNull()?.let { settings.waterWarn = it }
+        m["av"]?.toDoubleOrNull()?.let { settings.alarmVolume = it / 100 }
+        m["ks"]?.let { settings.keepScreenOn = it == "1" }; m["fb"]?.let { settings.fullBrightness = it == "1" }
+        // The margins before the class: choosing a class takes its margin into the lap timer.
+        for (k in RaceClass.entries) m[ConfigCode.marginKey(k)]?.toDoubleOrNull()?.let { settings.setMarginS(k, it) }
+        m[ConfigCode.CLASS]?.let { n -> RaceClass.entries.firstOrNull { it.name == n }?.apply(this) }
+        val klass = RaceClass.ensure(this) // a changed margin of the class already chosen
+        var c = Race.config()
+        m["ml"]?.toDoubleOrNull()?.let { c = c.copy(minLapS = it) }
+        if (klass == RaceClass.OTHER) {
+            m["tl"]?.let { c = c.copy(totalLaps = it.toIntOrNull()) }
+            m["tm"]?.let { c = c.copy(timeLimitS = it.toDoubleOrNull()) }
+            m["ds"]?.let { c = c.copy(raceDistanceM = it.toDoubleOrNull()) }
+        }
+        if (c != Race.config()) Race.configure(c)
+    }
+
+    private fun exportConfig() {
+        val values = currentConfig()
+        if (!ConfigCode.secretsIn(values)) { showExport(values, false); return }
+        AlertDialog.Builder(this).setMessage("ロガーの合言葉・ロガーのWi-Fiのパスワードも入れますか？\n\n" +
+                "入れないときは、読み込んだスマホでその2つだけ手で入れます（ふつうはこちら）。")
+            .setPositiveButton("入れない") { _, _ -> showExport(values, false) }
+            .setNegativeButton("秘密も入れる") { _, _ -> showExport(values, true) }
+            .setNeutralButton("やめる", null).show()
+    }
+
+    private fun showExport(values: Map<String, String>, secrets: Boolean) {
+        val code = try { ConfigCode.encode(values, secrets) } catch (e: ConfigCode.Invalid) {
+            alert("書き出せません：${e.message}\nその設定を直して保存してから、もう一度押してください"); return
+        }
+        AlertDialog.Builder(this).setMessage(
+                (if (secrets) "⚠ この文字列（と、そこから作ったQR）には秘密が入っています。写真に撮って送ったり、画面を共有したりしないでください。送る相手も確かめてください。\n\n"
+                else "合言葉・Wi-Fiのパスワードは入っていません。\n\n") +
+                "設定を${code.length}文字の文字列にしました。「共有する」でメッセージのアプリなどから別のスマホへ送るか、「コピー」して貼り付けます。\n" +
+                "受け取ったスマホでは、文字列をコピーしてから、このアプリの設定の「設定を読み込む（貼り付け）」を押します。")
+            .setPositiveButton("共有する") { _, _ ->
+                startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, code), "設定を送る"))
+            }
+            .setNegativeButton("コピー") { _, _ ->
+                val clip = android.content.ClipData.newPlainText("EcoLoggerの設定", code)
+                // Android 13+: keeps the text out of the clipboard preview.
+                if (secrets && android.os.Build.VERSION.SDK_INT >= 33) clip.description.extras =
+                    android.os.PersistableBundle().apply { putBoolean(android.content.ClipDescription.EXTRA_IS_SENSITIVE, true) }
+                getSystemService(android.content.ClipboardManager::class.java).setPrimaryClip(clip)
+                toast("コピーしました")
+            }
+            .setNeutralButton("閉じる", null).show()
+    }
+
+    private fun pasteConfig() {
+        val input = EditText(this).apply { hint = "${ConfigCode.PREFIX}${ConfigCode.VERSION}|…"; setTextColor(Color.WHITE) }
+        val clip = getSystemService(android.content.ClipboardManager::class.java).primaryClip
+        clip?.getItemAt(0)?.text?.toString()?.trim()?.takeIf { it.startsWith(ConfigCode.PREFIX) }?.let { input.setText(it) }
+        AlertDialog.Builder(this).setMessage("別のスマホで「設定を書き出す」で出した文字列を貼り付けてください（コピーしてあれば、もう入っています）。次の画面で、変わる所を確かめてから読み込みます")
+            .setView(input)
+            .setPositiveButton("次へ") { _, _ -> previewConfig(input.text.toString()) }
+            .setNegativeButton("やめる", null).show()
+    }
+
+    /** Shows what would change and asks; nothing is written before "読み込む". */
+    private fun previewConfig(text: String) {
+        if (Status.running) { toast("記録を止めてから読み込んでください"); return }
+        val parsed = try { ConfigCode.parse(text) } catch (e: ConfigCode.Invalid) { alert("読み込めません：${e.message}"); return }
+        val current = currentConfig()
+        val incoming = if (Race.classLocked) ConfigCode.withoutRace(parsed.values).first else parsed.values
+        val changes = ConfigCode.changes(current, incoming)
+        val held = ConfigCode.changes(current, parsed.values).size - changes.size
+        val notes = listOfNotNull(
+            "大会の設定がロック中なので、クラス・余裕など${held}項目は変えません（変えるなら、ロックを外してから読み込み直す）".takeIf { held > 0 },
+            "このアプリの知らない項目を${parsed.unknown.size}個読み飛ばしました（新しい版のアプリで書き出した設定）".takeIf { parsed.unknown.isNotEmpty() },
+            "合言葉・Wi-Fiのパスワードは入っていないので、このスマホの今の値のままです（まだなら手で入れる）".takeIf { !parsed.hasSecrets },
+        ).joinToString("") { "\n\n※ $it" }
+        if (changes.isEmpty()) { alert("変わる所はありません（今の設定と同じです）。$notes"); return }
+        AlertDialog.Builder(this).setTitle("次の${changes.size}項目が変わります")
+            .setMessage(changes.joinToString("\n") { "・${it.label}：${it.from} → ${it.to}" } + notes)
+            .setPositiveButton("読み込む") { _, _ ->
+                if (Status.running) toast("記録を止めてから読み込んでください")
+                else { applyConfig(incoming); toast("設定を読み込みました"); build() }
+            }
+            .setNegativeButton("やめる", null).show()
+    }
+
+    private fun alert(message: String?) { AlertDialog.Builder(this).setMessage(message).setPositiveButton("OK", null).show() }
 
     /**
      * The circuit profile (SUGO): the spare of EcoCapture DASH. The phone shows the Ver.2 logger's
@@ -424,15 +553,18 @@ class SettingsActivity : Activity() {
         build()
     }
 
+    /** Reads one QR code through Google Play services (no camera permission) and hands its text to [onText]. */
+    private fun scanQr(onText: (String) -> Unit) {
+        com.google.mlkit.vision.codescanner.GmsBarcodeScanning.getClient(this,
+            com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions.Builder()
+                .setBarcodeFormats(com.google.mlkit.vision.barcode.common.Barcode.FORMAT_QR_CODE).build())
+            .startScan()
+            .addOnSuccessListener { code -> code.rawValue?.let { onText(it) } ?: toast("読み取れませんでした") }
+            .addOnFailureListener { toast("QRの読み取りを使えません（${it.message}）。貼り付けを使ってください") }
+    }
+
     private fun scanReference() {
-        val doImport = {
-            com.google.mlkit.vision.codescanner.GmsBarcodeScanning.getClient(this,
-                com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions.Builder()
-                    .setBarcodeFormats(com.google.mlkit.vision.barcode.common.Barcode.FORMAT_QR_CODE).build())
-                .startScan()
-                .addOnSuccessListener { code -> code.rawValue?.let { importText(it) } ?: toast("読み取れませんでした") }
-                .addOnFailureListener { toast("QRの読み取りを使えません（${it.message}）。「文字で貼り付け」を使ってください") }
-        }
+        val doImport = { scanQr { importText(it) } }
         if (Race.locked) confirm("今のロックされたラインを、読み込んだ基準で置き換えます。よいですか？") { doImport() } else doImport()
     }
 
