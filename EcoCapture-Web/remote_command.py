@@ -11,7 +11,14 @@ COMMAND_WINDOW_MS away from it is refused, so a captured command cannot be playe
     pit:    {"type":"logger.config","data":{"command":{"id":..,"t":<unix ms>,"op":..,"arg":..,"sig":..}}}
     logger: {"type":"logger.config","data":{"command_result":{"id":..,"op":..,"ok":..,"message":..,"status":{..}}}}
 
-Only the operations below exist; nothing runs a shell or changes settings.
+Only the operations below exist; nothing runs a shell, and the only settings they change are
+the lap lines (2026-11-13, SPEC.md 7-5): `course_select` takes the name of a course file put on
+the logger beforehand (setups/courses/<name>.json under the data folder, the same form as
+tools/setups/courses/), `line_set` takes the lines themselves in the form of lap.json's line.
+Neither stops the recording and neither is refused while the car is moving: asking the person to
+confirm is the sending screen's job. The lap.json from before the change is kept once
+(lap.json.bak-remote), the running lap is dropped so that laps count from the next pass of the new
+line, and the answer carries `line`, read back from lap.json.
 """
 import hashlib
 import hmac
@@ -20,10 +27,20 @@ import os
 import re
 from pathlib import Path
 
-OPS = ('status', 'lap_reset', 'lap_count', 'lap_start', 'log_start')
+OPS = ('status', 'lap_reset', 'lap_count', 'lap_start', 'log_start', 'course_select', 'line_set')
+LINE_OPS = ('course_select', 'line_set')
 COMMAND_WINDOW_MS = 10 * 60 * 1000
 SEEN_KEEP = 500
 ID_RE = re.compile(r'^[0-9a-f]{8,64}$')
+NAME_RE = re.compile(r'^[a-z0-9][a-z0-9_-]{0,31}$')  # a course name: nothing that could leave the folder
+PREVIOUS_LAP = 'lap.json.bak-remote'
+
+
+class Refused(ValueError):
+    """A command that cannot run; `extra` goes into the answer next to the message."""
+    def __init__(self, message, **extra):
+        super().__init__(message)
+        self.extra = extra
 
 
 def payload(command_id, t, op, arg):
@@ -50,6 +67,8 @@ class RemoteCommands:
         private = Path(root) / 'private'
         self.secret_path = private / 'remote_command.json'
         self.seen_path = private / 'remote_command_seen.json'
+        self.courses = Path(root) / 'setups' / 'courses'
+        self.changed = False  # whether the last line command changed anything
         self.runtime = runtime
         self.gnss_ms = gnss_ms or (lambda: None)  # GNSS UTC now (ms) or None
         self.actions = {}  # 'log_start' -> async function, filled in by server.py
@@ -118,12 +137,19 @@ class RemoteCommands:
         if reason:
             return {'id': command_id, 'op': op, 'ok': False, 'message': reason}
         self.remember(command_id)
+        extra = {}
         try:
             message = await self.execute(op, command.get('arg'))
             ok = True
         except Exception as exc:  # noqa: BLE001  the pit gets the reason, the logger carries on
             ok, message = False, str(getattr(exc, 'detail', None) or exc) or type(exc).__name__
-        result = {'id': command_id, 'op': op, 'ok': ok, 'message': message}
+            extra = getattr(exc, 'extra', None) or {}
+        if ok and op in LINE_OPS:
+            try:
+                extra = {'line': self.line_summary()}
+            except Exception:  # noqa: BLE001
+                ok, message = False, 'line set, but it could not be read back'
+        result = {'id': command_id, 'op': op, 'ok': ok, 'message': message, **extra}
         try:
             result['status'] = self.status()
         except Exception:  # noqa: BLE001
@@ -153,4 +179,92 @@ class RemoteCommands:
                 return 'already logging'
             await action()
             return 'logging started'
+        if op == 'course_select':
+            name = arg.get('name') if isinstance(arg, dict) and len(arg) == 1 else None  # the name and nothing else
+            self.change_line(self.course_line(name))
+            return f'course {name} set' if self.changed else f'course {name} was already set'
+        if op == 'line_set':
+            self.change_line(self.typed_line(arg))
+            return 'line set' if self.changed else 'line was already set'
         raise ValueError(f'unknown op {op}')
+
+    # ---- the lap lines (course_select, line_set)
+    def course_names(self):
+        try:
+            return sorted(p.stem for p in self.courses.glob('*.json') if NAME_RE.match(p.stem))
+        except OSError:
+            return []
+
+    @staticmethod
+    def valid_line(data):
+        """LapLine checks the values (lap.py), so the limits are the same as on the logger's own screens."""
+        from lap import LapLine  # here, not at the top: the PC tools import this module only to sign
+        from pydantic import ValidationError
+        try:
+            return LapLine.model_validate({**data, 'enabled': True})
+        except ValidationError as exc:
+            raise Refused('bad line: ' + '; '.join(
+                f"{'.'.join(map(str, e['loc'])) or 'line'}: {e['msg']}" for e in exc.errors()[:3])) from None
+
+    def course_line(self, name):
+        if not isinstance(name, str) or not NAME_RE.match(name):
+            raise Refused('bad course name')
+        try:
+            data = json.loads((self.courses / f'{name}.json').read_text(encoding='utf-8'))
+        except FileNotFoundError:
+            raise Refused(f'no course {name}', courses=self.course_names()) from None
+        except (OSError, ValueError):
+            raise Refused(f'course {name} cannot be read') from None
+        if not isinstance(data, dict) or data.get('id') != name or not isinstance(data.get('line'), dict):
+            raise Refused(f'course {name} is not a course file')
+        return self.valid_line({k: v for k, v in data['line'].items() if k != 'set_at'})
+
+    def typed_line(self, arg):
+        """The lines as sent: the control line (lat, lon; bearing and width_m optional) with start, goal
+        and sectors, which are none when left out. The race options (shortest lap, laps to run, pit
+        lane, ...) stay as they are unless sent too."""
+        if not isinstance(arg, dict) or 'set_at' in arg or arg.get('enabled', True) is not True:
+            raise Refused('bad line')
+        if arg.get('lat') is None or arg.get('lon') is None:
+            raise Refused('bad line: lat and lon required')
+        from lap import LapLine
+        width = LapLine.model_fields['width_m'].default
+        return self.valid_line({**self.runtime.laps.line.model_dump(), 'bearing': None, 'width_m': width,
+                                'start': None, 'goal': None, 'sectors': [], **arg})
+
+    def change_line(self, line):
+        laps = self.runtime.laps
+        lines = lambda l: (*(l.gate(t) for t in ('control', 'start', 'goal')), l.sectors)
+        moved = lines(line) != lines(laps.line)
+        self.changed = line.model_dump(exclude={'set_at'}) != laps.line.model_dump(exclude={'set_at'})
+        if not self.changed:
+            return  # sent twice: the copy of the line before the first one stays
+        try:
+            if laps.path.exists():
+                temp = laps.path.with_name(PREVIOUS_LAP + '.tmp')
+                temp.write_bytes(laps.path.read_bytes())
+                temp.replace(laps.path.with_name(PREVIOUS_LAP))
+        except OSError:
+            raise Refused('the line before the change could not be kept; nothing changed') from None
+        laps.configure(line)
+        if moved:
+            laps.restart_lap()  # laps count from the next pass of the new line (SPEC.md 7-5)
+
+    def line_summary(self):
+        """What lap.json holds now, short enough for the LTE link: each line as [lat, lon, bearing,
+        width_m], how many sector lines, the id shown with the QR code (lap.line_code) and the name of
+        the course file on the logger that it equals, if any."""
+        from lap import LapLine, line_code
+        line = LapLine.model_validate(json.loads(self.runtime.laps.path.read_text(encoding='utf-8'))['line'])
+        short = lambda g: None if g is None else [round(g.lat, 7), round(g.lon, 7), g.bearing, g.width_m]
+        now = line.model_dump(exclude={'set_at'})
+        name = None
+        for candidate in self.course_names():
+            try:
+                if self.course_line(candidate).model_dump(exclude={'set_at'}) == now:
+                    name = candidate
+                    break
+            except ValueError:
+                pass
+        return {'name': name, 'control': short(line.gate('control')), 'start': short(line.start), 'goal': short(line.goal),
+                'sectors': len(line.sectors), 'id': line_code(line)[1], 'at': line.set_at, 'changed': self.changed}

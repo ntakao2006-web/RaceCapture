@@ -140,8 +140,8 @@ def _gate_problems(gate, label):
         out.append(f'{label}：場所（lat・lon）が範囲の外です')
     if not _number(gate.get('bearing'), 0, 360):
         out.append(f'{label}：向き（bearing）が 0〜360 の外です')
-    if not _number(gate.get('width_m'), 1, 500):
-        out.append(f'{label}：幅（width_m）が 1〜500 m の外です')
+    if not _number(gate.get('width_m'), 5, 200):   # 本体の決まり（EcoCapture-Web/lap.py の width_m）と同じ範囲
+        out.append(f'{label}：幅（width_m）が 5〜200 m の外です')
     return out
 
 

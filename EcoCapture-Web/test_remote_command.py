@@ -123,6 +123,176 @@ class RemoteCommandTests(unittest.TestCase):
         self.assertFalse(laps.state['finished'])
 
 
+COURSE = Path(__file__).resolve().parents[1] / 'tools' / 'setups' / 'courses' / 'sugo.json'
+LINE = {'lat': 36.5331, 'lon': 140.2267, 'bearing': 180.0, 'width_m': 20,
+        'sectors': [{'lat': 36.53, 'lon': 140.23, 'bearing': 90, 'width_m': 25}]}
+
+
+class LineCommandTests(RemoteCommandTests):
+    """course_select and line_set (2026-11-13). The tests above run again with a course file in place."""
+    def setUp(self):
+        super().setUp()
+        folder = self.root / 'setups' / 'courses'
+        folder.mkdir(parents=True)
+        (folder / 'sugo.json').write_bytes(COURSE.read_bytes())
+        self.course = json.loads(COURSE.read_text(encoding='utf-8'))
+        self.kept = self.root / 'lap.json.bak-remote'
+        self.runtime.logging = True
+        self.started = []
+
+        async def start():
+            self.started.append(1)
+        self.remote.actions['log_start'] = start
+
+    def saved_line(self):
+        return json.loads((self.root / 'lap.json').read_text(encoding='utf-8'))['line']
+
+    def test_log_start(self):  # the parent's version starts from a stopped recording
+        self.assertEqual(self.run_command(command('log_start'))['message'], 'already logging')
+
+    def test_status_answers_with_the_lap_and_logging(self):
+        result = self.run_command(command('status'))
+        self.assertTrue(result['status']['logging'])
+        self.assertNotIn('line', result)  # only the line commands carry it
+        self.assertLess(len(json.dumps(result)), 400)
+
+    def test_course_select_sets_the_line_and_answers_with_what_was_read_back(self):
+        before = self.saved_line()
+        cmd = command('course_select', {'name': 'sugo'})
+        result = self.run_command(cmd)
+        self.assertTrue(result['ok'], result)
+        self.assertEqual(result['message'], 'course sugo set')
+        want = self.course['line']
+        self.assertEqual(result['line']['name'], 'sugo')
+        self.assertEqual(result['line']['control'], [want['lat'], want['lon'], want['bearing'], want['width_m']])
+        self.assertEqual((result['line']['sectors'], result['line']['start'], result['line']['goal']), (3, None, None))
+        self.assertTrue(result['line']['changed'])
+        saved = self.saved_line()
+        self.assertEqual({k: saved[k] for k in want}, want)  # the whole line of the course file, as lap.json holds it
+        self.assertEqual(LapTimer(self.root).line.sectors, self.runtime.laps.line.sectors)
+        self.assertEqual(json.loads(self.kept.read_text(encoding='utf-8'))['line'], before)  # the line before is kept
+        self.assertTrue(result['status']['logging'])  # the recording was not touched
+        self.assertEqual(self.started, [])
+        self.assertLess(len(json.dumps({'type': 'logger.config', 'data': {'command': cmd}}, separators=(',', ':'))), 300)
+        self.assertLess(len(json.dumps({'type': 'logger.config', 'data': {'command_result': result}}, separators=(',', ':'))), 700)
+
+    def test_course_select_takes_only_the_name_of_a_course_on_the_logger(self):
+        before = self.saved_line()
+        (self.root / 'outside.json').write_bytes(COURSE.read_bytes())
+        bad = ['../outside', 'setups/courses/sugo', 'SUGO', 'sugo.json', '', 'a' * 33, 5, None]
+        for i, name in enumerate(bad):
+            with self.subTest(name=name):
+                result = self.run_command(command('course_select', {'name': name}, command_id=f'{i:016x}'))
+                self.assertEqual((result['ok'], result['message']), (False, 'bad course name'))
+        for i, arg in enumerate(['sugo', None, {}, {'name': 'sugo', 'vehicle': 'ncec'}, ['sugo']]):
+            with self.subTest(arg=arg):
+                result = self.run_command(command('course_select', arg, command_id=f'{i:015x}f'))
+                self.assertEqual((result['ok'], result['message']), (False, 'bad course name'))
+        missing = self.run_command(command('course_select', {'name': 'motegi'}, command_id='a' * 16))
+        self.assertEqual((missing['ok'], missing['message'], missing['courses']), (False, 'no course motegi', ['sugo']))
+        self.assertNotIn('line', missing)
+        self.assertEqual(self.saved_line(), before)
+        self.assertFalse(self.kept.exists())
+
+    def test_course_file_that_is_not_one_is_refused(self):
+        folder = self.root / 'setups' / 'courses'
+        (folder / 'other.json').write_bytes(COURSE.read_bytes())  # its id says sugo
+        (folder / 'broken.json').write_text('{', encoding='utf-8')
+        wide = {**self.course, 'id': 'wide', 'line': {**self.course['line'], 'width_m': 500}}
+        (folder / 'wide.json').write_text(json.dumps(wide), encoding='utf-8')
+        before = self.saved_line()
+        self.assertEqual(self.run_command(command('course_select', {'name': 'other'}))['message'], 'course other is not a course file')
+        self.assertEqual(self.run_command(command('course_select', {'name': 'broken'}, command_id='b' * 16))['message'], 'course broken cannot be read')
+        self.assertIn('bad line: width_m', self.run_command(command('course_select', {'name': 'wide'}, command_id='c' * 16))['message'])
+        self.assertEqual(self.saved_line(), before)
+
+    def test_line_commands_are_signed_like_the_others(self):
+        before = self.saved_line()
+        self.assertEqual(self.run_command(command('course_select', {'name': 'sugo'}, secret='ff' * 32))['message'], 'bad signature')
+        cmd = command('line_set', LINE, command_id='5123456789abcdef')
+        cmd['arg'] = {**LINE, 'lat': 36.6}
+        self.assertEqual(self.run_command(cmd)['message'], 'bad signature')
+        self.assertTrue(self.run_command(command('line_set', LINE, command_id='6123456789abcdef'))['ok'])
+        again = self.run_command(command('line_set', {**LINE, 'lat': 36.6}, command_id='6123456789abcdef'))
+        self.assertEqual(again['message'], 'already used')
+        old = command('course_select', {'name': 'sugo'}, command_id='7123456789abcdef', t=NOW_MS - COMMAND_WINDOW_MS - 1)
+        self.assertEqual(self.run_command(old)['message'], 'too old or from the future')
+        self.assertEqual(self.saved_line()['lat'], LINE['lat'])
+        self.assertEqual(json.loads(self.kept.read_text(encoding='utf-8'))['line'], before)
+
+    def test_line_set_puts_the_lines_in_and_keeps_the_race_options(self):
+        laps = self.runtime.laps
+        laps.configure(LapLine.model_validate({**laps.line.model_dump(), 'min_lap_s': 90, 'total_laps': 7,
+                                               'goal': {'lat': 38.15, 'lon': 140.78, 'bearing': 10, 'width_m': 30}}))
+        result = self.run_command(command('line_set', LINE))
+        self.assertTrue(result['ok'], result)
+        self.assertEqual(result['line']['control'], [36.5331, 140.2267, 180.0, 20.0])
+        self.assertEqual((result['line']['sectors'], result['line']['goal'], result['line']['name']), (1, None, None))
+        saved = self.saved_line()
+        self.assertEqual((saved['min_lap_s'], saved['total_laps'], saved['goal'], saved['enabled']), (90, 7, None, True))
+        self.assertEqual(saved['sectors'][0]['width_m'], 25)
+        self.assertEqual(self.started, [])
+        learned = self.run_command(command('line_set', {'lat': 36.5, 'lon': 140.2}, command_id='1' * 16))
+        self.assertEqual(learned['line']['control'], [36.5, 140.2, None, 30.0])  # heading learned on the first pass
+        self.assertEqual(learned['line']['sectors'], 0)
+
+    def test_line_set_out_of_range_is_refused_and_nothing_changes(self):
+        before = self.saved_line()
+        bad = [{**LINE, 'lat': 99}, {**LINE, 'width_m': 1000}, {**LINE, 'bearing': 360}, {**LINE, 'shell': 'x'},
+               {**LINE, 'sectors': [{'lat': 36.53, 'lon': 140.23}]}, {**LINE, 'sectors': [LINE['sectors'][0]] * 10},
+               {**LINE, 'start': {'lat': 36.5, 'lon': 999}}, {**LINE, 'min_lap_s': 1}, {**LINE, 'lat': float('nan')},
+               {**LINE, 'enabled': False}, {**LINE, 'set_at': 'x'}, {'bearing': 90}, 'sugo', None, [36.5, 140.2]]
+        for i, arg in enumerate(bad):
+            with self.subTest(arg=arg):
+                result = self.run_command(command('line_set', arg, command_id=f'{i:016x}'))
+                self.assertFalse(result['ok'], result)
+                self.assertTrue(result['message'].startswith('bad line'), result)
+                self.assertLess(len(result['message']), 300)
+                self.assertNotIn('http', result['message'])
+        self.assertEqual(self.saved_line(), before)
+        self.assertFalse(self.kept.exists())
+
+    def test_laps_count_from_the_next_pass_of_the_new_line(self):
+        laps = self.runtime.laps
+        laps.crossed(NOW_MS)
+        laps.crossed(NOW_MS + 100_000)  # one lap in, the second running on the old line
+        self.assertEqual((laps.state['count'], laps.state['lap_start_ms']), (1, NOW_MS + 100_000))
+        result = self.run_command(command('course_select', {'name': 'sugo'}))
+        self.assertEqual(result['status']['lap'], {**result['status']['lap'], 'count': 1, 'current': 0, 'running': False})
+        self.assertEqual(len(laps.state['laps']), 1)  # what was recorded stays
+        laps.crossed(NOW_MS + 150_000)  # first pass of the new line: starts a lap, ends none
+        self.assertEqual((laps.state['count'], laps.state['lap_start_ms']), (1, NOW_MS + 150_000))
+        laps.crossed(NOW_MS + 250_000)
+        self.assertEqual((laps.state['count'], laps.state['last_s']), (2, 100.0))
+        self.assertEqual(LapTimer(self.root).state['count'], 2)
+
+    def test_the_same_line_again_changes_nothing_and_keeps_the_first_copy(self):
+        before = self.saved_line()
+        self.assertTrue(self.run_command(command('course_select', {'name': 'sugo'}))['ok'])
+        self.runtime.laps.crossed(NOW_MS)
+        again = self.run_command(command('course_select', {'name': 'sugo'}, command_id='1' * 16))
+        self.assertEqual((again['ok'], again['message'], again['line']['changed']), (True, 'course sugo was already set', False))
+        self.assertEqual(self.runtime.laps.state['lap_start_ms'], NOW_MS)  # the running lap goes on
+        typed = self.run_command(command('line_set', {k: v for k, v in self.course['line'].items() if k != 'enabled'}, command_id='2' * 16))
+        self.assertEqual((typed['message'], typed['line']['name']), ('line was already set', 'sugo'))
+        self.assertEqual(json.loads(self.kept.read_text(encoding='utf-8'))['line'], before)
+
+    def test_only_the_race_options_changed_keeps_the_running_lap(self):
+        self.assertTrue(self.run_command(command('course_select', {'name': 'sugo'}))['ok'])
+        self.runtime.laps.crossed(NOW_MS)
+        line = {**self.course['line'], 'min_lap_s': 75}
+        result = self.run_command(command('line_set', line, command_id='1' * 16))
+        self.assertEqual((result['ok'], result['line']['changed'], result['line']['name']), (True, True, None))
+        self.assertEqual(self.runtime.laps.state['lap_start_ms'], NOW_MS)
+        self.assertEqual(self.saved_line()['min_lap_s'], 75)
+
+    def test_the_whole_course_line_fits_one_message(self):
+        cmd = command('line_set', self.course['line'])
+        size = len(json.dumps({'type': 'logger.config', 'session_id': 3, 'data': {'command': cmd}}, separators=(',', ':')))
+        self.assertLess(size, 1000)  # control line + pit lane + 3 sector lines; the relay socket takes frames up to 65536
+        self.assertTrue(self.run_command(cmd)['ok'])
+
+
 class PodiumRelayTests(unittest.TestCase):
     def test_command_goes_through_the_relay_and_the_answer_comes_back(self):
         from podium import PodiumSender

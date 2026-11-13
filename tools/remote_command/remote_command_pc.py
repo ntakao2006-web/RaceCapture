@@ -4,12 +4,18 @@
 `logger.config` に署名つきの命令を載せて送る。本体は EcoCapture-Web/remote_command.py で
 署名を確かめて実行し、結果と今の状態を中継経由で返す。中継サーバーは変えていない。
 
-命令は次の5つだけ（シェルや設定の書き換えはできない）:
+命令は次の7つだけ（シェルは動かせない。設定のうち変えられるのはラップの線だけ）:
     python remote_command_pc.py status          # 状態を聞く（記録・周回・測位など）
     python remote_command_pc.py lap-reset       # ラップを0周に戻す（ラインはそのまま）
     python remote_command_pc.py lap-count 12    # 完了した周回数を12に直す
     python remote_command_pc.py lap-start       # いまから計測を始める（スタートを取り逃したとき）
     python remote_command_pc.py log-start       # 記録を始める（記録が始まっていないとき）
+    python remote_command_pc.py course-select sugo   # 本体に入れてあるコースの設定を選ぶ（名前だけ送る。記録は止まらない）
+    python remote_command_pc.py line-set sugo        # PCの tools/setups/courses/ の線そのものを送る（ファイルの場所でもよい）
+
+線を変える2つは、走っている間も本体は断らない（SPEC.md 7-5）。本体は変える前の lap.json を1つ控え
+（lap.json.bak-remote）、新しい線を次に通った所からラップを数え直し、読み直した線を返事に入れる。
+送る前に変わる所を見せて4桁を入れてもらう確認は画面の仕事で、このコマンド行には無い。
 
 はじめに1回だけ、本体をUSB（またはテザリング）でつないで合言葉を作って入れる:
     python remote_command_pc.py setup
@@ -39,6 +45,7 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / 'EcoCapture-Web'))
 sys.path.insert(0, str(REPO / 'tools' / 'video_collect'))
 sys.path.insert(0, str(REPO / 'tools' / 'collect_logs'))
+sys.path.insert(0, str(REPO / 'tools' / 'setups'))
 
 from remote_command import sign  # noqa: E402  本体と同じ署名の作り方
 
@@ -47,9 +54,11 @@ from remote_command import sign  # noqa: E402  本体と同じ署名の作り方
 LOCAL = Path.home() / '.ecologger' / 'remote_command.json'
 OLD_LOCALS = [Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'EcoLogger' / 'remote_command.json']
 DEVICE_PRIVATE = '/home/arduino/ecocapture-v2-data/private'
-OPS = {'status': 'status', 'lap-reset': 'lap_reset', 'lap-count': 'lap_count', 'lap-start': 'lap_start', 'log-start': 'log_start'}
+OPS = {'status': 'status', 'lap-reset': 'lap_reset', 'lap-count': 'lap_count', 'lap-start': 'lap_start', 'log-start': 'log_start',
+       'course-select': 'course_select', 'line-set': 'line_set'}
 OP_LABEL = {'status': '状態を聞く', 'lap_reset': 'ラップを0周に戻す', 'lap_count': '周回数を直す',
-            'lap_start': 'いまから計測を始める', 'log_start': '記録を始める'}
+            'lap_start': 'いまから計測を始める', 'log_start': '記録を始める',
+            'course_select': 'コースを選ぶ', 'line_set': '線を入れる'}
 REFUSED = {'bad signature': '署名が合いません（PCと本体の合言葉が違う。setupをやり直す）',
            'no secret on the logger': '本体に合言葉がありません（setupをする）',
            'already used': 'この命令はもう使われています',
@@ -57,7 +66,13 @@ REFUSED = {'bad signature': '署名が合いません（PCと本体の合言葉�
            'no GNSS time yet': '本体がまだ測位していません',
            'a lap is already running': 'すでに計測中です（周回数を直すならlap-count）',
            'no lap line': 'ラップのラインがありません',
-           'already logging': 'もう記録中です'}
+           'already logging': 'もう記録中です',
+           'bad course name': 'コースの設定の名前が使えません（英小文字・数字・_・- で32文字まで）',
+           'bad line': '線の形になっていません',
+           'line set': '線を入れました',
+           'line was already set': '本体の線はもう同じでした（何も変えていません）',
+           'line set, but it could not be read back': '線は入れましたが、本体から読み直せませんでした（statusで確かめる）',
+           'the line before the change could not be kept; nothing changed': '変える前の線を本体に控えられなかったので、何も変えていません'}
 
 
 # ---------------------------------------------------------------- 設定
@@ -195,7 +210,7 @@ def send(op, arg=None, timeout=30, url=None, log=print):
     try:
         ws.send_json({'type': 'hello', 'client_id': 'ecologger-pit-command', 'protocol': 2, 'audio_formats': []})
         ws.send_json({'type': 'logger.config', 'data': {'command': command}})
-        log(f'{OP_LABEL[op]}{"" if arg is None else f"（{arg}）"}を送りました。本体の返事を待っています（最大{timeout}秒、LTEだと数秒かかる）…')
+        log(f'{OP_LABEL[op]}{arg_label(op, arg)}を送りました。本体の返事を待っています（最大{timeout}秒、LTEだと数秒かかる）…')
         ws.sock.settimeout(2)
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
@@ -215,14 +230,81 @@ def send(op, arg=None, timeout=30, url=None, log=print):
         ws.close()
 
 
+def course_line(source):
+    """line-set で送る線。source はPCのコースの設定の名前（tools/setups/courses/）か、ファイルの場所
+    （コースの設定、または本体から取った lap.json）。形は本体の lap.json の line と同じ。
+    読めない・形が違うものは ValueError"""
+    import setups
+    if setups.NAME.match(source or ''):
+        return dict(setups.load('course', source)['line'])   # 形がおかしければ SetupError（ValueError）
+    try:
+        data = json.loads(Path(source).read_text(encoding='utf-8'))
+    except (OSError, ValueError) as exc:
+        raise ValueError(f'{source} を読めません（{exc}）')
+    line = data.get('line') if isinstance(data, dict) else None
+    if not isinstance(line, dict) or line.get('lat') is None or line.get('lon') is None:
+        raise ValueError(f'{source} に線（line の lat・lon）がありません')
+    return {key: value for key, value in line.items() if key not in ('set_at', 'enabled')}
+
+
+def arg_label(op, arg):
+    """送った中身の短い言い方（線そのものは長いので、場所と本数だけ）"""
+    if arg is None:
+        return ''
+    if op == 'course_select':
+        return f"（{arg.get('name')}）"
+    if op == 'line_set':
+        return f"（コントロールライン {arg.get('lat')}, {arg.get('lon')}・セクターの線{len(arg.get('sectors') or [])}本）"
+    return f'（{arg}）'
+
+
+def describe_message(result):
+    """本体の返事の1行（英語の決まり文句）を日本語にする"""
+    message = str(result.get('message'))
+    if message in REFUSED:
+        return REFUSED[message]
+    words = message.split()
+    if message.startswith('no course '):
+        have = result.get('courses') or []
+        return f"本体に「{words[2]}」というコースの設定がありません（入っているのは {'・'.join(have) if have else 'なし'}）"
+    if message.startswith('course ') and message.endswith(' was already set'):
+        return f'本体の線はもう「{words[1]}」でした（何も変えていません）'
+    if message.startswith('course ') and message.endswith(' set'):
+        return f'コースを「{words[1]}」にしました'
+    if message.startswith('course ') and message.endswith(' cannot be read'):
+        return f'本体の「{words[1]}」の設定のファイルが読めません（USB・テザリングで入れ直す）'
+    if message.startswith('course ') and message.endswith(' is not a course file'):
+        return f'本体の「{words[1]}」のファイルがコースの設定の形ではありません（USB・テザリングで入れ直す）'
+    if message.startswith('bad line: '):
+        return '線の値が本体の決まりの外です（' + message[len('bad line: '):] + '）'
+    return message
+
+
+def describe_line(line):
+    """本体から読み直した線（返事の line）を数行にする"""
+    def gate(g):
+        if not g:
+            return 'なし'
+        lat, lon, bearing, width = g
+        return f"{lat}, {lon}・向き {'通ったときに覚える' if bearing is None else f'{bearing:g}°'}・幅 {width:g} m"
+    name = f"「{line['name']}」と同じ" if line.get('name') else '本体に入っているどのコースの設定とも違う'
+    out = [f"  本体から読み直した線：コントロールライン {gate(line.get('control'))}・セクターの線 {line.get('sectors')}本"
+           f"・スタート {gate(line.get('start'))}・ゴール {gate(line.get('goal'))}",
+           f"  設定の名前：{name}（線の番号 {line.get('id')}）"]
+    if line.get('changed'):
+        out.append('  変える前の線は本体に控えました。走っている途中なら、新しい線を次に通った所からラップを数え直します')
+    return out
+
+
 def describe(result):
     """返事を日本語の数行にする"""
     if result is None:
         return ['★ 返事がありませんでした。本体がLTEで中継につながっていないかもしれません'
                 '（電源・電波・本体の送信ON）。命令が届いて効いている場合もあるので、statusで確かめてください']
     op = result.get('op')
-    message = str(result.get('message'))
-    lines = [f"{'OK' if result.get('ok') else '★ できませんでした'}: {OP_LABEL.get(op, op)} — {REFUSED.get(message, message)}"]
+    lines = [f"{'OK' if result.get('ok') else '★ できませんでした'}: {OP_LABEL.get(op, op)} — {describe_message(result)}"]
+    if isinstance(result.get('line'), dict):
+        lines += describe_line(result['line'])
     s = result.get('status')
     if s:
         lap = s.get('lap') or {}
@@ -239,10 +321,32 @@ def describe(result):
     return lines
 
 
+def command_arg(ap, op, value):
+    """コマンド行の2つ目の言葉を、命令の引数にする"""
+    if op == 'lap-count':
+        if value is None or not value.isdigit():
+            ap.error('lap-count には周回数が要ります（例: lap-count 12）')
+        return int(value)
+    if op == 'course-select':
+        import setups
+        if not setups.NAME.match(value or ''):
+            ap.error('course-select には本体に入れてあるコースの設定の名前が要ります（例: course-select sugo）')
+        return {'name': value}
+    if op == 'line-set':
+        if not value:
+            ap.error('line-set にはコースの設定の名前かファイルが要ります（例: line-set sugo）')
+        try:
+            return course_line(value)
+        except ValueError as exc:
+            ap.error(str(exc))
+    return None
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('op', choices=['setup', *OPS])
-    ap.add_argument('count', nargs='?', type=int, help='lap-count のときの周回数')
+    ap.add_argument('value', nargs='?', help='lap-count は周回数、course-select は本体に入れてあるコースの設定の名前、'
+                    'line-set はPCのコースの設定の名前かファイル')
     ap.add_argument('--timeout', type=float, default=30)
     ap.add_argument('--url', help='中継のURL（既定はsetupで覚えたもの）')
     ap.add_argument('--new', action='store_true', help='setup のとき、合言葉を作り直す（渡しすぎた・スマホを無くしたとき）')
@@ -250,9 +354,7 @@ def main(argv=None):
     if args.op == 'setup':
         setup(new=args.new)
         return 0
-    if args.op == 'lap-count' and args.count is None:
-        ap.error('lap-count には周回数が要ります（例: lap-count 12）')
-    result = send(OPS[args.op], args.count if args.op == 'lap-count' else None, args.timeout, args.url)
+    result = send(OPS[args.op], command_arg(ap, args.op, args.value), args.timeout, args.url)
     for line in describe(result):
         print(line)
     return 0 if result and result.get('ok') else 1

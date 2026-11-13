@@ -296,6 +296,15 @@ class LapTimer:
         s['count'] = count
         self.save()
 
+    def restart_lap(self):
+        """Drop the running lap (remote_command.py, after the lines were changed from the pit while
+        running): the next control pass starts a lap instead of ending one that began on the old
+        line. The count, the laps recorded and the race clock stay."""
+        s = self.state
+        if s['lap_start_ms'] is not None:
+            s['lap_start_ms'] = None; s['lap_start_pit'] = False; s['splits'] = []
+            self.save()
+
     def start_now(self):
         """Start the running lap (and the race clock, if it has not started) at the current GNSS
         time, for when the start was not seen (remote_command.py). A lap already running is kept."""
