@@ -68,6 +68,11 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
 .kv { display: grid; grid-template-columns: minmax(110px, auto) 1fr auto; gap: 6px 12px; align-items: center; font-size: 14px; }
 .kv .k { color: var(--muted); }
 .in { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); min-width: 0; max-width: 100%; }
+.linemap { position: relative; width: 100%; max-width: 640px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; border: 1px solid var(--line);
+  background-color: var(--chip); background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 40px 40px; }
+.linemap img { position: absolute; width: 256px; height: 256px; max-width: none; }
+.linemap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.linemap .credit { position: absolute; right: 4px; bottom: 2px; font-size: 10px; color: #fff; text-shadow: 0 0 3px #000; }
 .note { border-left: 3px solid var(--mock); padding: 2px 10px; color: var(--muted); font-size: 13px; }
 </style>
 
@@ -78,6 +83,7 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
       <option value="wait">ロガーがまだ無い（準備中）</option>
       <option value="usb">USBでつながった（家・大会の後）</option>
       <option value="tether" selected>テザリングでつながった（走行の合間）</option>
+      <option value="tether_pit">テザリング（ピットレーンをゆっくり走っている）</option>
       <option value="lte_stop">LTEだけ（ピットで止まっている）</option>
       <option value="lte">LTEだけ（走行中）</option>
       <option value="trouble">つながったが、直す所がある</option>
@@ -113,32 +119,25 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
       <div class="row"><span class="grow">いまの本体の設定：<b id="set-car"></b> ／ <b id="set-course"></b>
         <div class="sub" id="set-detail"></div></span>
         <button class="b" id="pick-open">選び直す</button></div>
-      <div class="row" style="margin-top:10px; align-items:flex-start">
-        <svg viewBox="0 0 220 120" width="220" height="120" role="img" aria-label="コースの形とコントロールラインの位置（例）" style="flex:0 0 auto; max-width:100%; background:var(--chip); border-radius:8px">
-          <path d="M30 80 C20 40 60 20 100 28 C140 36 150 18 185 30 C205 38 200 70 175 78 C150 86 140 100 100 96 C70 93 40 104 30 80 Z" fill="none" stroke="var(--muted)" stroke-width="5" stroke-linejoin="round"/>
-          <line id="now-arrow" stroke="var(--ok)" stroke-width="2" marker-end="url(#ah)"/>
-          <line id="now-line" stroke="var(--bad)" stroke-width="4" stroke-linecap="round"/>
-          <defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="var(--ok)"/></marker></defs>
-          <text x="6" y="12" font-size="10" fill="var(--muted)">上が北・図は例</text>
-        </svg>
-        <div class="grow"><b>コントロールライン</b>：<span id="line-text"></span> <span class="chip ok">本体から読んだ値</span>
-          <div class="sub">赤い線がライン（長さ＝幅）、緑の矢印が数える向きです。逆向きに横切っても数えません。ここを変えると、車載画面・ピットの地図・周回表も同じラインに変わります。</div>
-          <div class="row" style="margin-top:6px"><button class="b" id="line-map">地図で見る</button><button class="b" id="line-edit">ラインを引き直す…</button></div>
-          <div class="sub" id="line-msg"></div></div>
-      </div>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12 Z" fill="#22c55e" stroke="#fff" stroke-width="1"/></marker></defs></svg>
+      <div style="margin-top:12px"><b>コントロールラインとセクター</b> <span class="chip ok">本体から読んだ値</span> <span class="chip" id="line-example" hidden>位置は例</span></div>
+      <div class="row" style="margin:6px 0" id="map-tabs"></div>
+      <div class="linemap" id="now-map" role="img" aria-label="航空写真の上のコントロールラインとセクターの線"></div>
+      <div class="sub" id="now-map-note"></div>
+      <div class="scroll" style="margin-top:8px"><table id="line-table"><thead><tr><th>線</th><th>場所（真ん中）</th><th>幅</th><th>進む向き</th></tr></thead><tbody></tbody></table></div>
+      <div class="sub" style="margin-top:6px">線の長さが幅、緑の矢印が数える向きです（逆向きに横切っても数えません）。ここを変えると、車載画面・ピットの地図・周回表も同じ線に変わります。<span id="gate-text"></span></div>
+      <div class="row" style="margin-top:6px"><button class="b" id="line-map">ピットの地図で見る</button><button class="b" id="line-edit">線を引き直す…</button></div>
+      <div class="sub" id="line-msg"></div>
       <div id="line-editor" hidden style="margin-top:12px; border-top:1px solid var(--line); padding-top:12px">
         <h2>ラインを引き直す</h2>
         <div class="row" style="align-items:flex-start">
-          <svg viewBox="0 0 220 120" width="220" height="120" role="img" aria-label="引き直すラインの向きと幅" style="flex:0 0 auto; max-width:100%; background:var(--chip); border-radius:8px">
-            <line id="ed-arrow" stroke="var(--ok)" stroke-width="2" marker-end="url(#ah)"/>
-            <line id="ed-line" stroke="var(--bad)" stroke-width="4" stroke-linecap="round"/>
-            <text x="6" y="12" font-size="10" fill="var(--muted)">上が北</text>
-          </svg>
+          <div style="flex:1 1 320px; min-width:0"><div class="linemap" id="ed-map-view" role="img" aria-label="引き直す線を航空写真の上に重ねた図"></div><div class="sub" id="ed-map-note"></div></div>
           <div class="grow">
             <div class="kv" style="grid-template-columns: minmax(90px,auto) 1fr">
+              <label class="k" for="ed-which">どの線</label><select class="in" id="ed-which"></select>
               <label class="k" for="ed-lat">場所（緯度）</label><input class="in" id="ed-lat" inputmode="decimal">
               <label class="k" for="ed-lon">場所（経度）</label><input class="in" id="ed-lon" inputmode="decimal">
-              <label class="k" for="ed-bearing">進む向き</label><span class="row"><input id="ed-bearing" type="range" min="0" max="359" step="1" style="flex:1 1 120px"><input class="in" id="ed-bearing-n" type="number" min="0" max="359" style="width:5.5em"> °</span>
+              <label class="k" for="ed-bearing">進む向き</label><span class="row"><input id="ed-bearing" type="range" min="0" max="359.5" step="0.5" style="flex:1 1 120px"><input class="in" id="ed-bearing-n" type="number" min="0" max="359.5" step="0.5" style="width:5.5em"> °</span>
               <label class="k" for="ed-width">幅</label><span class="row"><input id="ed-width" type="range" min="5" max="200" step="1" style="flex:1 1 120px"><input class="in" id="ed-width-n" type="number" min="5" max="200" style="width:5.5em"> m</span>
             </div>
             <div class="row" style="margin-top:8px"><button class="b" id="ed-here">車のいまの位置と向きを使う</button><button class="b" id="ed-map">地図の上で置く…</button></div>
@@ -234,8 +233,9 @@ const SCENES = {
   wait:   { cls: 'wait', title: 'ロガーを待っています', sub: 'USB・テザリング・LTEの順に、5秒ごとに探しています。ロガーの電源を入れると、ここが「つながりました」に変わります。', verdict: ['idle', 'まだ分かりません', 'ロガーが見つかると、下の6つに結果が出ます。この画面は開いたままで大丈夫です。'], lap: '—' },
   usb:    { cls: 'ok', title: 'つながりました（USB）', sub: '動画の回収・設定・更新ができます。車載画面と録画は止まっています（ドックを外しているため）。', lap: '完了 0周・ライン 有効' },
   tether: { cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。動画の回収はUSBのときだけです。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
+  tether_pit: { cls: 'ok', title: 'つながりました（テザリング）・動いています（38 km/h）', sub: '車載画面と録画は動いたままです。レーシングスピードではないので、線の引き直しはできます。', lap: '完了 14周・ライン 有効・レース経過 0:28:05' },
   lte_stop: { cls: 'ok', title: 'つながりました（LTEだけ）・車は止まっています', sub: '最後に届いてから 1秒。できるのは、状態を聞く・ラップを0周に戻す・車とコースを選ぶ、の3つです。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
-  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）・走行中（132 km/h）', sub: '最後に届いてから 1秒。走っている間は、車・コース・ラインの変更を本体が断ります。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
+  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）・走行中（132 km/h）', sub: '最後に届いてから 1秒。レーシングスピードで走っている間は、車・コース・線の変更を本体が断ります。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
   trouble:{ cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。', lap: '完了 0周・ライン 有効' },
 };
 const CHECKS = {
@@ -269,27 +269,35 @@ $('lap-reset').onclick = () => { $('lap-confirm').hidden = false; };
 $('lap-no').onclick = () => { $('lap-confirm').hidden = true; };
 $('lap-yes').onclick = () => { $('lap-confirm').hidden = true; $('lap-text').textContent = '完了 0周・ライン 有効'; $('lap-done').textContent = 'ラップを0周に戻しました。次にラインを通った時から数えます。'; };
 $('status-ask').onclick = () => { $('lap-done').textContent = 'LTEで聞きました：記録中・測位中・14周（返事まで 2.1秒）'; };
-$('pick-open').onclick = () => { $('pick').hidden = false; $('setup-msg').innerHTML = ''; $('pick-car').value = dev.car; $('pick-course').value = dev.course; $('pick-note').textContent = !LOCAL($('scene').value) ? 'LTEでは、前もって本体に入れてある設定の中から選べます。走っている間は本体が断ります。新しい車・コースを足すのはUSBかテザリングのときです。' : '入れる前の設定は本体に1つ残り、「前の設定へ戻す」で戻せます。'; };
+$('pick-open').onclick = () => { $('pick').hidden = false; $('setup-msg').innerHTML = ''; $('pick-car').value = dev.car; $('pick-course').value = dev.course; $('pick-note').textContent = !LOCAL($('scene').value) ? 'LTEでは、前もって本体に入れてある設定の中から選べます。走っている間は本体が断ります。新しい車・コースを足すのはUSBかテザリングのときです。' : '入れる前の設定は本体に1つ残り、「前の設定へ戻す」で戻せます。車が止まっているときだけ切り替えられます。'; };
 $('line-map').onclick = () => { $('line-msg').textContent = 'ピットの地図（自宅のサーバーのページ）を開き、ラインとセクターの線を表示します。'; };
-function edDraw() { drawLine('ed-line', 'ed-arrow', +$('ed-bearing').value, +$('ed-width').value); }
+function edLines() {   // 引き直している線だけ色を付け、ほかは薄く
+  const i = +$('ed-which').value;
+  return dev.lines.map((l, k) => k === i ? { ...l, lat: +$('ed-lat').value || l.lat, lon: +$('ed-lon').value || l.lon, bearing: +$('ed-bearing').value, width: +$('ed-width').value } : { ...l, dim: true });
+}
+function edDraw() { const ls = edLines(), l = ls[+$('ed-which').value]; drawMap('ed-map-view', 'ed-map-note', ls, { lat: l.lat, lon: l.lon }, 18); }
+function edLoad() { const l = dev.lines[+$('ed-which').value]; $('ed-lat').value = l.lat; $('ed-lon').value = l.lon; $('ed-bearing').value = $('ed-bearing-n').value = l.bearing; $('ed-width').value = $('ed-width-n').value = l.width; edDraw(); }
 [['ed-bearing', 'ed-bearing-n'], ['ed-width', 'ed-width-n']].forEach(([a, b]) => {
   $(a).addEventListener('input', () => { $(b).value = $(a).value; edDraw(); });
   $(b).addEventListener('input', () => { $(a).value = $(b).value; edDraw(); }); });
+['ed-lat', 'ed-lon'].forEach(id => $(id).addEventListener('input', edDraw));
+$('ed-which').addEventListener('change', edLoad);
 $('line-edit').onclick = () => {
-  const key = $('scene').value; $('setup-msg').innerHTML = '';
-  if (RUNNING(key)) return refuse('走行中（132 km/h）なので、ラインは変えられません。本体も断ります。車が止まってから引き直します。');
-  if (!LOCAL(key)) return refuse('LTEでは、ラインの引き直しはできません（LTEで送れるのは、本体に入れてある車・コースの名前を選ぶことだけです）。USBかテザリングでつないで引き直します。');
-  const l = dev.line; $('ed-lat').value = l.lat; $('ed-lon').value = l.lon; $('ed-bearing').value = $('ed-bearing-n').value = l.bearing; $('ed-width').value = $('ed-width-n').value = l.width;
-  $('line-editor').hidden = false; edDraw();
+  const key = $('scene').value, v = SPEED(key), limit = COURSES[dev.course].race_kmh; $('setup-msg').innerHTML = ''; $('line-msg').textContent = '';
+  if (!LOCAL(key)) return refuse('LTEでは、線の引き直しはできません（LTEで送れるのは、本体に入れてある車・コースの名前を選ぶことだけです）。USBかテザリングでつないで引き直します。');
+  if (v >= limit) return refuse(`レーシングスピードで走っている（${v} km/h）ので、線は変えられません。本体も断ります。このコースでは ${limit} km/h より遅いときに変えられます。`);
+  $('ed-which').innerHTML = dev.lines.map((l, k) => `<option value="${k}">${l.name}</option>`).join(''); $('ed-which').value = view === 'all' ? 0 : view;
+  $('line-editor').hidden = false; edLoad();
+  if (v > 0) $('line-msg').textContent = `車は動いています（${v} km/h）が、${limit} km/h より遅いので引き直せます。いま走っている周は、新しい線を次に通った所から数え直します。`;
 };
 $('ed-cancel').onclick = () => { $('line-editor').hidden = true; };
-$('ed-here').onclick = () => { $('ed-lat').value = '38.00012'; $('ed-lon').value = '140.00031'; $('ed-bearing').value = $('ed-bearing-n').value = 101; edDraw(); $('line-msg').textContent = '車のいまの位置（誤差 0.9 m）と、最後に走っていたときの向きを入れました。'; };
-$('ed-map').onclick = () => { $('line-msg').textContent = '航空写真の上で、線の真ん中をつまんで動かし、端をつまんで向きと幅を変えます（RaceChronoのラインの編集と同じ考え方）。'; };
+$('ed-here').onclick = () => { const c = dev.lines[0]; $('ed-lat').value = (c.lat + 0.00012).toFixed(7); $('ed-lon').value = (c.lon + 0.00031).toFixed(7); $('ed-bearing').value = $('ed-bearing-n').value = 101; edDraw(); $('line-msg').textContent = '車のいまの位置（誤差 0.9 m）と、最後に走っていたときの向きを入れました（見本の値）。'; };
+$('ed-map').onclick = () => { $('line-msg').textContent = '実物では、この航空写真の上で線の真ん中をつまんで動かし、端をつまんで向きと幅を変えます（RaceChronoの線の編集と同じ考え方）。見本では数字と目盛りで動かしてください。'; };
 $('ed-apply').onclick = () => {
-  const lat = $('ed-lat').value, lon = $('ed-lon').value, bearing = +$('ed-bearing').value, width = +$('ed-width').value; $('line-editor').hidden = true;
-  runBar('setup-run', 'setup-bar', 'setup-rate', '本体へ入れています…（前のラインを控えに残し、送って、読み直します）', () => {
-    dev.line = { ...dev.line, where: '引き直したライン', lat, lon, bearing, width }; renderSetup();
-    applied(`ライン＝幅 ${width} m・向き ${bearing}°・場所 ${lat}, ${lon}。車載画面とピットの地図も、このラインに変わりました。前のラインは「前の設定へ戻す」で戻せます。`); });
+  const i = +$('ed-which').value, l = edLines()[i]; $('line-editor').hidden = true;
+  runBar('setup-run', 'setup-bar', 'setup-rate', '本体へ入れています…（前の線を控えに残し、送って、読み直します）', () => {
+    dev.lines[i] = { ...dev.lines[i], lat: l.lat, lon: l.lon, bearing: l.bearing, width: l.width }; view = i; renderSetup();
+    applied(`${l.name}＝幅 ${l.width} m・向き ${l.bearing}°・場所 ${l.lat.toFixed(7)}, ${l.lon.toFixed(7)}。車載画面とピットの地図も、この線に変わりました。前の線は「前の設定へ戻す」で戻せます。`); });
 };
 $('wipe').onclick = () => { $('wipe-done').textContent = ''; if (!LOCAL($('scene').value)) { $('wipe-done').textContent = 'LTEでは本体の動画を消せません。USBかテザリングでつないだときに使えます。'; return; } $('wipe-confirm').hidden = false; };
 $('wipe-no').onclick = () => { $('wipe-confirm').hidden = true; };
@@ -297,38 +305,70 @@ $('wipe-yes').onclick = () => { $('wipe-confirm').hidden = true; $('wipe').disab
   runBar('wipe-run', 'wipe-bar', 'wipe-rate', 'PCの写しを確かめながら、1本ずつ消しています…', () => { $('wipe').disabled = false; $('wipe-done').textContent = '回収済みの24本を本体から消しました（14.1 GiB空きました）。まだ回収していない12本は残っています。'; }); };
 $('pick-cancel').onclick = () => { $('pick').hidden = true; };
 $('pick-apply').onclick = () => {
-  const key = $('scene').value, car = $('pick-car').value, course = $('pick-course').value; $('pick').hidden = true;
-  if (RUNNING(key)) return refuse('走行中（132 km/h）なので、本体が断りました。車とコースは、車が止まってから切り替えます。');
+  const key = $('scene').value, v = SPEED(key), car = $('pick-car').value, course = $('pick-course').value; $('pick').hidden = true;
+  if (v >= 5) return refuse(`車が動いている（${v} km/h）ので、本体が断りました。車とコースの切り替えは、記録を一度止めて入れ直すので、止まっているときだけできます。`);
   runBar('setup-run', 'setup-bar', 'setup-rate', `本体へ入れています…（${LOCAL(key) ? '設定を送り、読み直します' : 'LTEで名前を送り、返事を待ちます'}）`, () => {
-    dev.car = car; dev.course = course; dev.line = { ...COURSES[course] }; renderSetup();
-    applied(`車＝${dev.car}、コース＝${dev.course}、ライン＝${dev.line.where}・幅 ${dev.line.width} m・向き ${dev.line.bearing}°。車載画面とピットの地図も、このラインに変わりました。`); });
+    dev.car = car; dev.course = course; dev.lines = COURSES[course].lines.map(l => ({ ...l })); view = 'all'; renderSetup();
+    applied(`車＝${dev.car}、コース＝${dev.course}、線＝${dev.lines.map(l => l.name).join('・')}。車載画面とピットの地図も、この線に変わりました。`); });
 };
 
-const RUNNING = k => k === 'lte';
-const LOCAL = k => k === 'usb' || k === 'tether' || k === 'trouble';
-// 見本の中の「本体の設定」。座標は例の値
+const SPEED = k => ({ lte: 132, tether_pit: 38 })[k] || 0;
+const LOCAL = k => k === 'usb' || k === 'tether' || k === 'tether_pit' || k === 'trouble';
+// 見本の中の「本体の設定」。SUGOの線は本体に入っている実物の値（tools/sugo_setup/sugo_setup.py）。ほかのコースは、場所もおおよその例
 const COURSES = {
-  'スポーツランドSUGO': { where: 'グランドスタンド前', lat: '38.00000', lon: '140.00000', bearing: 98, width: 50, sectors: 3 },
-  'モビリティリゾートもてぎ（エコラン）': { where: 'コントロールタワー前', lat: '36.50000', lon: '140.20000', bearing: 270, width: 30, sectors: 0 },
-  '富士スピードウェイ カートコース': { where: 'ホームストレート', lat: '35.30000', lon: '138.90000', bearing: 15, width: 12, sectors: 2 },
+  'スポーツランドSUGO': { race_kmh: 100, example: false, lines: [
+    { name: 'コントロールライン', kind: 'c', lat: 38.1423181, lon: 140.7779443, bearing: 97.5, width: 50 },
+    { name: 'セクター1の終わり', kind: 's', lat: 38.1392767, lon: 140.7787425, bearing: 71, width: 30 },
+    { name: 'セクター2の終わり', kind: 's', lat: 38.1384700, lon: 140.7774769, bearing: 253.5, width: 30 },
+    { name: 'セクター3の終わり', kind: 's', lat: 38.1408947, lon: 140.7730358, bearing: 252.5, width: 30 }] },
+  'モビリティリゾートもてぎ（エコラン）': { race_kmh: 20, example: true, lines: [
+    { name: 'コントロールライン', kind: 'c', lat: 36.5330, lon: 140.2270, bearing: 270, width: 30 }] },
+  '富士スピードウェイ カートコース': { race_kmh: 50, example: true, lines: [
+    { name: 'コントロールライン', kind: 'c', lat: 35.3720, lon: 138.9280, bearing: 15, width: 12 }] },
 };
-const dev = { car: 'NCEC ロードスター', course: 'スポーツランドSUGO', line: { ...COURSES['スポーツランドSUGO'] } };
-function drawLine(svgLineId, arrowId, bearing, width) {
-  // 図は上が北。向き＝車が進む向き。線は進む向きに直角で、長さが幅
-  const rad = bearing * Math.PI / 180, cx = 110, cy = 60, half = Math.max(8, Math.min(48, width * 0.9));
-  const nx = Math.cos(rad), ny = Math.sin(rad);          // 線の向き（進む向きに直角）
-  const dx = Math.sin(rad), dy = -Math.cos(rad);         // 進む向き
-  const L = $(svgLineId), A = $(arrowId);
-  L.setAttribute('x1', cx - nx * half); L.setAttribute('y1', cy - ny * half); L.setAttribute('x2', cx + nx * half); L.setAttribute('y2', cy + ny * half);
-  A.setAttribute('x1', cx - dx * 6); A.setAttribute('y1', cy - dy * 6); A.setAttribute('x2', cx + dx * 34); A.setAttribute('y2', cy + dy * 34);
+const dev = { car: 'NCEC ロードスター', course: 'スポーツランドSUGO', lines: COURSES['スポーツランドSUGO'].lines.map(l => ({ ...l })) };
+let view = 'all';   // 'all' か、線の番号
+const TILE = (z, x, y) => `https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/${z}/${x}/${y}.jpg`;
+function tileXY(lat, lon, z) { const n = 2 ** z, r = lat * Math.PI / 180; return [(lon + 180) / 360 * n, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n]; }
+function drawMap(elId, noteId, lines, center, z) {
+  // 航空写真（国土地理院のタイル）を並べ、その上に線を実寸で描く。写真が読めない所では方眼の上に同じ縮尺で描く
+  const el = $(elId), W = el.clientWidth || 640, H = el.clientHeight || 360;
+  const [cx, cy] = tileXY(center.lat, center.lon, z), mpp = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / 2 ** z;
+  let html = '';
+  for (let tx = Math.floor(cx - W / 512); tx <= Math.floor(cx + W / 512); tx++) for (let ty = Math.floor(cy - H / 512); ty <= Math.floor(cy + H / 512); ty++)
+    html += `<img alt="" src="${TILE(z, tx, ty)}" style="left:${Math.round((tx - cx) * 256 + W / 2)}px; top:${Math.round((ty - cy) * 256 + H / 2)}px" onerror="this.remove(); document.getElementById('${noteId}').hidden = false">`;
+  let svg = '';
+  lines.forEach(l => {
+    const [lx, ly] = tileXY(l.lat, l.lon, z), x = (lx - cx) * 256 + W / 2, y = (ly - cy) * 256 + H / 2, rad = l.bearing * Math.PI / 180, half = Math.max(3, l.width / 2 / mpp);
+    const nx = Math.cos(rad), ny = Math.sin(rad), dx = Math.sin(rad), dy = -Math.cos(rad), col = l.kind === 'c' ? '#ef4444' : '#38bdf8', op = l.dim ? 0.45 : 1, arrow = Math.max(18, Math.min(60, 25 / mpp));
+    svg += `<g opacity="${op}"><line x1="${x - nx * half}" y1="${y - ny * half}" x2="${x + nx * half}" y2="${y + ny * half}" stroke="#fff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="${x - nx * half}" y1="${y - ny * half}" x2="${x + nx * half}" y2="${y + ny * half}" stroke="${col}" stroke-width="4" stroke-linecap="round"/>`
+      + `<line x1="${x}" y1="${y}" x2="${x + dx * arrow}" y2="${y + dy * arrow}" stroke="#22c55e" stroke-width="3" marker-end="url(#ah)"/>`
+      + `<text x="${x + 8}" y="${y - half - 6}" font-size="12" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${l.name}</text></g>`;
+  });
+  const bar = [10, 20, 50, 100, 200, 500].find(m => m / mpp >= 60) || 500;
+  svg += `<g><rect x="10" y="${H - 26}" width="${bar / mpp}" height="5" fill="#fff" stroke="#000"/><text x="10" y="${H - 30}" font-size="11" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${bar} m</text></g>`;
+  el.innerHTML = html + `<svg viewBox="0 0 ${W} ${H}">${svg}</svg><span class="credit">航空写真：国土地理院</span>`;
+  $(noteId).hidden = true; $(noteId).textContent = 'ここでは航空写真を読み込めないため、方眼の上に同じ縮尺で描いています（線の位置・向き・幅は実寸）。リポジトリの見本をPCのブラウザで開くと、写真の上に出ます。';
+}
+function drawNow() {
+  const ls = dev.lines;
+  if (view === 'all') { const lat = ls.reduce((a, l) => a + l.lat, 0) / ls.length, lon = ls.reduce((a, l) => a + l.lon, 0) / ls.length; drawMap('now-map', 'now-map-note', ls, { lat, lon }, ls.length > 1 ? 16 : 18); }
+  else drawMap('now-map', 'now-map-note', ls.map((l, k) => k === view ? l : { ...l, dim: true }), ls[view], 18);
 }
 function renderSetup() {
   $('car').textContent = $('set-car').textContent = dev.car; $('course').textContent = $('set-course').textContent = dev.course;
-  const l = dev.line;
-  $('line-text').textContent = `${l.where}・幅 ${l.width} m・進む向き ${l.bearing}°（例の座標 ${l.lat}, ${l.lon}）`;
-  $('set-detail').textContent = `読む信号 42個・セクター ${l.sectors}つ・警告（油温120℃、水温110℃、油圧）`;
-  drawLine('now-line', 'now-arrow', l.bearing, l.width);
+  const c = COURSES[dev.course];
+  $('set-detail').textContent = `読む信号 42個・線 ${dev.lines.length}本・警告（油温120℃、水温110℃、油圧）`;
+  $('line-example').hidden = !c.example;
+  $('gate-text').textContent = ` 線を変えられるのは ${c.race_kmh} km/h より遅いとき（このコースの設定）。`;
+  if (view !== 'all' && view >= dev.lines.length) view = 'all';
+  $('map-tabs').innerHTML = [['all', dev.lines.length > 1 ? '全体' : '拡大'], ...dev.lines.map((l, k) => [k, l.name])].filter(([k]) => dev.lines.length > 1 || k === 'all')
+    .map(([k, t]) => `<button class="b${String(k) === String(view) ? ' primary' : ''}" data-view="${k}">${t}</button>`).join('');
+  $('line-table').querySelector('tbody').innerHTML = dev.lines.map(l => `<tr><td>${l.name}</td><td>${l.lat.toFixed(7)}, ${l.lon.toFixed(7)}</td><td>${l.width} m</td><td>${l.bearing}°</td></tr>`).join('');
+  drawNow();
 }
+$('map-tabs').addEventListener('click', e => { const b = e.target.closest('button[data-view]'); if (!b) return; view = b.dataset.view === 'all' ? 'all' : +b.dataset.view; renderSetup(); });
 function runBar(wrap, bar, rate, text, done) {
   let p = 0; $(wrap).hidden = false; $(rate).textContent = text;
   const t = setInterval(() => { p += 20; $(bar).style.width = p + '%'; if (p >= 100) { clearInterval(t); $(wrap).hidden = true; $(bar).style.width = '0'; done(); } }, 200);
@@ -340,6 +380,7 @@ const COLLECT = {
   tether: { got: ['走行記録 3本'], miss: ['動画 12本：テザリングでは遅いので取っていません', 'SDカード：PCに挿さっていません'], next: '次：ロガーの電源を切り、ドックを外してUSB-CをPCへつなぎ、電源を入れてから、もう一度「回収する」' },
   trouble: { got: ['走行記録 1本'], miss: ['動画：本体に録画がありません（カメラが見つからなかったため）'], next: '回収できるものは全部取りました。' },
   lte_stop: { got: [], miss: ['LTEでは回収できません'], next: '次：ロガーをUSBでPCへつないで「回収する」' },
+  tether_pit: { got: ['走行記録 3本'], miss: ['動画 12本：テザリングでは遅いので取っていません'], next: '次：走り終えたら、ドックを外してUSB-CをPCへつなぎ、もう一度「回収する」' },
   lte: { got: [], miss: ['LTEでは回収できません'], next: '次：走り終えたら、ロガーをUSBでPCへつないで「回収する」' },
   wait: { got: [], miss: ['ロガーもSDカードも見つかりません'], next: '次：ロガーをUSBでPCへつなぐか、SDカードをカードリーダーへ挿す' },
 };
