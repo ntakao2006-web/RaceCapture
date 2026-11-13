@@ -610,7 +610,59 @@ def backup(pc, job):
     return len(todo)
 
 
-def collect_everything(link, pc, job, sd_drives=None):
+USB_STEPS = 'ドックを外し、本体のUSB-CをPCへ直接つなぐ（つないだまま本体の電源を入れ直す）'
+
+
+def evict_risk(state):
+    """まだ回収していない動画・走行記録が、本体の入れ替わりで消えそうか。
+    本体は空きが要るとき、回収済みを先に消し、それが尽きると回収していない古いものを消す（録画中・保護は消さない）。
+    {'count', 'bytes', 'safe_minutes'}：あと何分録ると、回収していないものが消え始めるか。心配が無ければ None"""
+    store = state.store
+    at_risk = [i for i in store.items if not i.collected and not i.active and not i.kept]
+    if not at_risk:
+        return None
+    room = state.free - vs.MIN_FREE_MB * 1048576 + store.deletable_bytes()
+    risk_bytes = sum(i.size for i in at_risk)
+    total = state.minutes_left()
+    safe = total * max(0, room - risk_bytes) / room if room > 0 else 0
+    return {'count': len(at_risk), 'bytes': risk_bytes, 'safe_minutes': round(safe)}
+
+
+def summarize_result(result, link_kind, state, problems, usb_blocked=False):
+    """「回収する」の結果を、取れたもの・取れなかったもの・次にすること、に分ける（`SPEC.md` 4章 C-2）。
+    result に got（文の一覧）・missed（[{what, why}]）・next（文の一覧）・level（'ok' 取れた／'none' 取るものが無かった／'warn' 取れなかったものがある）を足す"""
+    got = [f'{label} {result[key]} 本' for key, label in (('logs', '走行記録'), ('videos', '動画'), ('sd', 'SDカードの記録')) if result.get(key)]
+    missed, nxt = [], []
+    usb = USB_STEPS + ' → もう一度「回収する」'
+    if link_kind is None:
+        missed.append({'what': '本体の走行記録と動画', 'why': '本体がつながっていない'})
+        nxt.append(usb)
+    elif link_kind != 'USB':
+        left = sum(1 for c in state.store.chapters if not c.collected and not c.active) if state else None
+        if left is None or left:
+            missed.append({'what': '本体の動画' + (f' {left} 本' if left else ''), 'why': 'テザリングでは遅すぎるので、動画はUSBのときだけ取る'})
+            nxt.append(('この本体は、ドックをつないだまま起動したので、いまはUSBでつながりません。' if usb_blocked else '') + usb)
+    if state:
+        if state.store.active_file:
+            missed.append({'what': 'いま録画している動画 1 本', 'why': '録画の途中のものは取らない'})
+        if state.store.active_log:
+            missed.append({'what': 'いま記録している走行記録 1 本', 'why': '記録の途中のものは取らない'})
+        if state.store.active_file or state.store.active_log:
+            nxt.append('録画・記録の途中の分は、本体の電源を入れ直すと取れるようになります（入れ直してから、もう一度「回収する」）')
+    for text in problems:
+        missed.append({'what': text.split('：', 1)[0], 'why': text.split('：', 1)[-1]})
+    if problems:
+        nxt.append('失敗したものは、つなぎ直してもう一度「回収する」（取れたものは取り直しません）')
+    if not result.get('sd') and any('SDカードは挿さっていなかった' in n for n in result.get('notes', [])):
+        nxt.append('SDカードの控えも取るなら：USBを抜いてロガーの電源を切り、SDカードを抜いてPCのカードリーダーへ → もう一度「回収する」')
+    risk = evict_risk(state) if state else None
+    if risk:
+        nxt.append(f"本体に、まだ回収していないものが {risk['count']} 本残っています。このまま録り続けると、あと約{risk['safe_minutes']}分で古い順に消え始めます。走る前に回収してください")
+    result.update(got=got, missed=missed, next=nxt, level='warn' if missed else 'ok' if got else 'none')
+    return result
+
+
+def collect_everything(link, pc, job, sd_drives=None, usb_blocked=False):
     """「回収する」ボタン：つながっているものから、まだPCに無いものをすべて取る。どれも消さない。
       - 本体の走行記録（eMMC）：Collect-Logs.cmd と同じ（EcoCaptureのAPIから。取ったら本体に回収済みの印）
       - 本体の動画：USBのときだけ（テザリングでは1本約9分かかる）。回収済みの印を付け、本体が空きの要るときに消す
@@ -676,6 +728,13 @@ def collect_everything(link, pc, job, sd_drives=None):
         result['notes'].append('SDカードは挿さっていなかった')
     job.step = ''
     result['folder'] = str(run.path) if run.path.is_dir() else ''
+    state = None
+    if link:
+        try:
+            state = list_device(link)   # 取ったあとの本体（残ったもの・録画中のもの）
+        except (OSError, subprocess.SubprocessError, ValueError):
+            pass
+    summarize_result(result, link.kind if link else None, state, list(job.problems), usb_blocked)
     job.result = result
     job.log(f'回収した：走行記録 {result["logs"]} 本・動画 {result["videos"]} 本・SDカード {result["sd"]} 本')
     return result
@@ -710,6 +769,7 @@ class App:
         self.link, self.state, self.error, self.job, self.listed_at = link, None, '', None, 0
         self.now, self.watcher = None, None  # 「いまの様子」（now_status.Watcher が置く。見張りを動かしていなければ None）
         self.ops = None                      # 「いまの様子」の操作（app_ops.Ops）
+        self.usb_blocked = False             # テザリングでつないだ本体が、USBでつなげない状態か
         self.lock = threading.Lock()
 
     def refresh(self):
@@ -717,6 +777,10 @@ class App:
             if self.link is None:
                 self.link = find_link(self.ssh_host)
             self.state = list_device(self.link) if self.link else None
+            self.usb_blocked = False
+            if self.state and self.link.kind != 'USB':
+                # ドックをつないだまま起動した本体は、あとでPCへつないでもUSBでつながらない（/sys/class/udc が空）
+                self.usb_blocked = self.link.run('ls /sys/class/udc 2>/dev/null | wc -l', timeout=20).strip() == '0'
             self.error = '' if self.link else 'UNO Qが見つからない（ドックを外し、本体のUSB-CをPCへ直接つないで起動する）'
         except (OSError, subprocess.SubprocessError, ValueError) as exc:
             self.link, self.state, self.error = None, None, f'本体を読めない: {exc}'
@@ -736,7 +800,8 @@ class App:
                           'recording': st.store.alive, 'recording_file': st.store.active_file, 'current_session': st.store.current_session,
                           'logs_bytes': sum(g.size for g in st.store.logs), 'logs_files': len(st.store.logs),
                           'logs_collected': sum(1 for g in st.store.logs if g.collected), 'logs_recording': st.store.active_log,
-                          'deleted': list(reversed(st.deleted))[:100], 'has_dir': st.has_dir}
+                          'deleted': list(reversed(st.deleted))[:100], 'has_dir': st.has_dir,
+                          'evict': evict_risk(st), 'usb_blocked': self.usb_blocked}
             return {'device': device, 'error': self.error, 'sessions': describe(st, pc) if st else [],
                     'pc': {'root': str(pc.root), 'free': free_pc, 'backup': pc.settings.get('backup', ''),
                            'not_backed_up': sum(1 for e in pc.index.values() if pc.settings.get('backup') and
@@ -803,7 +868,7 @@ class App:
                     self.refresh()
                     self.find_sd()
                     link = self.link if self.state else None
-                collect_everything(link, self.pc, job, self.sd_drives)
+                collect_everything(link, self.pc, job, self.sd_drives, self.usb_blocked)
             self.start('回収', everything)
         elif path == '/api/phone':
             self.start('スマホから回収', lambda job: collect_phones(self.pc, job))

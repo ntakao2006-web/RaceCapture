@@ -1,0 +1,33 @@
+# PCの道具（tools/）が使う、Pythonの外部パッケージの一覧（SP-3-10、2026-11-13）
+#
+#   入れ方:  python -m pip install -r tools/requirements.txt
+#
+# - Python は 3.9 以上（根拠は docs/design/pc_app_requirements.md の4章）
+# - 新しい入口のアプリ（tools/video_collect/EcoLogger-App.cmd）と回収・操作メニュー・SUGOの設定・
+#   LTEの命令・HUD/レンズ/露出を「送る」道具は、ここに書いたものが1つも無くても動く（標準ライブラリだけ）
+# - 下の5つが要るのは、走行解析・1周の動画・HUDをPCで見る・レンズをPCで見る、の4か所
+# - 版は「これより新しければよい」のゆるい指定。実際に動かして確かめたのは、右に書いた版（Python 3.14）だけ
+# - Python以外の前提（adb・ssh・ffmpeg など）は pip では入らない。一覧は上の資料の3章
+
+# ---- 解析・動画・見る道具で要るもの --------------------------------------
+numpy>=1.24           # 確かめた版 2.4.4。race_analysis・lap_video・video_hud/hud_preview・lens_view
+pandas>=2.0           # 確かめた版 3.0.2。race_analysis・lap_video/incidents
+scipy>=1.10           # 確かめた版 1.18.0。race_analysis・lap_video（wind_reduce・incidents）
+opencv-python>=4.8    # 確かめた版 5.0.0.93。lens_view（カメラと窓を使うので headless 版は不可）・
+                      #   hud_preview（背景に動画を使うとき）・incidents の sheet
+Pillow>=10.0          # 確かめた版 12.2.0。hud_preview（import は PIL）
+
+# ---- 一部の道具だけ（要るときに # を外す。このPCには入っていない） ----------
+# pydantic>=2.0       # collect_logs.py --config（SDのCSVにCANの列を付ける）のときだけ。
+#                     #   EcoCapture-Web/models.py が使う。回収アプリは --config を渡さないので要らない
+# websockets>=13      # tools/home_telemetry の live_bridge.py（自宅のサーバーで動く）・dev_home.py・
+#                     #   replay_sender.py。websockets.asyncio.server を使うので 13 以上
+
+# ---- 試験・開発だけ（無ければその試験は飛ばされる） --------------------------
+# qrcode>=7.4         # tools/remote_command/test_phone_key.py（自前のQRを見本と突き合わせる）
+# pyzbar>=0.1.9       # 同上（QRを読み戻す。Pillow も使う）
+# 試験そのものは標準の unittest（pytest は使っていない）
+
+# ---- ここに書かないもの ----------------------------------------------------
+# - gi（PyGObject / GStreamer）：tools/lens_view/lens_preview.py は本体（UNO Q）の上で動く。PCには要らない
+# - tkinter：Pythonに付いてくるもので、pip では入らない（操作メニューと Phone-Key.cmd の窓が使う）

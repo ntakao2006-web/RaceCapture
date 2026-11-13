@@ -31,7 +31,9 @@ import threading
 import time
 
 HOST, PORT = "telemetry.podium.live", 8080
-ADB = r"C:\Users\ntaka\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+# adb はPCの道具と同じ探し方で見つける（PCごとのパスを書かない。2026-11-13）
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[2] / "collect_logs"))
+ADB = __import__("collect_logs").find_adb() or "adb"
 AUTH = {"apiVer": 1.1, "device": "RC_APP (RCPMK3)", "ver": "2.19.0 (2.16.1)", "sn": "C3PROTO01"}
 
 # Same order, names, units, ranges and decimals as PodiumEncoder.CHANNELS in the app.

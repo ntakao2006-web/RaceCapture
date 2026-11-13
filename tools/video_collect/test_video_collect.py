@@ -59,6 +59,25 @@ def csv_text(start, seconds):
     return '\n'.join(rows) + '\n'
 
 
+class FakeItem:
+    def __init__(self, collected=False, active=False, kept=False, size=1 << 30):
+        self.collected, self.active, self.kept, self.size = collected, active, kept, size
+
+
+class FakeState:
+    """本体の一覧の代わり（結果のまとめ・入れ替わりの見積もりが見る所だけ）"""
+
+    def __init__(self, items=(), chapters=None, free=20 << 30, minutes=300, active_file=None, active_log=None):
+        self.free, self._minutes = free, minutes
+        items = list(items)
+        self.store = type('Store', (), {
+            'items': items, 'chapters': list(chapters) if chapters is not None else items, 'active_file': active_file, 'active_log': active_log,
+            'deletable_bytes': lambda self_: sum(i.size for i in items if i.collected or (not i.active and not i.kept))})()
+
+    def minutes_left(self):
+        return self._minutes
+
+
 @unittest.skipUnless(SH, 'sh が無い（Git Bash か Linux で動かす）')
 class CollectTests(unittest.TestCase):
     def setUp(self):
@@ -250,6 +269,10 @@ class CollectTests(unittest.TestCase):
                 r = vc.collect_everything(self.link, self.pc, job, [str(card)])
                 self.assertEqual(job.problems, [])
                 self.assertEqual((r['logs'], r['videos'], r['sd']), (1, 5, 1))  # 記録中の走行記録・録画中の章は取らない
+                self.assertEqual(r['got'], ['走行記録 1 本', '動画 5 本', 'SDカードの記録 1 本'])
+                self.assertEqual(r['level'], 'warn')  # 録画中の1本は取っていないので、そのことを結果に出す
+                self.assertIn('いま録画している動画 1 本', [m['what'] for m in r['missed']])
+                self.assertTrue(any('電源を入れ直す' in n for n in r['next']))
                 run = Path(r['folder'])
                 self.assertTrue((run / 'v2_emmc' / tcl.LOGS[0]['name']).is_file())
                 self.assertTrue((run / 'v2_sd' / 'EL000001.BIN').is_file())
@@ -271,6 +294,42 @@ class CollectTests(unittest.TestCase):
             r = vc.collect_everything(None, self.pc, vc.Job('回収'), [str(card)])
         self.assertEqual((r['logs'], r['videos'], r['sd']), (0, 0, 1))
         self.assertTrue(any('本体がつながっていない' in n for n in r['notes']))
+        self.assertEqual((r['got'], r['level']), (['SDカードの記録 1 本'], 'warn'))
+        self.assertEqual(r['missed'], [{'what': '本体の走行記録と動画', 'why': '本体がつながっていない'}])
+        self.assertTrue(any('USB-CをPCへ直接つなぐ' in n for n in r['next']))
+
+    def test_result_says_nothing_new_when_everything_is_on_the_pc(self):
+        r = vc.summarize_result({'logs': 0, 'videos': 0, 'sd': 0, 'notes': []}, 'USB', FakeState(), [])
+        self.assertEqual((r['got'], r['missed'], r['next'], r['level']), ([], [], [], 'none'))
+
+    def test_result_over_tethering_tells_how_to_get_the_videos(self):
+        state = FakeState(chapters=[FakeItem(collected=False), FakeItem(collected=True)])
+        r = vc.summarize_result({'logs': 2, 'videos': 0, 'sd': 0, 'notes': []}, 'テザリング', state, [], usb_blocked=True)
+        self.assertEqual(r['level'], 'warn')
+        self.assertEqual(r['missed'][0]['what'], '本体の動画 1 本')
+        self.assertIn('ドックをつないだまま起動した', r['next'][0])
+        self.assertIn('もう一度「回収する」', r['next'][0])
+        done = vc.summarize_result({'logs': 2, 'videos': 0, 'sd': 0, 'notes': []}, 'テザリング', FakeState(chapters=[FakeItem(collected=True)]), [])
+        self.assertEqual((done['missed'], done['level']), ([], 'ok'))   # 取る動画が残っていなければ、何も言わない
+
+    def test_result_lists_failures_and_the_missing_card(self):
+        r = vc.summarize_result({'logs': 0, 'videos': 0, 'sd': 0, 'notes': ['SDカードは挿さっていなかった']}, 'USB', FakeState(),
+                                ['本体の動画：20261107_090000_01.ts：本体とPCで中身が違う'])
+        self.assertEqual(r['missed'], [{'what': '本体の動画', 'why': '20261107_090000_01.ts：本体とPCで中身が違う'}])
+        self.assertTrue(any('取れたものは取り直しません' in n for n in r['next']))
+        self.assertTrue(any('SDカードの控え' in n for n in r['next']))
+
+    def test_evict_risk_counts_only_what_the_logger_would_delete(self):
+        gib = 1 << 30
+        items = [FakeItem(collected=True, size=4 * gib), FakeItem(collected=False, size=2 * gib),
+                 FakeItem(collected=False, active=True, size=gib), FakeItem(collected=False, kept=True, size=gib)]
+        state = FakeState(items=items, free=3 * gib, minutes=100)
+        risk = vc.evict_risk(state)
+        self.assertEqual((risk['count'], risk['bytes']), (1, 2 * gib))     # 録画中・保護は消えないので数えない
+        self.assertEqual(risk['safe_minutes'], 75)                         # 空き2+回収済み4=6GiBぶんは安全、残り2GiBが回収していないもの
+        self.assertIsNone(vc.evict_risk(FakeState(items=[items[0], items[2]], free=3 * gib)))
+        r = vc.summarize_result({'logs': 0, 'videos': 0, 'sd': 0, 'notes': []}, 'USB', state, [])
+        self.assertTrue(any('あと約75分で古い順に消え始めます' in n for n in r['next']))
 
     def test_http_needs_the_page_header(self):
         app = vc.App(self.pc, None, link=self.link)

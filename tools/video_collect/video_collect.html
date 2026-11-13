@@ -65,6 +65,10 @@ button.big { display: block; width: 100%; font-size: 20px; padding: 14px; margin
 .steps li { margin: 4px 0; }
 .result { background: var(--ok-bg); color: var(--ok); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
 .result .notes { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.result.plain { background: var(--chip); color: var(--text); }
+.result .missed { color: var(--warn); margin-top: 8px; }
+.result .next { color: var(--text); margin-top: 8px; }
+.result ul, .result ol { margin: 2px 0 0; padding-left: 1.4em; font-size: 14px; }
 details.more > summary { font-size: 14px; margin: 16px 0 4px; }
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 10px 0 0; }
 .tabs button { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: none; padding: 8px 14px; font-size: 16px; color: var(--muted); }
@@ -165,8 +169,9 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
     <div class="where"><span class="mark" id="dev-mark">…</span><div><b>ロガー本体</b><div class="sub" id="dev-text">探しています…</div></div></div>
     <div class="where"><span class="mark" id="sd-mark">…</span><div><b>SDカード</b><div class="sub" id="sd-text">探しています…</div></div></div>
     <button class="primary big" id="everything">回収する</button>
-    <div class="sub">つながっているものから、まだPCに無いものを全部取ります。<b>どれも消しません</b>
-      （本体の動画は、回収したものから本体が空きの要るときに自動で消します）。</div>
+    <div class="sub">つながっているものから、まだPCに無いものを全部取ります。<b>回収しても、本体からは消しません。</b>
+      本体は、空きが要るときに、回収済みのものから自分で入れ替えます（ドライブレコーダーと同じ）。回収していないものは最後まで残します。</div>
+    <div id="evict"></div>
     <ol class="steps">
       <li>ドックを外し、本体のUSB-CをPCへつなぐ → <b>回収する</b></li>
       <li>USBを抜いてロガーの電源を切り、SDカードを抜いてPCのカードリーダーへ → もう一度 <b>回収する</b></li>
@@ -334,7 +339,10 @@ function where(s, busy) {
     const logs = d.logs_files - d.logs_collected - (d.logs_recording ? 1 : 0);  // 記録中の1本は取らない
     $('dev-text').textContent = `${d.kind === 'USB' ? 'USBでつながっている' : 'テザリングでつながっている（動画はUSBのときだけ取る）'}・` +
       `まだPCに無いもの：走行記録 ${logs} 本・動画 ${d.videos_uncollected} 本`;
+    if (d.usb_blocked) $('dev-text').textContent += '。★この本体は、ドックをつないだまま起動したので、いまはUSBでつながりません（動画を取るには、ドックを外し、PCとつないだまま本体の電源を入れ直す）';
   } else $('dev-text').textContent = 'つながっていない（ドックを外し、本体のUSB-CをPCへ直接つなぐ）';
+  const ev = d && d.evict;
+  $('evict').innerHTML = ev && ev.safe_minutes < 120 ? `<div class="banner ${ev.safe_minutes < 30 ? 'bad' : 'warn'}">まだ回収していないものが本体に ${ev.count} 本（${gb(ev.bytes)}）あります。このまま録り続けると、<b>あと約${ev.safe_minutes}分</b>で古い順に消え始めます。走る前に回収してください。</div>` : '';
   const sdCards = cards.filter(c => c.files);
   $('sd-mark').className = 'mark' + (sdCards.length ? ' ok' : ''); $('sd-mark').textContent = sdCards.length ? '○' : '—';
   $('sd-text').textContent = sdCards.length ? sdCards.map(c => {
@@ -351,8 +359,15 @@ function resultHtml(r) {
   if (r.phone != null) parts.splice(0, 3, `スマホ ${r.phone} 本`);
   const open = [r.folder && `<button data-open="${esc(r.folder)}">走行記録・SDの保存先を開く</button>`,
     r.videos ? `<button data-open="${esc(r.video_folder)}">動画の保存先を開く</button>` : ''].filter(Boolean).join(' ');
-  return `<div class="result"><b>回収しました：${esc(parts.join('・'))}</b>
+  if (!r.level) return `<div class="result"><b>回収しました：${esc(parts.join('・'))}</b>
     ${r.notes.length ? `<div class="notes">${r.notes.map(esc).join('<br>')}</div>` : ''}
+    ${open ? `<div class="row" style="margin-top:8px">${open}</div>` : ''}</div>`;
+  // 「回収する」の結果：取れたもの・取れなかったもの・次にすること（結果に合わせて出す）
+  const head = r.got.length ? `回収しました：${r.got.join('・')}` : r.level === 'none' ? '新しく取るものはありませんでした（つながっているものは、全部PCにあります）' : '今回は何も取れませんでした';
+  return `<div class="result ${r.got.length ? '' : 'plain'}"><b>${esc(head)}</b>
+    ${r.missed.length ? `<div class="missed"><b>取れなかったもの</b><ul>${r.missed.map(m => `<li>${esc(m.what)} — ${esc(m.why)}</li>`).join('')}</ul></div>` : ''}
+    ${r.next.length ? `<div class="next"><b>次にすること</b><ol>${r.next.map(n => `<li>${esc(n)}</li>`).join('')}</ol></div>` : ''}
+    ${r.got.length ? '<div class="notes">本体からは消していません（回収済みは、本体が空きの要るときに自分で入れ替えます）。</div>' : ''}
     ${open ? `<div class="row" style="margin-top:8px">${open}</div>` : ''}</div>`;
 }
 
