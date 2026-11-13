@@ -106,7 +106,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--apply', action='store_true', help='3つの電圧の信号を登録する（付けなければ確かめるだけ）')
     parser.add_argument('--remove', action='store_true', help='3つの電圧の信号を外す')
-    parser.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    parser.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     args = parser.parse_args(argv)
     run = sugo_setup.runner(args.adb, args.host)

@@ -17,7 +17,7 @@
 セクターの線は2026-11-07のlap.pyから。それより前の本体は sectors を受け付けない（HTTP 422）ので、先に
 install_sectors.py で本体を新しくする。
 
-つなぎ方: 既定は ssh unoq（Pixelのテザリング）。--adb でUSBのadb（ドックを外してPCへ直接つないだとき）。
+つなぎ方: USB（adb）→ テザリング（ssh unoq）の順に自分で探す。--adb はUSBだけに限るとき。
   python sugo_setup.py            # 確かめるだけ
   python sugo_setup.py --apply    # SUGO用へ切り替える
   python sugo_setup.py --reset    # ラップの記録を消す
@@ -62,19 +62,16 @@ KEEP_KEYS = (*PIT_KEYS, 'sectors')  # これだけが違うときはラップの
 
 def runner(use_adb, host):
     """本体でシェルのコマンドを1つ実行して標準出力を返す関数"""
-    if use_adb:
-        from collect_logs import adb_command
-        adb = adb_command()
-        if not adb:
-            sys.exit('adbが見つかりません')
-        head = [*adb, 'shell']
-    else:
-        import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
-        head = unoq_ssh.ssh_cmd(host, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8')
+    import unoq_link  # USB → テザリングの順に自分で探す（tools/collect_logs/unoq_link.py）。use_adb ならUSBだけ
+    try:
+        link = unoq_link.connect(use_adb, host)
+    except unoq_link.NoLink as exc:
+        sys.exit(str(exc))
+    print(f'本体: {link.label()}')
 
     def run(command):
         # 待つ長さは各コマンド（curl -m）が決める。記録の停止はSDの時刻付けが終わるまで返らないので長めに打ち切る
-        done = subprocess.run([*head, command], capture_output=True, text=True, encoding='utf-8', timeout=450)
+        done = subprocess.run(link.argv(command), capture_output=True, text=True, encoding='utf-8', timeout=450)
         if done.returncode:
             raise RuntimeError(f'本体でのコマンドが失敗しました: {done.stderr.strip() or done.stdout.strip()}')
         return done.stdout
@@ -126,7 +123,7 @@ def main(argv=None):
     parser.add_argument('--apply', action='store_true', help='SUGO用へ切り替える（付けなければ確かめるだけ）')
     parser.add_argument('--restore', metavar='FILE', help='本体の ecocapture-v2-data にある退避した lap.json のラインへ戻す')
     parser.add_argument('--reset', action='store_true', help='ラップの記録だけを消す（ラインはそのまま）')
-    parser.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    parser.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     args = parser.parse_args(argv)
     run = runner(args.adb, args.host)

@@ -259,14 +259,8 @@ class Device:
 
     def usb_appeared(self):
         """テザリングでつないでいる間に、USBのadbに機器が出てきたか（速い方を使うため毎回確かめる。0.1秒ほど）"""
-        adb = video_collect.find_adb()
-        if not adb:
-            return False
-        try:
-            lines = subprocess.run([adb, 'devices'], capture_output=True, text=True, timeout=10).stdout.splitlines()
-        except (OSError, subprocess.SubprocessError):
-            return False
-        return any(len(p) >= 2 and p[1] == 'device' for p in (line.split() for line in lines[1:]))
+        import unoq_link  # つなぎ方の共通の部品（tools/collect_logs/unoq_link.py）
+        return unoq_link.usb_ready()
 
     def abandon(self):
         """返ってこない操作を見捨てる。その操作が持っている鍵は待たずに、新しい鍵とつなぎ直しで続ける"""
@@ -422,7 +416,7 @@ class Menu:
         def run():
             try:
                 result, error = work(), None
-            except Exception as exc:  # noqa: BLE001  画面に出して続ける
+            except (Exception, SystemExit) as exc:  # noqa: BLE001  画面に出して続ける（道具が sys.exit で理由を返すことがある）
                 result, error = None, exc
                 diag(f'失敗: {type(exc).__name__}: {exc}')
             for _ in range(20):  # 窓が一時的に応えないときも結果を捨てない

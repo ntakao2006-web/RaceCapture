@@ -184,7 +184,7 @@ def main(argv=None):
     parser.add_argument('--server', action='store_true', help='5Bのブリッジへ入れる')
     parser.add_argument('--no-line', action='store_true', help='本体へ入れても、ラインとセクターの線は変えない')
     parser.add_argument('--force', action='store_true', help='本体・5Bのファイルがリポジトリのどの版とも違っても入れる')
-    parser.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    parser.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     parser.add_argument('--skip-device', action='store_true', help='本体を見ない（5Bだけ）')
     args = parser.parse_args(argv)

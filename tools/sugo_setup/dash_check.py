@@ -11,7 +11,7 @@
 --install        : 本体へ入れて、今と次の電源ONからDASHにする（rootが要るので、EcoCaptureのDockerイメージから
                    nsenterで install-dash.sh を流す）。戻すのは Show-RaceCapture.cmd --boot
 
-つなぎ方は sugo_setup.py と同じ: 既定は ssh unoq（Pixelのテザリング）、--adb でUSBのadb。
+つなぎ方は sugo_setup.py と同じ: USB → テザリング（ssh unoq）の順に自分で探す。--adb はUSBだけ。
   python dash_check.py
   python dash_check.py --sound warn --volume 0.3
   python dash_check.py --install
@@ -43,30 +43,25 @@ DASH = f'cd {WORK} && DISPLAY=:2 GDK_BACKEND=x11 timeout 40 python3 ecocapture_d
 
 class Device:
     def __init__(self, use_adb, host):
+        import unoq_link  # USB → テザリングの順に自分で探す（tools/collect_logs/unoq_link.py）。use_adb ならUSBだけ
         self.host = host
-        self.adb = None
-        if use_adb:
-            from collect_logs import adb_command
-            self.adb = adb_command()
-            if not self.adb:
-                sys.exit('adbが見つかりません')
+        try:
+            self.link = unoq_link.connect(use_adb, host)
+        except unoq_link.NoLink as exc:
+            sys.exit(str(exc))
+        print(f'本体: {self.link.label()}')
 
     def run(self, command, timeout=200):
-        import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
-        head = [*self.adb, 'shell'] if self.adb else unoq_ssh.ssh_cmd(self.host, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8')
-        done = subprocess.run([*head, command], capture_output=True, text=True, encoding='utf-8', errors='replace',
+        done = subprocess.run(self.link.argv(command), capture_output=True, text=True, encoding='utf-8', errors='replace',
                               stdin=subprocess.DEVNULL, timeout=timeout)
         return done.returncode, (done.stdout + done.stderr).strip()
 
     def put(self, local, remote):
-        command = [*self.adb, 'push', str(local), remote] if self.adb else \
-            ['scp', '-q', '-o', 'BatchMode=yes', *__import__('unoq_ssh').target_opts(self.host), str(local), f'{self.host}:{remote}']
-        subprocess.run(command, check=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=120)
+        self.link.put(local, remote)
 
     def get(self, remote, local):
-        command = [*self.adb, 'pull', remote, str(local)] if self.adb else \
-            ['scp', '-q', '-o', 'BatchMode=yes', f'{self.host}:{remote}', str(local)]
-        return subprocess.run(command, capture_output=True, stdin=subprocess.DEVNULL, timeout=120).returncode == 0
+        # 前はテザリングのとき scp に見つけたつなぎ先（IP）を付けておらず、名前が引けないと取れなかった（2026-11-13に直した）
+        return self.link.get(remote, local)
 
 
 def stage(dev, files, folder):
@@ -172,7 +167,7 @@ def main(argv=None):
     parser.add_argument('--sound', choices=['warn'], help='モニターをつないだ状態で警告音を1回鳴らす')
     parser.add_argument('--volume', type=float, default=0.3)
     parser.add_argument('--install', action='store_true', help='本体へ入れて、今と次の電源ONからDASHにする')
-    parser.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    parser.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     args = parser.parse_args(argv)
     dev = Device(args.adb, args.host)

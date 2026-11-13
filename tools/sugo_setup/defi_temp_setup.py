@@ -55,7 +55,7 @@ def main(argv=None):
     parser.add_argument('--apply', action='store_true', help='℃の信号を登録する（付けなければ確かめるだけ）')
     parser.add_argument('--bias', type=float, default=BIAS_V, help=f'Defiがかけている電圧 V、公称5 V換算（既定 {BIAS_V}）')
     parser.add_argument('--pullup', type=float, default=PULLUP_OHM, help=f'Defi内部の抵抗 Ω（既定 {PULLUP_OHM:.0f}）')
-    parser.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    parser.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     args = parser.parse_args(argv)
     run = sugo_setup.runner(args.adb, args.host)

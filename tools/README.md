@@ -8,7 +8,7 @@
 | フォルダー | 中身 |
 |---|---|
 | `ecologger_menu/` | PCの操作メニュー（デスクトップの「EcoLogger Ver.2」）。下に説明 |
-| `video_collect/`・`collect_logs/` | 走行ログ・動画の回収。下に説明 |
+| `video_collect/`・`collect_logs/` | 走行ログ・動画の回収。下に説明。**本体とのつなぎ方の共通の部品`collect_logs/unoq_link.py`**（USB → テザリングを自分で探し、つながらない理由と直し方を返す。本体につなぐ道具を足すときはこれを使う）もここ |
 | `race_analysis/` | 大会後の走行解析。下に説明 |
 | `lap_video/` | 1周だけの動画・切り抜き。下に説明 |
 | `sugo_setup/` | Ver.2をSUGO用の設定へ切り替える道具、DASHの確かめ（`dash_check.py`）。説明は`docs/README.md`の`sugo_day_manual_20261108.html`の項目 |

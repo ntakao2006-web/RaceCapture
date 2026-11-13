@@ -80,7 +80,7 @@ def main(argv=None):
     ap.add_argument('json', nargs='?', default=str(HERE / 'lens.json'))
     ap.add_argument('--off', action='store_true', help='本体から消して、補正しない元の映像に戻す')
     ap.add_argument('--status', action='store_true', help='本体が今どう描いているかを見るだけ')
-    ap.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    ap.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     ap.add_argument('--host', default='unoq')
     args = ap.parse_args(argv)
 
@@ -134,8 +134,7 @@ def main(argv=None):
         print('★本体が読んだことを確かめられませんでした。\n  ' + describe(status))
         return 4
     except (RuntimeError, subprocess.SubprocessError) as e:
-        print(f'本体につながりませんでした：{e}')
-        print('（ssh unoq はPixelのテザリングでつながっているときだけ。USBで直接つないだときは --adb）')
+        print(e if type(e).__name__ == 'NoLink' else f'本体でのコマンドが失敗しました：{e}')
         return 1
 
 

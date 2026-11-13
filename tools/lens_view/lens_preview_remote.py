@@ -5,7 +5,7 @@
 3. 本体のモニターにプレビューを出す（閉じるまで待つ。PC側でCtrl+Cでも閉じる＝開いたときの値は残したまま）
 4. 閉じたら、本体の lens.json をPCの tools/lens_view/lens.json へ写して控える
 
-つなぎ方は Apply-HUD.cmd と同じ（既定は ssh unoq、--adb でUSBのadb）。
+つなぎ方は Apply-HUD.cmd と同じ（USB → テザリングの順に自分で探す。--adb はUSBだけ）。
 """
 import argparse
 import subprocess
@@ -25,18 +25,14 @@ LOCAL_LENS = HERE / 'lens.json'
 
 
 def head_command(use_adb, host):
-    if use_adb:
-        from collect_logs import adb_command, list_uno_q_videos
-        adb = adb_command()
-        serial, _, _ = list_uno_q_videos(adb)
-        return [*adb, '-s', serial, 'shell']
-    import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
-    return unoq_ssh.ssh_cmd(host, '-t', '-o', 'ConnectTimeout=8')
+    """本体のモニターに画面を出す道具を動かす、こちら側の引数の頭（あとへコマンドを1つ足す）"""
+    import unoq_link
+    return unoq_link.connect(use_adb, host).argv('', tty=True)[:-1]
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    ap.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     ap.add_argument('--host', default='unoq')
     args = ap.parse_args(argv)
     try:
@@ -65,8 +61,7 @@ def main(argv=None):
             print(f'本体の値をPCへ控えました：{LOCAL_LENS}')
         return 0
     except (RuntimeError, subprocess.SubprocessError) as e:
-        print(f'本体につながりませんでした：{e}')
-        print('（ssh unoq はPixelのテザリングでつながっているときだけ。USBで直接つないだときは --adb）')
+        print(e if type(e).__name__ == 'NoLink' else f'本体でのコマンドが失敗しました：{e}')
         return 1
 
 

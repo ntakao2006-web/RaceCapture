@@ -111,7 +111,7 @@ def main(argv=None):
     g = ap.add_mutually_exclusive_group()
     for opt in ('status', 'own', 'camera', 'brighter', 'darker'):
         g.add_argument(f'--{opt}', action='store_true')
-    ap.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    ap.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     ap.add_argument('--host', default='unoq')
     args = ap.parse_args(argv)
     try:
@@ -159,8 +159,7 @@ def main(argv=None):
         print('反映されました')
         return 0
     except (RuntimeError, subprocess.SubprocessError) as e:
-        print(f'本体につながりませんでした：{e}')
-        print('（ssh unoq はPixelのテザリングでつながっているときだけ。USBで直接つないだときは --adb）')
+        print(e if type(e).__name__ == 'NoLink' else f'本体でのコマンドが失敗しました：{e}')
         return 1
 
 

@@ -9,7 +9,7 @@
 ないときは、何も送らずに止める（手順書 unoq_video_check_procedure.md 5-14）。針のメーター・弧・コース図・calc.〜 などを
 使う設定は、それに対応した版（2026-11-04以降、手順書5-16）でないと送らない。
 
-つなぎ方：既定は ssh unoq（Pixelのテザリング）。--adb でUSBのadb（ドックを外してPCへ直接つないだとき）。
+つなぎ方：USB（adb）→ テザリング（ssh unoq）の順に自分で探す。--adb はUSBだけに限るとき。
   python hud_apply.py              # hud.ini を送る
   python hud_apply.py 別の.ini
   python hud_apply.py --default    # 自分の配置を本体から消して、元の配置（hud_default.ini）へ戻す
@@ -39,21 +39,12 @@ WAIT_S = 8  # 録画は約1秒ごとに見る。カメラの枚数が落ちて�
 
 def runner(use_adb, host):
     """本体でシェルのコマンドを1つ実行して標準出力を返す関数 run(command, data=None)。data は標準入力へ渡す"""
-    if use_adb:
-        from collect_logs import adb_command, list_uno_q_videos
-        adb = adb_command()
-        if not adb:
-            sys.exit('adbが見つかりません')
-        serial, _, _ = list_uno_q_videos(adb)
-        if not serial:
-            sys.exit('USBでつないだUNO Qが見つかりません（ドックを外してPCへ直接つなぎ、本体を再起動してから）')
-        head = [*adb, '-s', serial, 'shell']
-    else:
-        import unoq_ssh  # 名前が引けないときはIPで探す（tools/collect_logs/unoq_ssh.py）
-        head = unoq_ssh.ssh_cmd(host, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8')
+    import unoq_link  # USB → テザリングの順に自分で探す（tools/collect_logs/unoq_link.py）。use_adb ならUSBだけ
+    link = unoq_link.connect(use_adb, host)   # 見つからなければ NoLink（RuntimeError。理由と直し方つき）
+    print(f'本体: {link.label()}')
 
     def run(command, data=None):
-        done = subprocess.run([*head, command], input=data, capture_output=True, timeout=60)
+        done = subprocess.run(link.argv(command), input=data, capture_output=True, timeout=60)
         out, err = done.stdout.decode('utf-8', 'replace'), done.stderr.decode('utf-8', 'replace')
         if done.returncode:
             raise RuntimeError(f'本体でのコマンドが失敗しました: {err.strip() or out.strip()}')
@@ -188,7 +179,7 @@ def main(argv=None):
     parser.add_argument('--default', action='store_true', help='自分の配置を本体から消して、元の配置へ戻す')
     parser.add_argument('--status', action='store_true', help='本体が今どの配置で描いているかを見るだけ')
     parser.add_argument('--force', action='store_true', help='重さの見積もりが「重すぎる」でも送る')
-    parser.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    parser.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     args = parser.parse_args(argv)
 
@@ -230,8 +221,7 @@ def main(argv=None):
             return back_to_default(run)
         return apply(run, data, need=need)
     except (RuntimeError, subprocess.SubprocessError) as e:
-        print(f'本体につながりませんでした：{e}')
-        print('（ssh unoq はPixelのテザリングでつながっているときだけ。USBで直接つないだときは --adb）')
+        print(e if type(e).__name__ == 'NoLink' else f'本体でのコマンドが失敗しました：{e}')
         return 1
 
 

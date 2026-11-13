@@ -72,7 +72,7 @@ def main(argv=None):
     parser.add_argument('--slim', action='store_true', help='--applyと一緒に：ピット画面の項目だけにする')
     parser.add_argument('--room', metavar='R', help=f'部屋をRにする（--applyは{ROOM}）')
     parser.add_argument('--set', metavar='A,B,...', help='送る項目をこの並びにする（元へ戻すとき）')
-    parser.add_argument('--adb', action='store_true', help='sshでなくUSBのadbでつなぐ')
+    parser.add_argument('--adb', action='store_true', help='USBのadbだけでつなぐ（付けなければ USB → テザリングの順に探す）')
     parser.add_argument('--host', default='unoq', help='sshの接続先（既定 unoq）')
     args = parser.parse_args(argv)
     run = runner(args.adb, args.host)
