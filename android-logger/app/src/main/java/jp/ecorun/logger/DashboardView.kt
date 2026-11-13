@@ -35,12 +35,14 @@ data class Dash(
     /** The Ver.2 logger's own lap count ("ロガー 2周"), null when not connected; [loggerDiffers] when it is not the phone's. */
     val logger: String? = null,
     val loggerDiffers: Boolean = false,
+    /** The Ver.2 logger's own recording, GNSS and sending (not this phone's); null without a logger set up. */
+    val loggerLights: LoggerLights? = null,
 )
 
 /**
  * Landscape driver screen, drawn directly so the numbers can be as large as the
  * phone allows: speed on the left, laps and race clocks on the right, a status
- * strip on top. The bottom [bottomReservePx] is left for the activity's buttons.
+ * strip on top, under it the logger's own lights when one is set up. The bottom [bottomReservePx] is left for the activity's buttons.
  */
 class DashboardView(context: Context) : View(context) {
     var dash = Dash()
@@ -57,6 +59,7 @@ class DashboardView(context: Context) : View(context) {
     private val yellow = Color.rgb(230, 180, 40)
     private val red = Color.rgb(248, 81, 73)
     private val grey = Color.rgb(110, 118, 129)
+    private val outline = Color.rgb(48, 54, 61)
 
     private val bold = Typeface.create("sans-serif-condensed", Typeface.BOLD)
     private val normal = Typeface.create("sans-serif", Typeface.NORMAL)
@@ -85,6 +88,20 @@ class DashboardView(context: Context) : View(context) {
         chip(c, pad * 4 + chipW * 3, pad, chipW, stripH, "電池", (bat?.let { "$it%" } ?: "—") + if (d.charging) " 充電中" else "", batColor)
 
         var top = pad * 2 + stripH
+        // The logger's own lights (SPEC.md M-2): one outlined row headed "ロガー本体", so that it is not
+        // read as the filled chips above, which are this phone's recording and sending.
+        d.loggerLights?.let {
+            val rh = h * 0.06f
+            val y = pad * 1.5f + stripH
+            paint.style = Paint.Style.STROKE; paint.strokeWidth = pad * 0.12f; paint.color = outline
+            rect.set(pad, y, w - pad, y + rh); c.drawRoundRect(rect, rh / 4, rh / 4, paint)
+            paint.style = Paint.Style.FILL
+            val headW = w * 0.14f
+            text(c, "ロガー本体", RectF(pad, y, pad + headW, y + rh), label, normal, 0.62f)
+            val cw = (w - pad * 2 - headW) / 3
+            listOf(it.rec, it.gnss, it.send).forEachIndexed { i, l -> light(c, pad + headW + cw * i, y, cw, rh, l) }
+            top = y + rh + pad
+        }
         d.warning?.let {
             val bh = h * 0.085f
             paint.color = red; rect.set(pad, top, w - pad, top + bh); c.drawRoundRect(rect, bh / 4, bh / 4, paint)
@@ -234,6 +251,15 @@ class DashboardView(context: Context) : View(context) {
         val savingsText = savings?.let { "貯金 " + (if (it >= 0) "+" else "−") + clock(abs(it), false) } ?: (v?.bestS?.let { "ベスト " + clock(it, true) } ?: "")
         tileBox(c, x + w + pad, y, w, h, "前回", v?.lastS?.let { clock(it, true) } ?: "—",
             savingsText, white, if (savings == null) label else if (savings >= 0) green else red)
+    }
+
+    /** All well is plain green text; what has stopped is a filled pill, so only that catches the eye. */
+    private fun light(c: Canvas, x: Float, y: Float, w: Float, h: Float, l: Light) {
+        val box = RectF(x, y, x + w, y + h)
+        val fill = when (l.kind) { Light.Kind.BAD -> red; Light.Kind.WARN -> yellow; else -> null }
+        if (fill == null) { text(c, l.text, box, if (l.kind == Light.Kind.OK) green else grey, normal, 0.7f); return }
+        paint.color = fill; rect.set(x + w * 0.2f, y + h * 0.1f, x + w * 0.8f, y + h * 0.9f); c.drawRoundRect(rect, h / 4, h / 4, paint)
+        text(c, l.text, RectF(rect), if (l.kind == Light.Kind.BAD) white else bg, bold, 0.8f)
     }
 
     private fun chip(c: Canvas, x: Float, y: Float, w: Float, h: Float, name: String, value: String, color: Int) {

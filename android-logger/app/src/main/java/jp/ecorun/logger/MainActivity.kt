@@ -170,6 +170,9 @@ class MainActivity : Activity() {
             category = listOfNotNull(settings.raceClass?.code, if (Race.config().start != null) "エコラン式" else "サーキット式").joinToString("・"),
             logger = loggerLaps(settings),
             loggerDiffers = loggerLaps(settings) != null && LoggerFeed.lapCount != Race.values()?.count,
+            // "--" until the logger is joined, which is when recording starts (LoggerService), and when its frames stop
+            loggerLights = if (!settings.loggerConfigured) null
+                else LoggerLights.of(LoggerFeed.fresh(now), LoggerFeed.mcu, LoggerFeed.rec, LoggerFeed.fix, LoggerFeed.send),
             reference = Race.reference?.id?.let { "基準$it" } ?: "基準なし",
             source = if (!settings.loggerConfigured) null else if (running && Status.fromLogger) "ロガー" else "スマホ",
             warning = warning(running, now),

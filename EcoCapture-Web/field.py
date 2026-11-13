@@ -29,6 +29,7 @@ from podium import utc_milliseconds
 
 FIELD_PORT = int(os.environ.get('ECOCAPTURE_FIELD_PORT', 8082))
 LIVE_PERIOD_S = 0.1
+SEND_STALE_S = 5.0  # as EcoCapture DASH's send_stale_s (RaceCapture-UNOQ/dash_model.py)
 MDNS_NAME = os.environ.get('ECOCAPTURE_MDNS_NAME', 'uno-q.local')
 WEB = Path(__file__).parent / 'web'
 PAGES = {'/': ('field.html', 'text/html'), '/field.js': ('field.js', 'text/javascript'),
@@ -187,6 +188,7 @@ def live_frame(runtime):
             'yaw': values.get('Yaw'), 'fix': values.get('GPSFix'), 'sats': values.get('GPSSats'),
             'hacc_m': (sample or {}).get('gnss_hacc_m'),
             'rec': bool(status['logging'].get('active')),
+            'send': send_state(status.get('podium')),
             # The lines (the same text as the QR code) and the logger's own lap count, so the
             # phone can follow the lines before the start and show where the logger stands.
             'line_id': code_id, 'line_code': code, 'total_laps': line.total_laps,
@@ -194,6 +196,23 @@ def live_frame(runtime):
             'lap': {'count': state['count'], 'laps_left': lap['LapsLeft'], 'finished': state['finished'],
                     'running': state['lap_start_ms'] is not None or state['race_start_ms'] is not None},
             'dash': dash_frame(status, sample)}
+
+
+def send_state(podium, stale_s=SEND_STALE_S):
+    """'ok' / 'warn' / 'off' / None: whether the logger's rows go out, for the dash phone's light
+    (android-logger LoggerLights.kt; SPEC.md M-2), from podium.py status(). The same rule as the kind of
+    EcoCapture DASH's send_light (RaceCapture-UNOQ/dash_model.py), which this app cannot import;
+    test_field.py holds the two together. 'ok': streaming, and the last row went out within stale_s.
+    'warn': sending is on but nothing is going out. 'off': sending is switched off. None: not known."""
+    if not isinstance(podium, dict):
+        return None
+    enabled = podium.get('enabled')
+    if enabled is False or (enabled is None and podium.get('state') == 'off'):
+        return 'off'
+    age = podium.get('last_sent_age_ms')
+    if isinstance(age, bool) or not isinstance(age, (int, float)) or not math.isfinite(age):
+        age = None
+    return 'ok' if podium.get('state') == 'streaming' and age is not None and age <= stale_s * 1000 else 'warn'
 
 
 def dash_frame(status, sample):

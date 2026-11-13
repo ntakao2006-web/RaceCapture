@@ -1,3 +1,5 @@
+import importlib.util
+import json
 import os
 import tempfile
 import unittest
@@ -10,6 +12,7 @@ from lap import LapTimer
 from test_lap import LAT0, EARTH_M_PER_DEG, fix
 
 HEAD = {'X-EcoCapture': '1'}
+DASH_MODEL = Path(__file__).resolve().parent.parent / 'RaceCapture-UNOQ' / 'dash_model.py'
 
 
 class FakeRuntime:
@@ -19,9 +22,11 @@ class FakeRuntime:
         self.connected = True
         self.logging = {'active': True, 'error': None, 'sd_warning': None}
         self.video = None
+        self.podium = None  # None: status() without the item
 
     def status(self):
-        return {'connected': self.connected, 'logging': self.logging, 'video': self.video}
+        status = {'connected': self.connected, 'logging': self.logging, 'video': self.video}
+        return status if self.podium is None else {**status, 'podium': self.podium}
 
     def feed(self, sample):
         self.laps.update(sample)
@@ -117,6 +122,56 @@ class FieldTests(unittest.TestCase):
             dash = ws.receive_json()['dash']
         self.assertEqual(dash['speed'], 42.0)  # no GNSS speed: the car's
         self.assertIsNone(dash['press'])  # not wired: no oil pressure, so no warning on the phone
+
+    def test_live_stream_says_whether_the_logger_sends(self):
+        # The eco-run screen's light (android-logger LoggerLights.kt, SPEC.md M-2): one word, None when not known.
+        def frame():
+            with self.client.websocket_connect(f'/api/field/live?k={self.token}') as ws:
+                return ws.receive_json()
+        self.assertIn('send', frame())
+        self.assertIsNone(frame()['send'])  # status() without 'podium'
+        ok = {'enabled': True, 'state': 'streaming', 'message': 'センサ値を送信中', 'last_sent_age_ms': 120}
+        for podium, want in ((ok, 'ok'), ({**ok, 'last_sent_age_ms': 5000}, 'ok'), ({**ok, 'last_sent_age_ms': 5001}, 'warn'),
+                             ({**ok, 'last_sent_age_ms': None}, 'warn'), ({**ok, 'state': 'retry'}, 'warn'),
+                             ({**ok, 'state': 'waiting_gps'}, 'warn'),
+                             ({'enabled': False, 'state': 'off', 'last_sent_age_ms': 90000}, 'off')):
+            self.runtime.podium = podium
+            self.assertEqual(frame()['send'], want, podium)
+        # Sending does not wait for the MCU or the log: the light is there without a sample and without recording
+        self.runtime.podium = ok
+        self.runtime.connected = False
+        self.runtime.logging = {'active': False, 'error': None, 'sd_warning': None}
+        self.assertEqual((frame()['send'], frame()['rec'], frame()['fix']), ('ok', False, None))
+
+    def test_send_state_is_one_small_word(self):
+        ok = {'enabled': True, 'state': 'streaming', 'last_sent_age_ms': 120}
+        self.runtime.feed(fix(1500, 10.0, speed=31.0, hacc=0.6))
+        without = len(json.dumps(field.live_frame(self.runtime)))
+        self.runtime.podium = ok
+        self.assertLessEqual(len(json.dumps(field.live_frame(self.runtime))) - without, 2)  # null -> "ok"
+        self.runtime.podium = {**ok, 'state': 'retry'}
+        self.assertLessEqual(len(json.dumps(field.live_frame(self.runtime))) - without, 2)  # null -> "warn"
+        self.assertEqual(len(json.dumps({'send': 'warn'})) - len(json.dumps({})), 14)  # the item at its longest
+
+    @unittest.skipUnless(DASH_MODEL.exists(), 'RaceCapture-UNOQ/dash_model.py is not here (on the logger)')
+    def test_send_state_is_the_kind_of_the_dash_light(self):
+        # field.py cannot import RaceCapture-UNOQ, so the rule is written twice: this holds them together.
+        spec = importlib.util.spec_from_file_location('dash_model_for_field_test', DASH_MODEL)
+        dash_model = importlib.util.module_from_spec(spec); spec.loader.exec_module(dash_model)
+        self.assertEqual(field.SEND_STALE_S, dash_model.DEFAULTS['send_stale_s'])
+        states = ('streaming', 'off', 'connecting', 'authenticating', 'waiting', 'waiting_gps', 'retry', 'auth_failed',
+                  'relay_connecting', None, 7)
+        ages = (None, 0, 120, 4999.5, 5000, 5001, 90000, -1, 'x', True, float('nan'), float('inf'))
+        cases = [None, 'streaming', [], 3, {}, {'state': 'off'}, {'state': 'streaming', 'last_sent_age_ms': 80}]
+        for enabled in (True, False, None, 'absent'):
+            for state in states:
+                for age in ages:
+                    podium = {'state': state, 'last_sent_age_ms': age}
+                    cases.append(podium if enabled == 'absent' else {**podium, 'enabled': enabled})
+        for podium in cases:
+            for stale_s in (field.SEND_STALE_S, 2.0):
+                self.assertEqual(field.send_state(podium, stale_s), dash_model.send_light(podium, stale_s)[1], (podium, stale_s))
+        self.assertEqual({field.send_state(p) for p in cases}, {'ok', 'warn', 'off', None})
 
     def test_page_is_served_without_admin_routes(self):
         page = self.client.get('/')

@@ -33,6 +33,7 @@ object LoggerFeed {
     @Volatile var accuracyM: Double? = null
     @Volatile var speedKmh: Double? = null
     @Volatile var rec = false
+    @Volatile var send: String? = null    // "ok" / "warn" / "off" (field.py send_state); null: not known, or an older logger
     @Volatile var lineId: String? = null
     @Volatile var error = ""
     // The logger's own lap timer (lap.py), shown next to the phone's for comparison.
@@ -63,7 +64,7 @@ object LoggerFeed {
     }
 
     fun reset() { wifi = false; host = ""; socket = false; lastFrameAt = 0; lastFixAt = 0; mcu = false; fix = 0; sats = 0
-        accuracyM = null; speedKmh = null; rec = false; lineId = null; error = ""
+        accuracyM = null; speedKmh = null; rec = false; send = null; lineId = null; error = ""
         lapCount = null; lapsLeft = null; lapFinished = false; lapRunning = false; totalLaps = null
         timeLimitS = null; marginS = null }
 
@@ -241,6 +242,7 @@ class LoggerLink(private val context: Context, private val ssid: String, private
         LoggerFeed.accuracyM = num("hacc_m")
         LoggerFeed.speedKmh = num("speed")
         LoggerFeed.rec = j.optBoolean("rec")
+        LoggerFeed.send = if (j.isNull("send")) null else j.optString("send")
         LoggerFeed.lineId = if (j.isNull("line_id")) null else j.optString("line_id")
         LoggerFeed.totalLaps = num("total_laps")?.toInt()
         LoggerFeed.timeLimitS = num("time_limit_s")
