@@ -1,0 +1,346 @@
+{
+ "format": 1,
+ "id": "ncec",
+ "name": "ロードスター NCEC（2005 MT・後期エンジンへ載せ替え・NOPRO MZ-TUNE+）",
+ "logger": {
+  "profile": "ncec-2005-mt",
+  "can_bitrate": 500000,
+  "signals": [
+   {
+    "channel": 1,
+    "name": "RPM",
+    "unit": "rpm",
+    "can_id": 513,
+    "extended": false,
+    "byte_offset": 0,
+    "data_type": "uint16",
+    "endian": "big",
+    "scale": 0.25,
+    "offset": 0.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "Speed",
+    "unit": "km/h",
+    "can_id": 513,
+    "extended": false,
+    "byte_offset": 4,
+    "data_type": "uint16",
+    "endian": "big",
+    "scale": 0.01,
+    "offset": -100.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "WheelFrontA",
+    "unit": "km/h",
+    "can_id": 1200,
+    "extended": false,
+    "byte_offset": 0,
+    "data_type": "uint16",
+    "endian": "big",
+    "scale": 0.01,
+    "offset": -100.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "WheelFrontB",
+    "unit": "km/h",
+    "can_id": 1200,
+    "extended": false,
+    "byte_offset": 2,
+    "data_type": "uint16",
+    "endian": "big",
+    "scale": 0.01,
+    "offset": -100.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "WheelRearA",
+    "unit": "km/h",
+    "can_id": 1200,
+    "extended": false,
+    "byte_offset": 4,
+    "data_type": "uint16",
+    "endian": "big",
+    "scale": 0.01,
+    "offset": -100.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "WheelRearB",
+    "unit": "km/h",
+    "can_id": 1200,
+    "extended": false,
+    "byte_offset": 6,
+    "data_type": "uint16",
+    "endian": "big",
+    "scale": 0.01,
+    "offset": -100.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "WaterTemp",
+    "unit": "°C",
+    "can_id": 576,
+    "extended": false,
+    "byte_offset": 1,
+    "data_type": "uint8",
+    "endian": "big",
+    "scale": 1.0,
+    "offset": -40.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "WaterTempBackup",
+    "unit": "°C",
+    "can_id": 1056,
+    "extended": false,
+    "byte_offset": 0,
+    "data_type": "uint8",
+    "endian": "big",
+    "scale": 1.0,
+    "offset": -40.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "Throttle",
+    "unit": "%",
+    "can_id": 576,
+    "extended": false,
+    "byte_offset": 3,
+    "data_type": "uint8",
+    "endian": "big",
+    "scale": 0.39215686274509803,
+    "offset": 0.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "IntakeTemp",
+    "unit": "°C",
+    "can_id": 576,
+    "extended": false,
+    "byte_offset": 4,
+    "data_type": "uint8",
+    "endian": "big",
+    "scale": 1.0,
+    "offset": -40.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "FuelLevelRaw",
+    "unit": "%",
+    "can_id": 1072,
+    "extended": false,
+    "byte_offset": 0,
+    "data_type": "uint8",
+    "endian": "big",
+    "scale": 0.39215686274509803,
+    "offset": 0.0,
+    "bit_mask": null,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 1,
+    "name": "ClutchDisengaged",
+    "unit": "",
+    "can_id": 561,
+    "extended": false,
+    "byte_offset": 1,
+    "data_type": "uint8",
+    "endian": "big",
+    "scale": 1.0,
+    "offset": 0.0,
+    "bit_mask": 2,
+    "conversion": "linear",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 2,
+    "name": "OilTemp",
+    "unit": "°C",
+    "can_id": 1408,
+    "extended": false,
+    "byte_offset": 4,
+    "data_type": "uint16",
+    "endian": "little",
+    "scale": 0.00022023831547641074,
+    "offset": 0.0,
+    "bit_mask": null,
+    "conversion": "ntc",
+    "pullup_ohm": 2441.0,
+    "ntc_points": [
+     [
+      -1.0,
+      27600.0
+     ],
+     [
+      97.0,
+      1145.0
+     ]
+    ]
+   },
+   {
+    "channel": 2,
+    "name": "PressVolt",
+    "unit": "V",
+    "can_id": 1408,
+    "extended": false,
+    "byte_offset": 0,
+    "data_type": "uint16",
+    "endian": "little",
+    "scale": 0.001221001221001221,
+    "offset": 0.0,
+    "bit_mask": null,
+    "conversion": "defi_volt",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 2,
+    "name": "Temp1Volt",
+    "unit": "V",
+    "can_id": 1408,
+    "extended": false,
+    "byte_offset": 2,
+    "data_type": "uint16",
+    "endian": "little",
+    "scale": 0.001221001221001221,
+    "offset": 0.0,
+    "bit_mask": null,
+    "conversion": "defi_volt",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 2,
+    "name": "Temp2Volt",
+    "unit": "V",
+    "can_id": 1408,
+    "extended": false,
+    "byte_offset": 4,
+    "data_type": "uint16",
+    "endian": "little",
+    "scale": 0.001221001221001221,
+    "offset": 0.0,
+    "bit_mask": null,
+    "conversion": "defi_volt",
+    "pullup_ohm": null,
+    "ntc_points": []
+   },
+   {
+    "channel": 2,
+    "name": "WaterTempDefi",
+    "unit": "°C",
+    "can_id": 1408,
+    "extended": false,
+    "byte_offset": 2,
+    "data_type": "uint16",
+    "endian": "little",
+    "scale": 0.00022023831547641074,
+    "offset": 0.0,
+    "bit_mask": null,
+    "conversion": "ntc",
+    "pullup_ohm": 2441.0,
+    "ntc_points": [
+     [
+      -1.0,
+      27600.0
+     ],
+     [
+      97.0,
+      1145.0
+     ]
+    ]
+   }
+  ]
+ },
+ "send": {
+  "room": "ncec",
+  "channels": [
+   "Lat",
+   "Lon",
+   "Speed",
+   "GPSSats",
+   "RPM",
+   "WaterTemp",
+   "OilTemp",
+   "LongAccel",
+   "LatAccel"
+  ]
+ },
+ "dash": {
+  "oil_warn": 120.0,
+  "water_warn": 110.0,
+  "oil_press_warn": [
+   [
+    1500,
+    100
+   ],
+   [
+    3000,
+    200
+   ]
+  ],
+  "oil_press_min_rpm": 1500,
+  "rpm_bar_start": 4000,
+  "shift_rpm": 7500,
+  "rpm_segments": 30,
+  "limit_rpm": 7950
+ },
+ "analysis": {
+  "tread_m": [
+   1.49,
+   1.495
+  ]
+ },
+ "notes": [
+  "logger：本体が読む信号と換算（EcoCaptureの設定 config.json と同じ形）。車載CAN（channel 1）の12個は EcoCapture-Web/ncec.py、Defiの電圧と温度（channel 2、0x580）の5個は tools/sugo_setup/defi_volt_setup.py・defi_temp_setup.py が元",
+  "send：LTEでピットへ送る項目と、中継の部屋の名前（tools/sugo_setup/podium_channels_setup.py の9項目）",
+  "dash：車載画面の警告としきい値（RaceCapture-UNOQ/dash_model.py の DEFAULTS のうち、車で決まるもの）",
+  "analysis：解析が使う車の値（前後のトレッド、m）"
+ ]
+}

@@ -22,6 +22,9 @@ from scipy.signal import find_peaks
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 CFG = json.load(open(sys.argv[1], encoding='utf-8'))
+# 解析の設定に "course"・"vehicle"（tools/setups の名前）があれば、線とトレッドをそこから読む（2026-11-13、SP-4-5）
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parents[1] / 'setups'))
+CFG = __import__('setups').fill_analysis(CFG)
 RP = lambda p: p if os.path.isabs(p) else os.path.join(REPO, p)
 OUT = os.path.join(RP(CFG['out_dir']), 'detail'); os.makedirs(OUT, exist_ok=True)
 PUB = os.path.join(RP(CFG['out_dir']), 'pub'); os.makedirs(PUB, exist_ok=True)

@@ -1,0 +1,54 @@
+{
+ "format": 1,
+ "id": "sugo",
+ "name": "スポーツランドSUGO 国際レーシングコース",
+ "line": {
+  "enabled": true,
+  "lat": 38.1423181,
+  "lon": 140.7779443,
+  "bearing": 97.5,
+  "width_m": 50.0,
+  "min_lap_s": 60.0,
+  "max_lap_s": 3600.0,
+  "start": null,
+  "goal": null,
+  "total_laps": null,
+  "time_limit_s": null,
+  "margin_s": null,
+  "pit_offset_m": 11.0,
+  "pit_max_kmh": 80.0,
+  "sectors": [
+   {
+    "lat": 38.1392767,
+    "lon": 140.7787425,
+    "bearing": 71.0,
+    "width_m": 30.0
+   },
+   {
+    "lat": 38.13847,
+    "lon": 140.7774769,
+    "bearing": 253.5,
+    "width_m": 30.0
+   },
+   {
+    "lat": 38.1408947,
+    "lon": 140.7730358,
+    "bearing": 252.5,
+    "width_m": 30.0
+   }
+  ]
+ },
+ "dash": {
+  "pit_speed_limit_kmh": 60,
+  "pit_speed_warn_kmh": 56,
+  "pit_lane_max_kmh": 80
+ },
+ "confirm": {
+  "racing_speed_kmh": 100
+ },
+ "notes": [
+  "line：コントロールラインとセクターの線（本体の lap.json の line と同じ形）。自分たちで引いた線（2026-11-07の走行会で計測のビーコンが置かれていた位置。tools/sugo_setup/sugo_setup.py の SUGO_LINE が元）",
+  "dash：車載画面の、コースで決まる値（ピットレーンの制限速度）",
+  "confirm.racing_speed_kmh：この速さ以上で走っているときに線を変えるなら、確認を1つ増やす（SPEC.md 7-5）"
+ ]
+}
