@@ -151,7 +151,7 @@ class Watcher:
     def __init__(self, app, survey=None, reader=read, sleep=time.sleep):
         self.app, self.reader, self.sleep = app, reader, sleep
         self.survey = survey or (lambda: unoq_link.survey(app.ssh_host))
-        app.now = {'phase': 'searching', 'notes': [], 'checks': [], 'extra': [], 'usb_hint': '', 'read_at': 0, 'via': '', 'lte': None}
+        app.now = {'phase': 'searching', 'notes': [], 'checks': [], 'extra': [], 'usb_hint': '', 'read_at': 0, 'via': '', 'lte': None, 'op': None, 'key': None}
 
     def start(self):
         threading.Thread(target=self.loop, daemon=True).start()

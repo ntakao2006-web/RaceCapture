@@ -709,6 +709,7 @@ class App:
         self.sd = {'cards': [], 'checked': {}}  # PCに挿したSDカード、確かめた結果
         self.link, self.state, self.error, self.job, self.listed_at = link, None, '', None, 0
         self.now, self.watcher = None, None  # 「いまの様子」（now_status.Watcher が置く。見張りを動かしていなければ None）
+        self.ops = None                      # 「いまの様子」の操作（app_ops.Ops）
         self.lock = threading.Lock()
 
     def refresh(self):
@@ -722,6 +723,8 @@ class App:
         self.listed_at = time.time()
 
     def snapshot(self):
+        if self.ops:
+            self.ops.expire()
         with self.lock:
             st, pc = self.state, self.pc
             free_pc = shutil.disk_usage(pc.root).free
@@ -788,6 +791,10 @@ class App:
 
     def action(self, path, body):
         groups = body.get('sessions')
+        if path.startswith('/api/op/'):
+            if not self.ops:
+                raise RuntimeError('この開き方では操作できません（EcoLogger-App.cmd から開く）')
+            return self.ops.action(path, body)
         if path == '/api/everything':
             def everything(job):
                 job.step = '本体とSDカードを探す'
@@ -980,7 +987,9 @@ def main(argv=None):
     app.find_sd()
     # 本体は裏で探し続ける（ロガーが無くても画面はすぐ開く。つながったら自分で読み始める。2026-11-13、SP-3-3）
     import now_status
+    import app_ops
     app.watcher = now_status.Watcher(app)
+    app.ops = app_ops.Ops(app)
     app.watcher.start()
     serve(app, args.port, not args.no_browser, args.tab)
     return 0

@@ -84,6 +84,13 @@ details.more > summary { font-size: 14px; margin: 16px 0 4px; }
 .ways { margin: 6px 0 0; padding: 0; list-style: none; }
 .ways li { padding: 8px 0; border-top: 1px solid var(--line); }
 .ways li:first-child { border-top: 0; }
+.opbox { border-radius: 10px; padding: 10px 12px; margin-top: 10px; background: var(--warn-bg); }
+.opbox .code { font: 600 22px/1 Consolas, monospace; letter-spacing: .2em; }
+.opbox input { font: 600 20px/1 Consolas, monospace; width: 6em; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); letter-spacing: .15em; }
+.opres { border-radius: 10px; padding: 10px 12px; margin-top: 10px; background: var(--ok-bg); }
+.opres.bad { background: var(--bad-bg); color: var(--bad); }
+input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); }
+#key-canvas { background: #fff; border-radius: 8px; display: block; margin: 8px 0; }
 [hidden] { display: none !important; }
 @media (max-width: 600px) { .tile .v { font-size: 19px; } }
 </style>
@@ -104,19 +111,51 @@ details.more > summary { font-size: 14px; margin: 16px 0 4px; }
         <div class="sub">つなぐと、この画面が自分で切り替わります（探し続けています）。つながらない理由と直し方：</div>
         <ul class="ways" id="now-ways"></ul>
       </div>
-      <div class="panel">
-        <h2>LTEで聞く</h2>
-        <div class="sub">ロガーが遠くにあっても、電源が入ってLTEがつながっていれば、様子を聞けます（返事まで数秒かかります）。</div>
-        <div class="row" style="margin-top:8px"><button id="now-lte">LTEで状態を聞く</button><span class="sub" id="now-lte-note"></span></div>
-        <div class="bar" id="now-lte-bar" hidden><div></div></div>
-        <div id="now-lte-out" style="margin-top:8px"></div>
-      </div>
     </div>
     <div id="now-connected" hidden>
       <div class="row" style="margin:12px 0 8px"><b id="now-summary"></b><span class="sub" id="now-age"></span></div>
       <div id="now-hint"></div>
       <div class="checks" id="now-checks"></div>
       <div class="tiles" id="now-extra"></div>
+    </div>
+    <div class="panel" id="ops" hidden>
+      <h2>操作</h2>
+      <div class="sub" id="op-way"></div>
+      <div class="row" style="margin-top:8px">
+        <button id="op-reset">ラップを0周に戻す</button>
+        <button id="op-status">LTEで状態を聞く</button>
+      </div>
+      <div class="opbox" id="op-confirm" hidden>
+        <b id="opc-title"></b>
+        <div id="opc-body" style="margin:4px 0 8px"></div>
+        <div class="row" id="opc-code-row"><span>確認の数字 <span class="code" id="opc-code"></span> を入れてください</span>
+          <input id="opc-input" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="確認の数字"></div>
+        <div class="row" style="margin-top:8px"><button class="primary" id="opc-send">送る</button><button id="opc-cancel">やめる</button><span class="sub" id="opc-msg" style="color:var(--bad)"></span></div>
+      </div>
+      <div id="op-run" hidden style="margin-top:10px"><div class="sub" id="op-run-text"></div><div class="bar"><div id="op-run-bar"></div></div></div>
+      <div id="op-out"></div>
+      <div id="lte-view" style="margin-top:10px"></div>
+      <details class="more"><summary>ほかの操作・合言葉</summary>
+        <div class="sub" style="margin-top:6px">LTEで送る（ロガーがLTEでつながっていれば、遠くからでも届きます）</div>
+        <div class="row" style="margin-top:6px">
+          <input class="num" id="op-count" type="number" min="0" max="999" placeholder="周" aria-label="周回数">
+          <button id="op-count-send">周回数を直す</button>
+          <button id="op-lap-start">いまから計測を始める</button>
+          <button id="op-log-start">記録を始める</button>
+        </div>
+        <div class="sub" style="margin-top:12px">合言葉（LTEの命令に付ける、PCと本体だけが知っている鍵）</div>
+        <div class="row" style="margin-top:6px">
+          <button id="op-key">スマホへ合言葉を渡す（QR）</button>
+          <button id="op-setup">合言葉の準備</button>
+          <button id="op-setup-new" class="danger">合言葉を作り直す</button>
+        </div>
+        <div id="key-box" hidden>
+          <canvas id="key-canvas" width="10" height="10"></canvas>
+          <div class="sub" id="key-where"></div>
+          <div class="sub" style="color:var(--bad)">スマホのカメラで読むと、ピットの表紙が開いて合言葉が入ります。このQRには合言葉そのものが入っています。写真に撮って送ったり、画面を共有・配信したりしないでください。期限はありません。渡しすぎたときは「合言葉を作り直す」。</div>
+          <div class="row" style="margin-top:6px"><button id="key-hide">QRを閉じる</button><span class="sub" id="key-left"></span></div>
+        </div>
+      </details>
     </div>
     <div class="sub" id="now-foot" style="margin-top:10px"></div>
   </section>
@@ -360,18 +399,75 @@ function renderNow(s) {
     $('now-checks').innerHTML = checksHtml(n.checks); $('now-extra').innerHTML = extraHtml(n.extra);
   } else {
     $('now-ways').innerHTML = n.notes.length ? n.notes.filter(w => !w.ok).map(w => `<li><b>${esc(w.way)}</b>：${esc(w.text)}<div class="sub">→ ${esc(w.fix)}</div></li>`).join('') : '<li class="sub">探しています…（最初は十数秒かかります）</li>';
-    const l = n.lte || {};
-    $('now-lte').disabled = !!l.running; $('now-lte-bar').hidden = !l.running;
-    if (l.running && !$('now-lte-bar').dataset.on) { const b = $('now-lte-bar').firstElementChild; $('now-lte-bar').dataset.on = 1; b.style.transition = 'none'; b.style.width = '0';
-      requestAnimationFrame(() => { b.style.transition = 'width 30s linear'; b.style.width = '100%'; }); }
-    if (!l.running) delete $('now-lte-bar').dataset.on;
-    $('now-lte-note').textContent = l.running ? 'LTEで送りました。ロガーの返事を待っています…（最大30秒）' : '';
-    $('now-lte-out').innerHTML = l.error ? `<div class="banner bad">${esc(l.error)}</div>` : l.checks ? `<div class="sub" style="margin-bottom:6px">${summary(l.checks)}（LTEで ${Math.max(0, Math.round(s.time - l.read_at))}秒前に聞いた値。自動では更新しません）</div>
-      <div class="checks">${checksHtml(l.checks)}</div><div class="tiles">${extraHtml(l.extra)}</div>` : '';
   }
+  renderOps(s);
   $('now-foot').textContent = '';
 }
-$('now-lte').onclick = () => post('/api/now/lte');
+
+// ---------------------------------------------------------------- 操作（SPEC.md 7-5：同じバー・読み直した値・使えない理由を出す）
+let opPending = null, opCode = '', opShownEnd = 0, keyShown = 0;
+const opNote = (html, bad) => { $('op-out').innerHTML = html ? `<div class="opres ${bad ? 'bad' : ''}">${html}</div>` : ''; };
+async function opPost(path, body = {}) {
+  $('op-confirm').hidden = true; opNote('');
+  const r = await fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Video-Collect': '1'}, body: JSON.stringify(body)});
+  if (!r.ok) { const e = await r.json().catch(() => ({})); opNote('<b>いまは使えません。</b>' + esc(e.error || r.statusText), true); }
+  load();
+}
+/** 送る前の確認。needCode なら、画面に出した4桁を入れてもらう（LTEで変えるとき） */
+function opAsk(title, body, needCode, onSend) {
+  opPending = onSend; opNote(''); $('opc-title').textContent = title; $('opc-body').innerHTML = body;
+  opCode = needCode ? String(1000 + Math.floor(Math.random() * 9000)) : '';
+  $('opc-code-row').hidden = !needCode; $('opc-code').textContent = opCode; $('opc-input').value = ''; $('opc-msg').textContent = '';
+  $('op-confirm').hidden = false; if (needCode) $('opc-input').focus();
+}
+$('opc-cancel').onclick = () => { $('op-confirm').hidden = true; opPending = null; };
+$('opc-send').onclick = () => {
+  if (opCode && $('opc-input').value.trim() !== opCode) { $('opc-msg').textContent = '数字が違います。画面の4桁をそのまま入れてください'; return; }
+  const go = opPending; opPending = null; if (go) go();
+};
+$('opc-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('opc-send').click(); });
+const viaLte = () => !(last && last.now && last.now.phase === 'connected');
+const LTE_NOTE = '<br>LTEで送ります。ロガーが走っているかどうかはここからは分からないので、確認の数字を入れてから送ります。';
+$('op-reset').onclick = () => { const lte = viaLte();
+  opAsk('ラップを0周に戻します', 'ラップの記録（周回数・ラップタイム）を消して、0周に戻します。線はそのまま、記録は止まりません。' + (lte ? LTE_NOTE : `<br>${esc(last.now.via)}で、本体へ直接送ります。`), lte, () => opPost('/api/op/lap_reset')); };
+$('op-status').onclick = () => opPost('/api/op/lte', {op: 'status'});
+$('op-count-send').onclick = () => { const v = $('op-count').value.trim(), n = Number(v);
+  if (v === '' || !Number.isInteger(n) || n < 0 || n > 999) return opNote('<b>周回数を、左の欄に0〜999の数字で入れてください。</b>', true);
+  opAsk(`周回数を ${n} 周に直します`, 'ラップタイムの記録はそのまま、完了した周回数だけが変わります。' + LTE_NOTE, true, () => opPost('/api/op/lte', {op: 'lap_count', arg: n})); };
+$('op-lap-start').onclick = () => opAsk('いまから計測を始めます', '線を通らなくても、いまをスタートとして数え始めます（スタートを取り逃したとき）。すでに計測中のときは、ロガーが断ります。' + LTE_NOTE, true, () => opPost('/api/op/lte', {op: 'lap_start'}));
+$('op-log-start').onclick = () => opAsk('記録を始めます', 'ロガーが記録していないときに使います。記録中なら何も変わりません。' + LTE_NOTE, true, () => opPost('/api/op/lte', {op: 'log_start'}));
+$('op-setup').onclick = () => opAsk('合言葉の準備をします', 'PCと本体に、同じ合言葉を入れます。もうあるときは、同じものを入れ直すだけです（渡してあるスマホもそのまま使えます）。', false, () => opPost('/api/op/setup'));
+$('op-setup-new').onclick = () => opAsk('合言葉を作り直します', '新しい合言葉を作って、PCと本体に入れます。<b>前の合言葉を渡したスマホからは送れなくなります</b>（QRを読み直せば、また使えます）。', false, () => opPost('/api/op/setup', {new: true}));
+$('op-key').onclick = () => opPost('/api/op/phone_key');
+$('key-hide').onclick = () => opPost('/api/op/hide_key');
+
+function renderOps(s) {
+  const n = s.now, connected = n.phase === 'connected', op = n.op;
+  $('ops').hidden = false;
+  $('op-way').textContent = connected ? `ラップのリセットは、${n.via}で本体へ直接送ります。「ほかの操作」はLTEで送ります。` : 'ロガーがつながっていないので、LTEで送ります（電源が入ってLTEがつながっていれば、遠くからでも届きます。返事まで数秒）。';
+  $('op-run').hidden = !(op && op.running);
+  if (op && op.running) {
+    const t = Math.max(0, s.time - op.started);
+    $('op-run-text').textContent = `${op.name}：${op.via}で送りました。${op.via === 'LTE' ? 'ロガーの返事' : '本体の返事'}を待っています…（${Math.round(t)}秒／最大${op.seconds}秒）`;
+    $('op-run-bar').style.width = Math.min(100, t / op.seconds * 100) + '%';
+  }
+  if (op && !op.running && op.ended !== opShownEnd) {   // 終わった結果は1回だけ描く（あとの案内を上書きしない）
+    opShownEnd = op.ended;
+    opNote(`<b>${op.ok ? '終わりました' : 'できませんでした'}：${esc(op.name)}（${esc(op.via)}）</b><br>` + op.lines.map(esc).join('<br>'), !op.ok);
+  }
+  const l = n.lte;
+  $('lte-view').innerHTML = l && l.checks ? `<div class="sub" style="margin-bottom:6px">LTEで聞いた様子：${summary(l.checks)}（${Math.max(0, Math.round(s.time - l.read_at))}秒前。自動では更新しません）</div>
+    <div class="checks">${checksHtml(l.checks)}</div><div class="tiles">${extraHtml(l.extra)}</div>` : '';
+  const key = n.key; $('key-box').hidden = !key;
+  if (key) {
+    $('key-left').textContent = `あと${Math.max(0, Math.round(key.until - s.time))}秒で閉じます`; $('key-where').textContent = key.where;
+    if (keyShown !== key.until) { keyShown = key.until;
+      const px = 6, quiet = 4, size = key.matrix.length, c = $('key-canvas'), side = (size + quiet * 2) * px;
+      c.width = c.height = side; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, side, side); g.fillStyle = '#000';
+      key.matrix.forEach((row, y) => [...row].forEach((v, x) => { if (v === '1') g.fillRect((x + quiet) * px, (y + quiet) * px, px, px); }));
+    }
+  } else if (keyShown) { keyShown = 0; const c = $('key-canvas'); c.width = c.height = 10; }
+}
 
 function render(s) {
   last = s;
