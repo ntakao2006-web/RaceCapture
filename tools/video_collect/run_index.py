@@ -10,7 +10,8 @@ PCに回収したものは、走行記録が drive_logs/<回収した日>/runNN_
 走行1つの中身：
     id            走行記録のファイルの名前（LOG_<開始のUTC>Z_<番号>）
     day           走った日（日本時間。**回収した日ではない**）
-    start・end    走行記録の最初と最後の時刻（UTC、秒）。minutes はその長さ
+    start・end    走行記録の最初と最後の時刻（UTC、秒。測位の時計で直したもの）。minutes はその長さ
+    clock         'gnss'＝時刻を測位の時計で直せた／'host'＝測位していない走行で、本体の時計のまま（ずれていることがある）
     laps          この走行で増えた周回数（走行記録の最後の LapCount − 走り始めの値。線が無い・数えていないときは None）
     course        コースの設定の名前（最後に測位した場所が、tools/setups/courses の線から3 km以内のもの。分からなければ None）
     log           走行記録の場所（drive_logs からの相対）
@@ -36,7 +37,7 @@ TAIL_BYTES = 256 << 10      # 末尾から読む量（1行は数百バイト。�
 COURSE_KM = 3.0
 FULL_COVER = 0.9            # 走行のこの割合より多く動画があれば「あり」
 GAP_S = 60                  # これより長い「動画が無い区間」を一覧に出す
-VERSION = 1
+VERSION = 2   # 2：時刻を測位の時計で直す（本体の時計がずれている走行があるため）
 
 
 def parse_utc(text):
@@ -45,6 +46,15 @@ def parse_utc(text):
         return datetime.fromisoformat(str(text).strip().replace('Z', '+00:00')).astimezone(timezone.utc).timestamp()
     except ValueError:
         return None
+
+
+def clock_correction(pairs):
+    """本体の時計（host_utc）が測位の時計（gnss_utc）からどれだけ進んでいるか（秒）。pairs は (host, gnss) の並び。
+    本体は時計用の電池が無く、測位や回線で合うまでずれている（数分〜数時間ずれた走行が実際にある）。
+    gnss_utc は秒の切り捨てなので、合っていれば host − gnss の中央値は約+0.5秒（tools/lap_video/lap_video.py と同じ直し方）。
+    測位の行が無ければ None（直せない）"""
+    diffs = sorted(h - g for h, g in pairs if h is not None and g is not None)
+    return diffs[len(diffs) // 2] - 0.5 if diffs else None
 
 
 def tail_lines(path, size=TAIL_BYTES):
@@ -59,7 +69,8 @@ def tail_lines(path, size=TAIL_BYTES):
 
 
 def read_log(path):
-    """走行記録1本から {start, end, laps, lat, lon}。読めなければ None"""
+    """走行記録1本から {start, end, laps, lat, lon, clock}。読めなければ None。
+    時刻は測位の時計で直す（clock が 'gnss'）。測位していない走行は本体の時計のまま（'host'。ずれていることがある）"""
     m = LOG_NAME.match(path.name)
     if not m:
         return None
@@ -89,6 +100,21 @@ def read_log(path):
                     continue
         return None
     end = last('host_utc', parse_utc) or start
+    # 終わりの時刻は、末尾の行の「本体の時計と測位の時計の差」で直す。始まりは、基板の時計（mcu_ms）で測った長さを引いて出す
+    # （ファイルの名前の時刻は本体の時計なので、途中で時計が合った走行では当てにならない）
+    hi, gi, mi = col.get('host_utc'), col.get('gnss_utc'), col.get('mcu_ms')
+    corr = clock_correction([(parse_utc(r[hi]), parse_utc(r[gi])) for r in rows if r[gi]] if hi is not None and gi is not None else [])
+    clock = 'host'
+    if corr is not None:
+        clock = 'gnss'
+        length = end - start
+        try:
+            first_ms = next(float(r[mi]) for r in (next(csv.reader([line])) for line in head) if len(r) == len(header) and r[mi])
+            length = ((float(rows[-1][mi]) - first_ms) % 2**32) / 1000   # mcu_ms は 2^32 で一周する
+        except (StopIteration, ValueError, TypeError, IndexError, csv.Error):
+            pass
+        end -= corr
+        start = end - max(0.0, length)
     laps = last('LapCount')
     # 周回数は電源を切っても本体が覚えているので、走り始めの値を引いて「この走行で増えた周」にする
     # （途中でラップを0周に戻した走行は、引くと負になるので、最後の値をそのまま使う）
@@ -111,7 +137,7 @@ def read_log(path):
                 break
         except (KeyError, ValueError, IndexError):
             continue
-    return {'start': start, 'end': max(end, start), 'laps': None if laps is None else int(laps), 'lat': lat, 'lon': lon}
+    return {'start': start, 'end': max(end, start), 'laps': None if laps is None else int(laps), 'lat': lat, 'lon': lon, 'clock': clock}
 
 
 def read_chapter(ts_path):
@@ -232,7 +258,7 @@ def build(root, save=True):
         runs.append({
             'id': log.name[:-4], 'day': datetime.fromtimestamp(info['start'], JST).strftime('%Y-%m-%d'),
             'start': round(info['start']), 'end': round(info['end']), 'minutes': round(seconds / 60, 1),
-            'laps': info['laps'], 'course': course_of(info['lat'], info['lon'], courses),
+            'laps': info['laps'], 'course': course_of(info['lat'], info['lon'], courses), 'clock': info.get('clock', 'host'),
             'log': log.relative_to(root).as_posix(), 'videos': mine,
             'video': 'none' if not mine else 'all' if seconds > 0 and covered / seconds >= FULL_COVER else 'part',
             'video_minutes': round(covered / 60, 1), 'gaps': gaps,

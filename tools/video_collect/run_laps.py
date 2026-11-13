@@ -17,8 +17,8 @@ from pathlib import Path
 import run_index
 
 CACHE_DIR = 'runs_cache'
-VERSION = 1
-NEEDED = ('host_utc', 'LapCount', 'LapTime', 'LastSector', 'SectorTime', 'Speed', 'GPSSpeed', 'OilTemp', 'WaterTemp')
+VERSION = 2   # 2：周の時刻を測位の時計で直す
+NEEDED = ('host_utc', 'gnss_utc', 'LapCount', 'LapTime', 'LastSector', 'SectorTime', 'Speed', 'GPSSpeed', 'OilTemp', 'WaterTemp')
 WARN_LABEL = {'OilTemp': '油温', 'WaterTemp': '水温'}
 WARN_HOLD_S = 5.0     # この長さ続いたら警告の印（車載画面の hold_on_s と同じ。キーを切るときの一瞬の跳ねを拾わない）
 
@@ -40,6 +40,7 @@ def laps_of(path, chapters=(), warn=None, progress=None):
     lap_start = None      # いまの周が始まった時刻（前の周の終わり）
     vmax, sectors, over, warned = None, {}, {}, set()
     last_sector_key = None
+    clock = []            # 直近の (本体の時計, 測位の時計)。周の終わりの時刻を測位の時計で直すのに使う
     with open(path, encoding='utf-8', errors='replace', newline='') as f:
         reader = csv.reader(f)
         try:
@@ -61,6 +62,10 @@ def laps_of(path, chapters=(), warn=None, progress=None):
             if progress and rows % 50000 == 0:
                 progress(f.tell())
             t = run_index.parse_utc(r[col['host_utc']]) if 'host_utc' in col else None
+            if t is not None and 'gnss_utc' in col and r[col['gnss_utc']]:
+                clock.append((t, run_index.parse_utc(r[col['gnss_utc']])))
+                if len(clock) > 800:
+                    del clock[:400]
             get = lambda name: number(r[col[name]]) if name in col else None  # noqa: E731
             speed = get('Speed')
             if speed is None:
@@ -85,9 +90,12 @@ def laps_of(path, chapters=(), warn=None, progress=None):
             if count is not None and now > count:      # 周が終わった
                 time_min = get('LapTime')
                 time_s = None if time_min is None else round(time_min * 60, 3)
-                start = None if t is None or time_s is None else t - time_s
+                # 本体の時計は測位で合うまでずれていることがあるので、直近の差で直す（run_index.clock_correction）
+                corr = run_index.clock_correction(clock[-400:]) or 0.0
+                end = None if t is None else t - corr
+                start = None if end is None or time_s is None else end - time_s
                 laps.append({'lap': int(now), 'time_s': time_s, 'start': None if start is None else round(start, 1),
-                             'end': None if t is None else round(t, 1),
+                             'end': None if end is None else round(end, 1),
                              'sectors': [sectors.get(k) for k in sorted(sectors)], 'vmax': None if vmax is None else round(vmax),
                              'warn': sorted(warned)})
                 lap_start, vmax, sectors, warned = t, None, {}, set()

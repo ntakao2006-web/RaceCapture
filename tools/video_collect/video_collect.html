@@ -466,7 +466,7 @@ function runRow(r, root, courses) {
   const folder = root + '\\' + r.log.split('/').slice(0, -1).join('\\');
   const vfolder = r.videos.length ? root + '\\' + r.videos[0].path.split('/').slice(0, -1).join('\\') : '';
   const gaps = r.video === 'part' ? r.gaps.map(([a, b]) => `${hhmm(a)}〜${hhmm(b)}`).join('・') : '';
-  return `<tr><td>${hhmm(r.start)}〜${hhmm(r.end)}</td><td>${mins(r.minutes)}</td><td>${esc((courses && courses[r.course]) || r.course || '—')}</td>
+  return `<tr><td>${hhmm(r.start)}〜${hhmm(r.end)}${r.clock === 'host' ? ' <span class="sub" title="測位していない走行なので、本体の時計のままです。本体の時計は、合うまでずれていることがあります">（時刻は本体の時計）</span>' : ''}</td><td>${mins(r.minutes)}</td><td>${esc((courses && courses[r.course]) || r.course || '—')}</td>
     <td>${r.laps == null ? '—' : r.laps + ' 周'}</td>
     <td>${chip(VIDEO[r.video][0], VIDEO[r.video][1])}${r.video === 'part' ? ` <span class="sub">${mins(r.video_minutes)}ぶん。無い所：${esc(gaps || '短い切れ目だけ')}</span>` : ''}</td>
     <td><button data-laps="${esc(r.id)}" ${r.laps ? '' : 'title="この走行は周を数えていません"'}>周を見る</button> <button data-open="${esc(folder)}">走行記録</button>${vfolder ? ` <button data-open="${esc(vfolder)}">動画</button>` : ''}</td></tr>

@@ -110,3 +110,51 @@ class RunIndexTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ClockTest(unittest.TestCase):
+    """本体の時計がずれている走行（時計用の電池が無く、測位で合うまでずれる）"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        patcher = mock.patch.object(run_index, 'load_courses', return_value={})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def write(self, wrong_by, jump_at=None, seconds=600, gnss=True):
+        """本体の時計が wrong_by 秒進んでいる走行。jump_at 秒めで時計が合う（そこから host も正しい）"""
+        folder = self.root / '20261111' / 'run01_1516' / 'v2_emmc'
+        folder.mkdir(parents=True)
+        named = T0 + timedelta(seconds=wrong_by)      # ファイルの名前は、始まったときの本体の時計
+        rows = ['schema,host_utc,seq,mcu_ms,Lat,Lon,GPSFix,gnss_utc,LapCount']
+        for k in range(seconds + 1):
+            true = T0 + timedelta(seconds=k)
+            host = true + timedelta(seconds=0.5 + (0 if jump_at is not None and k >= jump_at else wrong_by))
+            stamp = true.strftime('%Y-%m-%dT%H:%M:%SZ') if gnss else ''
+            rows.append(f'1,{iso(host)},{k},{5000 + k * 1000},35.0,139.0,3,{stamp},')
+        (folder / f'LOG_{named:%Y%m%dT%H%M%S}Z_0000abcd.csv').write_text('\n'.join(rows) + '\n', encoding='utf-8')
+
+    def test_times_follow_the_gnss_clock_not_the_loggers(self):
+        self.write(wrong_by=-55800)                   # 15時間半遅れた時計（前の日の夕方を指している）
+        run, = run_index.build(self.root)
+        self.assertEqual((run['clock'], run['day'], run['minutes']), ('gnss', '2026-11-08', 10.0))
+        self.assertAlmostEqual(run['start'], T0.timestamp(), delta=1)
+
+    def test_clock_that_jumped_in_the_middle_does_not_stretch_the_run(self):
+        self.write(wrong_by=-810, jump_at=300)        # 13分半遅れていて、5分めで合った
+        run, = run_index.build(self.root)
+        self.assertEqual(run['minutes'], 10.0)        # 名前の時刻から数えると23.5分になってしまう
+        self.assertAlmostEqual(run['start'], T0.timestamp(), delta=1)
+
+    def test_without_gnss_the_loggers_clock_is_kept_and_flagged(self):
+        self.write(wrong_by=120, gnss=False)
+        run, = run_index.build(self.root)
+        self.assertEqual(run['clock'], 'host')
+        self.assertAlmostEqual(run['start'], T0.timestamp() + 120, delta=1)
+
+    def test_video_is_matched_after_the_correction(self):
+        self.write(wrong_by=-810)
+        write_chapter(self.root, '20261108_100000', 1, T0, 10)
+        self.assertEqual(run_index.build(self.root)[0]['video'], 'all')

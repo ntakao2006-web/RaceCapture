@@ -101,3 +101,20 @@ class LapsTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ClockTest(unittest.TestCase):
+    def test_lap_times_of_day_follow_the_gnss_clock(self):
+        with tempfile.TemporaryDirectory() as folder:
+            log = Path(folder) / 'LOG_20261108T010000Z_0000abcd.csv'
+            rows = ['schema,host_utc,gnss_utc,Speed,LapCount,LapTime']
+            for k in range(0, 201):
+                true = T0 + timedelta(seconds=k)
+                host = true + timedelta(seconds=0.5 - 810)          # 本体の時計が13分半遅れている
+                rows.append(f'1,{iso(host)},{true:%Y-%m-%dT%H:%M:%SZ},80,{k // 100},{"" if k < 100 else "1.666667"}')
+            log.write_text('\n'.join(rows) + '\n', encoding='utf-8')
+            lap = run_laps.laps_of(log)['laps'][0]
+            self.assertAlmostEqual(lap['end'], T0.timestamp() + 100, delta=1)
+            self.assertAlmostEqual(lap['start'], T0.timestamp(), delta=1)
+            chapters = [{'start': T0.timestamp() - 5, 'end': T0.timestamp() + 150}]     # 動画の時刻は測位の時計
+            self.assertEqual(run_laps.laps_of(log, chapters)['laps'][0]['video'], 'all')
