@@ -154,7 +154,7 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
         <div class="confirm" id="ed-lte" hidden style="margin-top:10px">LTEで送ります。USB・テザリングより確認が1つ多く、送る前に変わる所を見せて、4桁の数字を入れてもらいます。</div>
         <div class="row" style="margin-top:10px"><button class="b primary" id="ed-apply">この線を本体へ入れる</button><button class="b" id="ed-cancel">やめる</button></div>
         <div class="confirm" id="lte-confirm" hidden style="margin-top:10px">
-          <b>LTEで線を変えます。変わる所を確かめてください。</b>
+          <b id="lte-title"></b>
           <div id="lte-diff" style="margin:6px 0"></div>
           <div>よければ、この数字を入れて送ります：<b id="lte-code-show" style="font-size:20px; letter-spacing:.15em"></b></div>
           <div class="row" style="margin-top:6px"><input class="in" id="lte-code" inputmode="numeric" maxlength="4" style="width:6em" aria-label="確認の4桁"><button class="b primary" id="lte-send">送る</button><button class="b" id="lte-back">戻る</button></div>
@@ -248,9 +248,9 @@ const SCENES = {
   wait:   { cls: 'wait', title: 'ロガーを待っています', sub: 'USB・テザリング・LTEの順に、5秒ごとに探しています。ロガーの電源を入れると、ここが「つながりました」に変わります。', verdict: ['idle', 'まだ分かりません', 'ロガーが見つかると、下の6つに結果が出ます。この画面は開いたままで大丈夫です。'], lap: '—' },
   usb:    { cls: 'ok', title: 'つながりました（USB）', sub: '動画の回収・設定・更新ができます。車載画面と録画は止まっています（ドックを外しているため）。', lap: '完了 0周・ライン 有効' },
   tether: { cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。動画の回収はUSBのときだけです。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
-  tether_pit: { cls: 'ok', title: 'つながりました（テザリング）・動いています（38 km/h）', sub: '車載画面と録画は動いたままです。レーシングスピードではないので、線の引き直しはできます。', lap: '完了 14周・ライン 有効・レース経過 0:28:05' },
+  tether_pit: { cls: 'ok', title: 'つながりました（テザリング）・動いています（38 km/h）', sub: '車載画面と録画は動いたままです。線は引き直せます。車とコースの切り替えは、止まっているときだけです。', lap: '完了 14周・ライン 有効・レース経過 0:28:05' },
   lte_stop: { cls: 'ok', title: 'つながりました（LTEだけ）・車は止まっています', sub: '最後に届いてから 1秒。できるのは、状態を聞く・ラップを0周に戻す・車とコースを選ぶ・線を引き直す（確認つき）です。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
-  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）・走行中（132 km/h）', sub: '最後に届いてから 1秒。レーシングスピードで走っている間は、車・コース・線の変更を本体が断ります。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
+  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）・走行中（132 km/h）', sub: '最後に届いてから 1秒。線の変更は、確認を1つ増やして受け付けます。車とコースの切り替えは、止まっているときだけです。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
   trouble:{ cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。', lap: '完了 0周・ライン 有効' },
 };
 const CHECKS = {
@@ -360,10 +360,11 @@ $('ed-add').onclick = () => {
 $('ed-del').onclick = () => { if (!ed.lines.length) return; const name = edCur().name; ed.lines.splice(ed.i, 1); ed.i = Math.max(0, ed.i - 1); edCenter = null; edForm(); edDraw(); $('line-msg').textContent = `「${name}」を消しました（本体へ入れるまでは、本体の線は変わりません）。`; };
 $('line-edit').onclick = () => {
   const key = $('scene').value, v = SPEED(key), limit = COURSES[dev.course].race_kmh; $('setup-msg').innerHTML = ''; $('line-msg').textContent = ''; $('lte-confirm').hidden = true;
-  if (v >= limit) return refuse(`レーシングスピードで走っている（${v} km/h）ので、線は変えられません。本体も断ります。このコースでは ${limit} km/h より遅いときに変えられます。`);
   ed = { lines: copyLines(dev.lines), i: view === 'all' ? 0 : view }; edCenter = null;
-  $('line-editor').hidden = false; $('ed-lte').hidden = LOCAL(key); edForm(); edDraw();
-  if (v > 0) $('line-msg').textContent = `車は動いています（${v} km/h）が、${limit} km/h より遅いので引き直せます。いま走っている周は、新しい線を次に通った所から数え直します。`;
+  $('line-editor').hidden = false; const fast = v >= limit; $('ed-lte').hidden = LOCAL(key) && !fast;
+  $('ed-lte').textContent = fast ? `いまレーシングスピードで走っています（${v} km/h）。変えられますが、送る前に変わる所を見せて、4桁の数字を入れてもらいます。いま走っている周は、新しい線を次に通った所から数え直します。` : 'LTEで送ります。USB・テザリングより確認が1つ多く、送る前に変わる所を見せて、4桁の数字を入れてもらいます。';
+  edForm(); edDraw();
+  if (v > 0 && !fast) $('line-msg').textContent = `車は動いています（${v} km/h）。いま走っている周は、新しい線を次に通った所から数え直します。`;
 };
 $('ed-cancel').onclick = () => { $('line-editor').hidden = true; $('lte-confirm').hidden = true; $('line-msg').textContent = 'やめました。本体の線は変わっていません。'; };
 $('ed-here').onclick = () => { if (!ed.lines.length) $('ed-add').click(); const c = COURSES[dev.course].center; $('ed-lat').value = (c.lat + 0.00012).toFixed(7); $('ed-lon').value = (c.lon + 0.00031).toFixed(7); $('ed-bearing').value = $('ed-bearing-n').value = 101; edCenter = null; edSync(); $('line-msg').textContent = '車のいまの位置（誤差 0.9 m）と、最後に走っていたときの向きを入れました（見本の値）。'; };
@@ -385,7 +386,9 @@ function edCommit() {
 let lteCode = '';
 $('ed-apply').onclick = () => {
   edSync(); const bad = edRule(); if (bad) { $('line-msg').textContent = '入れていません。' + bad; return; }
-  if (LOCAL($('scene').value)) return edCommit();
+  const key = $('scene').value, v = SPEED(key), fast = v >= COURSES[dev.course].race_kmh;
+  if (LOCAL(key) && !fast) return edCommit();
+  $('lte-title').textContent = fast ? `走行中（${v} km/h）に線を変えます。変わる所を確かめてください。` : 'LTEで線を変えます。変わる所を確かめてください。';
   lteCode = String(Math.floor(1000 + Math.random() * 9000)); $('lte-code-show').textContent = lteCode; $('lte-code').value = ''; $('lte-err').textContent = '';
   $('lte-diff').innerHTML = edDiff(); $('lte-confirm').hidden = false;
 };
@@ -471,7 +474,7 @@ function renderSetup() {
   const c = COURSES[dev.course];
   $('set-detail').textContent = `読む信号 42個・線 ${dev.lines.length}本・警告（油温120℃、水温110℃、油圧）`;
   $('line-example').hidden = !c.example;
-  $('gate-text').textContent = ` 線を変えられるのは ${c.race_kmh} km/h より遅いとき（このコースの設定）。`;
+  $('gate-text').textContent = ` 線はいつでも変えられます。LTEのときと、${c.race_kmh} km/h 以上で走っているとき（このコースの設定）は、確認が1つ増えます。`;
   if (view !== 'all' && view >= dev.lines.length) view = 'all';
   $('map-tabs').innerHTML = dev.lines.length > 1 ? [['all', '全体'], ...dev.lines.map((l, k) => [k, l.name])].map(([k, t]) => `<button class="b${String(k) === String(view) ? ' primary' : ''}" data-view="${k}">${t}</button>`).join('') : '';
   $('line-table').querySelector('tbody').innerHTML = dev.lines.map(l => `<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${KIND[l.kind][1]}"></span> ${l.name}</td><td>${KIND[l.kind][2]}</td><td>${l.lat.toFixed(7)}, ${l.lon.toFixed(7)}</td><td>${l.width} m</td><td>${l.bearing}°</td><td>${l.both ? '両方向' : 'この向きだけ'}</td></tr>`).join('');
