@@ -95,6 +95,8 @@ details.more > summary { font-size: 14px; margin: 16px 0 4px; }
 .opres.bad { background: var(--bad-bg); color: var(--bad); }
 input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); }
 #key-canvas { background: #fff; border-radius: 8px; display: block; margin: 8px 0; }
+.bar > div.busy { width: 30%; animation: busy 1.6s ease-in-out infinite; }
+@keyframes busy { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
 [hidden] { display: none !important; }
 @media (max-width: 600px) { .tile .v { font-size: 19px; } }
 </style>
@@ -403,9 +405,35 @@ function runRow(r, root, courses) {
   return `<tr><td>${hhmm(r.start)}〜${hhmm(r.end)}</td><td>${mins(r.minutes)}</td><td>${esc((courses && courses[r.course]) || r.course || '—')}</td>
     <td>${r.laps == null ? '—' : r.laps + ' 周'}</td>
     <td>${chip(VIDEO[r.video][0], VIDEO[r.video][1])}${r.video === 'part' ? ` <span class="sub">${mins(r.video_minutes)}ぶん。無い所：${esc(gaps || '短い切れ目だけ')}</span>` : ''}</td>
-    <td><button data-open="${esc(folder)}">走行記録</button>${vfolder ? ` <button data-open="${esc(vfolder)}">動画</button>` : ''}</td></tr>`;
+    <td><button data-laps="${esc(r.id)}" ${r.laps ? '' : 'title="この走行は周を数えていません"'}>周を見る</button> <button data-open="${esc(folder)}">走行記録</button>${vfolder ? ` <button data-open="${esc(vfolder)}">動画</button>` : ''}</td></tr>
+    <tr class="lapsrow" data-for="${esc(r.id)}" ${openLaps === r.id ? '' : 'hidden'}><td colspan="6" style="white-space:normal">${openLaps === r.id ? lapsHtml : ''}</td></tr>`;
 }
-let runsShort = true;
+let runsShort = true, openLaps = null, lapsHtml = '';
+const lapTime = s => s == null ? '—' : `${Math.floor(s / 60)}:${(s % 60).toFixed(3).padStart(6, '0')}`;
+function lapsTable(d) {
+  if (!d.laps.length) return '<div class="sub">この走行には、数え終わった周がありません（線を通っていない・ラップの線が無い）。</div>';
+  const best = d.laps.find(l => l.lap === d.best), n = Math.max(...d.laps.map(l => l.sectors.length));
+  const heads = Array.from({length: n}, (_, i) => `<th>S${i + 1}</th>`).join('');
+  return `<div class="sub" style="margin:4px 0">ロガーが数えたタイムです（公式の計測ではありません）。警告は、油温 ${d.warn.OilTemp ?? '—'}℃・水温 ${d.warn.WaterTemp ?? '—'}℃ 以上が5秒続いた周に印が付きます。</div>
+  <div class="scroll"><table><tr><th>周</th><th>タイム</th><th>ベストとの差</th>${heads}<th>最高速</th><th>警告</th><th>動画</th></tr>${d.laps.map(l => `<tr style="${l.lap === d.best ? 'font-weight:600' : ''}">
+    <td>${l.lap}</td><td>${lapTime(l.time_s)}${l.lap === d.best ? ' ' + chip('ベスト', 'ok') : ''}</td>
+    <td>${l.time_s == null || !best || l.lap === d.best ? '' : '+' + (l.time_s - best.time_s).toFixed(3)}</td>
+    ${Array.from({length: n}, (_, i) => `<td>${l.sectors[i] == null ? '—' : l.sectors[i].toFixed(3)}</td>`).join('')}
+    <td>${l.vmax == null ? '—' : l.vmax + ' km/h'}</td><td>${l.warn.map(w => chip(w, 'bad')).join(' ')}</td>
+    <td>${chip(VIDEO[l.video][0].replace('動画', ''), VIDEO[l.video][1])}</td></tr>`).join('')}</table></div>`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button[data-laps]'); if (!b) return;
+  const id = b.dataset.laps;
+  if (openLaps === id) { openLaps = null; lapsHtml = ''; return loadRuns(); }
+  openLaps = id; lapsHtml = '<div class="sub">走行記録を読んでいます…（初めて開く走行は、長さによって数十秒かかります。2回目からはすぐ出ます）</div><div class="bar"><div class="busy"></div></div>';
+  loadRuns();
+  let html;
+  try { const r = await fetch('/api/run?id=' + encodeURIComponent(id)), d = await r.json();
+    html = r.ok ? lapsTable(d) : `<div class="banner bad">${esc(d.error || '読めませんでした')}</div>`;
+  } catch (x) { html = '<div class="banner bad">読めませんでした（アプリが止まっていませんか）</div>'; }
+  if (openLaps === id) { lapsHtml = html; loadRuns(); }
+});
 async function loadRuns() {
   let d;
   try { d = await (await fetch('/api/runs')).json(); } catch (e) { $('runs-note').textContent = '一覧を読めませんでした（アプリが止まっていませんか）'; return; }

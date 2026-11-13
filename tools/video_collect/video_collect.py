@@ -33,6 +33,7 @@ import tempfile
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import webbrowser
 from datetime import datetime, timedelta, timezone
@@ -825,6 +826,22 @@ class App:
                 self.runs_cache = (time.time(), runs)
             return {'runs': runs, 'root': str(self.pc.root.parent), 'error': '', 'courses': run_index.course_names()}
 
+    def run_laps(self, run_id):
+        """走行1本の、周ごとの表（run_laps.py）。初めて開く走行は、走行記録を全部読むので数十秒かかる"""
+        import run_laps
+        run = next((r for r in self.runs()['runs'] if r['id'] == run_id), None)
+        if not run:
+            raise KeyError(run_id)
+        warn = {}
+        try:   # 警告のしきい値は車の設定から（いまは車を1台しか持っていないので、あるものを使う）
+            sys.path.insert(0, str(REPO / 'tools' / 'setups'))
+            import setups
+            dash = setups.load('vehicle', setups.names('vehicle')[0])['dash']
+            warn = {'OilTemp': dash['oil_warn'], 'WaterTemp': dash['water_warn']}
+        except (ImportError, IndexError, KeyError, ValueError):
+            pass
+        return {'id': run_id, 'warn': warn, **run_laps.cached(self.pc.root.parent, run, warn)}
+
     def find_sd(self):
         self.sd['cards'] = sd_card.find_cards(self.sd_drives)
         drives = {c['drive'] for c in self.sd['cards']}
@@ -968,6 +985,13 @@ def make_server(app, port):
                 return self.send(200, app.snapshot())
             if self.path == '/api/runs':
                 return self.send(200, app.runs())
+            if self.path.startswith('/api/run?id='):
+                try:
+                    return self.send(200, app.run_laps(urllib.parse.unquote(self.path.split('=', 1)[1])))
+                except KeyError:
+                    return self.send(404, {'error': 'その走行が見つからない'})
+                except (OSError, ValueError) as exc:
+                    return self.send(409, {'error': f'走行記録を読めない: {exc}'})
             self.send(404, {'error': 'not found'})
 
         def do_POST(self):
