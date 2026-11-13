@@ -122,8 +122,8 @@ button.b:focus-visible, .go a:focus-visible, select:focus-visible, .in:focus-vis
         <h2 style="margin:0">線を引く・引き直す</h2>
         <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12 Z" fill="#22c55e" stroke="#fff" stroke-width="1"/></marker></defs></svg>
         <div class="linemap" id="ln-map" role="img" aria-label="引き直す線を航空写真の上に重ねた図"></div>
-        <div class="sub" id="ln-note"></div>
-        <div class="sub"><b>指でつまんで動かせます。</b>黄色の丸＝場所、白い丸＝向きと幅。細かい調整は下のボタンで。</div>
+        <div class="row" style="margin-top:0"><button class="b" id="ln-zout" aria-label="引く">−</button><button class="b" id="ln-zin" aria-label="寄る">＋</button><button class="b" id="ln-zfit">線に合わせる</button><span class="sub" id="ln-ztext"></span></div><div class="sub" id="ln-note"></div>
+        <div class="sub"><b>指でつまんで動かせます。</b>黄色の丸＝場所、白い丸＝向きと幅。写真は＋・−で寄り引きでき、何も無い所をなぞると動かせます。細かい調整は下のボタンで。</div>
         <div class="row"><select class="in" id="ln-which" style="flex:1 1 140px" aria-label="どの線"></select><button class="b" id="ln-add" style="min-height:0; padding:8px 12px">足す</button><button class="b danger" id="ln-del" style="min-height:0; padding:8px 12px">消す</button></div>
         <div class="grid2"><select class="in" id="ln-kind" aria-label="役目"><option value="c">コントロールライン</option><option value="st">スタート</option><option value="go">ゴール</option><option value="s">セクターの終わり</option></select>
           <select class="in" id="ln-dir" aria-label="数える向き"><option value="one">矢印の向きだけ</option><option value="both">両方向</option></select></div>
@@ -266,7 +266,9 @@ function drawMap(lines, center, z, handle) {
   svg += `<g><rect x="10" y="${H - 24}" width="${bar / mpp}" height="5" fill="#fff" stroke="#000"/><text x="10" y="${H - 28}" font-size="11" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${bar} m</text></g>`;
   el.querySelector('svg').innerHTML = svg;
 }
-let ed = null, edCenter = null;
+let ed = null, edCenter = null, edZoom = null, edAuto = 18;
+function zText() { const v = $('ln-map')._view; $('ln-ztext').textContent = v ? `写真の横幅 約${Math.round(v.W * v.mpp)} m` : ''; }
+function zoomBy(d) { edZoom = Math.max(14, Math.min(22, (edZoom ?? edAuto) + d)); lnDraw(); }
 const cur = () => ed.lines[ed.i];
 function lnRule() { const n = k => ed.lines.filter(l => l.kind === k).length;
   if (!ed.lines.length) return 'まだ線がありません。「足す」で1本目を引きます。';
@@ -276,13 +278,14 @@ function lnDraw() {
   nameLines(ed.lines); const has = ed.lines.length > 0, r = lnRule(); $('ln-rule').textContent = r; $('ln-rule').style.color = r ? 'var(--bad)' : '';
   $('ln-which').innerHTML = ed.lines.map((l, k) => `<option value="${k}">${l.name}</option>`).join(''); ['ln-which', 'ln-del', 'ln-kind', 'ln-dir', 'ln-step'].forEach(id => $(id).disabled = !has);
   document.querySelectorAll('#ln-nudge button, #ln .step button').forEach(b => b.disabled = !has);
-  if (!has) { $('ln-bearing').textContent = $('ln-width').textContent = '—'; $('ln-pos').textContent = ''; return drawMap([], edCenter || COURSES[dev.course].center, 18); }
+  if (!has) { $('ln-bearing').textContent = $('ln-width').textContent = '—'; $('ln-pos').textContent = ''; if (!edCenter) edCenter = { ...COURSES[dev.course].center }; edAuto = 18; drawMap([], edCenter, edZoom ?? 18); return zText(); }
   const l = cur(); $('ln-which').value = ed.i; $('ln-kind').value = l.kind; $('ln-dir').value = l.both ? 'both' : 'one';
   $('ln-bearing').textContent = l.bearing + '°'; $('ln-width').textContent = l.width + ' m'; $('ln-pos').textContent = `${l.lat.toFixed(6)}\n${l.lon.toFixed(6)}`.replace('\n', ' ');
   if (!edCenter) edCenter = { lat: l.lat, lon: l.lon };
   const H = $('ln-map').clientHeight || 300, z = [20, 19, 18, 17].find(z => l.width / (156543.03392 * Math.cos(l.lat * Math.PI / 180) / 2 ** z) <= H * 0.7) || 17;
-  drawMap(ed.lines, edCenter, z, ed.i);
+  edAuto = z; drawMap(ed.lines, edCenter, edZoom ?? z, ed.i); zText();
 }
+$('ln-zin').onclick = () => zoomBy(1); $('ln-zout').onclick = () => zoomBy(-1); $('ln-zfit').onclick = () => { edZoom = null; edCenter = null; lnDraw(); };
 $('ln-which').addEventListener('change', () => { ed.i = +$('ln-which').value; edCenter = null; lnDraw(); });
 $('ln-kind').addEventListener('change', () => { cur().kind = $('ln-kind').value; lnDraw(); });
 $('ln-dir').addEventListener('change', () => { cur().both = $('ln-dir').value === 'both'; lnDraw(); });
@@ -295,8 +298,10 @@ $('ln').addEventListener('click', e => { const b = e.target.closest('button[data
   if (b.dataset.b) l.bearing = Math.round((((l.bearing + +b.dataset.b) % 360) + 360) % 360 * 2) / 2; else l.width = Math.max(5, Math.min(200, l.width + +b.dataset.w)); lnDraw(); });
 (() => { const el = $('ln-map'); let grip = null;
   const at = e => { const r = el.getBoundingClientRect(), v = el._view; return [(e.clientX - r.left) * v.W / r.width, (e.clientY - r.top) * v.H / r.height]; };
-  el.addEventListener('pointerdown', e => { const h = e.target.dataset && e.target.dataset.h; if (!h) return; grip = h; try { el.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+  let pan = null;
+  el.addEventListener('pointerdown', e => { const h = e.target.dataset && e.target.dataset.h, v = el._view; grip = h || 'pan'; if (!h) pan = { x: e.clientX, y: e.clientY, cx: v.cx, cy: v.cy, k: v.W / el.getBoundingClientRect().width }; try { el.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
   el.addEventListener('pointermove', e => { if (!grip) return; const v = el._view, [px, py] = at(e), l = cur();
+    if (grip === 'pan') { edCenter = fromTile(pan.cx - (e.clientX - pan.x) * pan.k / v.S, pan.cy - (e.clientY - pan.y) * pan.k / v.S, v.z); return lnDraw(); }
     if (grip === 'c') { const g = fromTile(v.cx + (px - v.W / 2) / v.S, v.cy + (py - v.H / 2) / v.S, v.z); l.lat = g.lat; l.lon = g.lon; }
     else { const [lx, ly] = tileXY(l.lat, l.lon, v.z); let vx = px - ((lx - v.cx) * v.S + v.W / 2), vy = py - ((ly - v.cy) * v.S + v.H / 2); if (grip === 'a') { vx = -vx; vy = -vy; }
       const len = Math.hypot(vx, vy); if (len < 2) return; l.bearing = Math.round(((Math.atan2(vy, vx) * 180 / Math.PI + 360) % 360) * 2) / 2 % 360; l.width = Math.max(5, Math.min(200, Math.round(len * 2 * v.mpp))); }
@@ -320,7 +325,7 @@ $('op-more').addEventListener('click', e => { const b = e.target.closest('button
   if (op === 'count') ask('周回数を直します', '直したあとの周回数：<input class="in" id="op-n" type="number" min="0" max="999" value="30" style="width:6em" aria-label="直したあとの周回数"> 周', moving(), () => { dev.lap = +(document.getElementById('op-n') || {}).value || dev.lap; SCENES.pit.lap = SCENES.hot.lap = dev.lap; scene(); return `ロガーの返事：周回数を ${dev.lap} 周にしました。`; });
   if (op === 'start') ask('いまから計測を始めます', 'ラインを通らなくても、いまをスタートとして数え始めます。', moving(), () => 'ロガーの返事：計測を始めました。');
   if (op === 'log') ask('記録を始めます', 'ロガーが記録していないときに使います。記録中なら何も変わりません。', false, () => 'ロガーの返事：記録中です（変えていません）。');
-  if (op === 'lines') { if ($('scene').value === 'wait') return ask('', '', false, () => ''); ed = { lines: copyLines(dev.lines), i: 0 }; edCenter = null; $('op-confirm').hidden = true; $('op-out').innerHTML = ''; $('ln').hidden = false; lnDraw(); $('ln').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+  if (op === 'lines') { if ($('scene').value === 'wait') return ask('', '', false, () => ''); ed = { lines: copyLines(dev.lines), i: 0 }; edCenter = null; edZoom = null; $('op-confirm').hidden = true; $('op-out').innerHTML = ''; $('ln').hidden = false; lnDraw(); $('ln').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
   if (op === 'course') ask('車とコースを選びます', '本体に入れてある設定の中から選びます。<div class="col" style="margin-top:6px"><select class="in" id="op-car" aria-label="車"><option>NCEC ロードスター</option><option>エコラン（EV二輪）</option></select><select class="in" id="op-course" aria-label="コース"><option>スポーツランドSUGO</option><option>モビリティリゾートもてぎ（エコラン）</option><option>富士スピードウェイ カートコース</option></select></div>' + (moving() ? '車は走っています。新しい線を次に通った所から数え直します。車を替えると、走行記録のファイルがそこで分かれます。' : ''), true,
     () => { dev.car = $('op-car').value; dev.course = $('op-course').value; dev.lines = copyLines(COURSES[dev.course].lines); scene(); return `ロガーの返事：車＝${dev.car}、コース＝${dev.course} に切り替えました。地図の線も同じに変わりました。`; });
 });

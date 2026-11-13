@@ -132,7 +132,7 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
       <div id="line-editor" hidden style="margin-top:12px; border-top:1px solid var(--line); padding-top:12px">
         <h2>線を引く・引き直す</h2>
         <div class="row" style="align-items:flex-start">
-          <div style="flex:1 1 320px; min-width:0"><div class="linemap" id="ed-map-view" role="img" aria-label="引き直す線を航空写真の上に重ねた図"></div><div class="sub" id="ed-map-note"></div></div>
+          <div style="flex:1 1 320px; min-width:0"><div class="linemap" id="ed-map-view" role="img" aria-label="引き直す線を航空写真の上に重ねた図"></div><div class="row" style="margin-top:6px"><button class="b" id="ed-zout" aria-label="引く">−</button><button class="b" id="ed-zin" aria-label="寄る">＋</button><button class="b" id="ed-zfit">線に合わせる</button><span class="sub" id="ed-ztext"></span></div><div class="sub">写真は、＋・−かマウスのホイールで寄り引きでき、何も無い所をつまむと動かせます。</div><div class="sub" id="ed-map-note"></div></div>
           <div class="grow">
             <div class="kv" style="grid-template-columns: minmax(90px,auto) 1fr">
               <label class="k" for="ed-which">どの線</label><span class="row"><select class="in" id="ed-which" style="flex:1 1 140px"></select><button class="b" id="ed-add">線を足す</button><button class="b danger" id="ed-del">この線を消す</button></span>
@@ -298,9 +298,12 @@ $('pick-open').onclick = () => { $('pick').hidden = false; $('pick-confirm').hid
   const key = $('scene').value, v = SPEED(key);
   $('pick-note').textContent = (!LOCAL(key) ? 'LTEでは、前もって本体に入れてある設定の中から選べます。新しい車・コースを足すのはUSBかテザリングのときです。' : '入れる前の設定は本体に1つ残り、「前の設定へ戻す」で戻せます。') + (v >= 5 || !LOCAL(key) ? ' 送る前に、切り替える所を見せて4桁の数字を入れてもらいます。' : ''); };
 $('line-map').onclick = () => { $('line-msg').textContent = 'ピットの地図（自宅のサーバーのページ）を開き、ラインとセクターの線を表示します。'; };
-let ed = null, edCenter = null;   // ed：編集中の線の写し。edCenter：写真の真ん中（つまんでいる間は動かさない）
+let ed = null, edCenter = null, edZoom = null;   // edZoom：人が決めた寄り方（null なら線の幅に合わせる）
+function zText(id, z, el) { const v = $(el)._view; $(id).textContent = v ? `写真の横幅 約${Math.round(v.W * v.mpp)} m` : ''; }   // ed：編集中の線の写し。edCenter：写真の真ん中（つまんでいる間は動かさない）
 const copyLines = ls => ls.map(l => ({ ...l }));
 const edCur = () => ed.lines[ed.i];
+let edAuto = 18;
+function edZoomBy(d) { edZoom = Math.max(14, Math.min(22, (edZoom ?? edAuto) + d)); edDraw(); }
 function edRule() {   // 線のそろい方（本体と同じ）：コントロールラインが1本。スタートとゴールは、あれば1本ずつ
   const n = k => ed.lines.filter(l => l.kind === k).length;
   if (!ed.lines.length) return 'まだ線がありません。「線を足す」で1本目を引きます。';
@@ -310,11 +313,11 @@ function edRule() {   // 線のそろい方（本体と同じ）：コントロ�
 }
 function edDraw() {
   $('ed-rule').textContent = edRule(); $('ed-rule').style.color = edRule() ? 'var(--bad)' : '';
-  if (!ed.lines.length) return drawMap('ed-map-view', 'ed-map-note', [], edCenter || COURSES[dev.course].center, 18);
+  if (!ed.lines.length) { if (!edCenter) edCenter = { ...COURSES[dev.course].center }; drawMap('ed-map-view', 'ed-map-note', [], edCenter, edZoom ?? 18); edAuto = 18; return zText('ed-ztext', 0, 'ed-map-view'); }
   if (!edCenter) edCenter = { lat: edCur().lat, lon: edCur().lon };
   // 線の端のつまみが写真からはみ出さない寄り方にする（幅が広い線ほど引いて見せる）
   const H = $('ed-map-view').clientHeight || 360, lat = edCur().lat, z = [20, 19, 18, 17].find(z => edCur().width / (156543.03392 * Math.cos(lat * Math.PI / 180) / 2 ** z) <= H * 0.7) || 17;
-  drawMap('ed-map-view', 'ed-map-note', ed.lines.map((l, k) => k === ed.i ? l : { ...l, dim: true }), edCenter, z, ed.i);
+  edAuto = z; drawMap('ed-map-view', 'ed-map-note', ed.lines.map((l, k) => k === ed.i ? l : { ...l, dim: true }), edCenter, edZoom ?? z, ed.i); zText('ed-ztext', 0, 'ed-map-view');
 }
 function edForm() {   // 入力欄を、選んでいる線の値にする
   const has = ed.lines.length > 0; nameLines(ed.lines);
@@ -340,9 +343,12 @@ $('ed-nudge').addEventListener('click', e => { const b = e.target.closest('butto
 (() => {   // つまんで動かす：真ん中の丸＝場所、端の丸＝向きと幅
   const el = $('ed-map-view'); let grip = null;
   const at = e => { const r = el.getBoundingClientRect(), v = el._view; return [(e.clientX - r.left) * v.W / r.width, (e.clientY - r.top) * v.H / r.height]; };
-  el.addEventListener('pointerdown', e => { const h = e.target.dataset && e.target.dataset.h; if (!h) return; grip = h; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+  let pan = null;
+  el.addEventListener('pointerdown', e => { const h = e.target.dataset && e.target.dataset.h, v = el._view; grip = h || 'pan'; if (!h) pan = { x: e.clientX, y: e.clientY, cx: v.cx, cy: v.cy, k: v.W / el.getBoundingClientRect().width }; try { el.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+  el.addEventListener('wheel', e => { e.preventDefault(); edZoomBy(e.deltaY < 0 ? 1 : -1); }, { passive: false });
   el.addEventListener('pointermove', e => {
     if (!grip) return; const v = el._view, [px, py] = at(e);
+    if (grip === 'pan') { edCenter = fromTile(pan.cx - (e.clientX - pan.x) * pan.k / v.S, pan.cy - (e.clientY - pan.y) * pan.k / v.S, v.z); return edDraw(); }
     if (grip === 'c') { const g = fromTile(v.cx + (px - v.W / 2) / v.S, v.cy + (py - v.H / 2) / v.S, v.z); $('ed-lat').value = g.lat.toFixed(7); $('ed-lon').value = g.lon.toFixed(7); }
     else {
       const [lx, ly] = tileXY(+$('ed-lat').value, +$('ed-lon').value, v.z), x = (lx - v.cx) * v.S + v.W / 2, y = (ly - v.cy) * v.S + v.H / 2;
@@ -353,7 +359,7 @@ $('ed-nudge').addEventListener('click', e => { const b = e.target.closest('butto
     }
     edSync();
   });
-  const end = () => { if (grip) { grip = null; $('line-msg').textContent = 'つまんで動かしました。数字も同じ値に変わっています。'; } };
+  const end = () => { if (grip && grip !== 'pan') $('line-msg').textContent = 'つまんで動かしました。数字も同じ値に変わっています。'; grip = null; };
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
 })();
 [['ed-bearing', 'ed-bearing-n'], ['ed-width', 'ed-width-n']].forEach(([a, b]) => {
@@ -361,6 +367,7 @@ $('ed-nudge').addEventListener('click', e => { const b = e.target.closest('butto
   $(b).addEventListener('input', () => { $(a).value = $(b).value; edSync(); }); });
 ['ed-lat', 'ed-lon'].forEach(id => $(id).addEventListener('change', () => { edCenter = null; edSync(); }));
 ['ed-kind', 'ed-dir'].forEach(id => $(id).addEventListener('change', edSync));
+$('ed-zin').onclick = () => edZoomBy(1); $('ed-zout').onclick = () => edZoomBy(-1); $('ed-zfit').onclick = () => { edZoom = null; edCenter = null; edDraw(); };
 $('ed-which').addEventListener('change', () => { ed.i = +$('ed-which').value; edCenter = null; edForm(); edDraw(); });
 $('ed-add').onclick = () => {
   const has = k => ed.lines.some(l => l.kind === k), kind = !has('c') ? 'c' : has('st') && !has('go') ? 'go' : 's';
@@ -372,7 +379,7 @@ $('ed-add').onclick = () => {
 $('ed-del').onclick = () => { if (!ed.lines.length) return; const name = edCur().name; ed.lines.splice(ed.i, 1); ed.i = Math.max(0, ed.i - 1); edCenter = null; edForm(); edDraw(); $('line-msg').textContent = `「${name}」を消しました（本体へ入れるまでは、本体の線は変わりません）。`; };
 $('line-edit').onclick = () => {
   const key = $('scene').value, v = SPEED(key), limit = COURSES[dev.course].race_kmh; $('setup-msg').innerHTML = ''; $('line-msg').textContent = ''; $('lte-confirm').hidden = true;
-  ed = { lines: copyLines(dev.lines), i: view === 'all' ? 0 : view }; edCenter = null;
+  ed = { lines: copyLines(dev.lines), i: view === 'all' ? 0 : view }; edCenter = null; edZoom = null;
   $('line-editor').hidden = false; const fast = v >= limit; $('ed-lte').hidden = LOCAL(key) && !fast;
   $('ed-lte').textContent = fast ? `いまレーシングスピードで走っています（${v} km/h）。変えられますが、送る前に変わる所を見せて、4桁の数字を入れてもらいます。いま走っている周は、新しい線を次に通った所から数え直します。` : 'LTEで送ります。USB・テザリングより確認が1つ多く、送る前に変わる所を見せて、4桁の数字を入れてもらいます。';
   edForm(); edDraw();
