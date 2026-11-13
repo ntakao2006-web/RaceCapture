@@ -93,7 +93,7 @@ button.b:focus-visible, .go a:focus-visible, select:focus-visible, .in:focus-vis
 
   <div class="panel"><h2>くわしく見る</h2>
     <div class="go"><a href="#" data-go="地図（車の位置・コントロールラインとセクターの線）">地図</a><a href="#" data-go="周回表（周ごとのタイム・セクター・最高速）">周回表</a><a href="#" data-go="G-G（前後・左右のG）">G-G</a><a href="#" data-go="グラフ（油温・水温・速度・回転数の30分）">グラフ</a></div>
-    <div class="sub" id="go-msg" style="margin-top:6px"></div></div>
+    <div class="sub" style="margin-top:6px">この表紙は「いま」だけを出します。周ごとの記録は周回表、時間の流れはグラフで見ます。</div><div class="sub" id="go-msg"></div></div>
 
   <div class="panel" id="ops">
     <h2>操作（LTEでロガーへ送る）</h2>
@@ -123,7 +123,7 @@ button.b:focus-visible, .go a:focus-visible, select:focus-visible, .in:focus-vis
         <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12 Z" fill="#22c55e" stroke="#fff" stroke-width="1"/></marker></defs></svg>
         <div class="linemap" id="ln-map" role="img" aria-label="引き直す線を航空写真の上に重ねた図"></div>
         <div class="row" style="margin-top:0"><button class="b" id="ln-zout" aria-label="引く">−</button><button class="b" id="ln-zin" aria-label="寄る">＋</button><button class="b" id="ln-zfit">線に合わせる</button><span class="sub" id="ln-ztext"></span></div><div class="sub" id="ln-note"></div>
-        <div class="sub"><b>指でつまんで動かせます。</b>黄色の丸＝場所、白い丸＝向きと幅。写真は＋・−で寄り引きでき、何も無い所をなぞると動かせます。細かい調整は下のボタンで。</div>
+        <div class="sub"><b>指でつまんで動かせます。</b>黄色の丸＝場所、白い丸＝向きと幅。写真は2本指でつまむか＋・−で寄り引きでき、何も無い所をなぞると動かせます。細かい調整は下のボタンで。</div>
         <div class="row"><select class="in" id="ln-which" style="flex:1 1 140px" aria-label="どの線"></select><button class="b" id="ln-add" style="min-height:0; padding:8px 12px">足す</button><button class="b danger" id="ln-del" style="min-height:0; padding:8px 12px">消す</button></div>
         <div class="grid2"><select class="in" id="ln-kind" aria-label="役目"><option value="c">コントロールライン</option><option value="st">スタート</option><option value="go">ゴール</option><option value="s">セクターの終わり</option></select>
           <select class="in" id="ln-dir" aria-label="数える向き"><option value="one">矢印の向きだけ</option><option value="both">両方向</option></select></div>
@@ -241,13 +241,14 @@ const TILE = (z, x, y) => `https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/${
 function tileXY(lat, lon, z) { const n = 2 ** z, r = lat * Math.PI / 180; return [(lon + 180) / 360 * n, (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n]; }
 function fromTile(x, y, z) { const n = 2 ** z; return { lon: x / n * 360 - 180, lat: Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n))) * 180 / Math.PI }; }
 function drawMap(lines, center, z, handle) {
-  const el = $('ln-map'), W = el.clientWidth || 400, H = el.clientHeight || 300, tz = Math.min(z, 18), S = 256 * 2 ** (z - tz);
+  const el = $('ln-map'), W = el.clientWidth || 400, H = el.clientHeight || 300, tz = Math.min(Math.floor(z), 18), S = 256 * 2 ** (z - tz);
   const [cx, cy] = tileXY(center.lat, center.lon, tz), mpp = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / 2 ** z, key = [center.lat, center.lon, z, W, H].join(',');
   if (el.dataset.key !== key) {
     let html = '';
     for (let tx = Math.floor(cx - W / 2 / S); tx <= Math.floor(cx + W / 2 / S); tx++) for (let ty = Math.floor(cy - H / 2 / S); ty <= Math.floor(cy + H / 2 / S); ty++)
       html += `<img alt="" draggable="false" src="${TILE(tz, tx, ty)}" style="width:${S}px; height:${S}px; left:${Math.round((tx - cx) * S + W / 2)}px; top:${Math.round((ty - cy) * S + H / 2)}px" onerror="this.remove(); document.getElementById('ln-note').hidden = false">`;
-    el.innerHTML = html + `<svg viewBox="0 0 ${W} ${H}"></svg><span class="credit">航空写真：国土地理院</span>`; el.dataset.key = key;
+    if (!el.querySelector('svg')) el.innerHTML = '<div class="tiles"></div><svg></svg><span class="credit">航空写真：国土地理院</span>';
+    el.querySelector('.tiles').innerHTML = html; el.querySelector('svg').setAttribute('viewBox', `0 0 ${W} ${H}`); el.dataset.key = key;
     $('ln-note').hidden = true; $('ln-note').textContent = 'ここでは航空写真を読み込めないため、方眼の上に同じ縮尺で描いています（線の位置・向き・幅は実寸）。';
   }
   el._view = { cx, cy, z: tz, S, W, H, mpp };
@@ -307,6 +308,16 @@ $('ln').addEventListener('click', e => { const b = e.target.closest('button[data
       const len = Math.hypot(vx, vy); if (len < 2) return; l.bearing = Math.round(((Math.atan2(vy, vx) * 180 / Math.PI + 360) % 360) * 2) / 2 % 360; l.width = Math.max(5, Math.min(200, Math.round(len * 2 * v.mpp))); }
     lnDraw(); });
   const end = () => { grip = null; }; el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); })();
+(() => {   // 2本指でつまんで寄り引き（指の間が広がると寄る）。つまんでいる間は、線も写真も動かさない
+  const el = $('ln-map'), pts = new Map(); let pinch = null, block = false;
+  const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  el.addEventListener('pointerdown', e => { pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { el.setPointerCapture(e.pointerId); } catch (x) {} if (pts.size === 2) { pinch = { d: dist(), z: edZoom ?? edAuto }; block = true; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  el.addEventListener('pointermove', e => { if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pts.size === 2) { const d = dist(); if (d > 10 && pinch.d > 10) { edZoom = Math.max(14, Math.min(22, pinch.z + Math.log2(d / pinch.d))); lnDraw(); } }
+    if (block) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (pts.size === 0) block = false; };
+  el.addEventListener('pointerup', up, true); el.addEventListener('pointercancel', up, true);
+})();
 function lnDiff() { const a = dev.lines, b = ed.lines, parts = [`線 ${a.length}本 → ${b.length}本`], sig = l => JSON.stringify([l.lat.toFixed(7), l.lon.toFixed(7), l.bearing, l.width, l.kind, !!l.both]);
   b.forEach((l, k) => { const o = a[k]; if (!o) parts.push(`足す：${l.name}（幅 ${l.width} m・向き ${l.bearing}°）`);
     else if (sig(o) !== sig(l)) { const d = Math.hypot((l.lat - o.lat) * 111320, (l.lon - o.lon) * 111320 * Math.cos(o.lat * Math.PI / 180));
