@@ -136,7 +136,7 @@ tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.se
           <div class="grow">
             <div class="kv" style="grid-template-columns: minmax(90px,auto) 1fr">
               <label class="k" for="ed-which">どの線</label><span class="row"><select class="in" id="ed-which" style="flex:1 1 140px"></select><button class="b" id="ed-add">線を足す</button><button class="b danger" id="ed-del">この線を消す</button></span>
-              <label class="k" for="ed-kind">役目</label><select class="in" id="ed-kind"><option value="c">コントロールライン（スタート兼ゴール）</option><option value="st">スタートだけ</option><option value="go">ゴールだけ</option><option value="s">セクターの終わり</option></select>
+              <label class="k" for="ed-kind">役目</label><select class="in" id="ed-kind"><option value="c">コントロールライン（周を数える）</option><option value="st">スタート（別の場所から出るとき）</option><option value="go">ゴール（別の場所で終わるとき）</option><option value="s">セクターの終わり</option></select>
               <label class="k" for="ed-dir">数える向き</label><select class="in" id="ed-dir"><option value="one">矢印の向きだけ</option><option value="both">両方向</option></select>
               <label class="k" for="ed-lat">場所（緯度）</label><input class="in" id="ed-lat" inputmode="decimal">
               <label class="k" for="ed-lon">場所（経度）</label><input class="in" id="ed-lon" inputmode="decimal">
@@ -289,12 +289,11 @@ $('line-map').onclick = () => { $('line-msg').textContent = 'ピットの地図�
 let ed = null, edCenter = null;   // ed：編集中の線の写し。edCenter：写真の真ん中（つまんでいる間は動かさない）
 const copyLines = ls => ls.map(l => ({ ...l }));
 const edCur = () => ed.lines[ed.i];
-function edRule() {   // 線のそろい方：コントロールライン1本か、スタートとゴールが1本ずつ
-  const n = k => ed.lines.filter(l => l.kind === k).length, c = n('c'), st = n('st'), go = n('go');
+function edRule() {   // 線のそろい方（本体と同じ）：コントロールラインが1本。スタートとゴールは、あれば1本ずつ
+  const n = k => ed.lines.filter(l => l.kind === k).length;
   if (!ed.lines.length) return 'まだ線がありません。「線を足す」で1本目を引きます。';
-  if (c > 1) return 'コントロールラインは1本だけにします。';
-  if (c === 1 && (st || go)) return 'コントロールライン（スタート兼ゴール）と、スタート・ゴールの線は一緒に使えません。どちらかにします。';
-  if (c === 0 && !(st === 1 && go === 1)) return 'コントロールラインが1本、またはスタートとゴールが1本ずつ要ります。';
+  if (n('c') !== 1) return 'コントロールライン（周を数える線）が1本要ります。';
+  if (n('st') > 1 || n('go') > 1) return 'スタートの線とゴールの線は、それぞれ1本までです。';
   return '';
 }
 function edDraw() {
@@ -352,7 +351,7 @@ $('ed-nudge').addEventListener('click', e => { const b = e.target.closest('butto
 ['ed-kind', 'ed-dir'].forEach(id => $(id).addEventListener('change', edSync));
 $('ed-which').addEventListener('change', () => { ed.i = +$('ed-which').value; edCenter = null; edForm(); edDraw(); });
 $('ed-add').onclick = () => {
-  const has = k => ed.lines.some(l => l.kind === k), kind = !ed.lines.length ? 'c' : has('st') && !has('go') ? 'go' : 's';
+  const has = k => ed.lines.some(l => l.kind === k), kind = !has('c') ? 'c' : has('st') && !has('go') ? 'go' : 's';
   const at = edCenter || COURSES[dev.course].center;   // いま見ている写真の真ん中に置く
   ed.lines.push({ kind, lat: at.lat + (ed.lines.length ? 0.00008 : 0), lon: at.lon + (ed.lines.length ? 0.00010 : 0), bearing: ed.lines.length ? edCur().bearing : 0, width: 30, both: false });
   ed.i = ed.lines.length - 1; edCenter = null; edForm(); edDraw();
@@ -408,7 +407,7 @@ $('pick-apply').onclick = () => {
 const SPEED = k => ({ lte: 132, tether_pit: 38 })[k] || 0;
 const LOCAL = k => k === 'usb' || k === 'tether' || k === 'tether_pit' || k === 'trouble';
 // 見本の中の「本体の設定」。SUGOの線は本体に入っている実物の値（tools/sugo_setup/sugo_setup.py）。ほかのコースは、場所もおおよその例
-const KIND = { c: ['コントロールライン', '#ef4444', 'スタート兼ゴール'], st: ['スタート', '#f59e0b', 'スタートだけ'], go: ['ゴール', '#a855f7', 'ゴールだけ'], s: ['セクターの終わり', '#38bdf8', 'セクター'] };
+const KIND = { c: ['コントロールライン', '#ef4444', '周を数える'], st: ['スタート', '#f59e0b', '最初の1回（スタートが別の場所のとき）'], go: ['ゴール', '#a855f7', '最後の1回（ゴールが別の場所のとき）'], s: ['セクターの終わり', '#38bdf8', '区間を分ける'] };
 function nameLines(ls) { let n = 0; ls.forEach(l => { l.name = l.kind === 's' ? `セクター${++n}の終わり` : KIND[l.kind][0]; }); return ls; }
 const COURSES = {
   'スポーツランドSUGO': { race_kmh: 100, example: false, center: { lat: 38.1405, lon: 140.7765 }, lines: [
@@ -417,6 +416,7 @@ const COURSES = {
     { name: 'セクター2の終わり', kind: 's', lat: 38.1384700, lon: 140.7774769, bearing: 253.5, width: 30 },
     { name: 'セクター3の終わり', kind: 's', lat: 38.1408947, lon: 140.7730358, bearing: 252.5, width: 30 }] },
   'モビリティリゾートもてぎ（エコラン）': { race_kmh: 20, example: true, center: { lat: 36.5330, lon: 140.2270 }, lines: [
+    { name: 'コントロールライン', kind: 'c', lat: 36.5332, lon: 140.2270, bearing: 90, width: 30 },
     { name: 'スタート', kind: 'st', lat: 36.5332, lon: 140.2262, bearing: 90, width: 30 },
     { name: 'ゴール', kind: 'go', lat: 36.5332, lon: 140.2255, bearing: 90, width: 30 }] },
   '富士スピードウェイ カートコース': { race_kmh: 50, example: true, center: { lat: 35.3720, lon: 138.9280 }, lines: [
