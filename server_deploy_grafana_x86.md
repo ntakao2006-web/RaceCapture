@@ -212,11 +212,11 @@ G-Gのページ（`/live/gg?room=<room>`）は10/24夜にダッシュボード�
 ### 6-1. ファイルを取ってくる
 
 ```bash
-git clone --depth 1 --filter=blob:none --sparse https://github.com/ntakao2006-web/RaceCapture.git
+git clone --depth 1 --filter=blob:none --sparse https://github.com/ntakao2006-web/EcoLogger.git
 ```
 
 ```bash
-cd RaceCapture && git sparse-checkout set tools/home_telemetry
+cd EcoLogger && git sparse-checkout set tools/home_telemetry
 ```
 
 ```bash
