@@ -126,7 +126,9 @@ class StuckReadTests(unittest.TestCase):
         device.lock.acquire()  # 返ってこない前の操作が鍵を持ったまま
         device.abandon()
         device.link = FakeLink('state')
-        self.assertEqual(device.run('x'), 'state')
+        # PCに実物のadbの機器が見えていても左右されないように（見えているとUSBへつなぎ直しに行く）
+        with mock.patch.object(device, 'usb_appeared', return_value=False):
+            self.assertEqual(device.run('x'), 'state')
 
     def test_a_read_that_never_returns_is_abandoned_and_its_late_result_dropped(self):
         menu = object.__new__(m.Menu)
