@@ -29,6 +29,9 @@ STATUS_SCRIPT = f'''
 echo '@@S'; curl -s -m 6 {API}/api/status
 echo; echo '@@L'; curl -s -m 6 {API}/api/lap
 echo; echo '@@C'; ls /sys/class/udc 2>/dev/null | wc -l
+echo '@@T'; curl -s -m 6 {API}/api/telemetry
+echo; echo '@@G'; curl -s -m 6 {API}/api/config
+echo
 exit 0
 '''
 
@@ -131,14 +134,18 @@ def checks_lte(s):
 
 
 def read(link):
-    """つないだ本体から読む。{'checks', 'extra', 'usb_hint'}"""
+    """つないだ本体から読む。{'checks', 'extra', 'usb_hint', 'course'}。
+    course は「コースと線」の段に出す本体の線・車速・読んでいる信号（course_lines.device_view。線が読めなければ None）"""
+    import course_lines
     parts = sections(link.run(STATUS_SCRIPT, timeout=30))
-    found, extra = checks(load_json(parts.get('S')), load_json(parts.get('L')))
+    lap = load_json(parts.get('L'))
+    found, extra = checks(load_json(parts.get('S')), lap)
+    course = course_lines.device_view(lap, load_json(parts.get('T')), load_json(parts.get('G')))
     hint = ''
     if isinstance(link, unoq_link.SshLink) and parts.get('C', '').strip() == '0':
         # 本体のUSB-Cは、起動したときにドックがあれば「ドックの機器を使う側」になり、あとでPCへつないでも替わらない
         hint = 'この本体は、いまPCとUSBでつなげない状態です（ドックをつないだまま起動したため）。USBで使うには、ドックを外し、PCとつないだまま本体の電源を入れ直す'
-    return {'checks': found, 'extra': extra, 'usb_hint': hint}
+    return {'checks': found, 'extra': extra, 'usb_hint': hint, 'course': course}
 
 
 def note_dict(n):
@@ -151,7 +158,7 @@ class Watcher:
     def __init__(self, app, survey=None, reader=read, sleep=time.sleep):
         self.app, self.reader, self.sleep = app, reader, sleep
         self.survey = survey or (lambda: unoq_link.survey(app.ssh_host))
-        app.now = {'phase': 'searching', 'notes': [], 'checks': [], 'extra': [], 'usb_hint': '', 'read_at': 0, 'via': '', 'lte': None, 'op': None, 'key': None}
+        app.now = {'phase': 'searching', 'notes': [], 'checks': [], 'extra': [], 'usb_hint': '', 'read_at': 0, 'via': '', 'lte': None, 'op': None, 'key': None, 'course': None}
 
     def start(self):
         threading.Thread(target=self.loop, daemon=True).start()
@@ -195,6 +202,8 @@ class Watcher:
                     app.link, app.state, app.error = None, None, f'本体を読めなくなった: {exc}'
             now.update(phase='searching', via='')
             return 1
+        if result.get('course') is None:   # 線が読めなかった回は、前に読んだ線を残す（つながったまま図が消えないように）
+            result = {k: v for k, v in result.items() if k != 'course'}
         now.update(phase='connected', via=link.kind, label=link.label(), read_at=time.time(), lte=None, **result)
         return READ_EVERY_S
 

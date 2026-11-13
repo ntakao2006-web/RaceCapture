@@ -54,6 +54,7 @@ JST = timezone(timedelta(hours=9))
 MARGIN = 1 << 30           # PCの空きはこれだけ残す
 LOG_BYTES_PER_MIN = 5e6    # 走行記録（EcoCaptureのログ）は記録中に約0.3GB/hずつ増える（2026-11-03の実測）
 PAGE = Path(__file__).with_name('video_collect.html')
+LINES_JS = Path(__file__).with_name('course_lines.js')
 
 # 本体で動かす一覧のスクリプト。D・LOGS・BOOTF は Link が先頭に付ける
 LIST_SCRIPT = r'''
@@ -810,7 +811,15 @@ class App:
                            'not_backed_up': sum(1 for e in pc.index.values() if pc.settings.get('backup') and
                                                 pc.settings['backup'] not in e.get('backup', {}))},
                     'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at, 'sd': self.sd,
-                    'now': self.now, 'time': time.time()}
+                    'now': self.now, 'course': self.course_view(), 'time': time.time()}
+
+    def course_view(self):
+        """「コースと線」の段に出すもの（course_lines.py。PCのコースの設定と、本体から読んだ線）"""
+        import course_lines
+        try:
+            return course_lines.view(self)
+        except (OSError, ValueError, ImportError) as exc:
+            return {'error': f'コースの設定を読めません: {exc}', 'connected': False, 'via': '', 'device': None, 'courses': []}
 
     def runs(self):
         """回収した走行の一覧（run_index.py。ファイルは動かさず、走行記録と同じ時刻の動画を結ぶ）。
@@ -1046,6 +1055,8 @@ def make_server(app, port):
                     return self.send(409, {'error': str(exc)})
             if self.path == '/':
                 return self.send(200, PAGE.read_bytes(), 'text/html; charset=utf-8')
+            if self.path == '/course_lines.js':   # 「コースと線」の段のJS（画面が大きいので分けてある）
+                return self.send(200, LINES_JS.read_bytes(), 'text/javascript; charset=utf-8')
             if self.path == '/api/state':
                 return self.send(200, app.snapshot())
             if self.path == '/api/runs':
@@ -1066,8 +1077,8 @@ def make_server(app, port):
                 return self.send(403, {'error': '操作の印が無い'})
             try:
                 body = json.loads(raw or b'{}')
-                app.action(self.path, body)
-                self.send(200, {'ok': True})
+                result = app.action(self.path, body)   # 返すものがある操作（線の確認など）は、返事に入れる
+                self.send(200, {**(result if isinstance(result, dict) else {}), 'ok': True})
             except KeyError:
                 self.send(404, {'error': 'not found'})
             except (RuntimeError, OSError, StopIteration, ValueError) as exc:
@@ -1139,7 +1150,7 @@ def main(argv=None):
     parser.add_argument('--port', type=int, default=8791)
     parser.add_argument('--no-browser', action='store_true')
     parser.add_argument('--collect-all', action='store_true', help='画面なしで未回収をすべて吸い出す')
-    parser.add_argument('--tab', choices=['now', 'collect', 'runs'], default='now', help='開いたときに出す段（既定は「いまの様子」）')
+    parser.add_argument('--tab', choices=['now', 'lines', 'collect', 'runs'], default='now', help='開いたときに出す段（既定は「いまの様子」）')
     args = parser.parse_args(argv)
     if args.collect_all:
         try:

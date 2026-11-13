@@ -14,6 +14,16 @@
   hang         … つながっているが読めなくなった（値が古くなる）。usb か tether と一緒に置く
   deaf         … LTEの命令に返事が無い
 操作は作りもの（LTEへは送らない）。「合言葉の準備」をすると <dir>/secret.json ができ、消すと「合言葉が無い」場面になる。
+
+「コースと線」の段（2026-11-13、SP-4-10・SP-4-11）：線の読み書きも作りもの。はじめの本体の線は tools/setups/courses/ の1つめ
+（usb も tether も無ければ「LTEだけ」の場面。合言葉があれば、線はLTEの作りもので入る）
+  moving       … 車が動いている（38 km/h。レーシングスピードより下）
+  racing       … レーシングスピードで走っている（132 km/h。直接でも4桁の確認が出る）
+  nofix        … 測位していない（車速が分からない＝止まっているものとして扱う、と出る）
+  lapidle      … 1周を数えている途中ではない（置かなければ、数えている途中）
+  othercar     … 本体が読んでいる信号が、車の設定と違う
+  nocourse     … LTEで名前だけ送ったとき、本体にその設定が入っていない（断られる）
+  noline／otherline … 起動の前に置く。本体に線が無い／PCのどの設定とも違う線（コントロールラインを東へ約30 m）
 """
 import argparse
 import json
@@ -47,13 +57,46 @@ def main():
     args.dir.mkdir(parents=True, exist_ok=True)
     flag = lambda name: (args.dir / name).exists()  # noqa: E731
 
+    # 「コースと線」の作りものの本体：線（lap.json の line と同じ形）と、車速・位置・読んでいる信号
+    import course_lines
+    import setups
+    courses = [c for c in course_lines.pc_courses() if 'line' in c]
+    base = json.loads(json.dumps(courses[0]['line'])) if courses else {'enabled': False, 'lat': None, 'lon': None}
+    if flag('noline'):
+        base = {**base, 'enabled': False, 'lat': None, 'lon': None, 'start': None, 'goal': None, 'sectors': []}
+    elif flag('otherline') and base.get('enabled'):
+        base['lon'] += 0.00034
+    device = {'line': {**base, 'set_at': None}}
+    vehicles = setups.names('vehicle')
+    logger = setups.load('vehicle', vehicles[0])['logger'] if vehicles else {'signals': []}
+
+    def lap_public():
+        return {'line': device['line'], 'values': {'LapCount': laps['count']}, 'running': not flag('lapidle'), 'finished': False}
+
+    def telemetry():
+        home = courses[0]['line'] if courses else {'lat': 36.0, 'lon': 138.0}
+        kmh = 132.0 if flag('racing') else 38.0 if flag('moving') else 0.0
+        values = {'Speed': None, 'GPSFix': 0, 'GPSSats': 0} if flag('nofix') else {
+            'Speed': kmh, 'GPSSpeed': kmh, 'GPSFix': 3, 'GPSSats': 19, 'Lat': home['lat'] - 0.00012, 'Lon': home['lon'] - 0.00031, 'Yaw': 101.0}
+        return {'type': 'telemetry', 'status': {}, 'sample': {'values': values, 'gnss_hacc_m': None if flag('nofix') else 0.9}}
+
+    def config():
+        signals = logger['signals'][:-1] if flag('othercar') else logger['signals']
+        return {**{k: v for k, v in logger.items() if k != 'signals'}, 'signals': signals}
+
+    def answer(script, usb_count):
+        if 'lap.json.bak-' in script:   # 線を入れる前の控え（本体の中で lap.json を写す）
+            return 'KEPT\n' if device['line'].get('enabled') else 'NONE\n'
+        return (f"@@S\n{json.dumps(BAD if flag('bad') else GOOD)}\n@@L\n{json.dumps(lap_public())}\n@@C\n{usb_count}\n"
+                f"@@T\n{json.dumps(telemetry())}\n@@G\n{json.dumps(config())}\n")
+
     class FakeUsb(unoq_link.AdbLink):
         def run(self, script, timeout=60):
             if flag('hang'):
                 time.sleep(3600)
             if not flag('usb'):
                 raise OSError('抜けた')
-            return f"@@S\n{json.dumps(BAD if flag('bad') else GOOD)}\n@@L\n{json.dumps(LAP)}\n@@C\n1\n"
+            return answer(script, 1)
 
     class FakeSsh(unoq_link.SshLink):
         def run(self, script, timeout=60):
@@ -61,7 +104,7 @@ def main():
                 time.sleep(3600)
             if not flag('tether') or flag('usb'):
                 raise OSError('切れた')
-            return f"@@S\n{json.dumps(BAD if flag('bad') else GOOD)}\n@@L\n{json.dumps(LAP)}\n@@C\n0\n"
+            return answer(script, 0)
 
     def survey():
         time.sleep(1.5)
@@ -91,7 +134,23 @@ def main():
             laps['count'] = 0
         if op == 'lap_count':
             laps['count'] = arg
-        return {'ok': True, 'op': op, 'message': 'done', 'status': {
+        extra, message = {}, 'done'
+        if op in ('course_select', 'line_set'):   # 本体の remote_command.py と同じ形の返事を作る
+            if op == 'course_select':
+                found = None if flag('nocourse') else course_lines.course(arg['name'])
+                if not found:
+                    return {'ok': False, 'op': op, 'message': f"no course {arg['name']}", 'courses': []}
+                new = dict(found['line'])
+            else:
+                new = {**device['line'], 'bearing': None, 'width_m': 30, 'start': None, 'goal': None, 'sectors': [], **arg, 'enabled': True}
+            changed = bool(course_lines.changes(device['line'], new)[0])
+            device['line'] = {**new, 'set_at': time.strftime('%Y-%m-%dT%H:%M+09:00')}
+            short = lambda g: None if g is None else [round(g['lat'], 7), round(g['lon'], 7), g.get('bearing'), g.get('width_m')]  # noqa: E731
+            message = (f"course {arg['name']} set" if changed else f"course {arg['name']} was already set") if op == 'course_select' \
+                else 'line set' if changed else 'line was already set'
+            extra = {'line': {'name': course_lines.match(new), 'control': short(new), 'start': short(new.get('start')), 'goal': short(new.get('goal')),
+                              'sectors': len(new.get('sectors') or []), 'id': 'DEV0', 'at': device['line']['set_at'], 'changed': changed}}
+        return {'ok': True, 'op': op, 'message': message, **extra, 'status': {
             'logging': True, 'log_s': 754, 'hz': 99.8, 'gnss': True, 'sd': True, 'video': not flag('bad'),
             'lap': {'enabled': True, 'count': laps['count'], 'current': laps['count'] + 1, 'running': True, 'race_min': 18.4}}}
 
@@ -104,7 +163,11 @@ def main():
         time.sleep(1)
         if path == '/api/lap/reset':
             laps['count'] = 0
-        return {'values': {'LapCount': laps['count']}, 'line': {'enabled': True}}
+        if path == '/api/telemetry':
+            return telemetry()
+        if path == '/api/lap' and body is not None:   # 本体と同じく、いまの線に送られた分を重ねる
+            device['line'] = {**device['line'], **body, 'set_at': time.strftime('%Y-%m-%dT%H:%M+09:00')}
+        return lap_public()
     rc.send, rc.setup, app_ops.device_api, app_ops.LTE_WAIT_S = fake_send, fake_setup, fake_api, 8
     LAP['values'] = laps_view = {'LapCount': 12}
     app.ops = app_ops.Ops(app)

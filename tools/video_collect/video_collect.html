@@ -97,6 +97,16 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
 #key-canvas { background: #fff; border-radius: 8px; display: block; margin: 8px 0; }
 .bar > div.busy { width: 30%; animation: busy 1.6s ease-in-out infinite; }
 @keyframes busy { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+.in { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); min-width: 0; max-width: 100%; }
+.grow { flex: 1 1 200px; min-width: 0; }
+.kv { display: grid; grid-template-columns: minmax(90px, auto) 1fr; gap: 6px 12px; align-items: center; font-size: 14px; }
+.kv .k { color: var(--muted); }
+.linemap { position: relative; width: 100%; max-width: 640px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; border: 1px solid var(--line); touch-action: none;
+  background-color: var(--chip); background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 40px 40px; }
+.linemap img { position: absolute; width: 256px; height: 256px; max-width: none; }
+.linemap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.linemap .credit { position: absolute; right: 4px; bottom: 2px; font-size: 10px; color: #fff; text-shadow: 0 0 3px #000; }
+.opbox ul, .opres ul { margin: 4px 0; padding-left: 1.3em; }
 [hidden] { display: none !important; }
 @media (max-width: 600px) { .tile .v { font-size: 19px; } }
 </style>
@@ -107,6 +117,7 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
   <div class="conn" id="conn"><span class="dot"></span><div><b id="conn-title">ロガーを探しています…</b><div class="sub" id="conn-sub" style="color:inherit"></div></div></div>
   <div class="tabs" role="tablist">
     <button role="tab" data-tab="now" aria-selected="true">いまの様子</button>
+    <button role="tab" data-tab="lines" aria-selected="false">コースと線</button>
     <button role="tab" data-tab="collect" aria-selected="false">回収</button>
     <button role="tab" data-tab="runs" aria-selected="false">走行を見る</button>
   </div>
@@ -165,6 +176,58 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
       </details>
     </div>
     <div class="sub" id="now-foot" style="margin-top:10px"></div>
+  </section>
+
+  <section id="tab-lines" hidden>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12 Z" fill="#22c55e" stroke="#fff" stroke-width="1"/></marker></defs></svg>
+    <div class="panel">
+      <h2>いまの車・コース</h2>
+      <div id="ln-head"></div>
+      <div class="banner warn" id="ln-unread" hidden></div>
+      <div style="margin-top:12px"><b>コントロールラインとセクター</b> <span id="ln-chip"></span></div>
+      <div class="row" style="margin:6px 0"><label for="ln-src" class="sub">見る線</label><select class="in" id="ln-src" style="flex:0 1 420px"></select></div>
+      <div class="row" style="margin:6px 0" id="ln-tabs"></div>
+      <div class="linemap" id="ln-map" role="img" aria-label="航空写真の上のコントロールラインとセクターの線"></div>
+      <div class="sub" id="ln-map-note" hidden></div>
+      <div class="banner warn" id="ln-empty" hidden>まだ線がありません。ラップは数えません。下の「1本目の線を引く…」で引けます。</div>
+      <div class="scroll" style="margin-top:8px"><table id="ln-table"><thead><tr><th>線</th><th>役目</th><th>場所（真ん中）</th><th>幅</th><th>進む向き</th></tr></thead><tbody></tbody></table></div>
+      <div class="sub" style="margin-top:6px">線の長さが幅、緑の矢印が数える向きです（逆向きに横切っても数えません）。線は本体の1か所に持っていて、車載画面のラップもこの線で数えます。<span id="ln-gate"></span></div>
+      <div class="row" style="margin-top:6px"><button id="ln-edit">線を引き直す・足す…</button><button id="ln-apply" hidden>この設定の線を、そのまま本体へ入れる…</button></div>
+      <div class="sub" id="ln-msg" style="margin-top:4px"></div>
+      <div id="ln-editor" hidden style="margin-top:12px; border-top:1px solid var(--line); padding-top:12px">
+        <h2>線を引く・引き直す <span class="sub" id="ed-base"></span></h2>
+        <div class="row" style="align-items:flex-start">
+          <div style="flex:1 1 320px; min-width:0"><div class="linemap" id="ed-map-view" role="img" aria-label="引き直す線を航空写真の上に重ねた図"></div><div class="row" style="margin-top:6px"><button id="ed-zout" aria-label="引く">−</button><button id="ed-zin" aria-label="寄る">＋</button><button id="ed-zfit">線に合わせる</button><span class="sub" id="ed-ztext"></span></div><div class="sub">写真は、＋・−かマウスのホイール（画面に触れる機械なら2本指でつまむ）で寄り引きでき、何も無い所をつまむと動かせます。</div><div class="sub" id="ed-map-note" hidden></div></div>
+          <div class="grow">
+            <div class="kv">
+              <label class="k" for="ed-which">どの線</label><span class="row"><select class="in" id="ed-which" style="flex:1 1 140px"></select><button id="ed-add">線を足す</button><button class="danger" id="ed-del">この線を消す</button></span>
+              <label class="k" for="ed-kind">役目</label><select class="in" id="ed-kind"><option value="c">コントロールライン（周を数える）</option><option value="st">スタート（別の場所から出るとき）</option><option value="go">ゴール（別の場所で終わるとき）</option><option value="s">セクターの終わり</option></select>
+              <label class="k" for="ed-lat">場所（緯度）</label><input class="in" id="ed-lat" inputmode="decimal">
+              <label class="k" for="ed-lon">場所（経度）</label><input class="in" id="ed-lon" inputmode="decimal">
+              <label class="k" for="ed-bearing">進む向き</label><span class="row"><input id="ed-bearing" type="range" min="0" max="359.5" step="0.5" style="flex:1 1 120px"><input class="in" id="ed-bearing-n" type="number" min="0" max="359.5" step="0.5" style="width:5.5em" placeholder="—"> °</span>
+              <label class="k" for="ed-width">幅</label><span class="row"><input id="ed-width" type="range" min="5" max="200" step="1" style="flex:1 1 120px"><input class="in" id="ed-width-n" type="number" min="5" max="200" style="width:5.5em"> m</span>
+            </div>
+            <div class="row" style="margin-top:8px" id="ed-nudge"><span class="k sub">少しずつ動かす</span>
+              <select class="in" id="ed-step" aria-label="1回で動かす長さ"><option value="0.01">1 cm</option><option value="0.1" selected>10 cm</option><option value="1">1 m</option></select>
+              <button data-n="1" data-e="0">北</button><button data-n="-1" data-e="0">南</button><button data-n="0" data-e="-1">西</button><button data-n="0" data-e="1">東</button></div>
+            <div class="row" style="margin-top:8px"><button id="ed-here">車のいまの位置と向きを使う</button></div>
+            <div class="sub" id="ed-rule"></div>
+            <div class="sub"><b>写真の上でつまんで動かせます。</b>黄色の丸＝場所、白い丸＝向きと幅。場所は線の真ん中、向きは車が通る向き（北が0°、東が90°）、幅はコースを横切る長さです。幅はコースの幅より少し広く、隣の道（ピットレーンなど）に届かない長さにします。</div>
+          </div>
+        </div>
+        <div class="opbox" id="ed-lte" hidden></div>
+        <div class="row" style="margin-top:10px"><button class="primary" id="ed-apply">この線を本体へ入れる</button><button id="ed-cancel">やめる</button></div>
+      </div>
+      <div class="opbox" id="ln-confirm" hidden>
+        <b id="lnc-title"></b>
+        <div id="lnc-diff" style="margin:6px 0"></div>
+        <div class="row" id="lnc-code-row"><span>よければ、この数字を入れて送ります：<span class="code" id="lnc-code"></span></span>
+          <input id="lnc-input" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="確認の4桁"></div>
+        <div class="row" style="margin-top:8px"><button class="primary" id="lnc-send">本体へ入れる</button><button id="lnc-name" hidden></button><button id="lnc-back">戻る</button><span class="sub" id="lnc-msg" style="color:var(--bad)"></span></div>
+      </div>
+      <div id="ln-run" hidden style="margin-top:10px"><div class="sub" id="ln-run-text"></div><div class="bar"><div id="ln-run-bar"></div></div></div>
+      <div id="ln-out"></div>
+    </div>
   </section>
 
   <section id="tab-runs" hidden>
@@ -385,10 +448,11 @@ function resultHtml(r) {
 
 // ---------------------------------------------------------------- 段の切り替え
 function showTab(name) {
-  if (!['now', 'collect', 'runs'].includes(name)) name = 'now';
+  if (!['now', 'lines', 'collect', 'runs'].includes(name)) name = 'now';
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
-  $('tab-now').hidden = name !== 'now'; $('tab-collect').hidden = name !== 'collect'; $('tab-runs').hidden = name !== 'runs';
+  $('tab-now').hidden = name !== 'now'; $('tab-collect').hidden = name !== 'collect'; $('tab-runs').hidden = name !== 'runs'; $('tab-lines').hidden = name !== 'lines';
   if (name === 'runs') loadRuns();
+  if (name === 'lines' && window.linesShown) linesShown();   // 図は、段が見えてから大きさを測って描く（course_lines.js）
   if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
 }
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
@@ -570,6 +634,7 @@ function renderOps(s) {
 function render(s) {
   last = s;
   renderNow(s);
+  if (window.renderLines) renderLines(s);   // 「コースと線」の段（course_lines.js）
   const d = s.device, job = s.job, busy = !!(job && job.running);
   where(s, busy);
   $('link').textContent = d ? `本体：${d.link}` : (s.error || '本体がつながっていません');
@@ -658,5 +723,6 @@ showTab(location.hash.slice(1));
 load();
 setInterval(load, 1500);
 </script>
+<script src="/course_lines.js"></script>
 </body>
 </html>
