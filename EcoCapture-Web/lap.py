@@ -266,7 +266,8 @@ class LapTimer:
 
     def configure(self, line):
         gates = lambda l: [l.gate(t) for t in TARGETS]
-        if (gates(line) != gates(self.line) or line.sectors != self.line.sectors) and self.latest_utc is not None:
+        moved = gates(line) != gates(self.line) or line.sectors != self.line.sectors
+        if moved and self.latest_utc is not None:
             stamp = datetime.fromtimestamp(self.latest_utc[0] / 1000, JST).strftime('%Y-%m-%dT%H:%M+09:00')
             line = line.model_copy(update={'set_at': stamp})
         # A heading stays "learned" only while that line is left as it was.
@@ -275,6 +276,10 @@ class LapTimer:
             self.state.update(splits=[], sector_best=[], sector_last=None)
         self.line = line; self.error = None
         self.forget_motion()
+        if moved:
+            # Whoever moved a line (the pit over LTE, the PC app, the phone, the settings page): the lap
+            # that began on the old line is not timed; laps count from the next pass (SPEC.md 7-5).
+            self.state.update(lap_start_ms=None, lap_start_pit=False, splits=[])
         self.save()
 
     def reset(self):
@@ -297,9 +302,9 @@ class LapTimer:
         self.save()
 
     def restart_lap(self):
-        """Drop the running lap (remote_command.py, after the lines were changed from the pit while
-        running): the next control pass starts a lap instead of ending one that began on the old
-        line. The count, the laps recorded and the race clock stay."""
+        """Drop the running lap: the next control pass starts a lap instead of ending the one that was
+        running. The count, the laps recorded and the race clock stay. (configure does the same by
+        itself when a line moved.)"""
         s = self.state
         if s['lap_start_ms'] is not None:
             s['lap_start_ms'] = None; s['lap_start_pit'] = False; s['splits'] = []
@@ -574,6 +579,7 @@ class LapTimer:
     def public(self):
         return {'line': self.line.model_dump(), 'values': self.values(), 'error': self.error,
                 'laps': self.state['laps'][-20:], 'running': self.state['lap_start_ms'] is not None,
+                'line_change_restarts': True,  # tells the PC app that moving a line drops the running lap
                 'finished': self.state['finished'], 'here': self.last_here}
 
 

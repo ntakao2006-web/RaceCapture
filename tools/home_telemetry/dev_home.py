@@ -7,6 +7,8 @@
   2. 中継とロガー：ws://127.0.0.1:3010/ws/audio/<room> で命令（logger.config の command）を受け、
      本体と同じ確かめ方（EcoCapture-Web/remote_command.py の RemoteCommands）で署名・使い回し・時刻を確かめて返事を返す。
      ラップのリセット・周回数の直し・計測の開始は、1の車の周回に効く。
+     コースを選ぶ（course_list・course_select）は、本体と同じ部品（lap.py の LapTimer）で <dir>/logger/lap.json を書き換える。
+     選べるコースは作りものの2つ（dev-east・dev-west。実在の場所ではない）。
 
   python tools/home_telemetry/dev_home.py --dir <一時フォルダー>            # 合言葉を作って表示する
   python tools/home_telemetry/live_bridge.py --dir <同じフォルダー> --db <一時>/map.db --listen 127.0.0.1:3002 --grafana-token-file <無いファイル>
@@ -34,6 +36,7 @@ import websockets
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / 'EcoCapture-Web'))
+from lap import LapLine, LapTimer  # noqa: E402  線の持ち方も本体と同じ
 from remote_command import RemoteCommands  # noqa: E402  本体と同じ確かめ方
 
 NAMES = ['Interval', 'Utc', 'Latitude', 'Longitude', 'Speed', 'GPSSats', 'RaceTime', 'ElapsedTime', 'LapCount',
@@ -52,6 +55,16 @@ class Car:
         self.lap_start = time.time() - 40
         self.last_lap, self.best = 111.84, 110.37
         self.logging = True
+        root = self.folder / 'logger'
+        courses = root / 'setups' / 'courses'
+        courses.mkdir(parents=True, exist_ok=True)
+        for name, title, east in (('dev-east', '作りもの（東の線）', 0.004), ('dev-west', '作りもの（西の線）', -0.004)):
+            line = {'enabled': True, 'lat': CENTER[0], 'lon': CENTER[1] + east, 'bearing': 0.0, 'width_m': 40.0,
+                    'sectors': [{'lat': CENTER[0] + 0.003, 'lon': CENTER[1], 'bearing': 270.0, 'width_m': 30.0}] if east > 0 else []}
+            (courses / f'{name}.json').write_text(json.dumps({'id': name, 'name': title, 'line': line}, ensure_ascii=False), encoding='utf-8')
+        self.timer = LapTimer(root)
+        if not self.timer.line.enabled:   # はじめは、どのコースの設定とも違う線
+            self.timer.configure(LapLine(enabled=True, lat=CENTER[0], lon=CENTER[1] + 0.0041, bearing=0.0, width_m=40.0))
 
     def flag(self, name):
         return (self.folder / name).exists()
@@ -84,10 +97,19 @@ class Car:
         return [*(values[n] for n in present), mask]
 
     # ---- RemoteCommands が使う「本体」の形
-    class _Line:
-        enabled = True
+    @property
+    def line(self):
+        return self.timer.line
 
-    line = _Line()
+    @property
+    def path(self):
+        return self.timer.path
+
+    def configure(self, line):   # 線が動いたら、本体と同じく走っている周を捨てる（次に計測を始めるまでスタート前）
+        self.timer.state['lap_start_ms'] = 1 if self.lap_start is not None else None
+        self.timer.configure(line)
+        if self.timer.state['lap_start_ms'] is None:
+            self.lap_start = None
 
     @property
     def laps(self):

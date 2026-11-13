@@ -55,6 +55,7 @@ class FakeDevice:
     def __init__(self, line=None, kmh=0.0, fix=True, running=False, keep=False):
         self.line = {**(line or sugo()), 'set_at': '2026-11-13T10:00+09:00'}
         self.kmh, self.fix, self.running, self.keep, self.calls = kmh, fix, running, keep, []
+        self.extra = {}     # 本体のソフトが新しいときに付く印など
 
     def api(self, link, path, body=None, wait=15):
         self.calls.append((path, body))
@@ -62,7 +63,7 @@ class FakeDevice:
             return telemetry(self.kmh, self.fix)
         if path == '/api/lap' and body is not None and not self.keep:
             self.line = {**self.line, **body}
-        return {'line': self.line, 'values': {'LapCount': 3}, 'running': self.running}
+        return {'line': self.line, 'values': {'LapCount': 3}, 'running': self.running, **self.extra}
 
     def posts(self):
         return [body for path, body in self.calls if body is not None]
@@ -229,7 +230,11 @@ class LineOpsTest(unittest.TestCase):
     def test_plan_warns_about_the_running_lap_and_the_sector_times(self):
         app, ops, link, dev = self.direct(running=True)
         plan = ops.line_plan({'line': sugo(sectors=[])})
-        self.assertTrue(any('1周を数えている途中' in n for n in plan['notes']))
+        self.assertTrue(any('1周を数えている途中' in n and '本体のソフトが古く' in n for n in plan['notes']))
+        dev.extra = {'line_change_restarts': True}      # 線を変えたら走っている周を捨てる本体
+        newer = ops.line_plan({'line': sugo(sectors=[])})['notes']
+        self.assertTrue(any('走っている周は数えず' in n for n in newer))
+        self.assertFalse(any('本体のソフトが古く' in n for n in newer))
         self.assertTrue(any('セクターのタイムとベストは消えます' in n for n in plan['notes']))
         same = ops.line_plan({'line': sugo()})
         self.assertTrue(same['same'])

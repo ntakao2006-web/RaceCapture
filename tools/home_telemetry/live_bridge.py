@@ -157,6 +157,7 @@ class Pace:
         self.last_speed = None
         self.race = self.lap = None   # [km, minutes at the start of the integration]
         self.race_min = self.lap_min = None
+        self.race_frozen = False   # RaceTime came twice with the same value: the race clock stands (the goal)
         self.last_lap_avg = None
         self.count = None
         self.start_ms = None
@@ -172,13 +173,17 @@ class Pace:
         """The pit clock (clock.html, 2026-10-24): the start time, not the elapsed time, so the
         browser keeps the clock running on its own when the pit's link stalls. A race is on
         while RaceTime and ElapsedTime are sent, finished when only RaceTime is (frozen).
+        Only RaceTime and still running (2026-11-14): no lap is being timed although the race
+        goes on -- the lines were changed while running and the logger dropped the running lap
+        (lap.py LapTimer.configure). That is not the goal: `end` and `lap_start` are both None
+        until the next pass of the line.
         The line passes come along too (2026-10-24 night): Grafana's polled lap panels fell
         ~30 s behind at Motegi and the pit gave the riders a wrong pace from them. They make
         `lap_start` (the lap being driven runs on the browser's clock too) and the lap table.
         `total` is LapCount + LapsLeft: both the logger and the app count LapsLeft as the
         laps not yet completed, so it read 3 on lap 1 of 3 (the pit expected 2)."""
         on = self.race_min is not None and self.start_ms is not None
-        finished = on and self.lap_min is None
+        finished = on and self.lap_min is None and self.race_frozen
         count, left = self.latest.get('LapCount'), self.latest.get('LapsLeft')
         passes = self.passes if on else []
         return {'start': self.start_ms if on else None,
@@ -187,7 +192,7 @@ class Pace:
                 'lap': self.latest.get('CurrentLap'), 'count': count,
                 'total': None if count is None or left is None else round(count + left),
                 # From ElapsedTime rather than the last pass, so it holds after a bridge restart
-                'lap_start': round(self.last_ts - self.lap_min * 60000) if on and not finished else None,
+                'lap_start': round(self.last_ts - self.lap_min * 60000) if on and self.lap_min is not None else None,
                 'last_lap': None if self.latest.get('LapTime') is None else round(self.latest['LapTime'] * 60, 2),
                 # The logger's best lap (it times every lap, also those lost on the way here)
                 'best': None if self.latest.get('BestLap') is None else round(self.latest['BestLap'] * 60, 2),
@@ -408,6 +413,8 @@ class Pace:
             self.lap = [after, 0.0] if after else self.head(lap_min, speed)
         elif not lap_done:
             self.lap[0] += step
+        # One row after the goal still looks like running (its frozen value is above the row before).
+        self.race_frozen = race_min is not None and self.race_min is not None and race_min == self.race_min
         self.race_min, self.lap_min = race_min, lap_min
         # This row is in the lap being driven (after a pass, already the new one). Before the
         # first pass (the out lap) nothing is kept.

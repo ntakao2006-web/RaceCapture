@@ -105,9 +105,10 @@ button.b:focus-visible, .go a:focus-visible, .in:focus-visible { outline: 2px so
         <button class="b" data-op="lap_count">周回数を直す…</button>
         <button class="b" data-op="lap_start">いまから計測を始める…</button>
         <button class="b" data-op="log_start">記録を始める…</button>
-        <button class="b" data-later="車とコースを選ぶ">車とコースを選ぶ…</button>
-        <button class="b" data-later="線を引き直す">線を引き直す・足す…</button>
+        <button class="b" data-op="course_list">コースを選ぶ…</button>
+        <button class="b" data-later="線を引き直す・足す">線を引き直す・足す…</button>
       </div>
+      <div id="pick" class="col" hidden></div>
       <div class="confirm" id="confirm" hidden>
         <b id="c-title"></b><div id="c-body" style="margin:6px 0"></div>
         <div id="c-code-wrap">この数字を入れて送ります：<span class="code" id="c-code-show"></span>
@@ -167,7 +168,7 @@ function draw() {
   const h = home || {}, on = h.start != null, finished = on && h.end != null;
   const at = ok ? serverNow() : h.data_t;   // 届いていない間は、時計を最後に届いた時刻で止める
   $('v-cur').textContent = on && !finished && h.lap_start != null ? mss(Math.max(0, (at - h.lap_start) / 1000), ok ? 1 : 0) : '—';
-  $('v-cur-n').textContent = !home ? 'ロガーが動くと出ます' : !on ? 'スタート前（ラインを通ると数え始めます）' : finished ? 'ゴールしました' : !ok ? '最後に届いたときの値' : h.lap != null ? `${h.lap}周目を走行中` : '';
+  $('v-cur-n').textContent = !home ? 'ロガーが動くと出ます' : !on ? 'スタート前（ラインを通ると数え始めます）' : finished ? 'ゴールしました' : h.lap_start == null ? '次に線を通った所から数え始めます' : !ok ? '最後に届いたときの値' : h.lap != null ? `${h.lap}周目を走行中` : '';
   $('v-lap').textContent = h.count == null ? '—' : Math.round(h.count) + ' 周';
   $('v-race').textContent = !on ? '' : 'レース経過 ' + hms(Math.max(0, ((finished ? h.end : at) - h.start) / 1000));
   $('v-last').textContent = h.last_lap == null ? '—' : mss(h.last_lap, 2);
@@ -201,10 +202,28 @@ $('go').innerHTML = [['map', '地図'], [params.get('sheet') === 'clock' ? 'cloc
 const KEY = 'ecologger.secret.' + room;
 const store = { get() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }, set(v) { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); return true; } catch (e) { return false; } } };
 let secret = store.get();
-const OP_LABEL = { status: '状態を聞く', lap_reset: 'ラップを0周に戻す', lap_count: '周回数を直す', lap_start: 'いまから計測を始める', log_start: '記録を始める' };
+const OP_LABEL = { status: '状態を聞く', lap_reset: 'ラップを0周に戻す', lap_count: '周回数を直す', lap_start: 'いまから計測を始める', log_start: '記録を始める',
+  course_list: 'ロガーに入っているコースを聞く', course_select: 'コースを選ぶ', line_set: '線を入れる' };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const REFUSED = { 'bad signature': '合言葉が違います（ロガーの合言葉と合いません）', 'no secret on the logger': 'ロガーに合言葉が入っていません（PCで準備をします）',
   'already used': 'この命令はもう使われています', 'too old or from the future': '命令の時刻が、ロガーの時刻と10分以上ずれています（この機器の時計を確かめてください）',
   'no GNSS time yet': 'ロガーがまだ測位していません', 'a lap is already running': 'すでに計測中です（周回数を直すなら「周回数を直す」）', 'no lap line': 'ラップの線がありません', 'already logging': 'もう記録中です' };
+/** ロガーが断った理由（英語の短い文）を、読める言葉にする */
+function refusedText(message) {
+  if (REFUSED[message]) return REFUSED[message];
+  if (/^unknown op /.test(message)) return 'ロガーのソフトが、この操作にまだ対応していません。ロガーのソフトを新しくしてから使えます。それまではPCから行います。';
+  if (/^no course /.test(message)) return 'ロガーに、そのコースの設定が入っていません。もう一度「コースを選ぶ」で一覧を聞いてください。';
+  if (/^course .* (cannot be read|is not a course file)$/.test(message) || message === 'bad course name') return 'ロガーにあるそのコースの設定が読めません。PCのアプリから入れ直します。線は変えていません。';
+  if (/^bad line/.test(message)) return 'そのコースの線の値を、ロガーが受け付けませんでした。線は変えていません。（' + esc(message) + '）';
+  if (/could not be kept/.test(message)) return '変える前の線をロガーに控えられなかったので、何も変えていません。';
+  if (/could not be read back/.test(message)) return '線は入れましたが、ロガーから読み直せませんでした。「コースを選ぶ」でいまの線を確かめてください。';
+  return esc(message);
+}
+const titleOf = (titles, name) => titles && titles[name] ? `${esc(titles[name])}（${esc(name)}）` : esc(name);
+function lineNow(line, titles) {
+  if (!line) return '線がありません（ラップは数えません）';
+  return `${line.name ? titleOf(titles, line.name) : 'どのコースの設定とも違う線'}・セクターの線 ${line.sectors}本・線の番号 ${esc(line.id)}`;
+}
 const hexBytes = hex => new Uint8Array(hex.match(/../g).map(b => parseInt(b, 16)));
 const toHex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 async function sign(sec, id, t, op, arg) {   // remote_command.py の sign() と同じ
@@ -230,7 +249,7 @@ async function sendCommand(sec, op, arg) {
 }
 function statusLines(s) {
   const lap = s.lap || {}, lines = [`記録 ${s.logging ? '中（' + Math.floor((s.log_s || 0) / 60) + '分）' : '★止まっている'}・SD ${s.sd ? '記録中' : '★記録していない'}・受信 ${s.hz} Hz・測位 ${s.gnss ? 'あり' : '★なし'}・録画 ${s.video ? '中' : 'していない'}`];
-  lines.push(lap.enabled ? `ラップ 完了${lap.count}周・いま${lap.current}周目（${lap.running ? '計測中' : lap.finished ? '終了' : '★スタート前'}）${lap.race_min == null ? '' : '・レース経過 ' + lap.race_min + '分'}` : 'ラップ ★線がありません');
+  lines.push(lap.enabled ? `ラップ 完了${lap.count}周・いま${lap.current}周目（${lap.running ? '計測中' : lap.finished ? '終了' : lap.count > 0 ? '★次に線を通るまで計っていません' : '★スタート前'}）${lap.race_min == null ? '' : '・レース経過 ' + lap.race_min + '分'}` : 'ラップ ★線がありません');
   return lines;
 }
 const ERRORS = { 'no-reply': `<b>返事がありません（${REPLY_S}秒待ちました）。</b>ロガーに届いたか分かりません。届いて効いていることもあるので、「状態を聞く」で確かめてください。`,
@@ -239,8 +258,10 @@ function showResult(r, op) {
   if (r.error) { $('out').innerHTML = `<div class="refuse">${ERRORS[r.error]}</div>`; return false; }
   const res = r.result, message = String(res.message);
   if (res.status) lastStatus = { at: Date.now(), s: res.status };
-  const body = res.status ? '<br>' + statusLines(res.status).join('<br>') : '';
-  $('out').innerHTML = res.ok ? `<div class="result"><b>届きました：${OP_LABEL[op]}</b>${body}</div>` : `<div class="refuse"><b>できませんでした：${OP_LABEL[op]}</b><br>${REFUSED[message] || message}${body}</div>`;
+  let body = res.status ? '<br>' + statusLines(res.status).join('<br>') : '';
+  if (res.ok && op === 'course_select' && res.line) body = `<br>ロガーから読み直した線：${lineNow(res.line, pickTitles)}<br>`
+    + (res.line.changed ? '変える前の線は、ロガーに控えました。走っている途中だったときは、次に線を通った所からラップを数え直します。' : '<b>もう同じ線でした。</b>何も変えていません。') + body;
+  $('out').innerHTML = res.ok ? `<div class="result"><b>届きました：${OP_LABEL[op]}</b>${body}</div>` : `<div class="refuse"><b>できませんでした：${OP_LABEL[op]}</b><br>${refusedText(message)}${body}</div>`;
   return !!res.ok;
 }
 async function run(sec, op, arg, text) {
@@ -258,20 +279,20 @@ async function tryUnlock(v) {
   const r = await sendCommand(v, 'status'); $('unlock').disabled = false;
   if (r.result && r.result.ok) { secret = v.toLowerCase(); const kept = store.set(secret); $('secret').value = ''; $('unlock-msg').innerHTML = ''; lockView(); showResult(r, 'status');
     $('out').insertAdjacentHTML('afterbegin', `<div class="result"><b>合言葉が合っていました。</b>${kept ? 'この機器に覚えました。' : 'ただし、この機器には覚えられませんでした（ブラウザの設定）。ページを閉じると入れ直しになります。'}</div>`); return; }
-  if (r.result) { $('unlock-msg').innerHTML = `<div class="refuse"><b>覚えていません。</b>${REFUSED[String(r.result.message)] || r.result.message}</div>`; return; }
+  if (r.result) { $('unlock-msg').innerHTML = `<div class="refuse"><b>覚えていません。</b>${refusedText(String(r.result.message))}</div>`; return; }
   if (r.error === 'no-reply') { $('unlock-msg').innerHTML = `<div class="confirm"><b>いまは確かめられません。</b>ロガーから返事がありません（動いていないか、電波が届いていません）。覚えるだけ覚えて、ロガーが動いたら最初の操作で確かめることもできます。<div class="row" style="margin-top:6px"><button class="b small" id="unlock-anyway">確かめずに覚える</button></div></div>`;
     $('unlock-anyway').onclick = () => { secret = v.toLowerCase(); store.set(secret); $('secret').value = ''; $('unlock-msg').innerHTML = ''; lockView(); $('out').innerHTML = '<div class="confirm">合言葉を覚えました（まだ確かめていません）。</div>'; }; return; }
   $('unlock-msg').innerHTML = `<div class="refuse">${ERRORS[r.error]}</div>`;
 }
 $('unlock').onclick = () => tryUnlock($('secret').value.trim());
-$('forget').onclick = () => { secret = ''; store.set(''); lastStatus = null; $('out').innerHTML = ''; $('confirm').hidden = true; $('more').hidden = true; lockView(); $('unlock-msg').innerHTML = '<div class="sub">合言葉をこの機器から消しました。</div>'; };
+$('forget').onclick = () => { secret = ''; store.set(''); lastStatus = null; $('out').innerHTML = ''; $('confirm').hidden = true; $('more').hidden = true; $('pick').hidden = true; lockView(); $('unlock-msg').innerHTML = '<div class="sub">合言葉をこの機器から消しました。</div>'; };
 $('more-open').onclick = () => { $('more').hidden = !$('more').hidden; };
 
-let pending = null, code = '';
+let pending = null, code = '', pickTitles = {};
 const moving = () => fresh() && home.speed != null && home.speed >= MOVING_KMH;
-function ask(title, body, onSend) {
-  const needCode = moving(); pending = onSend; $('out').innerHTML = ''; $('c-title').textContent = title;
-  $('c-body').innerHTML = body + (needCode ? `<br>車は走っています（${Math.round(home.speed)} km/h）。` : '') + (!fresh() ? '<br><b>いまロガーから値が届いていないので、送っても届かないことがあります。</b>届いたかどうかは、返事で分かります。' : '');
+function ask(title, body, onSend, always) {   // always：線を変える操作。走っていなくても4桁を入れる（SPEC.md 7-5）
+  const needCode = always || moving(); pending = onSend; $('out').innerHTML = ''; $('c-title').textContent = title;
+  $('c-body').innerHTML = body + (moving() ? `<br>車は走っています（${Math.round(home.speed)} km/h）。` : '') + (!fresh() ? '<br><b>いまロガーから値が届いていないので、送っても届かないことがあります。</b>届いたかどうかは、返事で分かります。' : '');
   $('c-code-wrap').hidden = !needCode; code = String(Math.floor(1000 + Math.random() * 9000)); $('c-code-show').textContent = code; $('c-code').value = ''; $('c-err').textContent = '';
   $('confirm').dataset.code = needCode ? '1' : ''; $('confirm').hidden = false; $('confirm').scrollIntoView({ block: 'nearest' });
 }
@@ -279,8 +300,27 @@ $('c-back').onclick = () => { $('confirm').hidden = true; };
 $('c-send').onclick = () => { if ($('confirm').dataset.code && $('c-code').value.trim() !== code) { $('c-err').textContent = '数字が違います。上の4桁をそのまま入れてください。'; return; } pending(); };
 $('unlocked').addEventListener('click', async e => {
   const later = e.target.closest('button[data-later]');
-  if (later) { $('confirm').hidden = true; $('out').innerHTML = `<div class="refuse"><b>まだ使えません：${later.dataset.later}</b><br>ロガーの側に、この操作を受ける仕組みを足してから使えるようになります。それまではPCから行います。</div>`; return; }
+  if (later) { $('confirm').hidden = true; $('pick').hidden = true; $('out').innerHTML = `<div class="refuse"><b>スマホからは、まだできません：${later.dataset.later}</b><br>線を引くには地図の画面が要ります。PCのEcoLoggerアプリの「コースと線」から行います（LTEでも送れます）。</div>`; return; }
+  const course = e.target.closest('button[data-course]');
+  if (course) { const name = course.dataset.course;
+    ask(`コースの線に入れ替えます：${course.dataset.title}`, 'ロガーに入っているこのコースの線（コントロールラインとセクターの線）に入れ替えます。記録は止まりません。周回数と、これまでのラップタイムは残ります。<br>'
+      + '走っている途中で変えると、<b>走っている周は数えず</b>、新しい線を次に通った所から数え直します。セクターの線が変わるときは、セクターのタイムとベストが消えます。<br>変える前の線は、ロガーに控えます。',
+      async () => { $('pick').hidden = true; showResult(await run(secret, 'course_select', { name }), 'course_select'); }, true);
+    return; }
   const b = e.target.closest('button[data-op]'); if (!b) return; const op = b.dataset.op;
+  $('pick').hidden = true;
+  if (op === 'course_list') { $('confirm').hidden = true;
+    const r = await run(secret, 'course_list', undefined, 'LTEで、ロガーに入っているコースを聞いています…（何も変えません）');
+    if (r.error || !r.result.ok) { showResult(r, 'course_list'); return; }
+    const res = r.result, names = res.courses || []; pickTitles = res.titles || {};
+    if (res.status) lastStatus = { at: Date.now(), s: res.status };
+    const now = res.line && res.line.name;
+    $('pick').innerHTML = `<div class="result"><b>ロガーのいまの線：</b>${lineNow(res.line, pickTitles)}</div>`
+      + (names.length ? '<div><b>入れ替えるコースを選びます</b>（選んだあと、確かめの画面が出ます）</div>' + names.map(n =>
+          `<button class="b" data-course="${esc(n)}" data-title="${esc(pickTitles[n] || n)}"${n === now ? ' disabled' : ''}>${titleOf(pickTitles, n)}${n === now ? '　← いまの線' : ''}</button>`).join('')
+        : '<div class="refuse"><b>ロガーに、コースの設定が入っていません。</b><br>PCのEcoLoggerアプリから、コースの設定をロガーへ入れておくと、ここで選べるようになります。</div>')
+      + '<button class="b small" id="pick-close">閉じる</button>';
+    $('pick').hidden = false; $('pick-close').onclick = () => { $('pick').hidden = true; $('confirm').hidden = true; }; $('pick').scrollIntoView({ block: 'nearest' }); return; }
   if (op === 'status') { showResult(await run(secret, 'status'), 'status'); return; }
   if (op === 'lap_reset') ask('ラップを0周に戻します', '周回数とレース経過が0に戻ります。走行記録と動画は消えません。次に線を通った所から数え始めます。', async () => showResult(await run(secret, 'lap_reset'), 'lap_reset'));
   if (op === 'lap_count') ask('周回数を直します', `直したあとの周回数：<input class="in" id="c-n" type="number" min="0" max="999" value="${home && home.count != null ? Math.round(home.count) : 0}" style="width:6em" aria-label="直したあとの周回数"> 周`,

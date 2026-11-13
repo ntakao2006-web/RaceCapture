@@ -156,6 +156,21 @@ class LineCommandTests(RemoteCommandTests):
         self.assertNotIn('line', result)  # only the line commands carry it
         self.assertLess(len(json.dumps(result)), 400)
 
+    def test_course_list_changes_nothing_and_names_the_courses_and_the_line_now(self):
+        before = (self.root / 'lap.json').read_bytes()
+        listed = self.run_command(command('course_list'))
+        self.assertEqual((listed['ok'], listed['courses']), (True, ['sugo']))
+        self.assertEqual(listed['titles'], {'sugo': self.course['name']})
+        self.assertEqual((listed['line']['name'], listed['line']['changed']), (None, False))  # a line no course file holds
+        self.assertEqual((self.root / 'lap.json').read_bytes(), before)
+        self.assertFalse(self.kept.exists())
+        self.run_command(command('course_select', {'name': 'sugo'}, command_id='1' * 16))
+        after = self.run_command(command('course_list', command_id='2' * 16))
+        self.assertEqual((after['line']['name'], after['line']['changed']), ('sugo', False))
+        self.assertLess(len(json.dumps(after)), 700)
+        self.runtime.laps.configure(LapLine())  # no line at all
+        self.assertIsNone(self.run_command(command('course_list', command_id='3' * 16))['line'])
+
     def test_course_select_sets_the_line_and_answers_with_what_was_read_back(self):
         before = self.saved_line()
         cmd = command('course_select', {'name': 'sugo'})

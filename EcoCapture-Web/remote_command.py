@@ -18,7 +18,9 @@ tools/setups/courses/), `line_set` takes the lines themselves in the form of lap
 Neither stops the recording and neither is refused while the car is moving: asking the person to
 confirm is the sending screen's job. The lap.json from before the change is kept once
 (lap.json.bak-remote), the running lap is dropped so that laps count from the next pass of the new
-line, and the answer carries `line`, read back from lap.json.
+line, and the answer carries `line`, read back from lap.json. `course_list` changes nothing: it
+answers with the names of the course files on the logger (`courses`, with `titles` for people) and the line now (`line`, or
+null when there is none), so that a phone in the pit can offer the choice (2026-11-14).
 """
 import hashlib
 import hmac
@@ -27,7 +29,7 @@ import os
 import re
 from pathlib import Path
 
-OPS = ('status', 'lap_reset', 'lap_count', 'lap_start', 'log_start', 'course_select', 'line_set')
+OPS = ('status', 'lap_reset', 'lap_count', 'lap_start', 'log_start', 'course_select', 'line_set', 'course_list')
 LINE_OPS = ('course_select', 'line_set')
 COMMAND_WINDOW_MS = 10 * 60 * 1000
 SEEN_KEEP = 500
@@ -149,6 +151,13 @@ class RemoteCommands:
                 extra = {'line': self.line_summary()}
             except Exception:  # noqa: BLE001
                 ok, message = False, 'line set, but it could not be read back'
+        if ok and op == 'course_list':
+            self.changed = False
+            try:
+                line = self.line_summary() if self.runtime.laps.line.enabled else None
+            except Exception:  # noqa: BLE001  no lap.json yet: there is no line
+                line = None
+            extra = {'courses': self.course_names(), 'titles': self.course_titles(), 'line': line}
         result = {'id': command_id, 'op': op, 'ok': ok, 'message': message, **extra}
         try:
             result['status'] = self.status()
@@ -158,7 +167,7 @@ class RemoteCommands:
 
     async def execute(self, op, arg):
         laps = self.runtime.laps
-        if op == 'status':
+        if op in ('status', 'course_list'):
             return 'ok'
         if op == 'lap_reset':
             laps.reset()
@@ -194,6 +203,18 @@ class RemoteCommands:
             return sorted(p.stem for p in self.courses.glob('*.json') if NAME_RE.match(p.stem))
         except OSError:
             return []
+
+    def course_titles(self):
+        """{name: the course's name for people} for the course files that have one."""
+        titles = {}
+        for name in self.course_names():
+            try:
+                title = json.loads((self.courses / f'{name}.json').read_text(encoding='utf-8')).get('name')
+            except (OSError, ValueError, AttributeError):
+                continue
+            if isinstance(title, str) and title:
+                titles[name] = title[:40]
+        return titles
 
     @staticmethod
     def valid_line(data):
@@ -234,8 +255,6 @@ class RemoteCommands:
 
     def change_line(self, line):
         laps = self.runtime.laps
-        lines = lambda l: (*(l.gate(t) for t in ('control', 'start', 'goal')), l.sectors)
-        moved = lines(line) != lines(laps.line)
         self.changed = line.model_dump(exclude={'set_at'}) != laps.line.model_dump(exclude={'set_at'})
         if not self.changed:
             return  # sent twice: the copy of the line before the first one stays
@@ -246,9 +265,7 @@ class RemoteCommands:
                 temp.replace(laps.path.with_name(PREVIOUS_LAP))
         except OSError:
             raise Refused('the line before the change could not be kept; nothing changed') from None
-        laps.configure(line)
-        if moved:
-            laps.restart_lap()  # laps count from the next pass of the new line (SPEC.md 7-5)
+        laps.configure(line)  # drops the running lap when a line moved (SPEC.md 7-5)
 
     def line_summary(self):
         """What lap.json holds now, short enough for the LTE link: each line as [lat, lon, bearing,

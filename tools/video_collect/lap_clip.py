@@ -8,6 +8,7 @@
     clip = make(root, run, lap, out_dir)      # {'file', 'lead_in_s', 'seconds', 'partial'}。もう作ってあればそれを返す
 
 - 置き場は drive_logs/runs_cache/clips/（見るための一時の写し。消してよい。元の録画は変えない）
+- 写しは合わせて CLIP_LIMIT_BYTES まで。超えたら、長く見ていないものから消す（残した動画 v2_video/laps/ は消さない）
 - 周の始まりの LEAD_S 秒前から、終わりの TAIL_S 秒後まで。lead_in_s は「動画の頭から何秒の所が周の始まりか」
 - 動画が周の一部しか無いときは、ある所だけを出して partial を True にする。全く無ければ NoVideo
 - ffmpeg が要る（PATH か winget の Gyan.FFmpeg）。無ければ NoFfmpeg
@@ -23,6 +24,7 @@ sys.path.insert(0, str(REPO / 'tools' / 'lap_video'))
 
 LEAD_S, TAIL_S = 3.0, 2.0
 CLIP_DIR = Path('runs_cache') / 'clips'
+CLIP_LIMIT_BYTES = 5 * 1024 ** 3     # 見るための写しの合計の上限（1周で約150 MB＝30周ぶんほど。置いた値）
 
 
 class NoVideo(RuntimeError):
@@ -53,6 +55,32 @@ def clip_name(run, lap, index):
     return f"{run['id']}_{index + 1:03d}_lap{lap['lap']}_{int(t // 60)}m{t % 60:06.3f}s.mp4".replace(':', '')
 
 
+def prune(folder, limit=None, spare=()):
+    """見るための写しが limit を超えていたら、長く見ていないものから消す。spare の名前は消さない。消した名前を返す"""
+    limit = CLIP_LIMIT_BYTES if limit is None else limit
+    clips = []
+    for p in Path(folder).glob('*.mp4'):
+        try:
+            if not p.name.endswith('.part.mp4'):
+                clips.append((p.stat().st_mtime, p.stat().st_size, p))
+        except OSError:
+            continue
+    total, gone = sum(c[1] for c in clips), []
+    for _, size, p in sorted(clips, key=lambda c: c[0]):
+        if total <= limit:
+            break
+        if p.name in spare:
+            continue
+        try:
+            p.unlink()
+            p.with_suffix('.json').unlink(missing_ok=True)
+        except OSError:
+            continue        # 再生中などで消せないものは、次の機会に
+        total -= size
+        gone.append(p.name)
+    return gone
+
+
 def make(root, run, index, lap, out_dir=None, ffmpeg=None):
     """run（run_index の1つ）の、周の表の index 番目の周 lap の動画を作る"""
     import lap_video
@@ -71,7 +99,10 @@ def make(root, run, index, lap, out_dir=None, ffmpeg=None):
         info = out.with_suffix('.json')
         try:
             import json
-            return json.loads(info.read_text(encoding='utf-8'))
+            import os
+            saved = json.loads(info.read_text(encoding='utf-8'))
+            os.utime(out)       # 見た時刻を新しくする（片付けは、長く見ていないものから）
+            return saved
         except (OSError, ValueError):
             pass   # 覚え書きが無ければ作り直す
     try:
@@ -102,6 +133,7 @@ def make(root, run, index, lap, out_dir=None, ffmpeg=None):
     result = {'file': out.name, 'lead_in_s': round(max(0.0, lap['start'] - start_utc), 2),
               'seconds': round(lap['end'] - lap['start'], 2), 'partial': partial, 'bytes': out.stat().st_size}
     out.with_suffix('.json').write_text(json.dumps(result, ensure_ascii=False), encoding='utf-8')
+    prune(out_dir, spare=(out.name,))
     return result
 
 

@@ -227,8 +227,11 @@ class Ops:
                 notes.append(f'レーシングスピード以上で走っているので、確認の数字を入れてから送ります（{why}）。')
             elif v >= 1:
                 notes.append(f'車は動いています（{v:.0f} km/h）。')
-            if lap.get('running') and cl.lines_moved(now, line):
-                notes.append('★いま1周を数えている途中です。USB・テザリングから変えると、いまの本体のソフトは走っている周を捨てないので、'
+            if lap.get('running') and cl.lines_moved(now, line) and lap.get('line_change_restarts'):
+                notes.append('★いま1周を数えている途中です。線を変えると、走っている周は数えず、新しい線を次に通った所から数え直します'
+                             '（周回数と、これまでのラップタイムは残ります）。')
+            elif lap.get('running') and cl.lines_moved(now, line):
+                notes.append('★いま1周を数えている途中です。本体のソフトが古く、USB・テザリングから変えると走っている周を捨てないので、'
                              'この1周だけ、古い線から新しい線までのタイムになります（次の周からは新しい線で数えます。'
                              'LTEで送ったときは、走っている周を捨てて、新しい線を次に通った所から数え直します）。')
             notes.append('入れる前の線は、本体に控えます。入れたあと、本体から読み直して図と数字を出します。')

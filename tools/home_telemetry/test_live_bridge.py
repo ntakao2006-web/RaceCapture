@@ -304,6 +304,30 @@ class LapResetTest(unittest.TestCase):
         self.assertEqual((c['count'], c['last_lap'], c['best'], len(c['passes'])), (3, 100.0, 99.5, 4))
         return p
 
+    def test_a_dropped_lap_is_not_the_goal(self):
+        """The lines changed while running (2026-11-14): the logger drops the running lap, so only
+        RaceTime comes, still running. The pages must not read that as the goal."""
+        p = self.run_before()
+        for t in range(321, 340):
+            ts, f = circuit_row(t, t, 0, 3, lap_time=100.0, best=99.5)
+            del f['ElapsedTime']
+            p.add(ts, {**f, 'CurrentLap': 0})
+        c = p.clock()
+        self.assertEqual((c['end'], c['lap_start'], c['count'], c['last_lap']), (None, None, 3, 100.0))
+        self.assertIsNotNone(c['start'])
+        for t in range(340, 360):                      # the next pass of the new line starts a lap
+            p.add(*circuit_row(t, t, t - 340, 3, lap_time=100.0, best=99.5))
+        c = p.clock()
+        self.assertEqual((c['end'], c['count'], len(c['passes'])), (None, 3, 4))
+        self.assertAlmostEqual(c['lap_start'], 1_800_000_000_000 + 340_000, delta=1)
+        for t in range(360, 365):                      # the goal: the race clock stands
+            ts, f = circuit_row(t, 359.5, 0, 4, lap_time=19.5, best=19.5)
+            del f['ElapsedTime']
+            p.add(ts, f)
+        c = p.clock()
+        self.assertEqual(round(c['end'] - c['start']), 359_500)
+        self.assertEqual((p.events[-1]['kind'], p.events[-1]['lap']), ('goal', 4))
+
     @staticmethod
     def reset_row(t_s):
         """As the logger sends it after the reset: only the count, no times."""

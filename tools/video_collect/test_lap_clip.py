@@ -76,6 +76,22 @@ class MakeTest(unittest.TestCase):
                 lap_clip.make(self.root, run, 0, LAP)
 
 
+class PruneTest(unittest.TestCase):
+    def test_oldest_views_go_first_and_the_new_one_stays(self):
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            for k, name in enumerate(('old', 'mid', 'new')):
+                (folder / f'{name}.mp4').write_bytes(b'x' * 100)
+                (folder / f'{name}.json').write_text('{}', encoding='utf-8')
+                os.utime(folder / f'{name}.mp4', (1000 + k, 1000 + k))
+            (folder / 'making.part.mp4').write_bytes(b'x' * 500)          # 作っている途中のものは数えない・消さない
+            self.assertEqual(lap_clip.prune(folder, limit=300), [])
+            self.assertEqual(lap_clip.prune(folder, limit=250, spare=('old.mp4',)), ['mid.mp4'])
+            self.assertEqual(sorted(p.name for p in folder.iterdir()), ['making.part.mp4', 'new.json', 'new.mp4', 'old.json', 'old.mp4'])
+            self.assertEqual(lap_clip.prune(folder, limit=0, spare=('new.mp4',)), ['old.mp4'])
+
+
 class MediaTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

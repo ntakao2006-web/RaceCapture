@@ -426,6 +426,25 @@ class LineCodeTest(unittest.TestCase):
             t.configure(same.model_copy(update={'set_at': None}))
             self.assertIsNone(t.line.set_at)  # only a change of the lines themselves is stamped
 
+    def test_moving_a_line_drops_the_running_lap_whoever_moved_it(self):
+        folder = tempfile.TemporaryDirectory(); self.addCleanup(folder.cleanup); self.root = Path(folder.name)
+        t = LapTests.timer(self)
+        drive_north(t, 10_050, laps=2, lap_s=95)
+        self.assertTrue(t.public()['running'])
+        t.configure(t.line.model_copy(update={'min_lap_s': 40, 'total_laps': 9}))  # race options only
+        self.assertTrue(t.public()['running'])
+        t.configure(t.line.model_copy(update={'width_m': t.line.width_m + 10}))     # the control line itself
+        self.assertFalse(t.public()['running'])
+        self.assertEqual((t.state['count'], len(t.state['laps'])), (2, 2))          # what was recorded stays
+        self.assertTrue(t.public()['line_change_restarts'])
+        self.assertFalse(LapTimer(self.root).public()['running'])                   # and it was saved
+        start = 10_050 + 2 * 95_000 + 60_000
+        pass_north(t, start, 0)            # first pass of the new line: starts a lap, ends none
+        self.assertEqual(t.state['count'], 2)
+        pass_north(t, start + 80_000, 0)
+        self.assertEqual(t.state['count'], 3)
+        self.assertAlmostEqual(t.state['last_s'], 80, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()
