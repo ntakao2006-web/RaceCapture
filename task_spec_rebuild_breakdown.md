@@ -103,7 +103,7 @@
   - [ ] SP-9-6 公式アプリとRCPを本体から外す＝SP-7-3（RCPは残さないと決まった。止める・取り除くものは`docs/design/unoq_software_inventory.md` 4章の6つ）
   - [ ] SP-9-7 名前を外す（リポジトリの中）：`RaceCapture-UNOQ/`のフォルダー名、`racecapture-display`などのサービス名、`rcp_mock_device.py`など直下のVer.1の道具、資料の題。本体のサービス名は本体に触れるときに合わせる。4章の過去の記述は書き換えない
   - [x] SP-9-8 GitHubのリポジトリ名を変える（2026-11-13済み、ユーザー決定）：`ntakao2006-web/RaceCapture` → `ntakao2006-web/EcoLogger`。古いURLは新しい方へ転送される（同じ名前のリポジトリを作り直さない限り）。このPCのリモートのURLと、引き継ぎ資料`server_deploy_grafana_x86.md`の取り寄せ方を直した。過去のメモ・`ARCHITECTURE.md` 4章にある古いURLは記録なのでそのまま。リポジトリを渡してある人への連絡はユーザーから
-  - [ ] SP-9-9 このPCのフォルダー名（`ClaudeCode/RaceCapture`）を`EcoLogger`へ変える。手順は`docs/manual/rename_local_folder.md`（2026-11-13作成。古い名前を通り道として残し、Claudeの記憶を新しい置き場へ写し、ショートカットを作り直す）。**実行はユーザー**（Claudeのアプリを閉じて行うため、会話の中からはできない）。まだ実行していない
+  - [x] SP-9-9 このPCのフォルダー名を`ClaudeCode/RaceCapture`から`ClaudeCode/EcoLogger`へ変えた（2026-11-13済み、実行はユーザー）。手順と結果は`docs/manual/rename_local_folder.md`。古い名前は通り道として残してある。記憶46件は新しい置き場へ写し、ショートカットは新しいパス、作業用の写しの登録も直した。**残り：通り道を外す（数週間使って困らなければ。手順書7章）**、`emc-engine-crankcase/ARCHITECTURE.md`の記述を直す（そのリポジトリの会話で）
   - [ ] SP-9-10 Lintarohさんへの連絡：`docs/share/lintaroh_share_20261113_repo.md`（リモートのURL、移した資料の場所、Codex向けの`AGENTS.md`、RaceCaptureから離れる方針、返事がほしい3点）。2026-11-13作成、未送。回路図・基板のデータの公開とライセンスの希望はSP-9-3の材料にする
 
 ## 順番の目安
