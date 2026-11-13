@@ -21,7 +21,7 @@ This process follows those files and
      pit's link stalls, and the same to the circuit timing sheet (laps page, 2026-11-04),
      which gets the line passes only when they change.
 It also serves the map page at http://<host>:3002/map?room=<room> (G-G at /gg, the
-clock at /clock, the timing sheet at /laps), and over the
+clock at /clock, the timing sheet at /laps, the cover at /home and /), and over the
 same WebSocket
   - keeps shapes people draw on the map (lines, circles, markers...) per room in
     SQLite, so every viewer sees the same course notes, and
@@ -68,7 +68,7 @@ VIEWER_STALE_S = 60             # a shared viewer position disappears after this
 APP_STALE_S = 15 * 60           # ...but an OwnTracks phone standing still may report only every few minutes
 MAX_HTTP_BODY = 16_000          # one OwnTracks message
 MAX_SHAPE_BYTES = 200_000       # one drawn shape as GeoJSON
-CLOCK_KINDS = ('clock', 'laps')  # pages sent the race state once a second instead of the rows
+CLOCK_KINDS = ('clock', 'laps', 'home')  # pages sent the race state once a second instead of the rows
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -308,7 +308,7 @@ class Pace:
         speed = fields.get('Speed', fields.get('GPSSpeed'))
         race_min, lap_min = fields.get('RaceTime'), fields.get('ElapsedTime')
         for name in ('TimeLimit', 'Margin', 'CurrentLap', 'LapsLeft', 'LapCount', 'LapTime', 'BestLap',
-                     'OilTemp', 'WaterTemp'):
+                     'OilTemp', 'WaterTemp', 'GPSSats'):
             if name in fields:
                 self.latest[name] = fields[name]
                 self.seen[name] = ts_ms
@@ -693,7 +693,10 @@ class Bridge:
             return None  # continue with the WebSocket handshake
         # gg: the G-G circle (2026-10-23); clock: the race clock (2026-10-24); laps: the circuit
         # timing sheet (2026-11-04, the SUGO endurance)
-        pages = {'/map': 'map.html', '/gg': 'gg.html', '/clock': 'clock.html', '/laps': 'laps.html'}
+        # home: the cover page (2026-11-13, SP-6-1): what is happening now, the way to the other
+        # pages, and the signed commands to the logger
+        pages = {'/map': 'map.html', '/gg': 'gg.html', '/clock': 'clock.html', '/laps': 'laps.html',
+                 '/home': 'home.html', '': 'home.html'}
         if path.rstrip('/') in pages:
             with open(os.path.join(HERE, pages[path.rstrip('/')]), 'rb') as f:
                 body = f.read()
@@ -729,6 +732,18 @@ class Bridge:
         pace = self.paces.get(room)
         return json.dumps({'clock': pace.clock() if pace else None, 'now': round(time.time() * 1000)})
 
+    def home_msg(self, room):
+        """The cover page's state (home.html, 2026-11-13, SP-6-1): the clock's without the line
+        passes (the cover shows only "now"), plus the speed and the satellites. `data_t` is the
+        time of the newest row, so the page can say how old what it shows is."""
+        pace = self.paces.get(room)
+        c = pace.clock() if pace else None
+        if c is not None:
+            del c['passes']
+            c['speed'] = None if pace.last_speed is None else round(pace.last_speed, 1)
+            c['sats'] = None if pace.latest.get('GPSSats') is None else round(pace.latest['GPSSats'])
+        return json.dumps({'home': c, 'now': round(time.time() * 1000)})
+
     def laps_msg(self, ws, room):
         """The timing sheet's state (laps.html, 2026-11-04): the clock's, but the line passes
         only when they changed since the last message to this page. A 2-hour race has some 70
@@ -753,7 +768,8 @@ class Bridge:
                 if opts.get('kind') in CLOCK_KINDS and ws in self.clients:
                     room = self.clients[ws]
                     try:
-                        await ws.send(self.clock_msg(room) if opts['kind'] == 'clock' else self.laps_msg(ws, room))
+                        await ws.send(self.clock_msg(room) if opts['kind'] == 'clock' else
+                                      self.home_msg(room) if opts['kind'] == 'home' else self.laps_msg(ws, room))
                     except Exception:
                         self.clients.pop(ws, None)
 
@@ -851,7 +867,7 @@ class Bridge:
         return out
 
     async def client(self, ws):
-        """/ws?room=<room>[&kind=clock|laps|gg][&fields=A,B][&history=<s>]: a page asks only for the
+        """/ws?room=<room>[&kind=clock|laps|home|gg][&fields=A,B][&history=<s>]: a page asks only for the
         channels it draws and as much history as it keeps (2026-10-24, for the pit's slow link:
         the whole rows were ~650 bytes each, and a new map got 5 minutes of them, ~2 MB)."""
         query = urllib.parse.parse_qs(ws.request.path.partition('?')[2])
@@ -870,6 +886,8 @@ class Bridge:
                 await ws.send(self.clock_msg(room))
             elif kind == 'laps':
                 await ws.send(self.laps_msg(ws, room))
+            elif kind == 'home':
+                await ws.send(self.home_msg(room))
             else:
                 history = list(self.playouts[room].history) if room in self.playouts else []
                 if keep_ms is not None and history:

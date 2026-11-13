@@ -232,5 +232,61 @@ class TimingSheetTest(unittest.TestCase):
         self.assertEqual(len(json.loads(bridge.laps_msg(ws, 'sugo'))['laps']['passes']), 3)
 
 
+class HomeTest(unittest.TestCase):
+    """The cover page (home.html, 2026-11-13, SP-6-1): what it is sent and where it is served."""
+
+    def bridge(self):
+        import tempfile
+        import types
+        folder = tempfile.mkdtemp()
+        return live_bridge.Bridge(types.SimpleNamespace(db=os.path.join(folder, 'map.db'), lap_split=None,
+                                                        grafana_token_file=os.path.join(folder, 'none')))
+
+    def test_message_has_now_values_but_no_line_passes(self):
+        b = self.bridge()
+        pace = b.paces['r'] = live_bridge.Pace()
+        for t in range(0, 30):
+            ts, f = row(t, 88.4, t, t, 2, 5, lap_time=110.0)
+            pace.add(ts, {**f, 'GPSSats': 19, 'OilTemp': 104.2, 'BestLap': 109.5 / 60})
+        msg = json.loads(b.home_msg('r'))
+        home = msg['home']
+        self.assertNotIn('passes', home)          # the cover shows only "now"
+        self.assertEqual(home['speed'], 88.4)
+        self.assertEqual(home['sats'], 19)
+        self.assertEqual(home['oil'], 104.2)
+        self.assertEqual(home['count'], 2)
+        self.assertAlmostEqual(home['last_lap'], 110.0)
+        self.assertEqual(home['data_t'], pace.last_ts)   # the page tells how old the values are from this
+        self.assertIsInstance(msg['now'], int)
+        self.assertIn('passes', pace.clock())      # the clock and the timing sheet still get them
+
+    def test_room_without_data(self):
+        self.assertIsNone(json.loads(self.bridge().home_msg('nobody'))['home'])
+
+    def test_served_at_home_and_at_the_root(self):
+        import types
+        b = self.bridge()
+        for path in ('/home?room=x', '/home/', '/?room=x', '/'):
+            response = b.http(None, types.SimpleNamespace(path=path))
+            self.assertEqual(response.status_code, 200, path)
+            self.assertIn('EcoLogger ピット'.encode(), response.body, path)
+        self.assertEqual(b.http(None, types.SimpleNamespace(path='/ws?room=x&kind=home')), None)
+
+    def test_page_signs_like_the_logger(self):
+        """home.html builds the signed text the same way as remote_command.payload (id|t|op|arg as
+        compact JSON): the page says so in its source, and a null or integer arg reads the same in
+        JSON.stringify and json.dumps."""
+        import sys
+        sys.path.insert(0, os.path.join(ROOT, 'EcoCapture-Web'))
+        import remote_command
+        with open(os.path.join(os.path.dirname(__file__), 'home.html'), encoding='utf-8') as f:
+            page = f.read()
+        self.assertIn("`${id}|${t}|${op}|${JSON.stringify(arg === undefined ? null : arg)}`", page)
+        self.assertEqual(remote_command.payload('ab12', 5, 'status', None), b'ab12|5|status|null')
+        self.assertEqual(remote_command.payload('ab12', 5, 'lap_count', 12), b'ab12|5|lap_count|12')
+        for op in remote_command.OPS:
+            self.assertIn(f"{op}:", page)   # every operation the logger takes has a label on the page
+
+
 if __name__ == '__main__':
     unittest.main()

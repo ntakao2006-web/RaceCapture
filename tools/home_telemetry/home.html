@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EcoLogger ピット</title>
+<!--
+  ピットの表紙（SP-6-1・SP-6-3、2026-11-13。見本は docs/design/ecologger_phone_mock.html、決まりは SPEC.md 7-5・7-6）。
+  いまの要点と、ロガーへの操作と、ほかの画面への入口。周ごとの記録は laps / clock、時間の流れはグラフが受け持つ。
+
+    /home?room=<ルーム>[&sheet=clock][&oil=110,120][&water=100,110][&relay=wss://…/ws/audio/<ルーム>][&graph=<グラフのURL>]
+
+  値は live_bridge.py の /ws?kind=home（1秒ごと、周の通過は含まない）。
+  操作は、ロガーがLTEでつないでいる中継（ecorun-logger-server の /ws/audio/<ルーム>）へ、本体と同じ署名つきの命令を送る
+  （EcoCapture-Web/remote_command.py：HMAC-SHA256、id|t|op|arg）。合言葉はこの機器の中（localStorage）にだけ置き、サーバーへは送らない。
+  合言葉は、ページのURLの # のあと（#k=<合言葉>）で渡すこともできる。# のあとはサーバーへ送られない。読んだらURLから消す。
+-->
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6676; --line: #dde1e8;
+  --accent: #2563eb; --accent-text: #ffffff; --ok: #15803d; --ok-bg: #e7f6ec; --warn: #a16207; --warn-bg: #fdf3d8;
+  --bad: #b91c1c; --bad-bg: #fde8e8; --chip: #eef0f4;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151b; --panel: #1b1f27; --text: #e6e9ef; --muted: #9aa3b2; --line: #2c323d;
+    --accent: #4f8cff; --accent-text: #0b1020; --ok: #4ade80; --ok-bg: #14301f; --warn: #facc15; --warn-bg: #33290c;
+    --bad: #f87171; --bad-bg: #3a1717; --chip: #262b35; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 "Yu Gothic UI", "Hiragino Sans", "Meiryo", system-ui, sans-serif; }
+main { max-width: 440px; margin: 0 auto; padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: 19px; margin: 0; } h2 { font-size: 15px; margin: 0 0 8px; }
+.sub { color: var(--muted); font-size: 13px; }
+select, .in { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); min-width: 0; max-width: 100%; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.link { display: flex; gap: 10px; align-items: center; border-radius: 12px; padding: 12px; background: var(--chip); }
+.link.ok { background: var(--ok-bg); color: var(--ok); } .link.stale { background: var(--bad-bg); color: var(--bad); } .link.wait { background: var(--warn-bg); color: var(--warn); }
+.dot { flex: 0 0 auto; width: 14px; height: 14px; border-radius: 50%; background: currentColor; }
+.link.wait .dot { animation: pulse 1.4s infinite; } @keyframes pulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .link.wait .dot { animation: none; } }
+.link b { font-size: 17px; display: block; } .link small { font-size: 13px; display: block; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; min-width: 0; }
+.tile .k { color: var(--muted); font-size: 12px; } .tile .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; } .tile .n { color: var(--muted); font-size: 12px; min-height: 1.5em; }
+.tile.wide { grid-column: 1 / -1; } .tile.wide .v { font-size: 40px; }
+.tile.warn { background: var(--warn-bg); border-color: var(--warn); } .tile.bad { background: var(--bad-bg); border-color: var(--bad); }
+.old .v, .old .chips { opacity: .35; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-block; border-radius: 999px; padding: 3px 10px; font-size: 13px; background: var(--chip); color: var(--muted); }
+.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); } .chip.bad { background: var(--bad-bg); color: var(--bad); }
+.go { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.go a, button.b { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; text-decoration: none; min-height: 48px; }
+button.b.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+button.b.small { min-height: 0; padding: 6px 10px; font-size: 13px; align-self: flex-start; }
+button.b:disabled { opacity: .45; }
+button.b:focus-visible, .go a:focus-visible, .in:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.confirm { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 12px; }
+.result { border-radius: 10px; padding: 10px 12px; background: var(--ok-bg); color: var(--ok); }
+.refuse { border-radius: 10px; padding: 10px 12px; background: var(--bad-bg); color: var(--bad); }
+.bar { height: 10px; background: var(--chip); border-radius: 999px; overflow: hidden; } .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .5s linear; }
+.code { font-size: 24px; letter-spacing: .2em; font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <div class="row"><h1>EcoLogger ピット</h1><span class="sub" id="room-name"></span></div>
+
+  <div class="link wait" id="link"><span class="dot"></span><div><b id="link-title">サーバーにつないでいます…</b><small id="link-sub"></small></div></div>
+
+  <div class="grid2" id="vals">
+    <div class="tile wide"><div class="k">この周</div><div class="v" id="v-cur">—</div><div class="n" id="v-cur-n"></div></div>
+    <div class="tile"><div class="k">周回</div><div class="v" id="v-lap">—</div><div class="n" id="v-race"></div></div>
+    <div class="tile"><div class="k">前の周</div><div class="v" id="v-last">—</div><div class="n" id="v-last-n"></div></div>
+    <div class="tile"><div class="k">ベスト</div><div class="v" id="v-best">—</div><div class="n"></div></div>
+    <div class="tile"><div class="k">速度</div><div class="v" id="v-spd">—</div><div class="n">km/h</div></div>
+    <div class="tile" id="t-oil"><div class="k">油温（いま）</div><div class="v" id="v-oil">—</div><div class="n" id="v-oil-n"></div></div>
+    <div class="tile" id="t-water"><div class="k">水温（いま）</div><div class="v" id="v-water">—</div><div class="n" id="v-water-n"></div></div>
+  </div>
+
+  <div class="panel" id="state"><h2>ロガーの様子</h2><div class="chips" id="chips"></div><div class="sub" id="state-note" style="margin-top:6px"></div></div>
+
+  <div class="panel"><h2>くわしく見る</h2>
+    <div class="go" id="go"></div>
+    <div class="sub" style="margin-top:6px">この表紙は「いま」だけを出します。周ごとの記録は周回表、時間の流れはグラフで見ます。</div></div>
+
+  <div class="panel" id="ops">
+    <h2>操作（LTEでロガーへ送る）</h2>
+    <div id="locked" class="col">
+      <div><b>見るだけなら、合言葉は要りません。</b>ロガーへ操作を送る係の人だけ、合言葉を入れます。</div>
+      <div class="row"><input class="in" id="secret" type="password" placeholder="合言葉" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1 1 160px" aria-label="合言葉"><button class="b small" id="secret-eye" aria-pressed="false">見せる</button></div>
+      <button class="b" id="unlock">この合言葉を確かめて覚える</button>
+      <div id="unlock-msg"></div>
+      <div class="sub">合言葉はこの機器の中にだけ覚え、サーバーには送りません。合言葉は、PCで準備したとき（remote_command の setup）にPCへ入ったものです。</div>
+    </div>
+    <div id="unlocked" class="col" hidden>
+      <button class="b primary" data-op="lap_reset">ラップを0周に戻す</button>
+      <button class="b" data-op="status">状態を聞く</button>
+      <button class="b" id="more-open">ほかの操作…</button>
+      <div id="more" class="col" hidden>
+        <button class="b" data-op="lap_count">周回数を直す…</button>
+        <button class="b" data-op="lap_start">いまから計測を始める…</button>
+        <button class="b" data-op="log_start">記録を始める…</button>
+        <button class="b" data-later="車とコースを選ぶ">車とコースを選ぶ…</button>
+        <button class="b" data-later="線を引き直す">線を引き直す・足す…</button>
+      </div>
+      <div class="confirm" id="confirm" hidden>
+        <b id="c-title"></b><div id="c-body" style="margin:6px 0"></div>
+        <div id="c-code-wrap">この数字を入れて送ります：<span class="code" id="c-code-show"></span>
+          <div class="row" style="margin-top:6px"><input class="in" id="c-code" inputmode="numeric" maxlength="4" style="width:6em" aria-label="確認の4桁"></div></div>
+        <div class="row" style="margin-top:8px"><button class="b primary" id="c-send" style="flex:1 1 120px">送る</button><button class="b" id="c-back" style="flex:1 1 120px">やめる</button></div>
+        <div class="sub" id="c-err"></div>
+      </div>
+      <div id="run" hidden><div class="bar"><div id="run-bar"></div></div><div class="sub" id="run-text"></div></div>
+      <div id="out"></div>
+      <button class="b small" id="forget">合言葉をこの機器から消す</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const room = params.get('room') || 'home-test';
+const STALE_S = 10;              // laps.html・clock.html と同じ
+const MOVING_KMH = 5;            // これ以上で走っているとき、操作に4桁の確認を足す（SPEC.md 7-5）
+const REPLY_S = 30;              // ロガーの返事を待つ長さ（PCの道具と同じ）
+function limits(name, fallback) { const v = (params.get(name) || '').split(',').map(Number); return v.length === 2 && v.every(Number.isFinite) ? v : fallback; }
+const LIMIT = { oil: limits('oil', [110, 120]), water: limits('water', [100, 110]) };   // 注意・警告。いずれ車の設定の1か所から読む
+const base = location.pathname.replace(/\/(home)?\/?$/, '');   // 直接（:3002/home）でも、公開の道（/live/home・/live/）でも
+const wsScheme = location.protocol === 'https:' ? 'wss' : 'ws';
+// 中継（ロガーがLTEでつないでいる所）。公開の道では同じホストの /ws/audio/<ルーム>
+const relayUrl = params.get('relay') || `${wsScheme}://${location.host}/ws/audio/${encodeURIComponent(room)}`;
+$('room-name').textContent = room;
+
+// ---------------------------------------------------------------- 値
+let home = null, connected = false, gotAny = false, offsets = [], lastStatus = null;
+const serverNow = () => Date.now() + (offsets.length ? Math.max(...offsets.map(o => o.d)) : 0);
+const age = () => home && home.data_t ? (serverNow() - home.data_t) / 1000 : null;
+const fresh = () => { const a = age(); return a != null && a <= STALE_S; };
+function mss(s, digits) {
+  if (s == null || !Number.isFinite(s)) return '—';
+  const m = Math.floor(s / 60), r = s - m * 60;
+  return `${m}:${digits ? r.toFixed(digits).padStart(digits + 3, '0') : String(Math.floor(r)).padStart(2, '0')}`;
+}
+function hms(s) { const h = Math.floor(s / 3600); return `${h}:${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`; }
+function temp(id, v) {
+  const [w, b] = LIMIT[id], t = $('t-' + id);
+  t.className = 'tile' + (v == null ? '' : v >= b ? ' bad' : v >= w ? ' warn' : '');
+  $('v-' + id).textContent = v == null ? '—' : Math.round(v) + '℃';
+  $('v-' + id + '-n').textContent = v == null ? '' : v >= b ? `警告（${b}℃以上）` : v >= w ? `注意（${w}℃以上）` : `注意は${w}℃から`;
+}
+function chip(text, cls) { return `<span class="chip ${cls || ''}">${text}</span>`; }
+function draw() {
+  const a = age(), ok = fresh(), link = $('link');
+  let cls, title, sub;
+  if (!connected) { cls = 'wait'; title = 'サーバーにつないでいます…'; sub = gotAny ? '切れたので、つなぎ直しています。下の値は切れる前のものです。' : ''; }
+  else if (!home || a == null) { cls = 'wait'; title = 'ロガーを待っています'; sub = 'このルームには、まだ値が届いていません。ロガーの電源を入れて約1分40秒で、ここが変わります。この画面は開いたままで大丈夫です。'; }
+  else if (!ok) { cls = 'stale'; title = `値が届いていません（${a < 120 ? Math.round(a) + '秒' : Math.round(a / 60) + '分'}前のまま）`; sub = '下の数字は、最後に届いたときのものです。電波の届かない所を走っているか、ロガーが止まっています。'; }
+  else { cls = 'ok'; title = `届いています（${Math.max(0, a).toFixed(0)}秒前）`; sub = home.speed == null ? '' : home.speed >= MOVING_KMH ? '車は走っています。' : '車は止まっています。'; }
+  link.className = 'link ' + cls; $('link-title').textContent = title; $('link-sub').textContent = sub;
+  const old = !!home && !ok; $('vals').classList.toggle('old', old); $('state').classList.toggle('old', old);
+  const h = home || {}, on = h.start != null, finished = on && h.end != null;
+  const at = ok ? serverNow() : h.data_t;   // 届いていない間は、時計を最後に届いた時刻で止める
+  $('v-cur').textContent = on && !finished && h.lap_start != null ? mss(Math.max(0, (at - h.lap_start) / 1000), ok ? 1 : 0) : '—';
+  $('v-cur-n').textContent = !home ? 'ロガーが動くと出ます' : !on ? 'スタート前（ラインを通ると数え始めます）' : finished ? 'ゴールしました' : !ok ? '最後に届いたときの値' : h.lap != null ? `${h.lap}周目を走行中` : '';
+  $('v-lap').textContent = h.count == null ? '—' : Math.round(h.count) + ' 周';
+  $('v-race').textContent = !on ? '' : 'レース経過 ' + hms(Math.max(0, ((finished ? h.end : at) - h.start) / 1000));
+  $('v-last').textContent = h.last_lap == null ? '—' : mss(h.last_lap, 2);
+  $('v-last-n').textContent = h.last_lap == null || h.best == null ? '' : h.last_lap - h.best < 0.005 ? 'ベスト' : `ベストより +${(h.last_lap - h.best).toFixed(2)}`;
+  $('v-best').textContent = h.best == null ? '—' : mss(h.best, 2);
+  $('v-spd').textContent = h.speed == null ? '—' : Math.round(h.speed);
+  temp('oil', h.oil); temp('water', h.water);
+  const chips = [];
+  chips.push(!home ? chip('LTE') : ok ? chip('LTE 届いている', 'ok') : chip(`LTE ${Math.round(a)}秒前から届かず`, 'bad'));
+  chips.push(h.sats == null ? chip('測位') : h.sats >= 4 ? chip(`測位 衛星${h.sats}個`, 'ok') : chip(`測位 衛星${h.sats}個`, 'warn'));
+  if (lastStatus) { const s = lastStatus.s;
+    chips.push(s.logging ? chip('記録中', 'ok') : chip('記録していない', 'bad'), s.sd ? chip('SD 記録中', 'ok') : chip('SD 記録していない', 'bad'), s.video ? chip('録画中', 'ok') : chip('録画していない', 'warn')); }
+  else chips.push(chip('記録'), chip('SD'), chip('録画'));
+  $('chips').innerHTML = chips.join('');
+  $('state-note').textContent = lastStatus ? `記録・SD・録画は、${new Date(lastStatus.at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}に聞いたときの様子です。` : '記録・SD・録画は、下の「状態を聞く」で分かります（合言葉が要ります）。';
+}
+function connect() {
+  const ws = new WebSocket(`${wsScheme}://${location.host}${base}/ws?room=${encodeURIComponent(room)}&kind=home`);
+  ws.onopen = () => { connected = true; };
+  ws.onclose = () => { connected = false; setTimeout(connect, 2000); };
+  ws.onmessage = ev => { let msg; try { msg = JSON.parse(ev.data); } catch (e) { return; }
+    if (!('home' in msg)) return;
+    const at = Date.now(); offsets.push({ at, d: msg.now - at }); offsets = offsets.filter(o => at - o.at < 600000);
+    home = msg.home; if (home) gotAny = true; };
+}
+const q = `?room=${encodeURIComponent(room)}`;
+$('go').innerHTML = [['map', '地図'], [params.get('sheet') === 'clock' ? 'clock' : 'laps', params.get('sheet') === 'clock' ? '時計' : '周回表'], ['gg', 'G-G']]
+  .map(([p, t]) => `<a href="${base}/${p}${q}">${t}</a>`).join('') + (params.get('graph') ? `<a href="${encodeURI(params.get('graph'))}">グラフ</a>` : '');
+
+// ---------------------------------------------------------------- 合言葉と命令
+const KEY = 'ecologger.secret.' + room;
+const store = { get() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }, set(v) { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); return true; } catch (e) { return false; } } };
+let secret = store.get();
+const OP_LABEL = { status: '状態を聞く', lap_reset: 'ラップを0周に戻す', lap_count: '周回数を直す', lap_start: 'いまから計測を始める', log_start: '記録を始める' };
+const REFUSED = { 'bad signature': '合言葉が違います（ロガーの合言葉と合いません）', 'no secret on the logger': 'ロガーに合言葉が入っていません（PCで準備をします）',
+  'already used': 'この命令はもう使われています', 'too old or from the future': '命令の時刻が、ロガーの時刻と10分以上ずれています（この機器の時計を確かめてください）',
+  'no GNSS time yet': 'ロガーがまだ測位していません', 'a lap is already running': 'すでに計測中です（周回数を直すなら「周回数を直す」）', 'no lap line': 'ラップの線がありません', 'already logging': 'もう記録中です' };
+const hexBytes = hex => new Uint8Array(hex.match(/../g).map(b => parseInt(b, 16)));
+const toHex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+async function sign(sec, id, t, op, arg) {   // remote_command.py の sign() と同じ
+  const key = await crypto.subtle.importKey('raw', hexBytes(sec), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return toHex(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${id}|${t}|${op}|${JSON.stringify(arg === undefined ? null : arg)}`)));
+}
+function validSecret(v) { return /^([0-9a-f]{2}){16,}$/i.test(v); }
+/** 命令を送り、ロガーの返事を待つ。{result} か {error: 'no-reply' | 'connect' | 'crypto'} */
+async function sendCommand(sec, op, arg) {
+  if (!window.crypto || !crypto.subtle) return { error: 'crypto' };
+  const id = toHex(crypto.getRandomValues(new Uint8Array(8))), t = Math.round(serverNow());
+  const command = { id, t, op, arg: arg === undefined ? null : arg, sig: await sign(sec, id, t, op, arg) };
+  return new Promise(resolve => {
+    let done = false, ws; const finish = v => { if (done) return; done = true; clearTimeout(timer); try { ws.close(); } catch (e) {} resolve(v); };
+    const timer = setTimeout(() => finish({ error: 'no-reply' }), REPLY_S * 1000);
+    try { ws = new WebSocket(relayUrl); } catch (e) { return finish({ error: 'connect' }); }
+    ws.onopen = () => { ws.send(JSON.stringify({ type: 'hello', client_id: 'ecologger-pit-cover', protocol: 2, audio_formats: [] })); ws.send(JSON.stringify({ type: 'logger.config', data: { command } })); };
+    ws.onerror = () => finish({ error: 'connect' });
+    ws.onclose = () => finish({ error: done ? '' : 'connect' });
+    ws.onmessage = ev => { if (typeof ev.data !== 'string') return; let e; try { e = JSON.parse(ev.data); } catch (x) { return; }
+      const r = e && e.type === 'logger.config' && e.data && e.data.command_result; if (r && r.id === id) finish({ result: r }); };
+  });
+}
+function statusLines(s) {
+  const lap = s.lap || {}, lines = [`記録 ${s.logging ? '中（' + Math.floor((s.log_s || 0) / 60) + '分）' : '★止まっている'}・SD ${s.sd ? '記録中' : '★記録していない'}・受信 ${s.hz} Hz・測位 ${s.gnss ? 'あり' : '★なし'}・録画 ${s.video ? '中' : 'していない'}`];
+  lines.push(lap.enabled ? `ラップ 完了${lap.count}周・いま${lap.current}周目（${lap.running ? '計測中' : lap.finished ? '終了' : '★スタート前'}）${lap.race_min == null ? '' : '・レース経過 ' + lap.race_min + '分'}` : 'ラップ ★線がありません');
+  return lines;
+}
+const ERRORS = { 'no-reply': `<b>返事がありません（${REPLY_S}秒待ちました）。</b>ロガーに届いたか分かりません。届いて効いていることもあるので、「状態を聞く」で確かめてください。`,
+  connect: '<b>送れませんでした。</b>中継のサーバーにつながりません。電波を確かめて、もう一度送ってください。', crypto: '<b>この開き方では送れません。</b>https のアドレスで開いてください（署名に必要な仕組みが、http では使えません）。' };
+function showResult(r, op) {
+  if (r.error) { $('out').innerHTML = `<div class="refuse">${ERRORS[r.error]}</div>`; return false; }
+  const res = r.result, message = String(res.message);
+  if (res.status) lastStatus = { at: Date.now(), s: res.status };
+  const body = res.status ? '<br>' + statusLines(res.status).join('<br>') : '';
+  $('out').innerHTML = res.ok ? `<div class="result"><b>届きました：${OP_LABEL[op]}</b>${body}</div>` : `<div class="refuse"><b>できませんでした：${OP_LABEL[op]}</b><br>${REFUSED[message] || message}${body}</div>`;
+  return !!res.ok;
+}
+async function run(sec, op, arg, text) {
+  $('confirm').hidden = true; $('out').innerHTML = ''; $('run').hidden = false; $('run-text').textContent = text || 'LTEで送っています…（ロガーの返事を待ちます。数秒かかります）';
+  $('run-bar').style.transition = 'none'; $('run-bar').style.width = '0'; requestAnimationFrame(() => { $('run-bar').style.transition = `width ${REPLY_S}s linear`; $('run-bar').style.width = '100%'; });
+  const r = await sendCommand(sec, op, arg); $('run').hidden = true; return r;
+}
+function lockView() { $('locked').hidden = !!secret; $('unlocked').hidden = !secret; }
+$('secret-eye').onclick = () => { const show = $('secret').type === 'password'; $('secret').type = show ? 'text' : 'password'; $('secret-eye').textContent = show ? '隠す' : '見せる'; $('secret-eye').setAttribute('aria-pressed', show); };
+async function tryUnlock(v) {
+  $('unlock-msg').innerHTML = '';
+  if (!v) { $('unlock-msg').innerHTML = '<div class="refuse">合言葉を入れてください。</div>'; return; }
+  if (!validSecret(v)) { $('unlock-msg').innerHTML = `<div class="refuse">形が合いません（${v.length}文字）。合言葉は、0〜9とa〜fだけの32文字以上です。写し間違いが無いか確かめてください。</div>`; return; }
+  $('unlock').disabled = true; $('unlock-msg').innerHTML = '<div class="sub">ロガーに「状態を聞く」を送って、返事が来るかで確かめています…（最大' + REPLY_S + '秒）</div>';
+  const r = await sendCommand(v, 'status'); $('unlock').disabled = false;
+  if (r.result && r.result.ok) { secret = v.toLowerCase(); const kept = store.set(secret); $('secret').value = ''; $('unlock-msg').innerHTML = ''; lockView(); showResult(r, 'status');
+    $('out').insertAdjacentHTML('afterbegin', `<div class="result"><b>合言葉が合っていました。</b>${kept ? 'この機器に覚えました。' : 'ただし、この機器には覚えられませんでした（ブラウザの設定）。ページを閉じると入れ直しになります。'}</div>`); return; }
+  if (r.result) { $('unlock-msg').innerHTML = `<div class="refuse"><b>覚えていません。</b>${REFUSED[String(r.result.message)] || r.result.message}</div>`; return; }
+  if (r.error === 'no-reply') { $('unlock-msg').innerHTML = `<div class="confirm"><b>いまは確かめられません。</b>ロガーから返事がありません（動いていないか、電波が届いていません）。覚えるだけ覚えて、ロガーが動いたら最初の操作で確かめることもできます。<div class="row" style="margin-top:6px"><button class="b small" id="unlock-anyway">確かめずに覚える</button></div></div>`;
+    $('unlock-anyway').onclick = () => { secret = v.toLowerCase(); store.set(secret); $('secret').value = ''; $('unlock-msg').innerHTML = ''; lockView(); $('out').innerHTML = '<div class="confirm">合言葉を覚えました（まだ確かめていません）。</div>'; }; return; }
+  $('unlock-msg').innerHTML = `<div class="refuse">${ERRORS[r.error]}</div>`;
+}
+$('unlock').onclick = () => tryUnlock($('secret').value.trim());
+$('forget').onclick = () => { secret = ''; store.set(''); lastStatus = null; $('out').innerHTML = ''; $('confirm').hidden = true; $('more').hidden = true; lockView(); $('unlock-msg').innerHTML = '<div class="sub">合言葉をこの機器から消しました。</div>'; };
+$('more-open').onclick = () => { $('more').hidden = !$('more').hidden; };
+
+let pending = null, code = '';
+const moving = () => fresh() && home.speed != null && home.speed >= MOVING_KMH;
+function ask(title, body, onSend) {
+  const needCode = moving(); pending = onSend; $('out').innerHTML = ''; $('c-title').textContent = title;
+  $('c-body').innerHTML = body + (needCode ? `<br>車は走っています（${Math.round(home.speed)} km/h）。` : '') + (!fresh() ? '<br><b>いまロガーから値が届いていないので、送っても届かないことがあります。</b>届いたかどうかは、返事で分かります。' : '');
+  $('c-code-wrap').hidden = !needCode; code = String(Math.floor(1000 + Math.random() * 9000)); $('c-code-show').textContent = code; $('c-code').value = ''; $('c-err').textContent = '';
+  $('confirm').dataset.code = needCode ? '1' : ''; $('confirm').hidden = false; $('confirm').scrollIntoView({ block: 'nearest' });
+}
+$('c-back').onclick = () => { $('confirm').hidden = true; };
+$('c-send').onclick = () => { if ($('confirm').dataset.code && $('c-code').value.trim() !== code) { $('c-err').textContent = '数字が違います。上の4桁をそのまま入れてください。'; return; } pending(); };
+$('unlocked').addEventListener('click', async e => {
+  const later = e.target.closest('button[data-later]');
+  if (later) { $('confirm').hidden = true; $('out').innerHTML = `<div class="refuse"><b>まだ使えません：${later.dataset.later}</b><br>ロガーの側に、この操作を受ける仕組みを足してから使えるようになります。それまではPCから行います。</div>`; return; }
+  const b = e.target.closest('button[data-op]'); if (!b) return; const op = b.dataset.op;
+  if (op === 'status') { showResult(await run(secret, 'status'), 'status'); return; }
+  if (op === 'lap_reset') ask('ラップを0周に戻します', '周回数とレース経過が0に戻ります。走行記録と動画は消えません。次に線を通った所から数え始めます。', async () => showResult(await run(secret, 'lap_reset'), 'lap_reset'));
+  if (op === 'lap_count') ask('周回数を直します', `直したあとの周回数：<input class="in" id="c-n" type="number" min="0" max="999" value="${home && home.count != null ? Math.round(home.count) : 0}" style="width:6em" aria-label="直したあとの周回数"> 周`,
+    async () => { const n = Number($('c-n').value); if (!Number.isInteger(n) || n < 0 || n > 999) { $('c-err').textContent = '0〜999の数を入れてください。'; return; } showResult(await run(secret, 'lap_count', n), 'lap_count'); });
+  if (op === 'lap_start') ask('いまから計測を始めます', '線を通らなくても、いまをスタートとして数え始めます。すでに計測中のときは、ロガーが断ります。', async () => showResult(await run(secret, 'lap_start'), 'lap_start'));
+  if (op === 'log_start') ask('記録を始めます', 'ロガーが記録していないときに使います。記録中なら何も変わりません。', async () => showResult(await run(secret, 'log_start'), 'log_start'));
+});
+
+// URLの # のあとで渡された合言葉（#k=…）。読んだらすぐURLから消し、確かめてから覚える
+(() => { const m = /(?:^|[#&])k=([0-9a-fA-F]+)/.exec(location.hash); if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  if (!secret) { $('secret').value = m[1]; $('ops').scrollIntoView(); tryUnlock(m[1]); } })();
+lockView(); connect(); draw(); setInterval(draw, 200);
+</script>
+</body>
+</html>
