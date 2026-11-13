@@ -122,3 +122,46 @@ class MediaTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class KeepTest(unittest.TestCase):
+    """名前を付けて残す（ffmpeg・風切りの部品は使わず、見るための写しがもうある所から）"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.run = {**RUN, 'day': '2026-11-08', 'log': 'x.csv'}
+        self.clip = {'file': 'view.mp4', 'lead_in_s': 3.7, 'seconds': 110.0, 'partial': False}
+        (self.root / lap_clip.CLIP_DIR).mkdir(parents=True)
+        (self.root / lap_clip.CLIP_DIR / 'view.mp4').write_bytes(b'mp4 bytes')
+        patcher = mock.patch.object(lap_clip, 'make', return_value=self.clip)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def wait(self, app):
+        for _ in range(300):
+            if not app.keep['running']:
+                return
+            threading.Event().wait(0.01)
+
+    def test_keeps_under_the_same_name_as_the_lap_video_tool(self):
+        self.assertEqual(lap_clip.keep_name(self.run, LAP), '20261108_3周目_1分50秒095')
+        kept = lap_clip.keep(self.root, self.run, 0, LAP)
+        self.assertEqual((kept['file'], kept['public']), ('20261108_3周目_1分50秒095.mp4', None))
+        self.assertEqual((self.root / lap_clip.KEEP_DIR / kept['file']).read_bytes(), b'mp4 bytes')
+        self.assertEqual(lap_clip.keep(self.root, self.run, 0, LAP)['file'], kept['file'])     # もう一度押しても同じ1本
+
+    def test_app_runs_it_in_the_background_and_reports(self):
+        app = vc.App(vc.PcStore(self.root / 'v2_video'), None)
+        with mock.patch.object(app, 'runs', return_value={'runs': [self.run]}), \
+                mock.patch.object(app, 'run_laps', return_value={'laps': [LAP]}):
+            app.action('/api/lap_keep', {'id': self.run['id'], 'n': 0})
+            self.wait(app)
+            self.assertEqual((app.keep['ok'], app.keep['file']), (True, '20261108_3周目_1分50秒095.mp4'))
+            with self.assertRaises(KeyError):
+                app.action('/api/lap_keep', {'id': self.run['id'], 'n': 5})
+            with mock.patch.object(lap_clip, 'keep', side_effect=lap_clip.NoVideo('その周の動画がPCにありません')):
+                app.action('/api/lap_keep', {'id': self.run['id'], 'n': 0, 'clean': True})
+                self.wait(app)
+            self.assertEqual((app.keep['ok'], app.keep['error']), (False, 'その周の動画がPCにありません'))

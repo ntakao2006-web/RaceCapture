@@ -498,10 +498,34 @@ document.addEventListener('click', async e => {
     if (!r.ok) { box.innerHTML = `<div class="banner bad">${esc(d.error || '用意できませんでした')}</div>`; return; }
     box.innerHTML = `${d.partial ? '<div class="banner warn">この周は、動画が途中までしかありません（ある所だけを出しています）。</div>' : ''}
       <video controls autoplay style="width:100%;max-height:70vh;background:#000;border-radius:8px" src="/media/${encodeURIComponent(d.file)}#t=${Math.max(0, d.lead_in_s - 1).toFixed(1)}"></video>
-      <div class="sub">周の始まりの少し前から再生します（頭から${d.lead_in_s.toFixed(1)}秒の所が周の始まり）。映像は録画のまま、音だけ再生用に直しています。風切りを下げた公開用の動画は、今までどおり <code>lap_video.py clip</code> で作ります。</div>`;
+      <div class="sub">周の始まりの少し前から再生します（頭から${d.lead_in_s.toFixed(1)}秒の所が周の始まり）。映像は録画のまま、音だけ再生用に直しています。</div>
+      <div class="row" style="margin-top:8px"><button data-keep="0" data-run="${esc(b.dataset.run)}" data-n="${b.dataset.clip}">この周の動画を残す</button>
+        <button data-keep="1" data-run="${esc(b.dataset.run)}" data-n="${b.dataset.clip}">公開用も作る（風切りを下げる・3〜4分）</button></div>
+      <div id="keep-box"></div>`;
     box.scrollIntoView({block: 'nearest'});
   } catch (x) { box.innerHTML = '<div class="banner bad">用意できませんでした（アプリが止まっていませんか）</div>'; }
 });
+// 周の動画を残す：名前を付けて「1周の動画」の置き場へ。公開用は裏で作り、様子は /api/state の keep で見る
+let keepShown = 0;
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button[data-keep]'); if (!b) return;
+  const r = await fetch('/api/lap_keep', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Video-Collect': '1'},
+    body: JSON.stringify({id: b.dataset.run, n: Number(b.dataset.n), clean: b.dataset.keep === '1'})});
+  if (!r.ok) { const x = await r.json().catch(() => ({})); const box = $('keep-box'); if (box) box.innerHTML = `<div class="banner bad">${esc(x.error || '始められませんでした')}</div>`; }
+  load();
+});
+function renderKeep(s) {
+  const k = s.keep, box = $('keep-box'); if (!k || !box) return;
+  if (k.running) { const t = Math.round(s.time - k.started);
+    box.innerHTML = `<div class="sub" style="margin-top:8px">${esc(k.name)}の動画を${k.clean ? '残して、公開用を作って' : '残して'}います…（${t}秒${k.clean ? '。公開用は走行記録を読むので3〜4分かかります' : ''}）</div><div class="bar"><div class="busy"></div></div>`;
+    keepShown = 0; return; }
+  if (keepShown === k.started) return;
+  keepShown = k.started;
+  box.innerHTML = k.ok ? `<div class="result"><b>残しました：${esc(k.file)}</b>${k.public ? `<br>公開用：${esc(k.public)}（風切りを下げた音。記録と音のずれ ${(k.audio.offset_s ?? 0).toFixed(2)}秒）` : ''}
+      ${k.partial ? '<div class="notes">この周は動画が途中までしかありません（ある所だけです）。</div>' : ''}
+      <div class="row" style="margin-top:8px"><button data-open="${esc(k.folder)}">置き場を開く</button></div></div>`
+    : `<div class="banner bad"><b>できませんでした。</b>${esc(k.error)}</div>`;
+}
 document.addEventListener('click', async e => {
   const b = e.target.closest('button[data-laps]'); if (!b) return;
   const id = b.dataset.laps;
@@ -634,6 +658,7 @@ function renderOps(s) {
 function render(s) {
   last = s;
   renderNow(s);
+  renderKeep(s);
   if (window.renderLines) renderLines(s);   // 「コースと線」の段（course_lines.js）
   const d = s.device, job = s.job, busy = !!(job && job.running);
   where(s, busy);

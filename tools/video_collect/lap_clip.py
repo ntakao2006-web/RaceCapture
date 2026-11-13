@@ -103,3 +103,62 @@ def make(root, run, index, lap, out_dir=None, ffmpeg=None):
               'seconds': round(lap['end'] - lap['start'], 2), 'partial': partial, 'bytes': out.stat().st_size}
     out.with_suffix('.json').write_text(json.dumps(result, ensure_ascii=False), encoding='utf-8')
     return result
+
+
+# ---------------------------------------------------------------- 残す（名前を付けて置く・公開用）
+KEEP_DIR = Path('v2_video') / 'laps'     # 1周の動画の置き場（tools/lap_video/lap_video.py と同じ）
+
+
+def keep_name(run, lap):
+    """残すときの名前：<走った日>_<周>周目_<タイム>（lap_video.py clip と同じ付け方）"""
+    t = lap['time_s'] or 0
+    return f"{run['day'].replace('-', '')}_{lap['lap']}周目_{int(t // 60)}分{int(t % 60):02d}秒{int(round((t % 1) * 1000)) % 1000:03d}"
+
+
+def keep(root, run, index, lap, clean=False, out_dir=None, clip_dir=None, ffmpeg=None):
+    """周の動画を、名前を付けて drive_logs/v2_video/laps/ に残す。clean なら、風切りを下げた公開用も作る。
+    返り値：{'folder', 'file', 'public'（公開用の名前か None）, 'audio'（風切りを下げたときの情報）}
+    公開用は、走行記録の回転数に合わせてエンジンの音の倍音だけを残す（tools/lap_video/wind_reduce.py。numpy・scipy が要る）"""
+    import json
+    import shutil
+    import tempfile
+    import lap_video
+    root = Path(root)
+    clip = make(root, run, index, lap, out_dir=clip_dir, ffmpeg=ffmpeg)
+    src = (Path(clip_dir) if clip_dir else root / CLIP_DIR) / clip['file']
+    out_dir = Path(out_dir) if out_dir else root / KEEP_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    name = keep_name(run, lap)
+    mp4 = out_dir / f'{name}.mp4'
+    if not mp4.is_file() or mp4.stat().st_size != src.stat().st_size:
+        shutil.copy2(src, mp4)
+    result = {'folder': str(out_dir), 'file': mp4.name, 'public': None, 'audio': None, 'partial': clip['partial']}
+    if not clean:
+        return result
+    try:
+        import numpy as np
+        import wind_reduce
+    except ImportError as exc:
+        raise NoFfmpeg(f'公開用の音を作る部品（numpy・scipy）がありません：{exc}') from None
+    ff = ffmpeg or lap_video.ffbin('ffmpeg')
+    pub = out_dir / f'{name}_公開用.mp4'
+    start_utc = lap['start'] - clip['lead_in_s']       # 動画の頭の時刻（測位の時計）
+    with tempfile.TemporaryDirectory() as tmp:
+        wav = Path(tmp) / 'src.wav'
+        lap_video.run(ff, '-hide_banner', '-v', 'error', '-y', '-i', mp4, '-map', '0:a', '-af', 'aresample=async=1:first_pts=0',
+                      '-ar', '48000', '-ac', '1', wav)
+        x, sr = lap_video.read_wav(wav)
+        a_start = lap_video.audio_start(mp4)
+        rt, rp = lap_video.read_rpm([str(root / run['log'])], start_utc - 15, start_utc + len(x) / sr + 15)
+        if len(rt) < 100:
+            raise NoVideo('その時間の回転数が走行記録に無いので、公開用（風切りを下げた音）は作れません。動画そのものは残しました')
+        y, info = wind_reduce.process(x, sr, np.array(rt) - (start_utc + a_start), np.array(rp))
+        cleaned = Path(tmp) / 'clean.wav'
+        lap_video.write_wav(cleaned, y, sr)
+        lap_video.run(ff, '-hide_banner', '-v', 'error', '-y', '-i', mp4, '-itsoffset', f'{a_start:.4f}', '-i', cleaned,
+                      '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy', '-af', 'loudnorm=I=-16:TP=-1.5:LRA=7', '-ar', '48000',
+                      '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', pub)
+    (out_dir / f'{name}.json').write_text(json.dumps({'lap': lap, 'start_utc': start_utc, 'lead_in_s': clip['lead_in_s'], 'audio': info},
+                                                      ensure_ascii=False, indent=1), encoding='utf-8')
+    result.update(public=pub.name, audio=info)
+    return result

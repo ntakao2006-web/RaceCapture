@@ -774,6 +774,7 @@ class App:
         self.usb_blocked = False             # テザリングでつないだ本体が、USBでつなげない状態か
         self.runs_cache = (0, [])            # 「走行を見る」の一覧（作った時刻, 一覧）
         self.runs_lock = threading.Lock()
+        self.keep = None                     # 周の動画を残す作業の様子（lap_keep）
         self.lock = threading.Lock()
 
     def refresh(self):
@@ -811,7 +812,7 @@ class App:
                            'not_backed_up': sum(1 for e in pc.index.values() if pc.settings.get('backup') and
                                                 pc.settings['backup'] not in e.get('backup', {}))},
                     'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at, 'sd': self.sd,
-                    'now': self.now, 'course': self.course_view(), 'time': time.time()}
+                    'now': self.now, 'course': self.course_view(), 'time': time.time(), 'keep': self.keep}
 
     def course_view(self):
         """「コースと線」の段に出すもの（course_lines.py。PCのコースの設定と、本体から読んだ線）"""
@@ -859,6 +860,31 @@ class App:
         if not run or not 0 <= index < len(laps):
             raise KeyError(run_id)
         return lap_clip.make(self.pc.root.parent, run, index, laps[index])
+
+    def lap_keep(self, run_id, index, clean):
+        """周の動画を名前を付けて残す（clean なら公開用も）。公開用は数分かかるので裏で作り、様子は self.keep に置く"""
+        import lap_clip
+        if self.keep and self.keep.get('running'):
+            raise RuntimeError('ほかの周の動画を作っている途中です。終わってからもう一度押してください')
+        run = next((r for r in self.runs()['runs'] if r['id'] == run_id), None)
+        laps = self.run_laps(run_id)['laps'] if run else []
+        if not run or not 0 <= index < len(laps):
+            raise KeyError(run_id)
+        lap = laps[index]
+        self.keep = {'running': True, 'run': run_id, 'n': index, 'clean': bool(clean), 'started': time.time(),
+                     'name': f"{lap['lap']}周目"}
+
+        def work():
+            try:
+                result = lap_clip.keep(self.pc.root.parent, run, index, lap, clean=clean)
+                audio = result.pop('audio', None) or {}
+                self.keep = {**self.keep, 'running': False, 'ok': True, **result,
+                             'audio': {k: float(v) for k, v in audio.items() if isinstance(v, (int, float))}}
+            except Exception as exc:  # noqa: BLE001  画面に出す
+                self.keep = {**self.keep, 'running': False, 'ok': False, 'error': str(exc) or type(exc).__name__}
+            except SystemExit as exc:   # 1周の動画の道具が理由つきで止まったとき
+                self.keep = {**self.keep, 'running': False, 'ok': False, 'error': str(exc)}
+        threading.Thread(target=work, daemon=True).start()
 
     def clip_path(self, name):
         """/media/<名前> で流す動画の場所（周の動画の置き場の中の .mp4 だけ）"""
@@ -976,6 +1002,8 @@ class App:
                 raise RuntimeError('いま聞いている途中')
             self.now['lte'] = {'running': True}
             threading.Thread(target=self.watcher.ask_lte, daemon=True).start()
+        elif path == '/api/lap_keep':
+            self.lap_keep(str(body.get('id')), int(body.get('n', -1)), bool(body.get('clean')))
         elif path == '/api/open':
             folder = self.pc.root / body.get('session', '')
             folder = folder if folder.is_dir() else self.pc.root
