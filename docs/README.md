@@ -38,6 +38,7 @@
 
 ## `docs/design/` — 仕様・設計
 
+- `docs/design/ecologger_app_mock.html`：**PCのEcoLoggerアプリを1つにまとめる案の見本**（SP-3-1、2026-11-13。動かない。数字と走行は例）。上にいつも「つながり」の帯、その下に「いまの様子・回収・走行を見る・設定（開発者）」の4段。場面を切り替えて、つながり方ごとの見え方を確かめる。Claudeのページにも載せてある（同じファイルを出し直すと更新）
 - `docs/design/hardware_interface_spec.md`：電気・回路系担当の友人と認識合わせをするための入出力インターフェース仕様書
 - `docs/design/ncec_can_spec.md`：NCEC（本番車両）のCAN通信仕様（ID・バイトマップ・デコード式・OBD2）。実装・共有用の独立ファイル
 - `docs/design/sensorhub_defi_tap_design.md`：既設Defiの油温・油圧センサーを読むセンサーハブ基板の設計（v2：油温はサーミスタを直接測りデジタルポテンショメータでDefiへ再現、ピン単位の接続表・LCSC品番つき部品表・換算式・校正手順）。使用サーミスタの特性は`datasheet/defi_temp_sensor_rt.csv`

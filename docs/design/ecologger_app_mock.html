@@ -1,0 +1,254 @@
+<title>EcoLoggerアプリの見本</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 配置：上にいつも「つながり」の帯、その下に4つの段（いまの様子・回収・走行を見る・設定）。色と部品は今の回収アプリ（tools/video_collect）に合わせる */
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6676; --line: #dde1e8;
+  --accent: #2563eb; --accent-text: #ffffff; --ok: #15803d; --ok-bg: #e7f6ec; --warn: #a16207; --warn-bg: #fdf3d8;
+  --bad: #b91c1c; --bad-bg: #fde8e8; --info: #1d4ed8; --info-bg: #e5edff; --chip: #eef0f4; --mock: #6d28d9; --mock-bg: #f1eafe;
+  --font: "Yu Gothic UI", "Hiragino Sans", "Meiryo", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151b; --panel: #1b1f27; --text: #e6e9ef; --muted: #9aa3b2; --line: #2c323d;
+  --accent: #4f8cff; --accent-text: #0b1020; --ok: #4ade80; --ok-bg: #14301f; --warn: #facc15; --warn-bg: #33290c;
+  --bad: #f87171; --bad-bg: #3a1717; --info: #93b4ff; --info-bg: #19254a; --chip: #262b35; --mock: #c4b5fd; --mock-bg: #2a2147; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151b; --panel: #1b1f27; --text: #e6e9ef; --muted: #9aa3b2; --line: #2c323d;
+  --accent: #4f8cff; --accent-text: #0b1020; --ok: #4ade80; --ok-bg: #14301f; --warn: #facc15; --warn-bg: #33290c;
+  --bad: #f87171; --bad-bg: #3a1717; --info: #93b4ff; --info-bg: #19254a; --chip: #262b35; --mock: #c4b5fd; --mock-bg: #2a2147; color-scheme: dark }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 var(--font); }
+main { max-width: 1000px; margin: 0 auto; padding-block: 14px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 12px; }
+h1 { font-size: 20px; margin: 0; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+.sub { color: var(--muted); font-size: 13px; }
+.mockbar { background: var(--mock-bg); color: var(--mock); border-radius: 10px; padding: 8px 12px; font-size: 13px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mockbar select { font: inherit; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.link { display: flex; gap: 12px; align-items: center; }
+.dot { flex: 0 0 auto; width: 14px; height: 14px; border-radius: 50%; background: var(--muted); }
+.link.ok .dot { background: var(--ok); } .link.wait .dot { background: var(--warn); animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .link.wait .dot { animation: none; } }
+.link b { font-size: 17px; }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.tabs button { font: inherit; border: 0; background: none; color: var(--muted); padding: 8px 14px; cursor: pointer; border-bottom: 3px solid transparent; border-radius: 6px 6px 0 0; }
+.tabs button[aria-selected="true"] { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+.tabs button:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tabs .dev { margin-left: auto; }
+section.tab { display: flex; flex-direction: column; gap: 12px; }
+button.b { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button.b.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+button.b.danger { color: var(--bad); }
+button.b.big { display: block; width: 100%; font-size: 20px; padding: 14px; font-weight: 600; }
+button.b:disabled { opacity: .45; cursor: default; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grow { flex: 1 1 200px; min-width: 0; }
+.verdict { border-radius: 10px; padding: 12px 14px; font-size: 18px; font-weight: 600; }
+.verdict.ok { background: var(--ok-bg); color: var(--ok); } .verdict.warn { background: var(--warn-bg); color: var(--warn); } .verdict.idle { background: var(--chip); color: var(--muted); }
+.verdict small { display: block; font-weight: 400; font-size: 13px; }
+.checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.check { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; background: var(--panel); }
+.mark { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; background: var(--chip); color: var(--muted); }
+.mark.ok { background: var(--ok-bg); color: var(--ok); } .mark.warn { background: var(--warn-bg); color: var(--warn); } .mark.bad { background: var(--bad-bg); color: var(--bad); }
+.check .k { font-weight: 600; } .check .n { color: var(--muted); font-size: 13px; }
+.chip { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); } .chip.info { background: var(--info-bg); color: var(--info); }
+.confirm { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 10px 12px; }
+.result { border-radius: 8px; padding: 10px 12px; background: var(--chip); }
+.result ul { margin: 4px 0 0; padding-left: 1.3em; }
+.next { background: var(--info-bg); color: var(--info); border-radius: 8px; padding: 10px 12px; font-weight: 600; }
+.bar { height: 10px; background: var(--chip); border-radius: 999px; overflow: hidden; } .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; }
+tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--chip); } tr.sel td { background: var(--info-bg); }
+.kv { display: grid; grid-template-columns: minmax(110px, auto) 1fr auto; gap: 6px 12px; align-items: center; font-size: 14px; }
+.kv .k { color: var(--muted); }
+.note { border-left: 3px solid var(--mock); padding: 2px 10px; color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <div class="mockbar"><b>これは動かない見本です。</b>数字と走行はどれも例で、ロガーにはつながっていません。
+    <label for="scene">場面を切り替える：</label>
+    <select id="scene">
+      <option value="wait">ロガーがまだ無い（準備中）</option>
+      <option value="usb">USBでつながった（家・大会の後）</option>
+      <option value="tether" selected>テザリングでつながった（走行の合間）</option>
+      <option value="lte">LTEだけ（走行中）</option>
+      <option value="trouble">つながったが、直す所がある</option>
+    </select>
+  </div>
+
+  <div class="row"><h1>EcoLogger</h1><span class="sub">車：<b id="car">NCEC ロードスター</b>　コース：<b id="course">スポーツランドSUGO</b></span></div>
+
+  <div class="panel link" id="link"><span class="dot"></span><div class="grow"><b id="link-title"></b><div class="sub" id="link-sub"></div></div></div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="now" aria-selected="true">いまの様子</button>
+    <button role="tab" data-tab="collect" aria-selected="false">回収</button>
+    <button role="tab" data-tab="runs" aria-selected="false">走行を見る</button>
+    <button role="tab" data-tab="setup" aria-selected="false" class="dev">設定（開発者）</button>
+  </div>
+
+  <!-- いまの様子 -->
+  <section class="tab" id="tab-now">
+    <div class="verdict" id="verdict"></div>
+    <div class="checks" id="checks"></div>
+    <div class="panel">
+      <h2>ラップ</h2>
+      <div class="row"><span id="lap-text" class="grow"></span>
+        <button class="b" id="lap-reset">ラップを0周に戻す</button>
+        <button class="b" id="status-ask">LTEで状態を聞く</button></div>
+      <div class="confirm" id="lap-confirm" hidden>予選のあと・決勝の前に使います。周回数と経過時間が0に戻ります（走行記録と動画は消えません）。
+        <div class="row" style="margin-top:6px"><button class="b primary" id="lap-yes">0周に戻す</button><button class="b" id="lap-no">やめる</button></div></div>
+      <div class="sub" id="lap-done"></div>
+    </div>
+    <div class="panel">
+      <h2>車とコース</h2>
+      <div class="row"><span class="grow">いまの本体の設定：<b>NCEC ロードスター</b> ／ <b>スポーツランドSUGO</b>
+        <div class="sub">読む信号 42個・ライン（グランドスタンド前）・セクター3つ・警告（油温120℃、水温110℃、油圧）</div></span>
+        <button class="b" id="pick-open">選び直す</button></div>
+      <div id="pick" hidden style="margin-top:10px">
+        <div class="kv"><span class="k">車</span><select id="pick-car"><option>NCEC ロードスター</option><option>エコラン（EV二輪）</option></select><span></span>
+          <span class="k">コース</span><select id="pick-course"><option>スポーツランドSUGO</option><option>モビリティリゾートもてぎ（エコラン）</option><option>富士スピードウェイ カートコース</option></select><span></span></div>
+        <div class="row" style="margin-top:8px"><button class="b primary" id="pick-apply">この設定を本体へ入れる</button><button class="b" id="pick-cancel">やめる</button></div>
+        <div class="sub">入れる前の設定は本体に1つ残り、「前の設定へ戻す」で戻せます。USBかテザリングでつながっているときだけ使えます。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 回収 -->
+  <section class="tab" id="tab-collect" hidden>
+    <div class="panel">
+      <button class="b primary big" id="collect">回収する</button>
+      <div class="sub">つながっているものから、まだPCに無いものを全部取ります。<b>どれも消しません。</b></div>
+      <div id="collect-run" hidden style="margin-top:10px"><div class="bar"><div id="collect-bar"></div></div><div class="sub" id="collect-rate"></div></div>
+      <div id="collect-out" hidden style="margin-top:10px; display:flex; flex-direction:column; gap:8px"></div>
+    </div>
+    <div class="checks">
+      <div class="check"><span class="mark ok">✓</span><div><div class="k">本体の空き 9.8 GiB</div><div class="n">直近の約3時間40分を残せます</div></div></div>
+      <div class="check"><span class="mark warn">!</span><div><div class="k">まだ回収していない動画 12本</div><div class="n">7.4 GiB。USBでつなぐと約3分</div></div></div>
+      <div class="check"><span class="mark ok">✓</span><div><div class="k">PCの空き 212 GiB</div><div class="n">保存先 drive_logs</div></div></div>
+    </div>
+    <div class="note">今の回収アプリとの違い：終わったあとの文が結果に合わせて変わる。取れなかったものと理由を同じ場所に出す。次にすることを1つだけ大きく出す。</div>
+  </section>
+
+  <!-- 走行を見る -->
+  <section class="tab" id="tab-runs" hidden>
+    <div class="panel">
+      <h2>回収した走行</h2>
+      <div class="scroll"><table id="runs"><thead><tr><th>走った日</th><th>コース</th><th>走行</th><th>長さ</th><th>周</th><th>ベスト</th><th>動画</th><th>レポート</th></tr></thead><tbody></tbody></table></div>
+      <div class="sub">行を押すと、その走行を開きます。日付は回収した日ではなく<b>走った日</b>です。</div>
+    </div>
+    <div class="panel" id="run-detail" hidden>
+      <div class="row"><h2 id="run-title" class="grow" style="margin:0"></h2>
+        <button class="b primary" id="run-report">レポートを出す</button><button class="b" id="run-folder">フォルダーを開く</button></div>
+      <div class="sub" id="run-msg" style="margin:6px 0"></div>
+      <div class="scroll"><table id="laps"><thead><tr><th>周</th><th>タイム</th><th>ベストとの差</th><th>S1</th><th>S2</th><th>S3</th><th>油温</th><th>水温</th><th></th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="note">今との違い：設定ファイルを書かなくても、走行を選ぶだけで周の表まで出る。決勝の区間・ドライバーの交代など人にしか分からないことは、レポートを出すときにこの画面で入れる。</div>
+  </section>
+
+  <!-- 設定 -->
+  <section class="tab" id="tab-setup" hidden>
+    <div class="panel">
+      <h2>焼き込みの映像</h2>
+      <div class="kv">
+        <span class="k">計器の配置</span><span>RaceChrono風（針のメーター・コース図・ベストとの差）<div class="sub">本体のいまの値。11/8に送ったもの</div></span><span class="row"><button class="b">PCで見て変える</button><button class="b">前の値へ戻す</button></span>
+        <span class="k">レンズ</span><span>補正あり・ズーム 1.15<div class="sub">11/6に送ったもの</div></span><span class="row"><button class="b">モニターで決める</button><button class="b">前の値へ戻す</button></span>
+        <span class="k">露出</span><span>録画のソフトで決める（明るさの目標 110）<div class="sub">白飛び対策</div></span><span class="row"><button class="b">明るく</button><button class="b">暗く</button><button class="b">カメラ任せ</button></span>
+        <span class="k">音</span><span>マイク −15 dB・100 Hzより下を削る<div class="sub">いまは本体のファイルを手で書いている所</div></span><span class="row"><button class="b">変える</button><button class="b">前の値へ戻す</button></span>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>LTEで送る命令</h2>
+      <div class="row"><span class="chip ok">合言葉：このPCに入っている</span><button class="b">周回数を直す…</button><button class="b">いまから計測を始める…</button><button class="b">記録を始める…</button></div>
+      <div class="sub" style="margin-top:6px">合言葉が無いPCでは、ここに「本体をUSBでつないで準備する」のボタンが出ます（今はコマンドで行っている所）。</div>
+    </div>
+    <div class="panel">
+      <h2>本体の手入れ</h2>
+      <div class="row"><button class="b">前の車・コースの設定へ戻す</button><button class="b">本体の設定をまるごと控える</button><button class="b">ソフトを更新する…</button><button class="b">コースの下見（電波の記録）…</button></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const SCENES = {
+  wait:   { cls: 'wait', title: 'ロガーを待っています', sub: 'USB・テザリング・LTEの順に、5秒ごとに探しています。ロガーの電源を入れると、ここが「つながりました」に変わります。', verdict: ['idle', 'まだ分かりません', 'ロガーが見つかると、下の6つに結果が出ます。この画面は開いたままで大丈夫です。'], lap: '—' },
+  usb:    { cls: 'ok', title: 'つながりました（USB）', sub: '動画の回収・設定・更新ができます。車載画面と録画は止まっています（ドックを外しているため）。', lap: '完了 0周・ライン 有効' },
+  tether: { cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。動画の回収はUSBのときだけです。', lap: '完了 14周・ライン 有効・レース経過 0:27:41' },
+  lte:    { cls: 'ok', title: 'つながりました（LTEだけ）', sub: '走行中の道です。最後に届いてから 1秒。できるのは、状態を聞く・ラップを0周に戻す、の2つです。', lap: '完了 31周・ライン 有効・レース経過 1:02:15' },
+  trouble:{ cls: 'ok', title: 'つながりました（テザリング）', sub: '車載画面と録画は動いたままです。', lap: '完了 0周・ライン 有効' },
+};
+const CHECKS = {
+  ok: [['記録', 'ok', '記録中（12分31秒）'], ['測位', 'ok', '衛星 19個・誤差 0.9 m'], ['SDカード', 'ok', '控えを書いています'], ['録画', 'ok', '録画中・直近3時間40分を残せます'], ['LTE', 'ok', '送信中（最後に送ってから 0.4秒）'], ['車載画面', 'ok', 'DASHを表示中']],
+  usb: [['記録', 'ok', '記録中（1分02秒）'], ['測位', 'warn', '室内のため測位待ち', '屋外に出すと数十秒で測位します'], ['SDカード', 'ok', '控えを書いています'], ['録画', 'idle', 'カメラなし（USBのため）'], ['LTE', 'ok', '送信中'], ['車載画面', 'idle', 'モニターなし（USBのため）']],
+  lte: [['記録', 'ok', '記録中（1時間04分）'], ['測位', 'ok', '測位中'], ['SDカード', 'idle', 'LTEでは分かりません'], ['録画', 'ok', '録画中'], ['LTE', 'ok', '最後に届いてから 1秒'], ['車載画面', 'idle', 'LTEでは分かりません']],
+  trouble: [['記録', 'ok', '記録中（3分10秒）'], ['測位', 'ok', '衛星 17個・誤差 1.1 m'], ['SDカード', 'bad', 'カードが見つかりません', 'ロガーの電源を切り、シールドのSDを奥まで差し直す'], ['録画', 'bad', 'カメラが見つかりません', 'ドックをつないでから電源を入れ直す（動いている途中でつないでも認識しません）'], ['LTE', 'ok', '送信中'], ['車載画面', 'ok', 'DASHを表示中']],
+};
+const MARK = { ok: '✓', warn: '!', bad: '×', idle: '–' };
+function scene() {
+  const key = $('scene').value, s = SCENES[key];
+  $('link').className = 'panel link ' + s.cls; $('link-title').textContent = s.title; $('link-sub').textContent = s.sub;
+  const rows = key === 'wait' ? CHECKS.ok.map(r => [r[0], 'idle', '—']) : (CHECKS[key] || CHECKS.ok);
+  $('checks').innerHTML = rows.map(([k, st, text, fix]) => `<div class="check"><span class="mark ${st === 'idle' ? '' : st}">${MARK[st]}</span><div><div class="k">${k}</div><div class="n">${text}</div>${fix ? `<div class="n"><b>直し方：</b>${fix}</div>` : ''}</div></div>`).join('');
+  const bad = rows.filter(r => r[1] === 'bad').length, warn = rows.filter(r => r[1] === 'warn').length;
+  const v = s.verdict || (bad ? ['warn', `走る前に直す所が ${bad} つあります`, '記録は続いています。直し方は下の赤い印の所に書いてあります。'] : warn ? ['ok', 'このまま使えます', `気にしておく所が ${warn} つあります（下の黄色の印）。`] : ['ok', '走れます', '記録・測位・録画・ピットへの送信がそろっています。']);
+  $('verdict').className = 'verdict ' + v[0]; $('verdict').innerHTML = `${v[1]}<small>${v[2]}</small>`;
+  $('lap-text').textContent = s.lap; $('lap-done').textContent = ''; $('lap-confirm').hidden = true;
+  const local = key === 'usb' || key === 'tether' || key === 'trouble';
+  $('lap-reset').disabled = $('status-ask').disabled = key === 'wait'; $('pick-open').disabled = !local; $('pick').hidden = true;
+  $('collect').disabled = false;
+}
+$('scene').addEventListener('change', scene);
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  document.querySelectorAll('section.tab').forEach(s => s.hidden = s.id !== 'tab-' + b.dataset.tab);
+}));
+$('lap-reset').onclick = () => { $('lap-confirm').hidden = false; };
+$('lap-no').onclick = () => { $('lap-confirm').hidden = true; };
+$('lap-yes').onclick = () => { $('lap-confirm').hidden = true; $('lap-text').textContent = '完了 0周・ライン 有効'; $('lap-done').textContent = 'ラップを0周に戻しました。次にラインを通った時から数えます。'; };
+$('status-ask').onclick = () => { $('lap-done').textContent = 'LTEで聞きました：記録中・測位中・14周（返事まで 2.1秒）'; };
+$('pick-open').onclick = () => { $('pick').hidden = false; };
+$('pick-cancel').onclick = () => { $('pick').hidden = true; };
+$('pick-apply').onclick = () => { $('car').textContent = $('pick-car').value; $('course').textContent = $('pick-course').value; $('pick').hidden = true; };
+
+const COLLECT = {
+  usb: { got: ['走行記録 3本', '動画 12本（7.4 GiB）'], miss: ['SDカード：PCに挿さっていません'], next: '次：USBを抜いてロガーの電源を切り、シールドのSDカードをカードリーダーへ挿して、もう一度「回収する」' },
+  tether: { got: ['走行記録 3本'], miss: ['動画 12本：テザリングでは遅いので取っていません', 'SDカード：PCに挿さっていません'], next: '次：ロガーの電源を切り、ドックを外してUSB-CをPCへつなぎ、電源を入れてから、もう一度「回収する」' },
+  trouble: { got: ['走行記録 1本'], miss: ['動画：本体に録画がありません（カメラが見つからなかったため）'], next: '回収できるものは全部取りました。' },
+  lte: { got: [], miss: ['LTEでは回収できません'], next: '次：走り終えたら、ロガーをUSBでPCへつないで「回収する」' },
+  wait: { got: [], miss: ['ロガーもSDカードも見つかりません'], next: '次：ロガーをUSBでPCへつなぐか、SDカードをカードリーダーへ挿す' },
+};
+$('collect').onclick = () => {
+  const r = COLLECT[$('scene').value]; let p = 0;
+  $('collect').disabled = true; $('collect-out').hidden = true; $('collect-run').hidden = false;
+  const t = setInterval(() => { p += 20; $('collect-bar').style.width = p + '%'; $('collect-rate').textContent = '探して、取っています…';
+    if (p >= 100) { clearInterval(t); $('collect-run').hidden = true; $('collect-bar').style.width = '0'; $('collect').disabled = false;
+      $('collect-out').hidden = false;
+      $('collect-out').innerHTML = `<div class="result"><b>${r.got.length ? '取れたもの' : '今回は何も取っていません'}</b>${r.got.length ? '<ul>' + r.got.map(x => `<li>${x}</li>`).join('') + '</ul>' : ''}</div>`
+        + (r.miss.length ? `<div class="result"><b>取っていないもの</b><ul>${r.miss.map(x => `<li>${x}</li>`).join('')}</ul></div>` : '') + `<div class="next">${r.next}</div>`; } }, 180);
+};
+
+const RUNS = [
+  ['2026-11-08', 'SUGO', '決勝（120分）', '2:03:10', 62, '1:48.61', '12本', '済み'],
+  ['2026-11-08', 'SUGO', '予選', '0:24:05', 11, '1:47.92', '3本', '—'],
+  ['2026-11-07', 'SUGO', '練習走行', '0:41:30', 19, '1:49.40', '5本', '—'],
+  ['2026-10-25', 'もてぎ', 'エコラン 決勝', '0:38:12', 7, '—', 'なし', '—'],
+];
+$('runs').querySelector('tbody').innerHTML = RUNS.map((r, i) => `<tr class="pick" data-i="${i}">${r.map((c, j) => `<td>${j === 7 && c === '済み' ? '<span class="chip ok">済み</span>' : c}</td>`).join('')}</tr>`).join('');
+const LAPS = [[1, '2:05.31', '+16.70', '41.20', '44.87', '39.24', 96, 88], [2, '1:50.12', '+1.51', '36.02', '39.61', '34.49', 104, 91], [3, '1:48.61', 'ベスト', '35.48', '39.10', '34.03', 108, 92], [4, '1:49.05', '+0.44', '35.61', '39.32', '34.12', 111, 93], [5, '1:51.77', '+3.16', '36.40', '40.25', '35.12', 113, 93]];
+$('runs').addEventListener('click', e => {
+  const tr = e.target.closest('tr.pick'); if (!tr) return; const r = RUNS[tr.dataset.i];
+  document.querySelectorAll('#runs tr').forEach(x => x.classList.toggle('sel', x === tr));
+  $('run-detail').hidden = false; $('run-title').textContent = `${r[0]}　${r[1]}　${r[2]}`; $('run-msg').textContent = `${r[4]}周のうち、はじめの5周を出しています（例の数字）。`;
+  $('laps').querySelector('tbody').innerHTML = LAPS.map(l => `<tr>${l.map((c, j) => `<td>${j === 2 && c === 'ベスト' ? '<span class="chip info">ベスト</span>' : c}${j === 6 || j === 7 ? ' ℃' : ''}</td>`).join('')}<td><button class="b" data-lap="${l[0]}">この周の動画を切り出す</button></td></tr>`).join('');
+});
+$('laps').addEventListener('click', e => { const b = e.target.closest('button[data-lap]'); if (b) $('run-msg').textContent = `${b.dataset.lap}周目の動画を切り出します（風切りを下げた公開用も一緒に作ります）。できたら、ここに「再生する」「フォルダーを開く」が出ます。`; });
+$('run-report').onclick = () => { $('run-msg').textContent = 'レポートを出す前に、人にしか分からないことを聞きます：決勝の始まりと終わり・ドライバーの交代・ピットに入った周。入れなくても出せます。'; };
+$('run-folder').onclick = () => { $('run-msg').textContent = 'この走行のフォルダー（走行記録・SD・動画・レポートが1か所）を開きます。'; };
+scene();
+</script>
