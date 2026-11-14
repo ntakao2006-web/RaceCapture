@@ -17,9 +17,10 @@ from pathlib import Path
 import run_index
 
 CACHE_DIR = 'runs_cache'
-VERSION = 2   # 2：周の時刻を測位の時計で直す
+VERSION = 3   # 2：周の時刻を測位の時計で直す　3：止まっていた秒（stop_s）を足した
 NEEDED = ('host_utc', 'gnss_utc', 'LapCount', 'LapTime', 'LastSector', 'SectorTime', 'Speed', 'GPSSpeed', 'OilTemp', 'WaterTemp')
 WARN_LABEL = {'OilTemp': '油温', 'WaterTemp': '水温'}
+STOP_KMH = 5.0        # これ未満を「止まっていた」と数える（レポートの下書きでピットの周を見分けるのに使う。report_draft.py）
 WARN_HOLD_S = 5.0     # この長さ続いたら警告の印（車載画面の hold_on_s と同じ。キーを切るときの一瞬の跳ねを拾わない）
 
 
@@ -33,13 +34,15 @@ def number(text):
 
 def laps_of(path, chapters=(), warn=None, progress=None):
     """走行記録を読んで {'laps': [...], 'best': 周の番号, 'rows': 読んだ行数} を返す。
-    laps の1つ：{'lap', 'time_s', 'start', 'end', 'sectors': [秒...], 'vmax', 'warn': ['油温', ...], 'video': 'all'|'part'|'none'}"""
+    laps の1つ：{'lap', 'time_s', 'start', 'end', 'sectors': [秒...], 'vmax', 'stop_s', 'warn': ['油温', ...], 'video': 'all'|'part'|'none'}
+    stop_s は、その周のうち STOP_KMH 未満だった秒（ピットで止まった周の目安）"""
     warn = warn or {}
     laps, rows = [], 0
     count = None          # いまの LapCount
     lap_start = None      # いまの周が始まった時刻（前の周の終わり）
     vmax, sectors, over, warned = None, {}, {}, set()
     last_sector_key = None
+    stop_s, last_t = 0.0, None
     clock = []            # 直近の (本体の時計, 測位の時計)。周の終わりの時刻を測位の時計で直すのに使う
     with open(path, encoding='utf-8', errors='replace', newline='') as f:
         reader = csv.reader(f)
@@ -72,6 +75,10 @@ def laps_of(path, chapters=(), warn=None, progress=None):
                 speed = get('GPSSpeed')
             if speed is not None and (vmax is None or speed > vmax):
                 vmax = speed
+            if t is not None:
+                if speed is not None and speed < STOP_KMH and last_t is not None and 0 < t - last_t <= 1.0:
+                    stop_s += t - last_t
+                last_t = t
             for name, limit in warn.items():   # しきい値以上が WARN_HOLD_S 続いたら、その周に印
                 value = get(name)
                 if value is not None and value >= limit and t is not None:
@@ -97,10 +104,11 @@ def laps_of(path, chapters=(), warn=None, progress=None):
                 laps.append({'lap': int(now), 'time_s': time_s, 'start': None if start is None else round(start, 1),
                              'end': None if end is None else round(end, 1),
                              'sectors': [sectors.get(k) for k in sorted(sectors)], 'vmax': None if vmax is None else round(vmax),
+                             'stop_s': round(stop_s, 1),
                              'warn': sorted(warned)})
-                lap_start, vmax, sectors, warned = t, None, {}, set()
+                lap_start, vmax, sectors, warned, stop_s = t, None, {}, set(), 0.0
             elif count is not None and now < count:    # 途中でラップを0周に戻した：それまでの周は残し、数え直す
-                vmax, sectors, warned = None, {}, set()
+                vmax, sectors, warned, stop_s = None, {}, set(), 0.0
             count = now
     for lap in laps:
         if lap['start'] is None or lap['end'] is None or not chapters:
