@@ -132,6 +132,9 @@
   一覧に無いコースでも落ちないようにした、という更新の記録がある（＝開けるが、自動のコース判定は効かないことがある）
 - 注意：`[column names]`の短い名前と`[header]`の名前が違うとCircuit Toolsが困ることがある、というRaceChronoのフォーラムの話（**検索の要約のみ**）。同じ名前にしておく
   https://racechrono.com/forum/discussion/comment/12992/
+- **2026-11-14 実測（Circuit Tools 3 v3.2.120）**：自作の`.vbo`は開けて、周の比べもできる。ただし**衛星数の列は31までに抑える**（32の行は使われず、Delta-T・セクター・コース図が崩れる）。
+  「not a genuine Racelogic VBOX file」で閉じるのは2周目以降の動画を開くときだけ。距離は速度の列から出す。行は10Hzにする（20Hzだと距離を約1.5倍に数える）。
+  RaceChrono Pro の書き出しは`[laptiming]`の線を「経度 緯度 経度 緯度」の順で書いていた（上の説明と順が逆。Circuit Tools 3はそれで読めている）
 
 ### 4-2. AiM（Race Studio 3）
 
