@@ -57,6 +57,7 @@ PAGE = Path(__file__).with_name('video_collect.html')
 LINES_JS = Path(__file__).with_name('course_lines.js')
 SETTINGS_JS = Path(__file__).with_name('settings.js')
 REPORT_JS = Path(__file__).with_name('report.js')
+ANALYSIS_VIEW_JS = Path(__file__).with_name('analysis_view.js')
 
 # 本体で動かす一覧のスクリプト。D・LOGS・BOOTF は Link が先頭に付ける
 LIST_SCRIPT = r'''
@@ -869,6 +870,14 @@ class App:
             return {**report_ops.view(root, run, table), 'others': others}
         return report_ops.save(root, run, table, body)
 
+    def report_data(self, run_id):
+        """解析の結果の表（report_ops.results）"""
+        import report_ops
+        run = next((r for r in self.runs()['runs'] if r['id'] == run_id), None)
+        if not run:
+            raise KeyError(run_id)
+        return report_ops.results(self.pc.root.parent, run)
+
     def report_run(self, run_id):
         """保存した決めごとで解析を流す（report_ops.run_analysis）。数分かかるので裏で動かし、様子は self.analysis に置く"""
         import report_ops
@@ -1136,6 +1145,15 @@ def make_server(app, port):
                 return self.send(200, LINES_JS.read_bytes(), 'text/javascript; charset=utf-8')
             if self.path == '/report.js':         # 「走行を見る」のレポートの下書きのJS（同じく分けてある）
                 return self.send(200, REPORT_JS.read_bytes(), 'text/javascript; charset=utf-8')
+            if self.path == '/analysis_view.js':  # 解析の結果を見る所のJS
+                return self.send(200, ANALYSIS_VIEW_JS.read_bytes(), 'text/javascript; charset=utf-8')
+            if self.path.startswith('/api/report_data?id='):
+                try:
+                    return self.send(200, app.report_data(urllib.parse.unquote(self.path.split('=', 1)[1])))
+                except KeyError:
+                    return self.send(404, {'error': 'その走行が見つからない'})
+                except (OSError, ValueError) as exc:
+                    return self.send(409, {'error': str(exc)})
             if self.path.startswith('/api/report?id='):
                 try:
                     return self.send(200, app.report(urllib.parse.unquote(self.path.split('=', 1)[1])))

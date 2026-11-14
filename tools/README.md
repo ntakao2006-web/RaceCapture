@@ -30,6 +30,7 @@
   - 設定ファイルの決めごとのうち、決勝の周・ピットの周・スティント・遅い周の候補は、`tools/video_collect/report_draft.py`が周の表から案を出す（2026-11-14。まだ部品だけで、アプリの画面には載せていない）
   - その案を見て直して保存する画面は、PCのアプリの「走行を見る」→「レポートの下書き」（`report_ops.py`・`report.js`。保存先は`drive_logs/reports/`）
   - 保存したあと、同じ画面の「保存した決めごとで解析を流す」で、この解析を流せる（2026-11-14。出力は`drive_logs/reports/<走行のid>/`）。予選の走行（`quali_csv`・`quali_laps`）とLTEの記録（`lte_dir`）は、設定に無ければその項目が出ないだけ
+  - 流した結果は、同じ画面の「結果を見る」で数字とグラフになる（`analysis_view.js`。外のライブラリなし）。`report_page.html`（Claudeのダッシュボード用）はSUGO 11/8 の文章つきで、別物
 - `tools/lap_video/`：**走行映像から1周だけを切り出し、風切りを下げた公開用のMP4を作る**（PCで動かす。`lap_video.py laps <日付>`で周の一覧、`clip <日付> --best`か`--lap N`）。周の数え方は`tools/race_analysis`と同じ。風切りは記録の回転数でエンジンの倍音だけを残し、間を下げる（`wind_reduce.py`、ユーザーが聴き比べて決めた「8番」の設定。ふつうの雑音取りは効かなかった）。出力は`drive_logs/v2_video/laps/`。ffmpegはwingetの`Gyan.FFmpeg`。手順は`unoq_video_check_procedure.md` 5-25。**スピン・コースアウト・後ろが出た所の切り抜きを1本につなぐ**のは同じ場所の`incidents.py`（`find`で候補→`sheet`のコマで本物を選んで設定の`clips`へ→`build`。例`incidents_sugo_20261107-08.json`、出力`drive_logs/v2_video/incidents/`、手順5-26）
 - `tools/dev/imagery_check/imagery_check.py`：航空写真の位置の正しさを、走った跡を重ねて測る（SP-4-12）。SDの10Hzの解（`sd_gnss.py`が作る`sd_nav.pkl`）を国土地理院とEsriの写真に重ね、舗装とのずれを数える。出力は位置を含むので`drive_logs/`の下へ出す
 - `tools/home_telemetry/home.html`：**ピットの表紙**（スマホで開く入口。SP-6-1・SP-6-3、2026-11-13）。いまの要点・ほかの画面への行き先・合言葉を入れた人のロガーへの操作（今ある5つの命令）。`live_bridge.py`が`/home`と`/`で出す。**自宅のサーバーにはまだ入れていない**（了承のあと）。PCの中だけで確かめるのは`tools/home_telemetry/dev_home.py`（作りものの車と中継。`websockets`が要る）

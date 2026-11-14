@@ -72,7 +72,7 @@ def view(root, run, table):
     d = report_draft.draft(run, table)
     laps = [{'lap': lap['lap'], 'time_s': lap['time_s'], 'stop_s': lap.get('stop_s')} for lap in table.get('laps', []) if lap.get('time_s')]
     return {'id': run['id'], 'day': run.get('day'), 'draft': d, 'saved': saved, 'laps': laps, 'reasons': REASONS,
-            'file': str(path_of(root, run))}
+            'file': str(path_of(root, run)), 'has_results': (Path(root) / REPORT_DIR / run['id'] / 'pub' / 'facts.csv').is_file()}
 
 
 def integers(value, label, problems):
@@ -203,3 +203,28 @@ def run_analysis(root, run, runs, vehicle, python=None, timeout=3600):
     except OSError:
         pass
     return {'out_dir': cfg['out_dir'], 'pub': str(pub), 'tables': tables, 'facts': facts, 'seconds': round(time.time() - began)}
+
+# ---------------------------------------------------------------- 解析の結果を見る
+VIEW_TABLES = ('facts', 'laps', 'temps', 'track', 'corners', 'compare')     # アプリの画面（analysis_view.js）が出す表
+
+
+def results(root, run):
+    """解析が出した表を、画面に出す形で返す。まだ流していなければ ValueError"""
+    import csv
+    pub = Path(root) / REPORT_DIR / run['id'] / 'pub'
+    if not (pub / 'facts.csv').is_file():
+        raise ValueError('この走行は、まだ解析を流していません。「保存した決めごとで解析を流す」を押してください')
+    tables = {}
+    for name in VIEW_TABLES:
+        try:
+            with open(pub / f'{name}.csv', encoding='utf-8', newline='') as f:
+                tables[name] = list(csv.DictReader(f))
+        except OSError:
+            tables[name] = []
+    name = ''
+    try:
+        name = json.loads(path_of(root, run).read_text(encoding='utf-8')).get('name', '')
+    except (OSError, ValueError):
+        pass
+    made = time.strftime('%Y-%m-%d %H:%M', time.localtime((pub / 'facts.csv').stat().st_mtime))
+    return {'id': run['id'], 'name': name, 'made': made, 'tables': tables}

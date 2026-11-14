@@ -184,3 +184,35 @@ class AnalysisTest(unittest.TestCase):
             self.assertEqual((app.analysis['ok'], app.analysis['facts'], app.snapshot()['analysis']['run']), (True, 3, RUN['id']))
             with self.assertRaises(KeyError):
                 app.action('/api/report_run', {'id': 'nothing'})
+
+
+class ResultsTest(unittest.TestCase):
+    """解析の結果を見る所"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+
+    def test_nothing_yet_is_said_and_tables_come_as_rows(self):
+        self.assertFalse(report_ops.view(self.root, RUN, table())['has_results'])
+        with self.assertRaisesRegex(ValueError, 'まだ解析を流していません'):
+            report_ops.results(self.root, RUN)
+        pub = self.root / 'reports' / RUN['id'] / 'pub'
+        pub.mkdir(parents=True)
+        (pub / 'facts.csv').write_text('key,text,value,label\nbest_lap,1:50.095,110.095,決勝のベスト（秒）\n', encoding='utf-8')
+        (pub / 'laps.csv').write_text('session,lap,lap_s\n決勝,9,118.1\n決勝,10,114.4\n', encoding='utf-8')
+        (pub / 'slides.csv').write_text('id\n1\n', encoding='utf-8')
+        report_ops.save(self.root, RUN, table(), body())
+        out = report_ops.results(self.root, RUN)
+        self.assertEqual((out['name'], out['tables']['facts'][0]['text'], len(out['tables']['laps'])), ('テストの大会', '1:50.095', 2))
+        self.assertEqual((out['tables']['track'], 'slides' in out['tables']), ([], False))      # 無い表は空、画面が出さない表は送らない
+        self.assertTrue(report_ops.view(self.root, RUN, table())['has_results'])
+
+    def test_through_the_app(self):
+        app = vc.App(vc.PcStore(self.root / 'v2_video'), None)
+        with mock.patch.object(app, 'runs', return_value={'runs': [RUN]}):
+            with self.assertRaises(ValueError):
+                app.report_data(RUN['id'])
+            with self.assertRaises(KeyError):
+                app.report_data('nothing')

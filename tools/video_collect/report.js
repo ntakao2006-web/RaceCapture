@@ -55,9 +55,11 @@ function rpForm(d) {
     <div id="rp-out"></div>
     <div class="sub" style="margin-top:6px">保存先：${esc(d.file)}（人の名前や覚え書きが入るので、公開のリポジトリには入りません）。</div>
     <div style="margin-top:12px"><b>解析を流す</b> <span class="sub">保存した決めごとで、周・セクター・温度・油圧・走りの比べなどの表を作ります（数分かかります。走行記録と動画は変えません）。</span></div>
-    <div class="row" style="margin-top:6px"><button id="rp-run" ${d.saved ? '' : 'disabled title="先に保存してください"'}>保存した決めごとで解析を流す</button></div>
+    <div class="row" style="margin-top:6px"><button id="rp-run" ${d.saved ? '' : 'disabled title="先に保存してください"'}>保存した決めごとで解析を流す</button>
+      <button id="rp-view" ${d.has_results ? '' : 'disabled title="まだ解析を流していません"'}>結果を見る</button></div>
     <div id="rp-run-out"></div>
-    <div class="sub" style="margin-top:6px">できるのは表（CSV）までです。グラフ付きのレポートのページにするには、いまはClaudeに頼んでページへ載せます。この解析はNCEC・SUGOの記録で作ったものなので、信号やセクターの数が違う車・コースでは、途中で止まることがあります。LTEの届き方の項目は出ません。</div>
+    <div id="rp-view-out"></div>
+    <div class="sub" style="margin-top:6px">「結果を見る」は、数字とグラフをこの画面に出します（ネットにつながっていなくても見られます）。この解析はNCEC・SUGOの記録で作ったものなので、信号やセクターの数が違う車・コースでは、途中で止まることがあります。LTEの届き方の項目は出ません。</div>
   </div>`;
 }
 function rpShowStints() {
@@ -124,6 +126,7 @@ document.addEventListener('click', async e => {
     if (!was.saved) { const c = document.querySelector('.lapsrow .result .chip.ok'); if (c) c.outerHTML = chip('走行記録から出した案', 'warn'); }
     return;
   }
+  if (e.target.id === 'rp-view') { showAnalysis(RP.id, $('rp-view-out')); return; }
   if (e.target.id === 'rp-run') {
     try {
       const r = await fetch('/api/report_run', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Video-Collect': '1'}, body: JSON.stringify({id: RP.id})}), x = await r.json();
@@ -154,8 +157,10 @@ function renderReportRun(s) {
   if (rpRunShown === a.started) return;
   rpRunShown = a.started;
   box.innerHTML = a.ok ? `<div class="result"><b>解析ができました。</b>表 ${a.tables.length} 個・数字 ${a.facts} 個（${Math.floor(a.seconds / 60)}分${String(a.seconds % 60).padStart(2, '0')}秒）
-      <div class="notes">${esc(a.tables.join('・'))}</div><div class="row" style="margin-top:6px"><button data-open="${esc(a.pub)}">表の置き場を開く</button></div></div>`
+      <div class="notes">${esc(a.tables.join('・'))}</div><div class="row" style="margin-top:6px"><button id="rp-view-now">結果を見る</button><button data-open="${esc(a.pub)}">表の置き場を開く</button></div></div>`
     : `<div class="banner bad"><b>できませんでした。</b>${esc(a.error).split(' ／ ').join('<br>')}</div>`;
+  if (a.ok) { RP.d = {...RP.d, has_results: true}; const v = $('rp-view'); if (v) { v.disabled = false; v.title = ''; }
+    $('rp-view-now').onclick = () => showAnalysis(RP.id, $('rp-view-out')); }
 }
 document.addEventListener('input', e => { if (RP && ['rp-first', 'rp-last', 'rp-pits'].includes(e.target.id)) rpShowStints(); });
 document.addEventListener('change', e => { if (RP && e.target.id === 'rp-quali') $('rp-quali-laps').hidden = !e.target.value; });
