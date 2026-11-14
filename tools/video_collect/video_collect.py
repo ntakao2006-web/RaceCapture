@@ -777,6 +777,7 @@ class App:
         self.runs_cache = (0, [])            # 「走行を見る」の一覧（作った時刻, 一覧）
         self.runs_lock = threading.Lock()
         self.keep = None                     # 周の動画を残す作業の様子（lap_keep）
+        self.analysis = None                 # レポートの解析を流す作業の様子（report_run）
         self.lock = threading.Lock()
 
     def refresh(self):
@@ -814,7 +815,7 @@ class App:
                            'not_backed_up': sum(1 for e in pc.index.values() if pc.settings.get('backup') and
                                                 pc.settings['backup'] not in e.get('backup', {}))},
                     'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at, 'sd': self.sd,
-                    'now': self.now, 'course': self.course_view(), 'time': time.time(), 'keep': self.keep}
+                    'now': self.now, 'course': self.course_view(), 'time': time.time(), 'keep': self.keep, 'analysis': self.analysis}
 
     def course_view(self):
         """「コースと線」の段に出すもの（course_lines.py。PCのコースの設定と、本体から読んだ線）"""
@@ -867,6 +868,34 @@ class App:
                       for r in self.runs()['runs'] if r.get('day') == run.get('day') and r['id'] != run_id and r.get('laps')]
             return {**report_ops.view(root, run, table), 'others': others}
         return report_ops.save(root, run, table, body)
+
+    def report_run(self, run_id):
+        """保存した決めごとで解析を流す（report_ops.run_analysis）。数分かかるので裏で動かし、様子は self.analysis に置く"""
+        import report_ops
+        if self.analysis and self.analysis.get('running'):
+            raise RuntimeError('ほかの解析を流している途中です。終わってからもう一度押してください')
+        runs = self.runs()['runs']
+        run = next((r for r in runs if r['id'] == run_id), None)
+        if not run:
+            raise KeyError(run_id)
+        vehicle = None
+        try:
+            sys.path.insert(0, str(REPO / 'tools' / 'setups'))
+            import setups
+            vehicle = setups.names('vehicle')[0]
+        except (ImportError, IndexError):
+            pass
+        root = self.pc.root.parent
+        report_ops.analysis_config(root, run, (report_ops.view(root, run, {'laps': []})['saved']), runs, vehicle)   # 流せない理由は、すぐ返す
+        self.analysis = {'running': True, 'run': run_id, 'started': time.time()}
+
+        def work():
+            try:
+                result = report_ops.run_analysis(root, run, runs, vehicle)
+                self.analysis = {**self.analysis, 'running': False, 'ok': True, **result}
+            except Exception as exc:  # noqa: BLE001  画面に出す
+                self.analysis = {**self.analysis, 'running': False, 'ok': False, 'error': str(exc) or type(exc).__name__}
+        threading.Thread(target=work, daemon=True).start()
 
     def lap_clip(self, run_id, index):
         """周の表の index 番目の周の動画を、ブラウザで見られる形にして返す（lap_clip.py。初めては数秒〜十数秒）"""
@@ -1018,6 +1047,8 @@ class App:
                 raise RuntimeError('いま聞いている途中')
             self.now['lte'] = {'running': True}
             threading.Thread(target=self.watcher.ask_lte, daemon=True).start()
+        elif path == '/api/report_run':
+            self.report_run(str(body.get('id')))
         elif path == '/api/report_save':
             return self.report(str(body.get('id')), body)
         elif path == '/api/lap_keep':

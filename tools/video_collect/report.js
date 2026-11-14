@@ -14,19 +14,21 @@ function rpStints(race, pits) {   // report_ops.stints_of と同じ
 function rpStart(d) {
   const a = d.draft.auto, s = d.saved;
   if (!s) return {name: '', race: a.race_laps || [], pits: a.pit_laps || [], drivers: [], window: a.window || ['', ''], notes: '', quali: null,
-    slow: Object.fromEntries((a.slow_laps || []).map(n => [n, ''])), memo: {}};
+    slow: Object.fromEntries((a.slow_laps || []).map(n => [n, ''])), memo: {}, prePit: []};
   const slow = {};
   (a.slow_laps || []).forEach(n => { slow[n] = 'none'; });       // 案に出たが保存では外した周
   s.incident_laps.forEach(n => { slow[n] = 'incident'; });
-  for (const [key, list] of [['slow_all', s.slow_all_laps], ['pre_pit', s.pre_pit_slow]]) for (const [x, y] of list) for (let n = x; n <= y; n++) slow[n] = key;
-  return {name: s.name, race: s.race_laps, pits: s.pit_laps, drivers: s.drivers || [], window: s.window, notes: s.notes, quali: s.quali, slow, memo: s.slow_memo || {}};
+  for (const [x, y] of s.slow_all_laps) for (let n = x; n <= y; n++) slow[n] = 'slow_all';
+  const prePit = [];
+  for (const [x, y] of s.pre_pit_slow) for (let n = x; n <= y; n++) { prePit.push(n); if (!(n in slow)) slow[n] = 'none'; }
+  return {name: s.name, race: s.race_laps, pits: s.pit_laps, drivers: s.drivers || [], window: s.window, notes: s.notes, quali: s.quali, slow, memo: s.slow_memo || {}, prePit};
 }
 function rpForm(d) {
   const v = rpStart(d), a = d.draft.auto, times = Object.fromEntries(d.laps.map(l => [l.lap, l]));
   if (!d.laps.length) return `<div class="banner warn">${esc(d.draft.notes[0] || 'この走行には、タイムのある周がありません。')}</div>`;
   const reasons = n => `<select data-rp-slow="${n}"><option value="">理由を選ぶ…</option>${Object.entries(d.reasons).map(([k, t]) => `<option value="${k}" ${v.slow[n] === k ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
   const slowRows = Object.keys(v.slow).map(Number).sort((x, y) => x - y).map(n => `<tr><td>${n}</td><td>${times[n] ? lapTime(times[n].time_s) : '—'}</td>
-    <td>${reasons(n)}</td><td><input type="text" data-rp-memo="${n}" value="${esc(v.memo[n] || '')}" placeholder="覚え書き（黄旗・1コーナーで飛び出した など）" style="width:100%"></td></tr>`).join('');
+    <td>${reasons(n)}</td><td style="text-align:center"><input type="checkbox" data-rp-prepit="${n}" ${v.prePit.includes(n) ? 'checked' : ''} aria-label="${n}周目はピットの前にペースを落とした"></td><td><input type="text" data-rp-memo="${n}" value="${esc(v.memo[n] || '')}" placeholder="覚え書き（黄旗・1コーナーで飛び出した など）" style="width:100%"></td></tr>`).join('');
   const others = d.others.map(o => `<option value="${esc(o.id)}" ${v.quali && v.quali.id === o.id ? 'selected' : ''}>${hhmm(o.start)}から・${mins(o.minutes)}・${o.laps}周</option>`).join('');
   return `<div class="result plain" style="margin-top:4px">
     <b>レポートの下書き</b>　${d.saved ? chip('保存したものを開いています', 'ok') + ` <span class="sub">${esc(String(d.saved.saved_at).replace('T', ' ').slice(0, 16))}</span>` : chip('走行記録から出した案', 'warn')}
@@ -45,13 +47,17 @@ function rpForm(d) {
         <span id="rp-quali-laps" ${v.quali ? '' : 'hidden'}>　<input class="num" id="rp-q0" type="number" value="${v.quali ? v.quali.laps[0] : ''}"> 周目 から <input class="num" id="rp-q1" type="number" value="${v.quali ? v.quali.laps[1] : ''}"> 周目 まで</span></td></tr>
     </table>
     <div style="margin-top:10px"><b>遅い周</b> <span class="sub">案は、ピットの周とその次を除いて、そのスティントの中央値より6%以上遅い周です。理由は、乗った人・見ていた人が選びます。</span></div>
-    ${slowRows ? `<div class="scroll"><table><tr><th>周</th><th>タイム</th><th>理由</th><th>覚え書き</th></tr>${slowRows}</table></div>` : '<div class="sub">遅い周の候補はありません。</div>'}
+    ${slowRows ? `<div class="scroll"><table><tr><th>周</th><th>タイム</th><th>理由</th><th title="ピットに入る前の数周で、わざとペースを落としたとき（理由と両方に付けられます）">ピット前の<br>ペースダウン</th><th>覚え書き</th></tr>${slowRows}</table></div>` : '<div class="sub">遅い周の候補はありません。</div>'}
     <div class="row" style="margin-top:6px"><span class="sub">ほかの周を足す：</span><input class="num" id="rp-add" type="number" placeholder="周"><button id="rp-add-go">足す</button></div>
     <div style="margin-top:10px"><b>覚え書き</b> <span class="sub">（天気・路面・車の変更・起きたこと）</span></div>
     <textarea id="rp-notes" rows="4" style="width:100%;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);box-sizing:border-box">${esc(v.notes)}</textarea>
     <div class="row" style="margin-top:8px"><button class="primary" id="rp-save">保存する</button>${d.saved ? '<button id="rp-redo">走行記録の案に戻す</button>' : ''}<button id="rp-close">閉じる</button></div>
     <div id="rp-out"></div>
-    <div class="sub" style="margin-top:6px">保存先：${esc(d.file)}（人の名前や覚え書きが入るので、公開のリポジトリには入りません）。ここで保存するのは決めごとだけで、解析を流してレポートのページを作る所は、まだアプリにありません。</div>
+    <div class="sub" style="margin-top:6px">保存先：${esc(d.file)}（人の名前や覚え書きが入るので、公開のリポジトリには入りません）。</div>
+    <div style="margin-top:12px"><b>解析を流す</b> <span class="sub">保存した決めごとで、周・セクター・温度・油圧・走りの比べなどの表を作ります（数分かかります。走行記録と動画は変えません）。</span></div>
+    <div class="row" style="margin-top:6px"><button id="rp-run" ${d.saved ? '' : 'disabled title="先に保存してください"'}>保存した決めごとで解析を流す</button></div>
+    <div id="rp-run-out"></div>
+    <div class="sub" style="margin-top:6px">できるのは表（CSV）までです。グラフ付きのレポートのページにするには、いまはClaudeに頼んでページへ載せます。この解析はNCEC・SUGOの記録で作ったものなので、信号やセクターの数が違う車・コースでは、途中で止まることがあります。LTEの届き方の項目は出ません。</div>
   </div>`;
 }
 function rpShowStints() {
@@ -69,9 +75,10 @@ function rpBody() {
   document.querySelectorAll('[data-rp-slow]').forEach(s => { slow[s.dataset.rpSlow] = s.value; });
   document.querySelectorAll('[data-rp-memo]').forEach(i => { if (i.value.trim()) memo[i.dataset.rpMemo] = i.value; });
   const drivers = [...document.querySelectorAll('[data-rp-driver]')].map(i => i.value.trim());
+  const prePit = [...document.querySelectorAll('[data-rp-prepit]')].filter(c => c.checked).map(c => Number(c.dataset.rpPrepit));
   const q = $('rp-quali').value;
   return {id: RP.id, name: $('rp-name').value, race_laps: [Number($('rp-first').value), Number($('rp-last').value)], pit_laps: rpList($('rp-pits').value),
-    drivers: drivers.some(Boolean) ? drivers : [], slow, slow_memo: memo, window: [$('rp-w0').value.trim(), $('rp-w1').value.trim()], notes: $('rp-notes').value,
+    drivers: drivers.some(Boolean) ? drivers : [], slow, pre_pit: prePit, slow_memo: memo, window: [$('rp-w0').value.trim(), $('rp-w1').value.trim()], notes: $('rp-notes').value,
     quali: q ? {id: q, laps: [Number($('rp-q0').value), Number($('rp-q1').value)]} : null};
 }
 function rpDraw(d, fromDraft) {
@@ -103,18 +110,26 @@ document.addEventListener('click', async e => {
     if (document.querySelector(`[data-rp-slow="${n}"]`)) { $('rp-out').innerHTML = '<div class="sub">その周は、もう表にあります。</div>'; return; }
     const keep = rpBody();          // 入れかけの欄を残したまま、1行足して描き直す
     const d = {...RP.d, saved: {name: keep.name, race_laps: keep.race_laps, pit_laps: keep.pit_laps, drivers: keep.drivers, window: keep.window, notes: keep.notes, quali: keep.quali,
-      incident_laps: [], slow_all_laps: [], pre_pit_slow: [], slow_memo: keep.slow_memo, saved_at: ''}};
+      incident_laps: [], slow_all_laps: [], pre_pit_slow: keep.pre_pit.map(n => [n, n]), slow_memo: keep.slow_memo, saved_at: ''}};
     const was = RP.d; rpDraw(d, false); RP.d = was;
     Object.entries({...keep.slow, [n]: ''}).forEach(([k, val]) => { const s = document.querySelector(`[data-rp-slow="${k}"]`); if (s) s.value = val; });
     if (!document.querySelector(`[data-rp-slow="${n}"]`)) {   // 表に無い周は、行を足す
       const t = document.querySelector('[data-rp-slow]');
       const table = t ? t.closest('table') : null;
       const html = `<tr><td>${n}</td><td>${lapTime(lap.time_s)}</td><td><select data-rp-slow="${n}"><option value="">理由を選ぶ…</option>${Object.entries(RP.d.reasons).map(([k, x]) => `<option value="${k}">${esc(x)}</option>`).join('')}</select></td>
-        <td><input type="text" data-rp-memo="${n}" placeholder="覚え書き" style="width:100%"></td></tr>`;
+        <td style="text-align:center"><input type="checkbox" data-rp-prepit="${n}" aria-label="${n}周目はピットの前にペースを落とした"></td><td><input type="text" data-rp-memo="${n}" placeholder="覚え書き" style="width:100%"></td></tr>`;
       if (table) table.insertAdjacentHTML('beforeend', html);
-      else $('rp-add').closest('.row').insertAdjacentHTML('beforebegin', `<div class="scroll"><table><tr><th>周</th><th>タイム</th><th>理由</th><th>覚え書き</th></tr>${html}</table></div>`);
+      else $('rp-add').closest('.row').insertAdjacentHTML('beforebegin', `<div class="scroll"><table><tr><th>周</th><th>タイム</th><th>理由</th><th>ピット前の<br>ペースダウン</th><th>覚え書き</th></tr>${html}</table></div>`);
     }
     if (!was.saved) { const c = document.querySelector('.lapsrow .result .chip.ok'); if (c) c.outerHTML = chip('走行記録から出した案', 'warn'); }
+    return;
+  }
+  if (e.target.id === 'rp-run') {
+    try {
+      const r = await fetch('/api/report_run', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Video-Collect': '1'}, body: JSON.stringify({id: RP.id})}), x = await r.json();
+      if (!r.ok) { $('rp-run-out').innerHTML = `<div class="banner bad"><b>流していません。</b>${esc(x.error || '')}</div>`; return; }
+      rpRunShown = 0; if (window.load) load();
+    } catch (x) { $('rp-run-out').innerHTML = '<div class="banner bad">始められませんでした（アプリが止まっていませんか）</div>'; }
     return;
   }
   if (e.target.id === 'rp-save') {
@@ -129,6 +144,19 @@ document.addEventListener('click', async e => {
     } catch (x) { $('rp-out').innerHTML = '<div class="banner bad">保存できませんでした（アプリが止まっていませんか）</div>'; }
   }
 });
+// 解析の様子：/api/state の analysis を見て出す（video_collect.html の render から呼ばれる）
+let rpRunShown = 0;
+function renderReportRun(s) {
+  const a = s.analysis, box = $('rp-run-out'); if (!a || !box || !RP || a.run !== RP.id) return;
+  if (a.running) { const t = Math.round(s.time - a.started);
+    box.innerHTML = `<div class="sub" style="margin-top:6px">解析を流しています…（${Math.floor(t / 60)}分${String(t % 60).padStart(2, '0')}秒。初めての走行は、走行記録を読むので長くかかります）</div><div class="bar"><div class="busy"></div></div>`;
+    rpRunShown = 0; return; }
+  if (rpRunShown === a.started) return;
+  rpRunShown = a.started;
+  box.innerHTML = a.ok ? `<div class="result"><b>解析ができました。</b>表 ${a.tables.length} 個・数字 ${a.facts} 個（${Math.floor(a.seconds / 60)}分${String(a.seconds % 60).padStart(2, '0')}秒）
+      <div class="notes">${esc(a.tables.join('・'))}</div><div class="row" style="margin-top:6px"><button data-open="${esc(a.pub)}">表の置き場を開く</button></div></div>`
+    : `<div class="banner bad"><b>できませんでした。</b>${esc(a.error).split(' ／ ').join('<br>')}</div>`;
+}
 document.addEventListener('input', e => { if (RP && ['rp-first', 'rp-last', 'rp-pits'].includes(e.target.id)) rpShowStints(); });
 document.addEventListener('change', e => { if (RP && e.target.id === 'rp-quali') $('rp-quali-laps').hidden = !e.target.value; });
 document.addEventListener('click', e => { if (e.target.closest('button[data-laps]')) RP = null; }, true);   // 「周を見る」へ切り替えたら下書きを閉じる

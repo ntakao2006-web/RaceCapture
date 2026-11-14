@@ -679,6 +679,7 @@ function render(s) {
   last = s;
   renderNow(s);
   renderKeep(s);
+  if (window.renderReportRun) renderReportRun(s);
   if (window.renderLines) renderLines(s);   // 「コースと線」の段（course_lines.js）
   if (window.renderSettings) renderSettings(s);   // 「設定」の段（settings.js）
   const d = s.device, job = s.job, busy = !!(job && job.running);

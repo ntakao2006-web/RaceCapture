@@ -13,6 +13,8 @@
 読むのは写しだけで、本体・5Bには触らない。出来事の周を探すときは lap_survey.py を先に使う。
 設定に "sd_dir"（回収したシールドのSDカードのフォルダ）を書くと、GNSSの列をSDの解（10Hz全部）で置き換える（sd_gnss.py、
 例 sugo_20261108_sd.json）。2026-11-09より前の本体の記録は位置が1秒に約6回しか変わらないため。
+予選の走行（"quali_csv"・"quali_laps"）とLTEの記録（"lte_dir"）は、無ければ書かなくてよい（2026-11-14）。
+そのときは、予選の周・予選のベスト・LTEの届き方の項目が出ないだけで、ほかは同じに出る。
 """
 import json, glob, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -31,7 +33,8 @@ PUB = os.path.join(RP(CFG['out_dir']), 'pub'); os.makedirs(PUB, exist_ok=True)
 LAT0, LON0 = CFG['line']                        # コントロールライン
 V0 = None                                      # 油圧0 kPaの電圧（エンジン停止・Defi通電の中央値）
 RACE_LAPS = range(CFG['race_laps'][0], CFG['race_laps'][1] + 1)
-QUALI_LAPS = range(CFG['quali_laps'][0], CFG['quali_laps'][1] + 1)
+HAS_QUALI = bool(CFG.get('quali_csv') and CFG.get('quali_laps'))
+QUALI_LAPS = range(CFG['quali_laps'][0], CFG['quali_laps'][1] + 1) if HAS_QUALI else range(0)
 STINTS = CFG['stints']                         # [[最初の周, 最後の周（ピットの周）], ...]
 STINT_OF = lambda n: next(i + 1 for i, (a, b) in enumerate(STINTS) if a <= n <= b)
 PIT_LAPS = {n: i + 1 for i, n in enumerate(CFG['pit_laps'])}
@@ -83,7 +86,8 @@ def load(path):
     d['x'], d['y'] = xy(d.Lat.values, d.Lon.values)
     return d
 
-race, quali = load(CFG['race_csv']), load(CFG['quali_csv'])
+race = load(CFG['race_csv'])
+quali = load(CFG['quali_csv']) if HAS_QUALI else race.iloc[0:0].copy()    # 予選が無ければ、同じ列の空の表
 if sd_checks:                                  # SDの解で置き換えたとき：本体の記録の中での位置の更新（置き換える前）
     fact('emmc_pos_rate', sd_checks[0]['emmc_pos_rate'], '本体の記録の中で位置が変わった回数（決勝、60km/h超、回/秒）。SDの解で置き換える前')
     fact('sd_rows_pct', sd_checks[0]['rows_with_sd_fix'], '決勝の記録の行のうちSDの解が入った割合（%）')
@@ -134,7 +138,7 @@ def sector_table(d):
     return pd.DataFrame([{'lap': n, **v} for n, v in recs.items()])
 
 laps_r = lap_table(race, '決勝').merge(sector_table(race), on='lap', how='left')
-laps_q = lap_table(quali, '予選').merge(sector_table(quali), on='lap', how='left')
+laps_q = lap_table(quali, '予選').merge(sector_table(quali), on='lap', how='left') if HAS_QUALI else laps_r.iloc[0:0].copy()
 laps_r = laps_r[laps_r.lap.isin(RACE_LAPS)].copy()
 laps_q = laps_q[laps_q.lap.isin(QUALI_LAPS)].copy()     # アウトの周・ピットインの周は設定で外す
 laps_r['stint'] = laps_r.lap.map(STINT_OF)
@@ -167,8 +171,9 @@ laps['sum_sec'] = laps[['s1', 's2', 's3', 's4']].sum(axis=1, min_count=4).round(
 fact('best_lap', round(float(best.lap_s), 3), '決勝のベスト（秒）')
 fact('best_lap_no', REF, 'ベストの周')
 fact('best_lap_jst', best.start_jst, 'ベストの周の始まり')
-qb = laps_q.loc[laps_q.lap_s.idxmin()]
-fact('q_best', round(float(qb.lap_s), 3), '予選のベスト（秒）'); fact('q_best_no', int(qb.lap), '予選のベストの周')
+qb = laps_q.loc[laps_q.lap_s.idxmin()] if len(laps_q) else None
+if qb is not None:
+    fact('q_best', round(float(qb.lap_s), 3), '予選のベスト（秒）'); fact('q_best_no', int(qb.lap), '予選のベストの周')
 theo = sum(float(clean[k].min()) for k in ('s1', 's2', 's3', 's4'))
 fact('theo_best', round(theo, 3), 'セクターのベストの和（秒）')
 fact('theo_gap', round(float(best.lap_s) - theo, 3), 'ベストとセクターのベストの和の差（秒）')
@@ -465,7 +470,8 @@ fact('seg_loss_total', round(float(worst.m.sum()), 2), '通常の周の区間の
 pick = {('決勝', REF): 'ベスト'}
 for r in stints.itertuples():
     if r.best_lap != REF: pick[('決勝', r.best_lap)] = f'スティント{r.stint}のベスト'
-pick[('予選', int(qb.lap))] = '予選のベスト'
+if qb is not None:
+    pick[('予選', int(qb.lap))] = '予選のベスト'
 # 決勝の通常の周で中央値に最も近い周
 cl = laps[(laps.kind == '通常')]
 mid = cl.iloc[(cl.lap_s - cl.lap_s.median()).abs().argsort().iloc[0]]
@@ -577,7 +583,7 @@ lg = rl.groupby('min').agg(gnss_hz=('GNSSHz', 'mean'), sats=('GPSSats', 'median'
                            speed=('GPSSpeed', 'mean'), can1=('RPM', lambda s: s.notna().mean()),
                            can2_lost=('PressVoltState', lambda s: (s == 4).mean())).reset_index()
 # LTE（5Bに届いたもの）
-LTE_FILES = sorted(glob.glob(os.path.join(RP(CFG['lte_dir']), '*.jsonl')))
+LTE_FILES = sorted(glob.glob(os.path.join(RP(CFG['lte_dir']), '*.jsonl'))) if CFG.get('lte_dir') else []
 def lte_samples(path):
     """サーバーのJSON Lines（meta＋samples）。各点は値の並び＋どの値があるかのビットマスク（race_csv.pyと同じ読み方）。"""
     names = None
@@ -597,30 +603,34 @@ lte = []
 for f in LTE_FILES:
     lte.extend(lte_samples(f))
 lte = pd.DataFrame(lte, columns=['recv_ms', 'utc_ms']).drop_duplicates('utc_ms')
-lte['t'] = pd.to_datetime(lte.utc_ms, unit='ms', utc=True)
-lte['delay'] = (lte.recv_ms - lte.utc_ms) / 1000
-lte['min'] = lte.t.dt.floor('1min')
-lm = lte.groupby('min').agg(lte_n=('utc_ms', 'size'), lte_delay=('delay', 'median'), lte_delay95=('delay', lambda s: s.quantile(.95))).reset_index()
-lg = lg.merge(lm, on='min', how='left')
-lg['lte_n'] = lg.lte_n.fillna(0)
+if len(lte):
+    lte['t'] = pd.to_datetime(lte.utc_ms, unit='ms', utc=True)
+    lte['delay'] = (lte.recv_ms - lte.utc_ms) / 1000
+    lte['min'] = lte.t.dt.floor('1min')
+    lm = lte.groupby('min').agg(lte_n=('utc_ms', 'size'), lte_delay=('delay', 'median'), lte_delay95=('delay', lambda s: s.quantile(.95))).reset_index()
+    lg = lg.merge(lm, on='min', how='left')
+    lg['lte_n'] = lg.lte_n.fillna(0)
+else:                                          # LTEの記録が無い：届き方の列は空のまま（0とは書かない）
+    lg = lg.assign(lte_n=np.nan, lte_delay=np.nan, lte_delay95=np.nan)
 lg['time_jst'] = lg['min'].dt.tz_convert(JST).dt.strftime('%H:%M')
 lg = lg.drop(columns='min').round(3)
-R0 = race[race.lap == START_LAP].t.iloc[0]; R1 = race[race.lap == LAST_LAP + 1].t.iloc[0]   # スタートからチェッカーまで
-win = lte[lte.t.between(R0, R1)].sort_values('utc_ms')
-dur = (R1 - R0).total_seconds()
-fact('lte_rate', round(len(win) / dur, 2), '決勝の間にLTEで届いた点の数（点/秒）')
-gaps = np.diff(win.utc_ms.values) / 1000
-fact('lte_gap_max', round(float(gaps.max()), 0), '決勝の間でLTEの点が途切れた最長（秒）')
-fact('lte_gap30_n', int((gaps > 30).sum()), '決勝の間でLTEが30秒より長く途切れた回数')
-fact('lte_gap30_total', round(float(gaps[gaps > 30].sum() / 60), 1), 'その途切れの合計（分）')
-fact('lte_delay_med', round(float(win.delay.median()), 1), 'LTEの遅れの中央値（秒）')
-fact('lte_delay95', round(float(win.delay.quantile(.95)), 1), 'LTEの遅れの上位5%（秒）')
-fact('lte_files', len(LTE_FILES), '5Bに残ったその日の受信のファイルの数（つなぎ直すたびに増える）')
-# 周の通過がLTEで届いたか（ピットのタイム表）
-crossings = race[race.LapCount.diff() == 1][['t']].copy()
-crossings['ms'] = ((crossings.t - pd.Timestamp('1970-01-01', tz='UTC')).dt.total_seconds() * 1000).round()
-got = [((win.utc_ms > m - 0) & (win.utc_ms < m + 15000)).any() for m in crossings.ms]
-fact('lte_lap_seen', round(float(np.mean(got) * 100), 0), 'ラインを通ってから15秒以内にLTEで点が届いた周の割合（%）')
+if len(lte):
+    R0 = race[race.lap == START_LAP].t.iloc[0]; R1 = race[race.lap == LAST_LAP + 1].t.iloc[0]   # スタートからチェッカーまで
+    win = lte[lte.t.between(R0, R1)].sort_values('utc_ms')
+    dur = (R1 - R0).total_seconds()
+    fact('lte_rate', round(len(win) / dur, 2), '決勝の間にLTEで届いた点の数（点/秒）')
+    gaps = np.diff(win.utc_ms.values) / 1000
+    fact('lte_gap_max', round(float(gaps.max()), 0), '決勝の間でLTEの点が途切れた最長（秒）')
+    fact('lte_gap30_n', int((gaps > 30).sum()), '決勝の間でLTEが30秒より長く途切れた回数')
+    fact('lte_gap30_total', round(float(gaps[gaps > 30].sum() / 60), 1), 'その途切れの合計（分）')
+    fact('lte_delay_med', round(float(win.delay.median()), 1), 'LTEの遅れの中央値（秒）')
+    fact('lte_delay95', round(float(win.delay.quantile(.95)), 1), 'LTEの遅れの上位5%（秒）')
+    fact('lte_files', len(LTE_FILES), '5Bに残ったその日の受信のファイルの数（つなぎ直すたびに増える）')
+    # 周の通過がLTEで届いたか（ピットのタイム表）
+    crossings = race[race.LapCount.diff() == 1][['t']].copy()
+    crossings['ms'] = ((crossings.t - pd.Timestamp('1970-01-01', tz='UTC')).dt.total_seconds() * 1000).round()
+    got = [((win.utc_ms > m - 0) & (win.utc_ms < m + 15000)).any() for m in crossings.ms]
+    fact('lte_lap_seen', round(float(np.mean(got) * 100), 0), 'ラインを通ってから15秒以内にLTEで点が届いた周の割合（%）')
 
 # ---------- タイヤの滑り（車の向きと進む向き・四輪の車輪速） ----------
 # 車の向きは GyroZ（左回りが正、deg/s）を足し合わせて出し、進む向きは GNSS の位置から出す。その差が車体の横滑り角β。

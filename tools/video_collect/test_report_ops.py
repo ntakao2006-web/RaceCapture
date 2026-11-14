@@ -41,10 +41,10 @@ class SaveTest(unittest.TestCase):
         self.assertEqual(len(v['laps']), 10)
 
     def test_saves_in_the_names_the_analysis_uses_and_reads_it_back(self):
-        out = report_ops.save(self.root, RUN, table(), body(slow={'12': 'incident', '16': 'slow_all', '17': 'slow_all', '13': 'pre_pit', '10': 'none'}))
+        out = report_ops.save(self.root, RUN, table(), body(slow={'12': 'incident', '16': 'slow_all', '17': 'slow_all', '13': 'none', '10': 'none'}, pre_pit=[12, 13]))
         s = out['saved']
         self.assertEqual((s['race_laps'], s['stints'], s['pit_laps'], s['pit_out_laps']), ([9, 18], [[9, 14], [15, 18]], [14], [15]))
-        self.assertEqual((s['incident_laps'], s['slow_all_laps'], s['pre_pit_slow']), ([12], [[16, 17]], [[13, 13]]))
+        self.assertEqual((s['incident_laps'], s['slow_all_laps'], s['pre_pit_slow']), ([12], [[16, 17]], [[12, 13]]))
         self.assertEqual((s['drivers'], s['slow_memo'], s['date'], s['race_csv']), (['A', 'B'], {'12': '黄旗'}, '2026-11-08', RUN['log']))
         path = self.root / 'reports' / (RUN['id'] + '.json')
         self.assertEqual(json.loads(path.read_text(encoding='utf-8')), s)
@@ -114,3 +114,73 @@ class AppTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class AnalysisTest(unittest.TestCase):
+    """解析を流す所（解析そのものは動かさない）"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.run = {**RUN, 'course': 'sugo'}
+        self.other = {'id': 'LOG_20261107T230000Z_0000ffff', 'log': 'y/q.csv'}
+
+    def test_config_uses_the_names_the_analysis_reads(self):
+        saved = report_ops.save(self.root, self.run, table(), body(quali={'id': self.other['id'], 'laps': [2, 7]}))['saved']
+        cfg = report_ops.analysis_config(self.root, self.run, saved, [self.run, self.other], 'ncec')
+        self.assertEqual((cfg['course'], cfg['vehicle'], cfg['race_laps'], cfg['stints'], cfg['quali_laps']), ('sugo', 'ncec', [9, 18], [[9, 14], [15, 18]], [2, 7]))
+        self.assertEqual((Path(cfg['race_csv']), Path(cfg['quali_csv'])), (self.root / RUN['log'], self.root / 'y/q.csv'))
+        self.assertEqual(Path(cfg['out_dir']), self.root / 'reports' / RUN['id'])
+        self.assertNotIn('lte_dir', cfg)
+        self.assertNotIn('drivers', cfg)        # 人の名前は解析の設定へ写さない
+
+    def test_reasons_it_cannot_run_are_said_before_anything_starts(self):
+        saved = report_ops.save(self.root, self.run, table(), body())['saved']
+        for args, text in (((self.run, None, [], 'ncec'), '先に、決めごとを保存'),
+                           (({**self.run, 'course': None}, saved, [], 'ncec'), 'コースが分かりません'),
+                           ((self.run, saved, [], None), '車の設定'),
+                           ((self.run, {**saved, 'quali': {'id': 'gone', 'laps': [1, 2]}}, [], 'ncec'), '予選に選んだ走行')):
+            with self.subTest(text):
+                with self.assertRaisesRegex(ValueError, text):
+                    report_ops.analysis_config(self.root, *args)
+        with mock.patch.object(report_ops, 'missing_parts', return_value=['pandas']), mock.patch.object(report_ops.subprocess, 'run') as ran:
+            with self.assertRaisesRegex(ValueError, 'pandas'):
+                report_ops.run_analysis(self.root, self.run, [], 'ncec')
+        ran.assert_not_called()
+
+    def test_runs_the_analysis_and_reports_what_came_out_or_why_it_stopped(self):
+        report_ops.save(self.root, self.run, table(), body())
+
+        def fake(argv, **kw):
+            cfg = json.loads(Path(argv[-1]).read_text(encoding='utf-8'))
+            pub = Path(cfg['out_dir']) / 'pub'
+            pub.mkdir(parents=True)
+            (pub / 'facts.csv').write_text('key,value\na,1\nb,2\n', encoding='utf-8')
+            (pub / 'laps.csv').write_text('lap\n', encoding='utf-8')
+            self.assertEqual(kw['env']['PYTHONIOENCODING'], 'utf-8')
+            return mock.Mock(returncode=0, stderr='')
+        with mock.patch.object(report_ops, 'missing_parts', return_value=[]), mock.patch.object(report_ops.subprocess, 'run', side_effect=fake):
+            out = report_ops.run_analysis(self.root, self.run, [], 'ncec')
+        self.assertEqual((out['tables'], out['facts']), (['facts.csv', 'laps.csv'], 2))
+        stopped = mock.Mock(returncode=1, stderr='Traceback\n  File x\nKeyError: PressVolt\n')
+        with mock.patch.object(report_ops, 'missing_parts', return_value=[]), mock.patch.object(report_ops.subprocess, 'run', return_value=stopped):
+            with self.assertRaisesRegex(RuntimeError, '途中で止まりました.*PressVolt'):
+                report_ops.run_analysis(self.root, self.run, [], 'ncec')
+
+    def test_app_runs_it_in_the_background(self):
+        app = vc.App(vc.PcStore(self.root / 'v2_video'), None)
+        with mock.patch.object(app, 'runs', return_value={'runs': [self.run]}):
+            with self.assertRaisesRegex(ValueError, '先に、決めごとを保存'):
+                app.action('/api/report_run', {'id': RUN['id']})
+            self.assertIsNone(app.analysis)
+            report_ops.save(self.root, self.run, table(), body())
+            with mock.patch.object(report_ops, 'run_analysis', return_value={'out_dir': 'x', 'pub': 'x/pub', 'tables': ['facts.csv'], 'facts': 3, 'seconds': 20}):
+                app.action('/api/report_run', {'id': RUN['id']})
+                for _ in range(300):
+                    if not app.analysis['running']:
+                        break
+                    threading.Event().wait(0.01)
+            self.assertEqual((app.analysis['ok'], app.analysis['facts'], app.snapshot()['analysis']['run']), (True, 3, RUN['id']))
+            with self.assertRaises(KeyError):
+                app.action('/api/report_run', {'id': 'nothing'})

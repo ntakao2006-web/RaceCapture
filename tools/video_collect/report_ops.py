@@ -6,21 +6,34 @@
 保存先は drive_logs/reports/<走行のid>.json（人の名前や覚え書きが入るので、リポジトリには入れない）。
 形は、大会のあとの解析（tools/race_analysis/race_analysis.py）の設定ファイルと同じ名前の項目にそろえてある
 （race_laps・stints・pit_laps・pit_out_laps・incident_laps・slow_all_laps・pre_pit_slow・window・notes）。
-解析を流すには、このほかに予選の走行とLTEの記録の場所が要る（いまは手で足す。アプリから流す所はまだ無い）。
+
+    run_analysis(root, run, runs, vehicle)   保存した決めごとで解析を流す（数分かかる。アプリは裏で動かす）
+
+解析の設定は drive_logs/reports/<走行のid>.analysis.json、出力は drive_logs/reports/<走行のid>/（detail・pub）。
+予選は、決めごとで選んであれば入れる。LTEの記録は入れない（届き方の項目が出ないだけ）。
+解析は pandas・numpy・scipy が要る（tools/requirements.txt）。NCEC・SUGO の記録で作ったものなので、
+信号やセクターの数が違う車・コースでは、途中で止まることがある（止まったら、解析が出した最後の文を画面に出す）。
 画面は report.js（「走行を見る」の走行の行の「レポートの下書き」）。
 
 スティントは、決勝の周とピットの周から決まるので、画面では入れさせない（ピットの周を直せばスティントも変わる）。
 """
+import importlib.util
 import json
+import os
 import re
+import subprocess
+import sys
 import time
 from pathlib import Path
 
 import report_draft
 
 REPORT_DIR = 'reports'
+ANALYSIS = Path(__file__).resolve().parents[1] / 'race_analysis' / 'race_analysis.py'
+NEEDS = ('pandas', 'numpy', 'scipy')
 REASONS = {'incident': '一か所で遅れた（コースアウト・接触・黄旗など）', 'slow_all': '全体に遅い（渋滞・ペースを落とした）',
-           'pre_pit': 'ピットの前にペースを落とした', 'none': '遅い周に入れない'}
+           'none': '遅い周に入れない'}
+# 「ピットの前にペースを落とした周」は理由とは別の印（同じ周が、理由と両方に入ることがある。SUGO 11/8 の 22〜24・35〜37周目）
 HHMM = re.compile(r'^([01]?\d|2[0-3]):[0-5]\d$')
 
 
@@ -70,7 +83,7 @@ def integers(value, label, problems):
 
 
 def save(root, run, table, body):
-    """body：{'name', 'race_laps': [a, b], 'pit_laps': [...], 'drivers': [...], 'slow': {周: 理由の鍵}, 'slow_memo': {周: 文},
+    """body：{'name', 'race_laps': [a, b], 'pit_laps': [...], 'drivers': [...], 'slow': {周: 理由の鍵}, 'pre_pit': [周...], 'slow_memo': {周: 文},
               'window': [HH:MM, HH:MM], 'notes': 文, 'quali': {'id': 走行のid, 'laps': [a, b]} か None}"""
     problems = []
     known = {lap['lap'] for lap in table.get('laps', []) if lap.get('time_s')}
@@ -109,6 +122,7 @@ def save(root, run, table, body):
         memo = {str(int(lap)): str(text).strip()[:200] for lap, text in memo.items() if str(text).strip()}
     except (ValueError, TypeError, AttributeError):
         problems.append('遅い周の入れ方が読めません')
+    pre_pit = sorted(set(integers(body.get('pre_pit', []), 'ピットの前にペースを落とした周', problems)))
     window = body.get('window') or []
     if not (isinstance(window, list) and len(window) == 2 and all(isinstance(t, str) and HHMM.match(t) for t in window)):
         problems.append('時刻の範囲は「10:20」の形で、始めと終わりを入れてください')
@@ -127,7 +141,7 @@ def save(root, run, table, body):
         'window': window, 'race_laps': race, 'stints': stints, 'drivers': drivers,
         'pit_laps': pits, 'pit_out_laps': [n + 1 for n in pits if n + 1 <= race[1]],
         'incident_laps': sorted(by_reason['incident']), 'slow_all_laps': ranges(by_reason['slow_all']),
-        'pre_pit_slow': ranges(by_reason['pre_pit']), 'slow_memo': memo,
+        'pre_pit_slow': ranges(pre_pit), 'slow_memo': memo,
         'quali': quali or None, 'notes': str(body.get('notes') or '').strip()[:4000],
     }
     path = path_of(root, run)
@@ -136,3 +150,56 @@ def save(root, run, table, body):
     temp.write_text(json.dumps(result, ensure_ascii=False, indent=1), encoding='utf-8')
     temp.replace(path)
     return {'saved': result, 'file': str(path)}
+
+# ---------------------------------------------------------------- 解析を流す
+def missing_parts():
+    return [name for name in NEEDS if importlib.util.find_spec(name) is None]
+
+
+def analysis_config(root, run, saved, runs, vehicle):
+    """保存した決めごとから、race_analysis.py の設定を作る。足りないものがあれば ValueError"""
+    root = Path(root)
+    if not saved:
+        raise ValueError('先に、決めごとを保存してください')
+    if not run.get('course'):
+        raise ValueError('この走行はコースが分かりません（走った場所が、PCにあるどのコースの設定とも合いません）。解析は線の位置が要るので、流せません')
+    if not vehicle:
+        raise ValueError('車の設定がPCにありません（tools/setups/vehicles/）')
+    cfg = {'name': saved.get('name') or run['id'], 'date': saved['date'], 'course': run['course'], 'vehicle': vehicle,
+           'race_csv': str(root / run['log']), 'out_dir': str(root / REPORT_DIR / run['id']),
+           **{k: saved[k] for k in ('window', 'race_laps', 'stints', 'pit_laps', 'pit_out_laps', 'incident_laps', 'slow_all_laps', 'pre_pit_slow')}}
+    if saved.get('quali'):
+        other = next((r for r in runs if r['id'] == saved['quali']['id']), None)
+        if not other:
+            raise ValueError('予選に選んだ走行が、PCに見つかりません。決めごとの「予選の走行」を選び直して保存してください')
+        cfg.update(quali_csv=str(root / other['log']), quali_laps=saved['quali']['laps'])
+    return cfg
+
+
+def run_analysis(root, run, runs, vehicle, python=None, timeout=3600):
+    """解析を流して {'out_dir', 'tables', 'facts', 'seconds'} を返す。できなければ ValueError（流す前）か RuntimeError（途中で止まった）"""
+    root = Path(root)
+    try:
+        saved = json.loads(path_of(root, run).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        saved = None
+    cfg = analysis_config(root, run, saved, runs, vehicle)
+    lacking = missing_parts()
+    if lacking:
+        raise ValueError(f'解析に要る部品（{"・".join(lacking)}）が、このPCのPythonに入っていません。tools/requirements.txt を見て入れてください')
+    cfg_path = path_of(root, run).with_suffix('.analysis.json')
+    cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=1), encoding='utf-8')
+    began = time.time()
+    done = subprocess.run([python or sys.executable, str(ANALYSIS), str(cfg_path)], capture_output=True, text=True, encoding='utf-8',
+                          errors='replace', timeout=timeout, env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
+    pub = Path(cfg['out_dir']) / 'pub'
+    if done.returncode:
+        last = [line for line in (done.stderr or '').strip().splitlines() if line.strip()][-3:]
+        raise RuntimeError('解析が途中で止まりました。' + ' ／ '.join(last)[:600])
+    tables = sorted(p.name for p in pub.glob('*.csv'))
+    facts = 0
+    try:
+        facts = max(0, len((pub / 'facts.csv').read_text(encoding='utf-8').splitlines()) - 1)
+    except OSError:
+        pass
+    return {'out_dir': cfg['out_dir'], 'pub': str(pub), 'tables': tables, 'facts': facts, 'seconds': round(time.time() - began)}
