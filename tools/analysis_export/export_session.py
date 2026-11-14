@@ -8,7 +8,8 @@
     python tools/analysis_export/export_session.py <CSV> --laps 31-33 --sd drive_logs/20261111/run02_2049/v2_sd
 
   --sd     シールドのSDのフォルダー。測位をSDに残った受信機の解（10Hz全部）から取る（無ければ本体の記録から拾う。
-           11/9より前の本体の記録は1秒に約6回しか位置が変わらない）。SDの読み出しは drive_logs/runs_cache/ に覚える
+           11/9より前の本体の記録は1秒に約6回しか位置が変わらない）。SDの読み出しは drive_logs/runs_cache/ に覚える。
+           何度でも書け、その時間の測位が本体の記録の半分以上あるSDを前から順に探す（無ければ本体の記録のまま）
   --video  その時間の焼き込み動画（drive_logs/v2_video/）をキーフレームの所で切り、MP4にして入れる。ffmpeg が要る
   --rate   チャンネルを書く間隔（Hz、既定50）。本体は100行/秒
 出力：drive_logs/sessions/<コース>_<日付>_<周>.ecorun/（位置を含むのでGit管理外）
@@ -369,13 +370,23 @@ def export(csv_path, out=None, laps=None, sd=None, video=False, rate=50.0, lead=
     t0 = math.floor(t_start * 1000) / 1000
     grid = np.arange(0.0, t_end - t0 + 1e-9, 1.0 / rate)
 
-    if sd:
-        g = gnss_from_sd(sd, t_start, t_end)
-        gsrc = 'sd'
-    else:
-        g = gnss_from_log(df)
-        gsrc = 'logger'
+    g = gnss_from_log(df)
     g = g[(g.utc >= t_start) & (g.utc <= t_end)] if len(g) else g
+    gsrc = 'logger'
+    # SDは別の日に回収したカードに前の走行が残っていることがある（SUGO 11/8 の解は 11/11 に回収したSDにあった）。
+    # 渡された順に見て、本体の記録の測位の半分以上の点がその時間にあるSDを使う。どれも足りなければ本体の記録のまま
+    for folder in ([sd] if isinstance(sd, (str, Path)) else (sd or [])):
+        try:
+            gs = gnss_from_sd(folder, t_start, t_end)
+        except (OSError, ValueError, KeyError) as exc:
+            log(f'  SD {folder} を読めない：{exc}')
+            continue
+        gs = gs[(gs.utc >= t_start) & (gs.utc <= t_end)] if len(gs) else gs
+        if len(gs) and len(gs) >= 0.5 * len(g):
+            g, gsrc = gs, 'sd'
+            log(f'  測位はSD {folder} から（{len(gs)}点）')
+            break
+        log(f'  SD {folder} にはこの時間の測位が足りない（{len(gs)}点）')
 
     cid, course = course_info(*(g[['lat', 'lon']].iloc[-1].tolist() if len(g) else (None, None)))
     snap_laps(all_laps, line_crossings(g, course and course.get('line')))
@@ -445,7 +456,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description='走行記録を ecorun 形式に書き出す（解析アプリ用）')
     ap.add_argument('csv', help='本体の走行記録（drive_logs/<日付>/runNN_*/v2_emmc/LOG_*.csv）')
     ap.add_argument('--laps', type=parse_laps, help='周の範囲（例 31-33 または 31）。無ければ全部')
-    ap.add_argument('--sd', help='シールドのSDのフォルダー（測位を10Hz全部の解から取る）')
+    ap.add_argument('--sd', action='append', help='シールドのSDのフォルダー（測位を10Hz全部の解から取る）。'
+                    '何度でも書け、その時間の測位がある最初のSDを使う（無ければ本体の記録から）')
     ap.add_argument('--video', action='store_true', help='その時間の動画を入れる')
     ap.add_argument('--rate', type=float, default=50.0, help='チャンネルを書く間隔（Hz）')
     ap.add_argument('--lead', type=float, default=5.0, help='周の前に足す秒')

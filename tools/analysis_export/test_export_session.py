@@ -198,6 +198,29 @@ class ExportTest(unittest.TestCase):
         self.assertAlmostEqual(laps[2]['end'], 283.87)       # 合わない周は周が増えた行の時刻のまま
         self.assertEqual(ex.snap_laps(laps, ex.np.array([])), 0)
 
+    def test_sd_is_used_only_when_it_covers_the_time(self):
+        import pandas as pd
+        from unittest import mock
+        cols = ['utc', 'lat', 'lon', 'alt_m', 'speed_kmh', 'heading_deg', 'sats', 'hacc_m']
+
+        def fake_sd(folder, t0, t1):
+            if folder == 'empty':                    # 別の日のSD：この時間の解が無い
+                return pd.DataFrame(columns=cols)
+            if folder == 'broken':
+                raise OSError('読めない')
+            ts = [t0 + k * 0.1 for k in range(int((t1 - t0) * 10))]
+            return pd.DataFrame({'utc': ts, 'lat': [35.0] * len(ts), 'lon': [135.0] * len(ts), 'alt_m': 0.0,
+                                 'speed_kmh': 0.0, 'heading_deg': 0.0, 'sats': 20.0, 'hacc_m': 0.5})
+        seen = []
+        with mock.patch.object(ex, 'gnss_from_sd', fake_sd):
+            _, s = ex.export(self.log, Path(self.tmp.name) / 'sd1.ecorun', laps=(2, 2), sd=['broken', 'empty', 'good'], log=seen.append)
+            self.assertEqual(s['gnss']['source'], 'sd')
+            self.assertTrue(any('SD good' in x for x in seen))
+            _, s = ex.export(self.log, Path(self.tmp.name) / 'sd2.ecorun', laps=(2, 2), sd=['empty'], log=lambda *a: None)
+            self.assertEqual(s['gnss']['source'], 'logger')      # 足りなければ本体の記録のまま
+            _, s = ex.export(self.log, Path(self.tmp.name) / 'sd3.ecorun', laps=(2, 2), sd='good', log=lambda *a: None)
+            self.assertEqual(s['gnss']['source'], 'sd')          # 1つだけ（前の呼び方）も通る
+
     def test_unknown_laps_stop_with_reason(self):
         with self.assertRaises(SystemExit) as cm:
             ex.export(self.log, Path(self.tmp.name) / 'x.ecorun', laps=(8, 9), log=lambda *a: None)

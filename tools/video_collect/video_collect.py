@@ -779,6 +779,7 @@ class App:
         self.runs_lock = threading.Lock()
         self.keep = None                     # 周の動画を残す作業の様子（lap_keep）
         self.analysis = None                 # レポートの解析を流す作業の様子（report_run）
+        self.ecorun = None                   # 解析アプリで開く作業の様子（analysis_open）
         self.lock = threading.Lock()
 
     def refresh(self):
@@ -816,7 +817,8 @@ class App:
                            'not_backed_up': sum(1 for e in pc.index.values() if pc.settings.get('backup') and
                                                 pc.settings['backup'] not in e.get('backup', {}))},
                     'job': self.job.snapshot() if self.job else None, 'listed_at': self.listed_at, 'sd': self.sd,
-                    'now': self.now, 'course': self.course_view(), 'time': time.time(), 'keep': self.keep, 'analysis': self.analysis}
+                    'now': self.now, 'course': self.course_view(), 'time': time.time(), 'keep': self.keep, 'analysis': self.analysis,
+                    'ecorun': self.ecorun}
 
     def course_view(self):
         """「コースと線」の段に出すもの（course_lines.py。PCのコースの設定と、本体から読んだ線）"""
@@ -904,6 +906,32 @@ class App:
                 self.analysis = {**self.analysis, 'running': False, 'ok': True, **result}
             except Exception as exc:  # noqa: BLE001  画面に出す
                 self.analysis = {**self.analysis, 'running': False, 'ok': False, 'error': str(exc) or type(exc).__name__}
+        threading.Thread(target=work, daemon=True).start()
+
+    def analysis_open(self, run_id, video):
+        """走行を ecorun に書き出して（書き出し済みなら飛ばす）解析アプリで開く（analysis_open.py）。書き出しは数十秒〜数分なので裏で"""
+        import analysis_open
+        if self.ecorun and self.ecorun.get('running'):
+            raise RuntimeError('ほかの走行を書き出している途中です。終わってからもう一度押してください')
+        run = next((r for r in self.runs()['runs'] if r['id'] == run_id), None)
+        if not run:
+            raise KeyError(run_id)
+        if video and run.get('video') == 'none':
+            raise RuntimeError('この走行には動画がありません')
+        app = analysis_open.find_app()
+        if not app:   # すぐ返す（裏で走らせてから気づかない）
+            raise RuntimeError(analysis_open.NOT_FOUND)
+        self.ecorun = {'running': True, 'run': run_id, 'video': bool(video), 'started': time.time(), 'line': '準備しています'}
+
+        def line(text):
+            self.ecorun = {**self.ecorun, 'line': text[:200]}
+
+        def work():
+            try:
+                result = analysis_open.open_run(self.pc.root.parent, run, bool(video), on_line=line, app=app)
+                self.ecorun = {**self.ecorun, 'running': False, 'ok': True, **result}
+            except Exception as exc:  # noqa: BLE001  画面に出す
+                self.ecorun = {**self.ecorun, 'running': False, 'ok': False, 'error': str(exc) or type(exc).__name__}
         threading.Thread(target=work, daemon=True).start()
 
     def lap_clip(self, run_id, index):
@@ -1060,6 +1088,8 @@ class App:
             self.report_run(str(body.get('id')))
         elif path == '/api/report_save':
             return self.report(str(body.get('id')), body)
+        elif path == '/api/analysis_open':
+            self.analysis_open(str(body.get('id')), bool(body.get('video')))
         elif path == '/api/lap_keep':
             self.lap_keep(str(body.get('id')), int(body.get('n', -1)), bool(body.get('clean')))
         elif path == '/api/open':

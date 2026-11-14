@@ -64,6 +64,10 @@ button.big { display: block; width: 100%; font-size: 20px; padding: 14px; margin
 .steps { margin: 10px 0 0; padding-left: 1.4em; font-size: 14px; }
 .steps li { margin: 4px 0; }
 .result { background: var(--ok-bg); color: var(--ok); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
+/* 解析で開く：押した行がどこでも見えるよう、画面の下に浮かせる */
+#ecorun-box:not(:empty) { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 30; max-width: 760px; margin: 0 auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px 12px 10px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+#ecorun-box .close { float: right; margin-top: 6px; }
 .result .notes { color: var(--muted); font-size: 13px; margin-top: 4px; }
 .result.plain { background: var(--chip); color: var(--text); }
 .result .missed { color: var(--warn); margin-top: 8px; }
@@ -254,6 +258,7 @@ input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(-
       <h2>回収した走行</h2>
       <div class="sub">ロガーの電源を入れてから切るまでが1本です。走った日ごとに並べ、同じ時刻の動画を結んであります（ファイルは動かしていません）。</div>
       <div id="runs-note" class="sub" style="margin-top:6px"></div>
+      <div id="ecorun-box"></div>
       <div id="runs-list" style="margin-top:8px"></div>
     </div>
   </section>
@@ -489,10 +494,38 @@ function runRow(r, root, courses) {
   return `<tr><td>${hhmm(r.start)}〜${hhmm(r.end)}${r.clock === 'host' ? ' <span class="sub" title="測位していない走行なので、本体の時計のままです。本体の時計は、合うまでずれていることがあります">（時刻は本体の時計）</span>' : ''}</td><td>${mins(r.minutes)}</td><td>${esc((courses && courses[r.course]) || r.course || '—')}</td>
     <td>${r.laps == null ? '—' : r.laps + ' 周'}</td>
     <td>${chip(VIDEO[r.video][0], VIDEO[r.video][1])}${r.video === 'part' ? ` <span class="sub">${mins(r.video_minutes)}ぶん。無い所：${esc(gaps || '短い切れ目だけ')}</span>` : ''}</td>
-    <td><button data-laps="${esc(r.id)}" ${r.laps ? '' : 'title="この走行は周を数えていません"'}>周を見る</button>${r.laps ? ` <button data-report="${esc(r.id)}">レポートの下書き</button>` : ''} <button data-open="${esc(folder)}">走行記録</button>${vfolder ? ` <button data-open="${esc(vfolder)}">動画</button>` : ''}</td></tr>
+    <td><button data-laps="${esc(r.id)}" ${r.laps ? '' : 'title="この走行は周を数えていません"'}>周を見る</button>${r.laps ? ` <button data-report="${esc(r.id)}">レポートの下書き</button>` : ''} <button data-open="${esc(folder)}">走行記録</button>${vfolder ? ` <button data-open="${esc(vfolder)}">動画</button>` : ''}
+      <button data-ana="${esc(r.id)}" title="この走行を解析アプリで開きます（初めは書き出しに数十秒。2回目からはすぐ開きます）">解析で開く</button>${r.video !== 'none' ? ` <button data-ana="${esc(r.id)}" data-anav="1" data-mb="${Math.round((r.video_minutes || 0) * 76)}" title="動画も入れて解析アプリで開きます。動画を写すので、走行の長さぶんの場所と時間がかかります">＋動画（約${videoSize(r.video_minutes)}）</button>` : ''}</td></tr>
     <tr class="lapsrow" data-for="${esc(r.id)}" ${openLaps === r.id ? '' : 'hidden'}><td colspan="6" style="white-space:normal">${openLaps === r.id ? lapsHtml : ''}</td></tr>`;
 }
 let runsShort = true, openLaps = null, lapsHtml = '';
+const videoSize = m => { const mb = (m || 0) * 76; return mb >= 1000 ? `${(mb / 1000).toFixed(1)}GB` : `${Math.max(1, Math.round(mb / 10) * 10)}MB`; };   // 焼き込み動画は1分で約76MB
+// 解析で開く：走行を ecorun に書き出して（書き出し済みなら飛ばす）、解析アプリ（別のアプリ）で開く。様子は /api/state の ecorun で見る
+let ecorunShown = 0;
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button[data-ana]'); if (!b) return;
+  const box = $('ecorun-box'), mb = Number(b.dataset.mb || 0);
+  if (b.dataset.anav === '1' && mb >= 1000 && !confirm(`動画をPCの中で写すので、約${(mb / 1000).toFixed(1)}GBの空きと数分かかります（走行の全部の動画）。
+周だけ見るなら、動画なしで開いて、周の表の「見る」も使えます。
+
+動画も入れて開きますか？`)) return;
+  const r = await fetch('/api/analysis_open', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Video-Collect': '1'},
+    body: JSON.stringify({id: b.dataset.ana, video: b.dataset.anav === '1'})});
+  if (!r.ok) { const x = await r.json().catch(() => ({})); box.innerHTML = `<button class="close" data-ecorun-close title="閉じる">✕</button><div class="banner bad" style="margin-top:8px">${esc(x.error || '始められませんでした')}</div>`; ecorunShown = -1; return; }
+  ecorunShown = 0; load();
+});
+function renderEcorun(s) {
+  const k = s.ecorun, box = $('ecorun-box'); if (!k || !box || ecorunShown === -1 && !k.running) return;
+  if (k.running) { const t = Math.round(s.time - k.started);
+    box.innerHTML = `<div class="sub" style="margin-top:8px">解析アプリで開くために、走行を書き出しています${k.video ? '（動画も）' : ''}…（${t}秒）<br>${esc(k.line || '')}</div><div class="bar"><div class="busy"></div></div>`;
+    ecorunShown = 0; return; }
+  if (ecorunShown === k.started) return;
+  ecorunShown = k.started;
+  box.innerHTML = '<button class="close" data-ecorun-close title="閉じる">✕</button>' + (k.ok ? `<div class="result" style="margin-top:8px"><b>解析アプリで開きました</b>（${k.exported ? '書き出しました' : '前に書き出したものを使いました'}${k.gnss === 'sd' ? '。測位はシールドのSDの10Hz' : k.gnss === 'logger' ? '。測位は本体の記録' : ''}）。窓が出ないときは、タスクバーの解析アプリを見てください。
+      <div class="row" style="margin-top:8px"><button data-open="${esc(k.out)}">書き出した所を開く</button></div></div>`
+    : `<div class="banner bad" style="margin-top:8px"><b>開けませんでした。</b>${esc(k.error)}</div>`);
+}
+document.addEventListener('click', e => { if (e.target.closest('button[data-ecorun-close]')) $('ecorun-box').innerHTML = ''; });
 const lapTime = s => s == null ? '—' : `${Math.floor(s / 60)}:${(s % 60).toFixed(3).padStart(6, '0')}`;
 function lapsTable(d) {
   if (!d.laps.length) return '<div class="sub">この走行には、数え終わった周がありません（線を通っていない・ラップの線が無い）。</div>';
@@ -679,6 +712,7 @@ function render(s) {
   last = s;
   renderNow(s);
   renderKeep(s);
+  renderEcorun(s);
   if (window.renderReportRun) renderReportRun(s);
   if (window.renderLines) renderLines(s);   // 「コースと線」の段（course_lines.js）
   if (window.renderSettings) renderSettings(s);   // 「設定」の段（settings.js）
