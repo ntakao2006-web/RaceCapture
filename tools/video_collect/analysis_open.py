@@ -24,7 +24,8 @@ REPO = Path(__file__).resolve().parents[2]
 EXPORTER = REPO / 'tools' / 'analysis_export' / 'export_session.py'
 APP_NAME = 'EcoLogger-Analysis'
 VIDEO_MB_PER_MIN = 76.0          # 焼き込み動画の大きさの目安（SUGO 11/8：443MB／5分48秒）
-NOT_FOUND = (f'解析アプリが見つかりません。配る zip（{APP_NAME}-<版>-win64.zip）を %USERPROFILE%\\.ecologger\\ に広げるか、'
+RELEASES = 'https://github.com/ntakao2006-web/ecologger-analysis/releases'
+NOT_FOUND = (f'解析アプリが見つかりません。{RELEASES} から zip（{APP_NAME}-<版>-win64.zip）を落として %USERPROFILE%\\.ecologger\\ に広げるか、'
              '%USERPROFILE%\\.ecologger\\analysis_app.txt の1行目に exe かリポジトリのフォルダーを書いてください')
 
 
