@@ -166,6 +166,38 @@ class ExportTest(unittest.TestCase):
         self.assertEqual(pairs[-1], [5.0, 7.0])
         self.assertEqual(len(pairs), 6)
 
+    def test_line_crossings(self):
+        # 北緯35度を東へ40m/sで走り、東向きの線（経度135度）を START+12.34 秒に越える。測位は10Hz
+        m_per_deg = ex.EARTH_M_PER_DEG * math.cos(math.radians(35.0))
+        t = ex.np.arange(START, START + 25, 0.1)
+        x = 40.0 * (t - (START + 12.34))
+        g = ex.pd.DataFrame({'utc': t, 'lat': 35.0 + 3.0 / ex.EARTH_M_PER_DEG, 'lon': 135.0 + x / m_per_deg})
+        line = {'lat': 35.0, 'lon': 135.0, 'bearing': 90.0, 'width_m': 20.0}
+        c = ex.line_crossings(g, line)
+        self.assertEqual(len(c), 1)
+        self.assertAlmostEqual(c[0], START + 12.34, delta=1e-4)
+        self.assertEqual(len(ex.line_crossings(g, {**line, 'bearing': 270.0})), 0)   # 逆向きは数えない
+        self.assertEqual(len(ex.line_crossings(g, {**line, 'width_m': 4.0})), 0)     # 中心から3m：幅4mの外
+        gap = g[(g.utc < START + 12.0) | (g.utc > START + 13.2)]                       # 越えた所の前後1.2秒が抜けた
+        self.assertEqual(len(ex.line_crossings(gap, line)), 0)
+
+    def test_snap_laps_shares_boundaries(self):
+        cross = [100.0, 161.25, 221.75, 283.75]
+        delay = [0.05, 0.17, -0.01, 0.12]                   # 周が増えた行は、越えた時刻から周ごとに違うだけ遅れる
+        times = [61.25, 60.5, 62.0]
+        laps = [{'lap': i + 2, 'end': cross[i + 1] + delay[i + 1], 'time_s': times[i]} for i in range(3)]
+        for x in laps:
+            x['start'] = x['end'] - x['time_s']
+        laps[2]['time_s'] = 62.5                            # 本体のタイムと合わない周（線が違う）
+        laps[2]['start'] = laps[2]['end'] - 62.5
+        self.assertEqual(ex.snap_laps(laps, ex.np.array(cross)), 2)
+        self.assertEqual((laps[0]['start'], laps[0]['end']), (100.0, 161.25))
+        self.assertEqual(laps[1]['start'], laps[0]['end'])  # 前の周の終わりと次の周の始まりが同じ時刻
+        self.assertEqual(laps[1]['end'], 221.75)
+        self.assertNotIn('snapped', laps[2])
+        self.assertAlmostEqual(laps[2]['end'], 283.87)       # 合わない周は周が増えた行の時刻のまま
+        self.assertEqual(ex.snap_laps(laps, ex.np.array([])), 0)
+
     def test_unknown_laps_stop_with_reason(self):
         with self.assertRaises(SystemExit) as cm:
             ex.export(self.log, Path(self.tmp.name) / 'x.ecorun', laps=(8, 9), log=lambda *a: None)

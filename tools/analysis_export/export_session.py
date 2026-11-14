@@ -14,8 +14,11 @@
 出力：drive_logs/sessions/<コース>_<日付>_<周>.ecorun/（位置を含むのでGit管理外）
 
 時刻は全部、本体の時計（host_utc）を測位の時計（gnss_utc）で直したもの（tools/video_collect/run_index.py と同じ直し方を、
-行ごとに前後の中央値で）。測位の点だけは、受信機が解を出した時刻（itow）に置く。周の数え方は run_laps.py と同じ
-（LapCount が増えた行が周の終わり、そこから LapTime を引いた所が始まり）。
+行ごとに前後の中央値で）。測位の点だけは、受信機が解を出した時刻（itow）に置く。周は run_laps.py と同じく
+LapCount が増えた行で見つけ、タイムは本体の LapTime を使う。ただし周が増えた行は線を越えたあと本体が判断した時刻で、
+周ごとに −20〜+190ms 遅れる（SUGO 11/8）。そこで周の始まり・終わりは、測位の点からコースの線を越えた時刻を
+本体（EcoCapture-Web/lap.py）と同じ計算で出し直して置く。続いた周は境目が同じ時刻になる。出し直したタイムが
+本体のタイムと SNAP_TOL 以上違う周（線が本体と違う・測位が抜けた）は、周が増えた行の時刻のまま残す。
 """
 import argparse
 import gzip
@@ -43,6 +46,10 @@ LEAP = 18               # GPSとUTCの差（秒）
 MAX_HACC = 25.0         # これより粗い解は捨てる（EcoCapture-Web/lap.py と同じ）
 HOLD_S = 1.0            # チャンネルの値をこの秒数まで持ち続ける（それより古ければ空欄）
 CLOCK_WINDOW = 1001     # 時計の直しの中央値をとる行数（100行/秒で約10秒）
+EARTH_M_PER_DEG = 111320.0   # EcoCapture-Web/lap.py と同じ
+MAX_FIX_GAP_S = 1.0     # これより離れた2点のあいだでは線を越えたと見ない（lap.py と同じ）
+SNAP_BEFORE, SNAP_AFTER = 1.0, 0.5   # 周が増えた行のこれだけ前〜後の、線を越えた時刻を探す
+SNAP_TOL = 0.02         # 出し直したタイムと本体のタイムの差がこれ以内なら、出し直した時刻を使う（秒）
 
 # 書き出さない列：位置と周（測位・周は別に書く）、本体の中の数え方・状態、生のバイト列
 SKIP = {
@@ -141,6 +148,46 @@ def find_laps(t, df):
             sectors = {}
         count = now
     return laps
+
+
+def line_crossings(g, line):
+    """測位の点（列 utc・lat・lon）が線を前向きに越えた時刻（UTCの秒）の配列。lap.py の crossing_point・line_crossing と同じ計算"""
+    if not len(g) or not line or not all(k in line for k in ('lat', 'lon', 'bearing', 'width_m')):
+        return np.array([])
+    lat0, lon0 = line['lat'], line['lon']
+    x = (g.lon.values - lon0) * EARTH_M_PER_DEG * math.cos(math.radians(lat0))
+    y = (g.lat.values - lat0) * EARTH_M_PER_DEG
+    rad = math.radians(line['bearing'])
+    nx, ny = math.sin(rad), math.cos(rad)
+    d = x * nx + y * ny                       # 線から進む向きへの距離
+    side = x * ny - y * nx                    # 線の中心から横への距離（+が進む向きの右）
+    t = g.utc.values
+    out = []
+    for i in np.flatnonzero((d[:-1] < 0) & (d[1:] >= 0) & (np.diff(t) <= MAX_FIX_GAP_S) & (np.diff(t) > 0)):
+        f = -d[i] / (d[i + 1] - d[i])
+        if abs(side[i] + (side[i + 1] - side[i]) * f) <= line['width_m'] / 2:
+            out.append(t[i] + (t[i + 1] - t[i]) * f)
+    return np.array(out)
+
+
+def snap_laps(laps, crossings):
+    """周の始まり・終わりを、線を越えた時刻に置き直す。返す値は置き直した周の数。
+    周が増えた行（end）の SNAP_BEFORE 前〜SNAP_AFTER 後にある越えた時刻を終わり、始まりも同じように探し、
+    その差が本体のタイムと SNAP_TOL 以内のときだけ置き直す（タイムは本体の値のまま）"""
+    if not len(crossings):
+        return 0
+
+    def near(at):
+        k = np.flatnonzero((crossings >= at - SNAP_BEFORE) & (crossings <= at + SNAP_AFTER))
+        return float(crossings[k[np.argmin(abs(crossings[k] - at))]]) if len(k) else None
+
+    done = 0
+    for x in laps:
+        ce, cs = near(x['end']), near(x['start'])
+        if ce is not None and cs is not None and abs((ce - cs) - x['time_s']) <= SNAP_TOL:
+            x['start'], x['end'], x['snapped'] = cs, ce, True
+            done += 1
+    return done
 
 
 def parse_laps(text):
@@ -331,6 +378,7 @@ def export(csv_path, out=None, laps=None, sd=None, video=False, rate=50.0, lead=
     g = g[(g.utc >= t_start) & (g.utc <= t_end)] if len(g) else g
 
     cid, course = course_info(*(g[['lat', 'lon']].iloc[-1].tolist() if len(g) else (None, None)))
+    snap_laps(all_laps, line_crossings(g, course and course.get('line')))
     day = datetime.fromtimestamp(t0, run_index.JST).strftime('%Y%m%d')
     name = f"{cid or 'run'}_{day}_{f'{laps[0]}-{laps[1]}' if laps else 'all'}"
     out_dir = Path(out) if out else ROOT / 'drive_logs' / 'sessions' / f'{name}.ecorun'
@@ -362,6 +410,15 @@ def export(csv_path, out=None, laps=None, sd=None, video=False, rate=50.0, lead=
     lap_out = [{'lap': x['lap'], 'start': round(x['start'] - t0, 3), 'end': round(x['end'] - t0, 3), 'time_s': x['time_s'],
                 'sectors': x['sectors']} for x in all_laps if x['start'] >= t_start - 1e-6 and x['end'] <= t_end + 1e-6]
     vids = export_videos(out_dir, t_start, t_end, t0) if video else []
+    kept = [x for x in all_laps if x['start'] >= t_start - 1e-6 and x['end'] <= t_end + 1e-6]
+    unsnapped = [x['lap'] for x in kept if not x.get('snapped')]
+    if not kept:
+        lap_note = []
+    elif not unsnapped:
+        lap_note = ['周の始まり・終わりは、測位からコースの線を越えた時刻を出し直したもの（続いた周は境目が同じ時刻）']
+    else:
+        lap_note = [f'周の始まり・終わりは、測位からコースの線を越えた時刻を出し直したもの。ただし {", ".join(map(str, unsnapped))}周目は'
+                    '出し直せず（線が本体と違う・測位が抜けた）、本体が周を数えた時刻のまま（数十〜百数十ms遅い）']
 
     title = f"{course['name'] if course else '走行'} {datetime.fromtimestamp(t0, run_index.JST).strftime('%Y-%m-%d')}"
     title += f' {laps[0]}〜{laps[1]}周' if laps else ''
@@ -374,12 +431,13 @@ def export(csv_path, out=None, laps=None, sd=None, video=False, rate=50.0, lead=
         'channels_file': 'channels.csv.gz', 'channels': chans, 'rate_hz': rate,
         **({'gnss_file': 'gnss.csv.gz', 'gnss': meta_gnss} if meta_gnss else {}),
         'laps': lap_out, 'videos': vids,
-        'notes': ['周のタイムは本体が走りながら数えたもの（公式の計測ではない）'] +
+        'notes': ['周のタイムは本体が走りながら数えたもの（公式の計測ではない）'] + lap_note +
                  (['測位はシールドのSDに残った受信機の解'] if gsrc == 'sd' else []),
     }
     (out_dir / 'session.json').write_text(json.dumps(session, ensure_ascii=False, indent=1), encoding='utf-8')
     log(f'書き出し：{out_dir}')
-    log(f'  {len(grid)}行×{len(chans)}チャンネル、測位 {len(g)}点（{gsrc}）、周 {len(lap_out)}、動画 {len(vids)}本、時計 {clock}')
+    log(f'  {len(grid)}行×{len(chans)}チャンネル、測位 {len(g)}点（{gsrc}）、周 {len(lap_out)}'
+        f'（線を越えた時刻に置いた周 {len(lap_out) - len(unsnapped)}）、動画 {len(vids)}本、時計 {clock}')
     return out_dir, session
 
 
