@@ -17,6 +17,7 @@
 | `video_hud/`・`lens_view/`・`video_exposure/` | 焼き込みの計器・レンズの補正・露出の設定をPCから見る・送る。説明は`unoq_video_check_procedure.md` 5-14・5-19・5-21 |
 | `unoq_overlay_enc/` | **本体の録画のソフト**（走行映像への計器の焼き込み）。本体へ入れるスクリプトがこの場所を見ているので動かさない |
 | `home_telemetry/` | 自宅のサーバーに入れるもの（LTEの値の受け取り・ピットのページ）。`deploy/`の説明は`server_deploy_grafana_x86.md` |
+| `analysis_export/` | 走行記録を解析アプリ（別リポジトリ`ecologger-analysis`）用の形式「ecorun」に書き出す。下に説明 |
 | `dev/` | 開発・調べもの用：`race_replay`（エミュレーターでの走行の再生）・`podium_replay`・`unoq_spi_sd_test`（E-6の試験）・`lte_antenna`（電波の記録。操作メニューの「設定・調べもの」から呼ぶ）・`can1_loss`（車載CANの取りこぼしを数える） |
 
 通話の道具（`voice_gate`・`discord_bridge`）は`archive/voice/`、エコランの記録表は`ecorun/record_sheet/`へ移した（2026-11-13）。
@@ -31,6 +32,7 @@
   - その案を見て直して保存する画面は、PCのアプリの「走行を見る」→「レポートの下書き」（`report_ops.py`・`report.js`。保存先は`drive_logs/reports/`）
   - 保存したあと、同じ画面の「保存した決めごとで解析を流す」で、この解析を流せる（2026-11-14。出力は`drive_logs/reports/<走行のid>/`）。予選の走行（`quali_csv`・`quali_laps`）とLTEの記録（`lte_dir`）は、設定に無ければその項目が出ないだけ
   - 流した結果は、同じ画面の「結果を見る」で数字とグラフになる（`analysis_view.js`。外のライブラリなし）。`report_page.html`（Claudeのダッシュボード用）はSUGO 11/8 の文章つきで、別物
+- `tools/analysis_export/`：**走行記録を解析アプリ用の形式「ecorun」に書き出す**（SP-10-2、2026-11-14）。`export_session.py <走行記録のCSV> [--laps 31-33] [--sd <SDのフォルダー>] [--video]`。形式の文書は解析アプリのリポジトリ（GitHub `ntakao2006-web/ecologger-analysis`）の`docs/format.md`で、**ロガーと解析アプリの境目はこの形式だけ**。出すのは物理量の値（`.meta.json`の単位つき）・本体が出した周とセクターのタイム・測位の解（受信機が解を出した時刻に置く。`--sd`ならSDの10Hz全部）・動画（キーフレームで切ったMP4と、動画の秒と時刻の対応表）・コースの線。**CANのIDや式・線の判断の中身は出さない**。時刻は本体の時計を測位の時計で直したもの（行ごとに前後約10秒の中央値）。出力は位置を含むので`drive_logs/sessions/<コース>_<日付>_<周>.ecorun/`
 - `tools/lap_video/`：**走行映像から1周だけを切り出し、風切りを下げた公開用のMP4を作る**（PCで動かす。`lap_video.py laps <日付>`で周の一覧、`clip <日付> --best`か`--lap N`）。周の数え方は`tools/race_analysis`と同じ。風切りは記録の回転数でエンジンの倍音だけを残し、間を下げる（`wind_reduce.py`、ユーザーが聴き比べて決めた「8番」の設定。ふつうの雑音取りは効かなかった）。出力は`drive_logs/v2_video/laps/`。ffmpegはwingetの`Gyan.FFmpeg`。手順は`unoq_video_check_procedure.md` 5-25。**スピン・コースアウト・後ろが出た所の切り抜きを1本につなぐ**のは同じ場所の`incidents.py`（`find`で候補→`sheet`のコマで本物を選んで設定の`clips`へ→`build`。例`incidents_sugo_20261107-08.json`、出力`drive_logs/v2_video/incidents/`、手順5-26）
 - `tools/dev/imagery_check/imagery_check.py`：航空写真の位置の正しさを、走った跡を重ねて測る（SP-4-12）。SDの10Hzの解（`sd_gnss.py`が作る`sd_nav.pkl`）を国土地理院とEsriの写真に重ね、舗装とのずれを数える。出力は位置を含むので`drive_logs/`の下へ出す
 - `tools/home_telemetry/home.html`：**ピットの表紙**（スマホで開く入口。SP-6-1・SP-6-3、2026-11-13）。いまの要点・ほかの画面への行き先・合言葉を入れた人のロガーへの操作（今ある5つの命令）。`live_bridge.py`が`/home`と`/`で出す。**自宅のサーバーにはまだ入れていない**（了承のあと）。PCの中だけで確かめるのは`tools/home_telemetry/dev_home.py`（作りものの車と中継。`websockets`が要る）
