@@ -94,6 +94,7 @@ details.more > summary { font-size: 14px; margin: 16px 0 4px; }
 .opres { border-radius: 10px; padding: 10px 12px; margin-top: 10px; background: var(--ok-bg); }
 .opres.bad { background: var(--bad-bg); color: var(--bad); }
 input.num { font: inherit; width: 5em; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); }
+.lapsrow select { font: inherit; padding: 5px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); max-width: 100%; }
 #key-canvas { background: #fff; border-radius: 8px; display: block; margin: 8px 0; }
 .bar > div.busy { width: 30%; animation: busy 1.6s ease-in-out infinite; }
 @keyframes busy { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
@@ -488,7 +489,7 @@ function runRow(r, root, courses) {
   return `<tr><td>${hhmm(r.start)}〜${hhmm(r.end)}${r.clock === 'host' ? ' <span class="sub" title="測位していない走行なので、本体の時計のままです。本体の時計は、合うまでずれていることがあります">（時刻は本体の時計）</span>' : ''}</td><td>${mins(r.minutes)}</td><td>${esc((courses && courses[r.course]) || r.course || '—')}</td>
     <td>${r.laps == null ? '—' : r.laps + ' 周'}</td>
     <td>${chip(VIDEO[r.video][0], VIDEO[r.video][1])}${r.video === 'part' ? ` <span class="sub">${mins(r.video_minutes)}ぶん。無い所：${esc(gaps || '短い切れ目だけ')}</span>` : ''}</td>
-    <td><button data-laps="${esc(r.id)}" ${r.laps ? '' : 'title="この走行は周を数えていません"'}>周を見る</button> <button data-open="${esc(folder)}">走行記録</button>${vfolder ? ` <button data-open="${esc(vfolder)}">動画</button>` : ''}</td></tr>
+    <td><button data-laps="${esc(r.id)}" ${r.laps ? '' : 'title="この走行は周を数えていません"'}>周を見る</button>${r.laps ? ` <button data-report="${esc(r.id)}">レポートの下書き</button>` : ''} <button data-open="${esc(folder)}">走行記録</button>${vfolder ? ` <button data-open="${esc(vfolder)}">動画</button>` : ''}</td></tr>
     <tr class="lapsrow" data-for="${esc(r.id)}" ${openLaps === r.id ? '' : 'hidden'}><td colspan="6" style="white-space:normal">${openLaps === r.id ? lapsHtml : ''}</td></tr>`;
 }
 let runsShort = true, openLaps = null, lapsHtml = '';
@@ -770,5 +771,6 @@ setInterval(load, 1500);
 </script>
 <script src="/course_lines.js"></script>
 <script src="/settings.js"></script>
+<script src="/report.js"></script>
 </body>
 </html>

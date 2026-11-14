@@ -56,6 +56,7 @@ LOG_BYTES_PER_MIN = 5e6    # 走行記録（EcoCaptureのログ）は記録中�
 PAGE = Path(__file__).with_name('video_collect.html')
 LINES_JS = Path(__file__).with_name('course_lines.js')
 SETTINGS_JS = Path(__file__).with_name('settings.js')
+REPORT_JS = Path(__file__).with_name('report.js')
 
 # 本体で動かす一覧のスクリプト。D・LOGS・BOOTF は Link が先頭に付ける
 LIST_SCRIPT = r'''
@@ -853,6 +854,20 @@ class App:
             pass
         return {'id': run_id, 'warn': warn, **run_laps.cached(self.pc.root.parent, run, warn)}
 
+    def report(self, run_id, body=None):
+        """レポートの決めごと（report_ops.py）。body が無ければ案と前に保存したものを返し、あれば確かめて保存する"""
+        import report_ops
+        run = next((r for r in self.runs()['runs'] if r['id'] == run_id), None)
+        if not run:
+            raise KeyError(run_id)
+        table = self.run_laps(run_id)
+        root = self.pc.root.parent
+        if body is None:
+            others = [{'id': r['id'], 'start': r['start'], 'minutes': r['minutes'], 'laps': r.get('laps')}
+                      for r in self.runs()['runs'] if r.get('day') == run.get('day') and r['id'] != run_id and r.get('laps')]
+            return {**report_ops.view(root, run, table), 'others': others}
+        return report_ops.save(root, run, table, body)
+
     def lap_clip(self, run_id, index):
         """周の表の index 番目の周の動画を、ブラウザで見られる形にして返す（lap_clip.py。初めては数秒〜十数秒）"""
         import lap_clip
@@ -1003,6 +1018,8 @@ class App:
                 raise RuntimeError('いま聞いている途中')
             self.now['lte'] = {'running': True}
             threading.Thread(target=self.watcher.ask_lte, daemon=True).start()
+        elif path == '/api/report_save':
+            return self.report(str(body.get('id')), body)
         elif path == '/api/lap_keep':
             self.lap_keep(str(body.get('id')), int(body.get('n', -1)), bool(body.get('clean')))
         elif path == '/api/open':
@@ -1086,6 +1103,15 @@ def make_server(app, port):
                 return self.send(200, PAGE.read_bytes(), 'text/html; charset=utf-8')
             if self.path == '/course_lines.js':   # 「コースと線」の段のJS（画面が大きいので分けてある）
                 return self.send(200, LINES_JS.read_bytes(), 'text/javascript; charset=utf-8')
+            if self.path == '/report.js':         # 「走行を見る」のレポートの下書きのJS（同じく分けてある）
+                return self.send(200, REPORT_JS.read_bytes(), 'text/javascript; charset=utf-8')
+            if self.path.startswith('/api/report?id='):
+                try:
+                    return self.send(200, app.report(urllib.parse.unquote(self.path.split('=', 1)[1])))
+                except KeyError:
+                    return self.send(404, {'error': 'その走行が見つからない'})
+                except (OSError, ValueError) as exc:
+                    return self.send(409, {'error': f'走行記録を読めない: {exc}'})
             if self.path == '/settings.js':       # 「設定」の段のJS（同じく分けてある）
                 return self.send(200, SETTINGS_JS.read_bytes(), 'text/javascript; charset=utf-8')
             if self.path == '/api/state':
